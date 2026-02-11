@@ -202,13 +202,13 @@
 
     <div class="divider"></div>
 
-    <!-- Poll section -->
+    /* Poll section */
     <section class="poll-section">
       <h1 class="poll-title">Vote for Your Favorite Character</h1>
       <p class="poll-subtitle">Click once — you can change your vote anytime</p>
 
       <div class="poll-page">
-        <!-- Big cards -->
+        /* Big cards */
         <div class="big-card" id="leftBig">
           <img id="leftImg" src="/images/poll/1.jpg" loading="lazy">
         </div>
@@ -216,7 +216,7 @@
           <img id="rightImg" src="/images/poll/1.jpg" loading="lazy">
         </div>
 
-        <!-- Center content -->
+        /* Center content */
         <div class="center">
           <div class="grid" id="grid"></div>
 
@@ -248,10 +248,13 @@
 
   </div>
 
-  <!-- Shared navigation loader -->
+  /* Shared navigation loader */
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- Poll logic -->
+  /* FingerprintJS for device-unique voter hash (shared across browsers on the same machine) */
+  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+
+  /* Poll logic */
   <script>
     // ---------- Persistence & language/theme ----------
     const savedLang = localStorage.getItem("language");
@@ -343,13 +346,18 @@
 
     let rotateIndex = 1;
 
-    // Per-browser voter hash
-    let voterHash = localStorage.getItem("voter_hash_poll");
-    if (!voterHash) {
-      voterHash = crypto.randomUUID();
-      localStorage.setItem("voter_hash_poll", voterHash);
+    // Device-unique voter hash (shared across browsers on the same machine)
+    async function getVoterHash() {
+      let hash = localStorage.getItem("voter_hash_poll");
+      if (!hash) {
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+        hash = result.visitorId;
+        localStorage.setItem("voter_hash_poll", hash);
+      }
+      console.log("Current voter hash (should be the same in all browsers on this computer):", hash);
+      return hash;
     }
-    console.log("Current voter hash (per-browser):", voterHash);
 
     // Build small cards
     for (let i = 1; i <= TOTAL; i++) {
@@ -400,6 +408,7 @@
     // Vote function — upsert with on_conflict (reliable, like your old working code)
     async function vote(optionId) {
       try {
+        const voterHash = await getVoterHash();
         const response = await fetch(`${SUPABASE_URL}/rest/v1/votes?on_conflict=poll_id,voter_hash`, {
           method: "POST",
           headers: {
@@ -505,7 +514,7 @@
     });
   </script>
 
-  <!-- Shared tab title animation -->
+  /* Shared tab title animation */
   <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
