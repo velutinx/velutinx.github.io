@@ -40,7 +40,7 @@ function animateTitle() {
     // Phase 2: Three quick blank flashes (use " " to avoid white flash)
     let blankCount = 0;
     const blankInterval = setInterval(() => {
-      document.title = "⠀⠀⠀.";  // single space → truly blank, no white text
+      document.title = "⠀⠀⠀⠀⠀⠀";  // single space → truly blank, no white text
       setTimeout(() => {
         document.title = BASE_TITLE;
         blankCount++;
