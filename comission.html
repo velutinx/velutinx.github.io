@@ -1,428 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>VELUTINX — Commissions</title>
-
-<style>
-/* =========================================================
-   ===== Root Variables
-   ========================================================= */
-:root {
-  --bg: #d4d0c1;
-  --divider: #aa9e76;
-  --text: #111;
-
-  --bg-dark: #0f0f12;
-  --divider-dark: #6f6a4e;
-  --text-dark: #e6e3d8;
-}
-
-/* =========================================================
-   ===== Global Reset & Body  (CLEANED)
-   ========================================================= */
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  font-family: system-ui, sans-serif;
-  color: var(--text);
-  overflow-x: hidden;
-  transition: background 0.6s ease, color 0.6s ease;
-}
-
-body.dark {
-  background: var(--bg-dark);
-  color: var(--text-dark);
-}
-
-/* ✅ NEW: animate THIS instead of body */
-#page {
-  opacity: 0;
-  transform: translateY(60px);
-  animation: pageReveal 0.7s ease-out forwards;
-}
-
-@keyframes pageReveal {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* =========================================================
-   ===== Language Swipe Overlay
-   ========================================================= */
-.lang-swipe {
-  position: fixed;
-  bottom: -120%;
-  left: 0;
-  width: 100%;
-  height: 120%;
-  background: var(--divider);
-  z-index: 10000;
-  pointer-events: none;
-}
-.lang-swipe.active {
-  animation: langSwipeUp 0.55s ease-in forwards;
-}
-
-@keyframes langSwipeUp {
-  to { bottom: 120%; }
-}
-
-/* =========================================================
-   ===== Language Toggle (Fixed)
-   ========================================================= */
-.lang-toggle {
-  position: fixed;
-  top: 20%;
-  right: 24px;
-  width: 54px;
-  height: 54px;
-  background: var(--divider);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  cursor: pointer;
-  border-radius: 6px;
-  z-index: 9999;
-}
-
-.lang-toggle:hover {
-  animation: langWobble 1.6s ease-in-out infinite;
-  font-size: 16px;
-}
-
-/* =========================================================
-   ===== Theme Toggle (Fixed)
-   ========================================================= */
-.theme-toggle {
-  position: fixed;
-  top: 80%;
-  right: 24px;
-  width: 72px;
-  height: 36px;
-  background: #cfcab8;
-  border-radius: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  z-index: 9999;
-}
-
-.theme-knob {
-  width: 28px;
-  height: 28px;
-  background: #000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  transition: transform 0.4s ease, background 0.4s ease;
-}
-
-.theme-knob::before { content: "🌙"; }
-
-body.dark .theme-toggle { background: #111; }
-body.dark .theme-knob {
-  transform: translateX(34px);
-  background: var(--divider-dark);
-}
-body.dark .theme-knob::before { content: "☀️"; }
-
-.theme-toggle:hover {
-  animation: langWobble 1.6s ease-in-out infinite;
-}
-
-/* =========================================================
-   ===== Wobble Animations
-   ========================================================= */
-@keyframes langWobble {
-  0% { transform: scale(1.1) rotate(0deg); }
-  25% { transform: scale(1.1) rotate(-18deg); }
-  50% { transform: scale(1.1) rotate(18deg); }
-  75% { transform: scale(1.1) rotate(-10deg); }
-  100% { transform: scale(1.1) rotate(0deg); }
-}
-
-/* =========================================================
-   ===== Navigation Blobs
-   ========================================================= */
-.nav {
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  padding: 28px 16px 10px;
-}
-
-.blob-btn {
-  width: 180px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.blob-btn:hover {
-  animation: blobWobble 1.6s ease-in-out infinite;
-  transform: scale(1.2);
-}
-
-@keyframes blobWobble {
-  0% { transform: scale(1.2) rotate(0deg); }
-  25% { transform: scale(1.2) rotate(-6deg); }
-  50% { transform: scale(1.2) rotate(6deg); }
-  75% { transform: scale(1.2) rotate(-4deg); }
-  100% { transform: scale(1.2) rotate(0deg); }
-}
-
-.blob-svg path {
-  fill: none;
-  stroke: var(--divider);
-  stroke-width: 6;
-  transition: stroke 0.6s ease;
-}
-
-body.dark .blob-svg path {
-  stroke: var(--divider-dark);
-}
-
-.blob-text {
-  font-weight: 900;
-  letter-spacing: 2px;
-  font-size: 19px;
-  fill: var(--text);
-  transition: font-size 0.2s ease;
-  pointer-events: none;
-}
-
-body.dark .blob-text {
-  fill: var(--text-dark);
-}
-
-.blob-btn:hover .blob-text {
-  font-size: 25px;
-}
-
-/* =========================================================
-   ===== Dividers
-   ========================================================= */
-.divider {
-  width: 80%;
-  height: 6px;
-  background: var(--divider);
-  margin: 22px auto;
-  border-radius: 4px;
-}
-
-body.dark .divider { background: var(--divider-dark); }
-
-/* =========================================================
-   ===== Commission Content
-   ========================================================= */
-.commission-wrap {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 60px 24px 80px;
-  position: relative;
-}
-
-.commission-box {
-  background: #eeeae0;
-  border: 3px solid var(--divider);
-  border-radius: 14px;
-  padding: 40px 36px;
-  min-height: 360px;
-  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
-  position: relative;
-  overflow: hidden;
-  transition: background 0.6s ease, border-color 0.6s ease;
-}
-
-body.dark .commission-box {
-  background: #16161b;
-  border-color: var(--divider-dark);
-}
-
-.commission-box h2 {
-  font-size: 18px;
-  letter-spacing: 2px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-.commission-box p {
-  font-size: 14px;
-  line-height: 1.6;
-  letter-spacing: 1px;
-  opacity: 0.9;
-  text-align: center;
-}
-
-.placeholder {
-  margin-top: 40px;
-  font-style: italic;
-  opacity: 0.7;
-}
-
-/* =========================================================
-   ===== Cursor Sparkles
-   ========================================================= */
-.star {
-  position: fixed;
-  pointer-events: none;
-  color: var(--divider);
-  font-size: 14px;
-  animation: driftFall 2s ease-out forwards;
-  z-index: 9999;
-}
-
-@keyframes driftFall {
-  to {
-    opacity: 0;
-    transform: translate(calc(-20px + 40px * var(--drift)), 90px) scale(0.4);
-  }
-}
-
-/* =========================================================
-   ===== Box-Specific Falling Sparkles
-   ========================================================= */
-.box-star {
-  position: absolute;
-  color: var(--divider);
-  font-size: 18px;
-  pointer-events: none;
-  animation: boxStarFall 6s linear forwards;
-}
-
-@keyframes boxStarFall {
-  from { opacity: 0; transform: translateY(-20px); }
-  10% { opacity: 1; }
-  to { opacity: 0; transform: translateY(420px); }
-}
-</style>
+  <meta charset="utf-8">
+  <title>VELUTINX — Commissions</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
-
 <body>
 
-<!-- Language Swipe Bar -->
-<div class="lang-swipe" id="langSwipe"></div>
-
-<!-- Fixed Toggles -->
-<div class="lang-toggle" id="langToggle">日本語</div>
-
-<div class="theme-toggle" id="themeToggle">
-  <div class="theme-knob"></div>
-</div>
-
-<!-- ✅ EVERYTHING BELOW IS NOW INSIDE #page -->
-<div id="page">
-
-<!-- Navigation Container -->
-<div id="nav-container"></div>
-
-<div class="divider"></div>
-
-<!-- Commission Content -->
-<section class="commission-wrap">
-  <div class="commission-box" id="commissionBox">
-    <h2 id="comTitle">COMMISSIONS</h2>
-
-    <p id="comInfo">Commission information will be added here soon.</p>
-
-    <p class="placeholder" id="comList">
-      ✦ Prices<br>
-      ✦ Examples<br>
-      ✦ Terms of Service<br>
-      ✦ Queue Status<br><br>
-      (Placeholder content — coming soon ♡)
-    </p>
+  <!-- Fixed controls -->
+  <div class="lang-swipe" id="langSwipe"></div>
+  <div class="lang-toggle" id="langToggle">日本語</div>
+  <div class="theme-toggle" id="themeToggle">
+    <div class="theme-knob"></div>
   </div>
-</section>
 
-<div class="divider"></div>
+  <!-- Main content wrapper with page-load animation -->
+  <div id="page">
 
-</div> <!-- END #page -->
+    <!-- Navigation will be injected here by navigation.js -->
+    <div id="navContainer"></div>
 
-<!-- External Libraries -->
-<script src="js/nav-blobs.js"></script>
-<script src="js/lang-toggle.js"></script>
-<script src="js/theme-toggle.js"></script>
-<script src="js/cursor-sparkles.js"></script>
+    <div class="divider"></div>
 
-<!-- Page-Specific Script -->
-<script>
-const comTitle = document.getElementById("comTitle");
-const comInfo = document.getElementById("comInfo");
-const comList = document.getElementById("comList");
-const commissionBox = document.getElementById("commissionBox");
+    <!-- Commission content -->
+    <section class="commission-wrap">
+      <div class="commission-box" id="commissionBox">
+        <h2 id="comTitle">COMMISSIONS</h2>
 
-const EN_TITLE = "COMMISSIONS";
-const JP_TITLE = "コミッション";
+        <p id="comInfo">Commission information will be added here soon.</p>
 
-const EN_INFO = "Commission information will be added here soon.";
-const JP_INFO = "コミッション情報は近日中に追加されます。";
+        <p class="placeholder" id="comList">
+          ✦ Prices<br>
+          ✦ Examples<br>
+          ✦ Terms of Service<br>
+          ✦ Queue Status<br><br>
+          (Placeholder content — coming soon ♡)
+        </p>
+      </div>
+    </section>
 
-const EN_LIST = `✦ Prices<br>
-                 ✦ Examples<br>
-                 ✦ Terms of Service<br>
-                 ✦ Queue Status<br><br>
-                 (Placeholder content — coming soon ♡)`;
+    <div class="divider"></div>
 
-const JP_LIST = `✦ 料金<br>
-                 ✦ サンプル<br>
-                 ✦ 利用規約<br>
-                 ✦ 受付状況<br><br>
-                 （プレースホルダー — 近日公開 ♡）`;
+  </div>
 
-document.addEventListener("languagechange", (e) => {
-  const isJapanese = e.detail;
+  <!-- Shared JavaScript libraries -->
+  <script src="/assets/js/navigation.js"></script>
+  <script src="/assets/js/language-toggle.js"></script>
+  <script src="/assets/js/theme-toggle.js"></script>
+  <script src="/assets/js/cursor-sparkles.js"></script>
+  <script src="/assets/js/tab-title-animation.js"></script>
 
-  comTitle.textContent = isJapanese ? JP_TITLE : EN_TITLE;
-  comInfo.textContent = isJapanese ? JP_INFO : EN_INFO;
-  comList.innerHTML = isJapanese ? JP_LIST : EN_LIST;
+  <!-- Page-specific script (falling stars on commission box + language listener) -->
+  <script>
+    // Box-specific falling sparkles
+    const commissionBox = document.getElementById("commissionBox");
+    setInterval(() => {
+      const star = document.createElement("div");
+      star.className = "box-star";
+      star.textContent = "✦";
+      star.style.left = Math.random() * commissionBox.clientWidth + "px";
+      star.style.top = "0px";
+      commissionBox.appendChild(star);
+      setTimeout(() => star.remove(), 6000);
+    }, 700);
 
-  document.querySelectorAll(".blob-text").forEach(t => {
-    t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
-  });
-});
+    // Page-specific language updates
+    const EN_TITLE = "COMMISSIONS";
+    const JP_TITLE = "コミッション";
 
-/* Box sparkles */
-setInterval(() => {
-  const star = document.createElement("div");
-  star.className = "box-star";
-  star.textContent = "✦";
-  star.style.left = Math.random() * commissionBox.clientWidth + "px";
-  star.style.top = "0px";
-  commissionBox.appendChild(star);
-  setTimeout(() => star.remove(), 6000);
-}, 700);
-</script>
+    const EN_INFO = "Commission information will be added here soon.";
+    const JP_INFO = "コミッション情報は近日中に追加されます。";
 
-<script>
-/* =========================================================
-   ===== FIX: Mirror working language toggle from index.html
-   ========================================================= */
+    const EN_LIST = `✦ Prices<br>
+                     ✦ Examples<br>
+                     ✦ Terms of Service<br>
+                     ✦ Queue Status<br><br>
+                     (Placeholder content — coming soon ♡)`;
 
-let isJapanese = false;
+    const JP_LIST = `✦ 料金<br>
+                     ✦ サンプル<br>
+                     ✦ 利用規約<br>
+                     ✦ 受付状況<br><br>
+                     （プレースホルダー — 近日公開 ♡）`;
 
-langToggle.onclick = () => {
-  langSwipe.style.bottom = "-120%";
+    document.addEventListener("languagechange", (e) => {
+      const isJapanese = e.detail;
 
-  langSwipe.classList.remove("active");
-  void langSwipe.offsetWidth;
-  langSwipe.classList.add("active");
-
-  setTimeout(() => {
-    isJapanese = !isJapanese;
-    langToggle.textContent = isJapanese ? "EN" : "日本語";
-
-    document.dispatchEvent(
-      new CustomEvent("languagechange", { detail: isJapanese })
-    );
-  }, 180);
-};
-</script>
+      document.getElementById("comTitle").textContent = isJapanese ? JP_TITLE : EN_TITLE;
+      document.getElementById("comInfo").textContent = isJapanese ? JP_INFO : EN_INFO;
+      document.getElementById("comList").innerHTML = isJapanese ? JP_LIST : EN_LIST;
+    });
+  </script>
 
 </body>
 </html>
