@@ -148,8 +148,7 @@
       e.preventDefault();
 
       // Reset previous errors
-      const inputs = [name, email, message];
-      inputs.forEach(f => f.classList.remove("input-error"));
+      [name, email, message].forEach(f => f.classList.remove("input-error"));
 
       let hasError = false;
 
@@ -177,14 +176,31 @@
       this.reset();
     });
 
-    // Popup function
+    // Popup function (fades in + out after 5s)
     function showPopup(text) {
       const popup = document.createElement("div");
       popup.className = "popup";
       popup.textContent = text;
+      popup.style.opacity = "0";
       document.body.appendChild(popup);
-      setTimeout(() => popup.remove(), 3000);
+
+      // Fade in
+      setTimeout(() => popup.style.opacity = "1", 10);
+
+      // Fade out after 5 seconds
+      setTimeout(() => {
+        popup.style.opacity = "0";
+        setTimeout(() => popup.remove(), 500);
+      }, 5000);
     }
+
+    // Send button shake on click
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const btn = document.getElementById("sendBtn");
+      btn.style.animation = "none";
+      void btn.offsetWidth; // reflow
+      btn.style.animation = "shake 0.35s";
+    });
   </script>
 
   <!-- Shared tab title animation -->
