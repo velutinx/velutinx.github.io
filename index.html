@@ -3,30 +3,32 @@
 <head>
   <meta charset="utf-8">
   <title>VELUTINX</title>
-  <!-- Favicon (add your own later if you want) -->
-  <!-- <link rel="icon" href="/images/favicon.ico" type="image/x-icon"> -->
   <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
 
-  <!-- Fixed controls -->
+  <!-- Language swipe overlay (fixed, full-screen) -->
   <div class="lang-swipe" id="langSwipe"></div>
+
+  <!-- Fixed language toggle button -->
   <div class="lang-toggle" id="langToggle">日本語</div>
+
+  <!-- Fixed theme toggle button -->
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
 
-  <!-- Main content wrapper with page-load animation -->
+  <!-- Main content – animated on load -->
   <div id="page">
 
-    <!-- Navigation will be injected here by navigation.js -->
+    <!-- Navigation blobs (loaded via JS) -->
     <div id="navContainer"></div>
 
     <div class="divider"></div>
 
     <section class="hero">
       <div class="hero-image" id="heroImage">
-        <img src="/images/Main.jpg" alt="Velutinx">
+        <img src="/images/Main.jpg" alt="Velutinx main image">
       </div>
 
       <div class="hero-text">
@@ -36,72 +38,25 @@
         <div class="divider"></div>
 
         <a class="discord-link" href="https://discord.gg/6sHSVMEE" target="_blank">
-          <img src="/images/LogoDiscord.png" alt="Discord">
+          <img src="/images/LogoDiscord.png" alt="Join Discord">
         </a>
-
-        <!-- You can add more socials later, e.g.: -->
-        <!--
-        <a href="https://bsky.app/profile/velutinx.bsky.social" target="_blank">
-          <img src="/images/LogoBluesky.png" alt="Bluesky">
-        </a>
-        <a href="https://instagram.com/velutinx" target="_blank">
-          <img src="/images/LogoInstagram.png" alt="Instagram">
-        </a>
-        -->
       </div>
     </section>
 
     <div class="divider"></div>
 
-    <!-- Add more sections/content here in the future -->
+    <!-- Future sections can go here -->
 
   </div>
 
-  <!-- Shared JavaScript libraries -->
+  <!-- JavaScript libraries -->
   <script src="/assets/js/navigation.js"></script>
   <script src="/assets/js/language-toggle.js"></script>
   <script src="/assets/js/theme-toggle.js"></script>
   <script src="/assets/js/cursor-sparkles.js"></script>
-  <script src="/assets/js/page-load.js"></script>
-  <script src="/assets/js/hero-effects.js"></script>
-
-  <!-- Animated browser tab title -->
-  <script>
-    // Tab title animation
-    const titles = [
-      "VELUTINX",
-      "ELUTINX",
-      "LUTINX",
-      "UTINX",
-      "TINX",
-      "INX",
-      "NX",
-      "X"
-    ];
-
-    let index = 0;
-    let direction = 1; // 1 = forward, -1 = backward (if you want to reverse later)
-
-    function animateTitle() {
-      document.title = titles[index];
-      index += direction;
-
-      // Loop back
-      if (index >= titles.length || index < 0) {
-        direction *= -1; // Optional: reverse direction instead of jump
-        if (index >= titles.length) index = titles.length - 2; // smooth reverse
-        else if (index < 0) index = 1;
-      }
-
-      // Or simple loop (recommended for your case):
-      // if (index >= titles.length) index = 0;
-
-      setTimeout(animateTitle, 600); // speed: 600ms per frame — adjust as you like
-    }
-
-    // Start animation
-    animateTitle();
-  </script>
+  <script src="/assets/js/page-load.js"></script>         <!-- optional – mostly CSS driven -->
+  <script src="/assets/js/hero-effects.js"></script>      <!-- falling stars in hero -->
+  <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
 </html>
