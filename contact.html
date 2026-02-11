@@ -28,21 +28,18 @@
         <h2 id="contactTitle">CONTACT</h2>
         <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
 
-        <form id="contactForm" action="https://formspree.io/f/xqebavbr" method="POST">
-          <input type="hidden" name="_subject" value="New Contact from Website">
-          <input type="hidden" name="_replyto" value="email">
-
+        <form id="contactForm">
           <div class="form-group">
             <label id="labelName">NAME</label>
-            <input type="text" id="name" name="name" placeholder="Name" required>
+            <input type="text" id="name" placeholder="Name">
           </div>
           <div class="form-group">
             <label id="labelEmail">EMAIL</label>
-            <input type="email" id="email" name="email" placeholder="Email" required>
+            <input type="email" id="email" placeholder="Email">
           </div>
           <div class="form-group">
             <label id="labelMessage">MESSAGE</label>
-            <textarea id="message" name="message" placeholder="Message" required></textarea>
+            <textarea id="message" placeholder="Message"></textarea>
           </div>
           <div class="send-row">
             <button class="send-btn" id="sendBtn" type="submit">SEND</button>
@@ -146,13 +143,17 @@
       setTimeout(() => star.remove(), 6000);
     }, 700);
 
-    // Contact form submission + validation
+    // Contact form submission + validation (red border + shake + popup)
     document.getElementById("contactForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
+      // Define inputs (this was missing in previous versions)
+      const name = document.getElementById("name");
+      const email = document.getElementById("email");
+      const message = document.getElementById("message");
+
       // Reset previous errors
-      const inputs = [name, email, message];
-      inputs.forEach(input => {
+      [name, email, message].forEach(input => {
         input.style.borderColor = ''; // reset
         input.style.animation = 'none'; // reset shake
       });
@@ -175,6 +176,7 @@
         hasError = true;
       }
 
+      // Show popup if ANY error (empty or invalid email)
       if (hasError) {
         const errorText = isJapanese ? "すべての項目を正しく入力してください ♡" : "Please fill out all fields correctly ♡";
         showPopup(errorText);
@@ -184,8 +186,15 @@
       const successText = isJapanese ? "送信されました！近日中にご連絡します ♡♡" : "Message sent successfully! You will hear back soon! ♡♡";
       showPopup(successText);
 
-      // Formspree will handle sending — no mailto needed
-      this.submit(); // submits to Formspree endpoint
+      const subject = encodeURIComponent("Website Contact — " + name.value);
+      const body = encodeURIComponent(
+        "Name: " + name.value + "\n" +
+        "Email: " + email.value + "\n\n" +
+        message.value
+      );
+
+      window.location.href = "mailto:velutinx@yahoo.com?subject=" + subject + "&body=" + body;
+      this.reset();
     });
 
     // Popup function (red + bold + fade in/out after 5s)
