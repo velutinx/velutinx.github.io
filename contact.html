@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>VELUTINX — Contact</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+
+  <!-- Fixed controls -->
+  <div class="lang-swipe" id="langSwipe"></div>
+  <div class="lang-toggle" id="langToggle">🇯🇵</div>
+  <div class="theme-toggle" id="themeToggle">
+    <div class="theme-knob"></div>
+  </div>
+
+  <!-- Page wrapper -->
+  <div id="page">
+
+    <!-- Navigation -->
+    <div id="navContainer"></div>
+
+    <div class="divider"></div>
+
+    <!-- Contact form & social links -->
+    <section class="contact-wrap">
+      <div class="contact-left">
+        <h2 id="contactTitle">CONTACT</h2>
+        <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
+
+        <form id="contactForm">
+          <div class="form-group">
+            <label id="labelName">NAME</label>
+            <input type="text" id="name" placeholder="Name">
+          </div>
+          <div class="form-group">
+            <label id="labelEmail">EMAIL</label>
+            <input type="email" id="email" placeholder="Email">
+          </div>
+          <div class="form-group">
+            <label id="labelMessage">MESSAGE</label>
+            <textarea id="message" placeholder="Message"></textarea>
+          </div>
+          <div class="send-row">
+            <button class="send-btn" id="sendBtn" type="submit">SEND</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="contact-right" id="socialArea">
+        <a class="social-btn" href="https://x.com/VelutinxSFW" target="_blank">
+          <img src="/images/LogoTwitter.png" alt="Twitter"> Twitter
+        </a>
+        <a class="social-btn" href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank">
+          <img src="/images/LogoBluesky.png" alt="Bluesky"> Bluesky
+        </a>
+        <a class="social-btn" href="https://www.instagram.com/velutinxx/" target="_blank">
+          <img src="/images/LogoInstagram.png" alt="Instagram"> Instagram
+        </a>
+        <a class="social-btn" href="https://www.pixiv.net/en/users/117116845" target="_blank">
+          <img src="/images/LogoPixiv.png" alt="Pixiv"> Pixiv
+        </a>
+        <a class="social-btn" href="https://ko-fi.com/velutinx/tiers" target="_blank">
+          <img src="/images/LogoKoFi.png" alt="Ko-fi"> Ko-fi
+        </a>
+        <a class="social-btn" href="https://subscribestar.adult/velutinx" target="_blank">
+          <img src="/images/LogoSubscribeStar.png" alt="SubscribeStar"> SubscribeStar
+        </a>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+  </div>
+
+  <!-- Shared navigation loader -->
+  <script src="/assets/js/navigation.js"></script>
+
+  <!-- All shared functionality inline (same as index.html & artwork.html) -->
+  <script>
+    // Language toggle with flags
+    let isJapanese = false;
+    langToggle.onclick = () => {
+      langSwipe.classList.remove("active");
+      void langSwipe.offsetWidth;
+      langSwipe.classList.add("active");
+
+      setTimeout(() => {
+        isJapanese = !isJapanese;
+
+        document.querySelectorAll(".blob-text").forEach(t => {
+          t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
+        });
+
+        langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+
+        // Translate contact text
+        document.getElementById("contactTitle").textContent = isJapanese ? "お問い合わせ" : "CONTACT";
+        document.getElementById("contactDesc").textContent = isJapanese 
+          ? "メールで連絡したい場合はこちらのフォームをご利用ください。" 
+          : "Use this form if you'd like to contact me via email!";
+
+        document.getElementById("labelName").textContent = isJapanese ? "お名前" : "NAME";
+        document.getElementById("labelEmail").textContent = isJapanese ? "メールアドレス" : "EMAIL";
+        document.getElementById("labelMessage").textContent = isJapanese ? "メッセージ" : "MESSAGE";
+        document.getElementById("name").placeholder = isJapanese ? "お名前" : "Name";
+        document.getElementById("email").placeholder = isJapanese ? "メールアドレス" : "Email";
+        document.getElementById("message").placeholder = isJapanese ? "メッセージ" : "Message";
+        document.getElementById("sendBtn").textContent = isJapanese ? "送信" : "SEND";
+      }, 180);
+    };
+
+    // Theme toggle
+    themeToggle.onclick = () => document.body.classList.toggle("dark");
+
+    // Cursor sparkles
+    let lastStarTime = 0;
+    document.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastStarTime < 45) return;
+      lastStarTime = now;
+
+      const star = document.createElement("div");
+      star.className = "star";
+      star.textContent = "✦";
+      star.style.setProperty("--drift", Math.random());
+      star.style.left = e.clientX + "px";
+      star.style.top = e.clientY + "px";
+
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 2000);
+    });
+
+    // Social area falling stars (page-specific)
+    const socialArea = document.getElementById("socialArea");
+    setInterval(() => {
+      const star = document.createElement("div");
+      star.className = "social-star";
+      star.textContent = "✦";
+      star.style.left = Math.random() * socialArea.clientWidth + "px";
+      star.style.top = "0px";
+      socialArea.appendChild(star);
+      setTimeout(() => star.remove(), 6000);
+    }, 700);
+
+    // Tab title animation (optional)
+    const titles = ["VELUTINX", "ELUTINX", "LUTINX", "UTINX", "TINX", "INX", "NX", "X"];
+    let index = 0;
+    function animateTitle() {
+      document.title = titles[index];
+      index = (index + 1) % titles.length;
+      setTimeout(animateTitle, 600);
+    }
+    animateTitle();
+
+    // Contact form submission
+    document.getElementById("contactForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      [name, email, message].forEach(f => f.classList.remove("input-error"));
+
+      let hasError = false;
+
+      if (!name.value.trim()) { name.classList.add("input-error"); hasError = true; }
+      if (!email.value.includes("@")) { email.classList.add("input-error"); hasError = true; }
+      if (!message.value.trim()) { message.classList.add("input-error"); hasError = true; }
+
+      if (hasError) {
+        const errorText = isJapanese ? "すべての項目を正しく入力してください ♡" : "Please fill out all fields correctly ♡";
+        showPopup(errorText);
+        return;
+      }
+
+      const successText = isJapanese ? "送信されました！近日中にご連絡します ♡♡" : "Message sent successfully! You will hear back soon! ♡♡";
+      showPopup(successText);
+
+      const subject = encodeURIComponent("Website Contact — " + name.value);
+      const body = encodeURIComponent(
+        "Name: " + name.value + "\n" +
+        "Email: " + email.value + "\n\n" +
+        message.value
+      );
+
+      window.location.href = "mailto:velutinx@yahoo.com?subject=" + subject + "&body=" + body;
+      this.reset();
+    });
+
+    function showPopup(text) {
+      const popup = document.createElement("div");
+      popup.className = "popup";
+      popup.textContent = text;
+      document.body.appendChild(popup);
+      setTimeout(() => popup.remove(), 3000);
+    }
+  </script>
+
+</body>
+</html>
