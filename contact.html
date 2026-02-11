@@ -9,7 +9,7 @@
 
   <!-- Fixed controls -->
   <div class="lang-swipe" id="langSwipe"></div>
-  <div class="lang-toggle" id="langToggle">🇯🇵</div>
+  <div class="lang-toggle" id="langToggle"></div>
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
@@ -17,61 +17,59 @@
   <!-- Page wrapper -->
   <div id="page">
 
-    <!-- Navigation -->
-    <div id="navContainer"></div>
+<!-- Navigation -->
+<div id="navContainer"></div>
 
-    <div class="divider"></div>
+<div class="divider"></div>
 
-    <!-- Contact form & social links -->
-    <section class="contact-wrap">
-      <div class="contact-left">
-        <h2 id="contactTitle">CONTACT</h2>
-        <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
+<!-- Contact form & social links -->
+<section class="contact-wrap">
+  <div class="contact-left">
+    <h2 id="contactTitle">CONTACT</h2>
+    <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
 
-        <form id="contactForm">
-          <div class="form-group">
-            <label id="labelName">NAME</label>
-            <input type="text" id="name" placeholder="Name">
-          </div>
-          <div class="form-group">
-            <label id="labelEmail">EMAIL</label>
-            <input type="email" id="email" placeholder="Email">
-          </div>
-          <div class="form-group">
-            <label id="labelMessage">MESSAGE</label>
-            <textarea id="message" placeholder="Message"></textarea>
-          </div>
-          <div class="send-row">
-            <button class="send-btn" id="sendBtn" type="submit">SEND</button>
-          </div>
-        </form>
+    <form id="contactForm">
+      <div class="form-group">
+        <label id="labelName">NAME</label>
+        <input type="text" id="name" placeholder="Name">
       </div>
-
-      <div class="contact-right" id="socialArea">
-        <a class="social-btn" href="https://x.com/VelutinxSFW" target="_blank">
-          <img src="/images/LogoTwitter.png" alt="Twitter"> Twitter
-        </a>
-        <a class="social-btn" href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank">
-          <img src="/images/LogoBluesky.png" alt="Bluesky"> Bluesky
-        </a>
-        <a class="social-btn" href="https://www.instagram.com/velutinxx/" target="_blank">
-          <img src="/images/LogoInstagram.png" alt="Instagram"> Instagram
-        </a>
-        <a class="social-btn" href="https://www.pixiv.net/en/users/117116845" target="_blank">
-          <img src="/images/LogoPixiv.png" alt="Pixiv"> Pixiv
-        </a>
-        <a class="social-btn" href="https://ko-fi.com/velutinx/tiers" target="_blank">
-          <img src="/images/LogoKoFi.png" alt="Ko-fi"> Ko-fi
-        </a>
-        <a class="social-btn" href="https://subscribestar.adult/velutinx" target="_blank">
-          <img src="/images/LogoSubscribeStar.png" alt="SubscribeStar"> SubscribeStar
-        </a>
+      <div class="form-group">
+        <label id="labelEmail">EMAIL</label>
+        <input type="email" id="email" placeholder="Email">
       </div>
-    </section>
-
-    <div class="divider"></div>
-
+      <div class="form-group">
+        <label id="labelMessage">MESSAGE</label>
+        <textarea id="message" placeholder="Message"></textarea>
+      </div>
+      <div class="send-row">
+        <button class="send-btn" id="sendBtn" type="submit">SEND</button>
+      </div>
+    </form>
   </div>
+
+  <div class="contact-right" id="socialArea">
+    <a class="social-btn" href="https://x.com/VelutinxSFW" target="_blank">
+      <img src="/images/LogoTwitter.png" alt="Twitter"> Twitter
+    </a>
+    <a class="social-btn" href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank">
+      <img src="/images/LogoBluesky.png" alt="Bluesky"> Bluesky
+    </a>
+    <a class="social-btn" href="https://www.instagram.com/velutinxx/" target="_blank">
+      <img src="/images/LogoInstagram.png" alt="Instagram"> Instagram
+    </a>
+    <a class="social-btn" href="https://www.pixiv.net/en/users/117116845" target="_blank">
+      <img src="/images/LogoPixiv.png" alt="Pixiv"> Pixiv
+    </a>
+    <a class="social-btn" href="https://ko-fi.com/velutinx/tiers" target="_blank">
+      <img src="/images/LogoKoFi.png" alt="Ko-fi"> Ko-fi
+    </a>
+    <a class="social-btn" href="https://subscribestar.adult/velutinx" target="_blank">
+      <img src="/images/LogoSubscribeStar.png" alt="SubscribeStar"> SubscribeStar
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>  </div>
 
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
@@ -92,7 +90,7 @@
           t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
         });
 
-        langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+        langToggle.textContent = isJapanese ? "" : "";
 
         // Translate contact form
         document.getElementById("contactTitle").textContent = isJapanese ? "お問い合わせ" : "CONTACT";
@@ -208,3 +206,4 @@
 
 </body>
 </html>
+
