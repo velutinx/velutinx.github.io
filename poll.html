@@ -31,7 +31,7 @@
       position: relative;
     }
 
-    /* Big cards (left selected, right rotating) */
+    /* Big cards */
     .big-card {
       position: absolute;
       top: 50%;
@@ -60,7 +60,7 @@
     #leftBig { left: -600px; }
     #rightBig { right: -600px; }
 
-    /* Grid of small cards */
+    /* Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -126,7 +126,7 @@
       font-weight: bold;
     }
 
-    /* Bottom area */
+    /* Bottom */
     .bottom {
       display: flex;
       justify-content: center;
@@ -253,248 +253,174 @@
 
   <!-- Poll logic -->
   <script>
-<script>
-  // ---------- Persistence & language/theme ----------
-  const savedLang = localStorage.getItem("language");
-  const savedDark = localStorage.getItem("darkMode") === "true";
+    const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
 
-  let isJapanese = savedLang === "jp";
+    const POLL_ID = "character_poll_new";
+    const TOTAL = 12;
 
-  function translateBlobs(isJp) {
-    const blobs = document.querySelectorAll(".blob-text");
-    if (blobs.length === 0) {
-      setTimeout(() => translateBlobs(isJp), 100);
-      return;
+    const grid = document.getElementById("grid");
+    const resultsBox = document.getElementById("results");
+
+    const leftImg = document.getElementById("leftImg");
+    const leftBig = document.getElementById("leftBig");
+
+    const rightImg = document.getElementById("rightImg");
+    const rightBig = document.getElementById("rightBig");
+
+    let rotateIndex = 1;
+
+    // Voter hash — stored in localStorage (prevents multiple votes from same browser)
+    let voterHash = localStorage.getItem("voter_hash_poll");
+    if (!voterHash) {
+      voterHash = crypto.randomUUID();
+      localStorage.setItem("voter_hash_poll", voterHash);
     }
-    blobs.forEach(t => {
-      t.textContent = isJp ? t.dataset.jp : t.dataset.en;
-    });
-  }
 
-  translateBlobs(isJapanese);
-  document.getElementById("langToggle").textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+    // Build small cards
+    for (let i = 1; i <= TOTAL; i++) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.id = i;
 
-  if (savedDark) {
-    document.body.classList.add("dark");
-  }
+      card.innerHTML = `
+        <img src="/images/poll/${i}.jpg" loading="lazy">
+        <div class="progress">
+          <div class="progress-fill"></div>
+          <div class="progress-text">0%</div>
+        </div>
+        <div class="label">Loading…</div>
+      `;
 
-  langToggle.onclick = () => {
-    langSwipe.classList.remove("active");
-    void langSwipe.offsetWidth;
-    langSwipe.classList.add("active");
+      card.onclick = () => {
+        showSelected(i);
+        vote(i);
+      };
 
-    setTimeout(() => {
-      isJapanese = !isJapanese;
-      translateBlobs(isJapanese);
-      langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-      localStorage.setItem("language", isJapanese ? "jp" : "en");
-    }, 180);
-  };
+      grid.appendChild(card);
+    }
 
-  themeToggle.onclick = () => {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-  };
+    // Show selected on left big card
+    function showSelected(id) {
+      leftBig.classList.remove("show");
+      setTimeout(() => {
+        leftImg.src = `/images/poll/${id}.jpg`;
+        leftBig.classList.add("show");
+      }, 150);
+    }
 
-  // Cursor sparkles
-  let lastStarTime = 0;
-  document.addEventListener("mousemove", (e) => {
-    const now = Date.now();
-    if (now - lastStarTime < 45) return;
-    lastStarTime = now;
+    // Rotate right big card
+    function rotate() {
+      rightBig.classList.remove("show");
+      setTimeout(() => {
+        rightImg.src = `/images/poll/${rotateIndex}.jpg`;
+        rightBig.classList.add("show");
+        rotateIndex = (rotateIndex % TOTAL) + 1;
+      }, 150);
+    }
 
-    const star = document.createElement("div");
-    star.className = "star";
-    star.textContent = "✦";
-    star.style.setProperty("--drift", Math.random());
-    star.style.left = e.clientX + "px";
-    star.style.top = e.clientY + "px";
+    setInterval(rotate, 3500);
+    rotate();
+    showSelected(1);
 
-    document.body.appendChild(star);
-    setTimeout(() => star.remove(), 2000);
-  });
+    // Vote function — allows changing vote (upsert)
+    async function vote(optionId) {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "resolution=merge-duplicates"  // Critical for changing votes
+          },
+          body: JSON.stringify({
+            poll_id: POLL_ID,
+            option_id: optionId,
+            voter_hash: voterHash
+          })
+        });
 
-  // Full-page falling sparkles
-  setInterval(() => {
-    const star = document.createElement("div");
-    star.className = "falling-star";
-    star.textContent = "✦";
-    star.style.left = Math.random() * 100 + "vw";
-    star.style.top = "-10vh";
-    star.style.setProperty("--drift", Math.random() * 2 - 1);
-    document.body.appendChild(star);
-    setTimeout(() => star.remove(), 8000);
-  }, 400);
-
-  // ---------- Poll logic ----------
-  const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
-
-  const POLL_ID = "character_poll_new";
-  const TOTAL = 12;
-
-  const grid = document.getElementById("grid");
-  const resultsBox = document.getElementById("results");
-
-  const leftImg = document.getElementById("leftImg");
-  const leftBig = document.getElementById("leftBig");
-
-  const rightImg = document.getElementById("rightImg");
-  const rightBig = document.getElementById("rightBig");
-
-  let rotateIndex = 1;
-
-  // Voter hash — stored in localStorage (prevents multiple votes from same browser)
-  let voterHash = localStorage.getItem("voter_hash_poll");
-  if (!voterHash) {
-    voterHash = crypto.randomUUID();
-    localStorage.setItem("voter_hash_poll", voterHash);
-  }
-
-  // Build small cards
-  for (let i = 1; i <= TOTAL; i++) {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.dataset.id = i;
-
-    card.innerHTML = `
-      <img src="/images/poll/${i}.jpg" loading="lazy">
-      <div class="progress">
-        <div class="progress-fill"></div>
-        <div class="progress-text">0%</div>
-      </div>
-      <div class="label">Loading…</div>
-    `;
-
-    card.onclick = async () => {
-      showSelected(i);
-      await vote(i);
-    };
-
-    grid.appendChild(card);
-  }
-
-  // Show selected on left big card
-  function showSelected(id) {
-    leftBig.classList.remove("show");
-    setTimeout(() => {
-      leftImg.src = `/images/poll/${id}.jpg`;
-      leftBig.classList.add("show");
-    }, 150);
-  }
-
-  // Rotate right big card
-  function rotate() {
-    rightBig.classList.remove("show");
-    setTimeout(() => {
-      rightImg.src = `/images/poll/${rotateIndex}.jpg`;
-      rightBig.classList.add("show");
-      rotateIndex = rotateIndex % TOTAL + 1;
-    }, 150);
-  }
-
-  setInterval(rotate, 3500);
-  rotate();
-  showSelected(1);
-
-  // Vote function — allows changing vote (upsert)
-  async function vote(optionId) {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
-        method: "POST",
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "resolution=merge-duplicates"  // This is critical for changing votes
-        },
-        body: JSON.stringify({
-          poll_id: POLL_ID,
-          option_id: optionId,
-          voter_hash: voterHash
-        })
-      });
-
-      // 201 = new vote, 409 = updated vote — both are success
-      if (response.status === 201 || response.status === 409) {
-        console.log("Vote successful / updated");
-        fetchResults();
-        fetchLeaderboard();
-      } else {
-        const errorData = await response.json();
-        console.error("Vote failed:", errorData);
-        showPopup("Failed to vote. Please try again.");
+        // Accept 201 (new) and 409 (updated) as success
+        if (response.status === 201 || response.status === 409) {
+          console.log("Vote successful / updated");
+          fetchResults();
+          fetchLeaderboard();
+        } else {
+          const errorData = await response.json();
+          console.error("Vote failed:", errorData);
+          showPopup("Failed to vote. Please try again.");
+        }
+      } catch (err) {
+        console.error("Vote error:", err);
+        showPopup("Vote failed. Check connection.");
       }
-    } catch (err) {
-      console.error("Vote error:", err);
-      showPopup("Vote failed. Check connection.");
     }
-  }
 
-  // Fetch results for progress bars
-  async function fetchResults() {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?poll_id=eq.${POLL_ID}&select=option_id`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-      });
+    // Fetch results for progress bars
+    async function fetchResults() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?poll_id=eq.${POLL_ID}&select=option_id`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+        });
 
-      const votes = await res.json();
-      const counts = {};
-      for (let i = 1; i <= TOTAL; i++) counts[i] = 0;
-      votes.forEach(v => counts[v.option_id]++);
+        const votes = await res.json();
+        const counts = {};
+        for (let i = 1; i <= TOTAL; i++) counts[i] = 0;
+        votes.forEach(v => counts[v.option_id]++);
 
-      const totalVotes = votes.length;
+        const totalVotes = votes.length;
 
-      document.querySelectorAll(".card").forEach(card => {
-        const id = Number(card.dataset.id);
-        const percent = totalVotes ? Math.round((counts[id] / totalVotes) * 100) : 0;
+        document.querySelectorAll(".card").forEach(card => {
+          const id = Number(card.dataset.id);
+          const percent = totalVotes ? Math.round((counts[id] / totalVotes) * 100) : 0;
 
-        card.querySelector(".progress-fill").style.width = percent + "%";
-        card.querySelector(".progress-text").textContent = percent + "%";
-      });
-    } catch (err) {
-      console.error("Fetch results error:", err);
+          card.querySelector(".progress-fill").style.width = percent + "%";
+          card.querySelector(".progress-text").textContent = percent + "%";
+        });
+      } catch (err) {
+        console.error("Fetch results error:", err);
+      }
     }
-  }
 
-  // Fetch leaderboard + card labels
-  async function fetchLeaderboard() {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/poll_result?poll_id=eq.${POLL_ID}&order=score.desc`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-      });
+    // Fetch leaderboard + card labels
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/poll_result?poll_id=eq.${POLL_ID}&order=score.desc`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+        });
 
-      const rows = await res.json();
+        const rows = await res.json();
 
-      let leaderboardHTML = "";
-      rows.forEach(r => {
-        leaderboardHTML += `<div class="leaderboard-entry">${r.character_name}: ${r.score.toFixed(1)}</div>`;
-      });
+        let leaderboardHTML = "";
+        rows.forEach(r => {
+          leaderboardHTML += `<div class="leaderboard-entry">${r.character_name}: ${r.score.toFixed(1)}</div>`;
+        });
 
-      resultsBox.innerHTML = leaderboardHTML || "No votes yet";
+        resultsBox.innerHTML = leaderboardHTML || "No votes yet";
 
-      // Update card labels
-      document.querySelectorAll(".card").forEach(card => {
-        const id = Number(card.dataset.id);
-        const row = rows.find(r => r.option_id === id);
-        if (row) card.querySelector(".label").textContent = row.character_name;
-      });
-    } catch (err) {
-      console.error("Fetch leaderboard error:", err);
+        // Update card labels
+        document.querySelectorAll(".card").forEach(card => {
+          const id = Number(card.dataset.id);
+          const row = rows.find(r => r.option_id === id);
+          if (row) card.querySelector(".label").textContent = row.character_name;
+        });
+      } catch (err) {
+        console.error("Fetch leaderboard error:", err);
+      }
     }
-  }
 
-  // Initial load
-  fetchResults();
-  fetchLeaderboard();
-  setInterval(fetchResults, 30000);
-  setInterval(fetchLeaderboard, 30000);
+    // Initial load
+    fetchResults();
+    fetchLeaderboard();
+    setInterval(fetchResults, 30000);
+    setInterval(fetchLeaderboard, 30000);
 
-  // Organic wobble for cards
-  document.querySelectorAll('.card, .big-card').forEach(el => {
-    const offset = Math.random() * 1.5;
-    el.style.setProperty('--random-offset', `${offset}s`);
-  });
+    // Organic wobble for cards
+    document.querySelectorAll('.card, .big-card').forEach(el => {
+      const offset = Math.random() * 1.5;
+      el.style.setProperty('--random-offset', `${offset}s`);
+    });
   </script>
 
   <!-- Shared tab title animation -->
