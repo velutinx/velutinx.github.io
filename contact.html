@@ -76,7 +76,7 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All shared functionality inline (same as index.html & artwork.html) -->
+  <!-- All shared functionality inline -->
   <script>
     // Language toggle with flags
     let isJapanese = false;
@@ -131,7 +131,7 @@
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Social area falling stars (page-specific)
+    // Social area falling stars
     const socialArea = document.getElementById("socialArea");
     setInterval(() => {
       const star = document.createElement("div");
@@ -143,11 +143,13 @@
       setTimeout(() => star.remove(), 6000);
     }, 700);
 
-    // Contact form submission + validation (with red error, shake, popup)
+    // Contact form submission + validation (red border + shake + popup)
     document.getElementById("contactForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      [name, email, message].forEach(f => f.classList.remove("input-error"));
+      // Reset previous errors
+      const inputs = [name, email, message];
+      inputs.forEach(f => f.classList.remove("input-error"));
 
       let hasError = false;
 
@@ -167,7 +169,7 @@
       const subject = encodeURIComponent("Website Contact — " + name.value);
       const body = encodeURIComponent(
         "Name: " + name.value + "\n" +
-        "Email: " + email.value + "\n\n" + 
+        "Email: " + email.value + "\n\n" +
         message.value
       );
 
@@ -175,6 +177,7 @@
       this.reset();
     });
 
+    // Popup function
     function showPopup(text) {
       const popup = document.createElement("div");
       popup.className = "popup";
