@@ -4,7 +4,7 @@
 const BASE_TITLE = "VELUTINX";
 const FULL_DURATION = 2000;          // VELUTINX solid at start
 const BLANK_DURATION = 300;          // each blank flash
-const SHRINK_INTERVAL = 300;         // faster scrolling (was 600)
+const SHRINK_INTERVAL = 200;         // faster scrolling (was 600)
 const SHRINK_STEPS_OFFSET = 1;       // how many letters to remove each step
 
 // Map paths to page-specific titles for the shrink phase
@@ -40,7 +40,7 @@ function animateTitle() {
     // Phase 2: Three quick blank flashes (use " " to avoid white flash)
     let blankCount = 0;
     const blankInterval = setInterval(() => {
-      document.title = "⠀";  // single space → truly blank, no white text
+      document.title = "⠀⠀⠀.";  // single space → truly blank, no white text
       setTimeout(() => {
         document.title = BASE_TITLE;
         blankCount++;
