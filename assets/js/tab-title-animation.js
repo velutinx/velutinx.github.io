@@ -39,7 +39,7 @@ function animateTitle() {
     // Phase 2: Three quick blank flashes
     let blankCount = 0;
     const blankInterval = setInterval(() => {
-      document.title = "\u200B";  // zero-width space — truly blank
+document.title = "\u2060";  // word joiner — invisible and treated as content
       setTimeout(() => {
         document.title = BASE_TITLE;
         blankCount++;
