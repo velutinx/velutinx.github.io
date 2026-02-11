@@ -46,7 +46,7 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All shared functionality inline with localStorage persistence -->
+  <!-- All shared functionality inline with localStorage persistence + blob memory -->
   <script>
     // Load saved preferences on page load
     const savedLang = localStorage.getItem("language");
@@ -54,7 +54,7 @@
 
     let isJapanese = savedLang === "jp";
 
-    // Apply saved language on load
+    // Apply saved language on load (including blobs + commission text)
     if (isJapanese) {
       document.querySelectorAll(".blob-text").forEach(t => {
         t.textContent = t.dataset.jp;
@@ -72,7 +72,7 @@
       document.body.classList.add("dark");
     }
 
-    // Language toggle with flags + save preference
+    // Language toggle with flags + save preference + update blobs + commission text
     langToggle.onclick = () => {
       langSwipe.classList.remove("active");
       void langSwipe.offsetWidth;
