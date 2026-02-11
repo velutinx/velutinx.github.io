@@ -439,7 +439,7 @@
       }
     }
 
-    // Progress bars – direct from votes table (reliable, no view dependency)
+    // Progress bars – direct from votes table (reliable)
     async function fetchResults() {
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?poll_id=eq.${POLL_ID}&select=option_id`, {
