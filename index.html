@@ -38,7 +38,7 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All other functionality inline (with localStorage persistence + blob memory) -->
+  <!-- All other functionality inline with localStorage persistence + robust blob memory -->
   <script>
     // Load saved preferences on page load
     const savedLang = localStorage.getItem("language");
@@ -46,16 +46,28 @@
 
     let isJapanese = savedLang === "jp";
 
-    // Apply saved language on load (including blobs)
-    if (isJapanese) {
-      document.querySelectorAll(".blob-text").forEach(t => {
-        t.textContent = t.dataset.jp;
+    // Function to translate blobs (robust — polls if not ready)
+    function translateBlobs(isJp) {
+      const blobs = document.querySelectorAll(".blob-text");
+      if (blobs.length === 0) {
+        // Blobs not loaded yet — try again
+        setTimeout(() => translateBlobs(isJp), 100);
+        return;
+      }
+      blobs.forEach(t => {
+        t.textContent = isJp ? t.dataset.jp : t.dataset.en;
       });
-      document.getElementById("heroSub").textContent = "♡ フリーランスイラストレーター ♡";
-      document.getElementById("langToggle").textContent = "🇺🇸";
-    } else {
-      document.getElementById("langToggle").textContent = "🇯🇵";
     }
+
+    // Apply saved language on load
+    translateBlobs(isJapanese);
+
+    // Page-specific (hero sub)
+    document.getElementById("heroSub").textContent = isJapanese
+      ? "♡ フリーランスイラストレーター ♡"
+      : "♡ Freelance Illustrator ♡";
+
+    document.getElementById("langToggle").textContent = isJapanese ? "🇺🇸" : "🇯🇵";
 
     // Apply saved dark mode on load
     if (savedDark) {
@@ -71,9 +83,7 @@
       setTimeout(() => {
         isJapanese = !isJapanese;
 
-        document.querySelectorAll(".blob-text").forEach(t => {
-          t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
-        });
+        translateBlobs(isJapanese);
 
         document.getElementById("heroSub").textContent = isJapanese
           ? "♡ フリーランスイラストレーター ♡"
