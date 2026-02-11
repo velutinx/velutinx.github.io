@@ -35,12 +35,12 @@
     <div class="divider"></div>
   </div>
 
-  <!-- Keep navigation loading -->
+  <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All other functionality inline for now -->
+  <!-- All other functionality inline (same as your working example) -->
   <script>
-    // Language toggle
+    // Language toggle with flags
     let isJapanese = false;
     langToggle.onclick = () => {
       langSwipe.classList.remove("active");
@@ -93,23 +93,10 @@
       heroImage.appendChild(star);
       setTimeout(() => star.remove(), 6000);
     }, 700);
-
-
-    // Gallery loading
-    const MAX_IMAGES = 45;
-    const BASE = "/images/artwork/";
-
-    const gallery = document.getElementById("gallery");
-
-    for (let i = 1; i <= MAX_IMAGES; i++) {
-      const img = document.createElement("img");
-      img.src = BASE + i + ".jpg";
-      img.alt = `Artwork sample ${i}`;
-      img.onerror = () => img.remove();
-      img.loading = "lazy";
-      gallery.appendChild(img);
-    }
   </script>
+
+  <!-- Shared tab title animation (same as artwork.html) -->
+  <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
 </html>
