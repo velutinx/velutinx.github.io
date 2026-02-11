@@ -461,6 +461,94 @@ body.dark .form-group textarea {
   100% { transform: translateX(0); }
 }
 
+/* Send button */
+.send-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.send-btn {
+  margin-top: 10px;
+  padding: 10px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--divider);
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+body.dark .send-btn {
+  background: var(--divider-dark);
+  color: var(--text-dark);
+}
+
+/* Social buttons column */
+.contact-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+}
+
+.social-btn {
+  width: 62.5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 2px solid var(--divider);
+  border-radius: 10px;
+  background: #eeeae0;
+  text-decoration: none;
+  color: #000;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+body.dark .social-btn {
+  background: #16161b;
+  border-color: var(--divider-dark);
+  color: var(--text-dark);
+}
+
+.social-btn img {
+  width: 22px;
+  height: 22px;
+}
+
+/* Grow + wobble on hover */
+.social-btn:hover {
+  transform: scale(1.2);
+  animation: blobWobble 1.6s ease-in-out infinite;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 900px) {
+  .contact-wrap {
+    grid-template-columns: 1fr;
+  }
+  .social-btn {
+    width: 100%;
+  }
+}
+
+/* Error state */
+.input-error {
+  border-color: var(--error) !important;
+  animation: shake 0.35s;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
 /* Popup */
 .popup {
   position: fixed;
@@ -475,10 +563,7 @@ body.dark .form-group textarea {
   font-weight: 700;
   box-shadow: 6px 6px 0 rgba(0,0,0,0.4);
   z-index: 99999;
-  opacity: 0;
-  transition: opacity 0.5s ease;
 }
-
 body.dark .popup {
   background: #16161b;
   border-color: var(--divider-dark);
