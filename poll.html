@@ -251,9 +251,6 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- FingerprintJS for device-unique voter hash (shared across browsers on the same machine) -->
-  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
-
   <!-- Poll logic -->
   <script>
     // ---------- Persistence & language/theme ----------
@@ -346,18 +343,13 @@
 
     let rotateIndex = 1;
 
-    // Device-unique voter hash (shared across browsers on the same machine)
-    async function getVoterHash() {
-      let hash = localStorage.getItem("voter_hash_poll");
-      if (!hash) {
-        const fp = await FingerprintJS.load();
-        const result = await fp.get();
-        hash = result.visitorId;
-        localStorage.setItem("voter_hash_poll", hash);
-      }
-      console.log("Current voter hash (should be the same in all browsers on this computer):", hash);
-      return hash;
+    // Per-browser voter hash
+    let voterHash = localStorage.getItem("voter_hash_poll");
+    if (!voterHash) {
+      voterHash = crypto.randomUUID();
+      localStorage.setItem("voter_hash_poll", voterHash);
     }
+    console.log("Current voter hash (per-browser):", voterHash);
 
     // Build small cards
     for (let i = 1; i <= TOTAL; i++) {
@@ -405,10 +397,9 @@
     rotate();
     showSelected(1);
 
-    // Vote function — upsert with on_conflict
+    // Vote function — upsert with on_conflict (reliable, like your old working code)
     async function vote(optionId) {
       try {
-        const voterHash = await getVoterHash();
         const response = await fetch(`${SUPABASE_URL}/rest/v1/votes?on_conflict=poll_id,voter_hash`, {
           method: "POST",
           headers: {
@@ -440,7 +431,7 @@
       }
     }
 
-    // Progress bars – direct from votes table
+    // Progress bars – direct from votes table (reliable)
     async function fetchResults() {
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?poll_id=eq.${POLL_ID}&select=option_id`, {
