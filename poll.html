@@ -520,7 +520,9 @@
 
     // Initial load
     fetchResults();
+    console.log("poll_result returned:", rows.length, "rows", rows);
     fetchLeaderboard();
+    console.log("poll_result returned:", rows.length, "rows", rows);
     setInterval(fetchResults, 30000);
     setInterval(fetchLeaderboard, 30000);
 
