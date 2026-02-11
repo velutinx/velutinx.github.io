@@ -9,7 +9,10 @@
 
   <!-- Fixed controls -->
   <div class="lang-swipe" id="langSwipe"></div>
+  
+  <!-- Language toggle: bigger flags + rectangle shape -->
   <div class="lang-toggle" id="langToggle">🇯🇵</div>
+  
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
@@ -40,34 +43,34 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All shared functionality inline (same as index.html) -->
+  <!-- All shared functionality inline -->
   <script>
-// Language toggle
-let isJapanese = false;
-langToggle.onclick = () => {
-  langSwipe.classList.remove("active");
-  void langSwipe.offsetWidth;
-  langSwipe.classList.add("active");
+    // Language toggle with bigger flags
+    let isJapanese = false;
+    langToggle.onclick = () => {
+      langSwipe.classList.remove("active");
+      void langSwipe.offsetWidth;
+      langSwipe.classList.add("active");
 
-  setTimeout(() => {
-    isJapanese = !isJapanese;
+      setTimeout(() => {
+        isJapanese = !isJapanese;
 
-    document.querySelectorAll(".blob-text").forEach(t => {
-      t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
-    });
+        document.querySelectorAll(".blob-text").forEach(t => {
+          t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
+        });
 
-    // Example: translate artwork intro (add similar lines for other pages if needed)
-    const artworkIntro = document.getElementById("artworkIntro");
-    if (artworkIntro) {
-      artworkIntro.textContent = isJapanese 
-        ? "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像"
-        : "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
-    }
+        // Translate artwork intro
+        const artworkIntro = document.getElementById("artworkIntro");
+        if (artworkIntro) {
+          artworkIntro.textContent = isJapanese 
+            ? "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像"
+            : "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
+        }
 
-    // Flag version (this is the change)
-    langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-  }, 180);
-};
+        // Bigger flag version
+        langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+      }, 180);
+    };
 
     // Theme toggle
     themeToggle.onclick = () => document.body.classList.toggle("dark");
@@ -90,7 +93,7 @@ langToggle.onclick = () => {
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Full-screen falling sparkles (adapted from your original)
+    // Full-screen falling sparkles
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "falling-star";
