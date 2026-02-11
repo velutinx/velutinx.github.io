@@ -76,7 +76,7 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All shared functionality inline (same as index.html & artwork.html) -->
+  <!-- All shared functionality inline (same as index.html) -->
   <script>
     // Language toggle with flags
     let isJapanese = false;
@@ -94,7 +94,7 @@
 
         langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
 
-        // Translate contact text
+        // Translate contact form
         document.getElementById("contactTitle").textContent = isJapanese ? "お問い合わせ" : "CONTACT";
         document.getElementById("contactDesc").textContent = isJapanese 
           ? "メールで連絡したい場合はこちらのフォームをご利用ください。" 
@@ -143,17 +143,7 @@
       setTimeout(() => star.remove(), 6000);
     }, 700);
 
-    // Tab title animation (optional)
-    const titles = ["VELUTINX", "ELUTINX", "LUTINX", "UTINX", "TINX", "INX", "NX", "X"];
-    let index = 0;
-    function animateTitle() {
-      document.title = titles[index];
-      index = (index + 1) % titles.length;
-      setTimeout(animateTitle, 600);
-    }
-    animateTitle();
-
-    // Contact form submission
+    // Contact form submission + validation
     document.getElementById("contactForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
@@ -177,7 +167,7 @@
       const subject = encodeURIComponent("Website Contact — " + name.value);
       const body = encodeURIComponent(
         "Name: " + name.value + "\n" +
-        "Email: " + email.value + "\n\n" +
+        "Email: " + email.value + "\n\n" + 
         message.value
       );
 
@@ -193,6 +183,9 @@
       setTimeout(() => popup.remove(), 3000);
     }
   </script>
+
+  <!-- Shared tab title animation -->
+  <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
 </html>
