@@ -1,93 +1,26 @@
-// assets/js/navigation.js
-document.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("navContainer");
-  if (!container) {
-    console.warn("Navigation container #navContainer not found");
-    return;
-  }
+<div class="nav">
+  <svg class="blob-btn blob-svg" id="navHome" viewBox="0 0 320 90">
+    <path d="M25,45 C15,15 90,5 150,15 C230,25 310,10 295,55 C280,85 210,75 140,80 C70,85 35,75 25,45 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="HOME" data-jp="ホーム">HOME</text>
+  </svg>
 
-  const nav = document.createElement("div");
-  nav.className = "nav";
+  <svg class="blob-btn blob-svg" id="navCom" viewBox="0 0 320 90">
+    <path d="M15,50 C20,10 100,5 160,15 C250,30 315,20 300,60 C285,85 200,80 130,75 C60,70 10,80 15,50 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="COMMISSIONS" data-jp="コミッション">COMMISSIONS</text>
+  </svg>
 
-  const blobData = [
-    {
-      id: "navHome",
-      path: "M25,45 C15,15 90,5 150,15 C230,25 310,10 295,55 C280,85 210,75 140,80 C70,85 35,75 25,45 Z",
-      en: "HOME",
-      jp: "ホーム",
-      link: "/"
-    },
-    {
-      id: "navCom",
-      path: "M15,50 C20,10 100,5 160,15 C250,30 315,20 300,60 C285,85 200,80 130,75 C60,70 10,80 15,50 Z",
-      en: "COMMISSIONS",
-      jp: "コミッション",
-      link: "/commission.html"
-    },
-    {
-      id: "navArt",
-      path: "M35,40 C10,15 80,0 150,10 C240,25 320,15 300,55 C280,90 210,85 140,80 C70,75 55,70 35,40 Z",
-      en: "ARTWORK",
-      jp: "アートワーク",
-      link: "/artwork.html"
-    },
-    {
-      id: "navPoll",
-      path: "M20,45 C10,20 90,0 160,10 C240,20 320,30 300,60 C280,90 200,80 140,75 C70,70 30,75 20,45 Z",
-      en: "POLL",
-      jp: "ポール",
-      link: "/poll-website/"
-    },
-    {
-      id: "navContact",
-      path: "M15,45 C25,5 110,10 170,20 C250,35 330,25 300,65 C270,100 180,80 120,75 C60,70 10,80 15,45 Z",
-      en: "CONTACT",
-      jp: "お問い合わせ",
-      link: "/contact.html"
-    }
-  ];
+  <svg class="blob-btn blob-svg" id="navArt" viewBox="0 0 320 90">
+    <path d="M35,40 C10,15 80,0 150,10 C240,25 320,15 300,55 C280,90 210,85 140,80 C70,75 55,70 35,40 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="ARTWORK" data-jp="アートワーク">ARTWORK</text>
+  </svg>
 
-  blobData.forEach(data => {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.classList.add("blob-btn", "blob-svg");
-    svg.id = data.id;
-    svg.setAttribute("viewBox", "0 0 320 90");
+  <svg class="blob-btn blob-svg" id="navPoll" viewBox="0 0 320 90">
+    <path d="M20,45 C10,20 90,0 160,10 C240,20 320,30 300,60 C280,90 200,80 140,75 C70,70 30,75 20,45 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="POLL" data-jp="ポール">POLL</text>
+  </svg>
 
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", data.path);
-    svg.appendChild(path);
-
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", "160");
-    text.setAttribute("y", "58");
-    text.setAttribute("text-anchor", "middle");
-    text.classList.add("blob-text");
-    text.setAttribute("data-en", data.en);
-    text.setAttribute("data-jp", data.jp);
-    text.textContent = data.en; // default English
-    svg.appendChild(text);
-
-    // Click handler
-    svg.style.cursor = "pointer";
-    svg.addEventListener("click", () => {
-      location.href = data.link;
-    });
-
-    // Hover: text grows + bold, blob scales
-    svg.addEventListener("mouseenter", () => {
-      text.style.fontSize = "25px";
-      text.style.fontWeight = "900";
-      svg.style.transform = "scale(1.15)";
-    });
-
-    svg.addEventListener("mouseleave", () => {
-      text.style.fontSize = "19px";
-      text.style.fontWeight = "900";
-      svg.style.transform = "scale(1)";
-    });
-
-    nav.appendChild(svg);
-  });
-
-  container.appendChild(nav);
-});
+  <svg class="blob-btn blob-svg" id="navContact" viewBox="0 0 320 90">
+    <path d="M15,45 C25,5 110,10 170,20 C250,35 330,25 300,65 C270,100 180,80 120,75 C60,70 10,80 15,45 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="CONTACT" data-jp="お問い合わせ">CONTACT</text>
+  </svg>
+</div>
