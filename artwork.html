@@ -101,16 +101,6 @@
       setTimeout(() => star.remove(), 8000);                 // longer fall time for scrolling pages
     }, 400);  // more frequent so they are visible while scrolling
 
-    // Tab title animation
-    const titles = ["VELUTINX", "ELUTINX", "LUTINX", "UTINX", "TINX", "INX", "NX", "X"];
-    let index = 0;
-    function animateTitle() {
-      document.title = titles[index];
-      index = (index + 1) % titles.length;
-      setTimeout(animateTitle, 600);
-    }
-    animateTitle();
-
     // Gallery loading
     const MAX_IMAGES = 45;
     const BASE = "/images/artwork/";
@@ -193,6 +183,9 @@
       }, 230);
     };
   </script>
-
+  
+  <!-- Shared tab title animation -->
+  <script src="/assets/js/tab-title-animation.js"></script>
+  
 </body>
 </html>
