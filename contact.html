@@ -38,7 +38,7 @@
           </div>
           <div class="form-group">
             <label id="labelEmail">EMAIL</label>
-            <input type="email" id="email" name="email" placeholder="Email">
+<input type="email" id="email" name="email" name="_replyto" placeholder="Email">
           </div>
           <div class="form-group">
             <label id="labelMessage">MESSAGE</label>
@@ -146,52 +146,54 @@
       setTimeout(() => star.remove(), 6000);
     }, 700);
 
-    // Contact form submission + validation
-    document.getElementById("contactForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+// Contact form submission + validation
+document.getElementById("contactForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-      // Define inputs
-      const name = document.getElementById("name");
-      const email = document.getElementById("email");
-      const message = document.getElementById("message");
+  // Define inputs
+  const name = document.getElementById("name");
+  const email = document.getElementById("email");
+  const message = document.getElementById("message");
 
-      // Reset previous errors
-      [name, email, message].forEach(input => {
-        input.style.borderColor = ''; // reset
-        input.style.animation = 'none'; // reset shake
-      });
+  // Reset previous errors
+  [name, email, message].forEach(input => {
+    input.style.borderColor = '';
+    input.style.animation = 'none';
+  });
 
-      let hasError = false;
+  let hasError = false;
 
-      if (!name.value.trim()) {
-        name.style.borderColor = '#b33'; // red
-        name.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
-      if (!email.value.trim() || !email.value.includes("@")) {
-        email.style.borderColor = '#b33';
-        email.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
-      if (!message.value.trim()) {
-        message.style.borderColor = '#b33';
-        message.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
+  if (!name.value.trim()) {
+    name.style.borderColor = '#b33';
+    name.style.animation = 'shake 0.35s';
+    hasError = true;
+  }
 
-      // Show popup if ANY error
-      if (hasError) {
-        const errorText = isJapanese ? "すべての項目を正しく入力してください ♡" : "Please fill out all fields correctly ♡";
-        showPopup(errorText);
-        return;
-      }
+  // Email: only require filled (Formspree will validate format)
+  if (!email.value.trim()) {
+    email.style.borderColor = '#b33';
+    email.style.animation = 'shake 0.35s';
+    hasError = true;
+  }
 
-      const successText = isJapanese ? "送信されました！近日中にご連絡します ♡♡" : "Message sent successfully! You will hear back soon! ♡♡";
-      showPopup(successText);
+  if (!message.value.trim()) {
+    message.style.borderColor = '#b33';
+    message.style.animation = 'shake 0.35s';
+    hasError = true;
+  }
 
-      // Submit to Formspree
-      this.submit();
-    });
+  if (hasError) {
+    const errorText = isJapanese ? "すべての項目を正しく入力してください ♡" : "Please fill out all fields correctly ♡";
+    showPopup(errorText);
+    return;
+  }
+
+  const successText = isJapanese ? "送信されました！近日中にご連絡します ♡♡" : "Message sent successfully! You will hear back soon! ♡♡";
+  showPopup(successText);
+
+  // Submit to Formspree
+  this.submit();
+});
 
     // Popup function (red + bold + fade in/out after 5s)
     function showPopup(text) {
