@@ -1,13 +1,13 @@
 // Shared tab title animation — used on all pages
 
-// Configuration — edit here if you want to change timing or behavior
+// Configuration — edit timings here
 const BASE_TITLE = "VELUTINX";
-const BLANK_DURATION = 300;     // ms — how long the title stays blank
-const FULL_DURATION = 2000;     // ms — how long VELUTINX stays solid at start
-const SHRINK_INTERVAL = 600;    // ms — speed of the shrinking animation (same as before)
-const SHRINK_STEPS = ["VELUTINX", "ELUTINX", "LUTINX", "UTINX", "TINX", "INX", "NX", "X"];
+const FULL_DURATION = 2000;          // VELUTINX solid at start
+const BLANK_DURATION = 300;          // each blank flash
+const SHRINK_INTERVAL = 300;         // faster scrolling (was 600)
+const SHRINK_STEPS_OFFSET = 1;       // how many letters to remove each step
 
-// List of all possible page-specific titles (add new pages here)
+// Map paths to page-specific titles for the shrink phase
 const PAGE_TITLES = {
   "/":               "HOME",
   "/index.html":     "HOME",
@@ -15,48 +15,47 @@ const PAGE_TITLES = {
   "/artwork.html":   "ARTWORK",
   "/contact.html":   "CONTACT",
   "/poll-website/":  "POLL"
-  // Add more pages here if needed, e.g. "/about.html": "ABOUT"
+  // Add more pages here when you create them
 };
 
 function animateTitle() {
+  // Get current page title
   const currentPath = window.location.pathname;
-  let pageTitle = "VELUTINX"; // fallback
+  let pageTitle = BASE_TITLE; // fallback
 
-  // Try to find a matching page title
+  // Find matching page title
   if (PAGE_TITLES[currentPath]) {
     pageTitle = PAGE_TITLES[currentPath];
-  } else if (currentPath.includes("commission")) {
-    pageTitle = "COMMISSIONS";
-  } else if (currentPath.includes("artwork")) {
-    pageTitle = "ARTWORK";
-  } else if (currentPath.includes("contact")) {
-    pageTitle = "CONTACT";
-  } else if (currentPath.includes("poll")) {
-    pageTitle = "POLL";
+  } else {
+    // Fallback detection for common cases
+    if (currentPath.includes("commission")) pageTitle = "COMMISSIONS";
+    if (currentPath.includes("artwork"))    pageTitle = "ARTWORK";
+    if (currentPath.includes("contact"))    pageTitle = "CONTACT";
+    if (currentPath.includes("poll"))       pageTitle = "POLL";
   }
 
-  // Phase 1: Show VELUTINX solid for 2 seconds
+  // Phase 1: VELUTINX solid for 2 seconds
   document.title = BASE_TITLE;
   setTimeout(() => {
-    // Phase 2: Three quick blank flashes
+    // Phase 2: Three quick blank flashes (use " " to avoid white flash)
     let blankCount = 0;
     const blankInterval = setInterval(() => {
-      document.title = "";
+      document.title = " ";  // single space → truly blank, no white text
       setTimeout(() => {
         document.title = BASE_TITLE;
         blankCount++;
         if (blankCount >= 3) {
           clearInterval(blankInterval);
 
-          // Phase 3: Show page-specific title (e.g. ARTWORK) for 3s
+          // Phase 3: Show page-specific title for 3 seconds
           document.title = pageTitle;
           setTimeout(() => {
-            // Phase 4: Shrink animation (like before)
-            let step = 0;
+            // Phase 4: Shrink the page-specific title
+            let current = pageTitle;
             const shrink = setInterval(() => {
-              document.title = SHRINK_STEPS[step] || "";
-              step++;
-              if (step >= SHRINK_STEPS.length) {
+              current = current.slice(1); // remove first letter
+              document.title = current || " ";
+              if (current.length <= 0) {
                 clearInterval(shrink);
                 // Loop back to start
                 animateTitle();
@@ -64,8 +63,8 @@ function animateTitle() {
             }, SHRINK_INTERVAL);
           }, 3000); // 3 seconds of full page title
         }
-      }, 300); // blank duration
-    }, BLANK_DURATION * 2); // time between blanks
+      }, BLANK_DURATION);
+    }, BLANK_DURATION * 2); // time between flashes
   }, FULL_DURATION);
 }
 
