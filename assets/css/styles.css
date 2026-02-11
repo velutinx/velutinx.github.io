@@ -1,26 +1,26 @@
-/* =========================================================
-   ===== Cursor Sparkles
-   ========================================================= */
-(function () {
-  let lastStarTime = 0;
+<div class="nav">
+  <svg class="blob-btn blob-svg" id="navHome" viewBox="0 0 320 90">
+    <path d="M25,45 C15,15 90,5 150,15 C230,25 310,10 295,55 C280,85 210,75 140,80 C70,85 35,75 25,45 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="HOME" data-jp="ホーム">HOME</text>
+  </svg>
 
-  document.addEventListener("mousemove", (e) => {
-    const now = Date.now();
-    if (now - lastStarTime < 45) return;
-    lastStarTime = now;
+  <svg class="blob-btn blob-svg" id="navCom" viewBox="0 0 320 90">
+    <path d="M15,50 C20,10 100,5 160,15 C250,30 315,20 300,60 C285,85 200,80 130,75 C60,70 10,80 15,50 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="COMMISSIONS" data-jp="コミッション">COMMISSIONS</text>
+  </svg>
 
-    const star = document.createElement("div");
-    star.className = "star";
-    star.textContent = "✦";
-    star.style.setProperty("--drift", Math.random());
+  <svg class="blob-btn blob-svg" id="navArt" viewBox="0 0 320 90">
+    <path d="M35,40 C10,15 80,0 150,10 C240,25 320,15 300,55 C280,90 210,85 140,80 C70,75 55,70 35,40 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="ARTWORK" data-jp="アートワーク">ARTWORK</text>
+  </svg>
 
-    const x = e.clientX;
-    const y = e.clientY;
+  <svg class="blob-btn blob-svg" id="navPoll" viewBox="0 0 320 90">
+    <path d="M20,45 C10,20 90,0 160,10 C240,20 320,30 300,60 C280,90 200,80 140,75 C70,70 30,75 20,45 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="POLL" data-jp="ポール">POLL</text>
+  </svg>
 
-    star.style.left = x + "px";
-    star.style.top = y + "px";
-
-    document.body.appendChild(star);
-    setTimeout(() => star.remove(), 2000);
-  });
-})();
+  <svg class="blob-btn blob-svg" id="navContact" viewBox="0 0 320 90">
+    <path d="M15,45 C25,5 110,10 170,20 C250,35 330,25 300,65 C270,100 180,80 120,75 C60,70 10,80 15,45 Z"/>
+    <text x="160" y="58" text-anchor="middle" class="blob-text" data-en="CONTACT" data-jp="お問い合わせ">CONTACT</text>
+  </svg>
+</div>
