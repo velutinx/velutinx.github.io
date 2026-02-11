@@ -39,7 +39,7 @@ function animateTitle() {
     // Phase 2: Three quick blank flashes
     let blankCount = 0;
     const blankInterval = setInterval(() => {
-document.title = "\u2060";  // word joiner — invisible and treated as content
+document.title = "\u200B\u2060\u200C";  // three different invisible chars
       setTimeout(() => {
         document.title = BASE_TITLE;
         blankCount++;
