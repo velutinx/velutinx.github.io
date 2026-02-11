@@ -302,3 +302,81 @@ body.dark .commission-box {
   10% { opacity: 1; }
   to { opacity: 0; transform: translateY(420px); }
 }
+
+/* Artwork Gallery */
+.artwork-wrap {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.artwork-intro {
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 1px;
+  margin-bottom: 28px;
+  opacity: 0.9;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.gallery img {
+  width: 100%;
+  border: 3px solid var(--divider);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: #eee;
+}
+
+.gallery img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* Zoom overlay */
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 9998;
+}
+
+.zoom-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.zoom-image {
+  position: fixed;
+  z-index: 9999;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  cursor: zoom-out;
+  transition: all 0.22s cubic-bezier(.2,.8,.2,1);
+}
+
+/* Full-screen falling sparkles */
+.falling-star {
+  position: fixed;
+  pointer-events: none;
+  color: var(--divider);
+  font-size: 18px;
+  z-index: 3;
+  animation: fallDown 6s linear forwards;
+}
+
+@keyframes fallDown {
+  from { opacity: 0; transform: translateY(-10vh); }
+  10% { opacity: 1; }
+  to { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
+}
