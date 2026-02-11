@@ -1,1 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>VELUTINX — Poll</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
 
+  <!-- Fixed controls -->
+  <div class="lang-swipe" id="langSwipe"></div>
+  <div class="lang-toggle" id="langToggle">🇯🇵</div>
+  <div class="theme-toggle" id="themeToggle">
+    <div class="theme-knob"></div>
+  </div>
+
+  <!-- Page wrapper -->
+  <div id="page">
+
+    <!-- Navigation -->
+    <div id="navContainer"></div>
+
+    <div class="divider"></div>
+
+    <!-- Poll content -->
+    <section class="poll-wrap">
+      <h1>Vote for Your Favorite Character</h1>
+      <p>Click once — you can change your vote anytime</p>
+
+      <div class="poll-page">
+
+        <!-- Big cards left/right -->
+        <div class="big-card" id="leftBig">
+          <img id="leftImg" src="/images/poll/1.jpg">
+        </div>
+
+        <div class="big-card" id="rightBig">
+          <img id="rightImg" src="/images/poll/1.jpg">
+        </div>
+
+        <!-- Center content -->
+        <div class="center">
+          <div class="grid" id="grid"></div>
+
+          <div class="bottom">
+            <!-- Website icon -->
+            <div class="icon-wrapper">
+              <a class="icon-link" href="/" target="_blank">
+                <img src="/images/LogoWebsite.png" alt="Website">
+              </a>
+            </div>
+
+            <!-- Leaderboard -->
+            <div id="leaderboard">
+              <h3>Leaderboard</h3>
+              <div class="tooltip">Website votes</div>
+              <div id="results">Loading…</div>
+            </div>
+
+            <!-- Discord icon -->
+            <div class="icon-wrapper">
+              <a class="icon-link" href="https://discord.gg/6sHSVMEE" target="_blank">
+                <img src="/images/LogoDiscord.png" alt="Discord">
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+  </div>
+
+  <!-- Shared navigation loader -->
+  <script src="/assets/js/navigation.js"></script>
+
+  <!-- All shared functionality inline with persistence + poll logic -->
+  <script>
+    // ---------- Persistence & language/theme ----------
+    const savedLang = localStorage.getItem("language");
+    const savedDark = localStorage.getItem("darkMode") === "true";
+
+    let isJapanese = savedLang === "jp";
+
+    // Robust blob translation (polls if not ready)
+    function translateBlobs(isJp) {
+      const blobs = document.querySelectorAll(".blob-text");
+      if (blobs.length === 0) {
+        setTimeout(() => translateBlobs(isJp), 100);
+        return;
+      }
+      blobs.forEach(t => {
+        t.textContent = isJp ? t.dataset.jp : t.dataset.en;
+      });
+    }
+
+    // Apply saved language on load
+    translateBlobs(isJapanese);
+    document.getElementById("langToggle").textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+
+    // Apply saved dark mode
+    if (savedDark) {
+      document.body.classList.add("dark");
+    }
+
+    // Language toggle
+    langToggle.onclick = () => {
+      langSwipe.classList.remove("active");
+      void langSwipe.offsetWidth;
+      langSwipe.classList.add("active");
+
+      setTimeout(() => {
+        isJapanese = !isJapanese;
+
+        translateBlobs(isJapanese);
+
+        langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+
+        localStorage.setItem("language", isJapanese ? "jp" : "en");
+      }, 180);
+    };
+
+    // Theme toggle
+    themeToggle.onclick = () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    };
+
+    // Cursor sparkles
+    let lastStarTime = 0;
+    document.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastStarTime < 45) return;
+      lastStarTime = now;
+
+      const star = document.createElement("div");
+      star.className = "star";
+      star.textContent = "✦";
+      star.style.setProperty("--drift", Math.random());
+      star.style.left = e.clientX + "px";
+      star.style.top = e.clientY + "px";
+
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 2000);
+    });
+
+    // Full-page falling sparkles
+    setInterval(() => {
+      const star = document.createElement("div");
+      star.className = "falling-star";
+      star.textContent = "✦";
+      star.style.left = Math.random() * 100 + "vw";
+      star.style.top = "-10vh";
+      star.style.setProperty("--drift", Math.random() * 2 - 1);
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 8000);
+    }, 400);
+
+    // ---------- Poll specific ----------
+    const SUPABASE_URL = "YOUR_NEW_SUPABASE_URL"; // <-- REPLACE
+    const SUPABASE_KEY = "YOUR_NEW_PUBLISHABLE_KEY"; // <-- REPLACE
+    const POLL_ID = "new_character_poll"; // <-- new poll ID
+    const TOTAL = 12;
+
+    const grid = document.getElementById("grid");
+    const resultsBox = document.getElementById("results");
+
+    const leftImg = document.getElementById("leftImg");
+    const leftBig = document.getElementById("leftBig");
+
+    const rightImg = document.getElementById("rightImg");
+    const rightBig = document.getElementById("rightBig");
+
+    let rotateIndex = 1;
+
+    // Voter hash
+    let voterHash = localStorage.getItem("voter_hash_poll");
+    if (!voterHash) {
+      voterHash = crypto.randomUUID();
+      localStorage.setItem("voter_hash_poll", voterHash);
+    }
+
+    // Build cards
+    for (let i = 1; i <= TOTAL; i++) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.id = i;
+
+      card.innerHTML = `
+        <img src="/images/poll/${i}.jpg">
+        <div class="progress">
+          <div class="progress-fill"></div>
+          <div class="progress-text">0%</div>
+        </div>
+        <div class="label">Loading…</div>
+      `;
+
+      card.onclick = async () => {
+        showSelected(i);
+        await vote(i);
+      };
+
+      grid.appendChild(card);
+    }
+
+    // Show selected on left big card
+    function showSelected(id) {
+      leftBig.classList.remove("show");
+
+      setTimeout(() => {
+        leftImg.src = `/images/poll/${id}.jpg`;
+        leftBig.classList.add("show");
+      }, 150);
+    }
+
+    // Rotate right big card
+    function rotate() {
+      rightBig.classList.remove("show");
+
+      setTimeout(() => {
+        rightImg.src = `/images/poll/${rotateIndex}.jpg`;
+        rightBig.classList.add("show");
+        rotateIndex = rotateIndex % TOTAL + 1;
+      }, 150);
+    }
+
+    setInterval(rotate, 3500);
+    rotate();
+    showSelected(1);
+
+    // Vote
+    async function vote(optionId) {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/votes`,
+        {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: "Bearer " + SUPABASE_KEY,
+            "Content-Type": "application/json",
+            Prefer: "resolution=merge-duplicates"
+          },
+          body: JSON.stringify({
+            poll_id: POLL_ID,
+            option_id: optionId,
+            voter_hash: voterHash
+          })
+        }
+      );
+
+      fetchResults();
+      fetchLeaderboard();
+    }
+
+    // Fetch results for progress bars
+    async function fetchResults() {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/votes?poll_id=eq.${POLL_ID}&select=option_id`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY } }
+      );
+
+      const votes = await res.json();
+      const counts = {};
+      for (let i = 1; i <= TOTAL; i++) counts[i] = 0;
+      votes.forEach(v => counts[v.option_id]++);
+
+      const totalVotes = votes.length;
+
+      document.querySelectorAll(".card").forEach(card => {
+        const id = Number(card.dataset.id);
+        const percent = totalVotes ? Math.round((counts[id] / totalVotes) * 100) : 0;
+
+        card.querySelector(".progress-fill").style.width = percent + "%";
+        card.querySelector(".progress-text").textContent = percent + "%";
+      });
+    }
+
+    // Fetch leaderboard
+    async function fetchLeaderboard() {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/poll_result?poll_id=eq.${POLL_ID}&order=score.desc`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY } }
+      );
+
+      const rows = await res.json();
+
+      let leaderboardHTML = "";
+
+      rows.forEach(r => {
+        leaderboardHTML += `
+          <div class="leaderboard-entry">
+            ${r.character_name}: ${r.score.toFixed(1)}
+          </div>
+        `;
+      });
+
+      resultsBox.innerHTML = leaderboardHTML || "No votes yet";
+
+      // Update card labels
+      document.querySelectorAll(".card").forEach(card => {
+        const id = Number(card.dataset.id);
+        const row = rows.find(r => r.option_id === id);
+        if (row) card.querySelector(".label").textContent = row.character_name;
+      });
+    }
+
+    // Initial load
+    fetchResults();
+    fetchLeaderboard();
+    setInterval(fetchResults, 30000);
+    setInterval(fetchLeaderboard, 30000);
+
+    // Random wobble offset for organic feel
+    document.querySelectorAll('.card, .big-card').forEach(el => {
+      const offset = Math.random() * 1.5;
+      el.style.setProperty('--random-offset', `${offset}s`);
+    });
+  </script>
+
+  <!-- Shared tab title animation -->
+  <script src="/assets/js/tab-title-animation.js"></script>
+
+</body>
+</html>
