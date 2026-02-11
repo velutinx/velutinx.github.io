@@ -46,7 +46,7 @@
   <!-- Shared navigation -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- Inline shared features (stable until external JS is fixed) -->
+  <!-- Inline shared features (exactly as you had) -->
   <script>
     // Language toggle + translation for blobs & commission text
     let isJapanese = false;
@@ -112,17 +112,10 @@
       commissionBox.appendChild(star);
       setTimeout(() => star.remove(), 6000);
     }, 700);
-
-    // Tab title animation (optional)
-    const titles = ["VELUTINX", "ELUTINX", "LUTINX", "UTINX", "TINX", "INX", "NX", "X"];
-    let index = 0;
-    function animateTitle() {
-      document.title = titles[index];
-      index = (index + 1) % titles.length;
-      setTimeout(animateTitle, 600);
-    }
-    animateTitle();
   </script>
+
+  <!-- Shared tab title animation (same as artwork.html) -->
+  <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
 </html>
