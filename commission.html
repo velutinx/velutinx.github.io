@@ -7,22 +7,22 @@
 </head>
 <body>
 
-  <!-- Shared fixed controls -->
+  <!-- Fixed controls (same as index) -->
   <div class="lang-swipe" id="langSwipe"></div>
   <div class="lang-toggle" id="langToggle">日本語</div>
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
 
-  <!-- Main content -->
+  <!-- Main wrapper -->
   <div id="page">
 
-    <!-- Navigation blobs (loaded via navigation.js) -->
+    <!-- Shared navigation -->
     <div id="navContainer"></div>
 
     <div class="divider"></div>
 
-    <!-- Commission content -->
+    <!-- Commission section -->
     <section class="commission-wrap">
       <div class="commission-box" id="commissionBox">
         <h2 id="comTitle">COMMISSIONS</h2>
@@ -43,72 +43,16 @@
 
   </div>
 
-  <!-- Shared navigation loader -->
+  <!-- Shared scripts -->
   <script src="/assets/js/navigation.js"></script>
+  <script src="/assets/js/language-toggle.js"></script>
+  <script src="/assets/js/theme-toggle.js"></script>
+  <script src="/assets/js/cursor-sparkles.js"></script>
+  <script src="/assets/js/tab-title-animation.js"></script>
 
-  <!-- Inline fallback for all shared features (until external JS is fixed) -->
+  <!-- Page-specific: box sparkles + commission text translation -->
   <script>
-    // Language toggle + blob translation
-    let isJapanese = false;
-    const langToggle = document.getElementById("langToggle");
-    const langSwipe = document.getElementById("langSwipe");
-    const heroSub = document.getElementById("heroSub"); // if present on this page
-
-    langToggle.onclick = () => {
-      langSwipe.classList.remove("active");
-      void langSwipe.offsetWidth;
-      langSwipe.classList.add("active");
-
-      setTimeout(() => {
-        isJapanese = !isJapanese;
-
-        document.querySelectorAll(".blob-text").forEach(t => {
-          t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
-        });
-
-        if (heroSub) {
-          heroSub.textContent = isJapanese 
-            ? "♡ フリーランスイラストレーター ♡" 
-            : "♡ Freelance Illustrator ♡";
-        }
-
-        langToggle.textContent = isJapanese ? "EN" : "日本語";
-
-        // Update commission text too
-        document.getElementById("comTitle").textContent = isJapanese ? "コミッション" : "COMMISSIONS";
-        document.getElementById("comInfo").textContent = isJapanese 
-          ? "コミッション情報は近日中に追加されます。" 
-          : "Commission information will be added here soon.";
-        document.getElementById("comList").innerHTML = isJapanese 
-          ? "✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）"
-          : "✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)";
-      }, 180);
-    };
-
-    // Theme toggle
-    document.getElementById("themeToggle").onclick = () => {
-      document.body.classList.toggle("dark");
-    };
-
-    // Cursor sparkles
-    let lastStarTime = 0;
-    document.addEventListener("mousemove", (e) => {
-      const now = Date.now();
-      if (now - lastStarTime < 45) return;
-      lastStarTime = now;
-
-      const star = document.createElement("div");
-      star.className = "star";
-      star.textContent = "✦";
-      star.style.setProperty("--drift", Math.random());
-      star.style.left = e.clientX + "px";
-      star.style.top = e.clientY + "px";
-
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 2000);
-    });
-
-    // Box-specific falling sparkles (inside commission box)
+    // Falling sparkles inside the commission box
     const commissionBox = document.getElementById("commissionBox");
     setInterval(() => {
       const star = document.createElement("div");
@@ -120,15 +64,19 @@
       setTimeout(() => star.remove(), 6000);
     }, 700);
 
-    // Tab title animation (optional)
-    const titles = ["VELUTINX", "ELUTINX", "LUTINX", "UTINX", "TINX", "INX", "NX", "X"];
-    let index = 0;
-    function animateTitle() {
-      document.title = titles[index];
-      index = (index + 1) % titles.length;
-      setTimeout(animateTitle, 600);
-    }
-    animateTitle();
+    // Commission text translation
+    document.addEventListener("languagechange", (e) => {
+      const isJapanese = e.detail.isJapanese;
+
+      document.getElementById("comTitle").textContent = isJapanese ? "コミッション" : "COMMISSIONS";
+      document.getElementById("comInfo").textContent = isJapanese 
+        ? "コミッション情報は近日中に追加されます。" 
+        : "Commission information will be added here soon.";
+
+      document.getElementById("comList").innerHTML = isJapanese 
+        ? `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
+        : `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`;
+    });
   </script>
 
 </body>
