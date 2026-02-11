@@ -40,10 +40,42 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All shared functionality inline -->
+  <!-- All shared functionality inline with localStorage persistence + robust blob memory -->
   <script>
-    // Language toggle
-    let isJapanese = false;
+    // Load saved preferences on page load
+    const savedLang = localStorage.getItem("language");
+    const savedDark = localStorage.getItem("darkMode") === "true";
+
+    let isJapanese = savedLang === "jp";
+
+    // Function to translate blobs (robust — polls if not ready)
+    function translateBlobs(isJp) {
+      const blobs = document.querySelectorAll(".blob-text");
+      if (blobs.length === 0) {
+        setTimeout(() => translateBlobs(isJp), 100);
+        return;
+      }
+      blobs.forEach(t => {
+        t.textContent = isJp ? t.dataset.jp : t.dataset.en;
+      });
+    }
+
+    // Apply saved language on load
+    translateBlobs(isJapanese);
+
+    // Page-specific (artwork intro)
+    document.getElementById("artworkIntro").textContent = isJapanese 
+      ? "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像"
+      : "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
+
+    document.getElementById("langToggle").textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+
+    // Apply saved dark mode on load
+    if (savedDark) {
+      document.body.classList.add("dark");
+    }
+
+    // Language toggle with flags + save preference + update blobs
     langToggle.onclick = () => {
       langSwipe.classList.remove("active");
       void langSwipe.offsetWidth;
@@ -52,24 +84,24 @@
       setTimeout(() => {
         isJapanese = !isJapanese;
 
-        document.querySelectorAll(".blob-text").forEach(t => {
-          t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
-        });
+        translateBlobs(isJapanese);
 
-        // Translate artwork intro
-        const artworkIntro = document.getElementById("artworkIntro");
-        if (artworkIntro) {
-          artworkIntro.textContent = isJapanese 
-            ? "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像"
-            : "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
-        }
+        document.getElementById("artworkIntro").textContent = isJapanese 
+          ? "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像"
+          : "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
 
         langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
+
+        // Save language preference
+        localStorage.setItem("language", isJapanese ? "jp" : "en");
       }, 180);
     };
 
-    // Theme toggle
-    themeToggle.onclick = () => document.body.classList.toggle("dark");
+    // Theme toggle + save preference
+    themeToggle.onclick = () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    };
 
     // Cursor sparkles
     let lastStarTime = 0;
@@ -89,17 +121,17 @@
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Full-page falling sparkles (starts from top, falls across full viewport)
+    // Full-page falling sparkles
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "falling-star";
       star.textContent = "✦";
-      star.style.left = Math.random() * 100 + "vw";          // random horizontal position
-      star.style.top = "-10vh";                              // starts above the viewport
-      star.style.setProperty("--drift", Math.random() * 2 - 1); // slight left/right drift
+      star.style.left = Math.random() * 100 + "vw";
+      star.style.top = "-10vh";
+      star.style.setProperty("--drift", Math.random() * 2 - 1);
       document.body.appendChild(star);
-      setTimeout(() => star.remove(), 8000);                 // longer fall time for scrolling pages
-    }, 400);  // more frequent so they are visible while scrolling
+      setTimeout(() => star.remove(), 8000);
+    }, 400);
 
     // Gallery loading
     const MAX_IMAGES = 45;
@@ -183,9 +215,9 @@
       }, 230);
     };
   </script>
-  
+
   <!-- Shared tab title animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
-  
+
 </body>
 </html>
