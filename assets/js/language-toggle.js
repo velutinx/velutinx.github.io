@@ -1,23 +1,36 @@
+// language-toggle.js
+
 let isJapanese = false;
-const blobTexts = document.querySelectorAll(".blob-text");
-const heroSub = document.getElementById("heroSub");
+let blobTexts = []; // will be filled later
+let heroSub = null;
 
-langToggle.onclick = () => {
-  langSwipe.classList.remove("active");
-  void langSwipe.offsetWidth; // trigger reflow
-  langSwipe.classList.add("active");
+const langToggle = document.getElementById("langToggle");
+const langSwipe = document.getElementById("langSwipe");
 
-  setTimeout(() => {
-    isJapanese = !isJapanese;
+export function initLanguageToggle() {
+  // Cache elements once nav is loaded
+  blobTexts = document.querySelectorAll(".blob-text");
+  heroSub = document.getElementById("heroSub");
 
-    blobTexts.forEach(t => {
-      t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
-    });
+  langToggle.onclick = () => {
+    langSwipe.classList.remove("active");
+    void langSwipe.offsetWidth; // force reflow
+    langSwipe.classList.add("active");
 
-    heroSub.textContent = isJapanese
-      ? "♡ フリーランスイラストレーター ♡"
-      : "♡ Freelance Illustrator ♡";
+    setTimeout(() => {
+      isJapanese = !isJapanese;
 
-    langToggle.textContent = isJapanese ? "EN" : "日本語";
-  }, 180);
-};
+      blobTexts.forEach(t => {
+        t.textContent = isJapanese ? t.dataset.jp : t.dataset.en;
+      });
+
+      if (heroSub) {
+        heroSub.textContent = isJapanese
+          ? "♡ フリーランスイラストレーター ♡"
+          : "♡ Freelance Illustrator ♡";
+      }
+
+      langToggle.textContent = isJapanese ? "EN" : "日本語";
+    }, 180);
+  };
+}
