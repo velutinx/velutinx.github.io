@@ -44,11 +44,11 @@
   <script src="/assets/js/cursor-sparkles.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
-  <!-- Page-specific logic -->
+  <!-- Page-specific: gallery + zoom + full-screen sparkles -->
   <script>
-    // Load gallery images (lowercase path!)
+    // Gallery loading (from GitHub)
     const MAX_IMAGES = 45;
-    const BASE = "/images/artwork/";   // ← fixed to lowercase
+    const BASE = "/images/artwork/";
 
     const gallery = document.getElementById("gallery");
 
@@ -56,8 +56,8 @@
       const img = document.createElement("img");
       img.src = BASE + i + ".jpg";
       img.alt = `Artwork sample ${i}`;
-      img.onerror = () => img.remove(); // hide broken images
-      img.loading = "lazy"; // better performance
+      img.onerror = () => img.remove();
+      img.loading = "lazy";
       gallery.appendChild(img);
     }
 
@@ -128,7 +128,18 @@
       }, 230);
     };
 
-    // Page-specific language update
+    // Full-screen falling sparkles
+    setInterval(() => {
+      const star = document.createElement("div");
+      star.className = "falling-star";
+      star.textContent = "✦";
+      star.style.left = Math.random() * 100 + "vw";
+      star.style.setProperty("--drift", Math.random());
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 6000);
+    }, 700);
+
+    // Page-specific intro translation
     const EN_INTRO = "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
     const JP_INTRO = "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像";
 
