@@ -477,7 +477,7 @@
 async function fetchLeaderboard() {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/poll_result?order=score.desc&select=option_id,character_name,score,selected_at`,
+      `${SUPABASE_URL}/rest/v1/poll_result?order=option_id.asc&select=option_id,character_name,score,selected_at`,
       {
         headers: { 
           apikey: SUPABASE_KEY, 
@@ -489,15 +489,11 @@ async function fetchLeaderboard() {
     if (!res.ok) throw new Error(await res.text());
 
     const rows = await res.json();
-    console.log("poll_result fetched:", rows);
+    //           ^^^ now rows[0] = option_id 1, rows[1] = option_id 2, etc.
 
     let html = "";
-    rows.forEach((r, index) => {
-      // ────────────────────────────────────────────────
-      // Key logic: blur ONLY if selected_at is not null/empty
-      // ────────────────────────────────────────────────
+    rows.forEach(r => {
       const isSpoiled = r.selected_at !== null && r.selected_at !== undefined;
-
       const cls = isSpoiled ? "spoiled" : "";
       
       const name = r.character_name || `Option ${r.option_id}`;
