@@ -474,36 +474,58 @@
     }
 
     // Leaderboard + card labels – from poll_result
-    async function fetchLeaderboard() {
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/poll_result?order=score.desc`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-        });
-
-        if (!res.ok) throw new Error(await res.text());
-
-        const rows = await res.json();
-        console.log("poll_result fetched:", rows.length, "rows", rows);
-
-        let html = "";
-        rows.forEach(r => {
-          html += `<div class="leaderboard-entry">${r.character_name || `Option ${r.option_id}`}: ${Number(r.score || 0).toFixed(1)}</div>`;
-        });
-        resultsBox.innerHTML = html || "No votes yet";
-
-        // Update card labels
-        document.querySelectorAll(".card").forEach(card => {
-          const id = Number(card.dataset.id);
-          const row = rows.find(r => Number(r.option_id) === id);
-          if (row?.character_name) {
-            card.querySelector(".label").textContent = row.character_name;
-          }
-        });
-      } catch (err) {
-        console.error("fetchLeaderboard error:", err);
-        resultsBox.innerHTML = "Error loading leaderboard";
+async function fetchLeaderboard() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/poll_result?order=score.desc&select=option_id,character_name,score,selected_at`,
+      {
+        headers: { 
+          apikey: SUPABASE_KEY, 
+          Authorization: `Bearer ${SUPABASE_KEY}` 
+        }
       }
-    }
+    );
+
+    if (!res.ok) throw new Error(await res.text());
+
+    const rows = await res.json();
+    console.log("poll_result fetched:", rows);
+
+    let html = "";
+    rows.forEach((r, index) => {
+      // ────────────────────────────────────────────────
+      // Key logic: blur ONLY if selected_at is not null/empty
+      // ────────────────────────────────────────────────
+      const isSpoiled = r.selected_at !== null && r.selected_at !== undefined;
+
+      const cls = isSpoiled ? "spoiled" : "";
+      
+      const name = r.character_name || `Option ${r.option_id}`;
+      const score = Number(r.score || 0).toFixed(1);
+
+      html += `
+        <div class="leaderboard-entry ${cls}">
+          ${name}: ${score}
+        </div>
+      `;
+    });
+
+    resultsBox.innerHTML = html || "No votes yet";
+
+    // Update card labels (unchanged)
+    document.querySelectorAll(".card").forEach(card => {
+      const id = Number(card.dataset.id);
+      const row = rows.find(r => Number(r.option_id) === id);
+      if (row?.character_name) {
+        card.querySelector(".label").textContent = row.character_name;
+      }
+    });
+
+  } catch (err) {
+    console.error("fetchLeaderboard error:", err);
+    resultsBox.innerHTML = "Error loading leaderboard";
+  }
+}
 
     // Initial load
     fetchResults();
