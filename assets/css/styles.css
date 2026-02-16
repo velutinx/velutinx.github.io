@@ -15,15 +15,15 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: transparent;           /* ← was var(--bg) → now transparent */
   color: var(--text);
   font-family: system-ui, sans-serif;
   overflow-x: hidden;
-  transition: background 0.6s ease, color 0.6s ease;
+  transition: color 0.6s ease;       /* removed background transition */
 }
 
 body.dark {
-  background: var(--bg-dark);
+  background: transparent;           /* ← was var(--bg-dark) → transparent */
   color: var(--text-dark);
 }
 
@@ -592,4 +592,5 @@ body.dark .popup {
     filter 0.9s ease-out,
     transform 0.5s ease;
 }
+
 
