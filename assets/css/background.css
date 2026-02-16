@@ -34,14 +34,13 @@
 .wave-overlay {
   position: absolute;
   inset: 0;
-  background-image: url('/images/Background Wave.png');   /* your new file */
-  /* fallback if you prefer the old one temporarily: url('https://velutinx.neocities.org/Images/wave__1_.png') */
+  background-image: url('/images/background-wave.png');   /* ← changed here */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.10;                     /* subtle on cream — adjust 0.06–0.16 */
-  mix-blend-mode: overlay;           /* good for texture; try soft-light / screen too */
-  animation: slowDrift 140s linear infinite;   /* very gentle, long cycle */
+  opacity: 0.10;
+  mix-blend-mode: overlay;
+  animation: slowDrift 140s linear infinite;
   pointer-events: none;
 }
 
