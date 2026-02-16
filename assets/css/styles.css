@@ -447,46 +447,21 @@ body.dark .divider { background: var(--divider-dark); }
 }
 
 .commission-box {
-  background: transparent;                    /* no solid color – shows background through */
-  border: 2px solid var(--divider);
-  border-radius: 16px;
+  background: #eeeae0;
+  border: 3px solid var(--divider);
+  border-radius: 14px;
   padding: 40px 36px;
   min-height: 360px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);    /* deeper shadow for depth */
-  backdrop-filter: blur(12px);                /* frosted glass effect */
-  -webkit-backdrop-filter: blur(12px);        /* Safari support */
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
   position: relative;
   overflow: hidden;
-  transition: all 0.4s ease;
+  transition: background 0.6s ease, border-color 0.6s ease;
   text-align: center;
 }
 
-/* Light mode subtle tint */
-.commission-box::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(238, 234, 224, 0.18);      /* very faint cream/ivory veil */
-  border-radius: 14px;
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Dark mode adjustments */
 body.dark .commission-box {
+  background: #16161b;
   border-color: var(--divider-dark);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-}
-
-body.dark .commission-box::before {
-  background: rgba(22, 22, 27, 0.25);         /* faint dark veil */
-}
-
-/* Hover effect for interactivity */
-.commission-box:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
-  backdrop-filter: blur(16px);
 }
 
 .commission-box h2 {
@@ -813,7 +788,6 @@ body.dark .popup {
     filter 0.9s ease-out,
     transform 0.5s ease;
 }
-
 
 
 
