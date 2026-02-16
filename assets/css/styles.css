@@ -446,22 +446,63 @@ body.dark .divider { background: var(--divider-dark); }
   position: relative;
 }
 
+/* Commission Section – transparent/frosted glass */
+.commission-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+  position: relative;
+}
+
 .commission-box {
-  background: #eeeae0;
-  border: 3px solid var(--divider);
-  border-radius: 14px;
+  background: transparent;                    /* fully transparent – background visible */
+  border: 2px solid var(--divider);           /* subtle border for definition */
+  border-radius: 16px;
   padding: 40px 36px;
   min-height: 360px;
-  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);    /* deeper shadow for depth */
+  backdrop-filter: blur(12px);                /* frosted glass blur */
+  -webkit-backdrop-filter: blur(12px);        /* Safari support */
   position: relative;
   overflow: hidden;
-  transition: background 0.6s ease, border-color 0.6s ease;
+  transition: all 0.4s ease;
   text-align: center;
 }
 
+/* Light mode faint veil (helps readability) */
+.commission-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(238, 234, 224, 0.18);      /* very light cream tint */
+  border-radius: 14px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Dark mode adjustments */
 body.dark .commission-box {
-  background: #16161b;
   border-color: var(--divider-dark);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+body.dark .commission-box::before {
+  background: rgba(22, 22, 27, 0.25);         /* faint dark tint */
+}
+
+/* Optional hover lift for interactivity */
+.commission-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  backdrop-filter: blur(16px);
+}
+
+/* Keep text readable */
+.commission-box h2,
+.commission-box p,
+.commission-box .placeholder {
+  position: relative;
+  z-index: 2;  /* above the veil */
 }
 
 .commission-box h2 {
@@ -788,6 +829,7 @@ body.dark .popup {
     filter 0.9s ease-out,
     transform 0.5s ease;
 }
+
 
 
 
