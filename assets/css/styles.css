@@ -25,11 +25,11 @@
   inset: 0;
   background: linear-gradient(
     132deg,
-    #391E10 0%,
-    #734128 25%,
-    #C7A07A 50%,
-    #E2CEB1 75%,
-    #FDFCE8 100%
+    #734128 0%,
+    #C7A07A 25%,
+    #E2CEB1 50%,
+    #FDFCE8 75%,
+    #391E10 100%
   );
   background-size: 300% 300%;
   animation: gradientFlow 28s ease infinite;
@@ -706,6 +706,7 @@ body.dark .popup {
     filter 0.9s ease-out,
     transform 0.5s ease;
 }
+
 
 
 
