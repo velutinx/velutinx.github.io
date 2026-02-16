@@ -7,7 +7,98 @@
   --divider-dark: #6f6a4e;
   --text-dark: #e6e3d8;
 }
-@import url("/assets/css/background.css");
+
+/* ====================================================
+   Shared Animated Background (cream palette + wave)
+   ==================================================== */
+
+.background-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.background-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    132deg,
+    #391E10 0%,
+    #734128 25%,
+    #C7A07A 50%,
+    #E2CEB1 75%,
+    #FDFCE8 100%
+  );
+  background-size: 300% 300%;
+  animation: gradientFlow 28s ease infinite;
+}
+
+@keyframes gradientFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.wave-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/background-wave.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.10;
+  mix-blend-mode: overlay;
+  animation: slowDrift 140s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes slowDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1.015); }
+  50%  { transform: translate3d(4%, 6%, 0) scale(1.045); }
+  100% { transform: translate3d(0, 0, 0) scale(1.015); }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(253, 252, 232, 0.28);
+  z-index: -9;
+  pointer-events: none;
+  backdrop-filter: blur(1.5px);
+}
+
+#page,
+.hero,
+.commission-wrap,
+.artwork-wrap,
+.contact-wrap {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+body.dark .background-gradient {
+  background: linear-gradient(
+    132deg,
+    #1a0f08 0%,
+    #3a2014 25%,
+    #6b4e38 50%,
+    #a88b6a 75%,
+    #d4c9a8 100%
+  );
+}
+
+body.dark .wave-overlay {
+  opacity: 0.14;
+  mix-blend-mode: soft-light;
+}
+
+body.dark::before {
+  background: rgba(15, 15, 18, 0.45);
+}
 
 /* =========================================================
    ===== Global Reset & Body  (CLEANED)
@@ -16,15 +107,15 @@
 
 body {
   margin: 0;
-  background: transparent;           /* ← change this */
+  background: transparent;
   color: var(--text);
   font-family: system-ui, sans-serif;
   overflow-x: hidden;
-  transition: color 0.6s ease;       /* remove background from transition */
+  transition: color 0.6s ease;
 }
 
 body.dark {
-  background: transparent;           /* ← also change this */
+  background: transparent;
   color: var(--text-dark);
 }
 
@@ -593,6 +684,7 @@ body.dark .popup {
     filter 0.9s ease-out,
     transform 0.5s ease;
 }
+
 
 
 
