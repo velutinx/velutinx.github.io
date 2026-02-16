@@ -869,89 +869,37 @@ body.dark .popup {
     transform 0.5s ease;
 }
 
-/* Poll elements – transparent glass effect (added at bottom to override) */
-
-/* Cards & big cards */
+/* Poll cards – transparent glass effect */
 .card,
-.big-card {
-  background: transparent !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  position: relative !important;
-  overflow: hidden !important;
+.big-card,
+#leaderboard {
+  background: transparent;
+  border: 2px solid var(--divider);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
 }
 
 .card::before,
-.big-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(245,241,223,0.25) !important; /* light mode faint veil matching original bg */
-  z-index: -1 !important;
-  pointer-events: none !important;
-}
-
-body.dark .card,
-body.dark .big-card {
-  background: transparent !important;
-}
-
-body.dark .card::before,
-body.dark .big-card::before {
-  background: rgba(30, 30, 35, 0.25) !important; /* dark mode faint veil matching original bg */
-}
-
-/* Leaderboard box */
-#leaderboard {
-  background: transparent !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-
+.big-card::before,
 #leaderboard::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255,255,255,0.15) !important; /* light mode subtle veil */
-  z-index: -1 !important;
-  pointer-events: none !important;
+  background: rgba(238, 234, 224, 0.18); /* light mode faint veil */
+  z-index: -1;
+  pointer-events: none;
 }
 
+body.dark .card,
+body.dark .big-card,
 body.dark #leaderboard {
-  background: transparent !important;
+  border-color: var(--divider-dark);
 }
 
+body.dark .card::before,
+body.dark .big-card::before,
 body.dark #leaderboard::before {
-  background: rgba(30, 30, 35, 0.2) !important; /* dark mode subtle veil */
+  background: rgba(22, 22, 27, 0.25); /* dark mode faint veil */
 }
-
-/* Ensure text & content stay readable */
-.card .progress,
-.card .label,
-#leaderboard h3,
-#leaderboard .tooltip,
-#leaderboard .leaderboard-entry,
-.poll-title,
-.poll-subtitle,
-.discord-disclaimer {
-  position: relative;
-  z-index: 2; /* above veil */
-  background: transparent; /* no extra bg on text areas */
-}
-
-/* Progress bar – keep semi-transparent */
-.progress {
-  background: rgba(0,0,0,0.15) !important;
-}
-
-.progress-fill {
-  background: linear-gradient(90deg, #5a8cff, #8fb6ff) !important;
-}
-
-.progress-text {
-  color: white !important;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
-}
-
