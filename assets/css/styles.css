@@ -70,26 +70,16 @@ body::before {
   backdrop-filter: blur(1.5px);
 }
 
-#page,
-.hero,
-.commission-wrap,
-.artwork-wrap,
-.contact-wrap {
-  position: relative;
-  z-index: 1;
-  background: transparent;
-}
-
-/* Dark mode: much darker base gradient + slow flow */
+/* Dark mode background */
 body.dark .background-gradient {
   background: linear-gradient(
     135deg,
-    #111111 0%,      /* ← changed to your requested starting color */
-    #000814 20%,     /* deepest navy-black */
-    #0a1125 40%,     /* very dark navy */
-    #001220 60%,     /* cold dark space blue-black */
-    #0b142b 80%,     /* muted deep navy */
-    #111111 100%     /* loop back to #111111 for smooth cycling */
+    #111111 0%,
+    #000814 20%,
+    #0a1125 40%,
+    #001220 60%,
+    #0b142b 80%,
+    #111111 100%
   );
   background-size: 400% 400%;
   animation: darkNebulaFlow 55s ease infinite;
@@ -101,29 +91,22 @@ body.dark .background-gradient {
   100% { background-position: 0% 50%; }
 }
 
-/* Even darker veil for stronger contrast/readability */
 body.dark::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 3, 15, 0.65);   /* strong dark navy overlay */
-  z-index: -9;
-  pointer-events: none;
+  background: rgba(0, 3, 15, 0.65);
   backdrop-filter: blur(1px);
 }
 
-/* Subtle dark-navy stars (matching the watercolor texture mood) */
 body.dark .background-gradient::before {
   content: "";
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(#111111 1px, transparent 1px),   /* very dark navy-blue dots */
+    radial-gradient(#111111 1px, transparent 1px),
     radial-gradient(#0f1e38 1px, transparent 1px),
     radial-gradient(#14253f 1px, transparent 1px);
   background-size: 70px 70px, 90px 90px, 120px 120px;
   background-position: 0 0, 35px 35px, 80px 80px;
-  opacity: 0.06;                  /* still subtle, but visible on deep black */
+  opacity: 0.06;
   animation: starTwinkle 35s ease-in-out infinite;
   mix-blend-mode: screen;
   pointer-events: none;
@@ -134,42 +117,24 @@ body.dark .background-gradient::before {
   50%      { opacity: 0.11; transform: scale(1.02); }
 }
 
-@keyframes starTwinkle {
-  0%, 100% { opacity: 0.07; transform: scale(1); }
-  50%      { opacity: 0.14; transform: scale(1.03); }
-}
-
-@keyframes pulseNebula1 {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50%      { opacity: 1.0; transform: scale(1.08); }
-}
-
-@keyframes pulseNebula2 {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50%      { opacity: 0.9; transform: scale(1.12); }
-}
-
-@keyframes nebulaFlow {
-  0%   { background-position: 0% 0%, 100% 100%, 0% 100%, 50% 50%; }
-  100% { background-position: 100% 100%, 0% 0%, 100% 0%, 50% 50%; }
-}
-
-@keyframes starTwinkle {
-  0%, 100% { opacity: 0.04; }
-  50%      { opacity: 0.08; }
-}
-
 body.dark .wave-overlay {
   opacity: 0.14;
   mix-blend-mode: soft-light;
 }
 
-body.dark::before {
-  background: rgba(15, 15, 18, 0.45);
+/* Make sure main containers are above background */
+#page,
+.hero,
+.commission-wrap,
+.artwork-wrap,
+.contact-wrap {
+  position: relative;
+  z-index: 1;
+  background: transparent;
 }
 
 /* =========================================================
-   ===== Global Reset & Body  (CLEANED)
+   Global Reset & Body
    ========================================================= */
 * { box-sizing: border-box; }
 
@@ -187,7 +152,7 @@ body.dark {
   color: var(--text-dark);
 }
 
-/* ✅ Page load animation */
+/* Page load animation */
 #page {
   opacity: 0;
   transform: translateY(60px);
@@ -198,129 +163,9 @@ body.dark {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Language Swipe Overlay */
-.lang-swipe {
-  position: fixed;
-  bottom: -120%;
-  left: 0;
-  width: 100%;
-  height: 120%;
-  background: var(--divider);
-  z-index: 10000;
-  pointer-events: none;
-}
-.lang-swipe.active {
-  animation: langSwipeUp 0.55s ease-in forwards;
-}
-
-@keyframes langSwipeUp {
-  to { bottom: 120%; }
-}
-
-/* Language Toggle – make it transparent with subtle border/glow */
-.lang-toggle {
-  position: fixed;
-  top: 20%;
-  right: 24px;
-  width: 72px;
-  height: 48px;
-  background: transparent;                    /* ← changed to transparent */
-  border: 2px solid var(--divider);           /* subtle border using your divider color */
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 32px;
-  line-height: 48px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);    /* soft shadow for depth */
-  backdrop-filter: blur(8px);                 /* glass-like effect – optional but nice */
-  transition: all 0.3s ease;
-}
-
-.lang-toggle:hover {
-  background: rgba(170, 158, 118, 0.15);      /* very faint hover tint using divider color */
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-  transform: scale(1.08);
-}
-
-/* Dark mode adjustments for lang toggle */
-body.dark .lang-toggle {
-  border-color: var(--divider-dark);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-body.dark .lang-toggle:hover {
-  background: rgba(111, 106, 78, 0.2);        /* faint dark hover */
-}
-
-/* Theme Toggle – transparent pill with glass effect */
-.theme-toggle {
-  position: fixed;
-  top: 80%;
-  right: 24px;
-  width: 72px;
-  height: 36px;
-  background: transparent;                    /* ← changed to transparent */
-  border: 2px solid var(--divider);
-  border-radius: 999px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  z-index: 9999;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  backdrop-filter: blur(8px);                 /* glass/matte effect */
-  transition: all 0.3s ease;
-}
-
-.theme-toggle:hover {
-  background: rgba(170, 158, 118, 0.12);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-  transform: scale(1.08);
-}
-
-.theme-knob {
-  width: 28px;
-  height: 28px;
-  background: #000;                           /* keep dark knob for contrast */
-  border-radius: 50%;
-  transition: transform 0.4s ease, background 0.4s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5); /* inner shadow for depth */
-}
-
-.theme-knob::before { content: "🌙"; }
-
-body.dark .theme-toggle {
-  border-color: var(--divider-dark);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-body.dark .theme-toggle:hover {
-  background: rgba(111, 106, 78, 0.18);
-}
-
-body.dark .theme-knob {
-  transform: translateX(34px);
-  background: var(--divider-dark);
-}
-body.dark .theme-knob::before { content: "☀️"; }
-
-/* Wobble Animations */
-@keyframes langWobble {
-  0% { transform: scale(1.1) rotate(0deg); }
-  25% { transform: scale(1.1) rotate(-18deg); }
-  50% { transform: scale(1.1) rotate(18deg); }
-  75% { transform: scale(1.1) rotate(-10deg); }
-  100% { transform: scale(1.1) rotate(0deg); }
-}
-
-/* Navigation Blobs */
+/* ────────────────────────────────────────────────
+   Your existing navigation blobs – make sure size is controlled
+   ──────────────────────────────────────────────── */
 .nav {
   display: flex;
   justify-content: center;
@@ -329,7 +174,8 @@ body.dark .theme-knob::before { content: "☀️"; }
 }
 
 .blob-btn {
-  width: 180px;
+  width: 180px;                    /* keep this fixed size */
+  max-width: 180px;                /* prevent overflow */
   cursor: pointer;
   transform-box: fill-box;
   transform-origin: center;
@@ -339,29 +185,23 @@ body.dark .theme-knob::before { content: "☀️"; }
   animation: blobWobble 1.6s ease-in-out infinite;
 }
 
-@keyframes blobWobble {
-  0% { transform: scale(1.15) rotate(0deg); }
-  25% { transform: scale(1.15) rotate(-4deg); }
-  50% { transform: scale(1.15) rotate(4deg); }
-  75% { transform: scale(1.15) rotate(-3deg); }
-  100% { transform: scale(1.15) rotate(0deg); }
-}
-
 .blob-svg path {
   fill: none;
   stroke: var(--divider);
   stroke-width: 6;
 }
+
 body.dark .blob-svg path { stroke: var(--divider-dark); }
 
 .blob-text {
   font-weight: 900;
   letter-spacing: 2px;
-  font-size: 19px;
+  font-size: 19px;                 /* this is normal size – was not changed */
   fill: var(--text);
   pointer-events: none;
 }
-body.dark .blob-text { fill: var(--text-dark); }
+
+body.dark .blob-text { fill: var(--text-dark); }body.dark .blob-text { fill: var(--text-dark); }
 
 /* Dividers */
 .divider {
@@ -813,6 +653,7 @@ body.dark .popup {
     filter 0.9s ease-out,
     transform 0.5s ease;
 }
+
 
 
 
