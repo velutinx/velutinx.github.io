@@ -869,14 +869,37 @@ body.dark .popup {
     transform 0.5s ease;
 }
 
+/* Poll cards – transparent glass effect */
+.card,
+.big-card,
+#leaderboard {
+  background: transparent;
+  border: 2px solid var(--divider);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
 
+.card::before,
+.big-card::before,
+#leaderboard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(238, 234, 224, 0.18); /* light mode faint veil */
+  z-index: -1;
+  pointer-events: none;
+}
 
+body.dark .card,
+body.dark .big-card,
+body.dark #leaderboard {
+  border-color: var(--divider-dark);
+}
 
-
-
-
-
-
-
-
-
+body.dark .card::before,
+body.dark .big-card::before,
+body.dark #leaderboard::before {
+  background: rgba(22, 22, 27, 0.25); /* dark mode faint veil */
+}
