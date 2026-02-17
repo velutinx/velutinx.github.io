@@ -135,36 +135,31 @@
       font-weight: bold;
     }
 
-    /* ── WINNER CROSS OVERLAY ─────────────────────────────────────── */
+    /* ── WINNER CROSS OVERLAY with pulsing animation ─────────────── */
     .card.winner::after {
       content: "";
       position: absolute;
       inset: 0;
       background: url('/images/cross.png') center / 65% no-repeat;
-      opacity: 0.75;
+      opacity: 0.65;
       pointer-events: none;
       z-index: 5;
       mix-blend-mode: multiply;
-      transition: opacity 0.4s ease;
+      animation: pulseCross 2.8s ease-in-out infinite;
     }
 
     body.dark .card.winner::after {
       mix-blend-mode: screen;
-      opacity: 0.85;
+      opacity: 0.75;           /* slightly stronger base in dark mode */
     }
 
     .card.winner {
       box-shadow: 0 0 0 3px #e63946 inset; /* subtle red hint */
     }
 
-    /* Optional gentle pulse */
-    .card.winner::after {
-      animation: pulseCross 3s ease-in-out infinite;
-    }
-
     @keyframes pulseCross {
-      0%, 100% { opacity: 0.75; }
-      50%      { opacity: 0.88; }
+      0%, 100% { opacity: 0.50; }
+      50%      { opacity: 0.80; }
     }
 
     /* Bottom */
@@ -551,7 +546,7 @@
             card.querySelector(".label").textContent = row.character_name;
           }
 
-          // If selected_at is set → this is the current picked/winner → show cross
+          // If selected_at is set → this is the current picked/winner → show pulsing cross
           if (row && row.selected_at !== null && row.selected_at !== undefined) {
             card.classList.add("winner");
           }
