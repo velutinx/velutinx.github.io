@@ -505,7 +505,8 @@
     async function fetchLeaderboard() {
       try {
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/poll_result?order=option_id.asc&select=option_id,character_name,score,selected_at`,
+          `${SUPABASE_URL}/rest/v1/poll_winners?order=poll_id,option_id,selected_at`,
+
           {
             headers: { 
               apikey: SUPABASE_KEY, 
