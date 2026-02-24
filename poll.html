@@ -150,11 +150,11 @@
 
     body.dark .card.winner::after {
       mix-blend-mode: screen;
-      opacity: 0.75;           /* slightly stronger base in dark mode */
+      opacity: 0.75;
     }
 
     .card.winner {
-      box-shadow: 0 0 0 3px #e63946 inset; /* subtle red hint */
+      box-shadow: 0 0 0 3px #e63946 inset;
     }
 
     @keyframes pulseCross {
@@ -231,7 +231,7 @@
 </head>
 <body>
 
-  <!-- Animated background – same as other pages -->
+  <!-- Animated background -->
   <div class="background-wrapper">
     <div class="background-gradient"></div>
     <div class="wave-overlay"></div>
@@ -501,11 +501,12 @@
       }
     }
 
-    // Leaderboard + card labels + WINNER marking
+    // Leaderboard + card labels + WINNER marking (NOW USING poll_winners)
     async function fetchLeaderboard() {
       try {
+        // Fetch from poll_winners + embed poll_result data
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/poll_result?order=option_id.asc&select=option_id,character_name,score,selected_at`,
+          `${SUPABASE_URL}/rest/v1/poll_winners?select=option_id,selected_at,poll_result(option_id,character_name,score)&poll_id=eq.${POLL_ID}&order=option_id.asc`,
           {
             headers: { 
               apikey: SUPABASE_KEY, 
@@ -516,45 +517,58 @@
 
         if (!res.ok) throw new Error(await res.text());
 
-        const rows = await res.json();
+        const winners = await res.json();
 
+        // Build lookup map: option_id → data
+        const winnerMap = {};
+        winners.forEach(w => {
+          if (w.poll_result && w.poll_result.length > 0) {
+            const r = w.poll_result[0];
+            winnerMap[w.option_id] = {
+              selected_at: w.selected_at,
+              character_name: r.character_name || `Option ${w.option_id}`,
+              score: Number(r.score || 0).toFixed(1)
+            };
+          }
+        });
+
+        // Leaderboard HTML – show all 12 options
         let html = "";
-        rows.forEach(r => {
-          const isSpoiled = r.selected_at !== null && r.selected_at !== undefined;
-          const cls = isSpoiled ? "spoiled" : "";
-          
-          const name = r.character_name || `Option ${r.option_id}`;
-          const score = Number(r.score || 0).toFixed(1);
+        for (let i = 1; i <= TOTAL; i++) {
+          const entry = winnerMap[i] || { score: "0.0", character_name: `Option ${i}` };
+          const isWinner = !!entry.selected_at;
+          const cls = isWinner ? "spoiled" : "";
 
           html += `
             <div class="leaderboard-entry ${cls}">
-              ${name}: ${score}
+              ${entry.character_name}: ${entry.score}
             </div>
           `;
-        });
+        }
 
-        resultsBox.innerHTML = html || "No votes yet";
+        resultsBox.innerHTML = html || "No data yet";
 
-        // Update card labels + mark winner(s) with cross
+        // Update card labels + apply winner cross overlay
         document.querySelectorAll(".card").forEach(card => {
           card.classList.remove("winner");
 
           const id = Number(card.dataset.id);
-          const row = rows.find(r => Number(r.option_id) === id);
-          
-          if (row?.character_name) {
-            card.querySelector(".label").textContent = row.character_name;
+          const entry = winnerMap[id];
+
+          // Set character name on card
+          if (entry?.character_name) {
+            card.querySelector(".label").textContent = entry.character_name;
           }
 
-          // If selected_at is set → this is the current picked/winner → show pulsing cross
-          if (row && row.selected_at !== null && row.selected_at !== undefined) {
+          // Add .winner class → triggers pulsing cross.png overlay
+          if (entry && entry.selected_at) {
             card.classList.add("winner");
           }
         });
 
       } catch (err) {
         console.error("fetchLeaderboard error:", err);
-        resultsBox.innerHTML = "Error loading leaderboard";
+        resultsBox.innerHTML = "Error loading results";
       }
     }
 
