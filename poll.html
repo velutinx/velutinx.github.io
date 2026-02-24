@@ -502,75 +502,61 @@
     }
 
     // Leaderboard + card labels + WINNER marking
-async function fetchLeaderboard() {
-  try {
-    // Fetch winners + embed character info from poll_result
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/poll_winners?select=option_id,selected_at,poll_result(option_id,character_name,score)&poll_id=eq.${POLL_ID}&order=option_id.asc`,
-      {
-        headers: { 
-          apikey: SUPABASE_KEY, 
-          Authorization: `Bearer ${SUPABASE_KEY}` 
-        }
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/poll_result?order=option_id.asc&select=option_id,character_name,score,selected_at`,
+          {
+            headers: { 
+              apikey: SUPABASE_KEY, 
+              Authorization: `Bearer ${SUPABASE_KEY}` 
+            }
+          }
+        );
+
+        if (!res.ok) throw new Error(await res.text());
+
+        const rows = await res.json();
+
+        let html = "";
+        rows.forEach(r => {
+          const isSpoiled = r.selected_at !== null && r.selected_at !== undefined;
+          const cls = isSpoiled ? "spoiled" : "";
+          
+          const name = r.character_name || `Option ${r.option_id}`;
+          const score = Number(r.score || 0).toFixed(1);
+
+          html += `
+            <div class="leaderboard-entry ${cls}">
+              ${name}: ${score}
+            </div>
+          `;
+        });
+
+        resultsBox.innerHTML = html || "No votes yet";
+
+        // Update card labels + mark winner(s) with cross
+        document.querySelectorAll(".card").forEach(card => {
+          card.classList.remove("winner");
+
+          const id = Number(card.dataset.id);
+          const row = rows.find(r => Number(r.option_id) === id);
+          
+          if (row?.character_name) {
+            card.querySelector(".label").textContent = row.character_name;
+          }
+
+          // If selected_at is set → this is the current picked/winner → show pulsing cross
+          if (row && row.selected_at !== null && row.selected_at !== undefined) {
+            card.classList.add("winner");
+          }
+        });
+
+      } catch (err) {
+        console.error("fetchLeaderboard error:", err);
+        resultsBox.innerHTML = "Error loading leaderboard";
       }
-    );
-
-    if (!res.ok) throw new Error(await res.text());
-
-    const winners = await res.json();
-
-    // Build lookup maps for fast access
-    const winnerMap = {};     // option_id → {selected_at, character_name, score}
-    winners.forEach(w => {
-      if (w.poll_result && w.poll_result.length > 0) {
-        const r = w.poll_result[0];
-        winnerMap[w.option_id] = {
-          selected_at: w.selected_at,
-          character_name: r.character_name,
-          score: Number(r.score || 0).toFixed(1)
-        };
-      }
-    });
-
-    // Leaderboard HTML (show all 12 options, mark winners)
-    let html = "";
-    for (let i = 1; i <= TOTAL; i++) {
-      const entry = winnerMap[i] || { score: "0.0", character_name: `Option ${i}` };
-      const isWinner = !!entry.selected_at;
-      const cls = isWinner ? "spoiled" : "";  // or remove .spoiled if you don't want blur
-
-      html += `
-        <div class="leaderboard-entry ${cls}">
-          ${entry.character_name}: ${entry.score}
-        </div>
-      `;
     }
-
-    resultsBox.innerHTML = html || "No data yet";
-
-    // Update card labels + winner cross overlay
-    document.querySelectorAll(".card").forEach(card => {
-      card.classList.remove("winner");
-
-      const id = Number(card.dataset.id);
-      const entry = winnerMap[id];
-
-      // Set label
-      if (entry?.character_name) {
-        card.querySelector(".label").textContent = entry.character_name;
-      }
-
-      // Show pulsing cross if this option is in poll_winners (has selected_at)
-      if (entry && entry.selected_at) {
-        card.classList.add("winner");
-      }
-    });
-
-  } catch (err) {
-    console.error("fetchLeaderboard error:", err);
-    resultsBox.innerHTML = "Error loading results";
-  }
-}
 
     // Initial load
     fetchResults();
