@@ -504,27 +504,36 @@
     // Leaderboard + card labels + WINNER marking
     async function fetchLeaderboard() {
       try {
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/poll_winners?order=poll_id,option_id,selected_at`,
+        // Fetch winners (reliable selected_at)
+        const winRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/poll_winners?poll_id=eq.${POLL_ID}&select=option_id,selected_at`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+        );
 
-          {
-            headers: { 
-              apikey: SUPABASE_KEY, 
-              Authorization: `Bearer ${SUPABASE_KEY}` 
-            }
-          }
+        if (!winRes.ok) throw new Error(await winRes.text());
+
+        const winners = await winRes.json();
+        const winnerIds = new Set(winners.map(w => Number(w.option_id)));
+
+        // Fetch names & scores from poll_result
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/poll_result?poll_id=eq.${POLL_ID}&order=option_id.asc&select=option_id,character_name,score`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
         );
 
         if (!res.ok) throw new Error(await res.text());
 
         const rows = await res.json();
 
+        // Build leaderboard HTML (sort by score descending for true "leaderboard")
+        const sortedRows = rows.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+
         let html = "";
-        rows.forEach(r => {
-          const isSpoiled = r.selected_at !== null && r.selected_at !== undefined;
-          const cls = isSpoiled ? "spoiled" : "";
-          
-          const name = r.character_name || `Option ${r.option_id}`;
+        sortedRows.forEach(r => {
+          const id = Number(r.option_id);
+          const isWinner = winnerIds.has(id);
+          const cls = isWinner ? "spoiled" : "";
+          const name = r.character_name || `Option ${id}`;
           const score = Number(r.score || 0).toFixed(1);
 
           html += `
@@ -536,19 +545,19 @@
 
         resultsBox.innerHTML = html || "No votes yet";
 
-        // Update card labels + mark winner(s) with cross
+        // Update card labels + mark winners with cross
         document.querySelectorAll(".card").forEach(card => {
           card.classList.remove("winner");
 
           const id = Number(card.dataset.id);
           const row = rows.find(r => Number(r.option_id) === id);
-          
+
           if (row?.character_name) {
             card.querySelector(".label").textContent = row.character_name;
           }
 
-          // If selected_at is set → this is the current picked/winner → show pulsing cross
-          if (row && row.selected_at !== null && row.selected_at !== undefined) {
+          // If in winners → show pulsing cross
+          if (winnerIds.has(id)) {
             card.classList.add("winner");
           }
         });
