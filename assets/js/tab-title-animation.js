@@ -1,14 +1,14 @@
 // assets/js/tab-title-animation.js
 // Shared tab title animation — used on all pages
 
-// Configuration — edit timings here
+// Configuration
 const BASE_TITLE = "VELUTINX";
 const FULL_DURATION = 2000;          // VELUTINX solid at start
-const BLANK_DURATION = 300;          // each blank flash
-const SHRINK_INTERVAL = 200;         // scrolling speed (lower = faster)
+const BLANK_DURATION = 300;          // each blank flash (only on home)
+const SHRINK_INTERVAL = 200;         // scrolling speed
 const PAGE_SHOW_DURATION = 3000;     // page title shown for 3s
 
-// Map paths to page-specific titles for the shrink phase
+// Page titles
 const PAGE_TITLES = {
   "/":               "HOME",
   "/index.html":     "HOME",
@@ -19,55 +19,59 @@ const PAGE_TITLES = {
 };
 
 function animateTitle() {
-  // Get current page title
-  const currentPath = window.location.pathname;
-  let pageTitle = BASE_TITLE; // fallback
+  const currentPath = window.location.pathname.toLowerCase();
+  let pageTitle = BASE_TITLE;
 
+  // Determine page title
   if (PAGE_TITLES[currentPath]) {
     pageTitle = PAGE_TITLES[currentPath];
-  } else {
-    // Fallback detection
-    if (currentPath.includes("commission")) pageTitle = "COMMISSIONS";
-    if (currentPath.includes("artwork"))    pageTitle = "ARTWORK";
-    if (currentPath.includes("contact"))    pageTitle = "CONTACT";
-    if (currentPath.includes("poll"))       pageTitle = "POLL";
-  }
+  } else if (currentPath.includes("commission")) pageTitle = "COMMISSIONS";
+  else if (currentPath.includes("artwork")) pageTitle = "ARTWORK";
+  else if (currentPath.includes("contact")) pageTitle = "CONTACT";
+  else if (currentPath.includes("poll")) pageTitle = "POLL";
 
-  // Phase 1: VELUTINX solid for 2 seconds
+  // Set initial title immediately (no flash)
   document.title = BASE_TITLE;
 
-  // Delay the blank flashes slightly to avoid perceived flash on load
-  setTimeout(() => {
-    // Phase 2: Three quick blank flashes
-    let blankCount = 0;
-    const blankInterval = setInterval(() => {
-      document.title = "⠀";  // single invisible char (safer than many)
-      setTimeout(() => {
-        document.title = BASE_TITLE;
-        blankCount++;
-        if (blankCount >= 3) {
-          clearInterval(blankInterval);
+  // Only run full animation (with blanks) on home/root
+  const isHome = currentPath === '/' || currentPath === '' || currentPath === '/index.html';
 
-          // Phase 3: Show page-specific title for 3 seconds
-          document.title = pageTitle;
-          setTimeout(() => {
-            // Phase 4: Shrink the page-specific title
-            let current = pageTitle;
-            const shrink = setInterval(() => {
-              if (current.length <= 0) {
-                clearInterval(shrink);
-                animateTitle(); // loop back
-                return;
-              }
-              current = current.slice(1);
-              document.title = current || "⠀";
-            }, SHRINK_INTERVAL);
-          }, PAGE_SHOW_DURATION);
-        }
-      }, BLANK_DURATION);
-    }, BLANK_DURATION * 2); // time between flashes
-  }, FULL_DURATION + 200); // small extra delay to prevent initial flash/reflow
+  setTimeout(() => {
+    if (isHome) {
+      // Phase 2: Three quick blank flashes (only on home)
+      let blankCount = 0;
+      const blankInterval = setInterval(() => {
+        document.title = "⠀";  // single invisible char
+        setTimeout(() => {
+          document.title = BASE_TITLE;
+          blankCount++;
+          if (blankCount >= 3) {
+            clearInterval(blankInterval);
+
+            // Phase 3: Show page title for 3s
+            document.title = pageTitle;
+            setTimeout(() => {
+              // Phase 4: Shrink title
+              let current = pageTitle;
+              const shrink = setInterval(() => {
+                if (current.length <= 0) {
+                  clearInterval(shrink);
+                  animateTitle(); // loop
+                  return;
+                }
+                current = current.slice(1);
+                document.title = current || "⠀";
+              }, SHRINK_INTERVAL);
+            }, PAGE_SHOW_DURATION);
+          }
+        }, BLANK_DURATION);
+      }, BLANK_DURATION * 2);
+    } else {
+      // Subpages: just set page title once (no flashes)
+      document.title = pageTitle;
+    }
+  }, 500); // longer delay to prevent any initial flicker
 }
 
-// Start the animation only after a tiny delay (prevents white flash on fast loads)
+// Start animation with tiny delay
 setTimeout(animateTitle, 100);
