@@ -7,7 +7,7 @@
 </head>
 <body>
 
-  <!-- MAIN WEBSITE CONTENT (hidden until intro finishes on home) -->
+  <!-- MAIN WEBSITE CONTENT (hidden until intro finishes on root) -->
   <div id="mainWebsite" style="opacity:0; transition:opacity 0.8s ease;">
 
     <div class="background-wrapper">
@@ -45,20 +45,22 @@
 
   </div>
 
-  <!-- INTRO LOADER - LONG VERSION ONLY ON ROOT/HOME -->
+  <!-- INTRO LOADER - LONG VERSION ONLY ON ROOT (`/`) -->
   <script>
     (function(){
-      // Only run full intro on root or index.html
+      // Get current path
       const path = window.location.pathname.toLowerCase();
-      const isHomePage = path === '/' || path === '/index.html' || path.endsWith('index.html');
 
-      if (!isHomePage) {
-        // Subpage: skip intro completely
+      // Long intro ONLY on root (`/`) — skip on /index.html or subpages
+      const isRootOnly = path === '/' || path === '';
+
+      if (!isRootOnly) {
+        // /index.html or subpage → immediate load, no intro
         document.getElementById('mainWebsite').style.opacity = '1';
         return;
       }
 
-      // Root/home: run full long intro
+      // Root only: run full long intro
       document.addEventListener("DOMContentLoaded", function(){
         const intro = document.createElement("div");
         intro.id = "cinematicIntro";
@@ -370,7 +372,7 @@
     })();
   </script>
 
-  <!-- MAIN WEBSITE SCRIPTS (run on all pages) -->
+  <!-- Your main website scripts (run on all pages) -->
   <script src="/assets/js/navigation.js"></script>
 
   <script>
