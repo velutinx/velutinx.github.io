@@ -8,7 +8,7 @@
 <body>
 
   <!-- MAIN WEBSITE CONTENT -->
-  <div id="mainWebsite" style="opacity:0; transition:opacity 0.8s ease;">
+  <div id="mainWebsite" style="opacity:1; transition:opacity 0.8s ease;">
     <div class="background-wrapper">
       <div class="background-gradient"></div>
       <div class="wave-overlay"></div>
@@ -43,8 +43,23 @@
     </div>
   </div>
 
-  <!-- Load intro on root only -->
-  <script src="/assets/js/intro-loader.js"></script>
+  <!-- Load long intro ONLY on root (/) -->
+  <script>
+    (function(){
+      const path = window.location.pathname.toLowerCase();
+      const isRoot = path === '/' || path === '';
+
+      if (isRoot) {
+        // Inject long intro on root only
+        const script = document.createElement('script');
+        script.src = '/assets/js/intro-loader.js';
+        document.head.appendChild(script);
+      } else {
+        // Subpage or /index.html → show main site immediately
+        document.getElementById('mainWebsite').style.opacity = '1';
+      }
+    })();
+  </script>
 
   <!-- Your other scripts -->
   <script src="/assets/js/navigation.js"></script>
@@ -125,5 +140,6 @@
       setTimeout(() => star.remove(), 6000);
     }, 700);
   </script>
+
 </body>
 </html>
