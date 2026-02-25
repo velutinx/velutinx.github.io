@@ -1,33 +1,46 @@
 (function(){
 
-/* ================= CONFIG ================= */
-const REDIRECT_URL = "main.html"; // ← change to your real page
+/* ================= INTRO OVERLAY ================= */
 
-/* ================= BUILD HTML ================= */
-const wrapper = document.createElement("div");
-wrapper.innerHTML = `
-<div id="intro-root">
+const overlay = document.createElement("div");
+overlay.id = "intro-overlay";
 
+overlay.innerHTML = `
 <style>
 
-#intro-root{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  font-family:serif;
-}
-
-/* ============ FINAL SWEEP ============ */
-
-.final-sweep{
+#intro-overlay{
   position:fixed;
   inset:0;
   background:black;
-  opacity:0;
-  pointer-events:none;
+  z-index:99999;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
 }
 
-.final-sweep.active{ opacity:1; }
+/* Loading text */
+
+#intro-percent{
+  color:#E6D5B8;
+  font-size:48px;
+  font-family: 'Trajan Pro Bold', serif;
+  letter-spacing:2px;
+}
+
+/* Flash */
+
+.flash{
+  animation:flashAnim 0.18s ease-in-out 3;
+}
+
+@keyframes flashAnim{
+  0%{opacity:1;}
+  50%{opacity:0;}
+  100%{opacity:1;}
+}
+
+/* Sweep reveal */
 
 .sweep-reveal{
   position:absolute;
@@ -35,7 +48,7 @@ wrapper.innerHTML = `
   right:0;
   height:100%;
   width:0%;
-  background:white;
+  background:transparent;
 }
 
 .sweep-line{
@@ -58,49 +71,21 @@ wrapper.innerHTML = `
   to{ width:100%; }
 }
 
-.loading-screen{
-  position:fixed;
-  inset:0;
-  background:black;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  color:#E6D5B8;
-  font-size:48px;
-}
-
-.flash{
-  animation:flashAnim 0.18s ease-in-out 3;
-}
-
-@keyframes flashAnim{
-  0%{ opacity:1; }
-  50%{ opacity:0; }
-  100%{ opacity:1; }
-}
-
 </style>
 
-<div class="loading-screen">
-  <div id="percent">0%</div>
-</div>
-
-<div class="final-sweep" id="finalSweep">
-  <div class="sweep-reveal" id="sweepReveal"></div>
-  <div class="sweep-line" id="sweepLine"></div>
-</div>
-
-</div>
+<div id="intro-percent">0%</div>
+<div class="sweep-reveal" id="sweepReveal"></div>
+<div class="sweep-line" id="sweepLine"></div>
 `;
 
-document.body.appendChild(wrapper);
+document.body.appendChild(overlay);
 
-/* ================= LOADING LOGIC ================= */
+/* ================= LOADING COUNT ================= */
 
-function startIntro(){
+function startLoading(){
 
   const duration = 1300;
-  const percentEl = document.getElementById("percent");
+  const percentEl = document.getElementById("intro-percent");
   let start = null;
 
   function animate(timestamp){
@@ -113,27 +98,32 @@ function startIntro(){
       requestAnimationFrame(animate);
     } else {
       percentEl.classList.add("flash");
-      setTimeout(startFinalSweep, 540);
+      setTimeout(startSweep, 540);
     }
   }
 
   requestAnimationFrame(animate);
 }
 
-function startFinalSweep(){
-  const sweep = document.getElementById("finalSweep");
+/* ================= FINAL SWEEP ================= */
+
+function startSweep(){
+
   const line = document.getElementById("sweepLine");
   const reveal = document.getElementById("sweepReveal");
 
-  sweep.classList.add("active");
+  // Hide percent text
+  document.getElementById("intro-percent").style.opacity = "0";
+
   line.style.animation = "sweepMove 0.3s linear forwards";
   reveal.style.animation = "sweepReveal 0.3s linear forwards";
 
+  // Remove overlay after sweep completes
   setTimeout(()=>{
-    window.location.href = REDIRECT_URL;
+    overlay.remove();
   }, 320);
 }
 
-startIntro();
+startLoading();
 
 })();
