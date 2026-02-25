@@ -1,255 +1,243 @@
+// assets/js/intro-loader.js
 (function(){
+  // Only run on root (/) — skip on /index.html and subpages
+  const path = window.location.pathname.toLowerCase();
+  const isRoot = path === '/' || path === '';
 
-document.addEventListener("DOMContentLoaded", function(){
+  if (!isRoot) return; // do nothing on subpages or explicit index.html
 
-/* ================= CREATE INTRO WRAPPER ================= */
+  document.addEventListener("DOMContentLoaded", function(){
+    const intro = document.createElement("div");
+    intro.id = "cinematicIntro";
 
-const intro = document.createElement("div");
-intro.id = "cinematicIntro";
-
-intro.innerHTML = `
-
+    intro.innerHTML = `
 <style>
+  #cinematicIntro {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 999999;
+    overflow: hidden;
+  }
 
-/* ===== MAIN INTRO WRAPPER ===== */
+  .container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 10;
+  }
 
-#cinematicIntro{
-  position:fixed;
-  inset:0;
-  background:white;
-  z-index:999999;
-  overflow:hidden;
-}
+  .card {
+    border: 2px solid black;
+    padding: 5px 60px;
+    background: white;
+    transform: scale(5);
+    filter: blur(12px);
+    opacity: 0;
+    animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+    cursor: pointer;
+    display: inline-block;
+  }
 
-/* ===== ENTRY CARD ===== */
+  @keyframes loadIn {
+    to { transform: scale(1); filter: blur(0); opacity: 1; }
+  }
 
-.container {
-  position: absolute;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:10;
-}
+  .japanese {
+    font-family: 'Kozuka Mincho Pr6N L', serif;
+    font-size: 20px;
+    letter-spacing: 0.35em;
+    font-weight: bold;
+  }
 
-.card {
-  border: 2px solid black;
-  padding: 5px 60px;
-  background: white;
-  transform: scale(5);
-  filter: blur(12px);
-  opacity: 0;
-  animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-  display: inline-block;
-}
+  .english {
+    font-family: 'Trajan Pro Bold', serif;
+    font-size: 7px;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    margin-top: 20px;
+    opacity: 0;
+    animation: fadeInText 0.4s ease 0.15s forwards;
+  }
 
-@keyframes loadIn {
-  to { transform: scale(1); filter: blur(0); opacity: 1; }
-}
+  @keyframes fadeInText {
+    to { opacity: 1; }
+  }
 
-.japanese {
-  font-family: 'Kozuka Mincho Pr6N L', serif;
-  font-size: 20px;
-  letter-spacing: 0.35em;
-  font-weight: bold;
-}
+  .fade-out {
+    animation: blurFade 1.2s ease forwards;
+  }
 
-.english {
-  font-family: 'Trajan Pro Bold', serif;
-  font-size: 7px;
-  letter-spacing: 0.5em;
-  text-transform: uppercase;
-  margin-top: 20px;
-  opacity: 0;
-  animation: fadeInText 0.4s ease 0.15s forwards;
-}
+  @keyframes blurFade {
+    0%   { filter: blur(0); opacity: 1; }
+    50%  { filter: blur(8px); opacity: 0.6; }
+    100% { filter: blur(20px); opacity: 0; }
+  }
 
-@keyframes fadeInText {
-  to { opacity: 1; }
-}
+  .tv-glitch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    background:
+      repeating-linear-gradient(to bottom,
+        transparent 0px,
+        #111 1px,
+        transparent 3px,
+        #000 4px),
+      linear-gradient(90deg,
+        rgba(255,0,0,0.15) 0%,
+        transparent 33%,
+        rgba(0,255,255,0.12) 66%,
+        transparent 100%);
+    background-size: 100% 4px, 100% 100%;
+    mix-blend-mode: multiply;
+  }
 
-/* ===== GLITCH ===== */
+  .tv-glitch.active {
+    opacity: 0.9;
+    animation:
+      glitchShake 1.2s steps(10) forwards,
+      verticalRoll 0.10s linear infinite;
+  }
 
-.tv-glitch {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0;
-  background:
-    repeating-linear-gradient(to bottom,
-      transparent 0px,
-      #111 1px,
-      transparent 3px,
-      #000 4px),
-    linear-gradient(90deg,
-      rgba(255,0,0,0.15) 0%,
-      transparent 33%,
-      rgba(0,255,255,0.12) 66%,
-      transparent 100%);
-  background-size: 100% 4px, 100% 100%;
-  mix-blend-mode: multiply;
-}
+  @keyframes glitchShake {
+    0%   { transform: translate(0,0); opacity: 0; }
+    10%  { transform: translate(6px,-6px); opacity: 1; }
+    30%  { transform: translate(-7px,7px); }
+    50%  { transform: translate(5px,-5px); }
+    70%  { transform: translate(-6px,6px); }
+    100% { transform: translate(0,0); opacity: 0; }
+  }
 
-.tv-glitch.active {
-  opacity: 0.9;
-  animation:
-    glitchShake 1.2s steps(10) forwards,
-    verticalRoll 0.10s linear infinite;
-}
+  @keyframes verticalRoll {
+    0%   { background-position: 0 0, 0 0; }
+    100% { background-position: 0 12px, 0 0; }
+  }
 
-@keyframes glitchShake {
-  0%   { transform: translate(0,0); opacity: 0; }
-  10%  { transform: translate(6px,-6px); opacity: 1; }
-  30%  { transform: translate(-7px,7px); }
-  50%  { transform: translate(5px,-5px); }
-  70%  { transform: translate(-6px,6px); }
-  100% { transform: translate(0,0); opacity: 0; }
-}
+  .white-screen {
+    position: absolute;
+    inset: 0;
+    background: white;
+    z-index: 150;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
 
-@keyframes verticalRoll {
-  0%   { background-position: 0 0, 0 0; }
-  100% { background-position: 0 12px, 0 0; }
-}
+  .white-screen.active { opacity: 1; }
 
-/* ===== WHITE FLASH ===== */
+  .shutdown {
+    position: absolute;
+    inset: 0;
+    background: black;
+    z-index: 200;
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-.white-screen {
-  position: absolute;
-  inset: 0;
-  background: white;
-  z-index: 150;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
+  .shutdown.active { opacity: 1; }
 
-.white-screen.active {
-  opacity: 1;
-}
+  .shutdown-line {
+    width: 100%;
+    height: 100%;
+    background: white;
+    transform-origin: center;
+  }
 
-/* ===== SHUTDOWN ===== */
+  @keyframes collapseY {
+    0% { transform: scaleY(1); }
+    100% { transform: scaleY(0.02); }
+  }
 
-.shutdown {
-  position: absolute;
-  inset: 0;
-  background: black;
-  z-index: 200;
-  opacity: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+  @keyframes collapseX {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
+  }
 
-.shutdown.active {
-  opacity: 1;
-}
+  .loading-screen {
+    position: absolute;
+    inset: 0;
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+    opacity: 0;
+  }
 
-.shutdown-line {
-  width: 100%;
-  height: 100%;
-  background: white;
-  transform-origin: center;
-}
+  .loading-screen.active { opacity: 1; }
 
-@keyframes collapseY {
-  0% { transform: scaleY(1); }
-  100% { transform: scaleY(0.02); }
-}
+  :root { --coffee: #E6D5B8; }
 
-@keyframes collapseX {
-  0% { transform: scaleX(1); }
-  100% { transform: scaleX(0); }
-}
+  .wrapper { text-align: center; }
 
-/* ===== LOADING SCREEN ===== */
+  .loader {
+    position: relative;
+    width: 600px;
+    height: 32px;
+  }
 
-.loading-screen{
-  position:absolute;
-  inset:0;
-  background:black;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:300;
-  opacity:0;
-}
+  .fill {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    height: 16px;
+    width: 0%;
+    background: var(--coffee);
+  }
 
-.loading-screen.active{
-  opacity:1;
-}
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
 
-:root{
-  --coffee:#E6D5B8;
-}
+  rect.progress-border {
+    fill: none;
+    stroke: var(--coffee);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 1264;
+    stroke-dashoffset: 1264;
+  }
 
-.wrapper{
-  text-align:center;
-}
+  .percent {
+    margin-top: 18px;
+    font-size: 48px;
+    font-family: 'Trajan Pro Bold', serif;
+    color: var(--coffee);
+    letter-spacing: 2px;
+  }
 
-.loader{
-  position:relative;
-  width:600px;
-  height:32px;
-}
+  .flash {
+    animation: flashAnim 0.18s ease-in-out 3;
+  }
 
-.fill{
-  position:absolute;
-  top:8px;
-  left:8px;
-  height:16px;
-  width:0%;
-  background:var(--coffee);
-}
+  @keyframes flashAnim {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
 
-svg{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-}
+  @keyframes fillBar {
+    from { width: 0%; }
+    to { width: calc(100% - 16px); }
+  }
 
-rect.progress-border{
-  fill:none;
-  stroke:var(--coffee);
-  stroke-width:3;
-  stroke-linecap:round;
-  stroke-dasharray:1264;
-  stroke-dashoffset:1264;
-}
-
-.percent{
-  margin-top:18px;
-  font-size:48px;
-  font-family: 'Trajan Pro Bold', serif;
-  color:var(--coffee);
-  letter-spacing:2px;
-}
-
-.flash{
-  animation:flashAnim 0.18s ease-in-out 3;
-}
-
-@keyframes flashAnim{
-  0%{ opacity:1; }
-  50%{ opacity:0; }
-  100%{ opacity:1; }
-}
-
-@keyframes fillBar{
-  from{ width:0%; }
-  to{ width:calc(100% - 16px); }
-}
-
-@keyframes borderBuild{
-  from{ stroke-dashoffset:1264; }
-  to{ stroke-dashoffset:0; }
-}
-
+  @keyframes borderBuild {
+    from { stroke-dashoffset: 1264; }
+    to { stroke-dashoffset: 0; }
+  }
 </style>
 
 <div class="container">
-  <div class="card">
+  <div class="card" id="card">
     <div class="japanese">入場</div>
   </div>
   <div class="english">ACCESS WEBSITE</div>
@@ -275,69 +263,56 @@ rect.progress-border{
     <div class="percent" id="percent">0%</div>
   </div>
 </div>
-`;
+        `;
 
-document.body.prepend(intro);
+        document.body.prepend(intro);
 
-/* ===== AUTO PLAY SEQUENCE ===== */
+        const glitch = document.getElementById('glitch');
+        const whiteScreen = document.getElementById('whiteScreen');
+        const shutdown = document.getElementById('shutdown');
+        const loadingScreen = document.getElementById('loadingScreen');
 
-const glitch = document.getElementById('glitch');
-const whiteScreen = document.getElementById('whiteScreen');
-const shutdown = document.getElementById('shutdown');
-const loadingScreen = document.getElementById('loadingScreen');
+        setTimeout(() => glitch.classList.add('active'), 500);
+        setTimeout(() => whiteScreen.classList.add('active'), 1700);
+        setTimeout(() => {
+          shutdown.classList.add('active');
+          const line = document.getElementById("shutdownLine");
+          line.style.animation = "collapseY 0.35s forwards";
+          setTimeout(() => line.style.animation = "collapseX 0.25s forwards", 350);
+        }, 2100);
 
-setTimeout(() => {
-  glitch.classList.add('active');
-}, 500);
+        setTimeout(() => {
+          loadingScreen.classList.add("active");
+          document.getElementById("fill").style.animation = "fillBar 1.3s linear forwards";
+          document.getElementById("border").style.animation = "borderBuild 1.3s linear forwards";
+          startPercent();
+        }, 2700);
 
-setTimeout(() => {
-  whiteScreen.classList.add('active');
-}, 1700);
+        function startPercent(){
+          const duration = 1300;
+          const percentEl = document.getElementById("percent");
+          let start = null;
 
-setTimeout(() => {
-  shutdown.classList.add('active');
-  const line = document.getElementById("shutdownLine");
-  line.style.animation = "collapseY 0.35s forwards";
-  setTimeout(() => {
-    line.style.animation = "collapseX 0.25s forwards";
-  }, 350);
-}, 2100);
+          function animate(timestamp){
+            if(!start) start = timestamp;
+            let progress = timestamp - start;
+            let percent = Math.min(Math.floor((progress/duration)*100),100);
+            percentEl.textContent = percent + "%";
 
-setTimeout(() => {
-  loadingScreen.classList.add("active");
-  document.getElementById("fill").style.animation =
-    "fillBar 1.3s linear forwards";
-  document.getElementById("border").style.animation =
-    "borderBuild 1.3s linear forwards";
-  startPercent();
-}, 2700);
+            if(progress < duration){
+              requestAnimationFrame(animate);
+            } else {
+              percentEl.classList.add("flash");
 
-function startPercent(){
-  const duration = 1300;
-  const percentEl = document.getElementById("percent");
-  let start = null;
+              setTimeout(() => {
+                intro.remove();
+                document.getElementById("mainWebsite").style.opacity = "1";
+              }, 500);
+            }
+          }
 
-  function animate(timestamp){
-    if(!start) start = timestamp;
-    let progress = timestamp - start;
-    let percent = Math.min(Math.floor((progress/duration)*100),100);
-    percentEl.textContent = percent + "%";
-
-    if(progress < duration){
-      requestAnimationFrame(animate);
-    } else {
-      percentEl.classList.add("flash");
-
-      setTimeout(() => {
-        intro.remove();
-        document.getElementById("mainWebsite").style.opacity = "1";
-      }, 500);
-    }
-  }
-
-  requestAnimationFrame(animate);
-}
-
-});
-
-})();
+          requestAnimationFrame(animate);
+        }
+      });
+    })();
+  </script>
