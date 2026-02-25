@@ -7,8 +7,9 @@
 </head>
 <body>
 
-  <!-- MAIN WEBSITE CONTENT -->
-  <div id="mainWebsite" style="opacity:1; transition:opacity 0.8s ease;">
+  <!-- MAIN WEBSITE CONTENT (hidden until intro finishes on root) -->
+  <div id="mainWebsite" style="opacity:0; transition:opacity 0.8s ease;">
+
     <div class="background-wrapper">
       <div class="background-gradient"></div>
       <div class="wave-overlay"></div>
@@ -41,27 +42,13 @@
 
       <div class="divider"></div>
     </div>
+
   </div>
 
-  <!-- Load long intro ONLY on root (/) -->
-  <script>
-    (function(){
-      const path = window.location.pathname.toLowerCase();
-      const isRoot = path === '/' || path === '';
+  <!-- Load long cinematic intro only on root (/) -->
+  <script src="/assets/js/intro-loader.js"></script>
 
-      if (isRoot) {
-        // Inject long intro on root only
-        const script = document.createElement('script');
-        script.src = '/assets/js/intro-loader.js';
-        document.head.appendChild(script);
-      } else {
-        // Subpage or /index.html → show main site immediately
-        document.getElementById('mainWebsite').style.opacity = '1';
-      }
-    })();
-  </script>
-
-  <!-- Your other scripts -->
+  <!-- Your other scripts (navigation, tab title, etc.) -->
   <script src="/assets/js/navigation.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
