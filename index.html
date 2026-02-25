@@ -61,7 +61,7 @@
     function translateBlobs(isJp) {
       const blobs = document.querySelectorAll(".blob-text");
       if (blobs.length === 0) {
-        setTimeout(() => translateBlobs(isJp), 500);
+        setTimeout(() => translateBlobs(isJp), 100);
         return;
       }
       blobs.forEach(t => {
