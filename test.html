@@ -28,11 +28,7 @@ body {
 
 /* ================= CARD ================= */
 
-.container {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-}
+.container { position: relative; z-index: 10; text-align: center; }
 
 .card {
   border: 2px solid black;
@@ -67,19 +63,13 @@ body {
   animation: fadeInText 0.4s ease 0.15s forwards;
 }
 
-@keyframes fadeInText {
-  to { opacity: 1; }
-}
+@keyframes fadeInText { to { opacity: 1; } }
 
-/* ============ BLUR FADE ============ */
-
-.fade-out {
-  animation: blurFade 1.2s ease forwards;
-}
+.fade-out { animation: blurFade 1.2s ease forwards; }
 
 @keyframes blurFade {
-  0%   { filter: blur(0); opacity: 1; }
-  50%  { filter: blur(8px); opacity: 0.6; }
+  0% { filter: blur(0); opacity: 1; }
+  50% { filter: blur(8px); opacity: 0.6; }
   100% { filter: blur(20px); opacity: 0; }
 }
 
@@ -114,16 +104,16 @@ body {
 }
 
 @keyframes glitchShake {
-  0%   { transform: translate(0,0); opacity: 0; }
-  10%  { transform: translate(6px,-6px); opacity: 1; }
-  30%  { transform: translate(-7px,7px); }
-  50%  { transform: translate(5px,-5px); }
-  70%  { transform: translate(-6px,6px); }
+  0% { transform: translate(0,0); opacity: 0; }
+  10% { transform: translate(6px,-6px); opacity: 1; }
+  30% { transform: translate(-7px,7px); }
+  50% { transform: translate(5px,-5px); }
+  70% { transform: translate(-6px,6px); }
   100% { transform: translate(0,0); opacity: 0; }
 }
 
 @keyframes verticalRoll {
-  0%   { background-position: 0 0, 0 0; }
+  0% { background-position: 0 0, 0 0; }
   100% { background-position: 0 12px, 0 0; }
 }
 
@@ -139,9 +129,7 @@ body {
   transition: opacity 0.4s ease;
 }
 
-.white-screen.active {
-  opacity: 1;
-}
+.white-screen.active { opacity: 1; }
 
 /* ============ SHUTDOWN ============ */
 
@@ -157,9 +145,7 @@ body {
   align-items: center;
 }
 
-.shutdown.active {
-  opacity: 1;
-}
+.shutdown.active { opacity: 1; }
 
 .shutdown-line {
   width: 100%;
@@ -192,23 +178,13 @@ body {
   pointer-events:none;
 }
 
-.loading-screen.active{
-  opacity:1;
-}
+.loading-screen.active{ opacity:1; }
 
-:root{
-  --coffee:#E6D5B8;
-}
+:root{ --coffee:#E6D5B8; }
 
-.wrapper{
-  text-align:center;
-}
+.wrapper{ text-align:center; }
 
-.loader{
-  position:relative;
-  width:600px;
-  height:32px;
-}
+.loader{ position:relative; width:600px; height:32px; }
 
 .fill{
   position:absolute;
@@ -219,12 +195,7 @@ body {
   background:var(--coffee);
 }
 
-svg{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-}
+svg{ position:absolute; inset:0; width:100%; height:100%; }
 
 rect.progress-border{
   fill:none;
@@ -235,18 +206,15 @@ rect.progress-border{
   stroke-dashoffset:1264;
 }
 
-/* PERCENT TEXT - now using Trajan Pro Bold */
 .percent{
   margin-top:18px;
   font-size:48px;
-  font-family: 'Trajan Pro Bold', serif; /* ← this is the fix */
+  font-family: 'Trajan Pro Bold', serif;
   color:var(--coffee);
   letter-spacing:2px;
 }
 
-.flash{
-  animation:flashAnim 0.18s ease-in-out 3;
-}
+.flash{ animation:flashAnim 0.18s ease-in-out 3; }
 
 @keyframes flashAnim{
   0%{ opacity:1; }
@@ -264,11 +232,51 @@ rect.progress-border{
   to{ stroke-dashoffset:0; }
 }
 
+/* ================= FINAL SWEEP ================= */
+
+.final-sweep{
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:999;
+  opacity:0;
+  pointer-events:none;
+}
+
+.final-sweep.active{ opacity:1; }
+
+.sweep-reveal{
+  position:absolute;
+  top:0;
+  right:0;
+  height:100%;
+  width:0%;
+  background:white;
+}
+
+.sweep-line{
+  position:absolute;
+  top:0;
+  right:0;
+  width:10px;
+  height:100%;
+  background:#aa9e76;
+  box-shadow:0 0 30px #aa9e76;
+}
+
+@keyframes sweepMove{
+  from{ right:0; }
+  to{ right:100%; }
+}
+
+@keyframes sweepReveal{
+  from{ width:0%; }
+  to{ width:100%; }
+}
+
 </style>
 </head>
 <body>
-
-<!-- FIRST ANIMATION -->
 
 <div class="container">
   <div class="card" id="card">
@@ -284,8 +292,6 @@ rect.progress-border{
   <div class="shutdown-line" id="shutdownLine"></div>
 </div>
 
-<!-- LOADING SCREEN -->
-
 <div class="loading-screen" id="loadingScreen">
   <div class="wrapper">
     <div class="loader">
@@ -298,6 +304,12 @@ rect.progress-border{
     </div>
     <div class="percent" id="percent">0%</div>
   </div>
+</div>
+
+<!-- FINAL SWEEP OVERLAY -->
+<div class="final-sweep" id="finalSweep">
+  <div class="sweep-reveal" id="sweepReveal"></div>
+  <div class="sweep-line" id="sweepLine"></div>
 </div>
 
 <script>
@@ -316,35 +328,22 @@ document.addEventListener("DOMContentLoaded", function(){
     card.classList.add('fade-out');
     english.classList.add('fade-out');
 
-    setTimeout(() => {
-      whiteScreen.classList.add('active');
-    }, 1200);
+    setTimeout(() => { whiteScreen.classList.add('active'); }, 1200);
 
     setTimeout(() => {
       shutdown.classList.add('active');
       const line = document.getElementById("shutdownLine");
-
       line.style.animation = "collapseY 0.35s forwards";
-
       setTimeout(() => {
         line.style.animation = "collapseX 0.25s forwards";
       }, 350);
-
     }, 1600);
 
-    /* SHOW LOADING AFTER SHUTDOWN FULLY FINISHES */
     setTimeout(() => {
-
       loadingScreen.classList.add("active");
-
-      document.getElementById("fill").style.animation =
-        "fillBar 1.3s linear forwards";
-
-      document.getElementById("border").style.animation =
-        "borderBuild 1.3s linear forwards";
-
+      document.getElementById("fill").style.animation = "fillBar 1.3s linear forwards";
+      document.getElementById("border").style.animation = "borderBuild 1.3s linear forwards";
       startPercent();
-
     }, 2200);
 
   });
@@ -364,10 +363,23 @@ document.addEventListener("DOMContentLoaded", function(){
         requestAnimationFrame(animate);
       } else {
         percentEl.classList.add("flash");
+
+        /* AFTER FLASH FINISHES → START SWEEP */
+        setTimeout(startFinalSweep, 540);
       }
     }
 
     requestAnimationFrame(animate);
+  }
+
+  function startFinalSweep(){
+    const sweep = document.getElementById("finalSweep");
+    const line = document.getElementById("sweepLine");
+    const reveal = document.getElementById("sweepReveal");
+
+    sweep.classList.add("active");
+    line.style.animation = "sweepMove 0.3s linear forwards";
+    reveal.style.animation = "sweepReveal 0.3s linear forwards";
   }
 
 });
