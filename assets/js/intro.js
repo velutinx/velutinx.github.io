@@ -5,11 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   mainWebsite.style.opacity = "0";
 
-  const isManualIndex = window.location.href.endsWith("/index.html");
+  // Detect if user typed index.html explicitly
+  const isManualIndex = window.location.href.includes("index.html");
 
-  // Duration settings
-  const duration = isManualIndex ? 300 : 1200; 
-  // shorter animation when manually visiting index.html
+  // Speed difference
+  const duration = isManualIndex ? 300 : 1200;
 
   const intro = document.createElement("div");
   intro.style.position = "fixed";
@@ -34,12 +34,10 @@ document.addEventListener("DOMContentLoaded", function () {
   intro.appendChild(line);
   document.body.appendChild(intro);
 
-  // Trigger animation
   setTimeout(() => {
     line.style.right = "100%";
   }, 50);
 
-  // Reveal
   setTimeout(() => {
     intro.remove();
     mainWebsite.style.transition = "opacity 0.6s ease";
