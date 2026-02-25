@@ -1,3 +1,4 @@
+// assets/js/tab-title-animation.js
 // Shared tab title animation — used on all pages
 
 // Configuration — edit timings here
@@ -5,7 +6,7 @@ const BASE_TITLE = "VELUTINX";
 const FULL_DURATION = 2000;          // VELUTINX solid at start
 const BLANK_DURATION = 300;          // each blank flash
 const SHRINK_INTERVAL = 200;         // scrolling speed (lower = faster)
-const PAGE_SHOW_DURATION = 3000;     // page title (ARTWORK) shown for 3s
+const PAGE_SHOW_DURATION = 3000;     // page title shown for 3s
 
 // Map paths to page-specific titles for the shrink phase
 const PAGE_TITLES = {
@@ -14,7 +15,7 @@ const PAGE_TITLES = {
   "/commission.html": "COMMISSIONS",
   "/artwork.html":   "ARTWORK",
   "/contact.html":   "CONTACT",
-  "/poll.html":  "POLL"
+  "/poll.html":      "POLL"
 };
 
 function animateTitle() {
@@ -35,11 +36,12 @@ function animateTitle() {
   // Phase 1: VELUTINX solid for 2 seconds
   document.title = BASE_TITLE;
 
+  // Delay the blank flashes slightly to avoid perceived flash on load
   setTimeout(() => {
     // Phase 2: Three quick blank flashes
     let blankCount = 0;
     const blankInterval = setInterval(() => {
-document.title = "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀♡";  // three different invisible chars
+      document.title = "⠀";  // single invisible char (safer than many)
       setTimeout(() => {
         document.title = BASE_TITLE;
         blankCount++;
@@ -57,15 +59,15 @@ document.title = "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀♡";  // thre
                 animateTitle(); // loop back
                 return;
               }
-              current = current.slice(1); // remove first letter
-              document.title = current || "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀♡";
+              current = current.slice(1);
+              document.title = current || "⠀";
             }, SHRINK_INTERVAL);
           }, PAGE_SHOW_DURATION);
         }
       }, BLANK_DURATION);
     }, BLANK_DURATION * 2); // time between flashes
-  }, FULL_DURATION);
+  }, FULL_DURATION + 200); // small extra delay to prevent initial flash/reflow
 }
 
-// Start the animation
-animateTitle();
+// Start the animation only after a tiny delay (prevents white flash on fast loads)
+setTimeout(animateTitle, 100);
