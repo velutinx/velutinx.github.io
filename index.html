@@ -7,7 +7,7 @@
 </head>
 <body>
 
-  <!-- MAIN WEBSITE CONTENT (hidden until intro finishes) -->
+  <!-- MAIN WEBSITE CONTENT (hidden until intro finishes on home) -->
   <div id="mainWebsite" style="opacity:0; transition:opacity 0.8s ease;">
 
     <div class="background-wrapper">
@@ -45,20 +45,20 @@
 
   </div>
 
-  <!-- INTRO LOADER - LONG VERSION ONLY ON ROOT -->
+  <!-- INTRO LOADER - LONG VERSION ONLY ON ROOT/HOME -->
   <script>
     (function(){
       // Only run full intro on root or index.html
       const path = window.location.pathname.toLowerCase();
-      const isRoot = path === '/' || path === '/index.html' || path.endsWith('index.html');
+      const isHomePage = path === '/' || path === '/index.html' || path.endsWith('index.html');
 
-      if (!isRoot) {
-        // Subpage: skip intro, show main site immediately
+      if (!isHomePage) {
+        // Subpage: skip intro completely
         document.getElementById('mainWebsite').style.opacity = '1';
         return;
       }
 
-      // Root page: run full cinematic intro
+      // Root/home: run full long intro
       document.addEventListener("DOMContentLoaded", function(){
         const intro = document.createElement("div");
         intro.id = "cinematicIntro";
@@ -370,47 +370,11 @@
     })();
   </script>
 
-  <!-- MAIN WEBSITE CONTENT -->
-  <div id="mainWebsite">
-    <div class="background-wrapper">
-      <div class="background-gradient"></div>
-      <div class="wave-overlay"></div>
-    </div>
-    
-    <div class="lang-swipe" id="langSwipe"></div>
-    <div class="lang-toggle" id="langToggle">🇯🇵</div>
-    <div class="theme-toggle" id="themeToggle"><div class="theme-knob"></div></div>
-
-    <div id="page">
-      <div id="navContainer"></div>
-      <div class="divider"></div>
-
-      <section class="hero">
-        <div class="hero-image" id="heroImage">
-          <img src="/images/Main.jpg" alt="Velutinx">
-        </div>
-
-        <div class="hero-text">
-          <div class="hero-name">VELUTINX</div>
-          <div class="hero-sub" id="heroSub">♡ Freelance Illustrator ♡</div>
-          <div class="hero-sub">🇺🇸 / 🇯🇵 / 🇪🇸 = OK!</div>
-          <div class="divider"></div>
-
-          <a class="discord-link" href="https://discord.gg/6sHSVMEE" target="_blank">
-            <img src="/images/LogoDiscord.png" alt="Discord">
-          </a>
-        </div>
-      </section>
-
-      <div class="divider"></div>
-    </div>
-  </div>
-
-  <!-- Shared navigation loader -->
+  <!-- MAIN WEBSITE SCRIPTS (run on all pages) -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- Main functionality -->
   <script>
+    // Load saved preferences
     const savedLang = localStorage.getItem("language");
     const savedDark = localStorage.getItem("darkMode") === "true";
     let isJapanese = savedLang === "jp";
