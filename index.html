@@ -50,31 +50,8 @@
 
 
   <!-- INTRO LOADER (must be FIRST script) -->
-<script>
-(function() {
+<script src="/assets/js/intro.js"></script>
 
-  const path = window.location.pathname;
-
-  // Hide site initially
-  const main = document.getElementById("mainWebsite");
-  if (main) main.style.opacity = "0";
-
-  function loadScript(src) {
-    const s = document.createElement("script");
-    s.src = src;
-    document.body.appendChild(s);
-  }
-
-  if (path === "/index.html") {
-    // OLD shorter intro
-    loadScript("/assets/js/legacy-intro.js");
-  } else {
-    // NEW cinematic intro
-    loadScript("/assets/js/intro-loader.js");
-  }
-
-})();
-</script>
 
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
