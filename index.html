@@ -44,27 +44,27 @@
     </div>
 
   </div>
-  <!-- END MAIN WEBSITE CONTENT -->
 
-
-  <!-- INTRO LOADER (long cinematic version) -->
+  <!-- INTRO LOADER - LONG VERSION ONLY ON ROOT -->
   <script>
-    // This script runs ONLY on the root (/) or index.html
     (function(){
-      // Detect if we are on the main page (root or index.html)
-      const path = window.location.pathname;
-      const isMainPage = path === '/' || path === '/index.html' || path.endsWith('index.html');
+      // Only run full intro on root or index.html
+      const path = window.location.pathname.toLowerCase();
+      const isRoot = path === '/' || path === '/index.html' || path.endsWith('index.html');
 
-      if (!isMainPage) return; // skip intro on subpages
+      if (!isRoot) {
+        // Subpage: skip intro, show main site immediately
+        document.getElementById('mainWebsite').style.opacity = '1';
+        return;
+      }
 
+      // Root page: run full cinematic intro
       document.addEventListener("DOMContentLoaded", function(){
-        /* ================= CREATE INTRO WRAPPER ================= */
         const intro = document.createElement("div");
         intro.id = "cinematicIntro";
 
         intro.innerHTML = `
 <style>
-  /* ===== MAIN INTRO WRAPPER ===== */
   #cinematicIntro {
     position: fixed;
     inset: 0;
@@ -73,7 +73,6 @@
     overflow: hidden;
   }
 
-  /* ===== ENTRY CARD ===== */
   .container {
     position: absolute;
     inset: 0;
@@ -121,7 +120,16 @@
     to { opacity: 1; }
   }
 
-  /* ===== GLITCH ===== */
+  .fade-out {
+    animation: blurFade 1.2s ease forwards;
+  }
+
+  @keyframes blurFade {
+    0%   { filter: blur(0); opacity: 1; }
+    50%  { filter: blur(8px); opacity: 0.6; }
+    100% { filter: blur(20px); opacity: 0; }
+  }
+
   .tv-glitch {
     position: absolute;
     inset: 0;
@@ -164,7 +172,6 @@
     100% { background-position: 0 12px, 0 0; }
   }
 
-  /* ===== WHITE FLASH ===== */
   .white-screen {
     position: absolute;
     inset: 0;
@@ -176,7 +183,6 @@
 
   .white-screen.active { opacity: 1; }
 
-  /* ===== SHUTDOWN ===== */
   .shutdown {
     position: absolute;
     inset: 0;
@@ -207,7 +213,6 @@
     100% { transform: scaleX(0); }
   }
 
-  /* ===== LOADING SCREEN ===== */
   .loading-screen {
     position: absolute;
     inset: 0;
@@ -272,6 +277,16 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
   }
+
+  @keyframes fillBar {
+    from { width: 0%; }
+    to { width: calc(100% - 16px); }
+  }
+
+  @keyframes borderBuild {
+    from { stroke-dashoffset: 1264; }
+    to { stroke-dashoffset: 0; }
+  }
 </style>
 
 <div class="container">
@@ -305,7 +320,6 @@
 
         document.body.prepend(intro);
 
-        /* ===== AUTO PLAY SEQUENCE ===== */
         const glitch = document.getElementById('glitch');
         const whiteScreen = document.getElementById('whiteScreen');
         const shutdown = document.getElementById('shutdown');
@@ -357,7 +371,7 @@
   </script>
 
   <!-- MAIN WEBSITE CONTENT -->
-  <div id="mainWebsite" style="opacity:0; transition:opacity 0.6s ease;">
+  <div id="mainWebsite">
     <div class="background-wrapper">
       <div class="background-gradient"></div>
       <div class="wave-overlay"></div>
@@ -395,14 +409,12 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- All other functionality inline -->
+  <!-- Main functionality -->
   <script>
-    // Load saved preferences
     const savedLang = localStorage.getItem("language");
     const savedDark = localStorage.getItem("darkMode") === "true";
     let isJapanese = savedLang === "jp";
 
-    // Translate blobs robustly
     function translateBlobs(isJp) {
       const blobs = document.querySelectorAll(".blob-text");
       if (blobs.length === 0) {
@@ -424,7 +436,6 @@
 
     if (savedDark) document.body.classList.add("dark");
 
-    // Language toggle
     langToggle.onclick = () => {
       langSwipe.classList.remove("active");
       void langSwipe.offsetWidth;
@@ -441,13 +452,11 @@
       }, 180);
     };
 
-    // Theme toggle
     themeToggle.onclick = () => {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark"));
     };
 
-    // Cursor sparkles
     let lastStarTime = 0;
     document.addEventListener("mousemove", (e) => {
       const now = Date.now();
@@ -465,7 +474,6 @@
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Hero falling stars
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "social-star";
