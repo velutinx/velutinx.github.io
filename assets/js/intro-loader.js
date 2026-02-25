@@ -1,17 +1,20 @@
 // assets/js/intro-loader.js
 (function(){
-  // Only run full intro on root (/)
+  // Only run on root (/)
   const path = window.location.pathname.toLowerCase();
   const isRoot = path === '/' || path === '';
 
-  if (!isRoot) return; // skip on /index.html or subpages
+  if (!isRoot) {
+    // Skip intro on /index.html or subpages
+    const main = document.getElementById('mainWebsite');
+    if (main) main.style.opacity = '1';
+    return;
+  }
 
   document.addEventListener("DOMContentLoaded", function(){
-    // Create intro wrapper
     const intro = document.createElement("div");
     intro.id = "cinematicIntro";
 
-    // Inject all the HTML + styles as a string (this is safe in JS)
     intro.innerHTML = `
       <style>
         #cinematicIntro {
@@ -269,7 +272,7 @@
 
     document.body.prepend(intro);
 
-    // Auto-play sequence (unchanged)
+    // Auto-play sequence
     const glitch = document.getElementById('glitch');
     const whiteScreen = document.getElementById('whiteScreen');
     const shutdown = document.getElementById('shutdown');
