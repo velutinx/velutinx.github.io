@@ -82,47 +82,47 @@
           100% { filter: blur(20px); opacity: 0; }
         }
 
-        .tv-glitch {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: 100;
-          opacity: 0;
-          background:
-            repeating-linear-gradient(to bottom,
-              transparent 0px,
-              #111 1px,
-              transparent 3px,
-              #000 4px),
-            linear-gradient(90deg,
-              rgba(255,0,0,0.15) 0%,
-              transparent 33%,
-              rgba(0,255,255,0.12) 66%,
-              transparent 100%);
-          background-size: 100% 4px, 100% 100%;
-          mix-blend-mode: multiply;
-        }
+.tv-glitch {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(to bottom,
+      transparent 0px,
+      #111 1px,
+      transparent 3px,
+      #000 4px),
+    linear-gradient(90deg,
+      rgba(255,0,0,0.15) 0%,
+      transparent 33%,
+      rgba(0,255,255,0.12) 66%,
+      transparent 100%);
+  background-size: 100% 4px, 100% 100%;
+  mix-blend-mode: multiply;
+}
 
-        .tv-glitch.active {
-          opacity: 0.9;
-          animation:
-            glitchShake 1.2s steps(10) forwards,
-            verticalRoll 0.10s linear infinite;
-        }
+.tv-glitch.active {
+  opacity: 0.9;
+  animation:
+    glitchShake 1.2s steps(10) forwards,
+    verticalRoll 0.10s linear infinite;
+}
 
-        @keyframes glitchShake {
-          0%   { transform: translate(0,0); opacity: 0; }
-          10%  { transform: translate(6px,-6px); opacity: 1; }
-          30%  { transform: translate(-7px,7px); }
-          50%  { transform: translate(5px,-5px); }
-          70%  { transform: translate(-6px,6px); }
-          100% { transform: translate(0,0); opacity: 0; }
-        }
+@keyframes glitchShake {
+  0% { transform: translate(0,0); opacity: 0; }
+  10% { transform: translate(6px,-6px); opacity: 1; }
+  30% { transform: translate(-7px,7px); }
+  50% { transform: translate(5px,-5px); }
+  70% { transform: translate(-6px,6px); }
+  100% { transform: translate(0,0); opacity: 0; }
+}
 
-        @keyframes verticalRoll {
-          0%   { background-position: 0 0, 0 0; }
-          100% { background-position: 0 12px, 0 0; }
-        }
+@keyframes verticalRoll {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 0 12px, 0 0; }
+}
 
         .white-screen {
           position: absolute;
