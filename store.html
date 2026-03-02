@@ -6,366 +6,874 @@
   <title>Velutinx's Shop</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --card: #1a1f2e;
-      --text: #e2e8f0;
-      --accent: #4ade80;   /* green for gift/accents */
-      --gray: #64748b;
-      --border: #334155;
+      --bg: #d3d0c1;
+      --card: #e8e5d8;
+      --darker: #c0bcaa;
+      --text: #3a3528;
+      --text-light: #e8e5d8;
+      --accent: #aa9e76;
+      --success: #22c55e;
+      --red-discount: #a64a5c;
+      --gray: #8a7b6f;
+      --border: #aa9e76;
+      --overlay: rgba(170,158,118,0.25);
+    }
+    body.dark {
+      --bg: #0f0f12;
+      --card: #1a1a20;
+      --darker: #121216;
+      --text: #e6e3d8;
+      --text-light: #e6e3d8;
+      --accent: #d4c08a;
+      --success: #8b8a5e;
+      --red-discount: #a64a5c;
+      --gray: #b8b3a5;
+      --border: #6f6a4e;
+      --overlay: rgba(15,15,18,0.75);
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
+      line-height: 1.5;
+      transition: background 0.4s, color 0.4s;
     }
-    .header {
+    body.drawer-open::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 1190;
+      pointer-events: none;
+    }
+    body.drawer-open .floating-cart {
+      display: none;
+    }
+
+    /* Top nav */
+    .top-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem;
-      background: #0a0e14;
+      padding: 0.9rem 2.5rem;
+      background: var(--darker);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .logo { font-size: 1.6rem; font-weight: bold; color: var(--accent); }
+    .nav-actions { display: flex; align-items: center; gap: 1rem; position: relative; }
+
+    .nav-icon {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); /* black/dark in light mode, light in dark */
+      border: 1px solid rgba(58,53,40,0.2); /* subtle dark border in light mode */
+      transition: all 0.22s;
+      cursor: pointer;
+    }
+    .nav-icon:hover {
+      background: #d3d0c1;
+      color: #3a3528;
+      transform: scale(1.08);
+      border-color: #aa9e76;
+    }
+    .nav-icon.active {
+      background: var(--success);
+      color: white;
+      border-color: transparent;
+    }
+    .nav-icon svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.5; }
+
+    .login-btn {
+      padding: 0.55rem 1.6rem;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .login-btn:hover { background: rgba(170,158,118,0.15); }
+
+    .cart-wrapper { position: relative; }
+    .cart-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--red-discount);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: bold;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      border: 2px solid var(--darker);
+    }
+
+    /* Language popover */
+    #languagePopover {
+      position: absolute;
+      top: 55px;
+      right: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      min-width: 230px;
+      z-index: 1100;
+      display: none;
+      overflow: hidden;
+    }
+    #languagePopover.show { display: block; }
+    .lang-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text);
+    }
+    .lang-item:hover { background: #c0bcaa; }
+    .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+    .lang-item p { margin: 0; font-size: 1rem; }
+
+    /* Cart drawer */
+    .cart-drawer {
+      position: fixed;
+      top: 0; right: -400px;
+      width: 400px;
+      height: 100%;
+      background: var(--darker);
+      border-left: 1px solid var(--border);
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+      z-index: 1200;
+      transition: right 0.35s ease;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-light);
+    }
+    .cart-drawer.open { right: 0; }
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.4rem 1.6rem;
       border-bottom: 1px solid var(--border);
     }
-    .logo { font-size: 1.5rem; font-weight: bold; }
-    .nav-right {
+    .cart-header h5 { margin: 0; font-size: 1.45rem; }
+    .cart-close { background: none; border: none; color: var(--text-light); font-size: 1.8rem; cursor: pointer; }
+    .cart-items { flex: 1; overflow-y: auto; padding: 1.2rem; }
+    .cart-item {
       display: flex;
-      gap: 1.2rem;
-      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
     }
-    .nav-btn {
-      background: none;
+    .cart-item img { width: 85px; height: 85px; object-fit: cover; border-radius: 8px; }
+    .cart-item-info { flex: 1; }
+    .cart-item-title { font-weight: 600; margin-bottom: 6px; }
+    .cart-item-price { color: var(--accent); font-weight: 700; }
+    .cart-item-remove { background: none; border: none; color: var(--red-discount); font-size: 1.4rem; cursor: pointer; align-self: flex-start; }
+    .cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
+    .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
+    .cart-checkout {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #1f1a12;
       border: none;
-      color: var(--text);
+      border-radius: 10px;
+      font-weight: 700;
       font-size: 1.1rem;
       cursor: pointer;
     }
-    .banner {
-      text-align: center;
-      padding: 2.5rem 1rem;
-      background: linear-gradient(to bottom, #1e293b, var(--bg));
-    }
-    .banner h1 {
-      font-size: 2.8rem;
-      margin-bottom: 0.5rem;
-    }
-    .social-bar {
-      text-align: center;
-      padding: 1rem;
-      background: #0a0e14;
-      font-size: 0.95rem;
-      color: var(--gray);
-    }
-    .social-bar a { color: var(--accent); margin: 0 0.8rem; text-decoration: none; }
+    .cart-checkout:hover { background: #e0c08a; }
 
-    .main-container {
-      display: flex;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      gap: 2rem;
-    }
-    .sidebar {
-      width: 280px;
-      flex-shrink: 0;
-    }
-    .products-section {
-      flex: 1;
-    }
-
-    .section-title {
-      font-size: 1.3rem;
-      margin: 1.5rem 0 0.8rem;
-      color: var(--accent);
-    }
-    .category-list {
-      list-style: none;
-    }
-    .category-list li {
-      padding: 0.9rem 1.2rem;
-      margin: 0.4rem 0;
-      background: var(--card);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .category-list li:hover,
-    .category-list li.active {
-      background: #2d3748;
-    }
-    .category-list li:first-child {
+    /* Floating cart button */
+    .floating-cart {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 64px;
+      height: 64px;
       background: var(--accent);
-      color: #000;
-      font-weight: bold;
-    }
-
-    .sort-options {
+      border-radius: 50%;
       display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-    .sort-btn {
-      padding: 0.9rem 1.2rem;
-      background: var(--card);
-      border: none;
-      color: var(--text);
-      text-align: left;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .sort-btn:hover { background: #2d3748; }
-
-    .products-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.5rem;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      z-index: 1250;
+      cursor: pointer;
+      transition: all 0.25s;
     }
-    .search-bar {
+    .floating-cart:hover { transform: scale(1.12); }
+    .floating-cart.active { background: var(--success); }
+    .floating-cart svg { width: 28px; height: 28px; stroke: white; stroke-width: 2; }
+    .floating-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--red-discount);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: bold;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
       display: flex;
-      max-width: 320px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      border: 2px solid var(--darker);
     }
-    .search-bar input {
-      flex: 1;
-      padding: 0.8rem 1rem;
+
+    /* Snackbar */
+    #snackbar {
+      position: fixed;
+      top: 28px;
+      right: 28px;
+      background: var(--success);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 10px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 1300;
+      transform: translateY(-120px);
+      opacity: 0;
+      transition: all 0.45s ease;
+    }
+    #snackbar.show { transform: translateY(0); opacity: 1; }
+
+    /* Shop header */
+    .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: linear-gradient(to bottom, #4a3a3a, var(--bg)); }
+    .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
+    .shop-left { display: flex; align-items: center; gap: 1.2rem; }
+    .shop-title { font-size: 2.3rem; font-weight: 800; color: var(--accent); margin: 0; }
+    .gift-btn {
+      width: 68px;
+      height: 68px;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      color: #22c55e;
+    }
+    .gift-btn:hover { transform: scale(1.18); }
+    .gift-btn svg { width: 48px; height: 48px; stroke: currentColor; stroke-width: 2; }
+    .shop-subtitle { margin-left: auto; color: var(--accent); text-decoration: none; }
+
+    /* Main layout */
+    .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
+    .sidebar { width: 268px; flex-shrink: 0; }
+    .products-section { flex: 1; }
+
+    .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text-muted); padding-left: 0.5rem; }
+
+    .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
+    .category-list li:hover { background: #c0bcaa; }
+    .category-list li.active { background: var(--accent); color: #1f1a12; font-weight: 600; }
+    .category-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
+
+    .sort-options { margin-top: 2rem; }
+    .sort-btn {
+      width: 100%;
+      padding: 1rem 1.25rem;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 8px 0 0 8px;
-      color: var(--text);
+      text-align: left;
+      margin-bottom: 0.5rem;
+      border-radius: 10px;
       font-size: 1rem;
-    }
-    .search-bar button {
-      padding: 0.8rem 1.2rem;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 0 8px 8px 0;
       cursor: pointer;
-      font-weight: bold;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      color: var(--text);
     }
-
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.6rem;
-    }
-    .product-card {
-      background: var(--card);
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .product-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-    }
-    .card-image {
-      width: 100%;
-      aspect-ratio: 3 / 4;   /* typical for art portraits */
-      object-fit: cover;
-      background: #111;
-    }
-    .discount-badge {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      background: #ef4444;
-      color: white;
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: bold;
-    }
-    .card-content {
-      padding: 1.2rem;
-    }
-    .card-title {
-      font-size: 1.15rem;
-      margin-bottom: 0.6rem;
-    }
-    .card-price {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: var(--accent);
-      margin-bottom: 1rem;
-    }
-    .card-price del {
-      color: var(--gray);
-      font-size: 1rem;
-      margin-left: 0.6rem;
-    }
-    .add-btn {
+    .sort-btn.active { background: var(--accent); color: #1f1a12; }
+    .sort-btn:hover:not(.active) { background: #c0bcaa; }
+    .sort-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
+    .reset-btn {
+      margin-top: 1.5rem;
       width: 100%;
       padding: 0.9rem;
       background: var(--accent);
-      color: #000;
+      color: #1f1a12;
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
+      border-radius: 10px;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 1rem;
     }
-    .add-btn:hover { opacity: 0.9; }
 
-    @media (max-width: 900px) {
+    .products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem; }
+    .products-header h2 { font-size: 1.65rem; font-weight: 700; color: var(--text); }
+    .search-bar-wrapper { width: 340px; max-width: 100%; }
+    .search-field { position: relative; }
+    .input-base { position: relative; display: flex; align-items: center; background: var(--card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .outlined-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(170,158,118,0.2); }
+    .adorned-start { display: flex; align-items: center; padding-left: 12px; }
+    .input-adornment.start svg { color: var(--gray); opacity: 0.7; }
+    .input-element { flex: 1; padding: 8px 14px 8px 8px; background: transparent; border: none; outline: none; color: var(--text); font-size: 0.95rem; }
+    .input-element::placeholder { color: var(--gray); opacity: 0.7; }
+    .notched-outline { position: absolute; inset: -1px 0 0; pointer-events: none; border: 1px solid var(--border); border-radius: inherit; transition: border-color 0.2s; }
+    .outlined-input:focus-within .notched-outline { border-color: var(--accent); }
+    .notched-outline legend { padding: 0 6px; font-size: 0.75rem; visibility: hidden; width: auto; height: 0; line-height: 0; }
+
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
+    .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); }
+    .product-card.hidden { display: none; }
+    .product-card.added-flash { animation: flashGreen 0.6s ease-out; }
+    @keyframes flashGreen { 0% { box-shadow: 0 0 0 4px rgba(34,197,94,0.6); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+    .product-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
+    .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; max-width: 100%; height: auto; display: block; }
+    .discount-badge { position: absolute; top: 12px; right: 12px; background: var(--red-discount); color: white; padding: 4px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 999px; transform: rotate(8deg); }
+    .card-content { padding: 1.2rem; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
+    .price-row { display: flex; justify-content: space-between; align-items: center; }
+    .price { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+    .price del { color: var(--gray); font-size: 1rem; margin-left: 0.6rem; }
+    .cart-btn {
+      width: 44px; height: 44px;
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      color: #1f1a12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .cart-btn:hover { background: #e0c08a; transform: scale(1.08); }
+    .cart-btn.added { background: var(--success); }
+
+    @media (max-width: 960px) {
+      .shop-container { flex-direction: column; align-items: center; text-align: center; }
       .main-container { flex-direction: column; }
       .sidebar { width: 100%; }
+      .search-bar-wrapper { width: 100%; }
+      .cart-drawer { width: 100%; right: -100%; }
+      .floating-cart { bottom: 80px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
-  <header class="header">
+  <!-- Top nav -->
+  <nav class="top-nav">
     <div class="logo">velutinx</div>
-    <div class="nav-right">
-      <button class="nav-btn">🌐</button> <!-- Language -->
-      <button class="nav-btn">🌙</button> <!-- Nightmode / theme toggle -->
-      <button class="nav-btn">Store</button>
-      <button class="nav-btn">Login</button>
+    <div class="nav-actions">
+      <button class="nav-icon" id="langBtn" title="Language">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path>
+          <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+          <path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
+        </svg>
+      </button>
+      <div id="languagePopover">
+        <div class="lang-item" data-lang="en">
+          <img src="https://flagcdn.com/w40/us.png" alt="US" />
+          <p>English (USD)</p>
+        </div>
+        <div class="lang-item" data-lang="ja">
+          <img src="https://flagcdn.com/w40/jp.png" alt="JP" />
+          <p>日本語 (円)</p>
+        </div>
+        <div class="lang-item" data-lang="zh-CN">
+          <img src="https://flagcdn.com/w40/cn.png" alt="CN" />
+          <p>简体中文 (元)</p>
+        </div>
+      </div>
+
+      <button class="nav-icon" id="themeBtn" title="Night Mode">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
+          <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+        </svg>
+      </button>
+
+      <div class="cart-wrapper">
+        <button class="nav-icon" id="cartBtn" title="Cart">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-1 7h-13"></path>
+          </svg>
+        </button>
+        <span class="cart-badge" id="cartCount">0</span>
+      </div>
+
+      <button class="login-btn" id="loginBtn">Login</button>
+    </div>
+  </nav>
+
+  <!-- Floating bottom-right cart button -->
+  <button class="floating-cart" id="floatingCartBtn" title="Cart">
+    <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
+
+  <!-- Cart Drawer -->
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <button class="cart-checkout" id="checkoutBtn">Checkout</button>
+    </div>
+  </div>
+
+  <!-- Snackbar -->
+  <div id="snackbar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
+    <span id="snackText">Added successfully</span>
+  </div>
+
+  <!-- Shop header -->
+  <header class="shop-header">
+    <div class="shop-container">
+      <div class="shop-left">
+        <div style="display:flex; align-items:center; gap:1.2rem;">
+          <h1 class="shop-title" id="shopTitle">Velutinx's Shop</h1>
+          <button class="gift-btn" title="Gift / Support">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+              <path d="M3 8m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"></path>
+              <path d="M12 8l0 13"></path>
+              <path d="M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7"></path>
+              <path d="M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5"></path>
+            </svg>
+          </button>
+        </div>
+        <h6 class="shop-subtitle" id="shopSubtitle">
+          <a href="https://www.pixiv.net/en/users/YOUR_ID" style="color:var(--accent); text-decoration:none;">https://www.pixiv.net/en/users/YOUR_ID</a>
+        </h6>
+      </div>
+      <div class="shop-right">
+        <img src="https://via.placeholder.com/140/3c2f2f/d3d0c1?text=Velutinx" alt="Avatar" class="shop-avatar">
+      </div>
     </div>
   </header>
 
-  <!-- Banner -->
-  <section class="banner">
-    <h1>Velutinx's Shop <span style="font-size:2.2rem;">🎁</span></h1>
-  </section>
-
-  <!-- Social placeholder -->
-  <div class="social-bar">
-    <a href="#">Twitter</a> •
-    <a href="#">Pixiv</a> •
-    <a href="#">Patreon</a> •
-    <a href="#">Discord</a>
+  <!-- Social bar -->
+  <div style="background:var(--darker); text-align:center; padding:0.9rem; font-size:0.95rem; color:var(--text-muted); border-top:1px solid var(--border);">
+    <span id="socialLinks">Twitter • Pixiv • Patreon • Discord • Booth</span>
   </div>
 
+  <!-- Main content -->
   <div class="main-container">
-
-    <!-- Left Sidebar: Filters & Sort -->
     <aside class="sidebar">
-      <div class="section-title">Filter by Category</div>
+      <div class="section-title" id="filterTitle">Filter by Category</div>
       <ul class="category-list">
-        <li class="active">All</li>
-        <li>Not On Booth</li>
-        <li>From Booth</li>
-        <li>The Sisters Corner</li>
+        <li class="active"><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M6.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M17.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path></svg> <span id="catAll">All</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catNot">Not On Booth</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catFrom">From Booth</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catSisters">The Sisters Corner</span></li>
       </ul>
 
-      <div class="section-title">Sort by</div>
       <div class="sort-options">
-        <button class="sort-btn">★ Default</button>
-        <button class="sort-btn">🆕 Newest</button>
-        <button class="sort-btn">↑ Price: Low to High</button>
-        <button class="sort-btn">↓ Price: High to Low</button>
+        <div class="section-title" id="sortTitle">Sort by</div>
+        <button class="sort-btn active" data-sort="default"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg> <span id="sortDefault">Default</span></button>
+        <button class="sort-btn" data-sort="newest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11.933 5h-6.933v16h13v-8"></path><path d="M14 17h-5"></path><path d="M9 13h5v-4h-5z"></path><path d="M15 5v-2"></path><path d="M18 6l2 -2"></path><path d="M19 9h2"></path></svg> <span id="sortNewest">Newest</span></button>
+        <button class="sort-btn" data-sort="price-asc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9l3 -3l3 3"></path><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M17 6v12"></path></svg> <span id="sortLow">Price: Low to High</span></button>
+        <button class="sort-btn" data-sort="price-desc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M14 15l3 3l3 -3"></path><path d="M17 18v-12"></path></svg> <span id="sortHigh">Price: High to Low</span></button>
       </div>
+
+      <button class="reset-btn" id="resetBtn">Reset Filters</button>
     </aside>
 
-    <!-- Right: Products -->
     <main class="products-section">
       <div class="products-header">
-        <h2 class="section-title">Products</h2>
-        <div class="search-bar">
-          <input type="text" placeholder="Search..." />
-          <button>Search</button>
-        </div>
-      </div>
-
-      <div class="product-grid">
-        <!-- Product 1 -->
-        <div class="product-card">
-          <img src="images/artwork/1.jpg" alt="Artwork 1" class="card-image" />
-          <div class="discount-badge">13% OFF</div>
-          <div class="card-content">
-            <div class="card-title">Junie and Friends Mix 1</div>
-            <div class="card-price">$7.57</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <!-- Product 2 -->
-        <div class="product-card">
-          <img src="images/artwork/2.jpg" alt="Artwork 2" class="card-image" />
-          <div class="discount-badge">33% OFF</div>
-          <div class="card-content">
-            <div class="card-title">Collection 32 Bonus Pack</div>
-            <div class="card-price">$8.74</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <!-- Product 3 -->
-        <div class="product-card">
-          <img src="images/artwork/3.jpg" alt="Artwork 3" class="card-image" />
-          <div class="discount-badge">23% OFF</div>
-          <div class="card-content">
-            <div class="card-title">Collection 31 / コレクション31</div>
-            <div class="card-price">$5.82</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <!-- Repeat pattern for 4–9 with different titles/prices/images -->
-        <div class="product-card">
-          <img src="images/artwork/4.jpg" alt="Artwork 4" class="card-image" />
-          <div class="discount-badge">15% OFF</div>
-          <div class="card-content">
-            <div class="card-title">Chen Sisters Special</div>
-            <div class="card-price">$9.99</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <div class="product-card">
-          <img src="images/artwork/5.jpg" alt="Artwork 5" class="card-image" />
-          <div class="card-content">
-            <div class="card-title">Mama's Gift Pack</div>
-            <div class="card-price">$12.40</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <div class="product-card">
-          <img src="images/artwork/6.jpg" alt="Artwork 6" class="card-image" />
-          <div class="discount-badge">20% OFF</div>
-          <div class="card-content">
-            <div class="card-title">Wedding Collection</div>
-            <div class="card-price">$6.99</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <div class="product-card">
-          <img src="images/artwork/7.jpg" alt="Artwork 7" class="card-image" />
-          <div class="card-content">
-            <div class="card-title">Night Vibes Mix</div>
-            <div class="card-price">$4.50</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <div class="product-card">
-          <img src="images/artwork/8.jpg" alt="Artwork 8" class="card-image" />
-          <div class="discount-badge">25% OFF</div>
-          <div class="card-content">
-            <div class="card-title">Sisters Corner Vol.3</div>
-            <div class="card-price">$11.20</div>
-            <button class="add-btn">🛒 Add to Cart</button>
-          </div>
-        </div>
-
-        <div class="product-card">
-          <img src="images/artwork/9.jpg" alt="Artwork 9" class="card-image" />
-          <div class="card-content">
-            <div class="card-title">Bonus Art Pack 2026</div>
-            <div class="card-price">$8.30</div>
-            <button class="add-btn">🛒 Add to Cart</button>
+        <h2 id="productsTitle">Products</h2>
+        <div class="search-bar-wrapper">
+          <div class="search-field">
+            <div class="input-base outlined-input adorned-start">
+              <div class="adorned-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                  <path d="M21 21l-6 -6"></path>
+                </svg>
+              </div>
+              <input type="search" id="searchInput" placeholder="Search" class="input-element" oninput="filterAndSort()" />
+              <fieldset class="notched-outline"><legend><span></span></legend></fieldset>
+            </div>
           </div>
         </div>
       </div>
+
+      <div class="product-grid" id="productGrid"></div>
     </main>
   </div>
 
+  <script>
+    // Translations
+    const translations = {
+      en: {
+        shopTitle: "Velutinx's Shop",
+        filterTitle: "Filter by Category",
+        catAll: "All",
+        catNot: "Not On Booth",
+        catFrom: "From Booth",
+        catSisters: "The Sisters Corner",
+        sortTitle: "Sort by",
+        sortDefault: "Default",
+        sortNewest: "Newest",
+        sortLow: "Price: Low to High",
+        sortHigh: "Price: High to Low",
+        resetBtn: "Reset Filters",
+        productsTitle: "Products",
+        searchPlaceholder: "Search",
+        cartTitle: "Shopping Cart",
+        totalLabel: "Total",
+        checkoutBtn: "Checkout",
+        snackText: "Added successfully",
+        socialLinks: "Twitter • Pixiv • Patreon • Discord • Booth",
+        loginBtn: "Login"
+      },
+      ja: {
+        shopTitle: "Velutinxのショップ",
+        filterTitle: "カテゴリでフィルター",
+        catAll: "すべて",
+        catNot: "Boothにない",
+        catFrom: "Boothから",
+        catSisters: "姉妹のコーナー",
+        sortTitle: "並び替え",
+        sortDefault: "デフォルト",
+        sortNewest: "最新",
+        sortLow: "価格: 低い → 高い",
+        sortHigh: "価格: 高い → 低い",
+        resetBtn: "フィルターをリセット",
+        productsTitle: "商品",
+        searchPlaceholder: "検索",
+        cartTitle: "ショッピングカート",
+        totalLabel: "合計",
+        checkoutBtn: "チェックアウト",
+        snackText: "カートに追加しました",
+        socialLinks: "Twitter • Pixiv • Patreon • Discord • Booth",
+        loginBtn: "ログイン"
+      },
+      "zh-CN": {
+        shopTitle: "Velutinx的商店",
+        filterTitle: "按类别筛选",
+        catAll: "全部",
+        catNot: "不在Booth上",
+        catFrom: "来自Booth",
+        catSisters: "姐妹角落",
+        sortTitle: "排序方式",
+        sortDefault: "默认",
+        sortNewest: "最新",
+        sortLow: "价格: 低到高",
+        sortHigh: "价格: 高到低",
+        resetBtn: "重置筛选",
+        productsTitle: "商品",
+        searchPlaceholder: "搜索",
+        cartTitle: "购物车",
+        totalLabel: "总计",
+        checkoutBtn: "结账",
+        snackText: "已成功添加到购物车",
+        socialLinks: "Twitter • Pixiv • Patreon • Discord • Booth",
+        loginBtn: "登录"
+      }
+    };
+
+    // Data
+    const productsData = [
+      {id:1, title:"Junie & Friends - Summer Mix Vol.4", price:7.99, originalPrice:9.99, discount:20, image:"velutinx.github.io/storeassets/1.jpg"},
+      {id:2, title:"Collection 45 / コレクション45 Bonus Pack", price:12.50, originalPrice:15.00, discount:17, image:"velutinx.github.io/storeassets/2.jpg"},
+      {id:3, title:"Chen Sisters - Midnight Expressions", price:5.49, image:"velutinx.github.io/storeassets/3.jpg"},
+      {id:4, title:"The Sisters Corner - Special Dreamscapes", price:8.25, originalPrice:10.50, discount:21, image:"velutinx.github.io/storeassets/4.jpg"},
+      {id:5, title:"Mama's Secret Art Pack 2026", price:14.80, image:"velutinx.github.io/storeassets/5.jpg"},
+      {id:6, title:"Wedding Day Illustrations Vol.2", price:6.75, originalPrice:8.90, discount:24, image:"velutinx.github.io/storeassets/6.jpg"},
+      {id:7, title:"Night Vibes - Neon & Shadows Mix", price:9.30, image:"velutinx.github.io/storeassets/7.jpg"},
+      {id:8, title:"Collection 38 / Ultra Rare Bonus Set", price:11.20, originalPrice:14.00, discount:20, image:"velutinx.github.io/storeassets/8.jpg"},
+      {id:9, title:"Junie Holiday Special - Cozy Edition", price:4.99, originalPrice:7.50, discount:33, image:"velutinx.github.io/storeassets/9.jpg"}
+    ];
+
+    productsData.forEach((p, i) => {
+      p.date = new Date(2026, 2, 20 - i*3).getTime();
+      p.element = null;
+      p.inCart = false;
+    });
+
+    const grid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortButtons = document.querySelectorAll(".sort-btn");
+    const langBtn = document.getElementById("langBtn");
+    const langPopover = document.getElementById("languagePopover");
+    const langItems = langPopover.querySelectorAll(".lang-item");
+    const cartBtn = document.getElementById("cartBtn");
+    const floatingCartBtn = document.getElementById("floatingCartBtn");
+    const cartDrawer = document.getElementById("cartDrawer");
+    const cartClose = document.getElementById("cartClose");
+    const cartCountEl = document.getElementById("cartCount");
+    const floatingCartCountEl = document.getElementById("floatingCartCount");
+    const cartItemsEl = document.getElementById("cartItems");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const cartIcon = document.getElementById("cartIcon");
+    const floatingCartIcon = document.getElementById("floatingCartIcon");
+    const snackbar = document.getElementById("snackbar");
+    const themeBtn = document.getElementById("themeBtn");
+
+    const rates = { USD: 1, JPY: 152, CNY: 7.1 };
+    let currentLang = "en";
+    let currentCurrency = "USD";
+    let cart = [];
+    let isDark = false;
+
+    function formatPrice(value, currency) {
+      const rate = rates[currency];
+      const amount = Math.round(value * rate * (currency === "JPY" ? 1 : 100)) / (currency === "JPY" ? 1 : 100);
+      const symbols = { USD: "US$", JPY: "円", CNY: "元" };
+      return `${symbols[currency]}${amount.toLocaleString(currency === "JPY" ? 'ja-JP' : 'en-US', {minimumFractionDigits: currency === "JPY" ? 0 : 2})}`;
+    }
+
+    function updateAllPrices() {
+      document.querySelectorAll(".price").forEach(el => {
+        const base = parseFloat(el.dataset.price);
+        const orig = parseFloat(el.dataset.original);
+        let html = formatPrice(base, currentCurrency);
+        if (orig) html += ` <del>${formatPrice(orig, currentCurrency)}</del>`;
+        el.innerHTML = html;
+      });
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      currentCurrency = lang === "ja" ? "JPY" : lang === "zh-CN" ? "CNY" : "USD";
+      const t = translations[lang] || translations.en;
+
+      document.getElementById("shopTitle").textContent = t.shopTitle;
+      document.getElementById("filterTitle").textContent = t.filterTitle;
+      document.getElementById("catAll").textContent = t.catAll;
+      document.getElementById("catNot").textContent = t.catNot;
+      document.getElementById("catFrom").textContent = t.catFrom;
+      document.getElementById("catSisters").textContent = t.catSisters;
+      document.getElementById("sortTitle").textContent = t.sortTitle;
+      document.getElementById("sortDefault").textContent = t.sortDefault;
+      document.getElementById("sortNewest").textContent = t.sortNewest;
+      document.getElementById("sortLow").textContent = t.sortLow;
+      document.getElementById("sortHigh").textContent = t.sortHigh;
+      document.getElementById("resetBtn").textContent = t.resetBtn;
+      document.getElementById("productsTitle").textContent = t.productsTitle;
+      searchInput.placeholder = t.searchPlaceholder;
+      document.getElementById("cartTitle").textContent = t.cartTitle;
+      document.getElementById("totalLabel").textContent = t.totalLabel;
+      document.getElementById("checkoutBtn").textContent = t.checkoutBtn;
+      document.getElementById("snackText").textContent = t.snackText;
+      document.getElementById("socialLinks").textContent = t.socialLinks;
+      document.getElementById("loginBtn").textContent = t.loginBtn;
+
+      updateAllPrices();
+    }
+
+    function createCards() {
+      productsData.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.dataset.title = p.title.toLowerCase();
+        card.dataset.price = p.price;
+        card.dataset.date = p.date;
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
+          ${p.discount ? `<div class="discount-badge">${p.discount}% OFF</div>` : ""}
+          <div class="card-content">
+            <div class="card-title">${p.title}</div>
+            <div class="price-row">
+              <div class="price" data-price="${p.price}" data-original="${p.originalPrice||p.price}">
+                ${formatPrice(p.price, currentCurrency)}
+                ${p.originalPrice ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
+              </div>
+              <button class="cart-btn" title="Add to Cart" data-in-cart="false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                  <path d="M12.5 17h-6.5v-14h-2"></path>
+                  <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                  <path d="M16 19h6"></path>
+                  <path d="M19 16v6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+        p.element = card;
+
+        const btn = card.querySelector(".cart-btn");
+        btn.addEventListener("click", () => {
+          if (btn.dataset.inCart === "true") {
+            cart = cart.filter(item => item.id !== p.id);
+            btn.dataset.inCart = "false";
+            btn.classList.remove("added");
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+          } else {
+            cart.push(p);
+            btn.dataset.inCart = "true";
+            btn.classList.add("added");
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+            snackbar.classList.add("show");
+            setTimeout(() => snackbar.classList.remove("show"), 2400);
+          }
+          updateCartDisplay();
+        });
+      });
+    }
+
+    function updateCartDisplay() {
+      const count = cart.length;
+      cartCountEl.textContent = count;
+      floatingCartCountEl.textContent = count;
+
+      cartItemsEl.innerHTML = "";
+      let total = 0;
+
+      cart.forEach((item, idx) => {
+        total += item.price;
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div class="cart-item-info">
+            <div class="cart-item-title">${item.title}</div>
+            <div class="cart-item-price">${formatPrice(item.price, currentCurrency)}</div>
+          </div>
+          <button class="cart-item-remove" data-idx="${idx}">×</button>
+        `;
+        cartItemsEl.appendChild(div);
+      });
+
+      cartTotalEl.textContent = formatPrice(total, currentCurrency);
+
+      const isActive = count > 0;
+      [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
+    }
+
+    function filterAndSort() {
+      const query = searchInput.value.toLowerCase().trim();
+      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "default";
+
+      productsData.forEach(p => {
+        const matches = p.title.toLowerCase().includes(query);
+        p.element.classList.toggle("hidden", !matches);
+      });
+
+      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+
+      if (activeSort === "newest") visible.sort((a,b) => parseInt(b.dataset.date) - parseInt(a.dataset.date));
+      else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+      else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+
+      visible.forEach(el => grid.appendChild(el));
+    }
+
+    function setSort(type) {
+      sortButtons.forEach(b => b.classList.remove("active"));
+      document.querySelector(`[data-sort="${type}"]`)?.classList.add("active");
+      filterAndSort();
+    }
+
+    function resetFilters() {
+      searchInput.value = "";
+      setSort("default");
+    }
+
+    function toggleTheme() {
+      isDark = !isDark;
+      document.body.classList.toggle("dark", isDark);
+      localStorage.setItem("darkMode", isDark);
+    }
+
+    // Events
+    searchInput.addEventListener("input", filterAndSort);
+    sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
+
+    langBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      langPopover.classList.toggle("show");
+    });
+
+    document.addEventListener("click", e => {
+      if (!langBtn.contains(e.target) && !langPopover.contains(e.target)) langPopover.classList.remove("show");
+    });
+
+    langItems.forEach(item => {
+      item.addEventListener("click", () => {
+        currentLang = item.dataset.lang;
+        currentCurrency = item.dataset.currency;
+        setLanguage(currentLang);
+        langPopover.classList.remove("show");
+      });
+    });
+
+    cartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
+    floatingCartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
+    cartClose.addEventListener("click", () => { cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); });
+
+    document.addEventListener("click", e => {
+      if (cartDrawer.classList.contains("open") && !cartDrawer.contains(e.target) && !cartBtn.contains(e.target) && !floatingCartBtn.contains(e.target)) {
+        cartDrawer.classList.remove("open");
+        document.body.classList.remove("drawer-open");
+      }
+    });
+
+    cartItemsEl.addEventListener("click", e => {
+      if (e.target.classList.contains("cart-item-remove")) {
+        const idx = parseInt(e.target.dataset.idx);
+        const removed = cart.splice(idx, 1)[0];
+        removed.inCart = false;
+        const card = removed.element;
+        if (card) {
+          const btn = card.querySelector(".cart-btn");
+          btn.dataset.inCart = "false";
+          btn.classList.remove("added");
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+        }
+        updateCartDisplay();
+      }
+    });
+
+    themeBtn.addEventListener("click", toggleTheme);
+
+    // Init
+    createCards();
+    filterAndSort();
+    updateAllPrices();
+    setLanguage("en");
+
+    if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
+  </script>
 </body>
 </html>
