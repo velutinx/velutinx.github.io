@@ -71,8 +71,8 @@
       border-radius: 50%;
       background: transparent;
       display: flex; align-items: center; justify-content: center;
-      color: var(--text); /* black/dark in light mode, light in dark */
-      border: 1px solid rgba(58,53,40,0.2); /* subtle dark border in light mode */
+      color: var(--text);
+      border: 1px solid rgba(58,53,40,0.2);
       transition: all 0.22s;
       cursor: pointer;
     }
@@ -149,20 +149,20 @@
     .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
     .lang-item p { margin: 0; font-size: 1rem; }
 
-    /* Cart drawer */
+    /* Cart drawer - background changed to accent color */
     .cart-drawer {
       position: fixed;
       top: 0; right: -400px;
       width: 400px;
       height: 100%;
-      background: var(--darker);
+      background: var(--accent);
       border-left: 1px solid var(--border);
       box-shadow: -10px 0 30px rgba(0,0,0,0.5);
       z-index: 1200;
       transition: right 0.35s ease;
       display: flex;
       flex-direction: column;
-      color: var(--text-light);
+      color: #1f1a12;
     }
     .cart-drawer.open { right: 0; }
     .cart-header {
@@ -173,7 +173,7 @@
       border-bottom: 1px solid var(--border);
     }
     .cart-header h5 { margin: 0; font-size: 1.45rem; }
-    .cart-close { background: none; border: none; color: var(--text-light); font-size: 1.8rem; cursor: pointer; }
+    .cart-close { background: none; border: none; color: #1f1a12; font-size: 1.8rem; cursor: pointer; }
     .cart-items { flex: 1; overflow-y: auto; padding: 1.2rem; }
     .cart-item {
       display: flex;
@@ -184,22 +184,22 @@
     .cart-item img { width: 85px; height: 85px; object-fit: cover; border-radius: 8px; }
     .cart-item-info { flex: 1; }
     .cart-item-title { font-weight: 600; margin-bottom: 6px; }
-    .cart-item-price { color: var(--accent); font-weight: 700; }
+    .cart-item-price { color: #1f1a12; font-weight: 700; }
     .cart-item-remove { background: none; border: none; color: var(--red-discount); font-size: 1.4rem; cursor: pointer; align-self: flex-start; }
     .cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
     .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
     .cart-checkout {
       width: 100%;
       padding: 14px;
-      background: var(--accent);
-      color: #1f1a12;
+      background: #1f1a12;
+      color: var(--accent);
       border: none;
       border-radius: 10px;
       font-weight: 700;
       font-size: 1.1rem;
       cursor: pointer;
     }
-    .cart-checkout:hover { background: #e0c08a; }
+    .cart-checkout:hover { background: #3a3528; }
 
     /* Floating cart button */
     .floating-cart {
@@ -281,6 +281,31 @@
     .gift-btn svg { width: 48px; height: 48px; stroke: currentColor; stroke-width: 2; }
     .shop-subtitle { margin-left: auto; color: var(--accent); text-decoration: none; }
 
+    /* Discount ribbon (animated badge style) */
+    .badge-content {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--red-discount);
+      color: white;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      border-radius: 4px;
+      transform: rotate(8deg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .product-card:hover .badge-content {
+      transform: rotate(8deg) scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .badge-text {
+      font-family: inherit;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     /* Main layout */
     .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
     .sidebar { width: 268px; flex-shrink: 0; }
@@ -341,41 +366,13 @@
     .notched-outline legend { padding: 0 6px; font-size: 0.75rem; visibility: hidden; width: auto; height: 0; line-height: 0; }
 
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
-    .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); }
+    .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); position: relative; }
     .product-card.hidden { display: none; }
     .product-card.added-flash { animation: flashGreen 0.6s ease-out; }
     @keyframes flashGreen { 0% { box-shadow: 0 0 0 4px rgba(34,197,94,0.6); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
     .product-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
-    .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; max-width: 100%; height: auto; display: block; }
-    .discount-badge { position: absolute; top: 12px; right: 12px; background: var(--red-discount); color: white; padding: 4px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 999px; transform: rotate(8deg); }
-    .card-content { padding: 1.2rem; }
-    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
-    .price-row { display: flex; justify-content: space-between; align-items: center; }
-    .price { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-    .price del { color: var(--gray); font-size: 1rem; margin-left: 0.6rem; }
-    .cart-btn {
-      width: 44px; height: 44px;
-      background: var(--accent);
-      border: none;
-      border-radius: 50%;
-      color: #1f1a12;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .cart-btn:hover { background: #e0c08a; transform: scale(1.08); }
-    .cart-btn.added { background: var(--success); }
 
-    @media (max-width: 960px) {
-      .shop-container { flex-direction: column; align-items: center; text-align: center; }
-      .main-container { flex-direction: column; }
-      .sidebar { width: 100%; }
-      .search-bar-wrapper { width: 100%; }
-      .cart-drawer { width: 100%; right: -100%; }
-      .floating-cart { bottom: 80px; }
-    }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
   </style>
 </head>
 <body>
@@ -610,17 +607,89 @@
       }
     };
 
-    // Data
+    // Library - easy to add new items
     const productsData = [
-      {id:1, title:"Junie & Friends - Summer Mix Vol.4", price:7.99, originalPrice:9.99, discount:20, image:"https://velutinx.github.io/storeassets/1.jpg"},
-      {id:2, title:"Collection 45 / コレクション45 Bonus Pack", price:12.50, originalPrice:15.00, discount:17, image:"https://velutinx.github.io/storeassets/2.jpg"},
-      {id:3, title:"Chen Sisters - Midnight Expressions", price:5.49, image:"https://velutinx.github.io/storeassets/3.jpg"},
-      {id:4, title:"The Sisters Corner - Special Dreamscapes", price:8.25, originalPrice:10.50, discount:21, image:"https://velutinx.github.io/storeassets/4.jpg"},
-      {id:5, title:"Mama's Secret Art Pack 2026", price:14.80, image:"https://velutinx.github.io/storeassets/5.jpg"},
-      {id:6, title:"Wedding Day Illustrations Vol.2", price:6.75, originalPrice:8.90, discount:24, image:"https://velutinx.github.io/storeassets/6.jpg"},
-      {id:7, title:"Night Vibes - Neon & Shadows Mix", price:9.30, image:"https://velutinx.github.io/storeassets/7.jpg"},
-      {id:8, title:"Collection 38 / Ultra Rare Bonus Set", price:11.20, originalPrice:14.00, discount:20, image:"https://velutinx.github.io/storeassets/8.jpg"},
-      {id:9, title:"Junie Holiday Special - Cozy Edition", price:4.99, originalPrice:7.50, discount:33, image:"https://velutinx.github.io/storeassets/9.jpg"}
+      {
+        id: 1,
+        title: "Junie & Friends - Summer Mix Vol.4",
+        price: 7.99,
+        originalPrice: 9.99,
+        discount: 20,
+        image: "storeassets/1.jpg"
+      },
+      {
+        id: 2,
+        title: "Collection 45 / コレクション45 Bonus Pack",
+        price: 12.50,
+        originalPrice: 15.00,
+        discount: 17,
+        image: "storeassets/2.jpg"
+      },
+      {
+        id: 3,
+        title: "Chen Sisters - Midnight Expressions",
+        price: 5.49,
+        originalPrice: null,
+        discount: 0,
+        image: "storeassets/3.jpg"
+      },
+      {
+        id: 4,
+        title: "The Sisters Corner - Special Dreamscapes",
+        price: 8.25,
+        originalPrice: 10.50,
+        discount: 21,
+        image: "storeassets/4.jpg"
+      },
+      {
+        id: 5,
+        title: "Mama's Secret Art Pack 2026",
+        price: 14.80,
+        originalPrice: null,
+        discount: 0,
+        image: "storeassets/5.jpg"
+      },
+      {
+        id: 6,
+        title: "Wedding Day Illustrations Vol.2",
+        price: 6.75,
+        originalPrice: 8.90,
+        discount: 24,
+        image: "storeassets/6.jpg"
+      },
+      {
+        id: 7,
+        title: "Night Vibes - Neon & Shadows Mix",
+        price: 9.30,
+        originalPrice: null,
+        discount: 0,
+        image: "storeassets/7.jpg"
+      },
+      {
+        id: 8,
+        title: "Collection 38 / Ultra Rare Bonus Set",
+        price: 11.20,
+        originalPrice: 14.00,
+        discount: 20,
+        image: "storeassets/8.jpg"
+      },
+      {
+        id: 9,
+        title: "Junie Holiday Special - Cozy Edition",
+        price: 4.99,
+        originalPrice: 7.50,
+        discount: 33,
+        image: "storeassets/9.jpg"
+      }
+      // To add a new item, just copy-paste one block above and change values:
+      // {
+      //   id: 10,
+      //   title: "New Product Name",
+      //   price: 9.99,
+      //   originalPrice: 12.99,
+      //   discount: 23,
+      //   image: "storeassets/10.jpg"
+      // }
     ];
 
     productsData.forEach((p, i) => {
@@ -666,7 +735,7 @@
         const base = parseFloat(el.dataset.price);
         const orig = parseFloat(el.dataset.original);
         let html = formatPrice(base, currentCurrency);
-        if (orig) html += ` <del>${formatPrice(orig, currentCurrency)}</del>`;
+        if (orig && orig > base) html += ` <del>${formatPrice(orig, currentCurrency)}</del>`;
         el.innerHTML = html;
       });
     }
@@ -708,14 +777,16 @@
         card.dataset.price = p.price;
         card.dataset.date = p.date;
         card.innerHTML = `
+          <div class="badge-content">
+            <span class="badge-text">${p.discount ? p.discount + '% OFF' : ''}</span>
+          </div>
           <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
-          ${p.discount ? `<div class="discount-badge">${p.discount}% OFF</div>` : ""}
           <div class="card-content">
             <div class="card-title">${p.title}</div>
             <div class="price-row">
-              <div class="price" data-price="${p.price}" data-original="${p.originalPrice||p.price}">
+              <div class="price" data-price="${p.price}" data-original="${p.originalPrice || p.price}">
                 ${formatPrice(p.price, currentCurrency)}
-                ${p.originalPrice ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
+                ${p.originalPrice && p.originalPrice > p.price ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
               </div>
               <button class="cart-btn" title="Add to Cart" data-in-cart="false">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
