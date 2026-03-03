@@ -49,22 +49,19 @@
 
   <script>
     // === Your product → Mega link database ===
-    // Add new products here — only edit this part when you release something new
     const downloadLinks = {
-      "pack001": "https://mega.nz/file/HIUl3LQI#2qV6CTq4mWazPxmSq6Ua0ePI8EqEOifWScjpJ5UnycU",           // Junie & Friends - Summer Mix Vol.4
-      "pack002": "https://mega.nz/folder/DEF456UVW",           // Collection 45 Bonus Pack
-      "pack003": "https://mega.nz/folder/GHI789RST",           // Chen Sisters
-      "pack004": "https://mega.nz/folder/JKL012MNO",           // The Sisters Corner - Special Dreamscapes
-      "pack005": "https://mega.nz/folder/PQR345STU",           // Mama's Secret Art Pack 2026
-      "pack006": "https://mega.nz/folder/VWX678YZA",           // Wedding Day Illustrations Vol.2
-      "pack007": "https://mega.nz/folder/BCD901EFG",           // Night Vibes - Neon & Shadows Mix
-      "pack008": "https://mega.nz/folder/HIJ234KLM",           // Collection 38 / Ultra Rare Bonus Set
-      "pack009": "https://mega.nz/folder/NOP567QRS",           // Junie Holiday Special - Cozy Edition
-      // Add more like this:
-      // "pack010": "https://mega.nz/folder/NEW_FOLDER_ID",
+      "pack001": "https://mega.nz/file/HIUl3LQI#2qV6CTq4mWazPxmSq6Ua0ePI8EqEOifWScjpJ5UnycU",
+      "pack002": "https://mega.nz/folder/DEF456UVW",
+      "pack003": "https://mega.nz/folder/GHI789RST",
+      "pack004": "https://mega.nz/folder/JKL012MNO",
+      "pack005": "https://mega.nz/folder/PQR345STU",
+      "pack006": "https://mega.nz/folder/VWX678YZA",
+      "pack007": "https://mega.nz/folder/BCD901EFG",
+      "pack008": "https://mega.nz/folder/HIJ234KLM",
+      "pack009": "https://mega.nz/folder/NOP567QRS"
     };
 
-    // Read the ?product=xxx from the URL
+    // Read product code from URL
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get("product") || "unknown";
 
@@ -77,7 +74,6 @@
         <a href="${link}" class="download-btn" target="_blank">
           Download Now
         </a>
-        <p><small>Save this link just in case. Files are available for a limited time.</small></p>
       `;
     } else {
       section.innerHTML = `
