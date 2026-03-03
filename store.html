@@ -940,16 +940,16 @@
     },
     onApprove: function(data, actions) {
       return actions.order.capture().then(function(details) {
-        // Removed the annoying popup alert
+        // No popup anymore
 
-        // Auto-detect the first product in cart and convert to pack001 / pack002 etc.
-        let productCode = "cart"; // fallback
+        // Auto-detect product code (pack001, pack002, etc.)
+        let productCode = "cart";
         if (cart.length > 0) {
           const firstId = cart[0].id;
           productCode = "pack" + String(firstId).padStart(3, '0');
         }
 
-        // Redirect to success page with the correct product code
+        // Redirect to success page
         window.location.href = "success.html?product=" + productCode;
       });
     },
@@ -958,7 +958,7 @@
       alert("There was a problem with the payment. Please try again or contact me.");
     }
   }).render("#paypal-button-container");
-</script></script>
+</script>
   
 </body>
 </html>
