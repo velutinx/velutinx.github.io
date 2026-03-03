@@ -17,6 +17,8 @@
       --gray: #8a7b6f;
       --border: #aa9e76;
       --overlay: rgba(170,158,118,0.25);
+      --btn-cart: #3a3528;        /* dark brown for add-to-cart in both modes */
+      --btn-cart-hover: #4a4538;
     }
     body.dark {
       --bg: #0f0f12;
@@ -30,6 +32,8 @@
       --gray: #b8b3a5;
       --border: #6f6a4e;
       --overlay: rgba(15,15,18,0.75);
+      --btn-cart: #3a3528;        /* same dark brown in dark mode */
+      --btn-cart-hover: #4a4538;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -281,6 +285,36 @@
     .gift-btn svg { width: 48px; height: 48px; stroke: currentColor; stroke-width: 2; }
     .shop-subtitle { margin-left: auto; color: var(--accent); text-decoration: none; }
 
+    /* Social icons bar */
+    .social-bar {
+      background: var(--darker);
+      text-align: center;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .social-icons a {
+      display: block;
+      transition: transform 0.2s ease;
+    }
+    .social-icons a:hover {
+      transform: scale(1.15);
+    }
+    .social-icons img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: brightness(0.9);
+    }
+    body.dark .social-icons img {
+      filter: brightness(1.1);
+    }
+
     /* Main layout */
     .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
     .sidebar { width: 268px; flex-shrink: 0; }
@@ -341,7 +375,7 @@
     .notched-outline legend { padding: 0 6px; font-size: 0.75rem; visibility: hidden; width: auto; height: 0; line-height: 0; }
 
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
-    .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); position: relative; }
+    .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); }
     .product-card.hidden { display: none; }
     .product-card.added-flash { animation: flashGreen 0.6s ease-out; }
     @keyframes flashGreen { 0% { box-shadow: 0 0 0 4px rgba(34,197,94,0.6); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
@@ -354,17 +388,17 @@
     .price del { color: var(--gray); font-size: 1rem; margin-left: 0.6rem; }
     .cart-btn {
       width: 44px; height: 44px;
-      background: var(--accent);
+      background: var(--btn-cart);
       border: none;
       border-radius: 50%;
-      color: #1f1a12;
+      color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .cart-btn:hover { background: #e0c08a; transform: scale(1.08); }
+    .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: var(--success); }
 
     @media (max-width: 960px) {
@@ -478,9 +512,7 @@
             </svg>
           </button>
         </div>
-        <h6 class="shop-subtitle" id="shopSubtitle">
-          <a href="https://www.pixiv.net/en/users/YOUR_ID" style="color:var(--accent); text-decoration:none;">https://www.pixiv.net/en/users/YOUR_ID</a>
-        </h6>
+        <h6 class="shop-subtitle" id="shopSubtitle"></h6>
       </div>
       <div class="shop-right">
         <img src="https://via.placeholder.com/140/3c2f2f/d3d0c1?text=Velutinx" alt="Avatar" class="shop-avatar">
@@ -488,9 +520,17 @@
     </div>
   </header>
 
-  <!-- Social bar -->
-  <div style="background:var(--darker); text-align:center; padding:0.9rem; font-size:0.95rem; color:var(--text-muted); border-top:1px solid var(--border);">
-    <span id="socialLinks">Twitter • Pixiv • Patreon • Discord • Booth</span>
+  <!-- Social bar with images -->
+  <div class="social-bar">
+    <div class="social-icons">
+      <a href="https://bsky.app/profile/velutinx.bsky.social" target="_blank"><img src="https://velutinx.github.io/images/LogoBluesky.png" alt="Bluesky"></a>
+      <a href="https://discord.gg/YOUR_DISCORD_INVITE" target="_blank"><img src="https://velutinx.github.io/images/LogoDiscord.png" alt="Discord"></a>
+      <a href="https://www.instagram.com/velutinx/" target="_blank"><img src="https://velutinx.github.io/images/LogoInstagram.png" alt="Instagram"></a>
+      <a href="https://ko-fi.com/velutinx" target="_blank"><img src="https://velutinx.github.io/images/LogoKoFi.png" alt="Ko-fi"></a>
+      <a href="https://www.pixiv.net/en/users/YOUR_PIXIV_ID" target="_blank"><img src="https://velutinx.github.io/images/LogoPixiv.png" alt="Pixiv"></a>
+      <a href="https://subscribestar.adult/velutinx" target="_blank"><img src="https://velutinx.github.io/images/LogoSubscribeStar.png" alt="SubscribeStar"></a>
+      <a href="https://twitter.com/velutinx2" target="_blank"><img src="https://velutinx.github.io/images/LogoTwitter.png" alt="Twitter/X"></a>
+    </div>
   </div>
 
   <!-- Main content -->
@@ -611,78 +651,15 @@
 
     // Library - easy to add new items
     const productsData = [
-      {
-        id: 1,
-        title: "Junie & Friends - Summer Mix Vol.4",
-        price: 7.99,
-        originalPrice: 9.99,
-        discount: 20,
-        image: "storeassets/1.jpg"
-      },
-      {
-        id: 2,
-        title: "Collection 45 / コレクション45 Bonus Pack",
-        price: 12.50,
-        originalPrice: 15.00,
-        discount: 17,
-        image: "storeassets/2.jpg"
-      },
-      {
-        id: 3,
-        title: "Chen Sisters - Midnight Expressions",
-        price: 5.49,
-        originalPrice: null,
-        discount: 0,
-        image: "storeassets/3.jpg"
-      },
-      {
-        id: 4,
-        title: "The Sisters Corner - Special Dreamscapes",
-        price: 8.25,
-        originalPrice: 10.50,
-        discount: 21,
-        image: "storeassets/4.jpg"
-      },
-      {
-        id: 5,
-        title: "Mama's Secret Art Pack 2026",
-        price: 14.80,
-        originalPrice: null,
-        discount: 0,
-        image: "storeassets/5.jpg"
-      },
-      {
-        id: 6,
-        title: "Wedding Day Illustrations Vol.2",
-        price: 6.75,
-        originalPrice: 8.90,
-        discount: 24,
-        image: "storeassets/6.jpg"
-      },
-      {
-        id: 7,
-        title: "Night Vibes - Neon & Shadows Mix",
-        price: 9.30,
-        originalPrice: null,
-        discount: 0,
-        image: "storeassets/7.jpg"
-      },
-      {
-        id: 8,
-        title: "Collection 38 / Ultra Rare Bonus Set",
-        price: 11.20,
-        originalPrice: 14.00,
-        discount: 20,
-        image: "storeassets/8.jpg"
-      },
-      {
-        id: 9,
-        title: "Junie Holiday Special - Cozy Edition",
-        price: 4.99,
-        originalPrice: 7.50,
-        discount: 33,
-        image: "storeassets/9.jpg"
-      }
+      { id: 1, title: "Junie & Friends - Summer Mix Vol.4", price: 7.99, originalPrice: 9.99, discount: 20, image: "storeassets/1.jpg" },
+      { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", price: 12.50, originalPrice: 15.00, discount: 17, image: "storeassets/2.jpg" },
+      { id: 3, title: "Chen Sisters - Midnight Expressions", price: 5.49, originalPrice: null, discount: 0, image: "storeassets/3.jpg" },
+      { id: 4, title: "The Sisters Corner - Special Dreamscapes", price: 8.25, originalPrice: 10.50, discount: 21, image: "storeassets/4.jpg" },
+      { id: 5, title: "Mama's Secret Art Pack 2026", price: 14.80, originalPrice: null, discount: 0, image: "storeassets/5.jpg" },
+      { id: 6, title: "Wedding Day Illustrations Vol.2", price: 6.75, originalPrice: 8.90, discount: 24, image: "storeassets/6.jpg" },
+      { id: 7, title: "Night Vibes - Neon & Shadows Mix", price: 9.30, originalPrice: null, discount: 0, image: "storeassets/7.jpg" },
+      { id: 8, title: "Collection 38 / Ultra Rare Bonus Set", price: 11.20, originalPrice: 14.00, discount: 20, image: "storeassets/8.jpg" },
+      { id: 9, title: "Junie Holiday Special - Cozy Edition", price: 4.99, originalPrice: 7.50, discount: 33, image: "storeassets/9.jpg" }
     ];
 
     productsData.forEach((p, i) => {
