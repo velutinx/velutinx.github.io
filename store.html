@@ -434,9 +434,9 @@
         </svg>
       </button>
       <div id="languagePopover">
-        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
-        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
-        <div class="lang-item" data-lang="zh-CN"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
+        <div class="lang-item" data-lang="en" data-currency="USD"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
+        <div class="lang-item" data-lang="ja" data-currency="JPY"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
+        <div class="lang-item" data-lang="zh-CN" data-currency="CNY"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
       </div>
 
       <button class="nav-icon" id="themeBtn" title="Night Mode">
@@ -589,6 +589,18 @@
   </div>
 
   <script>
+    // === PRODUCTS LIBRARY ===
+    const productsData = [
+      { id: 1, title: "Junie & Friends - Summer Mix Vol.4", price: 0.01, originalPrice: 0.01, discount: 20, image: "storeassets/1.jpg" },
+      { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", price: 12.50, originalPrice: 15.00, discount: 17, image: "storeassets/2.jpg" },
+      { id: 3, title: "Chen Sisters - Midnight Expressions", price: 5.49, originalPrice: null, discount: 0, image: "storeassets/3.jpg" },
+      { id: 4, title: "The Sisters Corner - Special Dreamscapes", price: 8.25, originalPrice: 10.50, discount: 21, image: "storeassets/4.jpg" },
+      { id: 5, title: "Mama's Secret Art Pack 2026", price: 14.80, originalPrice: null, discount: 0, image: "storeassets/5.jpg" },
+      { id: 6, title: "Wedding Day Illustrations Vol.2", price: 6.75, originalPrice: 8.90, discount: 24, image: "storeassets/6.jpg" },
+      { id: 7, title: "Night Vibes - Neon & Shadows Mix", price: 9.30, originalPrice: null, discount: 0, image: "storeassets/7.jpg" },
+      { id: 8, title: "Collection 38 / Ultra Rare Bonus Set", price: 11.20, originalPrice: 14.00, discount: 20, image: "storeassets/8.jpg" },
+      { id: 9, title: "Junie Holiday Special - Cozy Edition", price: 4.99, originalPrice: 7.50, discount: 33, image: "storeassets/9.jpg" }
+    ];
 
     productsData.forEach((p, i) => {
       p.date = new Date(2026, 2, 20 - i*3).getTime();
@@ -596,28 +608,74 @@
       p.inCart = false;
     });
 
-    const grid = document.getElementById("productGrid");
-    const searchInput = document.getElementById("searchInput");
-    const sortButtons = document.querySelectorAll(".sort-btn");
-    const langBtn = document.getElementById("langBtn");
-    const langPopover = document.getElementById("languagePopover");
-    const langItems = langPopover.querySelectorAll(".lang-item");
-    const cartBtn = document.getElementById("cartBtn");
-    const floatingCartBtn = document.getElementById("floatingCartBtn");
-    const cartDrawer = document.getElementById("cartDrawer");
-    const cartClose = document.getElementById("cartClose");
-    const cartCountEl = document.getElementById("cartCount");
-    const floatingCartCountEl = document.getElementById("floatingCartCount");
-    const cartItemsEl = document.getElementById("cartItems");
-    const cartTotalEl = document.getElementById("cartTotal");
-    const snackbar = document.getElementById("snackbar");
-    const themeBtn = document.getElementById("themeBtn");
+    // === TRANSLATIONS LIBRARY ===
+    const translations = {
+      en: {
+        shopTitle: "Velutinx's Shop",
+        filterTitle: "Filter by Category",
+        catAll: "All",
+        catNot: "Not On Booth",
+        catFrom: "From Booth",
+        catSisters: "The Sisters Corner",
+        sortTitle: "Sort by",
+        sortDefault: "Default",
+        sortNewest: "Newest",
+        sortLow: "Price: Low to High",
+        sortHigh: "Price: High to Low",
+        resetBtn: "Reset Filters",
+        productsTitle: "Products",
+        searchPlaceholder: "Search",
+        cartTitle: "Shopping Cart",
+        totalLabel: "Total",
+        checkoutBtn: "Checkout",
+        snackText: "Added successfully",
+        loginBtn: "Login"
+      },
+      ja: {
+        shopTitle: "Velutinxのショップ",
+        filterTitle: "カテゴリでフィルター",
+        catAll: "すべて",
+        catNot: "Boothにない",
+        catFrom: "Boothから",
+        catSisters: "姉妹のコーナー",
+        sortTitle: "並び替え",
+        sortDefault: "デフォルト",
+        sortNewest: "最新",
+        sortLow: "価格: 低い → 高い",
+        sortHigh: "価格: 高い → 低い",
+        resetBtn: "フィルターをリセット",
+        productsTitle: "商品",
+        searchPlaceholder: "検索",
+        cartTitle: "ショッピングカート",
+        totalLabel: "合計",
+        checkoutBtn: "チェックアウト",
+        snackText: "カートに追加しました",
+        loginBtn: "ログイン"
+      },
+      "zh-CN": {
+        shopTitle: "Velutinx的商店",
+        filterTitle: "按类别筛选",
+        catAll: "全部",
+        catNot: "不在Booth上",
+        catFrom: "来自Booth",
+        catSisters: "姐妹角落",
+        sortTitle: "排序方式",
+        sortDefault: "默认",
+        sortNewest: "最新",
+        sortLow: "价格: 低到高",
+        sortHigh: "价格: 高到低",
+        resetBtn: "重置筛选",
+        productsTitle: "商品",
+        searchPlaceholder: "搜索",
+        cartTitle: "购物车",
+        totalLabel: "总计",
+        checkoutBtn: "结账",
+        snackText: "已成功添加到购物车",
+        loginBtn: "登录"
+      }
+    };
 
-  <script src="js/products.js"></script>
-  <script src="js/translations.js"></script>
-
-  <script>
-    // === LIVE CURRENCY RATES (fixed) ===
+    // === LIVE CURRENCY RATES ===
     let rates = { USD: 1, JPY: 152, CNY: 7.1 };
 
     async function updateLiveRates() {
@@ -673,7 +731,6 @@
 
       const t = translations[lang] || translations.en;
 
-      // Update all text
       document.getElementById("shopTitle").textContent = t.shopTitle;
       document.getElementById("filterTitle").textContent = t.filterTitle;
       document.getElementById("catAll").textContent = t.catAll;
@@ -828,7 +885,7 @@
     langItems.forEach(item => {
       item.addEventListener("click", () => {
         currentLang = item.dataset.lang;
-        currentCurrency = item.dataset.currency || (item.dataset.lang === "en" ? "USD" : item.dataset.lang === "ja" ? "JPY" : "CNY");
+        currentCurrency = item.dataset.currency;
         setLanguage(currentLang);
         langPopover.classList.remove("show");
       });
