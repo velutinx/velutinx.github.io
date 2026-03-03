@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>¡Gracias por tu compra!</title>
+  <title>Thank You for Your Purchase!</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       text-align: center;
       padding: 60px 20px;
       background: #f8f1e9;
@@ -17,7 +17,7 @@
     .container { max-width: 600px; margin: 0 auto; }
     .download-btn {
       display: inline-block;
-      background: var(--accent);
+      background: var(--accent, #aa9e76);
       color: #1f1a12;
       padding: 16px 32px;
       font-size: 1.3rem;
@@ -37,14 +37,14 @@
 </head>
 <body>
   <div class="container">
-    <h1>¡Pago exitoso! 🎉</h1>
-    <p>Gracias por apoyar mi trabajo. Tu pedido está listo.</p>
+    <h1>Payment Successful! 🎉</h1>
+    <p>Thank you for supporting my work. Your order is ready.</p>
 
     <div id="download-section">
-      <!-- The link will appear here -->
+      <!-- The download link will appear here -->
     </div>
 
-    <p><small>Si el enlace no aparece o tienes problemas, contáctame por Discord o Twitter con el ID de tu pedido.</small></p>
+    <p><small>If the link doesn't appear or you have any issues, contact me on Discord or Twitter with your order ID.</small></p>
   </div>
 
   <script>
@@ -54,9 +54,14 @@
       "pack001": "https://mega.nz/folder/ABC123XYZ",           // Junie & Friends - Summer Mix Vol.4
       "pack002": "https://mega.nz/folder/DEF456UVW",           // Collection 45 Bonus Pack
       "pack003": "https://mega.nz/folder/GHI789RST",           // Chen Sisters
+      "pack004": "https://mega.nz/folder/JKL012MNO",           // The Sisters Corner - Special Dreamscapes
+      "pack005": "https://mega.nz/folder/PQR345STU",           // Mama's Secret Art Pack 2026
+      "pack006": "https://mega.nz/folder/VWX678YZA",           // Wedding Day Illustrations Vol.2
+      "pack007": "https://mega.nz/folder/BCD901EFG",           // Night Vibes - Neon & Shadows Mix
+      "pack008": "https://mega.nz/folder/HIJ234KLM",           // Collection 38 / Ultra Rare Bonus Set
+      "pack009": "https://mega.nz/folder/NOP567QRS",           // Junie Holiday Special - Cozy Edition
       // Add more like this:
       // "pack010": "https://mega.nz/folder/NEW_FOLDER_ID",
-      // Use short codes like pack001, pack002... or product IDs
     };
 
     // Read the ?product=xxx from the URL
@@ -68,16 +73,16 @@
 
     if (link) {
       section.innerHTML = `
-        <p>Haz clic abajo para descargar tu compra:</p>
+        <p>Click below to download your purchase:</p>
         <a href="${link}" class="download-btn" target="_blank">
-          Descargar ahora
+          Download Now
         </a>
-        <p><small>Guarda este enlace por si acaso. Los archivos están disponibles por tiempo limitado.</small></p>
+        <p><small>Save this link just in case. Files are available for a limited time.</small></p>
       `;
     } else {
       section.innerHTML = `
-        <p id="error-message">No se encontró el enlace de descarga para este producto.</p>
-        <p>Por favor contáctame con el ID de tu pedido: <strong>${productId}</strong></p>
+        <p id="error-message">Download link not found for this product.</p>
+        <p>Please contact me with your order ID: <strong>${productId}</strong></p>
       `;
     }
   </script>
