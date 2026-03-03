@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>¡Gracias por tu compra!</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      padding: 60px 20px;
+      background: #f8f1e9;
+      color: #3a3528;
+      line-height: 1.6;
+    }
+    h1 { color: #22c55e; margin-bottom: 20px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .download-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #1f1a12;
+      padding: 16px 32px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      border-radius: 12px;
+      text-decoration: none;
+      margin: 30px 0;
+      transition: all 0.2s;
+    }
+    .download-btn:hover {
+      background: #e0c08a;
+      transform: scale(1.05);
+    }
+    #download-section { margin: 40px 0; }
+    #error-message { color: #a64a5c; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>¡Pago exitoso! 🎉</h1>
+    <p>Gracias por apoyar mi trabajo. Tu pedido está listo.</p>
+
+    <div id="download-section">
+      <!-- The link will appear here -->
+    </div>
+
+    <p><small>Si el enlace no aparece o tienes problemas, contáctame por Discord o Twitter con el ID de tu pedido.</small></p>
+  </div>
+
+  <script>
+    // === Your product → Mega link database ===
+    // Add new products here — only edit this part when you release something new
+    const downloadLinks = {
+      "pack001": "https://mega.nz/folder/ABC123XYZ",           // Junie & Friends - Summer Mix Vol.4
+      "pack002": "https://mega.nz/folder/DEF456UVW",           // Collection 45 Bonus Pack
+      "pack003": "https://mega.nz/folder/GHI789RST",           // Chen Sisters
+      // Add more like this:
+      // "pack010": "https://mega.nz/folder/NEW_FOLDER_ID",
+      // Use short codes like pack001, pack002... or product IDs
+    };
+
+    // Read the ?product=xxx from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get("product") || "unknown";
+
+    const section = document.getElementById("download-section");
+    const link = downloadLinks[productId];
+
+    if (link) {
+      section.innerHTML = `
+        <p>Haz clic abajo para descargar tu compra:</p>
+        <a href="${link}" class="download-btn" target="_blank">
+          Descargar ahora
+        </a>
+        <p><small>Guarda este enlace por si acaso. Los archivos están disponibles por tiempo limitado.</small></p>
+      `;
+    } else {
+      section.innerHTML = `
+        <p id="error-message">No se encontró el enlace de descarga para este producto.</p>
+        <p>Por favor contáctame con el ID de tu pedido: <strong>${productId}</strong></p>
+      `;
+    }
+  </script>
+</body>
+</html>
