@@ -581,20 +581,23 @@
   </div>
 
   <script>
-    // === PRODUCTS DATA ===
+    // === PRODUCTS DATA (only originalPrice + discount) ===
     const productsData = [
-      { id: 1, title: "Junie & Friends - Summer Mix Vol.4", price: 0.01, originalPrice: 0.01, discount: 0, image: "storeassets/1.jpg" },
-      { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", price: 12.50, originalPrice: 1.50, discount: 0, image: "storeassets/2.jpg" },
-      { id: 3, title: "Chen Sisters - Midnight Expressions", price: 1.50, originalPrice: null, discount: 0, image: "storeassets/3.jpg" },
-      { id: 4, title: "The Sisters Corner - Special Dreamscapes", price: 8.25, originalPrice: 2.00, discount: 0, image: "storeassets/4.jpg" },
-      { id: 5, title: "Mama's Secret Art Pack 2026", price: 10.00, originalPrice: null, discount: 0, image: "storeassets/5.jpg" },
-      { id: 6, title: "Wedding Day Illustrations Vol.2", price: 6.75, originalPrice: 8.90, discount: 0, image: "storeassets/6.jpg" },
-      { id: 7, title: "Night Vibes - Neon & Shadows Mix", price: 9.30, originalPrice: null, discount: 0, image: "storeassets/7.jpg" },
-      { id: 8, title: "Collection 38 / Ultra Rare Bonus Set", price: 11.20, originalPrice: 14.00, discount: 0, image: "storeassets/8.jpg" },
-      { id: 9, title: "Junie Holiday Special - Cozy Edition", price: 4.99, originalPrice: 7.50, discount: 0, image: "storeassets/9.jpg" }
+      { id: 1, title: "Junie & Friends - Summer Mix Vol.4", originalPrice: 0.01, discount: 0, image: "storeassets/1.jpg" },
+      { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", originalPrice: 15.00, discount: 17, image: "storeassets/2.jpg" },
+      { id: 3, title: "Chen Sisters - Midnight Expressions", originalPrice: 5.49, discount: 0, image: "storeassets/3.jpg" },
+      { id: 4, title: "The Sisters Corner - Special Dreamscapes", originalPrice: 10.50, discount: 21, image: "storeassets/4.jpg" },
+      { id: 5, title: "Mama's Secret Art Pack 2026", originalPrice: 14.80, discount: 0, image: "storeassets/5.jpg" },
+      { id: 6, title: "Wedding Day Illustrations Vol.2", originalPrice: 8.90, discount: 24, image: "storeassets/6.jpg" },
+      { id: 7, title: "Night Vibes - Neon & Shadows Mix", originalPrice: 9.30, discount: 0, image: "storeassets/7.jpg" },
+      { id: 8, title: "Collection 38 / Ultra Rare Bonus Set", originalPrice: 14.00, discount: 20, image: "storeassets/8.jpg" },
+      { id: 9, title: "Junie Holiday Special - Cozy Edition", originalPrice: 7.50, discount: 33, image: "storeassets/9.jpg" }
     ];
 
+    // Auto-calculate price
     productsData.forEach((p, i) => {
+      const discountRate = (p.discount || 0) / 100;
+      p.price = p.originalPrice ? Math.round(p.originalPrice * (1 - discountRate) * 100) / 100 : 0.00;
       p.date = new Date(2026, 2, 20 - i*3).getTime();
       p.element = null;
       p.inCart = false;
@@ -619,7 +622,6 @@
         searchPlaceholder: "Search",
         cartTitle: "Shopping Cart",
         totalLabel: "Total",
-        checkoutBtn: "Checkout",
         snackText: "Added successfully",
         loginBtn: "Login"
       },
@@ -640,7 +642,6 @@
         searchPlaceholder: "検索",
         cartTitle: "ショッピングカート",
         totalLabel: "合計",
-        checkoutBtn: "チェックアウト",
         snackText: "カートに追加しました",
         loginBtn: "ログイン"
       },
@@ -661,7 +662,6 @@
         searchPlaceholder: "搜索",
         cartTitle: "购物车",
         totalLabel: "总计",
-        checkoutBtn: "结账",
         snackText: "已成功添加到购物车",
         loginBtn: "登录"
       }
@@ -684,27 +684,36 @@
     const snackbar = document.getElementById("snackbar");
     const themeBtn = document.getElementById("themeBtn");
 
-    // === FIXED PRICE TIERS (no API) ===
+    // === FIXED TIERS + APPROX RATES ===
     const tierMap = {
       1.5: { JPY: 250, CNY: 10.5 },
       3.0: { JPY: 500, CNY: 21.0 },
       10.0: { JPY: 1500, CNY: 69.0 }
     };
 
+    const approxRates = { JPY: 158, CNY: 6.9 };
+
     let currentLang = "en";
     let currentCurrency = "USD";
     let cart = [];
     let isDark = false;
-    let realTotalUSD = 0;   // used ONLY for PayPal (real USD amount)
+    let realTotalUSD = 0;
 
     function formatPrice(value, currency) {
-      const rounded = Math.round(value * 100) / 100;   // normalize to 1.5 / 3.0 / 10.0
+      const rounded = Math.round(value * 100) / 100;
 
-      if (currency === "USD" || !tierMap[rounded]) {
-        return `US$${value.toFixed(2)}`;   // testing prices or unknown values stay USD
+      if (currency === "USD") {
+        return `US$${value.toFixed(2)}`;
       }
 
-      const converted = tierMap[rounded][currency];
+      if (tierMap[rounded]) {
+        const converted = tierMap[rounded][currency];
+        const symbol = currency === "JPY" ? "円" : "元";
+        return `${symbol}${converted}`;
+      }
+
+      // Approximate conversion for other prices
+      const converted = Math.round(value * approxRates[currency] * 10) / 10;
       const symbol = currency === "JPY" ? "円" : "元";
       return `${symbol}${converted}`;
     }
@@ -805,7 +814,7 @@
       floatingCartCountEl.textContent = count;
 
       cartItemsEl.innerHTML = "";
-      realTotalUSD = 0;   // reset real USD total for PayPal
+      realTotalUSD = 0;
 
       cart.forEach((item, idx) => {
         realTotalUSD += item.price;
@@ -822,7 +831,7 @@
         cartItemsEl.appendChild(div);
       });
 
-      cartTotalEl.textContent = formatPrice(realTotalUSD, currentCurrency);   // display formatted
+      cartTotalEl.textContent = formatPrice(realTotalUSD, currentCurrency);
 
       const isActive = count > 0;
       [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
@@ -926,7 +935,7 @@
   <script>
     paypal.Buttons({
       createOrder: function(data, actions) {
-        const total = realTotalUSD.toFixed(2);   // ALWAYS use real USD amount for PayPal
+        const total = realTotalUSD.toFixed(2);
         return actions.order.create({
           purchase_units: [{
             amount: { value: total, currency_code: "USD" }
