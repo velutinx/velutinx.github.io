@@ -485,7 +485,8 @@
         <span id="totalLabel">Total</span>
         <span id="cartTotal">US$0.00</span>
       </div>
-      <button class="cart-checkout" id="checkoutBtn">Checkout</button>
+<!-- PayPal Checkout Button -->
+<div id="paypal-button-container"></div>
     </div>
   </div>
 
@@ -919,5 +920,40 @@
 
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
+
+  <!-- PayPal SDK + Button -->
+<script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
+<script>
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      // Get the cart total from your page (strip non-numbers)
+      const totalText = document.getElementById("cartTotal").textContent;
+      const total = totalText.replace(/[^0-9.]/g, '') || "0.01"; // fallback if empty
+
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: total,
+            currency_code: "USD"
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        // Payment successful!
+        alert("¡Pago exitoso! Gracias " + details.payer.name.given_name + " 🎉");
+        
+        // Redirect to success page (create this file next)
+        window.location.href = "success.html?order=" + details.id;
+      });
+    },
+    onError: function(err) {
+      console.error("PayPal Error:", err);
+      alert("Hubo un problema con el pago. Intenta de nuevo o contáctame.");
+    }
+  }).render("#paypal-button-container");
+</script>
+  
 </body>
 </html>
