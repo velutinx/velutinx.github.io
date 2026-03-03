@@ -53,7 +53,6 @@
     }
     body.drawer-open .floating-cart { display: none; }
 
-    /* Top nav */
     .top-nav {
       display: flex;
       justify-content: space-between;
@@ -130,7 +129,6 @@
       border: 2px solid var(--darker);
     }
 
-    /* Language popover */
     #languagePopover {
       position: absolute;
       top: 55px;
@@ -158,7 +156,6 @@
     .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
     .lang-item p { margin: 0; font-size: 1rem; }
 
-    /* Cart drawer */
     .cart-drawer {
       position: fixed;
       top: 0; right: -400px;
@@ -210,7 +207,6 @@
     }
     .cart-checkout:hover { background: #3a3528; }
 
-    /* Floating cart button */
     .floating-cart {
       position: fixed;
       bottom: 24px;
@@ -248,7 +244,6 @@
       border: 2px solid var(--darker);
     }
 
-    /* Snackbar */
     #snackbar {
       position: fixed;
       top: 28px;
@@ -268,7 +263,6 @@
     }
     #snackbar.show { transform: translateY(0); opacity: 1; }
 
-    /* Shop header */
     .shop-header {
       padding: 2.2rem 2.8rem 1.6rem;
       background: var(--bg);
@@ -307,7 +301,6 @@
     .gift-btn:hover { transform: scale(1.18); }
     .gift-btn svg { width: 48px; height: 48px; stroke: currentColor; stroke-width: 2; }
 
-    /* Social bar - icons only */
     .social-bar {
       background: var(--darker);
       padding: 1rem 0;
@@ -333,7 +326,6 @@
       object-fit: contain;
     }
 
-    /* Main layout */
     .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
     .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
@@ -588,93 +580,11 @@
     </main>
   </div>
 
+  <!-- Load libraries -->
+  <script src="js/products.js"></script>
+  <script src="js/translations.js"></script>
+
   <script>
-    // === PRODUCTS LIBRARY ===
-    const productsData = [
-      { id: 1, title: "Junie & Friends - Summer Mix Vol.4", price: 0.01, originalPrice: 0.01, discount: 20, image: "storeassets/1.jpg" },
-      { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", price: 12.50, originalPrice: 15.00, discount: 17, image: "storeassets/2.jpg" },
-      { id: 3, title: "Chen Sisters - Midnight Expressions", price: 5.49, originalPrice: null, discount: 0, image: "storeassets/3.jpg" },
-      { id: 4, title: "The Sisters Corner - Special Dreamscapes", price: 8.25, originalPrice: 10.50, discount: 21, image: "storeassets/4.jpg" },
-      { id: 5, title: "Mama's Secret Art Pack 2026", price: 14.80, originalPrice: null, discount: 0, image: "storeassets/5.jpg" },
-      { id: 6, title: "Wedding Day Illustrations Vol.2", price: 6.75, originalPrice: 8.90, discount: 24, image: "storeassets/6.jpg" },
-      { id: 7, title: "Night Vibes - Neon & Shadows Mix", price: 9.30, originalPrice: null, discount: 0, image: "storeassets/7.jpg" },
-      { id: 8, title: "Collection 38 / Ultra Rare Bonus Set", price: 11.20, originalPrice: 14.00, discount: 20, image: "storeassets/8.jpg" },
-      { id: 9, title: "Junie Holiday Special - Cozy Edition", price: 4.99, originalPrice: 7.50, discount: 33, image: "storeassets/9.jpg" }
-    ];
-
-    productsData.forEach((p, i) => {
-      p.date = new Date(2026, 2, 20 - i*3).getTime();
-      p.element = null;
-      p.inCart = false;
-    });
-
-    // === TRANSLATIONS LIBRARY ===
-    const translations = {
-      en: {
-        shopTitle: "Velutinx's Shop",
-        filterTitle: "Filter by Category",
-        catAll: "All",
-        catNot: "Not On Booth",
-        catFrom: "From Booth",
-        catSisters: "The Sisters Corner",
-        sortTitle: "Sort by",
-        sortDefault: "Default",
-        sortNewest: "Newest",
-        sortLow: "Price: Low to High",
-        sortHigh: "Price: High to Low",
-        resetBtn: "Reset Filters",
-        productsTitle: "Products",
-        searchPlaceholder: "Search",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total",
-        checkoutBtn: "Checkout",
-        snackText: "Added successfully",
-        loginBtn: "Login"
-      },
-      ja: {
-        shopTitle: "Velutinxのショップ",
-        filterTitle: "カテゴリでフィルター",
-        catAll: "すべて",
-        catNot: "Boothにない",
-        catFrom: "Boothから",
-        catSisters: "姉妹のコーナー",
-        sortTitle: "並び替え",
-        sortDefault: "デフォルト",
-        sortNewest: "最新",
-        sortLow: "価格: 低い → 高い",
-        sortHigh: "価格: 高い → 低い",
-        resetBtn: "フィルターをリセット",
-        productsTitle: "商品",
-        searchPlaceholder: "検索",
-        cartTitle: "ショッピングカート",
-        totalLabel: "合計",
-        checkoutBtn: "チェックアウト",
-        snackText: "カートに追加しました",
-        loginBtn: "ログイン"
-      },
-      "zh-CN": {
-        shopTitle: "Velutinx的商店",
-        filterTitle: "按类别筛选",
-        catAll: "全部",
-        catNot: "不在Booth上",
-        catFrom: "来自Booth",
-        catSisters: "姐妹角落",
-        sortTitle: "排序方式",
-        sortDefault: "默认",
-        sortNewest: "最新",
-        sortLow: "价格: 低到高",
-        sortHigh: "价格: 高到低",
-        resetBtn: "重置筛选",
-        productsTitle: "商品",
-        searchPlaceholder: "搜索",
-        cartTitle: "购物车",
-        totalLabel: "总计",
-        checkoutBtn: "结账",
-        snackText: "已成功添加到购物车",
-        loginBtn: "登录"
-      }
-    };
-
     const grid = document.getElementById("productGrid");
     const searchInput = document.getElementById("searchInput");
     const sortButtons = document.querySelectorAll(".sort-btn");
