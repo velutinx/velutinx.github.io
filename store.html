@@ -921,7 +921,7 @@
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
 
-  <!-- PayPal SDK + Button -->
+<!-- PayPal SDK + Button -->
 <script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
 <script>
   paypal.Buttons({
@@ -942,15 +942,15 @@
     onApprove: function(data, actions) {
       return actions.order.capture().then(function(details) {
         // Payment successful!
-        alert("¡Pago exitoso! Gracias " + details.payer.name.given_name + " 🎉");
+        alert("Payment successful! Thank you " + details.payer.name.given_name + " 🎉");
         
-        // Redirect to success page (create this file next)
+        // Redirect to success page
         window.location.href = "success.html?order=" + details.id;
       });
     },
     onError: function(err) {
       console.error("PayPal Error:", err);
-      alert("Hubo un problema con el pago. Intenta de nuevo o contáctame.");
+      alert("There was a problem with the payment. Please try again or contact me.");
     }
   }).render("#paypal-button-container");
 </script>
