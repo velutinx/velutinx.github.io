@@ -581,12 +581,12 @@
   </div>
 
   <script>
-    // === PRODUCTS DATA (only originalPrice + discount) ===
+    // === PRODUCTS DATA ===
     const productsData = [
       { id: 1, title: "Junie & Friends - Summer Mix Vol.4", originalPrice: 0.01, discount: 0, image: "storeassets/1.jpg" },
-      { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", originalPrice: 3.00, discount: 0, image: "storeassets/2.jpg" },
-      { id: 3, title: "Chen Sisters - Midnight Expressions", originalPrice: 1.50, discount: 0, image: "storeassets/3.jpg" },
-      { id: 4, title: "The Sisters Corner - Special Dreamscapes", originalPrice: 10.00, discount: 0, image: "storeassets/4.jpg" },
+      { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", originalPrice: 15.00, discount: 17, image: "storeassets/2.jpg" },
+      { id: 3, title: "Chen Sisters - Midnight Expressions", originalPrice: 5.49, discount: 0, image: "storeassets/3.jpg" },
+      { id: 4, title: "The Sisters Corner - Special Dreamscapes", originalPrice: 10.50, discount: 21, image: "storeassets/4.jpg" },
       { id: 5, title: "Mama's Secret Art Pack 2026", originalPrice: 14.80, discount: 0, image: "storeassets/5.jpg" },
       { id: 6, title: "Wedding Day Illustrations Vol.2", originalPrice: 8.90, discount: 24, image: "storeassets/6.jpg" },
       { id: 7, title: "Night Vibes - Neon & Shadows Mix", originalPrice: 9.30, discount: 0, image: "storeassets/7.jpg" },
@@ -700,20 +700,28 @@
     let realTotalUSD = 0;
 
     function formatPrice(value, currency) {
-      const rounded = Math.round(value * 100) / 100;
-
       if (currency === "USD") {
         return `US$${value.toFixed(2)}`;
       }
 
+      // First check if it matches a fixed tier
+      const rounded = Math.round(value * 100) / 100;
       if (tierMap[rounded]) {
         const converted = tierMap[rounded][currency];
         const symbol = currency === "JPY" ? "円" : "元";
         return `${symbol}${converted}`;
       }
 
-      // Approximate conversion for other prices
-      const converted = Math.round(value * approxRates[currency] * 10) / 10;
+      // Otherwise apply approximate conversion and round up
+      let converted = value * approxRates[currency];
+
+      // Round up (ceiling) to nearest integer for JPY, nearest 0.1 for CNY
+      if (currency === "JPY") {
+        converted = Math.ceil(converted);
+      } else { // CNY
+        converted = Math.ceil(converted * 10) / 10;
+      }
+
       const symbol = currency === "JPY" ? "円" : "元";
       return `${symbol}${converted}`;
     }
