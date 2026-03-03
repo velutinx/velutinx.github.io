@@ -724,44 +724,45 @@
       });
     }
 
-    function setLanguage(lang) {
-      currentLang = lang;
+function setLanguage(lang) {
+  currentLang = lang;
 
-      if (lang === "en") {
-        currentCurrency = "USD";
-        rates.USD = 1;
-      } else if (lang === "ja") {
-        currentCurrency = "JPY";
-        updateLiveRates();
-      } else if (lang === "zh-CN") {
-        currentCurrency = "CNY";
-        updateLiveRates();
-      }
+  // Set currency strictly based on language
+  if (lang === "en") {
+    currentCurrency = "USD";
+  } else if (lang === "ja") {
+    currentCurrency = "JPY";
+    updateLiveRates();
+  } else if (lang === "zh-CN") {
+    currentCurrency = "CNY";
+    updateLiveRates();
+  }
 
-      const t = translations[lang] || translations.en;
+  const t = translations[lang] || translations.en;
 
-      document.getElementById("shopTitle").textContent = t.shopTitle;
-      document.getElementById("filterTitle").textContent = t.filterTitle;
-      document.getElementById("catAll").textContent = t.catAll;
-      document.getElementById("catNot").textContent = t.catNot;
-      document.getElementById("catFrom").textContent = t.catFrom;
-      document.getElementById("catSisters").textContent = t.catSisters;
-      document.getElementById("sortTitle").textContent = t.sortTitle;
-      document.getElementById("sortDefault").textContent = t.sortDefault;
-      document.getElementById("sortNewest").textContent = t.sortNewest;
-      document.getElementById("sortLow").textContent = t.sortLow;
-      document.getElementById("sortHigh").textContent = t.sortHigh;
-      document.getElementById("resetBtn").textContent = t.resetBtn;
-      document.getElementById("productsTitle").textContent = t.productsTitle;
-      searchInput.placeholder = t.searchPlaceholder;
-      document.getElementById("cartTitle").textContent = t.cartTitle;
-      document.getElementById("totalLabel").textContent = t.totalLabel;
-      document.getElementById("checkoutBtn").textContent = t.checkoutBtn;
-      document.getElementById("snackText").textContent = t.snackText;
-      document.getElementById("loginBtn").textContent = t.loginBtn;
+  document.getElementById("shopTitle").textContent = t.shopTitle;
+  document.getElementById("filterTitle").textContent = t.filterTitle;
+  document.getElementById("catAll").textContent = t.catAll;
+  document.getElementById("catNot").textContent = t.catNot;
+  document.getElementById("catFrom").textContent = t.catFrom;
+  document.getElementById("catSisters").textContent = t.catSisters;
+  document.getElementById("sortTitle").textContent = t.sortTitle;
+  document.getElementById("sortDefault").textContent = t.sortDefault;
+  document.getElementById("sortNewest").textContent = t.sortNewest;
+  document.getElementById("sortLow").textContent = t.sortLow;
+  document.getElementById("sortHigh").textContent = t.sortHigh;
+  document.getElementById("resetBtn").textContent = t.resetBtn;
+  document.getElementById("productsTitle").textContent = t.productsTitle;
+  searchInput.placeholder = t.searchPlaceholder;
+  document.getElementById("cartTitle").textContent = t.cartTitle;
+  document.getElementById("totalLabel").textContent = t.totalLabel;
+  document.getElementById("snackText").textContent = t.snackText;
+  document.getElementById("loginBtn").textContent = t.loginBtn;
 
-      updateAllPrices();
-    }
+  updateAllPrices();
+  updateCartDisplay(); // <-- IMPORTANT
+}
+
 
     function createCards() {
       productsData.forEach(p => {
@@ -891,14 +892,13 @@
       if (!langBtn.contains(e.target) && !langPopover.contains(e.target)) langPopover.classList.remove("show");
     });
 
-    langItems.forEach(item => {
-      item.addEventListener("click", () => {
-        currentLang = item.dataset.lang;
-        currentCurrency = item.dataset.currency;
-        setLanguage(currentLang);
-        langPopover.classList.remove("show");
-      });
-    });
+langItems.forEach(item => {
+  item.addEventListener("click", () => {
+    setLanguage(item.dataset.lang);
+    langPopover.classList.remove("show");
+  });
+});
+
 
     cartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
     floatingCartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
