@@ -675,6 +675,23 @@
       }
     };
 
+    const grid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortButtons = document.querySelectorAll(".sort-btn");
+    const langBtn = document.getElementById("langBtn");
+    const langPopover = document.getElementById("languagePopover");
+    const langItems = langPopover.querySelectorAll(".lang-item");
+    const cartBtn = document.getElementById("cartBtn");
+    const floatingCartBtn = document.getElementById("floatingCartBtn");
+    const cartDrawer = document.getElementById("cartDrawer");
+    const cartClose = document.getElementById("cartClose");
+    const cartCountEl = document.getElementById("cartCount");
+    const floatingCartCountEl = document.getElementById("floatingCartCount");
+    const cartItemsEl = document.getElementById("cartItems");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const snackbar = document.getElementById("snackbar");
+    const themeBtn = document.getElementById("themeBtn");
+
     // === LIVE CURRENCY RATES ===
     let rates = { USD: 1, JPY: 152, CNY: 7.1 };
 
