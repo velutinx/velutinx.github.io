@@ -485,7 +485,6 @@
         <span id="totalLabel">Total</span>
         <span id="cartTotal">US$0.00</span>
       </div>
-      <!-- PayPal Checkout Button -->
       <div id="paypal-button-container"></div>
     </div>
   </div>
@@ -590,11 +589,71 @@
   </div>
 
   <script>
-    // Translations
+    // === FULL TRANSLATIONS (restored) ===
     const translations = {
-      en: { /* ... your existing translations ... */ },
-      ja: { /* ... */ },
-      "zh-CN": { /* ... */ }
+      en: {
+        shopTitle: "Velutinx's Shop",
+        filterTitle: "Filter by Category",
+        catAll: "All",
+        catNot: "Not On Booth",
+        catFrom: "From Booth",
+        catSisters: "The Sisters Corner",
+        sortTitle: "Sort by",
+        sortDefault: "Default",
+        sortNewest: "Newest",
+        sortLow: "Price: Low to High",
+        sortHigh: "Price: High to Low",
+        resetBtn: "Reset Filters",
+        productsTitle: "Products",
+        searchPlaceholder: "Search",
+        cartTitle: "Shopping Cart",
+        totalLabel: "Total",
+        checkoutBtn: "Checkout",
+        snackText: "Added successfully",
+        loginBtn: "Login"
+      },
+      ja: {
+        shopTitle: "Velutinxのショップ",
+        filterTitle: "カテゴリでフィルター",
+        catAll: "すべて",
+        catNot: "Boothにない",
+        catFrom: "Boothから",
+        catSisters: "姉妹のコーナー",
+        sortTitle: "並び替え",
+        sortDefault: "デフォルト",
+        sortNewest: "最新",
+        sortLow: "価格: 低い → 高い",
+        sortHigh: "価格: 高い → 低い",
+        resetBtn: "フィルターをリセット",
+        productsTitle: "商品",
+        searchPlaceholder: "検索",
+        cartTitle: "ショッピングカート",
+        totalLabel: "合計",
+        checkoutBtn: "チェックアウト",
+        snackText: "カートに追加しました",
+        loginBtn: "ログイン"
+      },
+      "zh-CN": {
+        shopTitle: "Velutinx的商店",
+        filterTitle: "按类别筛选",
+        catAll: "全部",
+        catNot: "不在Booth上",
+        catFrom: "来自Booth",
+        catSisters: "姐妹角落",
+        sortTitle: "排序方式",
+        sortDefault: "默认",
+        sortNewest: "最新",
+        sortLow: "价格: 低到高",
+        sortHigh: "价格: 高到低",
+        resetBtn: "重置筛选",
+        productsTitle: "商品",
+        searchPlaceholder: "搜索",
+        cartTitle: "购物车",
+        totalLabel: "总计",
+        checkoutBtn: "结账",
+        snackText: "已成功添加到购物车",
+        loginBtn: "登录"
+      }
     };
 
     // Library
@@ -689,6 +748,7 @@
 
       const t = translations[lang] || translations.en;
 
+      // Update all text
       document.getElementById("shopTitle").textContent = t.shopTitle;
       document.getElementById("filterTitle").textContent = t.filterTitle;
       document.getElementById("catAll").textContent = t.catAll;
@@ -843,7 +903,7 @@
     langItems.forEach(item => {
       item.addEventListener("click", () => {
         currentLang = item.dataset.lang;
-        currentCurrency = item.dataset.currency;
+        currentCurrency = item.dataset.currency || (item.dataset.lang === "en" ? "USD" : item.dataset.lang === "ja" ? "JPY" : "CNY");
         setLanguage(currentLang);
         langPopover.classList.remove("show");
       });
