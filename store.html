@@ -695,83 +695,67 @@
     const snackbar = document.getElementById("snackbar");
     const themeBtn = document.getElementById("themeBtn");
 
-// Default/fallback rates (used until live API loads)
+// Default/fallback rates
 let rates = { USD: 1, JPY: 152, CNY: 7.1 };
 
 // Function to fetch live rates from Frankfurter
 async function updateLiveRates() {
   try {
-    // Fetch latest rates with USD as base
     const response = await fetch("https://api.frankfurter.app/latest?from=USD&to=JPY,CNY");
     const data = await response.json();
 
     if (data && data.rates) {
-      rates.JPY = data.rates.JPY || rates.JPY;  // use live if available, fallback otherwise
-      rates.CNY = data.rates.CNY || rates.CNY;
-
+      rates.JPY = parseFloat(data.rates.JPY) || rates.JPY;
+      rates.CNY = parseFloat(data.rates.CNY) || rates.CNY;
       console.log("Live rates loaded:", rates);
-      updateAllPrices();  // refresh prices on page with new rates
     }
   } catch (err) {
     console.warn("Failed to load live rates from Frankfurter:", err);
-    // Silently keep using fallback rates - no user alert needed
   }
 }
-    let currentLang = "en";
-    let currentCurrency = "USD";
-    let cart = [];
-    let isDark = false;
 
-    function formatPrice(value, currency) {
-      const rate = rates[currency];
-      const amount = Math.round(value * rate * (currency === "JPY" ? 1 : 100)) / (currency === "JPY" ? 1 : 100);
-      const symbols = { USD: "US$", JPY: "円", CNY: "元" };
-      return `${symbols[currency]}${amount.toLocaleString(currency === "JPY" ? 'ja-JP' : 'en-US', {minimumFractionDigits: currency === "JPY" ? 0 : 2})}`;
-    }
-
-    function updateAllPrices() {
-      document.querySelectorAll(".price").forEach(el => {
-        const base = parseFloat(el.dataset.price);
-        const orig = parseFloat(el.dataset.original);
-        let html = formatPrice(base, currentCurrency);
-        if (orig && orig > base) html += ` <del>${formatPrice(orig, currentCurrency)}</del>`;
-        el.innerHTML = html;
-      });
-    }
-
+// FIXED setLanguage function
 function setLanguage(lang) {
   currentLang = lang;
-  currentCurrency = lang === "ja" ? "JPY" : lang === "zh-CN" ? "CNY" : "USD";
 
-  // Fetch live rates when switching to JPY or CNY
-  if (currentCurrency !== "USD") {
-    updateLiveRates();
+  // Reset currency and force USD rate when switching back to English
+  if (lang === "en") {
+    currentCurrency = "USD";
+    rates.USD = 1;                    // ← This was missing
+  } else if (lang === "ja") {
+    currentCurrency = "JPY";
+    updateLiveRates();                // fetch fresh JPY rate
+  } else if (lang === "zh-CN") {
+    currentCurrency = "CNY";
+    updateLiveRates();                // fetch fresh CNY rate
   }
 
   const t = translations[lang] || translations.en;
 
-      document.getElementById("shopTitle").textContent = t.shopTitle;
-      document.getElementById("filterTitle").textContent = t.filterTitle;
-      document.getElementById("catAll").textContent = t.catAll;
-      document.getElementById("catNot").textContent = t.catNot;
-      document.getElementById("catFrom").textContent = t.catFrom;
-      document.getElementById("catSisters").textContent = t.catSisters;
-      document.getElementById("sortTitle").textContent = t.sortTitle;
-      document.getElementById("sortDefault").textContent = t.sortDefault;
-      document.getElementById("sortNewest").textContent = t.sortNewest;
-      document.getElementById("sortLow").textContent = t.sortLow;
-      document.getElementById("sortHigh").textContent = t.sortHigh;
-      document.getElementById("resetBtn").textContent = t.resetBtn;
-      document.getElementById("productsTitle").textContent = t.productsTitle;
-      searchInput.placeholder = t.searchPlaceholder;
-      document.getElementById("cartTitle").textContent = t.cartTitle;
-      document.getElementById("totalLabel").textContent = t.totalLabel;
-      document.getElementById("checkoutBtn").textContent = t.checkoutBtn;
-      document.getElementById("snackText").textContent = t.snackText;
-      document.getElementById("loginBtn").textContent = t.loginBtn;
+  // Update all text
+  document.getElementById("shopTitle").textContent = t.shopTitle;
+  document.getElementById("filterTitle").textContent = t.filterTitle;
+  document.getElementById("catAll").textContent = t.catAll;
+  document.getElementById("catNot").textContent = t.catNot;
+  document.getElementById("catFrom").textContent = t.catFrom;
+  document.getElementById("catSisters").textContent = t.catSisters;
+  document.getElementById("sortTitle").textContent = t.sortTitle;
+  document.getElementById("sortDefault").textContent = t.sortDefault;
+  document.getElementById("sortNewest").textContent = t.sortNewest;
+  document.getElementById("sortLow").textContent = t.sortLow;
+  document.getElementById("sortHigh").textContent = t.sortHigh;
+  document.getElementById("resetBtn").textContent = t.resetBtn;
+  document.getElementById("productsTitle").textContent = t.productsTitle;
+  searchInput.placeholder = t.searchPlaceholder;
+  document.getElementById("cartTitle").textContent = t.cartTitle;
+  document.getElementById("totalLabel").textContent = t.totalLabel;
+  document.getElementById("checkoutBtn").textContent = t.checkoutBtn;
+  document.getElementById("snackText").textContent = t.snackText;
+  document.getElementById("loginBtn").textContent = t.loginBtn;
 
-      updateAllPrices();
-    }
+  // Refresh all prices with the new currency
+  updateAllPrices();
+}
 
     function createCards() {
       productsData.forEach(p => {
