@@ -659,7 +659,7 @@
 
     // Library
     const productsData = [
-      { id: 1, title: "Junie & Friends - Summer Mix Vol.4", price: 0.01, originalPrice: 0.01, discount: 20, image: "storeassets/1.jpg" },
+      { id: 1, title: "Junie & Friends - Summer Mix Vol.4", price: 0.001, originalPrice: 0.001, discount: 20, image: "storeassets/1.jpg" },
       { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", price: 12.50, originalPrice: 15.00, discount: 17, image: "storeassets/2.jpg" },
       { id: 3, title: "Chen Sisters - Midnight Expressions", price: 5.49, originalPrice: null, discount: 0, image: "storeassets/3.jpg" },
       { id: 4, title: "The Sisters Corner - Special Dreamscapes", price: 8.25, originalPrice: 10.50, discount: 21, image: "storeassets/4.jpg" },
@@ -926,9 +926,8 @@
 <script>
   paypal.Buttons({
     createOrder: function(data, actions) {
-      // Get the cart total from your page (strip non-numbers)
       const totalText = document.getElementById("cartTotal").textContent;
-      const total = totalText.replace(/[^0-9.]/g, '') || "0.01"; // fallback if empty
+      const total = totalText.replace(/[^0-9.]/g, '') || "0.01";
 
       return actions.order.create({
         purchase_units: [{
@@ -941,11 +940,17 @@
     },
     onApprove: function(data, actions) {
       return actions.order.capture().then(function(details) {
-        // Payment successful!
-        alert("Payment successful! Thank you " + details.payer.name.given_name + " 🎉");
-        
-        // Redirect to success page
-        window.location.href = "success.html?order=" + details.id;
+        // Removed the annoying popup alert
+
+        // Auto-detect the first product in cart and convert to pack001 / pack002 etc.
+        let productCode = "cart"; // fallback
+        if (cart.length > 0) {
+          const firstId = cart[0].id;
+          productCode = "pack" + String(firstId).padStart(3, '0');
+        }
+
+        // Redirect to success page with the correct product code
+        window.location.href = "success.html?product=" + productCode;
       });
     },
     onError: function(err) {
@@ -953,7 +958,7 @@
       alert("There was a problem with the payment. Please try again or contact me.");
     }
   }).render("#paypal-button-container");
-</script>
+</script></script>
   
 </body>
 </html>
