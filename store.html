@@ -129,6 +129,7 @@
       border: 2px solid var(--darker);
     }
 
+    /* Language popover fade + slide */
     #languagePopover {
       position: absolute;
       top: 55px;
@@ -139,10 +140,22 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       min-width: 230px;
       z-index: 1100;
-      display: none;
+      opacity: 0;
+      visibility: hidden;
       overflow: hidden;
+      transform: translateY(-10px);
+      transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.5s;
     }
-    #languagePopover.show { display: block; }
+
+    #langContainer:hover #languagePopover,
+    .lang-btn:hover + #languagePopover,
+    #languagePopover:hover {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition-delay: 0s;
+    }
+
     .lang-item {
       display: flex;
       align-items: center;
@@ -155,6 +168,27 @@
     .lang-item:hover { background: #c0bcaa; }
     .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
     .lang-item p { margin: 0; font-size: 1rem; }
+
+    /* Swipe bar (bottom-to-top on click) */
+    .lang-swipe {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      height: 20%;
+      background: var(--accent);
+      z-index: 10000;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .lang-swipe.active {
+      animation: langSwipeUp 0.55s ease-in forwards;
+    }
+
+    @keyframes langSwipeUp {
+      to { bottom: 100%; }
+    }
 
     .cart-drawer {
       position: fixed;
@@ -412,9 +446,11 @@
     .cart-btn.added { background: var(--success); }
   </style>
   <script src="store.js"></script>
-  
 </head>
 <body>
+
+  <!-- Swipe animation layer -->
+  <div class="lang-swipe" id="langSwipe"></div>
 
   <!-- Top nav -->
   <nav class="top-nav">
@@ -428,9 +464,10 @@
         </svg>
       </button>
       <div id="languagePopover">
-        <div class="lang-item" data-lang="en" data-currency="USD"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
-        <div class="lang-item" data-lang="ja" data-currency="JPY"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
-        <div class="lang-item" data-lang="zh-CN" data-currency="CNY"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
+        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
+        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
+        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
+        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
       </div>
 
       <button class="nav-icon" id="themeBtn" title="Night Mode">
@@ -446,7 +483,9 @@
             <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
             <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
             <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-1 7h-13"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
           </svg>
         </button>
         <span class="cart-badge" id="cartCount">0</span>
@@ -581,6 +620,10 @@
       <div class="product-grid" id="productGrid"></div>
     </main>
   </div>
+
+  <script src="/assets/js/translations.js"></script>
+
+ 
 
   <script>
 
@@ -985,8 +1028,22 @@ function initPayPal() {
     }
   }).render("#paypal-button-container");
 }
-</script>
-  
-  
+
+    // Language switch – using translations.js
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        setLanguage(item.dataset.lang);
+      });
+    });
+
+    // Apply shop translations on load
+    applyTranslations('shop');
+
+    // Re-apply after language change
+    document.addEventListener('languageChanged', () => {
+      applyTranslations('shop');
+    });
+  </script>
+
 </body>
 </html>
