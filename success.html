@@ -1,98 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thank You for Your Purchase!</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      text-align: center;
-      padding: 60px 20px;
-      background: #f8f1e9;
-      color: #3a3528;
-      line-height: 1.6;
-    }
-    h1 { color: #22c55e; margin-bottom: 20px; }
-    .container { max-width: 600px; margin: 0 auto; }
-    .download-btn {
-      display: inline-block;
-      background: #aa9e76;
-      color: #1f1a12;
-      padding: 16px 32px;
-      font-size: 1.3rem;
-      font-weight: bold;
-      border-radius: 12px;
-      text-decoration: none;
-      margin: 30px 0;
-      transition: all 0.2s;
-    }
-    .download-btn:hover {
-      background: #e0c08a;
-      transform: scale(1.05);
-    }
-    #orderIdDisplay {
-      font-family: monospace;
-      background: #e8e5d8;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 1.25rem;
-      color: #aa9e76;
-    }
-    #download-section { margin: 40px 0; }
-    #error-message { color: #a64a5c; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Payment Successful! 🎉</h1>
-    <p>Thank you for supporting my work. Your order is ready.</p>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const token = urlParams.get("token");
 
-    <!-- NEW: Order counter -->
-    <p><strong>Your Order ID:</strong> <span id="orderIdDisplay">000000</span></p>
-
-    <div id="download-section">
-      <!-- Download link will appear here -->
-    </div>
-
-    <p><small>If the link doesn't appear or you have any issues, contact me on Discord or Twitter with the Order ID above.</small></p>
-  </div>
-
-  <script>
-    // === Product → Mega link database (unchanged) ===
-    const downloadLinks = {
-      "pack001": "https://mega.nz/file/HIUl3LQI#2qV6CTq4mWazPxmSq6Ua0ePI8EqEOifWScjpJ5UnycU",
-      "pack002": "https://mega.nz/folder/DEF456UVW",
-      "pack003": "https://mega.nz/folder/GHI789RST",
-      "pack004": "https://mega.nz/folder/JKL012MNO",
-      "pack005": "https://mega.nz/folder/PQR345STU",
-      "pack006": "https://mega.nz/folder/VWX678YZA",
-      "pack007": "https://mega.nz/folder/BCD901EFG",
-      "pack008": "https://mega.nz/folder/HIJ234KLM",
-      "pack009": "https://mega.nz/folder/NOP567QRS"
-    };
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get("product") || "unknown";
-    const orderId = urlParams.get("order") || "N/A";
-
-    // Show order ID
-    document.getElementById("orderIdDisplay").textContent = orderId;
-
+fetch(`/api/get-download?token=${token}`)
+  .then(res => res.json())
+  .then(data => {
     const section = document.getElementById("download-section");
-    const link = downloadLinks[productId];
 
-    if (link) {
+    if (data.link) {
       section.innerHTML = `
         <p>Click below to download your purchase:</p>
-        <a href="${link}" class="download-btn" target="_blank">Download Now</a>
+        <a href="${data.link}" class="download-btn" target="_blank">
+          Download Now
+        </a>
       `;
     } else {
-      section.innerHTML = `
-        <p id="error-message">Download link not found for this product.</p>
-        <p>Please contact me with your order ID: <strong>${orderId}</strong></p>
-      `;
+      section.innerHTML = `<p id="error-message">Invalid payment.</p>`;
     }
-  </script>
-</body>
-</html>
+  });
+</script>
