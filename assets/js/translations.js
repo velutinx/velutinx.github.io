@@ -1,6 +1,7 @@
-// /assets/js/translations.js
+// translations.js
+// Standalone translations file - only for index, commissions, artwork, contact, poll
 
-// Available languages
+// Supported languages
 const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
 
 // Default fallback
@@ -9,10 +10,22 @@ const DEFAULT_LANG = 'en';
 // All translatable texts – organized by page
 const translations = {
   index: {
-    en: { heroSub: "♡ Freelance Illustrator ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!" },
-    ja: { heroSub: "♡ フリーランスイラストレーター ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!" },
-    zh: { heroSub: "♡ 自由插画师 ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = 可以！" },
-    es: { heroSub: "♡ Ilustradora Freelance ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = ¡OK!" }
+    en: { 
+      heroSub: "♡ Freelance Illustrator ♡", 
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!" 
+    },
+    ja: { 
+      heroSub: "♡ フリーランスイラストレーター ♡", 
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!" 
+    },
+    zh: { 
+      heroSub: "♡ 自由插画师 ♡", 
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = 可以！" 
+    },
+    es: { 
+      heroSub: "♡ Ilustradora Freelance ♡", 
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = ¡OK!" 
+    }
   },
 
   commissions: {
@@ -39,10 +52,18 @@ const translations = {
   },
 
   artwork: {
-    en: { artworkIntro: "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images" },
-    ja: { artworkIntro: "こんにちは！こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ — Temporal Images" },
-    zh: { artworkIntro: "你好！这些只是我作品的一小部分样本——我在免费Discord上分享更多！ — Temporal Images" },
-    es: { artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images" }
+    en: { 
+      artworkIntro: "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images" 
+    },
+    ja: { 
+      artworkIntro: "こんにちは！こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ — Temporal Images" 
+    },
+    zh: { 
+      artworkIntro: "你好！这些只是我作品的一小部分样本——我在免费Discord上分享更多！ — Temporal Images" 
+    },
+    es: { 
+      artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images" 
+    }
   },
 
   contact: {
@@ -100,91 +121,6 @@ const translations = {
     }
   },
 
-  // Shop page (Velutinx's Shop)
-  shop: {
-    en: {
-      shopTitle: "Velutinx's Shop",
-      filterTitle: "Filter by Category",
-      catAll: "All",
-      catNot: "Not On Booth",
-      catFrom: "From Booth",
-      catSisters: "The Sisters Corner",
-      sortTitle: "Sort by",
-      sortDefault: "Default",
-      sortNewest: "Newest",
-      sortLow: "Price: Low to High",
-      sortHigh: "Price: High to Low",
-      resetBtn: "Reset Filters",
-      productsTitle: "Products",
-      searchPlaceholder: "Search",
-      cartTitle: "Shopping Cart",
-      totalLabel: "Total",
-      snackText: "Added successfully",
-      loginBtn: "Login"
-    },
-    ja: {
-      shopTitle: "Velutinxのショップ",
-      filterTitle: "カテゴリでフィルター",
-      catAll: "すべて",
-      catNot: "Boothにない",
-      catFrom: "Boothから",
-      catSisters: "姉妹のコーナー",
-      sortTitle: "並び替え",
-      sortDefault: "デフォルト",
-      sortNewest: "最新",
-      sortLow: "価格: 低い → 高い",
-      sortHigh: "価格: 高い → 低い",
-      resetBtn: "フィルターをリセット",
-      productsTitle: "商品",
-      searchPlaceholder: "検索",
-      cartTitle: "ショッピングカート",
-      totalLabel: "合計",
-      snackText: "カートに追加しました",
-      loginBtn: "ログイン"
-    },
-    zh: {
-      shopTitle: "Velutinx的商店",
-      filterTitle: "按类别筛选",
-      catAll: "全部",
-      catNot: "不在Booth上",
-      catFrom: "来自Booth",
-      catSisters: "姐妹角落",
-      sortTitle: "排序方式",
-      sortDefault: "默认",
-      sortNewest: "最新",
-      sortLow: "价格: 低到高",
-      sortHigh: "价格: 高到低",
-      resetBtn: "重置筛选",
-      productsTitle: "商品",
-      searchPlaceholder: "搜索",
-      cartTitle: "购物车",
-      totalLabel: "总计",
-      snackText: "已成功添加到购物车",
-      loginBtn: "登录"
-    },
-    es: {
-      shopTitle: "Tienda de Velutinx",
-      filterTitle: "Filtrar por Categoría",
-      catAll: "Todo",
-      catNot: "No en Booth",
-      catFrom: "De Booth",
-      catSisters: "La Esquina de las Hermanas",
-      sortTitle: "Ordenar por",
-      sortDefault: "Predeterminado",
-      sortNewest: "Más reciente",
-      sortLow: "Precio: Bajo a Alto",
-      sortHigh: "Precio: Alto a Bajo",
-      resetBtn: "Restablecer filtros",
-      productsTitle: "Productos",
-      searchPlaceholder: "Buscar",
-      cartTitle: "Carrito de compras",
-      totalLabel: "Total",
-      snackText: "Agregado correctamente",
-      loginBtn: "Iniciar sesión"
-    }
-  },
-
-  // Poll page (for completeness)
   poll: {
     en: {
       pollTitle: "Vote for Your Favorite Character",
@@ -226,116 +162,63 @@ function applyTranslations(pageKey = 'index') {
     return;
   }
 
-  // Index
+  // Index page
   if (pageKey === 'index') {
     const heroSubEl = document.getElementById('heroSub');
-    if (heroSubEl) heroSubEl.textContent = pageTranslations.heroSub;
+    if (heroSubEl) heroSubEl.textContent = pageTranslations.heroSub || '';
+    // Add more index-specific elements if needed
   }
 
-  // Commissions
+  // Commissions page
   if (pageKey === 'commissions') {
     const titleEl = document.getElementById('comTitle');
-    if (titleEl) titleEl.textContent = pageTranslations.comTitle;
+    if (titleEl) titleEl.textContent = pageTranslations.comTitle || '';
     const infoEl = document.getElementById('comInfo');
-    if (infoEl) infoEl.textContent = pageTranslations.comInfo;
+    if (infoEl) infoEl.textContent = pageTranslations.comInfo || '';
     const listEl = document.getElementById('comList');
-    if (listEl) listEl.innerHTML = pageTranslations.comList.trim();
+    if (listEl) listEl.innerHTML = pageTranslations.comList?.trim() || '';
   }
 
-  // Artwork
+  // Artwork page
   if (pageKey === 'artwork') {
     const introEl = document.getElementById('artworkIntro');
-    if (introEl) introEl.textContent = pageTranslations.artworkIntro;
+    if (introEl) introEl.textContent = pageTranslations.artworkIntro || '';
   }
 
-  // Contact
+  // Contact page
   if (pageKey === 'contact') {
     const titleEl = document.getElementById('contactTitle');
-    if (titleEl) titleEl.textContent = pageTranslations.contactTitle;
+    if (titleEl) titleEl.textContent = pageTranslations.contactTitle || '';
     const descEl = document.getElementById('contactDesc');
-    if (descEl) descEl.textContent = pageTranslations.contactDesc;
+    if (descEl) descEl.textContent = pageTranslations.contactDesc || '';
     const labelName = document.getElementById('labelName');
-    if (labelName) labelName.textContent = pageTranslations.labelName;
+    if (labelName) labelName.textContent = pageTranslations.labelName || '';
     const labelEmail = document.getElementById('labelEmail');
-    if (labelEmail) labelEmail.textContent = pageTranslations.labelEmail;
+    if (labelEmail) labelEmail.textContent = pageTranslations.labelEmail || '';
     const labelMessage = document.getElementById('labelMessage');
-    if (labelMessage) labelMessage.textContent = pageTranslations.labelMessage;
+    if (labelMessage) labelMessage.textContent = pageTranslations.labelMessage || '';
     const nameInput = document.getElementById('name');
-    if (nameInput) nameInput.placeholder = pageTranslations.namePlaceholder;
+    if (nameInput) nameInput.placeholder = pageTranslations.namePlaceholder || '';
     const emailInput = document.getElementById('email');
-    if (emailInput) emailInput.placeholder = pageTranslations.emailPlaceholder;
+    if (emailInput) emailInput.placeholder = pageTranslations.emailPlaceholder || '';
     const messageInput = document.getElementById('message');
-    if (messageInput) messageInput.placeholder = pageTranslations.messagePlaceholder;
+    if (messageInput) messageInput.placeholder = pageTranslations.messagePlaceholder || '';
     const sendBtn = document.getElementById('sendBtn');
-    if (sendBtn) sendBtn.textContent = pageTranslations.sendBtn;
+    if (sendBtn) sendBtn.textContent = pageTranslations.sendBtn || '';
   }
 
-  // Shop
-  if (pageKey === 'shop') {
-    const shopTitleEl = document.getElementById('shopTitle');
-    if (shopTitleEl) shopTitleEl.textContent = pageTranslations.shopTitle;
-
-    const filterTitleEl = document.getElementById('filterTitle');
-    if (filterTitleEl) filterTitleEl.textContent = pageTranslations.filterTitle;
-
-    const catAllEl = document.getElementById('catAll');
-    if (catAllEl) catAllEl.textContent = pageTranslations.catAll;
-    const catNotEl = document.getElementById('catNot');
-    if (catNotEl) catNotEl.textContent = pageTranslations.catNot;
-    const catFromEl = document.getElementById('catFrom');
-    if (catFromEl) catFromEl.textContent = pageTranslations.catFrom;
-    const catSistersEl = document.getElementById('catSisters');
-    if (catSistersEl) catSistersEl.textContent = pageTranslations.catSisters;
-
-    const sortTitleEl = document.getElementById('sortTitle');
-    if (sortTitleEl) sortTitleEl.textContent = pageTranslations.sortTitle;
-    const sortDefaultEl = document.getElementById('sortDefault');
-    if (sortDefaultEl) sortDefaultEl.textContent = pageTranslations.sortDefault;
-    const sortNewestEl = document.getElementById('sortNewest');
-    if (sortNewestEl) sortNewestEl.textContent = pageTranslations.sortNewest;
-    const sortLowEl = document.getElementById('sortLow');
-    if (sortLowEl) sortLowEl.textContent = pageTranslations.sortLow;
-    const sortHighEl = document.getElementById('sortHigh');
-    if (sortHighEl) sortHighEl.textContent = pageTranslations.sortHigh;
-
-    const resetBtnEl = document.getElementById('resetBtn');
-    if (resetBtnEl) resetBtnEl.textContent = pageTranslations.resetBtn;
-
-    const productsTitleEl = document.getElementById('productsTitle');
-    if (productsTitleEl) productsTitleEl.textContent = pageTranslations.productsTitle;
-
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) searchInput.placeholder = pageTranslations.searchPlaceholder;
-
-    const cartTitleEl = document.getElementById('cartTitle');
-    if (cartTitleEl) cartTitleEl.textContent = pageTranslations.cartTitle;
-
-    const totalLabelEl = document.getElementById('totalLabel');
-    if (totalLabelEl) totalLabelEl.textContent = pageTranslations.totalLabel;
-
-    const snackTextEl = document.getElementById('snackText');
-    if (snackTextEl) snackTextEl.textContent = pageTranslations.snackText;
-
-    const loginBtnEl = document.getElementById('loginBtn');
-    if (loginBtnEl) loginBtnEl.textContent = pageTranslations.loginBtn;
-  }
-
-  // Poll
+  // Poll page
   if (pageKey === 'poll') {
     const titleEl = document.querySelector('.poll-title');
-    if (titleEl) titleEl.textContent = pageTranslations.pollTitle;
-
+    if (titleEl) titleEl.textContent = pageTranslations.pollTitle || '';
     const subtitleEl = document.querySelector('.poll-subtitle');
-    if (subtitleEl) subtitleEl.textContent = pageTranslations.pollSubtitle;
-
+    if (subtitleEl) subtitleEl.textContent = pageTranslations.pollSubtitle || '';
     const leaderboardTitleEl = document.querySelector('#leaderboard h3');
-    if (leaderboardTitleEl) leaderboardTitleEl.textContent = pageTranslations.leaderboardTitle;
-
+    if (leaderboardTitleEl) leaderboardTitleEl.textContent = pageTranslations.leaderboardTitle || '';
     const tooltipEl = document.querySelector('#leaderboard .tooltip');
-    if (tooltipEl) tooltipEl.textContent = pageTranslations.leaderboardTooltip;
-
+    if (tooltipEl) tooltipEl.textContent = pageTranslations.leaderboardTooltip || '';
     const disclaimerEl = document.querySelector('.discord-disclaimer');
-    if (disclaimerEl) disclaimerEl.textContent = pageTranslations.discordDisclaimer;
+    if (disclaimerEl) disclaimerEl.textContent = pageTranslations.discordDisclaimer || '';
   }
 }
 
@@ -345,17 +228,24 @@ function setLanguage(lang) {
   currentLanguage = lang;
   localStorage.setItem('language', lang);
 
+  // Trigger swipe animation (if element exists on current page)
   const swipe = document.getElementById('langSwipe');
   if (swipe) {
     swipe.classList.remove('active');
-    void swipe.offsetHeight;
+    void swipe.offsetHeight; // force reflow
     swipe.classList.add('active');
   }
 
+  // Notify pages to re-apply translations
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
-// Initialize
+// Make functions globally accessible
+window.applyTranslations = applyTranslations;
+window.setLanguage = setLanguage;
+
+// Optional: auto-apply on load if you want (pages can choose to call it themselves)
 document.addEventListener('DOMContentLoaded', () => {
-  // Pages will call applyTranslations('their-key')
+  // Pages should call applyTranslations('their-key') manually
+  // e.g. on index.html: applyTranslations('index')
 });
