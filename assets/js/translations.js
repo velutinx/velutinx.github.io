@@ -1,18 +1,13 @@
 // /assets/js/translations.js
 
-// Available languages (you can add more later)
-const SUPPORTED_LANGUAGES = ['en', 'ja'];
+// Available languages
+const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
 
 // Default fallback
 const DEFAULT_LANG = 'en';
 
-// All translatable texts – organized by page or section
+// All translatable texts – organized by page/section
 const translations = {
-  // Shared / global (e.g. nav blobs can be handled separately if needed)
-  shared: {
-    // Example: if you later have global elements
-  },
-
   // Commissions page
   commissions: {
     en: {
@@ -36,15 +31,41 @@ const translations = {
         ✦ 受付状況<br><br>
         （プレースホルダー — 近日公開 ♡）
       `
+    },
+    zh: {
+      comTitle: "委托",
+      comInfo: "委托信息即将添加在此。",
+      comList: `
+        ✦ 价格<br>
+        ✦ 示例<br>
+        ✦ 服务条款<br>
+        ✦ 队列状态<br><br>
+        （占位内容 — 即将推出 ♡）
+      `
+    },
+    es: {
+      comTitle: "COMISIONES",
+      comInfo: "La información de comisiones se agregará aquí pronto.",
+      comList: `
+        ✦ Precios<br>
+        ✦ Ejemplos<br>
+        ✦ Términos de Servicio<br>
+        ✦ Estado de la Cola<br><br>
+        (Contenido provisional — próximamente ♡)
+      `
     }
   },
 
   // Add more pages later, e.g.:
-  // contact: { en: { ... }, ja: { ... } },
-  // about: { en: { ... }, ja: { ... } }
+  // contact: {
+  //   en: { contactTitle: "CONTACT", ... },
+  //   ja: { contactTitle: "お問い合わせ", ... },
+  //   zh: { contactTitle: "联系", ... },
+  //   es: { contactTitle: "CONTACTO", ... }
+  // }
 };
 
-// Current language (will be set from localStorage or default)
+// Current language
 let currentLanguage = localStorage.getItem('language') || DEFAULT_LANG;
 
 // Main function to update text on the page
@@ -56,7 +77,7 @@ function applyTranslations(pageKey = 'commissions') {
     return;
   }
 
-  // Update commissions page elements (add more selectors as you add pages)
+  // Commissions page elements
   const titleEl = document.getElementById('comTitle');
   if (titleEl) titleEl.textContent = pageTranslations.comTitle;
 
@@ -64,13 +85,7 @@ function applyTranslations(pageKey = 'commissions') {
   if (infoEl) infoEl.textContent = pageTranslations.comInfo;
 
   const listEl = document.getElementById('comList');
-  if (listEl) listEl.innerHTML = pageTranslations.comList;
-
-  // Example for future pages:
-  // if (pageKey === 'contact') {
-  //   document.getElementById('contactTitle').textContent = pageTranslations.contactTitle;
-  //   ...
-  // }
+  if (listEl) listEl.innerHTML = pageTranslations.comList.trim();
 }
 
 // Change language + trigger swipe + update UI
@@ -91,9 +106,16 @@ function setLanguage(lang) {
   }
 
   // Apply translations
-  applyTranslations(); // default = 'commissions' – change when on other pages
+  applyTranslations(); // defaults to 'commissions'
 
-  // Optional: dispatch event so other scripts can react
+  // Optional: close popover after selection (fade out)
+  const popover = document.getElementById('languagePopover');
+  if (popover) {
+    popover.style.opacity = '0';
+    setTimeout(() => popover.style.visibility = 'hidden', 500);
+  }
+
+  // Dispatch event for other scripts if needed
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
