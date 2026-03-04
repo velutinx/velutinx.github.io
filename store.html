@@ -921,26 +921,16 @@
 <!-- Supabase Client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-<script src="store.js"></script>
-  
 <script>
-const SUPABASE_URL = window.__ENV?.SUPABASE_URL;
-const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
+  // Wait for store.js + Supabase to load before creating client
+  window.addEventListener('load', () => {
+    const SUPABASE_URL = window.__ENV?.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
 
-const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-async function getNextPurchaseNumber() {
-  const { data, error } = await supabase
-    .from('purchases')
-    .select('purchase_number')
-    .order('id', { ascending: false })
-    .limit(1);
-
-  if (error || !data || data.length === 0) return '000001';
-
-  const last = parseInt(data[0].purchase_number, 10);
-  return (last + 1).toString().padStart(6, '0');
-}
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      window.supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+  });
 </script>
 
 <!-- ================== PAYPAL SDK (DYNAMIC) ================== -->
@@ -981,6 +971,8 @@ function initPayPal() {
   }).render("#paypal-button-container");
 }
 </script>
-
+  
+<script src="store.js"></script>
+  
 </body>
 </html>
