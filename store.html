@@ -335,31 +335,6 @@
     .gift-btn:hover { transform: scale(1.18); }
     .gift-btn svg { width: 48px; height: 48px; stroke: currentColor; stroke-width: 2; }
 
-    .social-bar {
-      background: var(--darker);
-      padding: 1rem 0;
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
-    .social-icons {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      flex-wrap: wrap;
-    }
-    .social-btn {
-      display: block;
-      transition: transform 0.2s ease;
-    }
-    .social-btn:hover {
-      transform: scale(1.15);
-    }
-    .social-btn img {
-      width: 40px;
-      height: 40px;
-      object-fit: contain;
-    }
-
     .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
     .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
@@ -456,7 +431,6 @@
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
-      <!-- WRAPPER ADDED HERE SO HOVER WORKS -->
       <div id="langContainer">
         <button class="nav-icon" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -553,33 +527,6 @@
       </div>
     </div>
   </header>
-
-  <!-- Social bar -->
-  <div class="social-bar">
-    <div class="social-icons">
-      <a class="social-btn" href="https://x.com/VelutinxSFW" target="_blank">
-        <img src="https://velutinx.github.io/images/LogoTwitter.png" alt="Twitter">
-      </a>
-      <a class="social-btn" href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank">
-        <img src="https://velutinx.github.io/images/LogoBluesky.png" alt="Bluesky">
-      </a>
-      <a class="social-btn" href="https://www.instagram.com/velutinxx/" target="_blank">
-        <img src="https://velutinx.github.io/images/LogoInstagram.png" alt="Instagram">
-      </a>
-      <a class="social-btn" href="https://www.pixiv.net/en/users/117116845" target="_blank">
-        <img src="https://velutinx.github.io/images/LogoPixiv.png" alt="Pixiv">
-      </a>
-      <a class="social-btn" href="https://ko-fi.com/velutinxstudio" target="_blank">
-        <img src="https://velutinx.github.io/images/LogoKoFi.png" alt="Ko-fi">
-      </a>
-      <a class="social-btn" href="https://subscribestar.adult/velutinx" target="_blank">
-        <img src="https://velutinx.github.io/images/LogoSubscribeStar.png" alt="SubscribeStar">
-      </a>
-      <a class="social-btn" href="https://discord.gg/XF363uYfSh" target="_blank">
-        <img src="https://velutinx.github.io/images/LogoDiscord.png" alt="Discord">
-      </a>
-    </div>
-  </div>
 
   <!-- Main content -->
   <div class="main-container">
@@ -695,7 +642,6 @@
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : "CNY";
       localStorage.setItem("language", lang);
 
-      // Swipe only on actual click
       const swipe = document.getElementById("langSwipe");
       if (swipe) {
         swipe.classList.remove("active");
@@ -860,75 +806,74 @@
     createCards();
     filterAndSort();
     updateAllPrices();
-    applyTranslations("shop");   // only apply translations, no swipe on load
+    applyTranslations("shop");
 
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
 
-  
-<!-- Supabase Client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-<script>
-  window.addEventListener('load', () => {
-    const SUPABASE_URL = window.__ENV?.SUPABASE_URL || "https://your-supabase-url.supabase.co";
-    const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
+  <script>
+    window.addEventListener('load', () => {
+      const SUPABASE_URL = window.__ENV?.SUPABASE_URL || "https://your-supabase-url.supabase.co";
+      const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
 
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-      window.supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    window.getNextPurchaseNumber = async function() {
-      if (!window.supabaseClient) return '000001';
-      const { data, error } = await window.supabaseClient
-        .from('purchases')
-        .select('purchase_number')
-        .order('id', { ascending: false })
-        .limit(1);
-
-      if (error || !data || data.length === 0) return '000001';
-      const last = parseInt(data[0].purchase_number, 10);
-      return (last + 1).toString().padStart(6, '0');
-    };
-  });
-</script>
-
-<!-- PayPal SDK -->
-<script>
-const script = document.createElement("script");
-script.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID || 'AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v'}&currency=USD`;
-script.onload = initPayPal;
-document.body.appendChild(script);
-
-function initPayPal() {
-  paypal.Buttons({
-    createOrder: function(data, actions) {
-      const total = realTotalUSD.toFixed(2);
-      return actions.order.create({
-        purchase_units: [{ amount: { value: total, currency_code: "USD" } }]
-      });
-    },
-
-    onApprove: async function(data, actions) {
-      await actions.order.capture();
-
-      const purchase_number = await window.getNextPurchaseNumber();
-
-      if (window.supabaseClient) {
-        await window.supabaseClient.from('purchases').insert({
-          purchase_number: purchase_number,
-          paypal_order_id: data.orderID,
-          amount_usd: realTotalUSD,
-          items: cart.map(i => i.id)
-        });
+      if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+        window.supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
 
-      alert("✅ Payment successful! Purchase #" + purchase_number);
-      cart = [];
-      updateCartDisplay();
-    }
-  }).render("#paypal-button-container");
-}
+      window.getNextPurchaseNumber = async function() {
+        if (!window.supabaseClient) return '000001';
+        const { data, error } = await window.supabaseClient
+          .from('purchases')
+          .select('purchase_number')
+          .order('id', { ascending: false })
+          .limit(1);
+
+        if (error || !data || data.length === 0) return '000001';
+        const last = parseInt(data[0].purchase_number, 10);
+        return (last + 1).toString().padStart(6, '0');
+      };
+    });
+  </script>
+
+  <!-- PayPal SDK -->
+  <script>
+  const script = document.createElement("script");
+  script.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID || 'AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v'}&currency=USD`;
+  script.onload = initPayPal;
+  document.body.appendChild(script);
+
+  function initPayPal() {
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        const total = realTotalUSD.toFixed(2);
+        return actions.order.create({
+          purchase_units: [{ amount: { value: total, currency_code: "USD" } }]
+        });
+      },
+
+      onApprove: async function(data, actions) {
+        await actions.order.capture();
+
+        const purchase_number = await window.getNextPurchaseNumber();
+
+        if (window.supabaseClient) {
+          await window.supabaseClient.from('purchases').insert({
+            purchase_number: purchase_number,
+            paypal_order_id: data.orderID,
+            amount_usd: realTotalUSD,
+            items: cart.map(i => i.id)
+          });
+        }
+
+        alert("✅ Payment successful! Purchase #" + purchase_number);
+        cart = [];
+        updateCartDisplay();
+      }
+    }).render("#paypal-button-container");
+  }
   </script>
 
 </body>
