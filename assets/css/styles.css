@@ -833,54 +833,16 @@ body.dark #leaderboard::before {
   background: rgba(22, 22, 27, 0.25); /* dark mode faint veil */
 }
 
-/* ================================================
-   Language Selector (Globe button + left popover)
-   ================================================ */
-
-#langContainer {
-  position: fixed;
-  top: 20%;
-  right: 24px;
-  z-index: 10001;
-}
-
-.lang-btn {
-  width: 72px;
-  height: 48px;
-  background: transparent;
-  border: 2px solid var(--divider);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--text);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  backdrop-filter: blur(8px);
-}
-
-.lang-btn:hover {
-  background: rgba(170, 158, 118, 0.15);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-  transform: scale(1.08);
-}
-
-body.dark .lang-btn {
-  border-color: var(--divider-dark);
-  color: var(--text-dark);
-}
-
-/* Language popover – original size & positioning, with fade */
+/* Language popover – hover only, no JS close */
 #languagePopover {
   position: absolute;
-  top: 0;                            /* ← back to original top-aligned */
-  left: calc(-100% - 4px);           /* flush left + tiny overlap */
+  top: 0;
+  left: calc(-100% - 4px);
   background: var(--bg);
   border: 2px solid var(--divider);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  min-width: 240px;                  /* original width */
+  min-width: 240px;
   z-index: 10000;
   opacity: 0;
   visibility: hidden;
@@ -889,9 +851,9 @@ body.dark .lang-btn {
   pointer-events: none;
   transition: 
     opacity 0.5s ease,
-    visibility 0s linear 0.5s,       /* hide instantly after fade out */
+    visibility 0s linear 0.51s,  /* hide after fade out */
     transform 0.5s ease;
-  transform: translateX(-10px);      /* subtle slide from left */
+  transform: translateX(-10px);
 }
 
 /* Dark mode */
@@ -901,7 +863,7 @@ body.dark #languagePopover {
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
 
-/* Fade in + slide on hover */
+/* Show on hover chain */
 #langContainer:hover #languagePopover,
 .lang-btn:hover ~ #languagePopover,
 #languagePopover:hover {
@@ -909,15 +871,10 @@ body.dark #languagePopover {
   visibility: visible;
   pointer-events: auto;
   transform: translateX(0);
-  transition-delay: 0s;              /* instant start */
+  transition-delay: 0s;  /* instant appear */
 }
 
-/* Fade out when leaving */
-#langContainer:not(:hover) #languagePopover {
-  transition-delay: 0s, 0s, 0s;      /* fade out immediately */
-}
-
-/* Lang items – original look + dark mode hover */
+/* Lang items */
 .lang-item {
   display: flex;
   align-items: center;
@@ -954,6 +911,3 @@ body.dark .lang-item:hover {
   font-size: 1rem;
   font-weight: 600;
 }
-
-
-
