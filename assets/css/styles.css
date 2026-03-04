@@ -872,75 +872,74 @@ body.dark .lang-btn {
   color: var(--text-dark) !important;
 }
 
-/* Popover – original size, flush left, strong fade */
+/* Popover – original size, flush left, strong fade animation */
 #languagePopover {
-  position: absolute !important;
-  top: 0 !important;
-  left: calc(-100% - 4px) !important;
-  background: var(--bg) !important;
-  border: 2px solid var(--divider) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
-  min-width: 240px !important;
-  z-index: 10000 !important;
-  opacity: 0 !important;
-  overflow: hidden !important;
-  padding: 8px 0 !important;
-  pointer-events: none !important;
-  transition: opacity 0.5s ease !important, transform 0.5s ease !important;
-  transform: translateX(-10px) !important;
+  position: absolute;
+  top: 0;
+  left: calc(-100% - 4px);
+  background: var(--bg);
+  border: 2px solid var(--divider);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  min-width: 240px;
+  z-index: 10000;
+  opacity: 0;
+  overflow: hidden;
+  padding: 8px 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease !important;
+  transform: translateX(-20px); /* stronger slide for noticeable effect */
 }
 
 body.dark #languagePopover {
-  background: var(--bg-dark) !important;
-  border-color: var(--divider-dark) !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+  background: var(--bg-dark);
+  border-color: var(--divider-dark);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
 
-/* Reliable hover show + fade */
+/* Show + fade in + slide */
 #langContainer:hover #languagePopover,
 .lang-btn:hover + #languagePopover,
-#langContainer:hover .lang-btn + #languagePopover,
 #languagePopover:hover {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transform: translateX(0) !important;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
 }
 
-/* Lang items */
+/* Lang items (unchanged) */
 .lang-item {
-  display: flex !important;
-  align-items: center !important;
-  gap: 14px !important;
-  padding: 12px 18px !important;
-  cursor: pointer !important;
-  transition: background 0.2s, color 0.2s !important;
-  color: var(--text) !important;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  color: var(--text);
 }
 
 .lang-item:hover {
-  background: rgba(170,158,118,0.25) !important;
-  color: #000 !important;
+  background: rgba(170,158,118,0.25);
+  color: #000;
 }
 
 body.dark .lang-item {
-  color: var(--text-dark) !important;
+  color: var(--text-dark);
 }
 
 body.dark .lang-item:hover {
-  background: rgba(170,158,118,0.35) !important;
-  color: #fff !important;
+  background: rgba(170,158,118,0.35);
+  color: #fff;
 }
 
 .lang-item img {
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .lang-item p {
-  margin: 0 !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
 }
