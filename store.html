@@ -917,11 +917,12 @@
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
 
-  <script src="store.js"></script>
   
 <!-- Supabase Client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
+<script src="store.js"></script>
+  
 <script>
 const SUPABASE_URL = window.__ENV?.SUPABASE_URL;
 const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
@@ -945,7 +946,7 @@ async function getNextPurchaseNumber() {
 <!-- ================== PAYPAL SDK (DYNAMIC) ================== -->
 <script>
 const script = document.createElement("script");
-script.src = window.__ENV?.PAYPAL_CLIENT_ID;   // ← now pulls the FULL SDK URL from Cloudflare
+script.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID || 'AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v'}&currency=USD`;
 script.onload = initPayPal;
 document.body.appendChild(script);
 
