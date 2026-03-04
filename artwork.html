@@ -200,13 +200,17 @@
     // Language switch – using translations.js
     document.querySelectorAll('.lang-item').forEach(item => {
       item.addEventListener('click', () => {
-        const newLang = item.dataset.lang;
-        setLanguage(newLang); // from translations.js
+        setLanguage(item.dataset.lang);
       });
     });
 
-    // Apply artwork page translations on load
+    // Apply artwork translations on load
     applyTranslations('artwork');
+
+    // Re-apply translations after any language change
+    document.addEventListener('languageChanged', () => {
+      applyTranslations('artwork');
+    });
   </script>
 
   <script src="/assets/js/tab-title-animation.js"></script>
