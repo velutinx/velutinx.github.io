@@ -858,18 +858,17 @@ body.dark #languagePopover {
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
 
-/* Force show on hover – stronger selector chain */
+/* Show & fade in – more reliable selectors */
 #langContainer:hover #languagePopover,
-#langContainer:hover .lang-btn ~ #languagePopover,
-#langContainer:hover #languagePopover,
-.lang-btn:hover ~ #languagePopover,
+.lang-btn:hover + #languagePopover,
+#langContainer:hover .lang-btn + #languagePopover,
 #languagePopover:hover {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(0);
 }
 
-/* Lang items (unchanged, but ensure visibility) */
+/* Lang items */
 .lang-item {
   display: flex;
   align-items: center;
