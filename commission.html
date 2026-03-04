@@ -7,7 +7,7 @@
 </head>
 <body>
 
-  <!-- Swipe animation layer (must be early in body) -->
+  <!-- Slim swipe bar (same as original) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div class="background-wrapper">
@@ -15,7 +15,7 @@
     <div class="wave-overlay"></div>
   </div>
 
-  <!-- Language selector: globe button + popover -->
+  <!-- Globe language selector -->
   <div id="langContainer">
     <button class="lang-btn" title="Select Language">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -47,26 +47,19 @@
     </div>
   </div>
 
-  <!-- Theme toggle -->
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
 
   <!-- Page wrapper -->
   <div id="page">
-
-    <!-- Navigation (loaded via JS) -->
     <div id="navContainer"></div>
-
     <div class="divider"></div>
 
-    <!-- Commission content -->
     <section class="commission-wrap">
       <div class="commission-box" id="commissionBox">
         <h2 id="comTitle">COMMISSIONS</h2>
-
         <p id="comInfo">Commission information will be added here soon.</p>
-
         <p class="placeholder" id="comList">
           ✦ Prices<br>
           ✦ Examples<br>
@@ -78,21 +71,18 @@
     </section>
 
     <div class="divider"></div>
-
   </div>
 
-  <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- Page scripts -->
   <script>
-    // Load saved preferences
+    // ── Preferences & state ────────────────────────────────────────
     const savedLang = localStorage.getItem("language") || "en";
     const savedDark = localStorage.getItem("darkMode") === "true";
 
     let currentLang = savedLang;
 
-    // Translate navigation blobs
+    // ── Blob translation (nav) ─────────────────────────────────────
     function translateBlobs(lang) {
       const blobs = document.querySelectorAll(".blob-text");
       if (blobs.length === 0) {
@@ -108,27 +98,33 @@
 
     translateBlobs(currentLang);
 
-    // Commission page text (EN/JP only for now)
-    const isJapanese = currentLang === "ja" || currentLang === "jp";
+    // ── Commission page text switch ────────────────────────────────
+    function updateCommissionText(lang) {
+      const isJapanese = lang === "ja" || lang === "jp";
 
-    document.getElementById("comTitle").textContent = isJapanese ? "コミッション" : "COMMISSIONS";
-    document.getElementById("comInfo").textContent = isJapanese 
-      ? "コミッション情報は近日中に追加されます。" 
-      : "Commission information will be added here soon.";
-    document.getElementById("comList").innerHTML = isJapanese 
-      ? `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
-      : `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`;
+      document.getElementById("comTitle").textContent = isJapanese 
+        ? "コミッション" : "COMMISSIONS";
 
-    // Apply saved dark mode
+      document.getElementById("comInfo").textContent = isJapanese 
+        ? "コミッション情報は近日中に追加されます。" 
+        : "Commission information will be added here soon.";
+
+      document.getElementById("comList").innerHTML = isJapanese 
+        ? `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
+        : `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`;
+    }
+
+    updateCommissionText(currentLang);
+
+    // ── Dark mode ──────────────────────────────────────────────────
     if (savedDark) document.body.classList.add("dark");
 
-    // Theme toggle
     document.getElementById("themeToggle").onclick = () => {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark"));
     };
 
-    // Cursor sparkles
+    // ── Sparkles ───────────────────────────────────────────────────
     let lastStarTime = 0;
     document.addEventListener("mousemove", (e) => {
       const now = Date.now();
@@ -139,52 +135,53 @@
       star.className = "star";
       star.textContent = "✦";
       star.style.setProperty("--drift", Math.random());
-      star.style.left = `${e.clientX}px`;
-      star.style.top = `${e.clientY}px`;
-
+      star.style.left = e.clientX + "px";
+      star.style.top = e.clientY + "px";
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Commission box sparkles
     const commissionBox = document.getElementById("commissionBox");
     if (commissionBox) {
       setInterval(() => {
         const star = document.createElement("div");
         star.className = "box-star";
         star.textContent = "✦";
-        star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
+        star.style.left = Math.random() * commissionBox.clientWidth + "px";
         star.style.top = "0px";
         commissionBox.appendChild(star);
         setTimeout(() => star.remove(), 6000);
       }, 700);
     }
 
-    // Language selection + swipe animation
+    // ── Language change (instant + slim swipe, no reload) ──────────
     document.querySelectorAll('.lang-item').forEach(item => {
       item.addEventListener('click', () => {
-        const lang = item.dataset.lang;
+        const newLang = item.dataset.lang;
 
-        // Play swipe animation
+        // Trigger slim swipe animation (same as original)
         const swipe = document.getElementById('langSwipe');
         if (swipe) {
           swipe.classList.remove('active');
-          // Force reflow to restart animation
-          void swipe.offsetWidth;
+          void swipe.offsetWidth; // reset animation
           swipe.classList.add('active');
         }
 
-        // Save and apply language after animation starts
+        // Change language instantly (no reload)
         setTimeout(() => {
-          localStorage.setItem("language", lang);
-          location.reload(); // Later replace with setLanguage(lang) when no-reload is ready
-        }, 180);
+          currentLang = newLang;
+          localStorage.setItem("language", newLang);
+
+          translateBlobs(newLang);
+          updateCommissionText(newLang);
+
+          // Optional: close popover after selection
+          document.getElementById('languagePopover').style.display = 'none';
+        }, 180); // matches animation duration
       });
     });
-
   </script>
 
-  <!-- Shared tab title animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
