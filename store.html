@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx's Shop</title>
-  <!-- Supabase JS client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* === YOUR FULL CSS (unchanged) === */
     :root {
       --bg: #d3d0c1;
       --card: #e8e5d8;
@@ -504,16 +502,104 @@
     <span id="snackText">Added successfully</span>
   </div>
 
-  <!-- Shop header, social bar, main content (unchanged) -->
-  <!-- Paste your full shop-header, social-bar, main-container HTML here -->
+  <!-- Shop header -->
+  <header class="shop-header">
+    <div class="shop-container">
+      <div class="shop-left">
+        <div style="display:flex; align-items:center; gap:1.2rem;">
+          <h1 class="shop-title" id="shopTitle">Velutinx's Shop</h1>
+          <button class="gift-btn" title="Gift / Support">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+              <path d="M3 8m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"></path>
+              <path d="M12 8l0 13"></path>
+              <path d="M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7"></path>
+              <path d="M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Social bar - icons only -->
+  <div class="social-bar">
+    <div class="social-icons">
+      <a class="social-btn" href="https://x.com/VelutinxSFW" target="_blank">
+        <img src="https://velutinx.github.io/images/LogoTwitter.png" alt="Twitter">
+      </a>
+      <a class="social-btn" href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank">
+        <img src="https://velutinx.github.io/images/LogoBluesky.png" alt="Bluesky">
+      </a>
+      <a class="social-btn" href="https://www.instagram.com/velutinxx/" target="_blank">
+        <img src="https://velutinx.github.io/images/LogoInstagram.png" alt="Instagram">
+      </a>
+      <a class="social-btn" href="https://www.pixiv.net/en/users/117116845" target="_blank">
+        <img src="https://velutinx.github.io/images/LogoPixiv.png" alt="Pixiv">
+      </a>
+      <a class="social-btn" href="https://ko-fi.com/velutinxstudio" target="_blank">
+        <img src="https://velutinx.github.io/images/LogoKoFi.png" alt="Ko-fi">
+      </a>
+      <a class="social-btn" href="https://subscribestar.adult/velutinx" target="_blank">
+        <img src="https://velutinx.github.io/images/LogoSubscribeStar.png" alt="SubscribeStar">
+      </a>
+      <a class="social-btn" href="https://discord.gg/XF363uYfSh" target="_blank">
+        <img src="https://velutinx.github.io/images/LogoDiscord.png" alt="Discord">
+      </a>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-container">
+    <aside class="sidebar">
+      <div class="section-title" id="filterTitle">Filter by Category</div>
+      <ul class="category-list">
+        <li class="active"><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M6.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M17.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path></svg> <span id="catAll">All</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catNot">Not On Booth</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catFrom">From Booth</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catSisters">The Sisters Corner</span></li>
+      </ul>
+
+      <div class="sort-options">
+        <div class="section-title" id="sortTitle">Sort by</div>
+        <button class="sort-btn active" data-sort="default"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg> <span id="sortDefault">Default</span></button>
+        <button class="sort-btn" data-sort="newest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11.933 5h-6.933v16h13v-8"></path><path d="M14 17h-5"></path><path d="M9 13h5v-4h-5z"></path><path d="M15 5v-2"></path><path d="M18 6l2 -2"></path><path d="M19 9h2"></path></svg> <span id="sortNewest">Newest</span></button>
+        <button class="sort-btn" data-sort="price-asc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9l3 -3l3 3"></path><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M17 6v12"></path></svg> <span id="sortLow">Price: Low to High</span></button>
+        <button class="sort-btn" data-sort="price-desc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M14 15l3 3l3 -3"></path><path d="M17 18v-12"></path></svg> <span id="sortHigh">Price: High to Low</span></button>
+      </div>
+
+      <button class="reset-btn" id="resetBtn">Reset Filters</button>
+    </aside>
+
+    <main class="products-section">
+      <div class="products-header">
+        <h2 id="productsTitle">Products</h2>
+        <div class="search-bar-wrapper">
+          <div class="search-field">
+            <div class="input-base outlined-input adorned-start">
+              <div class="adorned-start">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                  <path d="M21 21l-6 -6"></path>
+                </svg>
+              </div>
+              <input type="search" id="searchInput" placeholder="Search" class="input-element" oninput="filterAndSort()" />
+              <fieldset class="notched-outline"><legend><span></span></legend></fieldset>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-grid" id="productGrid"></div>
+    </main>
+  </div>
 
   <script>
-    // === SUPABASE CLIENT (using your real keys) ===
+    // === SUPABASE CLIENT ===
     const supabaseUrl = 'https://knbvlyngmjaxndkiqggl.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08';
     const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-    // === DOWNLOAD LINKS (replace with your real links) ===
+    // === DOWNLOAD LINKS (REPLACE WITH YOUR REAL LINKS) ===
     const downloads = {
       1: "https://example.com/downloads/pack001.zip",
       2: "https://example.com/downloads/pack002.zip",
@@ -526,6 +612,7 @@
       9: "https://example.com/downloads/pack009.zip"
     };
 
+    // === PRODUCTS DATA ===
     const productsData = [
       { id: 1, title: "Junie & Friends - Summer Mix Vol.4", originalPrice: 0.01, discount: 0, image: "storeassets/1.jpg" },
       { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", originalPrice: 1.50, discount: 0, image: "storeassets/2.jpg" },
@@ -546,6 +633,7 @@
       p.inCart = false;
     });
 
+    // === TRANSLATIONS ===
     const translations = {
       en: {
         shopTitle: "Velutinx's Shop",
@@ -567,8 +655,46 @@
         snackText: "Added successfully",
         loginBtn: "Login"
       },
-      ja: { /* your Japanese translations */ },
-      "zh-CN": { /* your Chinese translations */ }
+      ja: {
+        shopTitle: "Velutinxのショップ",
+        filterTitle: "カテゴリでフィルター",
+        catAll: "すべて",
+        catNot: "Boothにない",
+        catFrom: "Boothから",
+        catSisters: "姉妹のコーナー",
+        sortTitle: "並び替え",
+        sortDefault: "デフォルト",
+        sortNewest: "最新",
+        sortLow: "価格: 低い → 高い",
+        sortHigh: "価格: 高い → 低い",
+        resetBtn: "フィルターをリセット",
+        productsTitle: "商品",
+        searchPlaceholder: "検索",
+        cartTitle: "ショッピングカート",
+        totalLabel: "合計",
+        snackText: "カートに追加しました",
+        loginBtn: "ログイン"
+      },
+      "zh-CN": {
+        shopTitle: "Velutinx的商店",
+        filterTitle: "按类别筛选",
+        catAll: "全部",
+        catNot: "不在Booth上",
+        catFrom: "来自Booth",
+        catSisters: "姐妹角落",
+        sortTitle: "排序方式",
+        sortDefault: "默认",
+        sortNewest: "最新",
+        sortLow: "价格: 低到高",
+        sortHigh: "价格: 高到低",
+        resetBtn: "重置筛选",
+        productsTitle: "商品",
+        searchPlaceholder: "搜索",
+        cartTitle: "购物车",
+        totalLabel: "总计",
+        snackText: "已成功添加到购物车",
+        loginBtn: "登录"
+      }
     };
 
     const grid = document.getElementById("productGrid");
@@ -916,7 +1042,22 @@
         cartItemsEl.appendChild(div);
       });
 
-      cartTotalEl.textContent = formatPrice(realTotalUSD, currentCurrency);
+      let discountRate = 0;
+      if (count >= 5) discountRate = 0.30;
+      else if (count >= 2) discountRate = 0.10;
+
+      const discountAmount = realTotalUSD * discountRate;
+      const finalTotal = realTotalUSD - discountAmount;
+
+      if (discountRate > 0) {
+        discountRow.style.display = "flex";
+        discountAmountEl.textContent = `-${formatPrice(discountAmount, currentCurrency)}`;
+        discountRow.querySelector("span:first-child").textContent = `Bulk discount (${Math.round(discountRate*100)}%)`;
+      } else {
+        discountRow.style.display = "none";
+      }
+
+      cartTotalEl.textContent = formatPrice(finalTotal, currentCurrency);
 
       const isActive = count > 0;
       [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
@@ -1020,21 +1161,55 @@
   <script>
     paypal.Buttons({
       createOrder: function(data, actions) {
-        const total = realTotalUSD.toFixed(2);
+        let discountRate = 0;
+        if (cart.length >= 5) discountRate = 0.30;
+        else if (cart.length >= 2) discountRate = 0.10;
+
+        const total = (realTotalUSD * (1 - discountRate)).toFixed(2);
+
         return actions.order.create({
           purchase_units: [{
             amount: { value: total, currency_code: "USD" }
           }]
         });
       },
-      onApprove: function(data, actions) {
-        return actions.order.capture().then(function(details) {
-          let productCode = "cart";
-          if (cart.length > 0) {
-            const firstId = cart[0].id;
-            productCode = "pack" + String(firstId).padStart(3, '0');
-          }
-          window.location.href = "success.html?product=" + productCode;
+      onApprove: async function(data, actions) {
+        return actions.order.capture().then(async function(details) {
+          // Record to Supabase
+          await recordPurchase(details);
+
+          // Show success + downloads
+          cartItemsEl.innerHTML = `
+            <div style="text-align:center; padding:2rem; color:#22c55e;">
+              <h3>Payment Successful! 🎉</h3>
+              <p>Thank you for supporting my work. Your order is ready.</p>
+              <p>Order ID: <strong id="orderIdDisplay">${details.id}</strong></p>
+              <p>Click below to download your purchase(s):</p>
+              <div id="downloadButtons"></div>
+              <p>If the links don't appear or you have issues, contact me on Discord or Twitter with your Order ID.</p>
+            </div>
+          `;
+
+          // Generate download buttons
+          const buttonsContainer = document.getElementById("downloadButtons");
+          cart.forEach(item => {
+            const link = downloads[item.id] || "#";
+            const btn = document.createElement("a");
+            btn.href = link;
+            btn.target = "_blank";
+            btn.style = "display:block; margin:0.8rem auto; padding:0.8rem 1.5rem; background:#22c55e; color:white; border-radius:8px; text-decoration:none; max-width:300px;";
+            btn.textContent = `Download ${item.title}`;
+            buttonsContainer.appendChild(btn);
+          });
+
+          // Hide PayPal & totals
+          paypalContainer.style.display = "none";
+          document.querySelector(".cart-total-row").style.display = "none";
+          discountRow.style.display = "none";
+
+          // Clear cart
+          cart = [];
+          updateCartDisplay();
         });
       },
       onError: function(err) {
