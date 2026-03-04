@@ -7,24 +7,56 @@
 </head>
 <body>
 
+  <!-- Swipe animation layer -->
+  <div class="lang-swipe" id="langSwipe"></div>
+
   <div class="background-wrapper">
     <div class="background-gradient"></div>
     <div class="wave-overlay"></div>
   </div>
-  
-  <div class="lang-swipe" id="langSwipe"></div>
-  <div class="lang-toggle" id="langToggle">🇯🇵</div>
-  <div class="theme-toggle" id="themeToggle"><div class="theme-knob"></div></div>
-  
+
+  <!-- Language selector: globe button + popover -->
+  <div id="langContainer">
+    <button class="lang-btn" title="Select Language">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5h7"></path>
+        <path d="M7 4c0 4.846 0 7 .5 8"></path>
+        <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+        <path d="M12 20l4 -9l4 9"></path>
+        <path d="M19.1 18h-6.2"></path>
+      </svg>
+    </button>
+
+    <div id="languagePopover">
+      <div class="lang-item" data-lang="en">
+        <img src="https://flagcdn.com/w40/us.png" alt="English" />
+        <p>English</p>
+      </div>
+      <div class="lang-item" data-lang="ja">
+        <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
+        <p>日本語</p>
+      </div>
+      <div class="lang-item" data-lang="zh">
+        <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
+        <p>简体中文</p>
+      </div>
+      <div class="lang-item" data-lang="es">
+        <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
+        <p>Español</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme toggle -->
+  <div class="theme-toggle" id="themeToggle">
+    <div class="theme-knob"></div>
+  </div>
+
   <!-- Page wrapper -->
   <div id="page">
-
-    <!-- Navigation -->
     <div id="navContainer"></div>
-
     <div class="divider"></div>
 
-    <!-- Artwork content -->
     <section class="artwork-wrap">
       <div class="artwork-intro" id="artworkIntro">
         Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images
@@ -33,74 +65,23 @@
     </section>
 
     <div class="divider"></div>
-
   </div>
 
   <!-- Zoom overlay -->
   <div class="zoom-overlay" id="zoomOverlay"></div>
 
-  <!-- Shared navigation loader -->
+  <!-- Scripts -->
   <script src="/assets/js/navigation.js"></script>
+  <script src="/assets/js/translations.js"></script>
 
-  <!-- All shared functionality inline with localStorage persistence + robust blob memory -->
   <script>
-    // Load saved preferences on page load
-    const savedLang = localStorage.getItem("language");
-    const savedDark = localStorage.getItem("darkMode") === "true";
-
-    let isJapanese = savedLang === "jp";
-
-    // Function to translate blobs (robust — polls if not ready)
-    function translateBlobs(isJp) {
-      const blobs = document.querySelectorAll(".blob-text");
-      if (blobs.length === 0) {
-        setTimeout(() => translateBlobs(isJp), 100);
-        return;
-      }
-      blobs.forEach(t => {
-        t.textContent = isJp ? t.dataset.jp : t.dataset.en;
-      });
-    }
-
-    // Apply saved language on load
-    translateBlobs(isJapanese);
-
-    // Page-specific (artwork intro)
-    document.getElementById("artworkIntro").textContent = isJapanese 
-      ? "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像"
-      : "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
-
-    document.getElementById("langToggle").textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-
-    // Apply saved dark mode on load
-    if (savedDark) {
+    // Apply dark mode
+    if (localStorage.getItem("darkMode") === "true") {
       document.body.classList.add("dark");
     }
 
-    // Language toggle with flags + save preference + update blobs
-    langToggle.onclick = () => {
-      langSwipe.classList.remove("active");
-      void langSwipe.offsetWidth;
-      langSwipe.classList.add("active");
-
-      setTimeout(() => {
-        isJapanese = !isJapanese;
-
-        translateBlobs(isJapanese);
-
-        document.getElementById("artworkIntro").textContent = isJapanese 
-          ? "こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ 一時的な画像"
-          : "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images";
-
-        langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-
-        // Save language preference
-        localStorage.setItem("language", isJapanese ? "jp" : "en");
-      }, 180);
-    };
-
-    // Theme toggle + save preference
-    themeToggle.onclick = () => {
+    // Theme toggle
+    document.getElementById("themeToggle").onclick = () => {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark"));
     };
@@ -116,9 +97,8 @@
       star.className = "star";
       star.textContent = "✦";
       star.style.setProperty("--drift", Math.random());
-      star.style.left = e.clientX + "px";
-      star.style.top = e.clientY + "px";
-
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 2000);
     });
@@ -216,9 +196,19 @@
         originRect = null;
       }, 230);
     };
+
+    // Language switch – using translations.js
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const newLang = item.dataset.lang;
+        setLanguage(newLang); // from translations.js
+      });
+    });
+
+    // Apply artwork page translations on load
+    applyTranslations('artwork');
   </script>
 
-  <!-- Shared tab title animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
