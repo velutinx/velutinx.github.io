@@ -841,7 +841,7 @@ body.dark #leaderboard::before {
   position: fixed;
   top: 20%;
   right: 24px;
-  z-index: 10001;                    /* ↑ higher than theme toggle */
+  z-index: 10001;
 }
 
 .lang-btn {
@@ -871,17 +871,16 @@ body.dark .lang-btn {
   color: var(--text-dark);
 }
 
-/* Language popover with smooth fade in/out on hover + full dark mode support */
+/* Language popover – original size & positioning, with fade */
 #languagePopover {
   position: absolute;
-  top: 50%;
-  left: calc(-100% - 4px);           /* flush left + tiny overlap to avoid gap */
-  transform: translateY(-50%) translateX(-8px); /* start shifted for slide-in */
+  top: 0;                            /* ← back to original top-aligned */
+  left: calc(-100% - 4px);           /* flush left + tiny overlap */
   background: var(--bg);
   border: 2px solid var(--divider);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-  min-width: 240px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  min-width: 240px;                  /* original width */
   z-index: 10000;
   opacity: 0;
   visibility: hidden;
@@ -890,44 +889,42 @@ body.dark .lang-btn {
   pointer-events: none;
   transition: 
     opacity 0.5s ease,
-    visibility 0.5s ease,
+    visibility 0s linear 0.5s,       /* hide instantly after fade out */
     transform 0.5s ease;
+  transform: translateX(-10px);      /* subtle slide from left */
 }
 
-/* Dark mode adjustments */
+/* Dark mode */
 body.dark #languagePopover {
   background: var(--bg-dark);
   border-color: var(--divider-dark);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6); /* stronger shadow in dark mode */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
 
-/* Show + fade in + slide on hover */
+/* Fade in + slide on hover */
 #langContainer:hover #languagePopover,
 .lang-btn:hover ~ #languagePopover,
 #languagePopover:hover {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateY(-50%) translateX(0);
+  transform: translateX(0);
+  transition-delay: 0s;              /* instant start */
 }
 
-/* Instant appear, small delay on hide for forgiveness */
-#languagePopover {
-  transition-delay: 0s, 0s, 0s;      /* appear immediately */
-}
-
+/* Fade out when leaving */
 #langContainer:not(:hover) #languagePopover {
-  transition-delay: 0.1s;             /* tiny delay before fade-out */
+  transition-delay: 0s, 0s, 0s;      /* fade out immediately */
 }
 
-/* Lang items – better contrast in both modes */
+/* Lang items – original look + dark mode hover */
 .lang-item {
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 12px 18px;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease;
+  transition: background 0.2s, color 0.2s;
   color: var(--text);
 }
 
@@ -945,18 +942,18 @@ body.dark .lang-item:hover {
   color: #fff;
 }
 
-/* Flag images – subtle border/shadow for visibility */
 .lang-item img {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.25);
-  border: 1px solid rgba(0,0,0,0.1);
 }
 
-body.dark .lang-item img {
-  border-color: rgba(255,255,255,0.15);
+.lang-item p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
 }
+
 
 
