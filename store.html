@@ -640,6 +640,7 @@
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
       localStorage.setItem("language", lang);
 
+      // Play swipe animation
       const swipe = document.getElementById("langSwipe");
       if (swipe) {
         swipe.classList.remove("active");
@@ -647,8 +648,26 @@
         swipe.classList.add("active");
       }
 
-      // Force re-apply all translations
+      // Re-apply all translations
       applyTranslations("shop");
+
+      // Force re-update category/sort button text (they're static HTML)
+      document.getElementById("filterTitle").textContent = translations[lang]?.filterTitle || translations.en.filterTitle;
+      document.getElementById("catAll").textContent = translations[lang]?.catAll || translations.en.catAll;
+      document.getElementById("catNot").textContent = translations[lang]?.catNot || translations.en.catNot;
+      document.getElementById("catFrom").textContent = translations[lang]?.catFrom || translations.en.catFrom;
+      document.getElementById("catSisters").textContent = translations[lang]?.catSisters || translations.en.catSisters;
+
+      document.getElementById("sortTitle").textContent = translations[lang]?.sortTitle || translations.en.sortTitle;
+      document.getElementById("sortDefault").textContent = translations[lang]?.sortDefault || translations.en.sortDefault;
+      document.getElementById("sortNewest").textContent = translations[lang]?.sortNewest || translations.en.sortNewest;
+      document.getElementById("sortLow").textContent = translations[lang]?.sortLow || translations.en.sortLow;
+      document.getElementById("sortHigh").textContent = translations[lang]?.sortHigh || translations.en.sortHigh;
+      document.getElementById("resetBtn").textContent = translations[lang]?.resetBtn || translations.en.resetBtn;
+
+      document.getElementById("productsTitle").textContent = translations[lang]?.productsTitle || translations.en.productsTitle;
+      document.getElementById("cartTitle").textContent = translations[lang]?.cartTitle || translations.en.cartTitle;
+      document.getElementById("totalLabel").textContent = translations[lang]?.totalLabel || translations.en.totalLabel;
 
       updateAllPrices();
       updateCartDisplay();
@@ -773,25 +792,6 @@
     searchInput.addEventListener("input", filterAndSort);
     sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
 
-    // Language button events
-    document.getElementById("langBtn").addEventListener("click", e => {
-      e.stopPropagation();
-      document.getElementById("languagePopover").classList.toggle("show");
-    });
-
-    document.addEventListener("click", e => {
-      if (!document.getElementById("langBtn").contains(e.target) && !document.getElementById("languagePopover").contains(e.target)) {
-        document.getElementById("languagePopover").classList.remove("show");
-      }
-    });
-
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        setLanguage(item.dataset.lang);
-        document.getElementById("languagePopover").classList.remove("show");
-      });
-    });
-
     cartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
     floatingCartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
     cartClose.addEventListener("click", () => { cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); });
@@ -820,6 +820,25 @@
     });
 
     themeBtn.addEventListener("click", toggleTheme);
+
+    // Language button events
+    document.getElementById("langBtn").addEventListener("click", e => {
+      e.stopPropagation();
+      document.getElementById("languagePopover").classList.toggle("show");
+    });
+
+    document.addEventListener("click", e => {
+      if (!document.getElementById("langBtn").contains(e.target) && !document.getElementById("languagePopover").contains(e.target)) {
+        document.getElementById("languagePopover").classList.remove("show");
+      }
+    });
+
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        setLanguage(item.dataset.lang);
+        document.getElementById("languagePopover").classList.remove("show");
+      });
+    });
 
     // Init
     createCards();
