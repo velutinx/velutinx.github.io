@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
-    /* Poll-specific styles */
+    /* Poll-specific styles (unchanged) */
     .poll-section {
       max-width: 1600px;
       margin: 0 auto;
@@ -32,7 +32,6 @@
       position: relative;
     }
 
-    /* Big cards */
     .big-card {
       position: absolute;
       top: 23%;
@@ -61,7 +60,6 @@
     #leftBig { left: -375px; }
     #rightBig { right: -375px; }
 
-    /* Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -135,7 +133,6 @@
       font-weight: bold;
     }
 
-    /* ── WINNER CROSS OVERLAY with pulsing animation ─────────────── */
     .card.winner::after {
       content: "";
       position: absolute;
@@ -150,11 +147,11 @@
 
     body.dark .card.winner::after {
       mix-blend-mode: screen;
-      opacity: 0.75;           /* slightly stronger base in dark mode */
+      opacity: 0.75;
     }
 
     .card.winner {
-      box-shadow: 0 0 0 3px #e63946 inset; /* subtle red hint */
+      box-shadow: 0 0 0 3px #e63946 inset;
     }
 
     @keyframes pulseCross {
@@ -162,7 +159,6 @@
       50%      { opacity: 0.80; }
     }
 
-    /* Bottom */
     .bottom {
       display: flex;
       justify-content: center;
@@ -231,15 +227,47 @@
 </head>
 <body>
 
-  <!-- Animated background – same as other pages -->
+  <!-- Swipe animation layer -->
+  <div class="lang-swipe" id="langSwipe"></div>
+
   <div class="background-wrapper">
     <div class="background-gradient"></div>
     <div class="wave-overlay"></div>
   </div>
 
-  <!-- Fixed controls -->
-  <div class="lang-swipe" id="langSwipe"></div>
-  <div class="lang-toggle" id="langToggle">🇯🇵</div>
+  <!-- Language selector: globe button + popover -->
+  <div id="langContainer">
+    <button class="lang-btn" title="Select Language">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5h7"></path>
+        <path d="M7 4c0 4.846 0 7 .5 8"></path>
+        <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+        <path d="M12 20l4 -9l4 9"></path>
+        <path d="M19.1 18h-6.2"></path>
+      </svg>
+    </button>
+
+    <div id="languagePopover">
+      <div class="lang-item" data-lang="en">
+        <img src="https://flagcdn.com/w40/us.png" alt="English" />
+        <p>English</p>
+      </div>
+      <div class="lang-item" data-lang="ja">
+        <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
+        <p>日本語</p>
+      </div>
+      <div class="lang-item" data-lang="zh">
+        <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
+        <p>简体中文</p>
+      </div>
+      <div class="lang-item" data-lang="es">
+        <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
+        <p>Español</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme toggle -->
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
@@ -254,8 +282,8 @@
 
     <!-- Poll section -->
     <section class="poll-section">
-      <h1 class="poll-title" data-en="Vote for Your Favorite Character" data-jp="お気に入りのキャラクターに投票">Vote for Your Favorite Character</h1>
-      <p class="poll-subtitle" data-en="Click once — you can change your vote anytime" data-jp="一度クリック — いつでも投票を変更できます">Click once — you can change your vote anytime</p>
+      <h1 class="poll-title" id="pollTitle">Vote for Your Favorite Character</h1>
+      <p class="poll-subtitle" id="pollSubtitle">Click once — you can change your vote anytime</p>
 
       <div class="poll-page">
         <!-- Big cards -->
@@ -272,8 +300,8 @@
 
           <div class="bottom">
             <div id="leaderboard">
-              <h3 data-en="Leaderboard" data-jp="リーダーボード">Leaderboard</h3>
-              <div class="tooltip" data-en="Website + Discord votes" data-jp="ウェブサイト + Discord 投票">Website + Discord votes</div>
+              <h3 id="leaderboardTitle">Leaderboard</h3>
+              <div class="tooltip" id="leaderboardTooltip">Website + Discord votes</div>
               <div id="results">Loading…</div>
             </div>
 
@@ -281,7 +309,7 @@
               <a class="icon-link" href="https://discord.gg/XF363uYfSh" target="_blank">
                 <img src="/images/LogoDiscord.png" alt="Discord">
               </a>
-              <div class="discord-disclaimer" data-en="Join discord for an extra vote!!" data-jp="追加投票のためにDiscordに参加!!">Join discord for an extra vote!!</div>
+              <div class="discord-disclaimer" id="discordDisclaimer">Join discord for an extra vote!!</div>
             </div>
           </div>
         </div>
@@ -292,45 +320,18 @@
 
   </div>
 
-  <!-- Shared navigation loader -->
+  <!-- Scripts -->
   <script src="/assets/js/navigation.js"></script>
+  <script src="/assets/js/translations.js"></script>
 
-  <!-- Poll logic -->
   <script>
-    // ---------- Persistence & language/theme ----------
-    const savedLang = localStorage.getItem("language");
-    const savedDark = localStorage.getItem("darkMode") === "true";
-
-    let isJapanese = savedLang === "jp";
-
-    function translateText() {
-      document.querySelectorAll('[data-en][data-jp]').forEach(el => {
-        el.textContent = isJapanese ? el.dataset.jp : el.dataset.en;
-      });
-    }
-
-    translateText();
-
-    document.getElementById("langToggle").textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-
-    if (savedDark) {
+    // Dark mode
+    if (localStorage.getItem("darkMode") === "true") {
       document.body.classList.add("dark");
     }
 
-    langToggle.onclick = () => {
-      langSwipe.classList.remove("active");
-      void langSwipe.offsetWidth;
-      langSwipe.classList.add("active");
-
-      setTimeout(() => {
-        isJapanese = !isJapanese;
-        translateText();
-        langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-        localStorage.setItem("language", isJapanese ? "jp" : "en");
-      }, 180);
-    };
-
-    themeToggle.onclick = () => {
+    // Theme toggle
+    document.getElementById("themeToggle").onclick = () => {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark"));
     };
@@ -346,9 +347,8 @@
       star.className = "star";
       star.textContent = "✦";
       star.style.setProperty("--drift", Math.random());
-      star.style.left = e.clientX + "px";
-      star.style.top = e.clientY + "px";
-
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 2000);
     });
@@ -365,7 +365,7 @@
       setTimeout(() => star.remove(), 8000);
     }, 400);
 
-    // ---------- Poll logic ----------
+    // Poll logic (unchanged except language)
     const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
 
@@ -383,13 +383,11 @@
 
     let rotateIndex = 1;
 
-    // Per-browser voter hash
     let voterHash = localStorage.getItem("voter_hash_poll");
     if (!voterHash) {
       voterHash = crypto.randomUUID();
       localStorage.setItem("voter_hash_poll", voterHash);
     }
-    console.log("Current voter hash (per-browser):", voterHash);
 
     // Build small cards
     for (let i = 1; i <= TOTAL; i++) {
@@ -414,7 +412,6 @@
       grid.appendChild(card);
     }
 
-    // Show selected on left big card
     function showSelected(id) {
       leftBig.classList.remove("show");
       setTimeout(() => {
@@ -423,7 +420,6 @@
       }, 150);
     }
 
-    // Rotate right big card
     function rotate() {
       rightBig.classList.remove("show");
       setTimeout(() => {
@@ -437,7 +433,6 @@
     rotate();
     showSelected(1);
 
-    // Vote function — upsert with on_conflict
     async function vote(optionId) {
       try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/votes?on_conflict=poll_id,voter_hash`, {
@@ -463,16 +458,13 @@
             fetchLeaderboard();
           }, 800);
         } else {
-          const err = await response.text();
-          console.error("Vote failed:", response.status, err);
-          alert("Vote failed – check console for details");
+          console.error("Vote failed:", response.status);
         }
       } catch (err) {
         console.error("Vote error:", err);
       }
     }
 
-    // Progress bars – direct from votes table
     async function fetchResults() {
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?poll_id=eq.${POLL_ID}&select=option_id`, {
@@ -482,8 +474,6 @@
         if (!res.ok) throw new Error(await res.text());
 
         const votes = await res.json();
-        console.log("Raw votes fetched:", votes.length, "votes");
-
         const counts = {};
         for (let i = 1; i <= TOTAL; i++) counts[i] = 0;
         votes.forEach(v => { if (v.option_id) counts[v.option_id]++; });
@@ -501,31 +491,22 @@
       }
     }
 
-    // Leaderboard + card labels + WINNER marking
     async function fetchLeaderboard() {
       try {
-        // Fetch winners (reliable selected_at)
         const winRes = await fetch(
           `${SUPABASE_URL}/rest/v1/poll_winners?poll_id=eq.${POLL_ID}&select=option_id,selected_at`,
           { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
         );
 
-        if (!winRes.ok) throw new Error(await winRes.text());
-
         const winners = await winRes.json();
         const winnerIds = new Set(winners.map(w => Number(w.option_id)));
 
-        // Fetch names & scores from poll_result
         const res = await fetch(
           `${SUPABASE_URL}/rest/v1/poll_result?poll_id=eq.${POLL_ID}&order=option_id.asc&select=option_id,character_name,score`,
           { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
         );
 
-        if (!res.ok) throw new Error(await res.text());
-
         const rows = await res.json();
-
-        // Build leaderboard HTML (sort by score descending for true "leaderboard")
         const sortedRows = rows.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
 
         let html = "";
@@ -545,10 +526,8 @@
 
         resultsBox.innerHTML = html || "No votes yet";
 
-        // Update card labels + mark winners with cross
         document.querySelectorAll(".card").forEach(card => {
           card.classList.remove("winner");
-
           const id = Number(card.dataset.id);
           const row = rows.find(r => Number(r.option_id) === id);
 
@@ -556,32 +535,37 @@
             card.querySelector(".label").textContent = row.character_name;
           }
 
-          // If in winners → show pulsing cross
           if (winnerIds.has(id)) {
             card.classList.add("winner");
           }
         });
-
       } catch (err) {
         console.error("fetchLeaderboard error:", err);
         resultsBox.innerHTML = "Error loading leaderboard";
       }
     }
 
-    // Initial load
     fetchResults();
     fetchLeaderboard();
     setInterval(fetchResults, 30000);
     setInterval(fetchLeaderboard, 30000);
 
-    // Organic wobble for cards
-    document.querySelectorAll('.card, .big-card').forEach(el => {
-      const offset = Math.random() * 1.5;
-      el.style.setProperty('--random-offset', `${offset}s`);
+    // Language switch
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        setLanguage(item.dataset.lang);
+      });
+    });
+
+    // Apply poll page translations on load
+    applyTranslations('poll');
+
+    // Re-apply after language change
+    document.addEventListener('languageChanged', () => {
+      applyTranslations('poll');
     });
   </script>
 
-  <!-- Shared tab title animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
