@@ -166,10 +166,10 @@ document.querySelectorAll('.lang-item').forEach(item => {
     // Play swipe animation reliably every time
     const swipe = document.getElementById('langSwipe');
     if (swipe) {
-      // Reset completely
+      // Full reset
       swipe.style.animation = 'none';
-      swipe.offsetHeight; // force reflow (shorter than void offsetWidth)
-      // Re-apply animation
+      swipe.offsetHeight; // force reflow
+      // Trigger animation
       swipe.style.animation = 'langSwipeUp 0.55s ease-in forwards';
     }
 
