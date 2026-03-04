@@ -198,63 +198,7 @@ body.dark {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Language Swipe Overlay */
-.lang-swipe {
-  position: fixed;
-  bottom: -120%;
-  left: 0;
-  width: 100%;
-  height: 120%;
-  background: var(--divider);
-  z-index: 10000;
-  pointer-events: none;
-}
-.lang-swipe.active {
-  animation: langSwipeUp 0.55s ease-in forwards;
-}
 
-@keyframes langSwipeUp {
-  to { bottom: 120%; }
-}
-
-/* Language Toggle – make it transparent with subtle border/glow */
-.lang-toggle {
-  position: fixed;
-  top: 20%;
-  right: 24px;
-  width: 72px;
-  height: 48px;
-  background: transparent;                    /* ← changed to transparent */
-  border: 2px solid var(--divider);           /* subtle border using your divider color */
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 32px;
-  line-height: 48px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);    /* soft shadow for depth */
-  backdrop-filter: blur(8px);                 /* glass-like effect – optional but nice */
-  transition: all 0.3s ease;
-}
-
-.lang-toggle:hover {
-  background: rgba(170, 158, 118, 0.15);      /* very faint hover tint using divider color */
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-  transform: scale(1.08);
-}
-
-/* Dark mode adjustments for lang toggle */
-body.dark .lang-toggle {
-  border-color: var(--divider-dark);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-body.dark .lang-toggle:hover {
-  background: rgba(111, 106, 78, 0.2);        /* faint dark hover */
-}
 
 /* Theme Toggle – transparent pill with glass effect */
 .theme-toggle {
@@ -643,21 +587,6 @@ body.dark .commission-box::before {
   to { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
 }
 
-/* Make language toggle rectangular + bigger flags */
-.lang-toggle {
-  width: 72px !important;          /* wider than tall → rectangle */
-  height: 48px !important;         /* adjust height as needed */
-  font-size: 32px !important;      /* ~3x normal emoji size */
-  line-height: 48px !important;    /* center vertically */
-  padding: 0 !important;
-  border-radius: 8px !important;   /* slightly softer corners */
-}
-
-/* Optional: make it even more flag-like */
-.lang-toggle:hover {
-  transform: scale(1.1);
-  transition: transform 0.2s ease;
-}
 
 /* Contact Page Layout */
 .contact-wrap {
@@ -902,4 +831,99 @@ body.dark .card::before,
 body.dark .big-card::before,
 body.dark #leaderboard::before {
   background: rgba(22, 22, 27, 0.25); /* dark mode faint veil */
+}
+
+/* ================================================
+   Language Selector (Globe button + left popover)
+   ================================================ */
+
+#langContainer {
+  position: fixed;
+  top: 20%;
+  right: 24px;
+  z-index: 9999;
+}
+
+.lang-btn {
+  width: 72px;
+  height: 48px;
+  background: transparent;
+  border: 2px solid var(--divider);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  backdrop-filter: blur(8px);
+}
+
+.lang-btn:hover {
+  background: rgba(170, 158, 118, 0.15);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  transform: scale(1.08);
+}
+
+body.dark .lang-btn {
+  border-color: var(--divider-dark);
+  color: var(--text-dark);
+}
+
+#languagePopover {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin-right: 12px;
+  background: var(--bg);
+  border: 2px solid var(--divider);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  min-width: 240px;
+  z-index: 10000;
+  display: none;
+  overflow: hidden;
+  padding: 8px 0;
+}
+
+#langContainer:hover #languagePopover,
+#languagePopover:hover {
+  display: block;
+}
+
+.lang-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text);
+}
+
+.lang-item:hover {
+  background: rgba(170,158,118,0.2);
+}
+
+.lang-item img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.lang-item p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+body.dark #languagePopover {
+  background: var(--bg-dark);
+  border-color: var(--divider-dark);
+}
+
+body.dark .lang-item {
+  color: var(--text-dark);
 }
