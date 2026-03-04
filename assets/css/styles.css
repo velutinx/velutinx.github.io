@@ -935,19 +935,21 @@ body.dark .lang-item:hover {
 /* Keep swipe animation (unchanged) */
 .lang-swipe {
   position: fixed;
-  bottom: -120%;
+  bottom: -100%;               /* slightly less dramatic start */
   left: 0;
   width: 100%;
-  height: 120%;
+  height: 20%;                 /* ← slimmer bar (was 120%) */
   background: var(--divider);
   z-index: 10000;
   pointer-events: none;
+  opacity: 0.9;                /* subtle transparency like old feel */
 }
 
 .lang-swipe.active {
-  animation: langSwipeUp 0.55s ease-in forwards;
+  animation: langSwipeUp 0.45s ease-in forwards; /* slightly faster */
 }
 
 @keyframes langSwipeUp {
-  to { bottom: 120%; }
+  to { bottom: 100%; }
 }
+
