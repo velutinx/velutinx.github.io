@@ -871,11 +871,24 @@ body.dark .lang-btn {
   color: var(--text-dark);
 }
 
+/* Invisible bridge to prevent popover from disappearing when mouse moves from button to menu */
+#langContainer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 90%;               /* extends slightly left of button */
+  width: 40px;              /* covers any small gap */
+  height: 100%;
+  background: transparent;
+  pointer-events: auto;
+  z-index: 9998;
+}
+
 #languagePopover {
   position: absolute;
   top: 0;
-  right: 100%;
-  margin-right: 12px;
+  right: 100%;              /* flush against button edge */
+  margin-right: 0;          /* removed gap → no disappearing */
   background: var(--bg);
   border: 2px solid var(--divider);
   border-radius: 12px;
@@ -887,7 +900,10 @@ body.dark .lang-btn {
   padding: 8px 0;
 }
 
+/* Show popover on hover of container, button, bridge, or popover itself */
 #langContainer:hover #languagePopover,
+.lang-btn:hover + #languagePopover,
+#langContainer::after:hover ~ #languagePopover,
 #languagePopover:hover {
   display: block;
 }
@@ -898,12 +914,22 @@ body.dark .lang-btn {
   gap: 14px;
   padding: 12px 18px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
   color: var(--text);
 }
 
 .lang-item:hover {
-  background: rgba(170,158,118,0.2);
+  background: rgba(170,158,118,0.25);
+  color: #000;              /* better contrast on hover */
+}
+
+body.dark .lang-item {
+  color: var(--text-dark);
+}
+
+body.dark .lang-item:hover {
+  background: rgba(111,106,78,0.35);
+  color: #fff;
 }
 
 .lang-item img {
@@ -911,21 +937,13 @@ body.dark .lang-btn {
   height: 30px;
   border-radius: 50%;
   object-fit: cover;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 .lang-item p {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-}
-
-body.dark #languagePopover {
-  background: var(--bg-dark);
-  border-color: var(--divider-dark);
-}
-
-body.dark .lang-item {
-  color: var(--text-dark);
 }
 
 /* Language change swipe animation (bottom → top) */
