@@ -158,29 +158,32 @@
       }, 700);
     }
 
-    // Language switch + swipe + instant translation
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const newLang = item.dataset.lang;
+// Language switch + swipe + instant translation
+document.querySelectorAll('.lang-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const newLang = item.dataset.lang;
 
-        // Play swipe animation reliably every time
-        const swipe = document.getElementById('langSwipe');
-        if (swipe) {
-          swipe.style.animation = 'none';
-          swipe.offsetHeight; // force reflow
-          swipe.style.animation = 'langSwipeUp 0.55s ease-in forwards';
-        }
+    // Play swipe animation reliably
+    const swipe = document.getElementById('langSwipe');
+    if (swipe) {
+      // Reset animation state
+      swipe.classList.remove('active');
+      swipe.style.animation = 'none';
+      void swipe.offsetHeight; // strong reflow
+      // Trigger animation via class (matches your CSS)
+      swipe.classList.add('active');
+    }
 
-        // Instant language change
-        setTimeout(() => {
-          currentLang = newLang;
-          localStorage.setItem("language", newLang);
+    // Instant language change
+    setTimeout(() => {
+      currentLang = newLang;
+      localStorage.setItem("language", newLang);
 
-          translateBlobs(newLang);
-          updateCommissionText(newLang);
-        }, 180);
-      });
-    });
+      translateBlobs(newLang);
+      updateCommissionText(newLang);
+    }, 180);
+  });
+});
   </script>
 
   <script src="/assets/js/tab-title-animation.js"></script>
