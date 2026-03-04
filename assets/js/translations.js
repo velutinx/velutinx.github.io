@@ -56,8 +56,21 @@ const translations = {
     }
   },
 
-  // Add more pages later, e.g.:
-  // contact: { en: { ... }, ja: { ... }, zh: { ... }, es: { ... } }
+  // Artwork page
+  artwork: {
+    en: {
+      artworkIntro: "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images"
+    },
+    ja: {
+      artworkIntro: "こんにちは！こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ — Temporal Images"
+    },
+    zh: {
+      artworkIntro: "你好！这些只是我作品的一小部分样本——我在免费Discord上分享更多！ — Temporal Images"
+    },
+    es: {
+      artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images"
+    }
+  }
 };
 
 // Current language
@@ -72,15 +85,20 @@ function applyTranslations(pageKey = 'commissions') {
     return;
   }
 
-  // Commissions page elements
-  const titleEl = document.getElementById('comTitle');
-  if (titleEl) titleEl.textContent = pageTranslations.comTitle;
+  // Update based on page
+  if (pageKey === 'commissions') {
+    const titleEl = document.getElementById('comTitle');
+    if (titleEl) titleEl.textContent = pageTranslations.comTitle;
 
-  const infoEl = document.getElementById('comInfo');
-  if (infoEl) infoEl.textContent = pageTranslations.comInfo;
+    const infoEl = document.getElementById('comInfo');
+    if (infoEl) infoEl.textContent = pageTranslations.comInfo;
 
-  const listEl = document.getElementById('comList');
-  if (listEl) listEl.innerHTML = pageTranslations.comList.trim();
+    const listEl = document.getElementById('comList');
+    if (listEl) listEl.innerHTML = pageTranslations.comList.trim();
+  } else if (pageKey === 'artwork') {
+    const introEl = document.getElementById('artworkIntro');
+    if (introEl) introEl.textContent = pageTranslations.artworkIntro;
+  }
 }
 
 // Change language + trigger swipe + update UI
@@ -96,19 +114,16 @@ function setLanguage(lang) {
   const swipe = document.getElementById('langSwipe');
   if (swipe) {
     swipe.classList.remove('active');
-    void swipe.offsetHeight; // reflow to restart animation
+    void swipe.offsetHeight; // reflow
     swipe.classList.add('active');
   }
 
-  // Apply translations instantly
-  applyTranslations();
-
-  // NO forced close — CSS hover handles visibility perfectly now
-  // Optional: dispatch event for other scripts
+  // Apply translations (pageKey is passed from HTML)
+  // We will call applyTranslations() with the correct key on each page
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
-// Initialize on page load
+// Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
-  applyTranslations();
+  // Each page will call applyTranslations('pageKey') after loading
 });
