@@ -636,21 +636,24 @@
     }
 
     function setLanguage(lang) {
+      if (currentLang === lang) return; // avoid unnecessary re-run
+
       currentLang = lang;
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
       localStorage.setItem("language", lang);
 
+      // Play swipe animation ONLY on user click
       const swipe = document.getElementById("langSwipe");
       if (swipe) {
         swipe.classList.remove("active");
-        void swipe.offsetHeight;
+        void swipe.offsetHeight; // force reflow
         swipe.classList.add("active");
       }
 
       // Apply translations from external file
       applyTranslations("shop");
 
-      // Force-update all static text elements (this is what was missing for instant menu update)
+      // Force-update ALL static text elements (this ensures instant change without refresh)
       document.getElementById("shopTitle").textContent = translations[lang]?.shopTitle || translations.en.shopTitle;
       document.getElementById("filterTitle").textContent = translations[lang]?.filterTitle || translations.en.filterTitle;
       document.getElementById("catAll").textContent = translations[lang]?.catAll || translations.en.catAll;
@@ -671,7 +674,6 @@
       document.getElementById("snackText").textContent = translations[lang]?.snackText || translations.en.snackText;
       document.getElementById("loginBtn").textContent = translations[lang]?.loginBtn || translations.en.loginBtn;
 
-      // Re-update prices and cart display
       updateAllPrices();
       updateCartDisplay();
     }
@@ -847,7 +849,7 @@
     createCards();
     filterAndSort();
     updateAllPrices();
-    setLanguage(currentLang);  // Use setLanguage on init so everything starts translated correctly
+    applyTranslations("shop"); // initial load only (no swipe)
 
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
