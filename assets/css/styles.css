@@ -943,3 +943,25 @@ body.dark .lang-item:hover {
   font-size: 1rem;
   font-weight: 600;
 }
+
+.lang-swipe {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  height: 20%;                 /* slim bar like original */
+  background: var(--divider);
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0.9;
+  animation: none;             /* default state: no animation */
+}
+
+.lang-swipe.active {
+  animation: langSwipeUp 0.55s ease-in forwards !important;
+}
+
+@keyframes langSwipeUp {
+  0%   { bottom: -100%; }
+  100% { bottom: 100%; }
+}
