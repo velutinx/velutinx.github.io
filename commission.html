@@ -7,13 +7,15 @@
 </head>
 <body>
 
+  <!-- Swipe animation layer (must be early in body) -->
   <div class="lang-swipe" id="langSwipe"></div>
+
   <div class="background-wrapper">
     <div class="background-gradient"></div>
     <div class="wave-overlay"></div>
   </div>
 
-  <!-- New language selector (globe + popover) -->
+  <!-- Language selector: globe button + popover -->
   <div id="langContainer">
     <button class="lang-btn" title="Select Language">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -45,6 +47,7 @@
     </div>
   </div>
 
+  <!-- Theme toggle -->
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
@@ -52,7 +55,7 @@
   <!-- Page wrapper -->
   <div id="page">
 
-    <!-- Navigation -->
+    <!-- Navigation (loaded via JS) -->
     <div id="navContainer"></div>
 
     <div class="divider"></div>
@@ -81,15 +84,15 @@
   <!-- Shared navigation loader -->
   <script src="/assets/js/navigation.js"></script>
 
-  <!-- Shared functionality -->
+  <!-- Page scripts -->
   <script>
     // Load saved preferences
     const savedLang = localStorage.getItem("language") || "en";
     const savedDark = localStorage.getItem("darkMode") === "true";
 
-    let currentLang = savedLang; // we'll expand this later
+    let currentLang = savedLang;
 
-    // Blob translation (for nav)
+    // Translate navigation blobs
     function translateBlobs(lang) {
       const blobs = document.querySelectorAll(".blob-text");
       if (blobs.length === 0) {
@@ -97,17 +100,15 @@
         return;
       }
       blobs.forEach(t => {
-        if (lang === "ja" || lang === "jp") {
-          t.textContent = t.dataset.jp || t.dataset.en;
-        } else {
-          t.textContent = t.dataset.en;
-        }
+        t.textContent = (lang === "ja" || lang === "jp") && t.dataset.jp 
+          ? t.dataset.jp 
+          : t.dataset.en || "";
       });
     }
 
     translateBlobs(currentLang);
 
-    // Commission page text (only EN/JP for now)
+    // Commission page text (EN/JP only for now)
     const isJapanese = currentLang === "ja" || currentLang === "jp";
 
     document.getElementById("comTitle").textContent = isJapanese ? "コミッション" : "COMMISSIONS";
@@ -118,10 +119,8 @@
       ? `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
       : `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`;
 
-    // Dark mode
-    if (savedDark) {
-      document.body.classList.add("dark");
-    }
+    // Apply saved dark mode
+    if (savedDark) document.body.classList.add("dark");
 
     // Theme toggle
     document.getElementById("themeToggle").onclick = () => {
@@ -140,8 +139,8 @@
       star.className = "star";
       star.textContent = "✦";
       star.style.setProperty("--drift", Math.random());
-      star.style.left = e.clientX + "px";
-      star.style.top = e.clientY + "px";
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
 
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 2000);
@@ -149,38 +148,41 @@
 
     // Commission box sparkles
     const commissionBox = document.getElementById("commissionBox");
-    setInterval(() => {
-      if (!commissionBox) return;
-      const star = document.createElement("div");
-      star.className = "box-star";
-      star.textContent = "✦";
-      star.style.left = Math.random() * commissionBox.clientWidth + "px";
-      star.style.top = "0px";
-      commissionBox.appendChild(star);
-      setTimeout(() => star.remove(), 6000);
-    }, 700);
-
-    // Future language change handler (placeholder)
-    // When you add full multi-language support, connect clicks on .lang-item here
-document.querySelectorAll('.lang-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const lang = item.dataset.lang;
-    
-    // Trigger swipe animation
-    const swipe = document.getElementById('langSwipe');
-    if (swipe) {
-      swipe.classList.remove('active');
-      void swipe.offsetWidth; // reflow
-      swipe.classList.add('active');
+    if (commissionBox) {
+      setInterval(() => {
+        const star = document.createElement("div");
+        star.className = "box-star";
+        star.textContent = "✦";
+        star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
+        star.style.top = "0px";
+        commissionBox.appendChild(star);
+        setTimeout(() => star.remove(), 6000);
+      }, 700);
     }
 
-    // Apply language (reload for now)
-    setTimeout(() => {
-      localStorage.setItem("language", lang);
-      location.reload();
-    }, 180); // matches animation duration
-  });
-});
+    // Language selection + swipe animation
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const lang = item.dataset.lang;
+
+        // Play swipe animation
+        const swipe = document.getElementById('langSwipe');
+        if (swipe) {
+          swipe.classList.remove('active');
+          // Force reflow to restart animation
+          void swipe.offsetWidth;
+          swipe.classList.add('active');
+        }
+
+        // Save and apply language after animation starts
+        setTimeout(() => {
+          localStorage.setItem("language", lang);
+          location.reload(); // Later replace with setLanguage(lang) when no-reload is ready
+        }, 180);
+      });
+    });
+
+  </script>
 
   <!-- Shared tab title animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
