@@ -927,3 +927,23 @@ body.dark #languagePopover {
 body.dark .lang-item {
   color: var(--text-dark);
 }
+
+/* Language change swipe animation (bottom → top) */
+.lang-swipe {
+  position: fixed;
+  bottom: -120%;
+  left: 0;
+  width: 100%;
+  height: 120%;
+  background: var(--divider);
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.lang-swipe.active {
+  animation: langSwipeUp 0.55s ease-in forwards;
+}
+
+@keyframes langSwipeUp {
+  to { bottom: 120%; }
+}
