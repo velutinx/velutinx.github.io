@@ -456,20 +456,23 @@
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
-      <button class="nav-icon" id="langBtn" title="Language">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M4 5h7"></path>
-          <path d="M7 4c0 4.846 0 7 .5 8"></path>
-          <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
-          <path d="M12 20l4 -9l4 9"></path>
-          <path d="M19.1 18h-6.2"></path>
-        </svg>
-      </button>
-      <div id="languagePopover">
-        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
-        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
-        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
-        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
+      <!-- WRAPPER ADDED HERE SO HOVER WORKS -->
+      <div id="langContainer">
+        <button class="nav-icon" id="langBtn" title="Language">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 5h7"></path>
+            <path d="M7 4c0 4.846 0 7 .5 8"></path>
+            <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+            <path d="M12 20l4 -9l4 9"></path>
+            <path d="M19.1 18h-6.2"></path>
+          </svg>
+        </button>
+        <div id="languagePopover">
+          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
+          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
+          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
+          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
+        </div>
       </div>
 
       <button class="nav-icon" id="themeBtn" title="Night Mode">
@@ -692,6 +695,7 @@
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : "CNY";
       localStorage.setItem("language", lang);
 
+      // Swipe only on actual click
       const swipe = document.getElementById("langSwipe");
       if (swipe) {
         swipe.classList.remove("active");
@@ -823,25 +827,6 @@
     searchInput.addEventListener("input", filterAndSort);
     sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
 
-    // Language button events
-    document.getElementById("langBtn").addEventListener("click", e => {
-      e.stopPropagation();
-      document.getElementById("languagePopover").classList.toggle("show");
-    });
-
-    document.addEventListener("click", e => {
-      if (!document.getElementById("langBtn").contains(e.target) && !document.getElementById("languagePopover").contains(e.target)) {
-        document.getElementById("languagePopover").classList.remove("show");
-      }
-    });
-
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        setLanguage(item.dataset.lang);
-        document.getElementById("languagePopover").classList.remove("show");
-      });
-    });
-
     cartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
     floatingCartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
     cartClose.addEventListener("click", () => { cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); });
@@ -875,7 +860,7 @@
     createCards();
     filterAndSort();
     updateAllPrices();
-    setLanguage("en");
+    applyTranslations("shop");   // only apply translations, no swipe on load
 
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
