@@ -7,46 +7,15 @@
 </head>
 <body>
 
-  <!-- Slim swipe bar (same as original) -->
+  <!-- Swipe animation layer -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div class="background-wrapper">
     <div class="background-gradient"></div>
     <div class="wave-overlay"></div>
   </div>
-<!-- Globe language selector (missing piece) -->
-<div id="langContainer">
-  <button class="lang-btn" title="Select Language">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 5h7"></path>
-      <path d="M7 4c0 4.846 0 7 .5 8"></path>
-      <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
-      <path d="M12 20l4 -9l4 9"></path>
-      <path d="M19.1 18h-6.2"></path>
-    </svg>
-  </button>
 
-  <div id="languagePopover">
-    <div class="lang-item" data-lang="en">
-      <img src="https://flagcdn.com/w40/us.png" alt="English" />
-      <p>English</p>
-    </div>
-    <div class="lang-item" data-lang="ja">
-      <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
-      <p>日本語</p>
-    </div>
-    <div class="lang-item" data-lang="zh">
-      <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
-      <p>简体中文</p>
-    </div>
-    <div class="lang-item" data-lang="es">
-      <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
-      <p>Español</p>
-    </div>
-  </div>
-</div>
-  
-  <!-- Globe language selector -->
+  <!-- Language selector: globe button + popover (only one instance) -->
   <div id="langContainer">
     <button class="lang-btn" title="Select Language">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,6 +47,7 @@
     </div>
   </div>
 
+  <!-- Theme toggle -->
   <div class="theme-toggle" id="themeToggle">
     <div class="theme-knob"></div>
   </div>
@@ -104,115 +74,115 @@
     <div class="divider"></div>
   </div>
 
+  <!-- Scripts -->
   <script src="/assets/js/navigation.js"></script>
 
-<script>
-  // Load saved preferences
-  const savedLang = localStorage.getItem("language") || "en";
-  const savedDark = localStorage.getItem("darkMode") === "true";
+  <script>
+    // Load saved preferences
+    const savedLang = localStorage.getItem("language") || "en";
+    const savedDark = localStorage.getItem("darkMode") === "true";
 
-  let currentLang = savedLang;
+    let currentLang = savedLang;
 
-  // Blob translation (nav)
-  function translateBlobs(lang) {
-    const blobs = document.querySelectorAll(".blob-text");
-    if (blobs.length === 0) {
-      setTimeout(() => translateBlobs(lang), 100);
-      return;
+    // Translate navigation blobs
+    function translateBlobs(lang) {
+      const blobs = document.querySelectorAll(".blob-text");
+      if (blobs.length === 0) {
+        setTimeout(() => translateBlobs(lang), 100);
+        return;
+      }
+      blobs.forEach(t => {
+        t.textContent = (lang === "ja" || lang === "jp") && t.dataset.jp 
+          ? t.dataset.jp 
+          : t.dataset.en || "";
+      });
     }
-    blobs.forEach(t => {
-      t.textContent = (lang === "ja" || lang === "jp") && t.dataset.jp 
-        ? t.dataset.jp 
-        : t.dataset.en || "";
-    });
-  }
 
-  translateBlobs(currentLang);
+    translateBlobs(currentLang);
 
-  // Commission page text switch
-  function updateCommissionText(lang) {
-    const isJapanese = lang === "ja" || lang === "jp";
+    // Commission page text switch
+    function updateCommissionText(lang) {
+      const isJapanese = lang === "ja" || lang === "jp";
 
-    document.getElementById("comTitle").textContent = isJapanese 
-      ? "コミッション" : "COMMISSIONS";
+      document.getElementById("comTitle").textContent = isJapanese 
+        ? "コミッション" : "COMMISSIONS";
 
-    document.getElementById("comInfo").textContent = isJapanese 
-      ? "コミッション情報は近日中に追加されます。" 
-      : "Commission information will be added here soon.";
+      document.getElementById("comInfo").textContent = isJapanese 
+        ? "コミッション情報は近日中に追加されます。" 
+        : "Commission information will be added here soon.";
 
-    document.getElementById("comList").innerHTML = isJapanese 
-      ? `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
-      : `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`;
-  }
+      document.getElementById("comList").innerHTML = isJapanese 
+        ? `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
+        : `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`;
+    }
 
-  updateCommissionText(currentLang);
+    updateCommissionText(currentLang);
 
-  // Dark mode
-  if (savedDark) document.body.classList.add("dark");
+    // Apply dark mode
+    if (savedDark) document.body.classList.add("dark");
 
-  // Theme toggle
-  document.getElementById("themeToggle").onclick = () => {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-  };
+    // Theme toggle
+    document.getElementById("themeToggle").onclick = () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    };
 
-  // Sparkles (cursor)
-  let lastStarTime = 0;
-  document.addEventListener("mousemove", (e) => {
-    const now = Date.now();
-    if (now - lastStarTime < 45) return;
-    lastStarTime = now;
+    // Cursor sparkles
+    let lastStarTime = 0;
+    document.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastStarTime < 45) return;
+      lastStarTime = now;
 
-    const star = document.createElement("div");
-    star.className = "star";
-    star.textContent = "✦";
-    star.style.setProperty("--drift", Math.random());
-    star.style.left = e.clientX + "px";
-    star.style.top = e.clientY + "px";
-    document.body.appendChild(star);
-    setTimeout(() => star.remove(), 2000);
-  });
-
-  // Sparkles (commission box)
-  const commissionBox = document.getElementById("commissionBox");
-  if (commissionBox) {
-    setInterval(() => {
       const star = document.createElement("div");
-      star.className = "box-star";
+      star.className = "star";
       star.textContent = "✦";
-      star.style.left = Math.random() * commissionBox.clientWidth + "px";
-      star.style.top = "0px";
-      commissionBox.appendChild(star);
-      setTimeout(() => star.remove(), 6000);
-    }, 700);
-  }
+      star.style.setProperty("--drift", Math.random());
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 2000);
+    });
 
-// Language switch + swipe + instant translation
-document.querySelectorAll('.lang-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const newLang = item.dataset.lang;
-
-    // Play swipe animation EVERY time
-    const swipe = document.getElementById('langSwipe');
-    if (swipe) {
-      // Reset animation state
-      swipe.style.animation = 'none';
-      void swipe.offsetWidth; // force reflow
-      swipe.style.animation = 'langSwipeUp 0.55s ease-in forwards';
-      swipe.classList.add('active'); // if you use class-based trigger
+    // Commission box sparkles
+    const commissionBox = document.getElementById("commissionBox");
+    if (commissionBox) {
+      setInterval(() => {
+        const star = document.createElement("div");
+        star.className = "box-star";
+        star.textContent = "✦";
+        star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
+        star.style.top = "0px";
+        commissionBox.appendChild(star);
+        setTimeout(() => star.remove(), 6000);
+      }, 700);
     }
 
-    // Change language instantly (no reload, no popover close needed)
-    setTimeout(() => {
-      currentLang = newLang;
-      localStorage.setItem("language", newLang);
+    // Language switch: swipe + instant translation
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const newLang = item.dataset.lang;
 
-      translateBlobs(newLang);
-      updateCommissionText(newLang);
-    }, 180); // sync with swipe duration
-  });
-});
-</script>
+        // Trigger swipe animation
+        const swipe = document.getElementById('langSwipe');
+        if (swipe) {
+          swipe.style.animation = 'none';
+          void swipe.offsetWidth; // force reflow
+          swipe.style.animation = 'langSwipeUp 0.55s ease-in forwards';
+          swipe.classList.add('active');
+        }
+
+        // Instant language change
+        setTimeout(() => {
+          currentLang = newLang;
+          localStorage.setItem("language", newLang);
+
+          translateBlobs(newLang);
+          updateCommissionText(newLang);
+        }, 180);
+      });
+    });
+  </script>
 
   <script src="/assets/js/tab-title-animation.js"></script>
 
