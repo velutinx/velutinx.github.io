@@ -6,7 +6,7 @@ const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
 // Default fallback
 const DEFAULT_LANG = 'en';
 
-// All translatable texts – organized by page/section
+// All translatable texts – organized by page
 const translations = {
   // Index / Home page
   index: {
@@ -146,13 +146,45 @@ const translations = {
       errorText: "Por favor complete todos los campos correctamente ♡",
       successText: "¡Mensaje enviado con éxito! ¡Pronto tendrá noticias mías! ♡♡"
     }
+  },
+
+  // Poll page
+  poll: {
+    en: {
+      pollTitle: "Vote for Your Favorite Character",
+      pollSubtitle: "Click once — you can change your vote anytime",
+      leaderboardTitle: "Leaderboard",
+      leaderboardTooltip: "Website + Discord votes",
+      discordDisclaimer: "Join discord for an extra vote!!"
+    },
+    ja: {
+      pollTitle: "お気に入りのキャラクターに投票",
+      pollSubtitle: "一度クリック — いつでも投票を変更できます",
+      leaderboardTitle: "リーダーボード",
+      leaderboardTooltip: "ウェブサイト + Discord 投票",
+      discordDisclaimer: "追加投票のためにDiscordに参加!!"
+    },
+    zh: {
+      pollTitle: "为你最喜欢的角色投票",
+      pollSubtitle: "点击一次 — 随时可以更改投票",
+      leaderboardTitle: "排行榜",
+      leaderboardTooltip: "网站 + Discord 投票",
+      discordDisclaimer: "加入Discord获得额外一票!!"
+    },
+    es: {
+      pollTitle: "Vota por tu personaje favorito",
+      pollSubtitle: "Haz clic una vez — puedes cambiar tu voto cuando quieras",
+      leaderboardTitle: "Tabla de clasificación",
+      leaderboardTooltip: "Votos del sitio web + Discord",
+      discordDisclaimer: "¡Únete al Discord para un voto extra!!"
+    }
   }
 };
 
 // Current language
 let currentLanguage = localStorage.getItem('language') || DEFAULT_LANG;
 
-// Apply translations based on current page
+// Apply translations for the current page
 function applyTranslations(pageKey = 'index') {
   const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
 
@@ -165,7 +197,6 @@ function applyTranslations(pageKey = 'index') {
   if (pageKey === 'index') {
     const heroSubEl = document.getElementById('heroSub');
     if (heroSubEl) heroSubEl.textContent = pageTranslations.heroSub;
-    // If heroSubExtra is in a separate element, add it here
   }
 
   // Commissions page
@@ -215,9 +246,27 @@ function applyTranslations(pageKey = 'index') {
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) sendBtn.textContent = pageTranslations.sendBtn;
   }
+
+  // Poll page
+  if (pageKey === 'poll') {
+    const titleEl = document.querySelector('.poll-title');
+    if (titleEl) titleEl.textContent = pageTranslations.pollTitle;
+
+    const subtitleEl = document.querySelector('.poll-subtitle');
+    if (subtitleEl) subtitleEl.textContent = pageTranslations.pollSubtitle;
+
+    const leaderboardTitleEl = document.querySelector('#leaderboard h3');
+    if (leaderboardTitleEl) leaderboardTitleEl.textContent = pageTranslations.leaderboardTitle;
+
+    const tooltipEl = document.querySelector('#leaderboard .tooltip');
+    if (tooltipEl) tooltipEl.textContent = pageTranslations.leaderboardTooltip;
+
+    const disclaimerEl = document.querySelector('.discord-disclaimer');
+    if (disclaimerEl) disclaimerEl.textContent = pageTranslations.discordDisclaimer;
+  }
 }
 
-// Change language + trigger swipe + update UI
+// Change language + trigger swipe + notify pages
 function setLanguage(lang) {
   if (!SUPPORTED_LANGUAGES.includes(lang)) {
     lang = DEFAULT_LANG;
@@ -234,11 +283,11 @@ function setLanguage(lang) {
     swipe.classList.add('active');
   }
 
-  // Apply translations (page-specific key is passed from each page)
+  // Notify all pages to re-apply their translations
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
-// Initialize on page load
+// Initialize on load (pages will call applyTranslations with their key)
 document.addEventListener('DOMContentLoaded', () => {
-  // Each page will call applyTranslations('their-page-key') after loading
+  // No default apply here — each page calls it with correct key
 });
