@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Velutinx's Shop</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Velutinx's Shop</title>
   <style>
     :root {
       --bg: #d3d0c1;
@@ -941,38 +941,35 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <script>
-  // ============== SUPABASE CONFIG ==============
-  const SUPABASE_URL = 'https://knbvlyngmjaxndkiqggl.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08';
+const SUPABASE_URL = window.__ENV?.SUPABASE_URL;
+const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
 
-  const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Get next purchase number (000001, 000002, ...)
-  async function getNextPurchaseNumber() {
-    try {
-      const { data, error } = await supabase
-        .from('purchases')
-        .select('purchase_number')
-        .order('id', { ascending: false })
-        .limit(1);
+async function getNextPurchaseNumber() {
+  const { data, error } = await supabase
+    .from('purchases')
+    .select('purchase_number')
+    .order('id', { ascending: false })
+    .limit(1);
 
-      if (error) throw error;
-      if (!data || data.length === 0) return '000001';
+  if (error || !data || data.length === 0) return '000001';
 
-      const last = parseInt(data[0].purchase_number, 10);
-      return (last + 1).toString().padStart(6, '0');
-    } catch (err) {
-      console.error('Supabase next number error:', err);
-      return '000001'; // safe fallback
-    }
-  }
+  const last = parseInt(data[0].purchase_number, 10);
+  return (last + 1).toString().padStart(6, '0');
+}
 </script>
-  
-  <!-- PayPal SDK + Button -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
-<!-- PayPal SDK + Button (UPDATED) -->
+
+<!-- ================== PAYPAL SDK (DYNAMIC) ================== -->
 <script>
+const script = document.createElement("script");
+script.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID}&currency=USD`;
+script.onload = initPayPal;
+document.body.appendChild(script);
+
+function initPayPal() {
   paypal.Buttons({
+
     createOrder: function(data, actions) {
       const total = realTotalUSD.toFixed(2);
       return actions.order.create({
@@ -983,55 +980,24 @@
     },
 
     onApprove: async function(data, actions) {
-      try {
-        const details = await actions.order.capture();
+      const details = await actions.order.capture();
+      const purchase_number = await getNextPurchaseNumber();
 
-        // Determine pack
-        let productCode = "cart";
-        let pack_id = "unknown";
-        if (cart.length > 0) {
-          const firstId = cart[0].id;
-          productCode = "pack" + String(firstId).padStart(3, '0');
-          pack_id = productCode;
-        }
+      await supabase.from('purchases').insert({
+        purchase_number: purchase_number,
+        paypal_order_id: data.orderID,
+        amount_usd: realTotalUSD,
+        items: cart.map(i => i.id)
+      });
 
-        const paypal_order_id = data.orderID;
-        const paypal_email = details.payer?.email_address || null;
-        const amount = parseFloat(details.purchase_units[0].amount.value);
-
-        // === Generate counter + save to Supabase ===
-        const purchase_number = await getNextPurchaseNumber();
-
-        const { error: insertError } = await supabase
-          .from('purchases')
-          .insert([{
-            purchase_number,
-            pack_id,
-            paypal_email,
-            paypal_order_id,
-            amount
-          }]);
-
-        if (insertError) {
-          console.error("Supabase insert failed:", insertError);
-          // We still let the buyer download — payment already succeeded
-        }
-
-        // Redirect with BOTH product and the new order counter
-        window.location.href = `success.html?product=${encodeURIComponent(productCode)}&order=${encodeURIComponent(purchase_number)}`;
-
-      } catch (err) {
-        console.error("onApprove error:", err);
-        alert("Payment successful, but there was an issue saving the order. Please contact me with your PayPal receipt.");
-        window.location.href = "success.html?product=cart";
-      }
-    },
-
-    onError: function(err) {
-      console.error("PayPal Error:", err);
-      alert("There was a problem with the payment. Please try again or contact me.");
+      alert("Payment successful! Purchase #" + purchase_number);
+      cart = [];
+      updateCartDisplay();
     }
+
   }).render("#paypal-button-container");
+}
 </script>
+
 </body>
 </html>
