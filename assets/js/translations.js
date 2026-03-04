@@ -57,12 +57,7 @@ const translations = {
   },
 
   // Add more pages later, e.g.:
-  // contact: {
-  //   en: { contactTitle: "CONTACT", ... },
-  //   ja: { contactTitle: "お問い合わせ", ... },
-  //   zh: { contactTitle: "联系", ... },
-  //   es: { contactTitle: "CONTACTO", ... }
-  // }
+  // contact: { en: { ... }, ja: { ... }, zh: { ... }, es: { ... } }
 };
 
 // Current language
@@ -101,28 +96,19 @@ function setLanguage(lang) {
   const swipe = document.getElementById('langSwipe');
   if (swipe) {
     swipe.classList.remove('active');
-    void swipe.offsetHeight;
+    void swipe.offsetHeight; // reflow to restart animation
     swipe.classList.add('active');
   }
 
-  // Apply translations
+  // Apply translations instantly
   applyTranslations();
 
-  // NO forced close here — let CSS hover do everything
-  // document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
-}
-  // Optional: close popover after selection (fade out)
-  const popover = document.getElementById('languagePopover');
-  if (popover) {
-    popover.style.opacity = '0';
-    setTimeout(() => popover.style.visibility = 'hidden', 500);
-  }
-
-  // Dispatch event for other scripts if needed
+  // NO forced close — CSS hover handles visibility perfectly now
+  // Optional: dispatch event for other scripts
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
-// Initialize on load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   applyTranslations();
 });
