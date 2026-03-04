@@ -101,13 +101,16 @@ function setLanguage(lang) {
   const swipe = document.getElementById('langSwipe');
   if (swipe) {
     swipe.classList.remove('active');
-    void swipe.offsetHeight; // reflow
+    void swipe.offsetHeight;
     swipe.classList.add('active');
   }
 
   // Apply translations
-  applyTranslations(); // defaults to 'commissions'
+  applyTranslations();
 
+  // NO forced close here — let CSS hover do everything
+  // document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
+}
   // Optional: close popover after selection (fade out)
   const popover = document.getElementById('languagePopover');
   if (popover) {
