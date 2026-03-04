@@ -1,174 +1,25 @@
-export async function onRequest(context) {
+// =============================================
+// store.js — ALL PRODUCT DATA LIVES HERE ONLY
+// Add new items here. No other file needs editing.
+// =============================================
 
-  const { request, env } = context;
-  const url = new URL(request.url);
-  const action = url.searchParams.get("action");
+const productsData = [
+  { id: 1, title: "Junie & Friends - Summer Mix Vol.4", originalPrice: 0.01, discount: 0, image: "storeassets/1.jpg" },
+  { id: 2, title: "Collection 45 / コレクション45 Bonus Pack", originalPrice: 1.50, discount: 0, image: "storeassets/2.jpg" },
+  { id: 3, title: "Chen Sisters - Midnight Expressions", originalPrice: 3.00, discount: 0, image: "storeassets/3.jpg" },
+  { id: 4, title: "The Sisters Corner - Special Dreamscapes", originalPrice: 10.00, discount: 0, image: "storeassets/4.jpg" },
+  { id: 5, title: "Mama's Secret Art Pack 2026", originalPrice: 0.02, discount: 0, image: "storeassets/5.jpg" },
+  { id: 6, title: "Wedding Day Illustrations Vol.2", originalPrice: 8.90, discount: 24, image: "storeassets/6.jpg" },
+  { id: 7, title: "Night Vibes - Neon & Shadows Mix", originalPrice: 9.30, discount: 0, image: "storeassets/7.jpg" },
+  { id: 8, title: "Collection 38 / Ultra Rare Bonus Set", originalPrice: 14.00, discount: 20, image: "storeassets/8.jpg" },
+  { id: 9, title: "Junie Holiday Special - Cozy Edition", originalPrice: 7.50, discount: 33, image: "storeassets/9.jpg" }
+];
 
-  // ===============================
-  // 🔹 PRODUCT DATABASE (EDIT HERE ONLY)
-  // ===============================
-  const PRODUCTS = {
-    pack001: { price: 1.50, link: env.PACK001 },
-    pack002: { price: 2.00, link: env.PACK002 },
-    pack003: { price: 3.00, link: env.PACK003 }
-  };
-  // ===============================
-
-  async function getAccessToken() {
-    const auth = btoa(`${env.PAYPAL_CLIENT_ID}:${env.PAYPAL_SECRET}`);
-
-    const res = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
-      method: "POST",
-      headers: {
-        "Authorization": `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: "grant_type=client_credentials"
-    });
-
-    const data = await res.json();
-    return data.access_token;
-  }
-
-  // ===============================
-  // CREATE ORDER
-  // ===============================
-  if (action === "create" && request.method === "POST") {
-
-    const { cart } = await request.json();
-    if (!cart || !Array.isArray(cart))
-      return new Response("Invalid cart", { status: 400 });
-
-    let total = 0;
-
-    for (const item of cart) {
-      if (!PRODUCTS[item.id])
-        return new Response("Invalid product", { status: 400 });
-      total += PRODUCTS[item.id].price * item.qty;
-    }
-
-    total = total.toFixed(2);
-
-    const token = await getAccessToken();
-
-    const orderRes = await fetch("https://api-m.paypal.com/v2/checkout/orders", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        intent: "CAPTURE",
-        purchase_units: [{
-          amount: {
-            currency_code: "USD",
-            value: total
-          }
-        }]
-      })
-    });
-
-    const orderData = await orderRes.json();
-
-    return new Response(JSON.stringify({
-      orderID: orderData.id
-    }), { status: 200 });
-  }
-
-  // ===============================
-  // CAPTURE ORDER
-  // ===============================
-  if (action === "capture" && request.method === "POST") {
-
-    const { orderID, cart } = await request.json();
-    if (!orderID || !cart)
-      return new Response("Invalid request", { status: 400 });
-
-    const token = await getAccessToken();
-
-    const captureRes = await fetch(
-      `https://api-m.paypal.com/v2/checkout/orders/${orderID}/capture`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      }
-    );
-
-    const captureData = await captureRes.json();
-
-    if (captureData.status !== "COMPLETED")
-      return new Response("Payment not completed", { status: 400 });
-
-    const paidAmount =
-      captureData.purchase_units[0].payments.captures[0].amount.value;
-
-    let serverTotal = 0;
-
-    for (const item of cart) {
-      if (!PRODUCTS[item.id])
-        return new Response("Invalid product", { status: 400 });
-      serverTotal += PRODUCTS[item.id].price * item.qty;
-    }
-
-    serverTotal = serverTotal.toFixed(2);
-
-    if (serverTotal !== paidAmount)
-      return new Response("Amount mismatch", { status: 400 });
-
-    const ref = crypto.randomUUID();
-
-    await fetch(`${env.SUPABASE_URL}/rest/v1/purchases`, {
-      method: "POST",
-      headers: {
-        "apikey": env.SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify({
-        reference: ref,
-        order_id: orderID,
-        amount: serverTotal,
-        cart: cart
-      })
-    });
-
-    return new Response(JSON.stringify({
-      success: true,
-      ref
-    }), { status: 200 });
-  }
-
-  // ===============================
-  // DOWNLOAD
-  // ===============================
-  if (action === "download") {
-
-    const ref = url.searchParams.get("ref");
-    if (!ref)
-      return new Response("Missing ref", { status: 400 });
-
-    const res = await fetch(
-      `${env.SUPABASE_URL}/rest/v1/purchases?reference=eq.${ref}`,
-      {
-        headers: {
-          "apikey": env.SUPABASE_SERVICE_ROLE_KEY,
-          "Authorization": `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`
-        }
-      }
-    );
-
-    const data = await res.json();
-    if (!data.length)
-      return new Response("Invalid reference", { status: 403 });
-
-    const firstItem = data[0].cart[0].id;
-    const link = PRODUCTS[firstItem].link;
-
-    return Response.redirect(link, 302);
-  }
-
-  return new Response("Invalid route", { status: 404 });
-}
+// Auto-calculate final price + date (never edit this)
+productsData.forEach((p, i) => {
+  const discountRate = (p.discount || 0) / 100;
+  p.price = p.originalPrice ? Math.round(p.originalPrice * (1 - discountRate) * 100) / 100 : 0.00;
+  p.date = new Date(2026, 2, 20 - i * 3).getTime();
+  p.element = null;
+  p.inCart = false;
+});
