@@ -833,75 +833,114 @@ body.dark #leaderboard::before {
   background: rgba(22, 22, 27, 0.25); /* dark mode faint veil */
 }
 
-/* Popover – flush left, original size, reliable fade */
+/* ================================================
+   Language Selector – forced top-right + reliable animations
+   ================================================ */
+
+#langContainer {
+  position: fixed !important;
+  top: 20% !important;
+  right: 24px !important;
+  left: auto !important;
+  z-index: 10001 !important;
+}
+
+.lang-btn {
+  width: 72px !important;
+  height: 48px !important;
+  background: transparent !important;
+  border: 2px solid var(--divider) !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: var(--text) !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.lang-btn:hover {
+  background: rgba(170, 158, 118, 0.15) !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25) !important;
+  transform: scale(1.08) !important;
+}
+
+body.dark .lang-btn {
+  border-color: var(--divider-dark) !important;
+  color: var(--text-dark) !important;
+}
+
+/* Popover – original size, flush left, strong fade */
 #languagePopover {
-  position: absolute;
-  top: 0;
-  left: calc(-100% - 4px);
-  background: var(--bg);
-  border: 2px solid var(--divider);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  min-width: 240px;
-  z-index: 10000;
-  opacity: 0;
-  overflow: hidden;
-  padding: 8px 0;
-  pointer-events: none;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  transform: translateX(-10px);
+  position: absolute !important;
+  top: 0 !important;
+  left: calc(-100% - 4px) !important;
+  background: var(--bg) !important;
+  border: 2px solid var(--divider) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+  min-width: 240px !important;
+  z-index: 10000 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  padding: 8px 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.5s ease !important, transform 0.5s ease !important;
+  transform: translateX(-10px) !important;
 }
 
 body.dark #languagePopover {
-  background: var(--bg-dark);
-  border-color: var(--divider-dark);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  background: var(--bg-dark) !important;
+  border-color: var(--divider-dark) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
 }
 
-/* Show & fade in – more reliable selectors */
+/* Reliable hover show + fade */
 #langContainer:hover #languagePopover,
 .lang-btn:hover + #languagePopover,
 #langContainer:hover .lang-btn + #languagePopover,
 #languagePopover:hover {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(0);
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateX(0) !important;
 }
 
 /* Lang items */
 .lang-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  color: var(--text);
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 12px 18px !important;
+  cursor: pointer !important;
+  transition: background 0.2s, color 0.2s !important;
+  color: var(--text) !important;
 }
 
 .lang-item:hover {
-  background: rgba(170,158,118,0.25);
-  color: #000;
+  background: rgba(170,158,118,0.25) !important;
+  color: #000 !important;
 }
 
 body.dark .lang-item {
-  color: var(--text-dark);
+  color: var(--text-dark) !important;
 }
 
 body.dark .lang-item:hover {
-  background: rgba(170,158,118,0.35);
-  color: #fff;
+  background: rgba(170,158,118,0.35) !important;
+  color: #fff !important;
 }
 
 .lang-item img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
 }
 
 .lang-item p {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  margin: 0 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
 }
