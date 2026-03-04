@@ -156,35 +156,31 @@
     }, 700);
   }
 
-  // Language switch + swipe + instant translation
-  document.querySelectorAll('.lang-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const newLang = item.dataset.lang;
+// Language switch + swipe + instant translation
+document.querySelectorAll('.lang-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const newLang = item.dataset.lang;
 
-      // Play swipe animation
-      const swipe = document.getElementById('langSwipe');
-      if (swipe) {
-        swipe.classList.remove('active');
-        void swipe.offsetWidth; // reset animation
-        swipe.classList.add('active');
-      }
+    // Play swipe animation EVERY time
+    const swipe = document.getElementById('langSwipe');
+    if (swipe) {
+      // Reset animation state
+      swipe.style.animation = 'none';
+      void swipe.offsetWidth; // force reflow
+      swipe.style.animation = 'langSwipeUp 0.55s ease-in forwards';
+      swipe.classList.add('active'); // if you use class-based trigger
+    }
 
-      // Change language instantly (no reload)
-      setTimeout(() => {
-        currentLang = newLang;
-        localStorage.setItem("language", newLang);
+    // Change language instantly (no reload, no popover close needed)
+    setTimeout(() => {
+      currentLang = newLang;
+      localStorage.setItem("language", newLang);
 
-        translateBlobs(newLang);
-        updateCommissionText(newLang);
-
-        // Optional: close popover after click
-        document.getElementById('languagePopover').style.opacity = '0';
-        setTimeout(() => {
-          document.getElementById('languagePopover').style.visibility = 'hidden';
-        }, 500);
-      }, 180); // sync with swipe duration
-    });
+      translateBlobs(newLang);
+      updateCommissionText(newLang);
+    }, 180); // sync with swipe duration
   });
+});
 </script>
 
   <script src="/assets/js/tab-title-animation.js"></script>
