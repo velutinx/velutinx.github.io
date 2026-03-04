@@ -429,6 +429,8 @@
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
+      <button class="login-btn" id="loginBtn">Website</button>
+
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -467,8 +469,6 @@
         </button>
         <span class="cart-badge" id="cartCount">0</span>
       </div>
-
-      <button class="login-btn" id="loginBtn">Login</button>
     </div>
   </nav>
 
@@ -648,10 +648,10 @@
         swipe.classList.add("active");
       }
 
-      // Re-apply all translations
+      // Re-apply all translations from external file
       applyTranslations("shop");
 
-      // Force re-update category/sort button text (they're static HTML)
+      // Force-update static category/sort text (they're in HTML and not auto-updated by applyTranslations in some cases)
       document.getElementById("filterTitle").textContent = translations[lang]?.filterTitle || translations.en.filterTitle;
       document.getElementById("catAll").textContent = translations[lang]?.catAll || translations.en.catAll;
       document.getElementById("catNot").textContent = translations[lang]?.catNot || translations.en.catNot;
