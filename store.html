@@ -599,7 +599,7 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08';
     const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-    // === DOWNLOAD LINKS (REPLACE WITH YOUR REAL LINKS) ===
+    // === DOWNLOAD LINKS (REPLACE THESE WITH REAL LINKS) ===
     const downloads = {
       1: "https://example.com/downloads/pack001.zip",
       2: "https://example.com/downloads/pack002.zip",
@@ -881,7 +881,6 @@
       [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
     }
 
-    // === SUPABASE + PAYPAL SUCCESS ===
     async function recordPurchase(orderDetails) {
       try {
         const { data, error } = await supabase
@@ -901,9 +900,9 @@
           ]);
 
         if (error) throw error;
-        console.log("Purchase recorded in Supabase:", data);
+        console.log("Purchase recorded:", data);
       } catch (err) {
-        console.error("Supabase insert failed:", err);
+        console.error("Supabase error:", err);
       }
     }
 
@@ -924,10 +923,8 @@
       },
       onApprove: async function(data, actions) {
         return actions.order.capture().then(async function(details) {
-          // Record to Supabase
           await recordPurchase(details);
 
-          // Show success + downloads
           cartItemsEl.innerHTML = `
             <div style="text-align:center; padding:2rem; color:#22c55e;">
               <h3>Payment Successful! 🎉</h3>
@@ -939,7 +936,6 @@
             </div>
           `;
 
-          // Generate download buttons
           const buttonsContainer = document.getElementById("downloadButtons");
           cart.forEach(item => {
             const link = downloads[item.id] || "#";
@@ -951,12 +947,10 @@
             buttonsContainer.appendChild(btn);
           });
 
-          // Hide PayPal & totals
           paypalContainer.style.display = "none";
           document.querySelector(".cart-total-row").style.display = "none";
           discountRow.style.display = "none";
 
-          // Clear cart
           cart = [];
           updateCartDisplay();
         });
@@ -1174,10 +1168,8 @@
       },
       onApprove: async function(data, actions) {
         return actions.order.capture().then(async function(details) {
-          // Record to Supabase
           await recordPurchase(details);
 
-          // Show success + downloads
           cartItemsEl.innerHTML = `
             <div style="text-align:center; padding:2rem; color:#22c55e;">
               <h3>Payment Successful! 🎉</h3>
@@ -1189,7 +1181,6 @@
             </div>
           `;
 
-          // Generate download buttons
           const buttonsContainer = document.getElementById("downloadButtons");
           cart.forEach(item => {
             const link = downloads[item.id] || "#";
@@ -1201,12 +1192,10 @@
             buttonsContainer.appendChild(btn);
           });
 
-          // Hide PayPal & totals
           paypalContainer.style.display = "none";
           document.querySelector(".cart-total-row").style.display = "none";
           discountRow.style.display = "none";
 
-          // Clear cart
           cart = [];
           updateCartDisplay();
         });
