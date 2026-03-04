@@ -163,15 +163,14 @@ document.querySelectorAll('.lang-item').forEach(item => {
   item.addEventListener('click', () => {
     const newLang = item.dataset.lang;
 
-    // Play swipe animation reliably
+    // Play swipe animation reliably every time
     const swipe = document.getElementById('langSwipe');
     if (swipe) {
-      // Reset animation state
+      // Strong reset: remove class, clear animation, reflow, then re-trigger
       swipe.classList.remove('active');
       swipe.style.animation = 'none';
-      void swipe.offsetHeight; // strong reflow
-      // Trigger animation via class (matches your CSS)
-      swipe.classList.add('active');
+      swipe.offsetHeight; // force reflow (critical step)
+      swipe.classList.add('active'); // now trigger via CSS class
     }
 
     // Instant language change
@@ -181,7 +180,7 @@ document.querySelectorAll('.lang-item').forEach(item => {
 
       translateBlobs(newLang);
       updateCommissionText(newLang);
-    }, 180);
+    }, 180); // sync with animation duration
   });
 });
   </script>
