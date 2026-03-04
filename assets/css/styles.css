@@ -871,27 +871,48 @@ body.dark .lang-btn {
   color: var(--text-dark);
 }
 
+/* Language popover with smooth fade in/out on hover */
 #languagePopover {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);        /* vertically centered to button */
-  left: calc(-100% - 4px);            /* flush left + tiny overlap to kill gap */
+  left: calc(-100% - 4px);           /* flush left + tiny overlap to avoid gap */
+  transform: translateY(-50%);
   background: var(--bg);
   border: 2px solid var(--divider);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
   min-width: 240px;
   z-index: 10000;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
   overflow: hidden;
   padding: 8px 0;
-  pointer-events: auto;               /* ensure clicks work */
+  pointer-events: none;               /* prevents interaction when hidden */
+  transition: 
+    opacity 0.5s ease,               /* fast fade */
+    visibility 0.5s ease,            /* visibility follows opacity */
+    transform 0.5s ease;             /* slight slide for polish */
+  transform: translateY(-50%) translateX(-8px); /* starts slightly shifted */
 }
 
+/* Show + fade in on hover */
 #langContainer:hover #languagePopover,
 .lang-btn:hover ~ #languagePopover,
 #languagePopover:hover {
-  display: block !important;          /* force it — highest priority */
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0); /* ends at correct position */
+}
+
+/* Optional: tiny delay before hiding (makes it feel more forgiving) */
+#languagePopover {
+  transition-delay: 0s, 0s, 0s;     /* instant appear */
+}
+
+/* Fade out quickly when mouse leaves */
+#langContainer:not(:hover) #languagePopover {
+  transition-delay: 0.1s;             /* small delay before fade-out starts */
 }
 
 .lang-item {
@@ -952,4 +973,5 @@ body.dark .lang-item:hover {
 @keyframes langSwipeUp {
   to { bottom: 100%; }
 }
+
 
