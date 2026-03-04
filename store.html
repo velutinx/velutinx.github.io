@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx's Shop</title>
+  <!-- Supabase client - ONLY LOADED ONCE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -521,7 +522,7 @@
     </div>
   </header>
 
-  <!-- Social bar - icons only -->
+  <!-- Social bar -->
   <div class="social-bar">
     <div class="social-icons">
       <a class="social-btn" href="https://x.com/VelutinxSFW" target="_blank">
@@ -599,7 +600,7 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08';
     const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-    // === DOWNLOAD LINKS (REPLACE THESE WITH REAL LINKS) ===
+    // === DOWNLOAD LINKS (REPLACE THESE) ===
     const downloads = {
       1: "https://example.com/downloads/pack001.zip",
       2: "https://example.com/downloads/pack002.zip",
@@ -696,12 +697,13 @@
       }
     };
 
+    // Get DOM elements safely
     const grid = document.getElementById("productGrid");
     const searchInput = document.getElementById("searchInput");
     const sortButtons = document.querySelectorAll(".sort-btn");
     const langBtn = document.getElementById("langBtn");
     const langPopover = document.getElementById("languagePopover");
-    const langItems = langPopover.querySelectorAll(".lang-item");
+    const langItems = langPopover ? langPopover.querySelectorAll(".lang-item") : [];
     const cartBtn = document.getElementById("cartBtn");
     const floatingCartBtn = document.getElementById("floatingCartBtn");
     const cartDrawer = document.getElementById("cartDrawer");
@@ -776,7 +778,7 @@
       document.getElementById("sortHigh").textContent = t.sortHigh;
       document.getElementById("resetBtn").textContent = t.resetBtn;
       document.getElementById("productsTitle").textContent = t.productsTitle;
-      searchInput.placeholder = t.searchPlaceholder;
+      if (searchInput) searchInput.placeholder = t.searchPlaceholder;
       document.getElementById("cartTitle").textContent = t.cartTitle;
       document.getElementById("totalLabel").textContent = t.totalLabel;
       document.getElementById("snackText").textContent = t.snackText;
@@ -787,6 +789,11 @@
     }
 
     function createCards() {
+      if (!grid) {
+        console.error("Product grid not found!");
+        return;
+      }
+      grid.innerHTML = ""; // clear old cards
       productsData.forEach(p => {
         const card = document.createElement("div");
         card.className = "product-card";
@@ -839,25 +846,27 @@
 
     function updateCartDisplay() {
       const count = cart.length;
-      cartCountEl.textContent = count;
-      floatingCartCountEl.textContent = count;
+      if (cartCountEl) cartCountEl.textContent = count;
+      if (floatingCartCountEl) floatingCartCountEl.textContent = count;
 
-      cartItemsEl.innerHTML = "";
+      if (cartItemsEl) cartItemsEl.innerHTML = "";
       realTotalUSD = 0;
 
       cart.forEach((item, idx) => {
         realTotalUSD += item.price;
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price, currentCurrency)}</div>
-          </div>
-          <button class="cart-item-remove" data-idx="${idx}">×</button>
-        `;
-        cartItemsEl.appendChild(div);
+        if (cartItemsEl) {
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <img src="${item.image}" alt="${item.title}">
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.title}</div>
+              <div class="cart-item-price">${formatPrice(item.price, currentCurrency)}</div>
+            </div>
+            <button class="cart-item-remove" data-idx="${idx}">×</button>
+          `;
+          cartItemsEl.appendChild(div);
+        }
       });
 
       let discountRate = 0;
@@ -867,18 +876,22 @@
       const discountAmount = realTotalUSD * discountRate;
       const finalTotal = realTotalUSD - discountAmount;
 
-      if (discountRate > 0) {
-        discountRow.style.display = "flex";
-        discountAmountEl.textContent = `-${formatPrice(discountAmount, currentCurrency)}`;
-        discountRow.querySelector("span:first-child").textContent = `Bulk discount (${Math.round(discountRate*100)}%)`;
-      } else {
-        discountRow.style.display = "none";
+      if (discountRow) {
+        if (discountRate > 0) {
+          discountRow.style.display = "flex";
+          if (discountAmountEl) discountAmountEl.textContent = `-${formatPrice(discountAmount, currentCurrency)}`;
+          discountRow.querySelector("span:first-child").textContent = `Bulk discount (${Math.round(discountRate*100)}%)`;
+        } else {
+          discountRow.style.display = "none";
+        }
       }
 
-      cartTotalEl.textContent = formatPrice(finalTotal, currentCurrency);
+      if (cartTotalEl) cartTotalEl.textContent = formatPrice(finalTotal, currentCurrency);
 
       const isActive = count > 0;
-      [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
+      [cartBtn, floatingCartBtn].forEach(btn => {
+        if (btn) btn.classList.toggle("active", isActive);
+      });
     }
 
     async function recordPurchase(orderDetails) {
@@ -906,7 +919,7 @@
       }
     }
 
-    // === PayPal Button ===
+    // PayPal Button
     paypal.Buttons({
       createOrder: function(data, actions) {
         let discountRate = 0;
@@ -925,31 +938,34 @@
         return actions.order.capture().then(async function(details) {
           await recordPurchase(details);
 
-          cartItemsEl.innerHTML = `
-            <div style="text-align:center; padding:2rem; color:#22c55e;">
-              <h3>Payment Successful! 🎉</h3>
-              <p>Thank you for supporting my work. Your order is ready.</p>
-              <p>Order ID: <strong id="orderIdDisplay">${details.id}</strong></p>
-              <p>Click below to download your purchase(s):</p>
-              <div id="downloadButtons"></div>
-              <p>If the links don't appear or you have issues, contact me on Discord or Twitter with your Order ID.</p>
-            </div>
-          `;
+          if (cartItemsEl) {
+            cartItemsEl.innerHTML = `
+              <div style="text-align:center; padding:2rem; color:#22c55e;">
+                <h3>Payment Successful! 🎉</h3>
+                <p>Thank you for supporting my work. Your order is ready.</p>
+                <p>Order ID: <strong id="orderIdDisplay">${details.id}</strong></p>
+                <p>Click below to download your purchase(s):</p>
+                <div id="downloadButtons"></div>
+                <p>If the links don't appear or you have issues, contact me on Discord or Twitter with your Order ID.</p>
+              </div>
+            `;
 
-          const buttonsContainer = document.getElementById("downloadButtons");
-          cart.forEach(item => {
-            const link = downloads[item.id] || "#";
-            const btn = document.createElement("a");
-            btn.href = link;
-            btn.target = "_blank";
-            btn.style = "display:block; margin:0.8rem auto; padding:0.8rem 1.5rem; background:#22c55e; color:white; border-radius:8px; text-decoration:none; max-width:300px;";
-            btn.textContent = `Download ${item.title}`;
-            buttonsContainer.appendChild(btn);
-          });
+            const buttonsContainer = document.getElementById("downloadButtons");
+            cart.forEach(item => {
+              const link = downloads[item.id] || "#";
+              const btn = document.createElement("a");
+              btn.href = link;
+              btn.target = "_blank";
+              btn.style = "display:block; margin:0.8rem auto; padding:0.8rem 1.5rem; background:#22c55e; color:white; border-radius:8px; text-decoration:none; max-width:300px;";
+              btn.textContent = `Download ${item.title}`;
+              if (buttonsContainer) buttonsContainer.appendChild(btn);
+            });
+          }
 
-          paypalContainer.style.display = "none";
-          document.querySelector(".cart-total-row").style.display = "none";
-          discountRow.style.display = "none";
+          if (paypalContainer) paypalContainer.style.display = "none";
+          const totalRow = document.querySelector(".cart-total-row");
+          if (totalRow) totalRow.style.display = "none";
+          if (discountRow) discountRow.style.display = "none";
 
           cart = [];
           updateCartDisplay();
@@ -961,108 +977,13 @@
       }
     }).render("#paypal-button-container");
 
-    function createCards() {
-      productsData.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "product-card";
-        card.dataset.title = p.title.toLowerCase();
-        card.dataset.price = p.price;
-        card.dataset.date = p.date;
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
-          <div class="card-content">
-            <div class="card-title">${p.title}</div>
-            <div class="price-row">
-              <div class="price" data-price="${p.price}" data-original="${p.originalPrice || p.price}">
-                ${formatPrice(p.price, currentCurrency)}
-                ${p.originalPrice && p.originalPrice > p.price ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
-              </div>
-              <button class="cart-btn" title="Add to Cart" data-in-cart="false">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                  <path d="M12.5 17h-6.5v-14h-2"></path>
-                  <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-                  <path d="M16 19h6"></path>
-                  <path d="M19 16v6"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        `;
-        grid.appendChild(card);
-        p.element = card;
-
-        const btn = card.querySelector(".cart-btn");
-        btn.addEventListener("click", () => {
-          if (btn.dataset.inCart === "true") {
-            cart = cart.filter(item => item.id !== p.id);
-            btn.dataset.inCart = "false";
-            btn.classList.remove("added");
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-          } else {
-            cart.push(p);
-            btn.dataset.inCart = "true";
-            btn.classList.add("added");
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-            snackbar.classList.add("show");
-            setTimeout(() => snackbar.classList.remove("show"), 2400);
-          }
-          updateCartDisplay();
-        });
-      });
-    }
-
-    function updateCartDisplay() {
-      const count = cart.length;
-      cartCountEl.textContent = count;
-      floatingCartCountEl.textContent = count;
-
-      cartItemsEl.innerHTML = "";
-      realTotalUSD = 0;
-
-      cart.forEach((item, idx) => {
-        realTotalUSD += item.price;
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price, currentCurrency)}</div>
-          </div>
-          <button class="cart-item-remove" data-idx="${idx}">×</button>
-        `;
-        cartItemsEl.appendChild(div);
-      });
-
-      let discountRate = 0;
-      if (count >= 5) discountRate = 0.30;
-      else if (count >= 2) discountRate = 0.10;
-
-      const discountAmount = realTotalUSD * discountRate;
-      const finalTotal = realTotalUSD - discountAmount;
-
-      if (discountRate > 0) {
-        discountRow.style.display = "flex";
-        discountAmountEl.textContent = `-${formatPrice(discountAmount, currentCurrency)}`;
-        discountRow.querySelector("span:first-child").textContent = `Bulk discount (${Math.round(discountRate*100)}%)`;
-      } else {
-        discountRow.style.display = "none";
-      }
-
-      cartTotalEl.textContent = formatPrice(finalTotal, currentCurrency);
-
-      const isActive = count > 0;
-      [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
-    }
-
     function filterAndSort() {
-      const query = searchInput.value.toLowerCase().trim();
+      const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
       const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "default";
 
       productsData.forEach(p => {
         const matches = p.title.toLowerCase().includes(query);
-        p.element.classList.toggle("hidden", !matches);
+        if (p.element) p.element.classList.toggle("hidden", !matches);
       });
 
       let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
@@ -1076,12 +997,13 @@
 
     function setSort(type) {
       sortButtons.forEach(b => b.classList.remove("active"));
-      document.querySelector(`[data-sort="${type}"]`)?.classList.add("active");
+      const btn = document.querySelector(`[data-sort="${type}"]`);
+      if (btn) btn.classList.add("active");
       filterAndSort();
     }
 
     function resetFilters() {
-      searchInput.value = "";
+      if (searchInput) searchInput.value = "";
       setSort("default");
     }
 
@@ -1092,56 +1014,62 @@
     }
 
     // Events
-    searchInput.addEventListener("input", filterAndSort);
+    if (searchInput) searchInput.addEventListener("input", filterAndSort);
     sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
 
-    langBtn.addEventListener("click", e => {
-      e.stopPropagation();
-      langPopover.classList.toggle("show");
-    });
+    if (langBtn) {
+      langBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        if (langPopover) langPopover.classList.toggle("show");
+      });
+    }
 
     document.addEventListener("click", e => {
-      if (!langBtn.contains(e.target) && !langPopover.contains(e.target)) langPopover.classList.remove("show");
+      if (langBtn && !langBtn.contains(e.target) && langPopover && !langPopover.contains(e.target)) {
+        langPopover.classList.remove("show");
+      }
     });
 
     langItems.forEach(item => {
       item.addEventListener("click", () => {
         setLanguage(item.dataset.lang);
-        langPopover.classList.remove("show");
+        if (langPopover) langPopover.classList.remove("show");
       });
     });
 
-    cartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
-    floatingCartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
-    cartClose.addEventListener("click", () => { cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); });
+    if (cartBtn) cartBtn.addEventListener("click", () => { if (cartDrawer) cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
+    if (floatingCartBtn) floatingCartBtn.addEventListener("click", () => { if (cartDrawer) cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
+    if (cartClose) cartClose.addEventListener("click", () => { if (cartDrawer) cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); });
 
     document.addEventListener("click", e => {
-      if (cartDrawer.classList.contains("open") && !cartDrawer.contains(e.target) && !cartBtn.contains(e.target) && !floatingCartBtn.contains(e.target)) {
+      if (cartDrawer && cartDrawer.classList.contains("open") && !cartDrawer.contains(e.target) && !cartBtn.contains(e.target) && !floatingCartBtn.contains(e.target)) {
         cartDrawer.classList.remove("open");
         document.body.classList.remove("drawer-open");
       }
     });
 
-    cartItemsEl.addEventListener("click", e => {
-      if (e.target.classList.contains("cart-item-remove")) {
-        const idx = parseInt(e.target.dataset.idx);
-        const removed = cart.splice(idx, 1)[0];
-        removed.inCart = false;
-        const card = removed.element;
-        if (card) {
-          const btn = card.querySelector(".cart-btn");
-          btn.dataset.inCart = "false";
-          btn.classList.remove("added");
-          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+    if (cartItemsEl) {
+      cartItemsEl.addEventListener("click", e => {
+        if (e.target.classList.contains("cart-item-remove")) {
+          const idx = parseInt(e.target.dataset.idx);
+          const removed = cart.splice(idx, 1)[0];
+          removed.inCart = false;
+          const card = removed.element;
+          if (card) {
+            const btn = card.querySelector(".cart-btn");
+            btn.dataset.inCart = "false";
+            btn.classList.remove("added");
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+          }
+          updateCartDisplay();
         }
-        updateCartDisplay();
-      }
-    });
+      });
+    }
 
-    themeBtn.addEventListener("click", toggleTheme);
+    if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
 
-    // Init
-    createCards();
+    // Init - run safely
+    if (grid) createCards();
     filterAndSort();
     updateAllPrices();
     setLanguage("en");
@@ -1149,7 +1077,7 @@
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
 
-  <!-- PayPal SDK + Button -->
+  <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
   <script>
     paypal.Buttons({
@@ -1170,31 +1098,36 @@
         return actions.order.capture().then(async function(details) {
           await recordPurchase(details);
 
-          cartItemsEl.innerHTML = `
-            <div style="text-align:center; padding:2rem; color:#22c55e;">
-              <h3>Payment Successful! 🎉</h3>
-              <p>Thank you for supporting my work. Your order is ready.</p>
-              <p>Order ID: <strong id="orderIdDisplay">${details.id}</strong></p>
-              <p>Click below to download your purchase(s):</p>
-              <div id="downloadButtons"></div>
-              <p>If the links don't appear or you have issues, contact me on Discord or Twitter with your Order ID.</p>
-            </div>
-          `;
+          if (cartItemsEl) {
+            cartItemsEl.innerHTML = `
+              <div style="text-align:center; padding:2rem; color:#22c55e;">
+                <h3>Payment Successful! 🎉</h3>
+                <p>Thank you for supporting my work. Your order is ready.</p>
+                <p>Order ID: <strong id="orderIdDisplay">${details.id}</strong></p>
+                <p>Click below to download your purchase(s):</p>
+                <div id="downloadButtons"></div>
+                <p>If the links don't appear or you have issues, contact me on Discord or Twitter with your Order ID.</p>
+              </div>
+            `;
 
-          const buttonsContainer = document.getElementById("downloadButtons");
-          cart.forEach(item => {
-            const link = downloads[item.id] || "#";
-            const btn = document.createElement("a");
-            btn.href = link;
-            btn.target = "_blank";
-            btn.style = "display:block; margin:0.8rem auto; padding:0.8rem 1.5rem; background:#22c55e; color:white; border-radius:8px; text-decoration:none; max-width:300px;";
-            btn.textContent = `Download ${item.title}`;
-            buttonsContainer.appendChild(btn);
-          });
+            const buttonsContainer = document.getElementById("downloadButtons");
+            if (buttonsContainer) {
+              cart.forEach(item => {
+                const link = downloads[item.id] || "#";
+                const btn = document.createElement("a");
+                btn.href = link;
+                btn.target = "_blank";
+                btn.style = "display:block; margin:0.8rem auto; padding:0.8rem 1.5rem; background:#22c55e; color:white; border-radius:8px; text-decoration:none; max-width:300px;";
+                btn.textContent = `Download ${item.title}`;
+                buttonsContainer.appendChild(btn);
+              });
+            }
+          }
 
-          paypalContainer.style.display = "none";
-          document.querySelector(".cart-total-row").style.display = "none";
-          discountRow.style.display = "none";
+          if (paypalContainer) paypalContainer.style.display = "none";
+          const totalRow = document.querySelector(".cart-total-row");
+          if (totalRow) totalRow.style.display = "none";
+          if (discountRow) discountRow.style.display = "none";
 
           cart = [];
           updateCartDisplay();
