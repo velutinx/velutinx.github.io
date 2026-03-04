@@ -1,8 +1,3 @@
-/* ================================================
-   VELUTINX — Global Styles
-   Last major update: March 2025
-   ================================================ */
-
 :root {
   --bg: #d4d0c1;
   --divider: #aa9e76;
@@ -13,9 +8,9 @@
   --text-dark: #e6e3d8;
 }
 
-/* ================================================
-   Animated Background (cream → dark nebula)
-   ================================================ */
+/* ====================================================
+   Shared Animated Background (cream palette + wave)
+   ==================================================== */
 
 .background-wrapper {
   position: fixed;
@@ -75,19 +70,29 @@ body::before {
   backdrop-filter: blur(1.5px);
 }
 
-/* Dark mode background */
+#page,
+.hero,
+.commission-wrap,
+.artwork-wrap,
+.contact-wrap {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+/* Dark mode: much darker base gradient + slow flow */
 body.dark .background-gradient {
   background: linear-gradient(
     135deg,
-    #00030f 0%,
-    #000814 20%,
-    #0a1125 40%,
-    #001220 60%,
-    #0b142b 80%,
-    #00030f 100%
+    #00030f 0%,      /* near-black with tiny blue hint */
+    #000814 20%,     /* deepest navy-black */
+    #0a1125 40%,     /* very dark navy */
+    #001220 60%,     /* cold dark space blue-black */
+    #0b142b 80%,     /* muted deep navy */
+    #00030f 100%     /* loop back to near-black */
   );
   background-size: 400% 400%;
-  animation: darkNebulaFlow 55s ease infinite;
+  animation: darkNebulaFlow 55s ease infinite;   /* slower & calmer movement */
 }
 
 @keyframes darkNebulaFlow {
@@ -96,27 +101,29 @@ body.dark .background-gradient {
   100% { background-position: 0% 50%; }
 }
 
+/* Even darker veil for stronger contrast/readability */
 body.dark::before {
-  background: rgba(15, 15, 18, 0.45);
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 3, 15, 0.65);   /* strong dark navy overlay */
+  z-index: -9;
+  pointer-events: none;
+  backdrop-filter: blur(1px);
 }
 
-body.dark .wave-overlay {
-  opacity: 0.14;
-  mix-blend-mode: soft-light;
-}
-
-/* Dark mode subtle stars */
+/* Subtle dark-navy stars (matching the watercolor texture mood) */
 body.dark .background-gradient::before {
   content: "";
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(#111111 1px, transparent 1px),
+    radial-gradient(#111111 1px, transparent 1px),   /* very dark navy-blue dots */
     radial-gradient(#0f1e38 1px, transparent 1px),
     radial-gradient(#14253f 1px, transparent 1px);
   background-size: 70px 70px, 90px 90px, 120px 120px;
   background-position: 0 0, 35px 35px, 80px 80px;
-  opacity: 0.06;
+  opacity: 0.06;                  /* still subtle, but visible on deep black */
   animation: starTwinkle 35s ease-in-out infinite;
   mix-blend-mode: screen;
   pointer-events: none;
@@ -127,153 +134,136 @@ body.dark .background-gradient::before {
   50%      { opacity: 0.11; transform: scale(1.02); }
 }
 
-/* ================================================
-   Global Reset & Body
-   ================================================ */
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.07; transform: scale(1); }
+  50%      { opacity: 0.14; transform: scale(1.03); }
 }
+
+@keyframes pulseNebula1 {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%      { opacity: 1.0; transform: scale(1.08); }
+}
+
+@keyframes pulseNebula2 {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 0.9; transform: scale(1.12); }
+}
+
+@keyframes nebulaFlow {
+  0%   { background-position: 0% 0%, 100% 100%, 0% 100%, 50% 50%; }
+  100% { background-position: 100% 100%, 0% 0%, 100% 0%, 50% 50%; }
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.04; }
+  50%      { opacity: 0.08; }
+}
+
+body.dark .wave-overlay {
+  opacity: 0.14;
+  mix-blend-mode: soft-light;
+}
+
+body.dark::before {
+  background: rgba(15, 15, 18, 0.45);
+}
+
+/* =========================================================
+   ===== Global Reset & Body  (CLEANED)
+   ========================================================= */
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   background: transparent;
   color: var(--text);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: system-ui, sans-serif;
   overflow-x: hidden;
   transition: color 0.6s ease;
 }
 
 body.dark {
+  background: transparent;
   color: var(--text-dark);
 }
 
-/* Page load fade-in */
-#page,
-.hero,
-.commission-wrap,
-.artwork-wrap,
-.contact-wrap {
-  position: relative;
-  z-index: 1;
+/* ✅ Page load animation */
+#page {
   opacity: 0;
   transform: translateY(60px);
   animation: pageReveal 0.7s ease-out forwards;
-  background: transparent;
 }
 
 @keyframes pageReveal {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ================================================
-   Language Selector (Globe button + left popover)
-   ================================================ */
+/* Language Swipe Overlay */
+.lang-swipe {
+  position: fixed;
+  bottom: -120%;
+  left: 0;
+  width: 100%;
+  height: 120%;
+  background: var(--divider);
+  z-index: 10000;
+  pointer-events: none;
+}
+.lang-swipe.active {
+  animation: langSwipeUp 0.55s ease-in forwards;
+}
 
-#langContainer {
+@keyframes langSwipeUp {
+  to { bottom: 120%; }
+}
+
+/* Language Toggle – make it transparent with subtle border/glow */
+.lang-toggle {
   position: fixed;
   top: 20%;
   right: 24px;
-  z-index: 9999;
-}
-
-.lang-btn {
   width: 72px;
   height: 48px;
-  background: transparent;
-  border: 2px solid var(--divider);
+  background: transparent;                    /* ← changed to transparent */
+  border: 2px solid var(--divider);           /* subtle border using your divider color */
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 900;
+  font-size: 32px;
+  line-height: 48px;
   cursor: pointer;
-  color: var(--text);
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);    /* soft shadow for depth */
+  backdrop-filter: blur(8px);                 /* glass-like effect – optional but nice */
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  backdrop-filter: blur(8px);
 }
 
-.lang-btn:hover {
-  background: rgba(170, 158, 118, 0.15);
+.lang-toggle:hover {
+  background: rgba(170, 158, 118, 0.15);      /* very faint hover tint using divider color */
   box-shadow: 0 6px 16px rgba(0,0,0,0.25);
   transform: scale(1.08);
 }
 
-body.dark .lang-btn {
+/* Dark mode adjustments for lang toggle */
+body.dark .lang-toggle {
   border-color: var(--divider-dark);
-  color: var(--text-dark);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
-#languagePopover {
-  position: absolute;
-  top: 0;
-  right: 100%;
-  margin-right: 12px;
-  background: var(--bg);
-  border: 2px solid var(--divider);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  min-width: 240px;
-  z-index: 10000;
-  display: none;
-  overflow: hidden;
-  padding: 8px 0;
+body.dark .lang-toggle:hover {
+  background: rgba(111, 106, 78, 0.2);        /* faint dark hover */
 }
 
-#langContainer:hover #languagePopover,
-#languagePopover:hover {
-  display: block;
-}
-
-.lang-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  cursor: pointer;
-  transition: background 0.2s;
-  color: var(--text);
-}
-
-.lang-item:hover {
-  background: rgba(170,158,118,0.2);
-}
-
-.lang-item img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.lang-item p {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-body.dark #languagePopover {
-  background: var(--bg-dark);
-  border-color: var(--divider-dark);
-}
-
-body.dark .lang-item {
-  color: var(--text-dark);
-}
-
-/* ================================================
-   Theme Toggle
-   ================================================ */
-
+/* Theme Toggle – transparent pill with glass effect */
 .theme-toggle {
   position: fixed;
   top: 80%;
   right: 24px;
   width: 72px;
   height: 36px;
-  background: transparent;
+  background: transparent;                    /* ← changed to transparent */
   border: 2px solid var(--divider);
   border-radius: 999px;
   cursor: pointer;
@@ -282,7 +272,7 @@ body.dark .lang-item {
   padding: 4px;
   z-index: 9999;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);                 /* glass/matte effect */
   transition: all 0.3s ease;
 }
 
@@ -295,33 +285,42 @@ body.dark .lang-item {
 .theme-knob {
   width: 28px;
   height: 28px;
-  background: #000;
+  background: #000;                           /* keep dark knob for contrast */
   border-radius: 50%;
   transition: transform 0.4s ease, background 0.4s ease;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5); /* inner shadow for depth */
 }
 
-.theme-knob::before {
-  content: "🌙";
-}
+.theme-knob::before { content: "🌙"; }
 
 body.dark .theme-toggle {
   border-color: var(--divider-dark);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+body.dark .theme-toggle:hover {
+  background: rgba(111, 106, 78, 0.18);
 }
 
 body.dark .theme-knob {
   transform: translateX(34px);
   background: var(--divider-dark);
 }
+body.dark .theme-knob::before { content: "☀️"; }
 
-body.dark .theme-knob::before {
-  content: "☀️";
+/* Wobble Animations */
+@keyframes langWobble {
+  0% { transform: scale(1.1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-18deg); }
+  50% { transform: scale(1.1) rotate(18deg); }
+  75% { transform: scale(1.1) rotate(-10deg); }
+  100% { transform: scale(1.1) rotate(0deg); }
 }
 
-/* ================================================
-   Navigation Blobs & Dividers
-   ================================================ */
-
+/* Navigation Blobs */
 .nav {
   display: flex;
   justify-content: center;
@@ -332,6 +331,7 @@ body.dark .theme-knob::before {
 .blob-btn {
   width: 180px;
   cursor: pointer;
+  transform-box: fill-box;
   transform-origin: center;
 }
 
@@ -340,11 +340,11 @@ body.dark .theme-knob::before {
 }
 
 @keyframes blobWobble {
-  0%    { transform: scale(1.15) rotate(0deg); }
-  25%   { transform: scale(1.15) rotate(-4deg); }
-  50%   { transform: scale(1.15) rotate(4deg); }
-  75%   { transform: scale(1.15) rotate(-3deg); }
-  100%  { transform: scale(1.15) rotate(0deg); }
+  0% { transform: scale(1.15) rotate(0deg); }
+  25% { transform: scale(1.15) rotate(-4deg); }
+  50% { transform: scale(1.15) rotate(4deg); }
+  75% { transform: scale(1.15) rotate(-3deg); }
+  100% { transform: scale(1.15) rotate(0deg); }
 }
 
 .blob-svg path {
@@ -352,10 +352,7 @@ body.dark .theme-knob::before {
   stroke: var(--divider);
   stroke-width: 6;
 }
-
-body.dark .blob-svg path {
-  stroke: var(--divider-dark);
-}
+body.dark .blob-svg path { stroke: var(--divider-dark); }
 
 .blob-text {
   font-weight: 900;
@@ -364,11 +361,9 @@ body.dark .blob-svg path {
   fill: var(--text);
   pointer-events: none;
 }
+body.dark .blob-text { fill: var(--text-dark); }
 
-body.dark .blob-text {
-  fill: var(--text-dark);
-}
-
+/* Dividers */
 .divider {
   width: 80%;
   height: 6px;
@@ -376,15 +371,9 @@ body.dark .blob-text {
   margin: 22px auto;
   border-radius: 4px;
 }
+body.dark .divider { background: var(--divider-dark); }
 
-body.dark .divider {
-  background: var(--divider-dark);
-}
-
-/* ================================================
-   Hero Section
-   ================================================ */
-
+/* Hero Section */
 .hero {
   max-width: 1100px;
   margin: 0 auto;
@@ -401,7 +390,6 @@ body.dark .divider {
   justify-content: center;
   overflow: hidden;
 }
-
 .hero-image img {
   width: 320px;
   border-radius: 16px;
@@ -416,33 +404,49 @@ body.dark .divider {
   animation: socialStarFall 6s linear forwards;
   z-index: 2;
 }
-
 @keyframes socialStarFall {
   from { opacity: 0; transform: translateY(-20px); }
-  10%  { opacity: 1; }
-  to   { opacity: 0; transform: translateY(300px); }
+  10% { opacity: 1; }
+  to { opacity: 0; transform: translateY(300px); }
 }
 
-.hero-text {
-  text-align: center;
+.hero-text { text-align: center; }
+.hero-name { font-size: 42px; font-weight: 800; letter-spacing: 4px; }
+.hero-sub { font-size: 14px; letter-spacing: 1px; margin: 10px 0; }
+
+/* Discord Button */
+.discord-link img {
+  width: 220px;
+  cursor: pointer;
+}
+.discord-link img:hover {
+  animation: blobWobble 1.6s ease-in-out infinite;
 }
 
-.hero-name {
-  font-size: 42px;
-  font-weight: 800;
-  letter-spacing: 4px;
-}
-
-.hero-sub {
+/* Cursor Sparkles */
+.star {
+  position: fixed;
+  pointer-events: none;
+  color: var(--divider);
   font-size: 14px;
-  letter-spacing: 1px;
-  margin: 10px 0;
+  animation: driftFall 2s ease-out forwards;
+  z-index: 9999;
+}
+@keyframes driftFall {
+  to {
+    opacity: 0;
+    transform: translate(calc(-20px + 40px * var(--drift)), 90px) scale(0.4);
+  }
+}
+/* Commission Section */
+.commission-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+  position: relative;
 }
 
-/* ================================================
-   Commission Section (frosted glass boxes)
-   ================================================ */
-
+/* Commission Section – transparent/frosted glass */
 .commission-wrap {
   max-width: 1000px;
   margin: 0 auto;
@@ -469,7 +473,7 @@ body.dark .divider {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(238, 234, 224, 0.18);
+  background: rgba(238, 234, 224, 0.18); /* light mode faint veil */
   border-radius: 14px;
   z-index: -1;
   pointer-events: none;
@@ -481,7 +485,7 @@ body.dark .commission-box {
 }
 
 body.dark .commission-box::before {
-  background: rgba(22, 22, 27, 0.25);
+  background: rgba(22, 22, 27, 0.25); /* dark mode faint veil */
 }
 
 .commission-box:hover {
@@ -490,11 +494,40 @@ body.dark .commission-box::before {
   backdrop-filter: blur(16px);
 }
 
+/* Light mode faint veil (helps readability) */
+.commission-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(238, 234, 224, 0.18);      /* very light cream tint */
+  border-radius: 14px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Dark mode adjustments */
+body.dark .commission-box {
+  border-color: var(--divider-dark);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+body.dark .commission-box::before {
+  background: rgba(22, 22, 27, 0.25);         /* faint dark tint */
+}
+
+/* Optional hover lift for interactivity */
+.commission-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  backdrop-filter: blur(16px);
+}
+
+/* Keep text readable */
 .commission-box h2,
 .commission-box p,
 .commission-box .placeholder {
   position: relative;
-  z-index: 2;
+  z-index: 2;  /* above the veil */
 }
 
 .commission-box h2 {
@@ -516,6 +549,7 @@ body.dark .commission-box::before {
   opacity: 0.7;
 }
 
+/* Box-specific falling sparkles */
 .box-star {
   position: absolute;
   color: var(--divider);
@@ -527,14 +561,11 @@ body.dark .commission-box::before {
 
 @keyframes boxStarFall {
   from { opacity: 0; transform: translateY(-20px); }
-  10%  { opacity: 1; }
-  to   { opacity: 0; transform: translateY(420px); }
+  10% { opacity: 1; }
+  to { opacity: 0; transform: translateY(420px); }
 }
 
-/* ================================================
-   Artwork Gallery
-   ================================================ */
-
+/* Artwork Gallery */
 .artwork-wrap {
   max-width: 1800px;
   margin: 0 auto;
@@ -608,14 +639,27 @@ body.dark .commission-box::before {
 
 @keyframes fallDown {
   from { opacity: 0; transform: translateY(-10vh); }
-  10%  { opacity: 1; }
-  to   { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
+  10% { opacity: 1; }
+  to { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
 }
 
-/* ================================================
-   Contact Page Layout & Form
-   ================================================ */
+/* Make language toggle rectangular + bigger flags */
+.lang-toggle {
+  width: 72px !important;          /* wider than tall → rectangle */
+  height: 48px !important;         /* adjust height as needed */
+  font-size: 32px !important;      /* ~3x normal emoji size */
+  line-height: 48px !important;    /* center vertically */
+  padding: 0 !important;
+  border-radius: 8px !important;   /* slightly softer corners */
+}
 
+/* Optional: make it even more flag-like */
+.lang-toggle:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Contact Page Layout */
 .contact-wrap {
   max-width: 1200px;
   margin: 0 auto;
@@ -623,15 +667,16 @@ body.dark .commission-box::before {
   display: grid;
   grid-template-columns: 70% 30%;
   gap: 40px;
-  background: transparent;
+  background: transparent; /* ensure wrapper doesn't block bg */
 }
 
+/* Form side – transparent glass */
 .contact-left {
   background: transparent;
   border: 2px solid var(--divider);
-  border-radius: 14px;
-  padding: 32px;
-  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
+  border-radius: 14px; /* keep your original radius */
+  padding: 32px; /* slightly adjusted padding for better fit — revert to original if needed */
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.35); /* keep your shadow style */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   position: relative;
@@ -642,7 +687,7 @@ body.dark .commission-box::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(238, 234, 224, 0.18);
+  background: rgba(238, 234, 224, 0.18); /* very faint cream veil */
   border-radius: 12px;
   z-index: -1;
   pointer-events: none;
@@ -650,31 +695,36 @@ body.dark .commission-box::before {
 
 body.dark .contact-left {
   border-color: var(--divider-dark);
-  box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.5); /* keep dark shadow */
 }
 
 body.dark .contact-left::before {
-  background: rgba(22, 22, 27, 0.25);
+  background: rgba(22, 22, 27, 0.25); /* faint dark veil */
 }
 
+/* Form inputs – transparent */
 .form-group input,
 .form-group textarea {
   width: 100%;
   padding: 10px 12px;
   border: 2px solid var(--divider);
   border-radius: 6px;
-  background: transparent;
+  background: transparent; /* ← changed to transparent */
   font-size: 13px;
+  transition: 0.2s ease;
   color: var(--text);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* subtle inner depth */
 }
 
 body.dark .form-group input,
 body.dark .form-group textarea {
+  background: transparent;
   color: var(--text-dark);
   border-color: var(--divider-dark);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
+/* Send button – keep original look, just ensure it's above veil */
 .send-btn {
   margin-top: 10px;
   padding: 10px 26px;
@@ -684,7 +734,7 @@ body.dark .form-group textarea {
   font-weight: 700;
   letter-spacing: 2px;
   cursor: pointer;
-  z-index: 2;
+  z-index: 2; /* above veil */
 }
 
 body.dark .send-btn {
@@ -692,11 +742,13 @@ body.dark .send-btn {
   color: var(--text-dark);
 }
 
+/* Social buttons column – transparent glass */
 .contact-right {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
+  position: relative;
 }
 
 .social-btn {
@@ -708,12 +760,14 @@ body.dark .send-btn {
   padding: 10px 14px;
   border: 2px solid var(--divider);
   border-radius: 10px;
-  background: transparent;
+  background: transparent; /* ← transparent */
   text-decoration: none;
   color: #000;
   transition: transform 0.2s ease;
-  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
+  cursor: pointer;
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.35); /* keep your original shadow style */
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   position: relative;
 }
 
@@ -721,12 +775,13 @@ body.dark .send-btn {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(238, 234, 224, 0.15);
+  background: rgba(238, 234, 224, 0.15); /* very faint veil */
   border-radius: 8px;
   z-index: -1;
 }
 
 body.dark .social-btn {
+  background: transparent;
   border-color: var(--divider-dark);
   color: var(--text-dark);
   box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
@@ -746,7 +801,7 @@ body.dark .social-btn::before {
   height: 22px;
 }
 
-/* Responsive contact layout */
+/* Responsive: stack on mobile */
 @media (max-width: 900px) {
   .contact-wrap {
     grid-template-columns: 1fr;
@@ -756,40 +811,7 @@ body.dark .social-btn::before {
   }
 }
 
-/* ================================================
-   Shared Visual Effects & Animations
-   ================================================ */
-
-.cursor-star,
-.social-star,
-.falling-star,
-.box-star {
-  position: absolute;
-  pointer-events: none;
-  color: var(--divider);
-  font-size: 14px–18px;
-  z-index: 3;
-}
-
-@keyframes driftFall {
-  to {
-    opacity: 0;
-    transform: translate(calc(-20px + 40px * var(--drift)), 90px) scale(0.4);
-  }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25%      { transform: translateX(-4px); }
-  50%      { transform: translateX(4px); }
-  75%      { transform: translateX(-4px); }
-  100%     { transform: translateX(0); }
-}
-
-/* ================================================
-   Misc / Legacy / Admin Elements
-   ================================================ */
-
+/* Popup */
 .popup {
   position: fixed;
   top: 20px;
@@ -813,14 +835,24 @@ body.dark .popup {
   color: var(--text-dark);
 }
 
+/* Error state */
 .input-error {
-  border-color: #b33 !important;
+  border-color: var(--error) !important;
   animation: shake 0.35s;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
 }
 
 .leaderboard-entry {
   transition: filter 0.5s ease, transform 0.4s ease;
   padding: 3px 0;
+  font-family: inherit;
 }
 
 .leaderboard-entry.spoiled {
@@ -832,9 +864,12 @@ body.dark .popup {
 .leaderboard-entry.spoiled:hover {
   filter: blur(0) brightness(1.08);
   transform: scale(1.015);
+  transition: 
+    filter 0.9s ease-out,
+    transform 0.5s ease;
 }
 
-/* Poll / Card glass effect */
+/* Poll cards – transparent glass effect */
 .card,
 .big-card,
 #leaderboard {
@@ -852,7 +887,7 @@ body.dark .popup {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(238, 234, 224, 0.18);
+  background: rgba(238, 234, 224, 0.18); /* light mode faint veil */
   z-index: -1;
   pointer-events: none;
 }
@@ -866,5 +901,5 @@ body.dark #leaderboard {
 body.dark .card::before,
 body.dark .big-card::before,
 body.dark #leaderboard::before {
-  background: rgba(22, 22, 27, 0.25);
+  background: rgba(22, 22, 27, 0.25); /* dark mode faint veil */
 }
