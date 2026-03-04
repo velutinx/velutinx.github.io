@@ -17,7 +17,7 @@
     .container { max-width: 600px; margin: 0 auto; }
     .download-btn {
       display: inline-block;
-      background: var(--accent, #aa9e76);
+      background: #aa9e76;
       color: #1f1a12;
       padding: 16px 32px;
       font-size: 1.3rem;
@@ -31,6 +31,14 @@
       background: #e0c08a;
       transform: scale(1.05);
     }
+    #orderIdDisplay {
+      font-family: monospace;
+      background: #e8e5d8;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 1.25rem;
+      color: #aa9e76;
+    }
     #download-section { margin: 40px 0; }
     #error-message { color: #a64a5c; font-weight: bold; }
   </style>
@@ -40,15 +48,18 @@
     <h1>Payment Successful! 🎉</h1>
     <p>Thank you for supporting my work. Your order is ready.</p>
 
+    <!-- NEW: Order counter -->
+    <p><strong>Your Order ID:</strong> <span id="orderIdDisplay">000000</span></p>
+
     <div id="download-section">
-      <!-- The download link will appear here -->
+      <!-- Download link will appear here -->
     </div>
 
-    <p><small>If the link doesn't appear or you have any issues, contact me on Discord or Twitter with your order ID.</small></p>
+    <p><small>If the link doesn't appear or you have any issues, contact me on Discord or Twitter with the Order ID above.</small></p>
   </div>
 
   <script>
-    // === Your product → Mega link database ===
+    // === Product → Mega link database (unchanged) ===
     const downloadLinks = {
       "pack001": "https://mega.nz/file/HIUl3LQI#2qV6CTq4mWazPxmSq6Ua0ePI8EqEOifWScjpJ5UnycU",
       "pack002": "https://mega.nz/folder/DEF456UVW",
@@ -61,9 +72,12 @@
       "pack009": "https://mega.nz/folder/NOP567QRS"
     };
 
-    // Read product code from URL
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get("product") || "unknown";
+    const orderId = urlParams.get("order") || "N/A";
+
+    // Show order ID
+    document.getElementById("orderIdDisplay").textContent = orderId;
 
     const section = document.getElementById("download-section");
     const link = downloadLinks[productId];
@@ -71,14 +85,12 @@
     if (link) {
       section.innerHTML = `
         <p>Click below to download your purchase:</p>
-        <a href="${link}" class="download-btn" target="_blank">
-          Download Now
-        </a>
+        <a href="${link}" class="download-btn" target="_blank">Download Now</a>
       `;
     } else {
       section.innerHTML = `
         <p id="error-message">Download link not found for this product.</p>
-        <p>Please contact me with your order ID: <strong>${productId}</strong></p>
+        <p>Please contact me with your order ID: <strong>${orderId}</strong></p>
       `;
     }
   </script>
