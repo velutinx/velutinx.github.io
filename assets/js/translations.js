@@ -1,14 +1,10 @@
 // /assets/js/translations.js
 
-// Available languages
 const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
-
-// Default fallback
 const DEFAULT_LANG = 'en';
 
-// All translatable texts – organized by page/section
+// Translations by page
 const translations = {
-  // Commissions page
   commissions: {
     en: {
       comTitle: "COMMISSIONS",
@@ -56,7 +52,6 @@ const translations = {
     }
   },
 
-  // Artwork page
   artwork: {
     en: {
       artworkIntro: "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images"
@@ -73,19 +68,16 @@ const translations = {
   }
 };
 
-// Current language
 let currentLanguage = localStorage.getItem('language') || DEFAULT_LANG;
 
-// Main function to update text on the page
 function applyTranslations(pageKey = 'commissions') {
   const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
 
   if (!pageTranslations) {
-    console.warn(`No translations found for page: ${pageKey} / lang: ${currentLanguage}`);
+    console.warn(`No translations for page: ${pageKey} / lang: ${currentLanguage}`);
     return;
   }
 
-  // Update based on page
   if (pageKey === 'commissions') {
     const titleEl = document.getElementById('comTitle');
     if (titleEl) titleEl.textContent = pageTranslations.comTitle;
@@ -95,35 +87,33 @@ function applyTranslations(pageKey = 'commissions') {
 
     const listEl = document.getElementById('comList');
     if (listEl) listEl.innerHTML = pageTranslations.comList.trim();
-  } else if (pageKey === 'artwork') {
+  } 
+  else if (pageKey === 'artwork') {
     const introEl = document.getElementById('artworkIntro');
     if (introEl) introEl.textContent = pageTranslations.artworkIntro;
   }
 }
 
-// Change language + trigger swipe + update UI
 function setLanguage(lang) {
-  if (!SUPPORTED_LANGUAGES.includes(lang)) {
-    lang = DEFAULT_LANG;
-  }
+  if (!SUPPORTED_LANGUAGES.includes(lang)) lang = DEFAULT_LANG;
 
   currentLanguage = lang;
   localStorage.setItem('language', lang);
 
-  // Trigger swipe animation
+  // Swipe animation
   const swipe = document.getElementById('langSwipe');
   if (swipe) {
     swipe.classList.remove('active');
-    void swipe.offsetHeight; // reflow
+    void swipe.offsetHeight;
     swipe.classList.add('active');
   }
 
-  // Apply translations (pageKey is passed from HTML)
-  // We will call applyTranslations() with the correct key on each page
+  // Re-apply translations (pageKey must be passed from page script)
+  // We dispatch event so pages can re-apply with correct key
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
-// Initialize on load
+// Initial load
 document.addEventListener('DOMContentLoaded', () => {
-  // Each page will call applyTranslations('pageKey') after loading
+  applyTranslations(); // default to commissions — pages should call with their key
 });
