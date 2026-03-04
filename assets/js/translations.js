@@ -8,7 +8,7 @@ const DEFAULT_LANG = 'en';
 
 // All translatable texts – organized by page/section
 const translations = {
-  // Home / Index page
+  // Index / Home page
   index: {
     en: {
       heroSub: "♡ Freelance Illustrator ♡",
@@ -90,22 +90,70 @@ const translations = {
     es: {
       artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images"
     }
-  }
+  },
 
-  // Add new pages here in the future, e.g.:
-  // contact: {
-  //   en: { contactTitle: "CONTACT", ... },
-  //   ja: { contactTitle: "お問い合わせ", ... },
-  //   zh: { contactTitle: "联系", ... },
-  //   es: { contactTitle: "CONTACTO", ... }
-  // }
+  // Contact page
+  contact: {
+    en: {
+      contactTitle: "CONTACT",
+      contactDesc: "Use this form if you'd like to contact me via email!",
+      labelName: "NAME",
+      labelEmail: "EMAIL",
+      labelMessage: "MESSAGE",
+      namePlaceholder: "Name",
+      emailPlaceholder: "Email",
+      messagePlaceholder: "Message",
+      sendBtn: "SEND",
+      errorText: "Please fill out all fields correctly ♡",
+      successText: "Message sent successfully! You will hear back soon! ♡♡"
+    },
+    ja: {
+      contactTitle: "お問い合わせ",
+      contactDesc: "メールで連絡したい場合はこちらのフォームをご利用ください。",
+      labelName: "お名前",
+      labelEmail: "メールアドレス",
+      labelMessage: "メッセージ",
+      namePlaceholder: "お名前",
+      emailPlaceholder: "メールアドレス",
+      messagePlaceholder: "メッセージ",
+      sendBtn: "送信",
+      errorText: "すべての項目を正しく入力してください ♡",
+      successText: "送信されました！近日中にご連絡します ♡♡"
+    },
+    zh: {
+      contactTitle: "联系",
+      contactDesc: "如果您想通过电子邮件联系我，请使用此表单！",
+      labelName: "姓名",
+      labelEmail: "电子邮件",
+      labelMessage: "消息",
+      namePlaceholder: "姓名",
+      emailPlaceholder: "电子邮件",
+      messagePlaceholder: "消息",
+      sendBtn: "发送",
+      errorText: "请正确填写所有字段 ♡",
+      successText: "消息已发送！您很快会收到回复！ ♡♡"
+    },
+    es: {
+      contactTitle: "CONTACTO",
+      contactDesc: "¡Use este formulario si desea contactarme por correo electrónico!",
+      labelName: "NOMBRE",
+      labelEmail: "CORREO ELECTRÓNICO",
+      labelMessage: "MENSAJE",
+      namePlaceholder: "Nombre",
+      emailPlaceholder: "Correo electrónico",
+      messagePlaceholder: "Mensaje",
+      sendBtn: "ENVIAR",
+      errorText: "Por favor complete todos los campos correctamente ♡",
+      successText: "¡Mensaje enviado con éxito! ¡Pronto tendrá noticias mías! ♡♡"
+    }
+  }
 };
 
 // Current language
 let currentLanguage = localStorage.getItem('language') || DEFAULT_LANG;
 
-// Main function to update text on the page
-function applyTranslations(pageKey = 'commissions') {
+// Apply translations based on current page
+function applyTranslations(pageKey = 'index') {
   const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
 
   if (!pageTranslations) {
@@ -113,7 +161,14 @@ function applyTranslations(pageKey = 'commissions') {
     return;
   }
 
-  // Update elements based on page
+  // Index page
+  if (pageKey === 'index') {
+    const heroSubEl = document.getElementById('heroSub');
+    if (heroSubEl) heroSubEl.textContent = pageTranslations.heroSub;
+    // If heroSubExtra is in a separate element, add it here
+  }
+
+  // Commissions page
   if (pageKey === 'commissions') {
     const titleEl = document.getElementById('comTitle');
     if (titleEl) titleEl.textContent = pageTranslations.comTitle;
@@ -123,17 +178,42 @@ function applyTranslations(pageKey = 'commissions') {
 
     const listEl = document.getElementById('comList');
     if (listEl) listEl.innerHTML = pageTranslations.comList.trim();
-  } 
-  else if (pageKey === 'artwork') {
+  }
+
+  // Artwork page
+  if (pageKey === 'artwork') {
     const introEl = document.getElementById('artworkIntro');
     if (introEl) introEl.textContent = pageTranslations.artworkIntro;
-  } 
-  else if (pageKey === 'index') {
-    const heroSubEl = document.getElementById('heroSub');
-    if (heroSubEl) heroSubEl.textContent = pageTranslations.heroSub;
+  }
 
-    // If you have a separate element for the extra line, add it here
-    // For now it's inside the same <div id="heroSub">
+  // Contact page
+  if (pageKey === 'contact') {
+    const titleEl = document.getElementById('contactTitle');
+    if (titleEl) titleEl.textContent = pageTranslations.contactTitle;
+
+    const descEl = document.getElementById('contactDesc');
+    if (descEl) descEl.textContent = pageTranslations.contactDesc;
+
+    const labelName = document.getElementById('labelName');
+    if (labelName) labelName.textContent = pageTranslations.labelName;
+
+    const labelEmail = document.getElementById('labelEmail');
+    if (labelEmail) labelEmail.textContent = pageTranslations.labelEmail;
+
+    const labelMessage = document.getElementById('labelMessage');
+    if (labelMessage) labelMessage.textContent = pageTranslations.labelMessage;
+
+    const nameInput = document.getElementById('name');
+    if (nameInput) nameInput.placeholder = pageTranslations.namePlaceholder;
+
+    const emailInput = document.getElementById('email');
+    if (emailInput) emailInput.placeholder = pageTranslations.emailPlaceholder;
+
+    const messageInput = document.getElementById('message');
+    if (messageInput) messageInput.placeholder = pageTranslations.messagePlaceholder;
+
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.textContent = pageTranslations.sendBtn;
   }
 }
 
@@ -150,15 +230,15 @@ function setLanguage(lang) {
   const swipe = document.getElementById('langSwipe');
   if (swipe) {
     swipe.classList.remove('active');
-    void swipe.offsetHeight; // reflow to restart animation
+    void swipe.offsetHeight; // force reflow
     swipe.classList.add('active');
   }
 
-  // Apply translations (pageKey is passed from each page's script)
+  // Apply translations (page-specific key is passed from each page)
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  // Each page will call applyTranslations('their-key') after loading
+  // Each page will call applyTranslations('their-page-key') after loading
 });
