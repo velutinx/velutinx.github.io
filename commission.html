@@ -162,15 +162,25 @@
 
     // Future language change handler (placeholder)
     // When you add full multi-language support, connect clicks on .lang-item here
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const lang = item.dataset.lang;
-        localStorage.setItem("language", lang);
-        // For now just reload — later replace with real translation function
-        location.reload();
-      });
-    });
-  </script>
+document.querySelectorAll('.lang-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const lang = item.dataset.lang;
+    
+    // Trigger swipe animation
+    const swipe = document.getElementById('langSwipe');
+    if (swipe) {
+      swipe.classList.remove('active');
+      void swipe.offsetWidth; // reflow
+      swipe.classList.add('active');
+    }
+
+    // Apply language (reload for now)
+    setTimeout(() => {
+      localStorage.setItem("language", lang);
+      location.reload();
+    }, 180); // matches animation duration
+  });
+});
 
   <!-- Shared tab title animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
