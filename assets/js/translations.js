@@ -1,10 +1,34 @@
 // /assets/js/translations.js
 
+// Available languages
 const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
+
+// Default fallback
 const DEFAULT_LANG = 'en';
 
-// Translations by page
+// All translatable texts – organized by page/section
 const translations = {
+  // Home / Index page
+  index: {
+    en: {
+      heroSub: "♡ Freelance Illustrator ♡",
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!"
+    },
+    ja: {
+      heroSub: "♡ フリーランスイラストレーター ♡",
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!"
+    },
+    zh: {
+      heroSub: "♡ 自由插画师 ♡",
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = 可以！"
+    },
+    es: {
+      heroSub: "♡ Ilustradora Freelance ♡",
+      heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = ¡OK!"
+    }
+  },
+
+  // Commissions page
   commissions: {
     en: {
       comTitle: "COMMISSIONS",
@@ -52,6 +76,7 @@ const translations = {
     }
   },
 
+  // Artwork page
   artwork: {
     en: {
       artworkIntro: "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images"
@@ -66,18 +91,29 @@ const translations = {
       artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images"
     }
   }
+
+  // Add new pages here in the future, e.g.:
+  // contact: {
+  //   en: { contactTitle: "CONTACT", ... },
+  //   ja: { contactTitle: "お問い合わせ", ... },
+  //   zh: { contactTitle: "联系", ... },
+  //   es: { contactTitle: "CONTACTO", ... }
+  // }
 };
 
+// Current language
 let currentLanguage = localStorage.getItem('language') || DEFAULT_LANG;
 
+// Main function to update text on the page
 function applyTranslations(pageKey = 'commissions') {
   const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
 
   if (!pageTranslations) {
-    console.warn(`No translations for page: ${pageKey} / lang: ${currentLanguage}`);
+    console.warn(`No translations found for page: ${pageKey} / lang: ${currentLanguage}`);
     return;
   }
 
+  // Update elements based on page
   if (pageKey === 'commissions') {
     const titleEl = document.getElementById('comTitle');
     if (titleEl) titleEl.textContent = pageTranslations.comTitle;
@@ -91,29 +127,38 @@ function applyTranslations(pageKey = 'commissions') {
   else if (pageKey === 'artwork') {
     const introEl = document.getElementById('artworkIntro');
     if (introEl) introEl.textContent = pageTranslations.artworkIntro;
+  } 
+  else if (pageKey === 'index') {
+    const heroSubEl = document.getElementById('heroSub');
+    if (heroSubEl) heroSubEl.textContent = pageTranslations.heroSub;
+
+    // If you have a separate element for the extra line, add it here
+    // For now it's inside the same <div id="heroSub">
   }
 }
 
+// Change language + trigger swipe + update UI
 function setLanguage(lang) {
-  if (!SUPPORTED_LANGUAGES.includes(lang)) lang = DEFAULT_LANG;
+  if (!SUPPORTED_LANGUAGES.includes(lang)) {
+    lang = DEFAULT_LANG;
+  }
 
   currentLanguage = lang;
   localStorage.setItem('language', lang);
 
-  // Swipe animation
+  // Trigger swipe animation
   const swipe = document.getElementById('langSwipe');
   if (swipe) {
     swipe.classList.remove('active');
-    void swipe.offsetHeight;
+    void swipe.offsetHeight; // reflow to restart animation
     swipe.classList.add('active');
   }
 
-  // Re-apply translations (pageKey must be passed from page script)
-  // We dispatch event so pages can re-apply with correct key
+  // Apply translations (pageKey is passed from each page's script)
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
-// Initial load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  applyTranslations(); // default to commissions — pages should call with their key
+  // Each page will call applyTranslations('their-key') after loading
 });
