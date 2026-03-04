@@ -7,14 +7,50 @@
 </head>
 <body>
 
+  <!-- Swipe animation layer -->
+  <div class="lang-swipe" id="langSwipe"></div>
+
   <div class="background-wrapper">
     <div class="background-gradient"></div>
     <div class="wave-overlay"></div>
   </div>
-  
-  <div class="lang-swipe" id="langSwipe"></div>
-  <div class="lang-toggle" id="langToggle">🇯🇵</div>
-  <div class="theme-toggle" id="themeToggle"><div class="theme-knob"></div></div>
+
+  <!-- Language selector: globe button + popover -->
+  <div id="langContainer">
+    <button class="lang-btn" title="Select Language">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5h7"></path>
+        <path d="M7 4c0 4.846 0 7 .5 8"></path>
+        <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+        <path d="M12 20l4 -9l4 9"></path>
+        <path d="M19.1 18h-6.2"></path>
+      </svg>
+    </button>
+
+    <div id="languagePopover">
+      <div class="lang-item" data-lang="en">
+        <img src="https://flagcdn.com/w40/us.png" alt="English" />
+        <p>English</p>
+      </div>
+      <div class="lang-item" data-lang="ja">
+        <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
+        <p>日本語</p>
+      </div>
+      <div class="lang-item" data-lang="zh">
+        <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
+        <p>简体中文</p>
+      </div>
+      <div class="lang-item" data-lang="es">
+        <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
+        <p>Español</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme toggle -->
+  <div class="theme-toggle" id="themeToggle">
+    <div class="theme-knob"></div>
+  </div>
 
   <!-- Page wrapper -->
   <div id="page">
@@ -77,86 +113,18 @@
 
   </div>
 
-  <!-- Shared navigation loader -->
+  <!-- Scripts -->
   <script src="/assets/js/navigation.js"></script>
+  <script src="/assets/js/translations.js"></script>
 
-  <!-- All shared functionality inline with localStorage persistence + robust blob memory -->
   <script>
-    // Load saved preferences on page load
-    const savedLang = localStorage.getItem("language");
-    const savedDark = localStorage.getItem("darkMode") === "true";
-
-    let isJapanese = savedLang === "jp";
-
-    // Function to translate blobs (robust — polls if not ready)
-    function translateBlobs(isJp) {
-      const blobs = document.querySelectorAll(".blob-text");
-      if (blobs.length === 0) {
-        setTimeout(() => translateBlobs(isJp), 100);
-        return;
-      }
-      blobs.forEach(t => {
-        t.textContent = isJp ? t.dataset.jp : t.dataset.en;
-      });
-    }
-
-    // Apply saved language on load
-    translateBlobs(isJapanese);
-
-    // Page-specific contact form translation
-    document.getElementById("contactTitle").textContent = isJapanese ? "お問い合わせ" : "CONTACT";
-    document.getElementById("contactDesc").textContent = isJapanese 
-      ? "メールで連絡したい場合はこちらのフォームをご利用ください。" 
-      : "Use this form if you'd like to contact me via email!";
-
-    document.getElementById("labelName").textContent = isJapanese ? "お名前" : "NAME";
-    document.getElementById("labelEmail").textContent = isJapanese ? "メールアドレス" : "EMAIL";
-    document.getElementById("labelMessage").textContent = isJapanese ? "メッセージ" : "MESSAGE";
-    document.getElementById("name").placeholder = isJapanese ? "お名前" : "Name";
-    document.getElementById("email").placeholder = isJapanese ? "メールアドレス" : "Email";
-    document.getElementById("message").placeholder = isJapanese ? "メッセージ" : "Message";
-    document.getElementById("sendBtn").textContent = isJapanese ? "送信" : "SEND";
-
-    document.getElementById("langToggle").textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-
-    // Apply saved dark mode on load
-    if (savedDark) {
+    // Dark mode
+    if (localStorage.getItem("darkMode") === "true") {
       document.body.classList.add("dark");
     }
 
-    // Language toggle with flags + save preference + update blobs + contact form
-    langToggle.onclick = () => {
-      langSwipe.classList.remove("active");
-      void langSwipe.offsetWidth;
-      langSwipe.classList.add("active");
-
-      setTimeout(() => {
-        isJapanese = !isJapanese;
-
-        translateBlobs(isJapanese);
-
-        document.getElementById("contactTitle").textContent = isJapanese ? "お問い合わせ" : "CONTACT";
-        document.getElementById("contactDesc").textContent = isJapanese 
-          ? "メールで連絡したい場合はこちらのフォームをご利用ください。" 
-          : "Use this form if you'd like to contact me via email!";
-
-        document.getElementById("labelName").textContent = isJapanese ? "お名前" : "NAME";
-        document.getElementById("labelEmail").textContent = isJapanese ? "メールアドレス" : "EMAIL";
-        document.getElementById("labelMessage").textContent = isJapanese ? "メッセージ" : "MESSAGE";
-        document.getElementById("name").placeholder = isJapanese ? "お名前" : "Name";
-        document.getElementById("email").placeholder = isJapanese ? "メールアドレス" : "Email";
-        document.getElementById("message").placeholder = isJapanese ? "メッセージ" : "Message";
-        document.getElementById("sendBtn").textContent = isJapanese ? "送信" : "SEND";
-
-        langToggle.textContent = isJapanese ? "🇺🇸" : "🇯🇵";
-
-        // Save language preference
-        localStorage.setItem("language", isJapanese ? "jp" : "en");
-      }, 180);
-    };
-
-    // Theme toggle + save preference
-    themeToggle.onclick = () => {
+    // Theme toggle
+    document.getElementById("themeToggle").onclick = () => {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark"));
     };
@@ -172,35 +140,34 @@
       star.className = "star";
       star.textContent = "✦";
       star.style.setProperty("--drift", Math.random());
-      star.style.left = e.clientX + "px";
-      star.style.top = e.clientY + "px";
-
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 2000);
     });
 
     // Social area falling stars
     const socialArea = document.getElementById("socialArea");
-    setInterval(() => {
-      const star = document.createElement("div");
-      star.className = "social-star";
-      star.textContent = "✦";
-      star.style.left = Math.random() * socialArea.clientWidth + "px";
-      star.style.top = "0px";
-      socialArea.appendChild(star);
-      setTimeout(() => star.remove(), 6000);
-    }, 700);
+    if (socialArea) {
+      setInterval(() => {
+        const star = document.createElement("div");
+        star.className = "social-star";
+        star.textContent = "✦";
+        star.style.left = Math.random() * socialArea.clientWidth + "px";
+        star.style.top = "0px";
+        socialArea.appendChild(star);
+        setTimeout(() => star.remove(), 6000);
+      }, 700);
+    }
 
-    // Contact form submission + validation + Formspree
-    document.getElementById("contactForm").addEventListener("submit", async function(e) {
+    // Contact form submission + validation
+    document.getElementById("contactForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      // Define inputs
       const name = document.getElementById("name");
       const email = document.getElementById("email");
       const message = document.getElementById("message");
 
-      // Reset previous errors
       [name, email, message].forEach(input => {
         input.style.borderColor = '';
         input.style.animation = 'none';
@@ -208,36 +175,23 @@
 
       let hasError = false;
 
-      if (!name.value.trim()) {
-        name.style.borderColor = '#b33';
-        name.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
-      if (!email.value.trim() || !email.value.includes("@")) {
-        email.style.borderColor = '#b33';
-        email.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
-      if (!message.value.trim()) {
-        message.style.borderColor = '#b33';
-        message.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
+      if (!name.value.trim()) { name.style.borderColor = '#b33'; name.style.animation = 'shake 0.35s'; hasError = true; }
+      if (!email.value.trim() || !email.value.includes("@")) { email.style.borderColor = '#b33'; email.style.animation = 'shake 0.35s'; hasError = true; }
+      if (!message.value.trim()) { message.style.borderColor = '#b33'; message.style.animation = 'shake 0.35s'; hasError = true; }
 
       if (hasError) {
-        const errorText = isJapanese ? "すべての項目を正しく入力してください ♡" : "Please fill out all fields correctly ♡";
+        const errorText = translations.contact?.[currentLanguage]?.errorText || "Please fill out all fields correctly ♡";
         showPopup(errorText);
         return;
       }
 
-      const successText = isJapanese ? "送信されました！近日中にご連絡します ♡♡" : "Message sent successfully! You will hear back soon! ♡♡";
+      const successText = translations.contact?.[currentLanguage]?.successText || "Message sent successfully! You will hear back soon! ♡♡";
       showPopup(successText);
 
-      // Submit to Formspree
       this.submit();
     });
 
-    // Popup function (red + bold + fade in/out after 5s)
+    // Popup function
     function showPopup(text) {
       const popup = document.createElement("div");
       popup.textContent = text;
@@ -249,36 +203,45 @@
       popup.style.padding = "14px 18px";
       popup.style.borderRadius = "10px";
       popup.style.fontSize = "13px";
-      popup.style.letterSpacing = "1px";
       popup.style.fontWeight = "700";
-      popup.style.color = "#b33"; // red text
+      popup.style.color = "#b33";
       popup.style.boxShadow = "6px 6px 0 rgba(0,0,0,0.4)";
       popup.style.zIndex = "99999";
       popup.style.opacity = "0";
       popup.style.transition = "opacity 0.5s ease";
-
       document.body.appendChild(popup);
 
-      // Fade in
       setTimeout(() => popup.style.opacity = "1", 10);
-
-      // Fade out after 5 seconds
       setTimeout(() => {
         popup.style.opacity = "0";
         setTimeout(() => popup.remove(), 500);
       }, 5000);
     }
 
-    // Send button shake on click
+    // Send button shake
     document.getElementById("sendBtn").addEventListener("click", () => {
       const btn = document.getElementById("sendBtn");
       btn.style.animation = "none";
-      void btn.offsetWidth; // reflow
+      void btn.offsetWidth;
       btn.style.animation = "shake 0.35s";
+    });
+
+    // Language switch
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        setLanguage(item.dataset.lang);
+      });
+    });
+
+    // Apply contact page translations on load
+    applyTranslations('contact');
+
+    // Re-apply after language change
+    document.addEventListener('languageChanged', () => {
+      applyTranslations('contact');
     });
   </script>
 
-  <!-- Shared tab title animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
 
 </body>
