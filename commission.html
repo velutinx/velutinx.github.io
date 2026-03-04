@@ -16,7 +16,7 @@
   </div>
 
   <!-- Language selector: globe button + popover -->
-  <div id="langContainer" style="position: fixed; top: 20%; right: 24px; left: auto; z-index: 10001;">
+  <div id="langContainer">
     <button class="lang-btn" title="Select Language">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 5h7"></path>
@@ -76,50 +76,13 @@
 
   <!-- Scripts -->
   <script src="/assets/js/navigation.js"></script>
+  <script src="/assets/js/translations.js"></script>
 
   <script>
-    // Load saved preferences
-    const savedLang = localStorage.getItem("language") || "en";
-    const savedDark = localStorage.getItem("darkMode") === "true";
-
-    let currentLang = savedLang;
-
-    // Translate navigation blobs
-    function translateBlobs(lang) {
-      const blobs = document.querySelectorAll(".blob-text");
-      if (blobs.length === 0) {
-        setTimeout(() => translateBlobs(lang), 100);
-        return;
-      }
-      blobs.forEach(t => {
-        t.textContent = (lang === "ja" || lang === "jp") && t.dataset.jp 
-          ? t.dataset.jp 
-          : t.dataset.en || "";
-      });
-    }
-
-    translateBlobs(currentLang);
-
-    // Commission page text switch
-    function updateCommissionText(lang) {
-      const isJapanese = lang === "ja" || lang === "jp";
-
-      document.getElementById("comTitle").textContent = isJapanese 
-        ? "コミッション" : "COMMISSIONS";
-
-      document.getElementById("comInfo").textContent = isJapanese 
-        ? "コミッション情報は近日中に追加されます。" 
-        : "Commission information will be added here soon.";
-
-      document.getElementById("comList").innerHTML = isJapanese 
-        ? `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
-        : `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`;
-    }
-
-    updateCommissionText(currentLang);
-
     // Apply dark mode
-    if (savedDark) document.body.classList.add("dark");
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark");
+    }
 
     // Theme toggle
     document.getElementById("themeToggle").onclick = () => {
@@ -158,31 +121,13 @@
       }, 700);
     }
 
-// Language switch + swipe + instant translation
-document.querySelectorAll('.lang-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const newLang = item.dataset.lang;
-
-    // Play swipe animation reliably every time
-    const swipe = document.getElementById('langSwipe');
-    if (swipe) {
-      // Strong reset: remove class, clear animation, reflow, then re-trigger
-      swipe.classList.remove('active');
-      swipe.style.animation = 'none';
-      swipe.offsetHeight; // force reflow (critical step)
-      swipe.classList.add('active'); // now trigger via CSS class
-    }
-
-    // Instant language change
-    setTimeout(() => {
-      currentLang = newLang;
-      localStorage.setItem("language", newLang);
-
-      translateBlobs(newLang);
-      updateCommissionText(newLang);
-    }, 180); // sync with animation duration
-  });
-});
+    // Language switch – now using translations.js
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const newLang = item.dataset.lang;
+        setLanguage(newLang); // from translations.js – handles swipe + translation
+      });
+    });
   </script>
 
   <script src="/assets/js/tab-title-animation.js"></script>
