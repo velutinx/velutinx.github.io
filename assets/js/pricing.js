@@ -6,7 +6,6 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
     }
 
-    // Fetch your latest packs-data.js (single source of truth)
     const packsRes = await fetch("https://velutinx.github.io/assets/js/packs-data.js");
     const packsText = await packsRes.text();
 
@@ -21,8 +20,7 @@ export async function onRequestPost({ request, env }) {
       const pack = packsData.find(p => String(p.id) === String(id));
       if (!pack) continue;
 
-      // Convert token → real price from Cloudflare env vars
-      const tierKey = pack.price.replace("PRICE_", ""); // LOW / MED / HIGH
+      const tierKey = pack.price.replace("PRICE_", "");
       const price = parseFloat(env[`PRICE_${tierKey}`]) || 3.0;
       total += price;
     }
