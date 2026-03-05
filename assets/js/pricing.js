@@ -1,45 +1,40 @@
-export const onRequestPost = async ({ request, env }) => {
+export async function onRequestPost({ request, env }) {
   try {
-    // Always gets the latest packs-data.js (no duplication)
-    const packsRes = await fetch("https://velutinx.github.io/assets/js/packs-data.js");
-    const text = await packsRes.text();
-
-    const match = text.match(/const packsData\s*=\s*(\[[\s\S]*?\]);/);
-    if (!match) throw new Error("Cannot read packs-data.js");
-
-    const packsData = eval(match[1]);
-
-    // Build map from your new PRICE_ tokens
-    const tierMap = {};
-    packsData.forEach(p => {
-      if (p.price && p.price.startsWith("PRICE_")) {
-        tierMap[p.id] = p.price.replace("PRICE_", "");
-      }
-    });
-
     const { items } = await request.json();
 
-    let total = 0;
-    const validated = [];
-
-    for (const id of items) {
-      const tier = tierMap[id];
-      if (!tier) throw new Error(`Invalid pack: ${id}`);
-
-      const price = Number(env[`PRICE_${tier}`]) || 3.0;
-      total += price;
-      validated.push({ id: Number(id), price });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
     }
 
-    return new Response(JSON.stringify({ 
-      total: total.toFixed(2), 
-      items: validated 
-    }), {
-      headers: { "Content-Type": "application/json" }
-    });
+    // Fetch the latest packs-data.js (your single source of truth)
+    const packsRes = await fetch("https://velutinx.github.io/assets/js/packs-data.js");
+    const packsText = await packsRes.text();
 
-  } catch (e) {
-    console.error(e);
-    return new Response("Bad request", { status: 400 });
+    // Extract the packsData array safely
+    const match = packsText.match(/const packsData = (\[[\s\S]*?\]);/);
+    if (!match) throw new Error("Could not parse packsData");
+
+    const packsData = JSON.parse(match[1]);
+
+    let total = 0;
+
+    for (const id of items) {
+      const pack = packsData.find(p => String(p.id) === String(id));
+      if (!pack) continue;
+
+      // Convert token → real price using Cloudflare env vars
+      const tierKey = pack.price.replace("PRICE_", ""); // LOW / MED / HIGH
+      const price = parseFloat(env[`PRICE_${tierKey}`]) || 3.0;
+      total += price;
+    }
+
+    return new Response(
+      JSON.stringify({ total: total.toFixed(2) }),
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+  } catch (err) {
+    console.error(err);
+    return new Response(JSON.stringify({ error: "Server error" }), { status: 500 });
   }
-};
+}
