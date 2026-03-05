@@ -8,23 +8,23 @@ window.addEventListener('load', () => {
     return;
   }
 
-  // Transform packsData into productsData format
-  const productsData = packsData.map((pack, index) => {
-    const numericId = parseInt(pack.id, 10);
-    const priceNum = pack.illustrationCount < 46 ? 1.50 : 3.00;
+// Transform packsData into productsData format
+const productsData = packsData.map((pack, index) => {
+  const numericId = parseInt(pack.id, 10);
+  const priceNum = priceTierMap[pack.price] || 3.0;   // ← uses your new tokens
 
-    return {
-      id: numericId,
-      title: pack.title,
-      price: priceNum,
-      originalPrice: priceNum, // no discount for now
-      discount: 0,
-      image: `storeassets/${numericId}.jpg`,
-      date: new Date(2026, 2, 20 - index * 3).getTime(),
-      element: null,
-      inCart: false
-    };
-  });
+  return {
+    id: numericId,
+    title: pack.title,
+    price: priceNum,
+    originalPrice: priceNum,
+    discount: 0,
+    image: `storeassets/${numericId}.jpg`,
+    date: new Date(2026, 2, 20 - index * 3).getTime(),
+    element: null,
+    inCart: false
+  };
+});
 
   // Optional: sort newest first
   productsData.sort((a, b) => b.date - a.date);
