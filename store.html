@@ -4,297 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Velutinx's Shop</title>
-  <style>
-    :root {
-      --bg: #d3d0c1;
-      --card: #e8e5d8;
-      --darker: #c0bcaa;
-      --text: #3a3528;
-      --text-light: #e8e5d8;
-      --accent: #aa9e76;
-      --success: #22c55e;
-      --red-discount: #a64a5c;
-      --gray: #8a7b6f;
-      --border: #aa9e76;
-      --overlay: rgba(170,158,118,0.25);
-      --btn-cart: #3a3528;
-      --btn-cart-hover: #4a4538;
-    }
-    body.dark {
-      --bg: #0f0f12;
-      --card: #1a1a20;
-      --darker: #121216;
-      --text: #e6e3d8;
-      --text-light: #e6e3d8;
-      --accent: #d4c08a;
-      --success: #8b8a5e;
-      --red-discount: #a64a5c;
-      --gray: #b8b3a5;
-      --border: #6f6a4e;
-      --overlay: rgba(15,15,18,0.75);
-      --btn-cart: #3a3528;
-      --btn-cart-hover: #4a4538;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      transition: background 0.4s, color 0.4s;
-    }
-    body.drawer-open::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: var(--overlay);
-      z-index: 1190;
-      pointer-events: none;
-    }
-    body.drawer-open .floating-cart { display: none; }
 
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.9rem 2.5rem;
-      background: var(--darker);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    .logo {
-      font-size: 1.8rem;
-      font-weight: 900;
-      letter-spacing: 2px;
-      color: #000;
-    }
-    body.dark .logo { color: var(--accent); }
+<!-- External header CSS -->
+<link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-    .nav-actions { display: flex; align-items: center; gap: 1rem; position: relative; }
-
-    .nav-icon {
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      background: transparent;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text);
-      border: 1px solid rgba(58,53,40,0.2);
-      transition: all 0.22s;
-      cursor: pointer;
-    }
-    .nav-icon:hover {
-      background: #d3d0c1;
-      color: #3a3528;
-      transform: scale(1.08);
-      border-color: #aa9e76;
-    }
-    .nav-icon.active {
-      background: var(--success);
-      color: white;
-      border-color: transparent;
-    }
-    .nav-icon svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.5; }
-
-    .login-btn {
-      padding: 0.55rem 1.6rem;
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.18s;
-    }
-    .login-btn:hover { background: rgba(170,158,118,0.15); }
-
-    .cart-wrapper { position: relative; }
-    .cart-badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: var(--red-discount);
-      color: white;
-      font-size: 0.75rem;
-      font-weight: bold;
-      min-width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 6px;
-      border: 2px solid var(--darker);
-    }
-
-    #languagePopover {
-      position: absolute;
-      top: 55px;
-      right: 8px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      min-width: 230px;
-      z-index: 1100;
-      opacity: 0;
-      visibility: hidden;
-      overflow: hidden;
-      transform: translateY(-10px);
-      transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.51s;
-    }
-
-    #langContainer:hover #languagePopover,
-    .lang-btn:hover + #languagePopover,
-    #languagePopover:hover {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-      transition-delay: 0s;
-    }
-
-    .lang-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 18px;
-      cursor: pointer;
-      transition: background 0.2s;
-      color: var(--text);
-    }
-    .lang-item:hover { background: #c0bcaa; }
-    .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-    .lang-item p { margin: 0; font-size: 1rem; }
-
-    .lang-swipe {
-      position: fixed;
-      bottom: -100%;
-      left: 0;
-      width: 100%;
-      height: 20%;
-      background: var(--accent);
-      z-index: 10000;
-      pointer-events: none;
-      opacity: 0.9;
-    }
-
-    .lang-swipe.active {
-      animation: langSwipeUp 0.55s ease-in forwards;
-    }
-
-    @keyframes langSwipeUp {
-      to { bottom: 100%; }
-    }
-
-    .cart-drawer {
-      position: fixed;
-      top: 0; right: -400px;
-      width: 400px;
-      height: 100%;
-      background: var(--accent);
-      border-left: 1px solid var(--border);
-      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-      z-index: 1200;
-      transition: right 0.35s ease;
-      display: flex;
-      flex-direction: column;
-      color: #1f1a12;
-    }
-    .cart-drawer.open { right: 0; }
-    .cart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.4rem 1.6rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .cart-header h5 { margin: 0; font-size: 1.45rem; }
-    .cart-close { background: none; border: none; color: #1f1a12; font-size: 1.8rem; cursor: pointer; }
-    .cart-items { flex: 1; overflow-y: auto; padding: 1.2rem; }
-    .cart-item {
-      display: flex;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .cart-item img { width: 85px; height: 85px; object-fit: cover; border-radius: 8px; }
-    .cart-item-info { flex: 1; }
-    .cart-item-title { font-weight: 600; margin-bottom: 6px; }
-    .cart-item-price { color: #1f1a12; font-weight: 700; }
-    .cart-item-remove { background: none; border: none; color: var(--red-discount); font-size: 1.4rem; cursor: pointer; align-self: flex-start; }
-    .cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
-    .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
-    .cart-checkout {
-      width: 100%;
-      padding: 14px;
-      background: #1f1a12;
-      color: var(--accent);
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      cursor: pointer;
-    }
-    .cart-checkout:hover { background: #3a3528; }
-
-    .floating-cart {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 64px;
-      height: 64px;
-      background: var(--accent);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-      z-index: 1250;
-      cursor: pointer;
-      transition: all 0.25s;
-    }
-    .floating-cart:hover { transform: scale(1.12); }
-    .floating-cart.active { background: var(--success); }
-    .floating-cart svg { width: 28px; height: 28px; stroke: white; stroke-width: 2; }
-    .floating-badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: var(--red-discount);
-      color: white;
-      font-size: 0.75rem;
-      font-weight: bold;
-      min-width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 6px;
-      border: 2px solid var(--darker);
-    }
-
-    #snackbar {
-      position: fixed;
-      top: 28px;
-      right: 28px;
-      background: var(--success);
-      color: white;
-      padding: 14px 22px;
-      border-radius: 10px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      z-index: 1300;
-      transform: translateY(-120px);
-      opacity: 0;
-      transition: all 0.45s ease;
-    }
-    #snackbar.show { transform: translateY(0); opacity: 1; }
-
+<!-- Shop/product styles -->
+<style>
     .shop-header {
       padding: 2.2rem 2.8rem 1.6rem;
       background: var(--bg);
@@ -337,7 +52,7 @@
     .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
 
-    .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text-muted); padding-left: 0.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text); padding-left: 0.5rem; }
 
     .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
     .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
@@ -422,10 +137,11 @@
 </head>
 <body>
 
-  <!-- Swipe animation layer -->
+  <!-- ==============================================
+       ALL HEADER ELEMENTS ARE HERE — REQUIRED
+  ============================================== -->
   <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- Top nav -->
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
@@ -472,7 +188,6 @@
     </div>
   </nav>
 
-  <!-- Floating cart button -->
   <button class="floating-cart" id="floatingCartBtn" title="Cart">
     <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -483,7 +198,6 @@
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
 
-  <!-- Cart Drawer -->
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -499,7 +213,6 @@
     </div>
   </div>
 
-  <!-- Snackbar -->
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
@@ -507,7 +220,7 @@
     <span id="snackText">Added successfully</span>
   </div>
 
-  <!-- Shop header -->
+  <!-- Shop content -->
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
@@ -526,7 +239,6 @@
     </div>
   </header>
 
-  <!-- Main content -->
   <div class="main-container">
     <aside class="sidebar">
       <div class="section-title" id="filterTitle">Filter by Category</div>
@@ -560,7 +272,7 @@
                   <path d="M21 21l-6 -6"></path>
                 </svg>
               </div>
-              <input type="search" id="searchInput" placeholder="Search" class="input-element" oninput="filterAndSort()" />
+              <input type="search" id="searchInput" placeholder="Search" class="input-element" />
               <fieldset class="notched-outline"><legend><span></span></legend></fieldset>
             </div>
           </div>
@@ -571,7 +283,7 @@
     </main>
   </div>
 
-  <!-- Translations moved INSIDE the page so they're always available -->
+  <!-- Full shop logic with translations, cart, language switch, dark mode, events -->
   <script>
     const translations = {
       en: {
@@ -661,7 +373,6 @@
     const sortButtons = document.querySelectorAll(".sort-btn");
     const langBtn = document.getElementById("langBtn");
     const langPopover = document.getElementById("languagePopover");
-    const langItems = langPopover.querySelectorAll(".lang-item");
     const cartBtn = document.getElementById("cartBtn");
     const floatingCartBtn = document.getElementById("floatingCartBtn");
     const cartDrawer = document.getElementById("cartDrawer");
@@ -724,7 +435,6 @@
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
       localStorage.setItem("language", lang);
 
-      // Play swipe ONLY on click
       const swipe = document.getElementById("langSwipe");
       if (swipe) {
         swipe.classList.remove("active");
@@ -732,7 +442,6 @@
         swipe.classList.add("active");
       }
 
-      // Update ALL translatable elements instantly
       const t = translations[lang] || translations.en;
 
       document.getElementById("shopTitle").textContent = t.shopTitle;
@@ -748,7 +457,7 @@
       document.getElementById("sortHigh").textContent = t.sortHigh;
       document.getElementById("resetBtn").textContent = t.resetBtn;
       document.getElementById("productsTitle").textContent = t.productsTitle;
-      searchInput.placeholder = t.searchPlaceholder;
+      if (searchInput) searchInput.placeholder = t.searchPlaceholder;
       document.getElementById("cartTitle").textContent = t.cartTitle;
       document.getElementById("totalLabel").textContent = t.totalLabel;
       document.getElementById("snackText").textContent = t.snackText;
@@ -906,7 +615,6 @@
 
     themeBtn.addEventListener("click", toggleTheme);
 
-    // Language button events
     document.getElementById("langBtn").addEventListener("click", e => {
       e.stopPropagation();
       document.getElementById("languagePopover").classList.toggle("show");
@@ -929,7 +637,7 @@
     createCards();
     filterAndSort();
     updateAllPrices();
-    setLanguage(currentLang);  // initial translation (no swipe)
+    setLanguage(currentLang);
 
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   </script>
