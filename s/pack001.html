@@ -1,191 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>[Pack 001] Tsunade - Naruto</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>[Pack 001] Tsunade - Naruto</title>
 
-  <!-- Shared header styles -->
-  <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
+<!-- Your shared header styles -->
+<link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Product page styles (everything below header) -->
-  <style>
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-    @media (min-width: 600px) {
-      .container { padding: 0 24px; }
-    }
-    main { padding: 40px 0; }
-    .product {
-      display: grid;
-      gap: 40px;
-    }
-    @media (min-width: 992px) {
-      .product { grid-template-columns: 1fr 2fr; }
-    }
-    .gallery-card,
-    .info-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    .carousel {
-      position: relative;
-      overflow: hidden;
-      height: auto;
-    }
-    .slides {
-      display: flex;
-      transition: transform 0.5s ease-in-out;
-      width: 100%;
-    }
-    .slide {
-      flex: 0 0 100%;
-      width: 100%;
-    }
-    .slide img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-    .arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(0,0,0,0.4);
-      color: white;
-      border: none;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      font-size: 24px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-    }
-    .arrow:hover { background: rgba(0,0,0,0.6); }
-    .arrow.prev { left: 16px; }
-    .arrow.next { right: 16px; }
-    .thumbnails {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      padding: 16px;
-      background: rgba(0,0,0,0.03);
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-    .thumb {
-      width: 90px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 3px solid transparent;
-      cursor: pointer;
-      transition: all 0.2s;
-      opacity: 0.8;
-    }
-    .thumb.active,
-    .thumb:hover {
-      border-color: #5D87FF;
-      opacity: 1;
-      transform: scale(1.04);
-    }
-    .info {
-      padding: 28px;
-    }
-    h1 {
-      font-size: 2.1rem;
-      margin-bottom: 20px;
-      color: var(--text);
-    }
-    .price-section {
-      margin: 28px 0;
-      padding: 20px;
-      background: rgba(250,137,107,0.08);
-      border-radius: 12px;
-      border: 1px solid rgba(250,137,107,0.25);
-    }
-    .price-label { color: var(--text-light); font-size: 0.95rem; }
-    .old-price {
-      text-decoration: line-through;
-      color: var(--text-light);
-      margin-left: 12px;
-    }
-    .current-price {
-      color: var(--red-discount);
-      font-size: 2.2rem;
-      font-weight: bold;
-    }
-    .save {
-      color: #13DEB9;
-      font-weight: bold;
-      margin-top: 8px;
-      display: inline-block;
-    }
-    .buttons {
-      display: flex;
-      gap: 16px;
-      margin-top: 32px;
-      flex-wrap: wrap;
-    }
-    .btn {
-      flex: 1;
-      min-width: 160px;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .btn-buy {
-      background: #5D87FF;
-      color: white;
-    }
-    .btn-buy:hover { background: #4570ea; }
-    .btn-cart {
-      background: #49BEFF;
-      color: white;
-    }
-    .btn-cart:hover { background: #23afdb; }
-    .note,
-    .disclaimer {
-      margin-top: 24px;
-      font-size: 0.95rem;
-      color: #555;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .disclaimer {
-      margin-top: 32px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-    }
-    .note svg,
-    .disclaimer svg {
-      flex-shrink: 0;
-      width: 20px;
-      height: 20px;
-    }
-  </style>
+<!-- Product page styles -->
+<style>
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  @media (min-width: 600px) {
+    .container { padding: 0 24px; }
+  }
+  main { padding: 40px 0; }
+  .product {
+    display: grid;
+    gap: 40px;
+  }
+  @media (min-width: 992px) {
+    .product { grid-template-columns: 1fr 2fr; }
+  }
+  .gallery-card,
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    height: auto;
+  }
+  .slides {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+  }
+  .slide {
+    flex: 0 0 100%;
+    width: 100%;
+  }
+  .slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.4);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .arrow:hover { background: rgba(0,0,0,0.6); }
+  .arrow.prev { left: 16px; }
+  .arrow.next { right: 16px; }
+  .thumbnails {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0,0,0,0.03);
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .thumb {
+    width: 90px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.8;
+  }
+  .thumb.active,
+  .thumb:hover {
+    border-color: #5D87FF;
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  .info {
+    padding: 28px;
+  }
+  h1 {
+    font-size: 2.1rem;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+  .price-section {
+    margin: 28px 0;
+    padding: 20px;
+    background: rgba(250,137,107,0.08);
+    border-radius: 12px;
+    border: 1px solid rgba(250,137,107,0.25);
+  }
+  .price-label { color: var(--text-light); font-size: 0.95rem; }
+  .old-price {
+    text-decoration: line-through;
+    color: var(--text-light);
+    margin-left: 12px;
+  }
+  .current-price {
+    color: var(--red-discount);
+    font-size: 2.2rem;
+    font-weight: bold;
+  }
+  .save {
+    color: #13DEB9;
+    font-weight: bold;
+    margin-top: 8px;
+    display: inline-block;
+  }
+  .buttons {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    flex: 1;
+    min-width: 160px;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .btn-buy {
+    background: #5D87FF;
+    color: white;
+  }
+  .btn-buy:hover { background: #4570ea; }
+  .btn-cart {
+    background: #49BEFF;
+    color: white;
+  }
+  .btn-cart:hover { background: #23afdb; }
+  .note,
+  .disclaimer {
+    margin-top: 24px;
+    font-size: 0.95rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .disclaimer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .note svg,
+  .disclaimer svg {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+  }
+</style>
 </head>
 <body>
 
-  <!-- Header is loaded from header.js + header.css -->
-  <!-- If nothing shows, header.js must insert the HTML elements -->
-  <script src="https://velutinx.github.io/assets/js/header.js"></script>
+  <!-- Full header HTML - identical to store.html (required until header.js inserts it) -->
+  <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- Product content -->
+  <nav class="top-nav">
+    <div class="logo">VELUTINX</div>
+    <div class="nav-actions">
+      <button class="login-btn" id="loginBtn">Website</button>
+
+      <div id="langContainer">
+        <button class="nav-icon lang-btn" id="langBtn" title="Language">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 5h7"></path>
+            <path d="M7 4c0 4.846 0 7 .5 8"></path>
+            <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+            <path d="M12 20l4 -9l4 9"></path>
+            <path d="M19.1 18h-6.2"></path>
+          </svg>
+        </button>
+        <div id="languagePopover">
+          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
+          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
+          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
+          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
+        </div>
+      </div>
+
+      <button class="nav-icon" id="themeBtn" title="Night Mode">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
+          <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+        </svg>
+      </button>
+
+      <div class="cart-wrapper">
+        <button class="nav-icon" id="cartBtn" title="Cart">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
+          </svg>
+        </button>
+        <span class="cart-badge" id="cartCount">0</span>
+      </div>
+    </div>
+  </nav>
+
+  <button class="floating-cart" id="floatingCartBtn" title="Cart">
+    <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
+
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <div id="paypal-button-container"></div>
+    </div>
+  </div>
+
+  <div id="snackbar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
+    <span id="snackText">Added successfully</span>
+  </div>
+
+  <!-- Your Tsunade pack content -->
   <main class="container">
     <div class="product">
 
