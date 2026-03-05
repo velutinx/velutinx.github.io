@@ -487,56 +487,80 @@
         updateCartDisplay();
       }
 
-      function createCards() {
-        productsData.forEach(p => {
-          const card = document.createElement("div");
-          card.className = "product-card";
-          card.dataset.title = p.title.toLowerCase();
-          card.dataset.price = p.price;
-          card.dataset.date = p.date;
-          card.innerHTML = `
-            <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
-            <div class="card-content">
-              <div class="card-title">${p.title}</div>
-              <div class="price-row">
-                <div class="price" data-price="${p.price}" data-original="${p.originalPrice || p.price}">
-                  ${formatPrice(p.price, currentCurrency)}
-                  ${p.originalPrice && p.originalPrice > p.price ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
-                </div>
-                <button class="cart-btn" title="Add to Cart" data-in-cart="false">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                    <path d="M12.5 17h-6.5v-14h-2"></path>
-                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-                    <path d="M16 19h6"></path>
-                    <path d="M19 16v6"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          `;
-          grid.appendChild(card);
-          p.element = card;
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.2);
+  /* Optional: subtle border glow on hover */
+  border-color: var(--accent);
+}
+      
+function createCards() {
+  productsData.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.dataset.title = p.title.toLowerCase();
+    card.dataset.price = p.price;
+    card.dataset.date = p.date;
+    
+    // Make the entire card clickable by adding cursor:pointer and link behavior
+    card.style.cursor = "pointer";
+    
+    card.innerHTML = `
+      <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
+      <div class="card-content">
+        <div class="card-title">${p.title}</div>
+        <div class="price-row">
+          <div class="price" data-price="${p.price}" data-original="${p.originalPrice || p.price}">
+            ${formatPrice(p.price, currentCurrency)}
+            ${p.originalPrice && p.originalPrice > p.price ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
+          </div>
+          <button class="cart-btn" title="Add to Cart" data-in-cart="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+              <path d="M12.5 17h-6.5v-14h-2"></path>
+              <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+              <path d="M16 19h6"></path>
+              <path d="M19 16v6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
 
-          const btn = card.querySelector(".cart-btn");
-          btn.addEventListener("click", () => {
-            if (btn.dataset.inCart === "true") {
-              cart = cart.filter(item => item.id !== p.id);
-              btn.dataset.inCart = "false";
-              btn.classList.remove("added");
-              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-            } else {
-              cart.push(p);
-              btn.dataset.inCart = "true";
-              btn.classList.add("added");
-              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-              snackbar.classList.add("show");
-              setTimeout(() => snackbar.classList.remove("show"), 2400);
-            }
-            updateCartDisplay();
-          });
-        });
+    // IMPORTANT: Make the whole card redirect to pack.html?id=XXX
+    card.addEventListener("click", (e) => {
+      // Prevent redirect if user clicked the cart button
+      if (e.target.closest(".cart-btn")) return;
+      
+      // Redirect to the pack page
+      window.location.href = `/s/pack.html?id=${p.id.toString().padStart(3, '0')}`;
+    });
+
+    grid.appendChild(card);
+    p.element = card;
+
+    // Cart button logic (unchanged)
+    const btn = card.querySelector(".cart-btn");
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent card click from firing
+
+      if (btn.dataset.inCart === "true") {
+        cart = cart.filter(item => item.id !== p.id);
+        btn.dataset.inCart = "false";
+        btn.classList.remove("added");
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+      } else {
+        cart.push(p);
+        btn.dataset.inCart = "true";
+        btn.classList.add("added");
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+        snackbar.classList.add("show");
+        setTimeout(() => snackbar.classList.remove("show"), 2400);
       }
+      updateCartDisplay();
+    });
+  });
+}
 
       function updateCartDisplay() {
         const count = cart.length;
