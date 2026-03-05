@@ -353,12 +353,12 @@
       Digital products are non-refundable after purchase.
     `;
 
-    // Contents: bold title + bullet with dynamic count
+    // Bold AI-generated illustrations count (dynamic)
     document.getElementById("illustrationCount").innerHTML = `
-      ZIP file containing ${pack.illustrationCount} AI-generated illustrations
+      <strong>${pack.illustrationCount} AI-generated illustrations</strong>
     `;
 
-    // Exact disclaimer
+    // Exact disclaimer you requested
     document.getElementById("disclaimer").innerHTML = `
       <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
         <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
