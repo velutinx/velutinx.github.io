@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx Pack</title>
 
@@ -181,21 +181,96 @@
 </head>
 <body>
 
-  <!-- Header loaded from your shared files -->
-  <script src="https://velutinx.github.io/assets/js/header.js"></script>
+  <!-- Header HTML inline (required until header.js inserts it) -->
+  <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- Main product content (will be filled dynamically) -->
-  <main class="container">
-    <div class="product">
-      <!-- Gallery (filled by JS) -->
-      <div class="gallery-card" id="gallery">
-        <p>Loading...</p>
+  <nav class="top-nav">
+    <div class="logo">VELUTINX</div>
+    <div class="nav-actions">
+      <button class="login-btn" id="loginBtn">Website</button>
+
+      <div id="langContainer">
+        <button class="nav-icon lang-btn" id="langBtn" title="Language">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 5h7"></path>
+            <path d="M7 4c0 4.846 0 7 .5 8"></path>
+            <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+            <path d="M12 20l4 -9l4 9"></path>
+            <path d="M19.1 18h-6.2"></path>
+          </svg>
+        </button>
+        <div id="languagePopover">
+          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
+          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
+          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
+          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
+        </div>
       </div>
 
-      <!-- Info (filled by JS) -->
+      <button class="nav-icon" id="themeBtn" title="Night Mode">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
+          <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+        </svg>
+      </button>
+
+      <div class="cart-wrapper">
+        <button class="nav-icon" id="cartBtn" title="Cart">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
+          </svg>
+        </button>
+        <span class="cart-badge" id="cartCount">0</span>
+      </div>
+    </div>
+  </nav>
+
+  <button class="floating-cart" id="floatingCartBtn" title="Cart">
+    <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
+
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <div id="paypal-button-container"></div>
+    </div>
+  </div>
+
+  <div id="snackbar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
+    <span id="snackText">Added successfully</span>
+  </div>
+
+  <!-- Dynamic content area -->
+  <main class="container">
+    <div class="product">
+      <div class="gallery-card" id="gallery">
+        <p>Loading pack...</p>
+      </div>
       <div class="info-card">
         <div class="info" id="info">
-          <h1 id="title">Loading pack...</h1>
+          <h1 id="title">Loading...</h1>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="note" id="note"></div>
@@ -205,109 +280,106 @@
     </div>
   </main>
 
-  <!-- Load the packs data -->
+  <!-- Load packs data -->
   <script src="https://velutinx.github.io/assets/js/packs-data.js"></script>
 
-  <!-- Dynamic pack loading logic -->
+  <!-- Dynamic loading logic -->
   <script>
     // Get pack ID from URL (?id=001, ?id=002, etc.)
     const params = new URLSearchParams(window.location.search);
-    const packId = params.get("id") || "001"; // default to first pack
+    const packId = params.get("id") || "001";
 
-    // Find the pack in packsData (loaded from packs-data.js)
+    // Find pack
     const pack = packsData.find(p => p.id === packId);
 
     if (!pack) {
       document.getElementById("title").textContent = "Pack not found";
-      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
-      return;
-    }
+      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID. Try ?id=001 or ?id=002</p>";
+    } else {
+      // Title
+      document.getElementById("title").textContent = pack.title;
 
-    // Set title
-    document.getElementById("title").textContent = pack.title;
-
-    // Build gallery + carousel
-    const gallery = document.getElementById("gallery");
-    gallery.innerHTML = `
-      <div class="carousel">
-        <div class="slides" id="slides">
-          ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
+      // Gallery + carousel
+      document.getElementById("gallery").innerHTML = `
+        <div class="carousel">
+          <div class="slides" id="slides">
+            ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
+          </div>
+          <button class="arrow prev" onclick="prevSlide()">❮</button>
+          <button class="arrow next" onclick="nextSlide()">❯</button>
         </div>
-        <button class="arrow prev" onclick="prevSlide()">❮</button>
-        <button class="arrow next" onclick="nextSlide()">❯</button>
-      </div>
-      <div class="thumbnails">
-        ${pack.images.map((img, i) => `
-          <img class="thumb ${i === 0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
-        `).join("")}
-      </div>
-    `;
+        <div class="thumbnails">
+          ${pack.images.map((img, i) => `
+            <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
+          `).join("")}
+        </div>
+      `;
 
-    // Fill price section
-    document.getElementById("priceSection").innerHTML = `
-      <div>
-        <span class="price-label">Original Price:</span>
-        <span class="old-price">${pack.oldPrice}</span>
-      </div>
-      <div style="margin-top:8px;">
-        <span class="price-label">Current Price:</span>
-        <span class="current-price">${pack.price}</span>
-      </div>
-      <div class="save">${pack.saveText}</div>
-    `;
+      // Price section
+      document.getElementById("priceSection").innerHTML = `
+        <div>
+          <span class="price-label">Original Price:</span>
+          <span class="old-price">${pack.oldPrice}</span>
+        </div>
+        <div style="margin-top:8px;">
+          <span class="price-label">Current Price:</span>
+          <span class="current-price">${pack.price}</span>
+        </div>
+        <div class="save">${pack.saveText}</div>
+      `;
 
-    // Buttons (static for now – can be dynamic later)
-    document.getElementById("buttons").innerHTML = `
-      <button class="btn btn-buy">Buy Now</button>
-      <button class="btn btn-cart">Add to Cart</button>
-    `;
+      // Buttons
+      document.getElementById("buttons").innerHTML = `
+        <button class="btn btn-buy">Buy Now</button>
+        <button class="btn btn-cart">Add to Cart</button>
+      `;
 
-    // Note & Disclaimer (you can make them dynamic too)
-    document.getElementById("note").innerHTML = `
-      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-        <circle cx="256" cy="380" r="24" fill="#000000"/>
-      </svg>
-      Digital products are non-refundable after purchase.
-    `;
+      // Note & Disclaimer (static for now)
+      document.getElementById("note").innerHTML = `
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+          <circle cx="256" cy="380" r="24" fill="#000000"/>
+        </svg>
+        Digital products are non-refundable after purchase.
+      `;
+      document.getElementById("disclaimer").innerHTML = `
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+          <circle cx="256" cy="380" r="24" fill="#000000"/>
+        </svg>
+        <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
+      `;
 
-    document.getElementById("disclaimer").innerHTML = `
-      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-        <circle cx="256" cy="380" r="24" fill="#000000"/>
-      </svg>
-      <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
-    `;
+      // Carousel script
+      const slidesContainer = document.getElementById('slides');
+      const thumbs = document.querySelectorAll('.thumb');
+      let current = 0;
+      const total = pack.images.length;
 
-    // Carousel logic
-    const slidesContainer = document.getElementById('slides');
-    const thumbs = document.querySelectorAll('.thumb');
-    let current = 0;
-    const total = pack.images.length;
+      function update() {
+        slidesContainer.style.transform = `translateX(-${current * 100}%)`;
+        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+      }
 
-    function update() {
-      slidesContainer.style.transform = `translateX(-${current * 100}%)`;
-      thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
-    }
+      function nextSlide() {
+        current = (current + 1) % total;
+        update();
+      }
 
-    function nextSlide() {
-      current = (current + 1) % total;
+      function prevSlide() {
+        current = (current - 1 + total) % total;
+        update();
+      }
+
+      function goToSlide(index) {
+        current = index;
+        update();
+      }
+
       update();
     }
-
-    function prevSlide() {
-      current = (current - 1 + total) % total;
-      update();
-    }
-
-    function goToSlide(index) {
-      current = index;
-      update();
-    }
-
-    update();
   </script>
 
 </body>
