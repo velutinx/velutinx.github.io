@@ -556,17 +556,17 @@ function initPayPal() {
 
       const cartIds = window.cart.map(item => item.id);
 
-      const res = await fetch("/api/pricing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cartIds })
-      });
+// TEMP TEST: skip pricing API and use fixed amount
+secureTotalUSD = 3.00;  // ← change this to test different totals
 
-      if (!res.ok) {
-        console.error("Pricing API error:", res.status);
-        alert("Payment setup failed - check console (F12)");
-        return;
-      }
+return actions.order.create({
+  purchase_units: [{
+    amount: {
+      value: secureTotalUSD.toFixed(2),
+      currency_code: "USD"
+    }
+  }]
+});
 
       const result = await res.json();
       secureTotalUSD = parseFloat(result.total);
