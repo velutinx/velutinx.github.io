@@ -71,9 +71,7 @@
 </head>
 <body>
 
-  <!-- ==============================================
-       ALL HEADER ELEMENTS ARE HERE — REQUIRED
-  ============================================== -->
+  <!-- Header elements -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -219,7 +217,7 @@
   <script src="https://velutinx.github.io/assets/js/packs-data.js"></script>
 
   <!-- Full shop logic -->
-<script>
+  <script>
   window.addEventListener('load', () => {
     if (typeof packsData === 'undefined' || !Array.isArray(packsData) || packsData.length === 0) {
       console.error("packsData not loaded or empty");
@@ -227,7 +225,6 @@
       return;
     }
 
-    // PRICE TOKEN SUPPORT (same as pack.html)
     const priceTierMap = {
       "PRICE_LOW": 1.5,
       "PRICE_MED": 3.0,
@@ -237,7 +234,6 @@
     const productsData = packsData.map((pack, index) => {
       const numericId = parseInt(pack.id, 10);
       const priceNum = priceTierMap[pack.price] || 3.0;
-
       return {
         id: numericId,
         title: pack.title,
@@ -276,7 +272,7 @@
     const snackbar = document.getElementById("snackbar");
     const themeBtn = document.getElementById("themeBtn");
 
-    window.cart = [];                    // GLOBAL - fixes "cart is not defined"
+    window.cart = [];
     let secureTotalUSD = 0;
 
     const tierMap = {
@@ -474,7 +470,6 @@
       localStorage.setItem("darkMode", isDark);
     }
 
-    // Events
     searchInput.addEventListener("input", filterAndSort);
     sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
 
@@ -524,7 +519,6 @@
       });
     });
 
-    // Init
     createCards();
     filterAndSort();
     updateAllPrices();
@@ -532,76 +526,80 @@
 
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
   });
-</script>
+  </script>
 
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-  <!-- PayPal SDK - SANDBOX + FIXED -->
-<script>
-const script = document.createElement("script");
-script.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID || 'AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3'}&currency=USD&debug=true`;
-script.onload = initPayPal;
-document.body.appendChild(script);
+  <!-- PayPal SDK -->
+  <script>
+  const script = document.createElement("script");
+  script.src = `https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&debug=true`;
+  script.onload = initPayPal;
+  document.body.appendChild(script);
 
-let secureTotalUSD = 0;
+  let secureTotalUSD = 0;
 
-function initPayPal() {
-  paypal.Buttons({
-    createOrder: async function(data, actions) {
-      if (!window.cart || window.cart.length === 0) {
-        alert("Your cart is empty!");
-        return;
-      }
+  function initPayPal() {
+    paypal.Buttons({
+      createOrder: async function(data, actions) {
+        if (!window.cart || window.cart.length === 0) {
+          alert("Your cart is empty!");
+          return;
+        }
 
-      const cartIds = window.cart.map(item => item.id);
+        const cartIds = window.cart.map(item => item.id);
 
-// TEMP TEST: skip pricing API and use fixed amount
-secureTotalUSD = 3.00;  // ← change this to test different totals
+        // TEMPORARY: fixed price so popup opens (remove this once /api/pricing works)
+        secureTotalUSD = 3.00;
 
-return actions.order.create({
-  purchase_units: [{
-    amount: {
-      value: secureTotalUSD.toFixed(2),
-      currency_code: "USD"
-    }
-  }]
-});
-
-      const result = await res.json();
-      secureTotalUSD = parseFloat(result.total);
-
-      return actions.order.create({
-        purchase_units: [{ amount: { value: result.total, currency_code: "USD" } }]
-      });
-    },
-
-    onApprove: async function(data, actions) {
-      await actions.order.capture();
-
-      const purchase_number = await window.getNextPurchaseNumber();
-
-      if (window.supabaseClient) {
-        await window.supabaseClient.from('purchases').insert({
-          purchase_number: purchase_number,
-          paypal_order_id: data.orderID,
-          amount_usd: secureTotalUSD,
-          items: window.cart.map(i => i.id)
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              value: secureTotalUSD.toFixed(2),
+              currency_code: "USD"
+            }
+          }]
         });
+
+        // ───────────────────────────────────────────────
+        // Uncomment this block when /api/pricing returns 200 OK
+        /*
+        const res = await fetch("/api/pricing", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: cartIds })
+        });
+
+        if (!res.ok) {
+          console.error("Pricing API error:", res.status, await res.text());
+          alert("Payment setup failed - pricing error");
+          return;
+        }
+
+        const result = await res.json();
+        secureTotalUSD = parseFloat(result.total);
+
+        return actions.order.create({
+          purchase_units: [{ amount: { value: result.total, currency_code: "USD" } }]
+        });
+        */
+      },
+
+      onApprove: async function(data, actions) {
+        await actions.order.capture();
+        alert("✅ Payment successful! Order ID: " + data.orderID);
+        window.cart = [];
+        updateCartDisplay();
+      },
+
+      onError: function(err) {
+        console.error("PayPal Error:", err);
+        alert("PayPal error - check console (F12)");
       }
-
-      alert("✅ Payment successful! Purchase #" + purchase_number);
-      window.cart = [];
-      updateCartDisplay();
-    },
-
-    onError: function(err) {
-      console.error("PayPal Error:", err);
-      alert("PayPal error - check console (F12)");
-    }
-  }).render("#paypal-button-container");
-}
-</script>
+    }).render("#paypal-button-container");
+  }
+  </script>
 
 </body>
 </html>
