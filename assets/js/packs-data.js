@@ -1,4 +1,3 @@
-// https://velutinx.github.io/assets/js/packs-data.js
 const packsData = [
   {
     id: "001",
@@ -27,5 +26,4 @@ const packsData = [
       "https://via.placeholder.com/800x1200?text=Hinata+3"
     ]
   }
-  // Add more packs here — no 'return' at the end!
 ];
