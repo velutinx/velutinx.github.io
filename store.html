@@ -80,6 +80,7 @@
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
       <button class="login-btn" id="loginBtn">Website</button>
+
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -97,12 +98,14 @@
           <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
         </div>
       </div>
+
       <button class="nav-icon" id="themeBtn" title="Night Mode">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
           <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
+
       <div class="cart-wrapper">
         <button class="nav-icon" id="cartBtn" title="Cart">
           <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -223,26 +226,21 @@
 
   <!-- Full shop logic -->
 <script>
-  // Safety wrapper
   window.addEventListener('load', () => {
     if (typeof packsData === 'undefined' || !Array.isArray(packsData) || packsData.length === 0) {
       console.error("packsData not loaded");
-      document.getElementById("productGrid").innerHTML = "<p style='text-align:center; color:red;'>Error loading products. Check console (F12) for details.</p>";
       return;
     }
 
-    // PRICE TOKEN SUPPORT (same as pack.html)
     const priceTierMap = {
       "PRICE_LOW": 1.5,
       "PRICE_MED": 3.0,
       "PRICE_HIGH": 10.0
     };
 
-    // Transform packsData into productsData
     const productsData = packsData.map((pack, index) => {
       const numericId = parseInt(pack.id, 10);
       const priceNum = priceTierMap[pack.price] || 3.0;
-
       return {
         id: numericId,
         title: pack.title,
@@ -298,8 +296,38 @@
     let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
     let isDark = localStorage.getItem("darkMode") === "true";
 
-    if (isDark) document.body.classList.add("dark");
+    const grid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortButtons = document.querySelectorAll(".sort-btn");
+    const langBtn = document.getElementById("langBtn");
+    const langPopover = document.getElementById("languagePopover");
+    const cartBtn = document.getElementById("cartBtn");
+    const floatingCartBtn = document.getElementById("floatingCartBtn");
+    const cartDrawer = document.getElementById("cartDrawer");
+    const cartClose = document.getElementById("cartClose");
+    const cartCountEl = document.getElementById("cartCount");
+    const floatingCartCountEl = document.getElementById("floatingCartCount");
+    const cartItemsEl = document.getElementById("cartItems");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const snackbar = document.getElementById("snackbar");
+    const themeBtn = document.getElementById("themeBtn");
 
+    window.cart = [];                    // ← GLOBAL - fixes "cart is not defined"
+    let secureTotalUSD = 0;
+
+    const tierMap = {
+      1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
+      3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
+      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
+    };
+
+    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+
+    let currentLang = localStorage.getItem("language") || "en";
+    let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
+    let isDark = localStorage.getItem("darkMode") === "true";
+
+    if (isDark) document.body.classList.add("dark");
     // formatPrice, updateAllPrices, setLanguage, createCards, updateCartDisplay, filterAndSort, setSort, toggleTheme
     // (all your existing functions - unchanged)
 
@@ -581,6 +609,12 @@ function initPayPal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: cartIds })
       });
+
+      if (!res.ok) {
+        console.error("Pricing API error:", res.status);
+        alert("Payment setup failed (pricing error). Check console.");
+        return;
+      }
 
       const result = await res.json();
       secureTotalUSD = parseFloat(result.total);
