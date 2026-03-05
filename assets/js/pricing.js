@@ -6,13 +6,12 @@ export async function onRequestPost({ request, env }) {
       return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
     }
 
-    // Fetch the latest packs-data.js (your single source of truth)
+    // Fetch your latest packs-data.js (single source of truth)
     const packsRes = await fetch("https://velutinx.github.io/assets/js/packs-data.js");
     const packsText = await packsRes.text();
 
-    // Extract the packsData array safely
     const match = packsText.match(/const packsData = (\[[\s\S]*?\]);/);
-    if (!match) throw new Error("Could not parse packsData");
+    if (!match) throw new Error("Could not read packsData");
 
     const packsData = JSON.parse(match[1]);
 
@@ -22,7 +21,7 @@ export async function onRequestPost({ request, env }) {
       const pack = packsData.find(p => String(p.id) === String(id));
       if (!pack) continue;
 
-      // Convert token → real price using Cloudflare env vars
+      // Convert token → real price from Cloudflare env vars
       const tierKey = pack.price.replace("PRICE_", ""); // LOW / MED / HIGH
       const price = parseFloat(env[`PRICE_${tierKey}`]) || 3.0;
       total += price;
