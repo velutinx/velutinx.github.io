@@ -1,28 +1,80 @@
 // store.js
 
-// Load the master pack data
-// (make sure this script tag comes AFTER <script src="assets/js/packs-data.js"></script> in your HTML)
-const productsData = packsData.map((pack, index) => {
-  // Extract numeric ID from string "001" → 1
-  const numericId = parseInt(pack.id, 10);
+// Wait for packsData to be ready (small safety delay)
+window.addEventListener('load', () => {
+  if (typeof packsData === 'undefined' || !Array.isArray(packsData)) {
+    console.error("packsData not loaded - check packs-data.js");
+    document.getElementById("productGrid").innerHTML = "<p>Error loading products. Check console.</p>";
+    return;
+  }
 
-  // Price logic: under 46 images = 1.50, else 3.00
-  const price = pack.illustrationCount < 46 ? 1.50 : 3.00;
+  // Transform packsData into productsData format
+  const productsData = packsData.map((pack, index) => {
+    const numericId = parseInt(pack.id, 10);
+    const priceNum = pack.illustrationCount < 46 ? 1.50 : 3.00;
 
-  return {
-    id: numericId,                        // 1, 2, 3...
-    title: pack.title,
-    price: price,
-    originalPrice: price,                 // no discount for now
-    discount: 0,
-    image: `storeassets/${numericId}.jpg`, // 1.jpg, 2.jpg, ...
-    date: new Date(2026, 2, 20 - index * 3).getTime(), // your date logic
-    element: null,
-    inCart: false
-  };
+    return {
+      id: numericId,
+      title: pack.title,
+      price: priceNum,
+      originalPrice: priceNum, // no discount for now
+      discount: 0,
+      image: `storeassets/${numericId}.jpg`,
+      date: new Date(2026, 2, 20 - index * 3).getTime(),
+      element: null,
+      inCart: false
+    };
+  });
+
+  // Optional: sort newest first
+  productsData.sort((a, b) => b.date - a.date);
+
+  // Now proceed with your existing shop logic
+  const translations = { /* your translations object */ };
+
+  const grid = document.getElementById("productGrid");
+  const searchInput = document.getElementById("searchInput");
+  const sortButtons = document.querySelectorAll(".sort-btn");
+  // ... all your other variables ...
+
+  // ... your formatPrice, updateAllPrices, setLanguage, etc. functions ...
+
+  function createCards() {
+    productsData.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+      card.dataset.title = p.title.toLowerCase();
+      card.dataset.price = p.price;
+      card.dataset.date = p.date;
+      card.innerHTML = `
+        <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
+        <div class="card-content">
+          <div class="card-title">${p.title}</div>
+          <div class="price-row">
+            <div class="price" data-price="${p.price}" data-original="${p.originalPrice || p.price}">
+              ${formatPrice(p.price, currentCurrency)}
+              ${p.originalPrice && p.originalPrice > p.price ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
+            </div>
+            <button class="cart-btn" title="Add to Cart" data-in-cart="false">
+              <!-- your cart SVG -->
+            </button>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+      p.element = card;
+
+      // ... your cart button event listener ...
+    });
+  }
+
+  // ... your updateCartDisplay, filterAndSort, setSort, resetFilters, toggleTheme, events ...
+
+  // Init (call createCards after data is ready)
+  createCards();
+  filterAndSort();
+  updateAllPrices();
+  setLanguage(currentLang);
+
+  if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
 });
-
-// Optional: sort by date descending (newest first)
-productsData.sort((a, b) => b.date - a.date);
-
-// Now use productsData as before in createCards(), filterAndSort(), etc.
