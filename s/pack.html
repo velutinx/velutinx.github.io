@@ -106,25 +106,12 @@
       margin-bottom: 20px;
       color: var(--text);
     }
-    .contents-section {
-      margin: 20px 0 8px 0;
-      text-align: left;
-    }
-    .contents-title {
+    .illustration-count {
       font-weight: bold;
       font-size: 1.4rem;
-      color: #000000;
-      margin-bottom: 8px;
-    }
-    .contents-list {
-      list-style-type: disc;
-      padding-left: 24px;
-      margin: 0;
-    }
-    .contents-list li {
-      font-size: 1.1rem;
-      color: #000000;
-      margin-bottom: 6px;
+      color: var(--accent);
+      margin: 16px 0;
+      text-align: center;
     }
     .price-section {
       margin: 28px 0;
@@ -201,7 +188,7 @@
 </head>
 <body>
 
-  <!-- Header inline -->
+  <!-- Header inline (same as your original) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -295,15 +282,7 @@
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="note" id="note"></div>
-
-          <!-- New Contents section (bold + bullet) -->
-          <div class="contents-section">
-            <div class="contents-title">Contents:</div>
-            <ul class="contents-list">
-              <li id="illustrationCount"></li>
-            </ul>
-          </div>
-
+          <div class="illustration-count" id="illustrationCount"></div>
           <div class="disclaimer" id="disclaimer"></div>
         </div>
       </div>
