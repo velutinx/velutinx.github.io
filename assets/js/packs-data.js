@@ -22,8 +22,7 @@ const packsData = [
     illustrationCount: 542,
     images: [
       "https://via.placeholder.com/800x1200?text=Hinata+1",
-      "https://via.placeholder.com/800x1200?text=Hinata+2",
-      "https://via.placeholder.com/800x1200?text=Hinata+3"
+      "https://via.placeholder.com/800x1200?text=Hinata+2"
     ]
   }
 ];
