@@ -1,3 +1,4 @@
+// https://velutinx.github.io/assets/js/packs-data.js
 const packsData = [
   {
     id: "001",
@@ -10,8 +11,7 @@ const packsData = [
       "https://velutinx.neocities.org/Images/Artwork/2.jpg",
       "https://velutinx.neocities.org/Images/Artwork/3.jpg",
       "https://velutinx.neocities.org/Images/Artwork/4.jpg"
-    ],
-    // more fields: description, note text, disclaimer, etc.
+    ]
   },
   {
     id: "002",
@@ -19,7 +19,12 @@ const packsData = [
     price: "US$5.99",
     oldPrice: "US$7.49",
     saveText: "Save US$1.50 (20% OFF)",
-    images: [ /* ... */ ],
-  },
-  // add pack003, pack004, etc.
+    images: [
+      // Add real image URLs here when ready
+      "https://via.placeholder.com/800x1200?text=Hinata+1",
+      "https://via.placeholder.com/800x1200?text=Hinata+2",
+      "https://via.placeholder.com/800x1200?text=Hinata+3"
+    ]
+  }
+  // Add more packs here as objects
 ];
