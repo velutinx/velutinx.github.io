@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx's Shop</title>
 
-  <!-- Load shared header styles -->
+  <!-- ======================================
+       SHARED HEADER FILES
+  ====================================== -->
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Shop/product-specific styles (only the parts that are not in header.css) -->
+  <!-- Shop-specific styles (only the content below header) -->
   <style>
     .shop-header {
       padding: 2.2rem 2.8rem 1.6rem;
@@ -361,10 +363,12 @@
 </head>
 <body>
 
-  <!-- Header is now fully managed by external header.js + header.css -->
+  <!-- ======================================
+       HEADER LOADED EXTERNALLY
+  ====================================== -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
 
-  <!-- Shop content -->
+  <!-- Shop-specific content only -->
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
@@ -486,11 +490,14 @@
     </main>
   </div>
 
-  <!-- Your product / cart logic (expects productsData, cart, etc. from store.js or header.js) -->
+  <!-- ======================================
+       YOUR SHOP LOGIC
+  ====================================== -->
   <script src="store.js"></script>
 
-  <!-- Supabase -->
+  <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
   <script>
     window.addEventListener('load', () => {
       const SUPABASE_URL = window.__ENV?.SUPABASE_URL || "https://your-supabase-url.supabase.co";
@@ -515,7 +522,7 @@
     });
   </script>
 
-  <!-- PayPal -->
+  <!-- PayPal SDK -->
   <script>
     const paypalScript = document.createElement("script");
     paypalScript.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID || 'AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v'}&currency=USD`;
