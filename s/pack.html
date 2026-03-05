@@ -106,12 +106,25 @@
       margin-bottom: 20px;
       color: var(--text);
     }
-    .illustration-count {
+    .contents-section {
+      margin: 20px 0 8px 0;
+      text-align: left;
+    }
+    .contents-title {
       font-weight: bold;
       font-size: 1.4rem;
-      color: var(--accent);
-      margin: 16px 0;
-      text-align: center;
+      color: #000000;
+      margin-bottom: 8px;
+    }
+    .contents-list {
+      list-style-type: disc;
+      padding-left: 24px;
+      margin: 0;
+    }
+    .contents-list li {
+      font-size: 1.1rem;
+      color: #000000;
+      margin-bottom: 6px;
     }
     .price-section {
       margin: 28px 0;
@@ -188,7 +201,7 @@
 </head>
 <body>
 
-  <!-- Header inline (same as your original) -->
+  <!-- Header inline -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -282,7 +295,15 @@
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="note" id="note"></div>
-          <div class="illustration-count" id="illustrationCount"></div>
+
+          <!-- New Contents section (bold + bullet) -->
+          <div class="contents-section">
+            <div class="contents-title">Contents:</div>
+            <ul class="contents-list">
+              <li id="illustrationCount"></li>
+            </ul>
+          </div>
+
           <div class="disclaimer" id="disclaimer"></div>
         </div>
       </div>
@@ -297,110 +318,104 @@
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("id") || "001";
 
-    // Make sure packsData is loaded and valid
-    if (typeof packsData === 'undefined' || !Array.isArray(packsData)) {
-      document.getElementById("title").textContent = "Error loading pack data";
-      document.getElementById("gallery").innerHTML = "<p>Check packs-data.js for syntax errors</p>";
-      console.error("packsData is not defined or invalid");
-    } else {
-      const pack = packsData.find(p => p.id === packId);
+    const pack = packsData.find(p => p.id === packId);
 
-      if (!pack) {
-        document.getElementById("title").textContent = "Pack not found";
-        document.getElementById("gallery").innerHTML = "<p>Invalid pack ID. Try ?id=001 or ?id=002</p>";
-      } else {
-        // Title
-        document.getElementById("title").textContent = pack.title;
-
-        // Gallery + carousel
-        document.getElementById("gallery").innerHTML = `
-          <div class="carousel">
-            <div class="slides" id="slides">
-              ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
-            </div>
-            <button class="arrow prev" onclick="prevSlide()">❮</button>
-            <button class="arrow next" onclick="nextSlide()">❯</button>
-          </div>
-          <div class="thumbnails">
-            ${pack.images.map((img, i) => `
-              <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
-            `).join("")}
-          </div>
-        `;
-
-        // Price section
-        document.getElementById("priceSection").innerHTML = `
-          <div>
-            <span class="price-label">Original Price:</span>
-            <span class="old-price">${pack.oldPrice}</span>
-          </div>
-          <div style="margin-top:8px;">
-            <span class="price-label">Current Price:</span>
-            <span class="current-price">${pack.price}</span>
-          </div>
-          <div class="save">${pack.saveText}</div>
-        `;
-
-        // Buttons
-        document.getElementById("buttons").innerHTML = `
-          <button class="btn btn-buy">Buy Now</button>
-          <button class="btn btn-cart">Add to Cart</button>
-        `;
-
-        // Note (static)
-        document.getElementById("note").innerHTML = `
-          <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-            <circle cx="256" cy="380" r="24" fill="#000000"/>
-          </svg>
-          Digital products are non-refundable after purchase.
-        `;
-
-        // Bold AI-generated illustrations count (dynamic)
-        document.getElementById("illustrationCount").innerHTML = `
-          <strong>${pack.illustrationCount} AI-generated illustrations</strong>
-        `;
-
-        // Exact disclaimer
-        document.getElementById("disclaimer").innerHTML = `
-          <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-            <circle cx="256" cy="380" r="24" fill="#000000"/>
-          </svg>
-          <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
-        `;
-
-        // Carousel logic
-        const slidesContainer = document.getElementById('slides');
-        const thumbs = document.querySelectorAll('.thumb');
-        let current = 0;
-        const total = pack.images.length;
-
-        function update() {
-          slidesContainer.style.transform = `translateX(-${current * 100}%)`;
-          thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
-        }
-
-        function nextSlide() {
-          current = (current + 1) % total;
-          update();
-        }
-
-        function prevSlide() {
-          current = (current - 1 + total) % total;
-          update();
-        }
-
-        function goToSlide(index) {
-          current = index;
-          update();
-        }
-
-        update();
-      }
+    if (!pack) {
+      document.getElementById("title").textContent = "Pack not found";
+      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID. Try ?id=001 or ?id=002</p>";
+      return;
     }
+
+    // Title
+    document.getElementById("title").textContent = pack.title;
+
+    // Gallery + carousel
+    document.getElementById("gallery").innerHTML = `
+      <div class="carousel">
+        <div class="slides" id="slides">
+          ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
+        </div>
+        <button class="arrow prev" onclick="prevSlide()">❮</button>
+        <button class="arrow next" onclick="nextSlide()">❯</button>
+      </div>
+      <div class="thumbnails">
+        ${pack.images.map((img, i) => `
+          <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
+        `).join("")}
+      </div>
+    `;
+
+    // Price section
+    document.getElementById("priceSection").innerHTML = `
+      <div>
+        <span class="price-label">Original Price:</span>
+        <span class="old-price">${pack.oldPrice}</span>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="price-label">Current Price:</span>
+        <span class="current-price">${pack.price}</span>
+      </div>
+      <div class="save">${pack.saveText}</div>
+    `;
+
+    // Buttons
+    document.getElementById("buttons").innerHTML = `
+      <button class="btn btn-buy">Buy Now</button>
+      <button class="btn btn-cart">Add to Cart</button>
+    `;
+
+    // Note (static)
+    document.getElementById("note").innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      Digital products are non-refundable after purchase.
+    `;
+
+    // Contents: bold title + bullet with dynamic count
+    document.getElementById("illustrationCount").innerHTML = `
+      ZIP file containing ${pack.illustrationCount} AI-generated illustrations
+    `;
+
+    // Exact disclaimer
+    document.getElementById("disclaimer").innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
+    `;
+
+    // Carousel logic
+    const slidesContainer = document.getElementById('slides');
+    const thumbs = document.querySelectorAll('.thumb');
+    let current = 0;
+    const total = pack.images.length;
+
+    function update() {
+      slidesContainer.style.transform = `translateX(-${current * 100}%)`;
+      thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+    }
+
+    function nextSlide() {
+      current = (current + 1) % total;
+      update();
+    }
+
+    function prevSlide() {
+      current = (current - 1 + total) % total;
+      update();
+    }
+
+    function goToSlide(index) {
+      current = index;
+      update();
+    }
+
+    update();
   </script>
 
 </body>
