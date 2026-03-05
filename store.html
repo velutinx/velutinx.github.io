@@ -613,10 +613,23 @@
         filterAndSort();
       }
 
-      function resetFilters() {
-        searchInput.value = "";
-        setSort("newest");  // Reset to Newest
-      }
+  function resetFilters() {
+    // Clear search input
+    searchInput.value = "";
+
+    // Activate "Newest" button and deactivate others
+    sortButtons.forEach(btn => btn.classList.remove("active"));
+    const newestBtn = document.querySelector('[data-sort="newest"]');
+    if (newestBtn) newestBtn.classList.add("active");
+
+    // Show ALL products first (remove hidden class from every card)
+    productsData.forEach(p => {
+      if (p.element) p.element.classList.remove("hidden");
+    });
+
+    // Re-apply filter & sort (now with empty query and "newest")
+    filterAndSort();
+  }
 
       function toggleTheme() {
         isDark = !isDark;
