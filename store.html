@@ -250,8 +250,8 @@
 
       <div class="sort-options">
         <div class="section-title" id="sortTitle">Sort by</div>
-        <button class="sort-btn active" data-sort="default"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg> <span id="sortDefault">Default</span></button>
-        <button class="sort-btn" data-sort="newest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11.933 5h-6.933v16h13v-8"></path><path d="M14 17h-5"></path><path d="M9 13h5v-4h-5z"></path><path d="M15 5v-2"></path><path d="M18 6l2 -2"></path><path d="M19 9h2"></path></svg> <span id="sortNewest">Newest</span></button>
+        <button class="sort-btn active" data-sort="newest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg> <span id="sortNewest">Newest</span></button>
+        <button class="sort-btn" data-sort="oldest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6.5v11M5 12h14"></path><path d="M12 17.5l-7-7 7-7"></path></svg> <span id="sortOldest">Oldest</span></button>
         <button class="sort-btn" data-sort="price-asc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9l3 -3l3 3"></path><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M17 6v12"></path></svg> <span id="sortLow">Price: Low to High</span></button>
         <button class="sort-btn" data-sort="price-desc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M14 15l3 3l3 -3"></path><path d="M17 18v-12"></path></svg> <span id="sortHigh">Price: High to Low</span></button>
       </div>
@@ -282,7 +282,7 @@
     </main>
   </div>
 
-  <!-- Load packs-data.js FIRST (critical) -->
+  <!-- Load packs-data.js FIRST -->
   <script src="https://velutinx.github.io/assets/js/packs-data.js"></script>
 
   <!-- Then load store.js -->
@@ -301,8 +301,7 @@
         return;
       }
 
-      // If you have transformation logic in store.js, keep it here or in store.js
-      // Example (if not already in store.js):
+      // Transform packsData into productsData (if not already done in store.js)
       const productsData = packsData.map((pack, index) => {
         const numericId = parseInt(pack.id, 10);
         const priceNum = pack.illustrationCount < 46 ? 1.50 : 3.00;
@@ -319,10 +318,9 @@
         };
       });
 
-      // Sort newest first (optional - keep or remove)
+      // Sort newest first by default (since array is now newest-first)
       productsData.sort((a, b) => b.date - a.date);
 
-      // Now run your original init code
       const translations = {
         en: {
           shopTitle: "Velutinx's Shop",
@@ -332,8 +330,8 @@
           catFrom: "From Booth",
           catSisters: "The Sisters Corner",
           sortTitle: "Sort by",
-          sortDefault: "Default",
           sortNewest: "Newest",
+          sortOldest: "Oldest",
           sortLow: "Price: Low to High",
           sortHigh: "Price: High to Low",
           resetBtn: "Reset Filters",
@@ -352,8 +350,8 @@
           catFrom: "Boothから",
           catSisters: "姉妹のコーナー",
           sortTitle: "並び替え",
-          sortDefault: "デフォルト",
           sortNewest: "最新",
+          sortOldest: "最古",
           sortLow: "価格: 低い → 高い",
           sortHigh: "価格: 高い → 低い",
           resetBtn: "フィルターをリセット",
@@ -372,8 +370,8 @@
           catFrom: "来自Booth",
           catSisters: "姐妹角落",
           sortTitle: "排序方式",
-          sortDefault: "默认",
           sortNewest: "最新",
+          sortOldest: "最旧",
           sortLow: "价格: 低到高",
           sortHigh: "价格: 高到低",
           resetBtn: "重置筛选",
@@ -392,8 +390,8 @@
           catFrom: "Desde Booth",
           catSisters: "El Rincón de las Hermanas",
           sortTitle: "Ordenar por",
-          sortDefault: "Predeterminado",
           sortNewest: "Más reciente",
+          sortOldest: "Más antiguo",
           sortLow: "Precio: Bajo a Alto",
           sortHigh: "Precio: Alto a Bajo",
           resetBtn: "Restablecer Filtros",
@@ -489,8 +487,8 @@
         document.getElementById("catFrom").textContent = t.catFrom;
         document.getElementById("catSisters").textContent = t.catSisters;
         document.getElementById("sortTitle").textContent = t.sortTitle;
-        document.getElementById("sortDefault").textContent = t.sortDefault;
         document.getElementById("sortNewest").textContent = t.sortNewest;
+        document.getElementById("sortOldest").textContent = t.sortOldest;
         document.getElementById("sortLow").textContent = t.sortLow;
         document.getElementById("sortHigh").textContent = t.sortHigh;
         document.getElementById("resetBtn").textContent = t.resetBtn;
@@ -587,7 +585,7 @@
 
       function filterAndSort() {
         const query = searchInput.value.toLowerCase().trim();
-        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "default";
+        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
 
         productsData.forEach(p => {
           const matches = p.title.toLowerCase().includes(query);
@@ -596,9 +594,15 @@
 
         let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
 
-        if (activeSort === "newest") visible.sort((a,b) => parseInt(b.dataset.date) - parseInt(a.dataset.date));
-        else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-        else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+        if (activeSort === "newest") {
+          visible.sort((a,b) => b.dataset.date - a.dataset.date);
+        } else if (activeSort === "oldest") {
+          visible.sort((a,b) => a.dataset.date - b.dataset.date);
+        } else if (activeSort === "price-asc") {
+          visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        } else if (activeSort === "price-desc") {
+          visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+        }
 
         visible.forEach(el => grid.appendChild(el));
       }
@@ -611,7 +615,7 @@
 
       function resetFilters() {
         searchInput.value = "";
-        setSort("default");
+        setSort("newest");  // Reset to Newest
       }
 
       function toggleTheme() {
@@ -671,7 +675,7 @@
         });
       });
 
-      // Init with safety
+      // Init
       createCards();
       filterAndSort();
       updateAllPrices();
