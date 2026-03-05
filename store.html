@@ -218,20 +218,16 @@
   <!-- Load packs-data.js FIRST -->
   <script src="https://velutinx.github.io/assets/js/packs-data.js"></script>
 
-  <!-- Then load store.js -->
-  <script src="https://velutinx.github.io/assets/js/store.js"></script>
-
-  <!-- Supabase Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
   <!-- Full shop logic -->
 <script>
   window.addEventListener('load', () => {
     if (typeof packsData === 'undefined' || !Array.isArray(packsData) || packsData.length === 0) {
-      console.error("packsData not loaded");
+      console.error("packsData not loaded or empty");
+      document.getElementById("productGrid").innerHTML = "<p style='text-align:center; color:red;'>Error loading products. Check console (F12) for details.</p>";
       return;
     }
 
+    // PRICE TOKEN SUPPORT (same as pack.html)
     const priceTierMap = {
       "PRICE_LOW": 1.5,
       "PRICE_MED": 3.0,
@@ -241,6 +237,7 @@
     const productsData = packsData.map((pack, index) => {
       const numericId = parseInt(pack.id, 10);
       const priceNum = priceTierMap[pack.price] || 3.0;
+
       return {
         id: numericId,
         title: pack.title,
@@ -256,10 +253,9 @@
 
     productsData.sort((a, b) => b.date - a.date);
 
-    // Your translations (unchanged)
     const translations = {
       en: { shopTitle: "Velutinx's Shop", filterTitle: "Filter by Category", catAll: "All", catNot: "Not On Booth", catFrom: "From Booth", catSisters: "The Sisters Corner", sortTitle: "Sort by", sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low", productsTitle: "Products", searchPlaceholder: "Search", cartTitle: "Shopping Cart", totalLabel: "Total", snackText: "Added successfully", loginBtn: "Website" },
-      ja: { ja: { shopTitle: "Velutinxのショップ", filterTitle: "カテゴリでフィルター", catAll: "すべて", catNot: "Boothにない", catFrom: "Boothから", catSisters: "姉妹のコーナー", sortTitle: "並び替え", sortNewest: "最新", sortOldest: "最古", sortLow: "価格: 低い → 高い", sortHigh: "価格: 高い → 低い", productsTitle: "商品", searchPlaceholder: "検索", cartTitle: "ショッピングカート", totalLabel: "合計", snackText: "カートに追加しました", loginBtn: "ウェブサイト" },
+      ja: { shopTitle: "Velutinxのショップ", filterTitle: "カテゴリでフィルター", catAll: "すべて", catNot: "Boothにない", catFrom: "Boothから", catSisters: "姉妹のコーナー", sortTitle: "並び替え", sortNewest: "最新", sortOldest: "最古", sortLow: "価格: 低い → 高い", sortHigh: "価格: 高い → 低い", productsTitle: "商品", searchPlaceholder: "検索", cartTitle: "ショッピングカート", totalLabel: "合計", snackText: "カートに追加しました", loginBtn: "ウェブサイト" },
       zh: { shopTitle: "Velutinx的商店", filterTitle: "按类别筛选", catAll: "全部", catNot: "不在Booth上", catFrom: "来自Booth", catSisters: "姐妹角落", sortTitle: "排序方式", sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 低到高", sortHigh: "价格: 高到低", productsTitle: "商品", searchPlaceholder: "搜索", cartTitle: "购物车", totalLabel: "总计", snackText: "已成功添加到购物车", loginBtn: "网站" },
       es: { shopTitle: "Tienda de Velutinx", filterTitle: "Filtrar por Categoría", catAll: "Todos", catNot: "No en Booth", catFrom: "Desde Booth", catSisters: "El Rincón de las Hermanas", sortTitle: "Ordenar por", sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: Bajo a Alto", sortHigh: "Precio: Alto a Bajo", productsTitle: "Productos", searchPlaceholder: "Buscar", cartTitle: "Carrito de Compras", totalLabel: "Total", snackText: "Añadido con éxito", loginBtn: "Sitio web" }
     };
@@ -280,39 +276,7 @@
     const snackbar = document.getElementById("snackbar");
     const themeBtn = document.getElementById("themeBtn");
 
-    // GLOBAL cart so PayPal can see it
-    window.cart = [];
-    let secureTotalUSD = 0;
-
-    const tierMap = {
-      1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
-      3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
-      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
-    };
-
-    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
-    let currentLang = localStorage.getItem("language") || "en";
-    let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
-    let isDark = localStorage.getItem("darkMode") === "true";
-
-    const grid = document.getElementById("productGrid");
-    const searchInput = document.getElementById("searchInput");
-    const sortButtons = document.querySelectorAll(".sort-btn");
-    const langBtn = document.getElementById("langBtn");
-    const langPopover = document.getElementById("languagePopover");
-    const cartBtn = document.getElementById("cartBtn");
-    const floatingCartBtn = document.getElementById("floatingCartBtn");
-    const cartDrawer = document.getElementById("cartDrawer");
-    const cartClose = document.getElementById("cartClose");
-    const cartCountEl = document.getElementById("cartCount");
-    const floatingCartCountEl = document.getElementById("floatingCartCount");
-    const cartItemsEl = document.getElementById("cartItems");
-    const cartTotalEl = document.getElementById("cartTotal");
-    const snackbar = document.getElementById("snackbar");
-    const themeBtn = document.getElementById("themeBtn");
-
-    window.cart = [];                    // ← GLOBAL - fixes "cart is not defined"
+    window.cart = [];                    // GLOBAL - fixes "cart is not defined"
     let secureTotalUSD = 0;
 
     const tierMap = {
@@ -328,8 +292,6 @@
     let isDark = localStorage.getItem("darkMode") === "true";
 
     if (isDark) document.body.classList.add("dark");
-    // formatPrice, updateAllPrices, setLanguage, createCards, updateCartDisplay, filterAndSort, setSort, toggleTheme
-    // (all your existing functions - unchanged)
 
     function formatPrice(value, currency) {
       if (currency === "USD") return `US$${value.toFixed(2)}`;
@@ -358,7 +320,6 @@
 
     function setLanguage(lang) {
       if (currentLang === lang) return;
-
       currentLang = lang;
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
       localStorage.setItem("language", lang);
@@ -371,7 +332,6 @@
       }
 
       const t = translations[lang] || translations.en;
-
       document.getElementById("shopTitle").textContent = t.shopTitle;
       document.getElementById("filterTitle").textContent = t.filterTitle;
       document.getElementById("catAll").textContent = t.catAll;
@@ -401,7 +361,6 @@
         card.dataset.title = p.title.toLowerCase();
         card.dataset.price = p.price;
         card.dataset.date = p.date;
-
         card.style.cursor = "pointer";
 
         card.innerHTML = `
@@ -437,14 +396,13 @@
         const btn = card.querySelector(".cart-btn");
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-
           if (btn.dataset.inCart === "true") {
-            cart = cart.filter(item => item.id !== p.id);
+            window.cart = window.cart.filter(item => item.id !== p.id);
             btn.dataset.inCart = "false";
             btn.classList.remove("added");
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
           } else {
-            cart.push(p);
+            window.cart.push(p);
             btn.dataset.inCart = "true";
             btn.classList.add("added");
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
@@ -457,15 +415,15 @@
     }
 
     function updateCartDisplay() {
-      const count = cart.length;
+      const count = window.cart.length;
       cartCountEl.textContent = count;
       floatingCartCountEl.textContent = count;
 
       cartItemsEl.innerHTML = "";
-      realTotalUSD = 0;
+      secureTotalUSD = 0;
 
-      cart.forEach((item, idx) => {
-        realTotalUSD += item.price;
+      window.cart.forEach((item, idx) => {
+        secureTotalUSD += item.price;
         const div = document.createElement("div");
         div.className = "cart-item";
         div.innerHTML = `
@@ -479,7 +437,7 @@
         cartItemsEl.appendChild(div);
       });
 
-      cartTotalEl.textContent = formatPrice(realTotalUSD, currentCurrency);
+      cartTotalEl.textContent = formatPrice(secureTotalUSD, currentCurrency);
 
       const isActive = count > 0;
       [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
@@ -496,15 +454,10 @@
 
       let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
 
-      if (activeSort === "newest") {
-        visible.sort((a,b) => b.dataset.date - a.dataset.date);
-      } else if (activeSort === "oldest") {
-        visible.sort((a,b) => a.dataset.date - b.dataset.date);
-      } else if (activeSort === "price-asc") {
-        visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-      } else if (activeSort === "price-desc") {
-        visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-      }
+      if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
+      else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
+      else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+      else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
 
       visible.forEach(el => grid.appendChild(el));
     }
@@ -521,7 +474,7 @@
       localStorage.setItem("darkMode", isDark);
     }
 
-    // Events (unchanged)
+    // Events
     searchInput.addEventListener("input", filterAndSort);
     sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
 
@@ -539,8 +492,7 @@
     cartItemsEl.addEventListener("click", e => {
       if (e.target.classList.contains("cart-item-remove")) {
         const idx = parseInt(e.target.dataset.idx);
-        const removed = cart.splice(idx, 1)[0];
-        removed.inCart = false;
+        const removed = window.cart.splice(idx, 1)[0];
         const card = removed.element;
         if (card) {
           const btn = card.querySelector(".cart-btn");
@@ -612,7 +564,7 @@ function initPayPal() {
 
       if (!res.ok) {
         console.error("Pricing API error:", res.status);
-        alert("Payment setup failed (pricing error). Check console.");
+        alert("Payment setup failed - check console (F12)");
         return;
       }
 
