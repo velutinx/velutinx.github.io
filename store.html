@@ -80,17 +80,6 @@
     .sort-btn.active { background: var(--accent); color: #1f1a12; }
     .sort-btn:hover:not(.active) { background: #c0bcaa; }
     .sort-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
-    .reset-btn {
-      margin-top: 1.5rem;
-      width: 100%;
-      padding: 0.9rem;
-      background: var(--accent);
-      color: #1f1a12;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-    }
 
     .products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem; }
     .products-header h2 { font-size: 1.65rem; font-weight: 700; color: var(--text); }
@@ -256,7 +245,7 @@
         <button class="sort-btn" data-sort="price-desc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M14 15l3 3l3 -3"></path><path d="M17 18v-12"></path></svg> <span id="sortHigh">Price: High to Low</span></button>
       </div>
 
-      <button class="reset-btn" id="resetBtn">Reset Filters</button>
+      <!-- Reset Filters button removed -->
     </aside>
 
     <main class="products-section">
@@ -301,7 +290,7 @@
         return;
       }
 
-      // Transform packsData into productsData (if not already done in store.js)
+      // Transform packsData into productsData
       const productsData = packsData.map((pack, index) => {
         const numericId = parseInt(pack.id, 10);
         const priceNum = pack.illustrationCount < 46 ? 1.50 : 3.00;
@@ -318,7 +307,7 @@
         };
       });
 
-      // Sort newest first by default (since array is now newest-first)
+      // Sort newest first by default
       productsData.sort((a, b) => b.date - a.date);
 
       const translations = {
@@ -334,7 +323,6 @@
           sortOldest: "Oldest",
           sortLow: "Price: Low to High",
           sortHigh: "Price: High to Low",
-          resetBtn: "Reset Filters",
           productsTitle: "Products",
           searchPlaceholder: "Search",
           cartTitle: "Shopping Cart",
@@ -354,7 +342,6 @@
           sortOldest: "最古",
           sortLow: "価格: 低い → 高い",
           sortHigh: "価格: 高い → 低い",
-          resetBtn: "フィルターをリセット",
           productsTitle: "商品",
           searchPlaceholder: "検索",
           cartTitle: "ショッピングカート",
@@ -374,7 +361,6 @@
           sortOldest: "最旧",
           sortLow: "价格: 低到高",
           sortHigh: "价格: 高到低",
-          resetBtn: "重置筛选",
           productsTitle: "商品",
           searchPlaceholder: "搜索",
           cartTitle: "购物车",
@@ -394,7 +380,6 @@
           sortOldest: "Más antiguo",
           sortLow: "Precio: Bajo a Alto",
           sortHigh: "Precio: Alto a Bajo",
-          resetBtn: "Restablecer Filtros",
           productsTitle: "Productos",
           searchPlaceholder: "Buscar",
           cartTitle: "Carrito de Compras",
@@ -491,7 +476,6 @@
         document.getElementById("sortOldest").textContent = t.sortOldest;
         document.getElementById("sortLow").textContent = t.sortLow;
         document.getElementById("sortHigh").textContent = t.sortHigh;
-        document.getElementById("resetBtn").textContent = t.resetBtn;
         document.getElementById("productsTitle").textContent = t.productsTitle;
         if (searchInput) searchInput.placeholder = t.searchPlaceholder;
         document.getElementById("cartTitle").textContent = t.cartTitle;
@@ -612,24 +596,6 @@
         document.querySelector(`[data-sort="${type}"]`)?.classList.add("active");
         filterAndSort();
       }
-
-  function resetFilters() {
-    // Clear search input
-    searchInput.value = "";
-
-    // Activate "Newest" button and deactivate others
-    sortButtons.forEach(btn => btn.classList.remove("active"));
-    const newestBtn = document.querySelector('[data-sort="newest"]');
-    if (newestBtn) newestBtn.classList.add("active");
-
-    // Show ALL products first (remove hidden class from every card)
-    productsData.forEach(p => {
-      if (p.element) p.element.classList.remove("hidden");
-    });
-
-    // Re-apply filter & sort (now with empty query and "newest")
-    filterAndSort();
-  }
 
       function toggleTheme() {
         isDark = !isDark;
