@@ -4,8 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Velutinx's Shop</title>
-
-<style>
+  <style>
     :root {
       --bg: #d3d0c1;
       --card: #e8e5d8;
@@ -338,7 +337,7 @@
     .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
 
-    .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text); padding-left: 0.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text-muted); padding-left: 0.5rem; }
 
     .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
     .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
@@ -418,8 +417,8 @@
     }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: var(--success); }
-</style>
-
+  </style>
+  <script src="store.js"></script>
 </head>
 <body>
 
@@ -572,10 +571,8 @@
     </main>
   </div>
 
+  <!-- Translations moved INSIDE the page so they're always available -->
   <script>
-    // ───────────────────────────────────────────────
-    // Translations
-    // ───────────────────────────────────────────────
     const translations = {
       en: {
         shopTitle: "Velutinx's Shop",
@@ -659,51 +656,12 @@
       }
     };
 
-    // ───────────────────────────────────────────────
-    // Example products – REPLACE WITH YOUR REAL PRODUCTS
-    // ───────────────────────────────────────────────
-    const productsData = [
-      {
-        id: "prod-001",
-        title: "Kawaii Fox Badge",
-        price: 4.50,
-        originalPrice: 6.00,
-        image: "https://via.placeholder.com/300x370/aa9e76/3a3528?text=Fox+Badge",
-        date: "20250310"
-      },
-      {
-        id: "prod-002",
-        title: "Pastel Moon Print",
-        price: 12.00,
-        image: "https://via.placeholder.com/300x370/d4c08a/0f0f12?text=Moon+Print",
-        date: "20250401"
-      },
-      {
-        id: "prod-003",
-        title: "Cyber Cat Sticker Set",
-        price: 7.99,
-        originalPrice: 9.99,
-        image: "https://via.placeholder.com/300x370/aa9e76/121216?text=Cyber+Cat",
-        date: "20250215"
-      },
-      {
-        id: "prod-004",
-        title: "Sakura Dreamscape Wallpaper",
-        price: 5.00,
-        image: "https://via.placeholder.com/300x370/e8e5d8/1a1a20?text=Sakura",
-        date: "20250120"
-      }
-      // ← Add your real products here
-    ];
-
-    // ───────────────────────────────────────────────
-    // Core variables & setup
-    // ───────────────────────────────────────────────
     const grid = document.getElementById("productGrid");
     const searchInput = document.getElementById("searchInput");
     const sortButtons = document.querySelectorAll(".sort-btn");
     const langBtn = document.getElementById("langBtn");
     const langPopover = document.getElementById("languagePopover");
+    const langItems = langPopover.querySelectorAll(".lang-item");
     const cartBtn = document.getElementById("cartBtn");
     const floatingCartBtn = document.getElementById("floatingCartBtn");
     const cartDrawer = document.getElementById("cartDrawer");
@@ -731,9 +689,6 @@
 
     if (isDark) document.body.classList.add("dark");
 
-    // ───────────────────────────────────────────────
-    // Price formatting
-    // ───────────────────────────────────────────────
     function formatPrice(value, currency) {
       if (currency === "USD") return `US$${value.toFixed(2)}`;
 
@@ -762,9 +717,6 @@
       });
     }
 
-    // ───────────────────────────────────────────────
-    // Language switching + animation
-    // ───────────────────────────────────────────────
     function setLanguage(lang) {
       if (currentLang === lang) return;
 
@@ -772,6 +724,7 @@
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
       localStorage.setItem("language", lang);
 
+      // Play swipe ONLY on click
       const swipe = document.getElementById("langSwipe");
       if (swipe) {
         swipe.classList.remove("active");
@@ -779,6 +732,7 @@
         swipe.classList.add("active");
       }
 
+      // Update ALL translatable elements instantly
       const t = translations[lang] || translations.en;
 
       document.getElementById("shopTitle").textContent = t.shopTitle;
@@ -804,16 +758,13 @@
       updateCartDisplay();
     }
 
-    // ───────────────────────────────────────────────
-    // Create product cards
-    // ───────────────────────────────────────────────
     function createCards() {
       productsData.forEach(p => {
         const card = document.createElement("div");
         card.className = "product-card";
         card.dataset.title = p.title.toLowerCase();
         card.dataset.price = p.price;
-        card.dataset.date = p.date || "20250101";
+        card.dataset.date = p.date;
         card.innerHTML = `
           <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
           <div class="card-content">
@@ -858,9 +809,6 @@
       });
     }
 
-    // ───────────────────────────────────────────────
-    // Cart management
-    // ───────────────────────────────────────────────
     function updateCartDisplay() {
       const count = cart.length;
       cartCountEl.textContent = count;
@@ -890,9 +838,6 @@
       [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
     }
 
-    // ───────────────────────────────────────────────
-    // Filtering & Sorting
-    // ───────────────────────────────────────────────
     function filterAndSort() {
       const query = searchInput.value.toLowerCase().trim();
       const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "default";
@@ -922,18 +867,13 @@
       setSort("default");
     }
 
-    // ───────────────────────────────────────────────
-    // Theme toggle
-    // ───────────────────────────────────────────────
     function toggleTheme() {
       isDark = !isDark;
       document.body.classList.toggle("dark", isDark);
       localStorage.setItem("darkMode", isDark);
     }
 
-    // ───────────────────────────────────────────────
-    // Event listeners
-    // ───────────────────────────────────────────────
+    // Events
     searchInput.addEventListener("input", filterAndSort);
     sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
 
@@ -952,13 +892,13 @@
       if (e.target.classList.contains("cart-item-remove")) {
         const idx = parseInt(e.target.dataset.idx);
         const removed = cart.splice(idx, 1)[0];
-        if (removed?.element) {
-          const btn = removed.element.querySelector(".cart-btn");
-          if (btn) {
-            btn.dataset.inCart = "false";
-            btn.classList.remove("added");
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-          }
+        removed.inCart = false;
+        const card = removed.element;
+        if (card) {
+          const btn = card.querySelector(".cart-btn");
+          btn.dataset.inCart = "false";
+          btn.classList.remove("added");
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
         }
         updateCartDisplay();
       }
@@ -966,7 +906,7 @@
 
     themeBtn.addEventListener("click", toggleTheme);
 
-    // Language events
+    // Language button events
     document.getElementById("langBtn").addEventListener("click", e => {
       e.stopPropagation();
       document.getElementById("languagePopover").classList.toggle("show");
@@ -985,17 +925,13 @@
       });
     });
 
-    // ───────────────────────────────────────────────
-    // Initialization
-    // ───────────────────────────────────────────────
+    // Init
     createCards();
     filterAndSort();
     updateAllPrices();
-    setLanguage(currentLang);
-    updateCartDisplay();
+    setLanguage(currentLang);  // initial translation (no swipe)
 
     if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
-
   </script>
 
   <!-- Supabase Client -->
