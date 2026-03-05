@@ -1,16 +1,15 @@
 export const onRequestPost = async ({ request, env }) => {
   try {
-    // Fetch the latest packs-data.js from your own site (always up-to-date)
+    // Always gets the latest packs-data.js (no duplication)
     const packsRes = await fetch("https://velutinx.github.io/assets/js/packs-data.js");
     const text = await packsRes.text();
 
-    // Extract and safely parse the packsData array
     const match = text.match(/const packsData\s*=\s*(\[[\s\S]*?\]);/);
-    if (!match) throw new Error("Could not read packs data");
+    if (!match) throw new Error("Cannot read packs-data.js");
 
-    const packsData = eval(match[1]);   // safe because it's your own file
+    const packsData = eval(match[1]);
 
-    // Build id → tier map (e.g. "178" → "LOW")
+    // Build map from your new PRICE_ tokens
     const tierMap = {};
     packsData.forEach(p => {
       if (p.price && p.price.startsWith("PRICE_")) {
@@ -18,8 +17,7 @@ export const onRequestPost = async ({ request, env }) => {
       }
     });
 
-    // Now process the cart items sent from browser
-    const { items } = await request.json();   // e.g. ["178", "175"]
+    const { items } = await request.json();
 
     let total = 0;
     const validated = [];
@@ -28,7 +26,7 @@ export const onRequestPost = async ({ request, env }) => {
       const tier = tierMap[id];
       if (!tier) throw new Error(`Invalid pack: ${id}`);
 
-      const price = Number(env[`PRICE_${tier}`]) || 3;   // reads Cloudflare env var
+      const price = Number(env[`PRICE_${tier}`]) || 3.0;
       total += price;
       validated.push({ id: Number(id), price });
     }
@@ -41,6 +39,7 @@ export const onRequestPost = async ({ request, env }) => {
     });
 
   } catch (e) {
+    console.error(e);
     return new Response("Bad request", { status: 400 });
   }
 };
