@@ -1,344 +1,291 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>[Pack 001] Tsunade - Naruto</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Velutinx Pack</title>
 
-<!-- Your shared header styles -->
-<link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
+  <!-- Shared header styles -->
+  <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-<!-- Product page styles -->
-<style>
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 16px;
-  }
-  @media (min-width: 600px) {
-    .container { padding: 0 24px; }
-  }
-  main { padding: 40px 0; }
-  .product {
-    display: grid;
-    gap: 40px;
-  }
-  @media (min-width: 992px) {
-    .product { grid-template-columns: 1fr 2fr; }
-  }
-  .gallery-card,
-  .info-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  }
-  .carousel {
-    position: relative;
-    overflow: hidden;
-    height: auto;
-  }
-  .slides {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
-    width: 100%;
-  }
-  .slide {
-    flex: 0 0 100%;
-    width: 100%;
-  }
-  .slide img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-  .arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0,0,0,0.4);
-    color: white;
-    border: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-  }
-  .arrow:hover { background: rgba(0,0,0,0.6); }
-  .arrow.prev { left: 16px; }
-  .arrow.next { right: 16px; }
-  .thumbnails {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    padding: 16px;
-    background: rgba(0,0,0,0.03);
-    border-top: 1px solid var(--border);
-    flex-wrap: wrap;
-  }
-  .thumb {
-    width: 90px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 3px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s;
-    opacity: 0.8;
-  }
-  .thumb.active,
-  .thumb:hover {
-    border-color: #5D87FF;
-    opacity: 1;
-    transform: scale(1.04);
-  }
-  .info {
-    padding: 28px;
-  }
-  h1 {
-    font-size: 2.1rem;
-    margin-bottom: 20px;
-    color: var(--text);
-  }
-  .price-section {
-    margin: 28px 0;
-    padding: 20px;
-    background: rgba(250,137,107,0.08);
-    border-radius: 12px;
-    border: 1px solid rgba(250,137,107,0.25);
-  }
-  .price-label { color: var(--text-light); font-size: 0.95rem; }
-  .old-price {
-    text-decoration: line-through;
-    color: var(--text-light);
-    margin-left: 12px;
-  }
-  .current-price {
-    color: var(--red-discount);
-    font-size: 2.2rem;
-    font-weight: bold;
-  }
-  .save {
-    color: #13DEB9;
-    font-weight: bold;
-    margin-top: 8px;
-    display: inline-block;
-  }
-  .buttons {
-    display: flex;
-    gap: 16px;
-    margin-top: 32px;
-    flex-wrap: wrap;
-  }
-  .btn {
-    flex: 1;
-    min-width: 160px;
-    padding: 14px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .btn-buy {
-    background: #5D87FF;
-    color: white;
-  }
-  .btn-buy:hover { background: #4570ea; }
-  .btn-cart {
-    background: #49BEFF;
-    color: white;
-  }
-  .btn-cart:hover { background: #23afdb; }
-  .note,
-  .disclaimer {
-    margin-top: 24px;
-    font-size: 0.95rem;
-    color: #555;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .disclaimer {
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-  }
-  .note svg,
-  .disclaimer svg {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-  }
-</style>
+  <!-- Product page styles -->
+  <style>
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    @media (min-width: 600px) {
+      .container { padding: 0 24px; }
+    }
+    main { padding: 40px 0; }
+    .product {
+      display: grid;
+      gap: 40px;
+    }
+    @media (min-width: 992px) {
+      .product { grid-template-columns: 1fr 2fr; }
+    }
+    .gallery-card,
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      height: auto;
+    }
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      width: 100%;
+    }
+    .slide {
+      flex: 0 0 100%;
+      width: 100%;
+    }
+    .slide img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.4);
+      color: white;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .arrow:hover { background: rgba(0,0,0,0.6); }
+    .arrow.prev { left: 16px; }
+    .arrow.next { right: 16px; }
+    .thumbnails {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0,0,0,0.03);
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .thumb {
+      width: 90px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: 0.8;
+    }
+    .thumb.active,
+    .thumb:hover {
+      border-color: #5D87FF;
+      opacity: 1;
+      transform: scale(1.04);
+    }
+    .info {
+      padding: 28px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .price-section {
+      margin: 28px 0;
+      padding: 20px;
+      background: rgba(250,137,107,0.08);
+      border-radius: 12px;
+      border: 1px solid rgba(250,137,107,0.25);
+    }
+    .price-label { color: var(--text-light); font-size: 0.95rem; }
+    .old-price {
+      text-decoration: line-through;
+      color: var(--text-light);
+      margin-left: 12px;
+    }
+    .current-price {
+      color: var(--red-discount);
+      font-size: 2.2rem;
+      font-weight: bold;
+    }
+    .save {
+      color: #13DEB9;
+      font-weight: bold;
+      margin-top: 8px;
+      display: inline-block;
+    }
+    .buttons {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 160px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-buy {
+      background: #5D87FF;
+      color: white;
+    }
+    .btn-buy:hover { background: #4570ea; }
+    .btn-cart {
+      background: #49BEFF;
+      color: white;
+    }
+    .btn-cart:hover { background: #23afdb; }
+    .note,
+    .disclaimer {
+      margin-top: 24px;
+      font-size: 0.95rem;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .disclaimer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .note svg,
+    .disclaimer svg {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Full header HTML - identical to store.html (required until header.js inserts it) -->
-  <div class="lang-swipe" id="langSwipe"></div>
+  <!-- Header loaded from your shared files -->
+  <script src="https://velutinx.github.io/assets/js/header.js"></script>
 
-  <nav class="top-nav">
-    <div class="logo">VELUTINX</div>
-    <div class="nav-actions">
-      <button class="login-btn" id="loginBtn">Website</button>
-
-      <div id="langContainer">
-        <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path>
-            <path d="M7 4c0 4.846 0 7 .5 8"></path>
-            <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
-            <path d="M12 20l4 -9l4 9"></path>
-            <path d="M19.1 18h-6.2"></path>
-          </svg>
-        </button>
-        <div id="languagePopover">
-          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
-          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
-          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
-        </div>
-      </div>
-
-      <button class="nav-icon" id="themeBtn" title="Night Mode">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
-          <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
-        </svg>
-      </button>
-
-      <div class="cart-wrapper">
-        <button class="nav-icon" id="cartBtn" title="Cart">
-          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path>
-            <path d="M19 16v6"></path>
-          </svg>
-        </button>
-        <span class="cart-badge" id="cartCount">0</span>
-      </div>
-    </div>
-  </nav>
-
-  <button class="floating-cart" id="floatingCartBtn" title="Cart">
-    <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 17h-11v-14h-2"></path>
-      <path d="M6 5l14 1l-1 7h-13"></path>
-    </svg>
-    <span class="floating-badge" id="floatingCartCount">0</span>
-  </button>
-
-  <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header">
-      <h5 id="cartTitle">Shopping Cart</h5>
-      <button class="cart-close" id="cartClose">×</button>
-    </div>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total">
-      <div class="cart-total-row">
-        <span id="totalLabel">Total</span>
-        <span id="cartTotal">US$0.00</span>
-      </div>
-      <div id="paypal-button-container"></div>
-    </div>
-  </div>
-
-  <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="M20 6L9 17l-5-5"></path>
-    </svg>
-    <span id="snackText">Added successfully</span>
-  </div>
-
-  <!-- Your Tsunade pack content -->
+  <!-- Main product content (will be filled dynamically) -->
   <main class="container">
     <div class="product">
-
-      <!-- Gallery -->
-      <div class="gallery-card">
-        <div class="carousel">
-          <div class="slides" id="slides">
-            <div class="slide"><img src="https://velutinx.neocities.org/Images/Artwork/1.jpg" alt="Tsunade 1"></div>
-            <div class="slide"><img src="https://velutinx.neocities.org/Images/Artwork/2.jpg" alt="Tsunade 2"></div>
-            <div class="slide"><img src="https://velutinx.neocities.org/Images/Artwork/3.jpg" alt="Tsunade 3"></div>
-            <div class="slide"><img src="https://velutinx.neocities.org/Images/Artwork/4.jpg" alt="Tsunade 4"></div>
-          </div>
-
-          <button class="arrow prev" onclick="prevSlide()">❮</button>
-          <button class="arrow next" onclick="nextSlide()">❯</button>
-        </div>
-
-        <div class="thumbnails">
-          <img class="thumb active" src="https://velutinx.neocities.org/Images/Artwork/1.jpg" onclick="goToSlide(0)" alt="1">
-          <img class="thumb" src="https://velutinx.neocities.org/Images/Artwork/2.jpg" onclick="goToSlide(1)" alt="2">
-          <img class="thumb" src="https://velutinx.neocities.org/Images/Artwork/3.jpg" onclick="goToSlide(2)" alt="3">
-          <img class="thumb" src="https://velutinx.neocities.org/Images/Artwork/4.jpg" onclick="goToSlide(3)" alt="4">
-        </div>
+      <!-- Gallery (filled by JS) -->
+      <div class="gallery-card" id="gallery">
+        <p>Loading...</p>
       </div>
 
-      <!-- Info -->
+      <!-- Info (filled by JS) -->
       <div class="info-card">
-        <div class="info">
-          <h1>[Pack 001] Tsunade - Naruto</h1>
-
-          <div class="price-section">
-            <div>
-              <span class="price-label">Original Price:</span>
-              <span class="old-price">US$5.79</span>
-            </div>
-            <div style="margin-top:8px;">
-              <span class="price-label">Current Price:</span>
-              <span class="current-price">US$4.49</span>
-            </div>
-            <div class="save">Save US$1.30 (23% OFF)</div>
-          </div>
-
-          <div class="buttons">
-            <button class="btn btn-buy">Buy Now</button>
-            <button class="btn btn-cart">Add to Cart</button>
-          </div>
-
-          <div class="note">
-            <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-              <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-              <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-              <circle cx="256" cy="380" r="24" fill="#000000"/>
-            </svg>
-            Digital products are non-refundable after purchase.
-          </div>
-
-          <div class="disclaimer">
-            <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-              <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-              <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-              <circle cx="256" cy="380" r="24" fill="#000000"/>
-            </svg>
-            <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
-          </div>
+        <div class="info" id="info">
+          <h1 id="title">Loading pack...</h1>
+          <div class="price-section" id="priceSection"></div>
+          <div class="buttons" id="buttons"></div>
+          <div class="note" id="note"></div>
+          <div class="disclaimer" id="disclaimer"></div>
         </div>
       </div>
-
     </div>
   </main>
 
-  <!-- Carousel script -->
+  <!-- Load the packs data -->
+  <script src="https://velutinx.github.io/assets/js/packs-data.js"></script>
+
+  <!-- Dynamic pack loading logic -->
   <script>
+    // Get pack ID from URL (?id=001, ?id=002, etc.)
+    const params = new URLSearchParams(window.location.search);
+    const packId = params.get("id") || "001"; // default to first pack
+
+    // Find the pack in packsData (loaded from packs-data.js)
+    const pack = packsData.find(p => p.id === packId);
+
+    if (!pack) {
+      document.getElementById("title").textContent = "Pack not found";
+      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
+      return;
+    }
+
+    // Set title
+    document.getElementById("title").textContent = pack.title;
+
+    // Build gallery + carousel
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = `
+      <div class="carousel">
+        <div class="slides" id="slides">
+          ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
+        </div>
+        <button class="arrow prev" onclick="prevSlide()">❮</button>
+        <button class="arrow next" onclick="nextSlide()">❯</button>
+      </div>
+      <div class="thumbnails">
+        ${pack.images.map((img, i) => `
+          <img class="thumb ${i === 0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
+        `).join("")}
+      </div>
+    `;
+
+    // Fill price section
+    document.getElementById("priceSection").innerHTML = `
+      <div>
+        <span class="price-label">Original Price:</span>
+        <span class="old-price">${pack.oldPrice}</span>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="price-label">Current Price:</span>
+        <span class="current-price">${pack.price}</span>
+      </div>
+      <div class="save">${pack.saveText}</div>
+    `;
+
+    // Buttons (static for now – can be dynamic later)
+    document.getElementById("buttons").innerHTML = `
+      <button class="btn btn-buy">Buy Now</button>
+      <button class="btn btn-cart">Add to Cart</button>
+    `;
+
+    // Note & Disclaimer (you can make them dynamic too)
+    document.getElementById("note").innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      Digital products are non-refundable after purchase.
+    `;
+
+    document.getElementById("disclaimer").innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
+    `;
+
+    // Carousel logic
     const slidesContainer = document.getElementById('slides');
     const thumbs = document.querySelectorAll('.thumb');
     let current = 0;
-    const total = 4;
+    const total = pack.images.length;
 
     function update() {
       slidesContainer.style.transform = `translateX(-${current * 100}%)`;
