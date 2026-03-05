@@ -313,12 +313,71 @@
   <!-- Load packs data -->
   <script src="https://velutinx.github.io/assets/js/packs-data.js"></script>
 
-  <!-- Dynamic loading logic -->
+  <!-- Dynamic loading logic + PRICE TOKEN SUPPORT -->
   <script>
+    // ====================== PRICE TOKEN SUPPORT ======================
+    const priceTierMap = {
+      "PRICE_LOW": 1.5,
+      "PRICE_MED": 3.0,
+      "PRICE_HIGH": 10.0
+    };
+
+    const tierMap = {
+      1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
+      3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
+      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
+    };
+
+    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+
+    let currentCurrency = "USD";
+
+    function formatPrice(value, currency) {
+      if (currency === "USD") return `US$${value.toFixed(2)}`;
+
+      const rounded = Math.round(value * 100) / 100;
+      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+        const converted = tierMap[rounded][currency];
+        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+        return `${symbol}${converted}`;
+      }
+
+      let converted = value * approxRates[currency];
+      if (currency === "JPY" || currency === "MXN") converted = Math.ceil(converted);
+      else converted = Math.ceil(converted * 10) / 10;
+
+      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+      return `${symbol}${converted}`;
+    }
+
+    function updatePriceDisplay(pack) {
+      const priceNum = priceTierMap[pack.price] || 3.0;
+      const html = `
+        <div>
+          <span class="price-label">Original Price:</span>
+          <span class="old-price">${pack.oldPrice || ""}</span>
+        </div>
+        <div style="margin-top:8px;">
+          <span class="price-label">Current Price:</span>
+          <span class="current-price">${formatPrice(priceNum, currentCurrency)}</span>
+        </div>
+        <div class="save">${pack.saveText || ""}</div>
+      `;
+      document.getElementById("priceSection").innerHTML = html;
+    }
+
+    // ====================== LANGUAGE SUPPORT ======================
+    function setLanguage(lang) {
+      currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
+      const packId = new URLSearchParams(window.location.search).get("id") || "001";
+      const pack = packsData.find(p => p.id === packId);
+      if (pack) updatePriceDisplay(pack);
+    }
+
+    // ====================== MAIN PACK LOADING ======================
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("id") || "001";
 
-    // Safety check for packsData
     if (typeof packsData === 'undefined' || !Array.isArray(packsData)) {
       document.getElementById("title").textContent = "Error loading pack data";
       document.getElementById("gallery").innerHTML = "<p>Check packs-data.js for syntax errors (no 'return' outside functions)</p>";
@@ -349,18 +408,8 @@
           </div>
         `;
 
-        // Price section
-        document.getElementById("priceSection").innerHTML = `
-          <div>
-            <span class="price-label">Original Price:</span>
-            <span class="old-price">${pack.oldPrice}</span>
-          </div>
-          <div style="margin-top:8px;">
-            <span class="price-label">Current Price:</span>
-            <span class="current-price">${pack.price}</span>
-          </div>
-          <div class="save">${pack.saveText}</div>
-        `;
+        // Price section - NOW USING TOKEN → REAL PRICE
+        updatePriceDisplay(pack);
 
         // Buttons
         document.getElementById("buttons").innerHTML = `
@@ -378,12 +427,12 @@
           Digital products are non-refundable after purchase.
         `;
 
-        // Contents section - bold title + bullet with dynamic count
+        // Contents section
         document.getElementById("illustrationCount").innerHTML = `
           ZIP file containing ${pack.illustrationCount} AI-generated illustrations
         `;
 
-        // Disclaimer (exact text)
+        // Disclaimer
         document.getElementById("disclaimer").innerHTML = `
           <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
             <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
@@ -422,6 +471,16 @@
         update();
       }
     }
+
+    // Language switcher support (updates price instantly)
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        setLanguage(item.dataset.lang);
+      });
+    });
+
+    // Initial load
+    setLanguage("en");
   </script>
 
 </body>
