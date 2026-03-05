@@ -10,41 +10,13 @@
 
 <!-- Shop/product styles -->
 <style>
-    .shop-header {
-      padding: 2.2rem 2.8rem 1.6rem;
-      background: var(--bg);
-    }
-    .shop-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1400px;
-      margin: 0 auto;
-      gap: 2rem;
-      flex-wrap: wrap;
-    }
+    .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
+    .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
-    .shop-title {
-      font-size: 2.3rem;
-      font-weight: 800;
-      color: #000;
-      margin: 0;
-    }
+    .shop-title { font-size: 2.3rem; font-weight: 800; color: #000; margin: 0; }
     body.dark .shop-title { color: var(--accent); }
 
-    .gift-btn {
-      width: 68px;
-      height: 68px;
-      background: transparent;
-      border: none;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.25s;
-      color: #22c55e;
-    }
+    .gift-btn { width: 68px; height: 68px; background: transparent; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; color: #22c55e; }
     .gift-btn:hover { transform: scale(1.18); }
     .gift-btn svg { width: 48px; height: 48px; stroke: currentColor; stroke-width: 2; }
 
@@ -61,22 +33,7 @@
     .category-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
 
     .sort-options { margin-top: 2rem; }
-    .sort-btn {
-      width: 100%;
-      padding: 1rem 1.25rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      text-align: left;
-      margin-bottom: 0.5rem;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      color: var(--text);
-    }
+    .sort-btn { width: 100%; padding: 1rem 1.25rem; background: var(--card); border: 1px solid var(--border); text-align: left; margin-bottom: 0.5rem; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.9rem; color: var(--text); }
     .sort-btn.active { background: var(--accent); color: #1f1a12; }
     .sort-btn:hover:not(.active) { background: #c0bcaa; }
     .sort-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
@@ -107,21 +64,10 @@
     .price-row { display: flex; justify-content: space-between; align-items: center; }
     .price { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
     .price del { color: var(--gray); font-size: 1rem; margin-left: 0.6rem; }
-    .cart-btn {
-      width: 44px; height: 44px;
-      background: var(--btn-cart);
-      border: none;
-      border-radius: 50%;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+    .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: var(--success); }
-  </style>
+</style>
 </head>
 <body>
 
@@ -134,7 +80,6 @@
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
       <button class="login-btn" id="loginBtn">Website</button>
-
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -152,14 +97,12 @@
           <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
         </div>
       </div>
-
       <button class="nav-icon" id="themeBtn" title="Night Mode">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
           <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
-
       <div class="cart-wrapper">
         <button class="nav-icon" id="cartBtn" title="Cart">
           <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -278,27 +221,27 @@
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-  <!-- Full shop logic with translations, cart, language switch, dark mode, events -->
+  <!-- Full shop logic -->
 <script>
-  // Safety wrapper: wait for packsData to load before creating productsData and cards
+  // Safety wrapper
   window.addEventListener('load', () => {
     if (typeof packsData === 'undefined' || !Array.isArray(packsData) || packsData.length === 0) {
-      console.error("packsData not loaded or empty - check packs-data.js URL and content");
+      console.error("packsData not loaded");
       document.getElementById("productGrid").innerHTML = "<p style='text-align:center; color:red;'>Error loading products. Check console (F12) for details.</p>";
       return;
     }
 
-    // ====================== PRICE TOKEN SUPPORT (from Cloudflare + packs-data.js) ======================
+    // PRICE TOKEN SUPPORT (same as pack.html)
     const priceTierMap = {
       "PRICE_LOW": 1.5,
       "PRICE_MED": 3.0,
       "PRICE_HIGH": 10.0
     };
 
-    // Transform packsData into productsData format (now using tokens)
+    // Transform packsData into productsData
     const productsData = packsData.map((pack, index) => {
       const numericId = parseInt(pack.id, 10);
-      const priceNum = priceTierMap[pack.price] || 3.0;   // ← now reads PRICE_ token
+      const priceNum = priceTierMap[pack.price] || 3.0;
 
       return {
         id: numericId,
@@ -313,14 +256,14 @@
       };
     });
 
-    // Sort newest first by default
     productsData.sort((a, b) => b.date - a.date);
 
+    // Your translations (unchanged)
     const translations = {
-      en: { /* ... your translations unchanged ... */ },
-      ja: { /* ... unchanged ... */ },
-      zh: { /* ... unchanged ... */ },
-      es: { /* ... unchanged ... */ }
+      en: { shopTitle: "Velutinx's Shop", filterTitle: "Filter by Category", catAll: "All", catNot: "Not On Booth", catFrom: "From Booth", catSisters: "The Sisters Corner", sortTitle: "Sort by", sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low", productsTitle: "Products", searchPlaceholder: "Search", cartTitle: "Shopping Cart", totalLabel: "Total", snackText: "Added successfully", loginBtn: "Website" },
+      ja: { /* ... your full ja object ... */ },
+      zh: { /* ... your full zh object ... */ },
+      es: { /* ... your full es object ... */ }
     };
 
     const grid = document.getElementById("productGrid");
@@ -339,7 +282,10 @@
     const snackbar = document.getElementById("snackbar");
     const themeBtn = document.getElementById("themeBtn");
 
-    // tierMap is STILL NEEDED for currency conversion (JPY/CNY/MXN)
+    // GLOBAL cart so PayPal can see it
+    window.cart = [];
+    let secureTotalUSD = 0;
+
     const tierMap = {
       1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
       3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
@@ -350,26 +296,24 @@
 
     let currentLang = localStorage.getItem("language") || "en";
     let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
-    let cart = [];
     let isDark = localStorage.getItem("darkMode") === "true";
-    let realTotalUSD = 0;
 
     if (isDark) document.body.classList.add("dark");
 
+    // formatPrice, updateAllPrices, setLanguage, createCards, updateCartDisplay, filterAndSort, setSort, toggleTheme
+    // (all your existing functions - unchanged)
+
     function formatPrice(value, currency) {
       if (currency === "USD") return `US$${value.toFixed(2)}`;
-
       const rounded = Math.round(value * 100) / 100;
       if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
         const converted = tierMap[rounded][currency];
         const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
         return `${symbol}${converted}`;
       }
-
       let converted = value * approxRates[currency];
       if (currency === "JPY" || currency === "MXN") converted = Math.ceil(converted);
       else converted = Math.ceil(converted * 10) / 10;
-
       const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
       return `${symbol}${converted}`;
     }
@@ -613,84 +557,7 @@
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-  <script>
-    window.addEventListener('load', () => {
-      const SUPABASE_URL = window.__ENV?.SUPABASE_URL || "https://your-supabase-url.supabase.co";
-      const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
-
-      if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-        window.supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }
-
-      window.getNextPurchaseNumber = async function() {
-        if (!window.supabaseClient) return '000001';
-        const { data, error } = await window.supabaseClient
-          .from('purchases')
-          .select('purchase_number')
-          .order('id', { ascending: false })
-          .limit(1);
-
-        if (error || !data || data.length === 0) return '000001';
-        const last = parseInt(data[0].purchase_number, 10);
-        return (last + 1).toString().padStart(6, '0');
-      };
-    });
-  </script>
-
-<!-- PayPal SDK -->
-<script>
-const script = document.createElement("script");
-script.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID || 'AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v'}&currency=USD`;
-script.onload = initPayPal;
-document.body.appendChild(script);
-
-let secureTotalUSD = 0;
-
-function initPayPal() {
-  paypal.Buttons({
-    createOrder: async function(data, actions) {
-      const cartIds = cart.map(item => item.id);
-
-      const res = await fetch("/api/pricing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cartIds })
-      });
-
-      const result = await res.json();
-      secureTotalUSD = parseFloat(result.total);
-
-      return actions.order.create({
-        purchase_units: [{ amount: { value: result.total, currency_code: "USD" } }]
-      });
-    },
-
-    onApprove: async function(data, actions) {
-      await actions.order.capture();
-
-      const purchase_number = await window.getNextPurchaseNumber();
-
-      if (window.supabaseClient) {
-        await window.supabaseClient.from('purchases').insert({
-          purchase_number: purchase_number,
-          paypal_order_id: data.orderID,
-          amount_usd: secureTotalUSD,
-          items: cart.map(i => i.id)
-        });
-      }
-
-      alert("✅ Payment successful! Purchase #" + purchase_number);
-      cart = [];
-      updateCartDisplay();
-    }
-  }).render("#paypal-button-container");
-}
-</script>
-
-</body>
-</html>
-
-  <!-- PayPal SDK - FIXED + SANDBOX -->
+  <!-- PayPal SDK - SANDBOX + FIXED -->
 <script>
 const script = document.createElement("script");
 script.src = `https://www.paypal.com/sdk/js?client-id=${window.__ENV?.PAYPAL_CLIENT_ID || 'AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3'}&currency=USD&debug=true`;
