@@ -281,412 +281,403 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <!-- Full shop logic with translations, cart, language switch, dark mode, events -->
-  <script>
-    // Safety wrapper: wait for packsData to load before creating productsData and cards
-    window.addEventListener('load', () => {
-      if (typeof packsData === 'undefined' || !Array.isArray(packsData) || packsData.length === 0) {
-        console.error("packsData not loaded or empty - check packs-data.js URL and content");
-        document.getElementById("productGrid").innerHTML = "<p style='text-align:center; color:red;'>Error loading products. Check console (F12) for details.</p>";
-        return;
+<!-- Full shop logic with translations, cart, language switch, dark mode, events -->
+<script>
+  // Safety wrapper: wait for packsData to load before creating productsData and cards
+  window.addEventListener('load', () => {
+    if (typeof packsData === 'undefined' || !Array.isArray(packsData) || packsData.length === 0) {
+      console.error("packsData not loaded or empty - check packs-data.js URL and content");
+      document.getElementById("productGrid").innerHTML = "<p style='text-align:center; color:red;'>Error loading products. Check console (F12) for details.</p>";
+      return;
+    }
+
+    // Transform packsData into productsData
+    const productsData = packsData.map((pack, index) => {
+      const numericId = parseInt(pack.id, 10);
+      const priceNum = pack.illustrationCount < 46 ? 1.50 : 3.00;
+      return {
+        id: numericId,
+        title: pack.title,
+        price: priceNum,
+        originalPrice: priceNum,
+        discount: 0,
+        image: `storeassets/${numericId}.jpg`,
+        date: new Date(2026, 2, 20 - index * 3).getTime(),
+        element: null,
+        inCart: false
+      };
+    });
+
+    // Sort newest first by default
+    productsData.sort((a, b) => b.date - a.date);
+
+    const translations = {
+      en: {
+        shopTitle: "Velutinx's Shop",
+        filterTitle: "Filter by Category",
+        catAll: "All",
+        catNot: "Not On Booth",
+        catFrom: "From Booth",
+        catSisters: "The Sisters Corner",
+        sortTitle: "Sort by",
+        sortNewest: "Newest",
+        sortOldest: "Oldest",
+        sortLow: "Price: Low to High",
+        sortHigh: "Price: High to Low",
+        productsTitle: "Products",
+        searchPlaceholder: "Search",
+        cartTitle: "Shopping Cart",
+        totalLabel: "Total",
+        snackText: "Added successfully",
+        loginBtn: "Website"
+      },
+      ja: {
+        shopTitle: "Velutinxのショップ",
+        filterTitle: "カテゴリでフィルター",
+        catAll: "すべて",
+        catNot: "Boothにない",
+        catFrom: "Boothから",
+        catSisters: "姉妹のコーナー",
+        sortTitle: "並び替え",
+        sortNewest: "最新",
+        sortOldest: "最古",
+        sortLow: "価格: 低い → 高い",
+        sortHigh: "価格: 高い → 低い",
+        productsTitle: "商品",
+        searchPlaceholder: "検索",
+        cartTitle: "ショッピングカート",
+        totalLabel: "合計",
+        snackText: "カートに追加しました",
+        loginBtn: "ウェブサイト"
+      },
+      zh: {
+        shopTitle: "Velutinx的商店",
+        filterTitle: "按类别筛选",
+        catAll: "全部",
+        catNot: "不在Booth上",
+        catFrom: "来自Booth",
+        catSisters: "姐妹角落",
+        sortTitle: "排序方式",
+        sortNewest: "最新",
+        sortOldest: "最旧",
+        sortLow: "价格: 低到高",
+        sortHigh: "价格: 高到低",
+        productsTitle: "商品",
+        searchPlaceholder: "搜索",
+        cartTitle: "购物车",
+        totalLabel: "总计",
+        snackText: "已成功添加到购物车",
+        loginBtn: "网站"
+      },
+      es: {
+        shopTitle: "Tienda de Velutinx",
+        filterTitle: "Filtrar por Categoría",
+        catAll: "Todos",
+        catNot: "No en Booth",
+        catFrom: "Desde Booth",
+        catSisters: "El Rincón de las Hermanas",
+        sortTitle: "Ordenar por",
+        sortNewest: "Más reciente",
+        sortOldest: "Más antiguo",
+        sortLow: "Precio: Bajo a Alto",
+        sortHigh: "Precio: Alto a Bajo",
+        productsTitle: "Productos",
+        searchPlaceholder: "Buscar",
+        cartTitle: "Carrito de Compras",
+        totalLabel: "Total",
+        snackText: "Añadido con éxito",
+        loginBtn: "Sitio web"
       }
+    };
 
-      // Transform packsData into productsData
-      const productsData = packsData.map((pack, index) => {
-        const numericId = parseInt(pack.id, 10);
-        const priceNum = pack.illustrationCount < 46 ? 1.50 : 3.00;
-        return {
-          id: numericId,
-          title: pack.title,
-          price: priceNum,
-          originalPrice: priceNum,
-          discount: 0,
-          image: `storeassets/${numericId}.jpg`,
-          date: new Date(2026, 2, 20 - index * 3).getTime(),
-          element: null,
-          inCart: false
-        };
-      });
+    const grid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortButtons = document.querySelectorAll(".sort-btn");
+    const langBtn = document.getElementById("langBtn");
+    const langPopover = document.getElementById("languagePopover");
+    const cartBtn = document.getElementById("cartBtn");
+    const floatingCartBtn = document.getElementById("floatingCartBtn");
+    const cartDrawer = document.getElementById("cartDrawer");
+    const cartClose = document.getElementById("cartClose");
+    const cartCountEl = document.getElementById("cartCount");
+    const floatingCartCountEl = document.getElementById("floatingCartCount");
+    const cartItemsEl = document.getElementById("cartItems");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const snackbar = document.getElementById("snackbar");
+    const themeBtn = document.getElementById("themeBtn");
 
-      // Sort newest first by default
-      productsData.sort((a, b) => b.date - a.date);
+    const tierMap = {
+      1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
+      3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
+      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
+    };
 
-      const translations = {
-        en: {
-          shopTitle: "Velutinx's Shop",
-          filterTitle: "Filter by Category",
-          catAll: "All",
-          catNot: "Not On Booth",
-          catFrom: "From Booth",
-          catSisters: "The Sisters Corner",
-          sortTitle: "Sort by",
-          sortNewest: "Newest",
-          sortOldest: "Oldest",
-          sortLow: "Price: Low to High",
-          sortHigh: "Price: High to Low",
-          productsTitle: "Products",
-          searchPlaceholder: "Search",
-          cartTitle: "Shopping Cart",
-          totalLabel: "Total",
-          snackText: "Added successfully",
-          loginBtn: "Website"
-        },
-        ja: {
-          shopTitle: "Velutinxのショップ",
-          filterTitle: "カテゴリでフィルター",
-          catAll: "すべて",
-          catNot: "Boothにない",
-          catFrom: "Boothから",
-          catSisters: "姉妹のコーナー",
-          sortTitle: "並び替え",
-          sortNewest: "最新",
-          sortOldest: "最古",
-          sortLow: "価格: 低い → 高い",
-          sortHigh: "価格: 高い → 低い",
-          productsTitle: "商品",
-          searchPlaceholder: "検索",
-          cartTitle: "ショッピングカート",
-          totalLabel: "合計",
-          snackText: "カートに追加しました",
-          loginBtn: "ウェブサイト"
-        },
-        zh: {
-          shopTitle: "Velutinx的商店",
-          filterTitle: "按类别筛选",
-          catAll: "全部",
-          catNot: "不在Booth上",
-          catFrom: "来自Booth",
-          catSisters: "姐妹角落",
-          sortTitle: "排序方式",
-          sortNewest: "最新",
-          sortOldest: "最旧",
-          sortLow: "价格: 低到高",
-          sortHigh: "价格: 高到低",
-          productsTitle: "商品",
-          searchPlaceholder: "搜索",
-          cartTitle: "购物车",
-          totalLabel: "总计",
-          snackText: "已成功添加到购物车",
-          loginBtn: "网站"
-        },
-        es: {
-          shopTitle: "Tienda de Velutinx",
-          filterTitle: "Filtrar por Categoría",
-          catAll: "Todos",
-          catNot: "No en Booth",
-          catFrom: "Desde Booth",
-          catSisters: "El Rincón de las Hermanas",
-          sortTitle: "Ordenar por",
-          sortNewest: "Más reciente",
-          sortOldest: "Más antiguo",
-          sortLow: "Precio: Bajo a Alto",
-          sortHigh: "Precio: Alto a Bajo",
-          productsTitle: "Productos",
-          searchPlaceholder: "Buscar",
-          cartTitle: "Carrito de Compras",
-          totalLabel: "Total",
-          snackText: "Añadido con éxito",
-          loginBtn: "Sitio web"
-        }
-      };
+    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-      const grid = document.getElementById("productGrid");
-      const searchInput = document.getElementById("searchInput");
-      const sortButtons = document.querySelectorAll(".sort-btn");
-      const langBtn = document.getElementById("langBtn");
-      const langPopover = document.getElementById("languagePopover");
-      const cartBtn = document.getElementById("cartBtn");
-      const floatingCartBtn = document.getElementById("floatingCartBtn");
-      const cartDrawer = document.getElementById("cartDrawer");
-      const cartClose = document.getElementById("cartClose");
-      const cartCountEl = document.getElementById("cartCount");
-      const floatingCartCountEl = document.getElementById("floatingCartCount");
-      const cartItemsEl = document.getElementById("cartItems");
-      const cartTotalEl = document.getElementById("cartTotal");
-      const snackbar = document.getElementById("snackbar");
-      const themeBtn = document.getElementById("themeBtn");
+    let currentLang = localStorage.getItem("language") || "en";
+    let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
+    let cart = [];
+    let isDark = localStorage.getItem("darkMode") === "true";
+    let realTotalUSD = 0;
 
-      const tierMap = {
-        1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
-        3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
-        10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
-      };
+    if (isDark) document.body.classList.add("dark");
 
-      const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+    function formatPrice(value, currency) {
+      if (currency === "USD") return `US$${value.toFixed(2)}`;
 
-      let currentLang = localStorage.getItem("language") || "en";
-      let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
-      let cart = [];
-      let isDark = localStorage.getItem("darkMode") === "true";
-      let realTotalUSD = 0;
-
-      if (isDark) document.body.classList.add("dark");
-
-      function formatPrice(value, currency) {
-        if (currency === "USD") return `US$${value.toFixed(2)}`;
-
-        const rounded = Math.round(value * 100) / 100;
-        if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-          const converted = tierMap[rounded][currency];
-          const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-          return `${symbol}${converted}`;
-        }
-
-        let converted = value * approxRates[currency];
-        if (currency === "JPY" || currency === "MXN") converted = Math.ceil(converted);
-        else converted = Math.ceil(converted * 10) / 10;
-
+      const rounded = Math.round(value * 100) / 100;
+      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+        const converted = tierMap[rounded][currency];
         const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
         return `${symbol}${converted}`;
       }
 
-      function updateAllPrices() {
-        document.querySelectorAll(".price").forEach(el => {
-          const base = parseFloat(el.dataset.price);
-          const orig = parseFloat(el.dataset.original);
-          let html = formatPrice(base, currentCurrency);
-          if (orig && orig > base) html += ` <del>${formatPrice(orig, currentCurrency)}</del>`;
-          el.innerHTML = html;
-        });
-      }
+      let converted = value * approxRates[currency];
+      if (currency === "JPY" || currency === "MXN") converted = Math.ceil(converted);
+      else converted = Math.ceil(converted * 10) / 10;
 
-      function setLanguage(lang) {
-        if (currentLang === lang) return;
+      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+      return `${symbol}${converted}`;
+    }
 
-        currentLang = lang;
-        currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
-        localStorage.setItem("language", lang);
-
-        const swipe = document.getElementById("langSwipe");
-        if (swipe) {
-          swipe.classList.remove("active");
-          void swipe.offsetHeight;
-          swipe.classList.add("active");
-        }
-
-        const t = translations[lang] || translations.en;
-
-        document.getElementById("shopTitle").textContent = t.shopTitle;
-        document.getElementById("filterTitle").textContent = t.filterTitle;
-        document.getElementById("catAll").textContent = t.catAll;
-        document.getElementById("catNot").textContent = t.catNot;
-        document.getElementById("catFrom").textContent = t.catFrom;
-        document.getElementById("catSisters").textContent = t.catSisters;
-        document.getElementById("sortTitle").textContent = t.sortTitle;
-        document.getElementById("sortNewest").textContent = t.sortNewest;
-        document.getElementById("sortOldest").textContent = t.sortOldest;
-        document.getElementById("sortLow").textContent = t.sortLow;
-        document.getElementById("sortHigh").textContent = t.sortHigh;
-        document.getElementById("productsTitle").textContent = t.productsTitle;
-        if (searchInput) searchInput.placeholder = t.searchPlaceholder;
-        document.getElementById("cartTitle").textContent = t.cartTitle;
-        document.getElementById("totalLabel").textContent = t.totalLabel;
-        document.getElementById("snackText").textContent = t.snackText;
-        document.getElementById("loginBtn").textContent = t.loginBtn;
-
-        updateAllPrices();
-        updateCartDisplay();
-      }
-
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 32px rgba(0,0,0,0.2);
-  /* Optional: subtle border glow on hover */
-  border-color: var(--accent);
-}
-      
-function createCards() {
-  productsData.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.dataset.title = p.title.toLowerCase();
-    card.dataset.price = p.price;
-    card.dataset.date = p.date;
-    
-    // Make the entire card clickable by adding cursor:pointer and link behavior
-    card.style.cursor = "pointer";
-    
-    card.innerHTML = `
-      <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
-      <div class="card-content">
-        <div class="card-title">${p.title}</div>
-        <div class="price-row">
-          <div class="price" data-price="${p.price}" data-original="${p.originalPrice || p.price}">
-            ${formatPrice(p.price, currentCurrency)}
-            ${p.originalPrice && p.originalPrice > p.price ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
-          </div>
-          <button class="cart-btn" title="Add to Cart" data-in-cart="false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-              <path d="M12.5 17h-6.5v-14h-2"></path>
-              <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-              <path d="M16 19h6"></path>
-              <path d="M19 16v6"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    `;
-
-    // IMPORTANT: Make the whole card redirect to pack.html?id=XXX
-    card.addEventListener("click", (e) => {
-      // Prevent redirect if user clicked the cart button
-      if (e.target.closest(".cart-btn")) return;
-      
-      // Redirect to the pack page
-      window.location.href = `/s/pack.html?id=${p.id.toString().padStart(3, '0')}`;
-    });
-
-    grid.appendChild(card);
-    p.element = card;
-
-    // Cart button logic (unchanged)
-    const btn = card.querySelector(".cart-btn");
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevent card click from firing
-
-      if (btn.dataset.inCart === "true") {
-        cart = cart.filter(item => item.id !== p.id);
-        btn.dataset.inCart = "false";
-        btn.classList.remove("added");
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-      } else {
-        cart.push(p);
-        btn.dataset.inCart = "true";
-        btn.classList.add("added");
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-        snackbar.classList.add("show");
-        setTimeout(() => snackbar.classList.remove("show"), 2400);
-      }
-      updateCartDisplay();
-    });
-  });
-}
-
-      function updateCartDisplay() {
-        const count = cart.length;
-        cartCountEl.textContent = count;
-        floatingCartCountEl.textContent = count;
-
-        cartItemsEl.innerHTML = "";
-        realTotalUSD = 0;
-
-        cart.forEach((item, idx) => {
-          realTotalUSD += item.price;
-          const div = document.createElement("div");
-          div.className = "cart-item";
-          div.innerHTML = `
-            <img src="${item.image}" alt="${item.title}">
-            <div class="cart-item-info">
-              <div class="cart-item-title">${item.title}</div>
-              <div class="cart-item-price">${formatPrice(item.price, currentCurrency)}</div>
-            </div>
-            <button class="cart-item-remove" data-idx="${idx}">×</button>
-          `;
-          cartItemsEl.appendChild(div);
-        });
-
-        cartTotalEl.textContent = formatPrice(realTotalUSD, currentCurrency);
-
-        const isActive = count > 0;
-        [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
-      }
-
-      function filterAndSort() {
-        const query = searchInput.value.toLowerCase().trim();
-        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
-        productsData.forEach(p => {
-          const matches = p.title.toLowerCase().includes(query);
-          p.element.classList.toggle("hidden", !matches);
-        });
-
-        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-
-        if (activeSort === "newest") {
-          visible.sort((a,b) => b.dataset.date - a.dataset.date);
-        } else if (activeSort === "oldest") {
-          visible.sort((a,b) => a.dataset.date - b.dataset.date);
-        } else if (activeSort === "price-asc") {
-          visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-        } else if (activeSort === "price-desc") {
-          visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-        }
-
-        visible.forEach(el => grid.appendChild(el));
-      }
-
-      function setSort(type) {
-        sortButtons.forEach(b => b.classList.remove("active"));
-        document.querySelector(`[data-sort="${type}"]`)?.classList.add("active");
-        filterAndSort();
-      }
-
-      function toggleTheme() {
-        isDark = !isDark;
-        document.body.classList.toggle("dark", isDark);
-        localStorage.setItem("darkMode", isDark);
-      }
-
-      // Events
-      searchInput.addEventListener("input", filterAndSort);
-      sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
-
-      cartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
-      floatingCartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
-      cartClose.addEventListener("click", () => { cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); });
-
-      document.addEventListener("click", e => {
-        if (cartDrawer.classList.contains("open") && !cartDrawer.contains(e.target) && !cartBtn.contains(e.target) && !floatingCartBtn.contains(e.target)) {
-          cartDrawer.classList.remove("open");
-          document.body.classList.remove("drawer-open");
-        }
+    function updateAllPrices() {
+      document.querySelectorAll(".price").forEach(el => {
+        const base = parseFloat(el.dataset.price);
+        const orig = parseFloat(el.dataset.original);
+        let html = formatPrice(base, currentCurrency);
+        if (orig && orig > base) html += ` <del>${formatPrice(orig, currentCurrency)}</del>`;
+        el.innerHTML = html;
       });
+    }
 
-      cartItemsEl.addEventListener("click", e => {
-        if (e.target.classList.contains("cart-item-remove")) {
-          const idx = parseInt(e.target.dataset.idx);
-          const removed = cart.splice(idx, 1)[0];
-          removed.inCart = false;
-          const card = removed.element;
-          if (card) {
-            const btn = card.querySelector(".cart-btn");
+    function setLanguage(lang) {
+      if (currentLang === lang) return;
+
+      currentLang = lang;
+      currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
+      localStorage.setItem("language", lang);
+
+      const swipe = document.getElementById("langSwipe");
+      if (swipe) {
+        swipe.classList.remove("active");
+        void swipe.offsetHeight;
+        swipe.classList.add("active");
+      }
+
+      const t = translations[lang] || translations.en;
+
+      document.getElementById("shopTitle").textContent = t.shopTitle;
+      document.getElementById("filterTitle").textContent = t.filterTitle;
+      document.getElementById("catAll").textContent = t.catAll;
+      document.getElementById("catNot").textContent = t.catNot;
+      document.getElementById("catFrom").textContent = t.catFrom;
+      document.getElementById("catSisters").textContent = t.catSisters;
+      document.getElementById("sortTitle").textContent = t.sortTitle;
+      document.getElementById("sortNewest").textContent = t.sortNewest;
+      document.getElementById("sortOldest").textContent = t.sortOldest;
+      document.getElementById("sortLow").textContent = t.sortLow;
+      document.getElementById("sortHigh").textContent = t.sortHigh;
+      document.getElementById("productsTitle").textContent = t.productsTitle;
+      if (searchInput) searchInput.placeholder = t.searchPlaceholder;
+      document.getElementById("cartTitle").textContent = t.cartTitle;
+      document.getElementById("totalLabel").textContent = t.totalLabel;
+      document.getElementById("snackText").textContent = t.snackText;
+      document.getElementById("loginBtn").textContent = t.loginBtn;
+
+      updateAllPrices();
+      updateCartDisplay();
+    }
+
+    function createCards() {
+      productsData.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.dataset.title = p.title.toLowerCase();
+        card.dataset.price = p.price;
+        card.dataset.date = p.date;
+
+        // Make entire card clickable
+        card.style.cursor = "pointer";
+
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.title}" class="card-image" width="248" height="300" loading="lazy">
+          <div class="card-content">
+            <div class="card-title">${p.title}</div>
+            <div class="price-row">
+              <div class="price" data-price="${p.price}" data-original="${p.originalPrice || p.price}">
+                ${formatPrice(p.price, currentCurrency)}
+                ${p.originalPrice && p.originalPrice > p.price ? `<del>${formatPrice(p.originalPrice, currentCurrency)}</del>` : ""}
+              </div>
+              <button class="cart-btn" title="Add to Cart" data-in-cart="false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                  <path d="M12.5 17h-6.5v-14h-2"></path>
+                  <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                  <path d="M16 19h6"></path>
+                  <path d="M19 16v6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+
+        // Click anywhere on card → go to pack page (except cart button)
+        card.addEventListener("click", (e) => {
+          if (e.target.closest(".cart-btn")) return; // don't redirect if cart was clicked
+          window.location.href = `/s/pack.html?id=${p.id.toString().padStart(3, '0')}`;
+        });
+
+        grid.appendChild(card);
+        p.element = card;
+
+        // Cart button logic
+        const btn = card.querySelector(".cart-btn");
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation(); // stop card redirect
+
+          if (btn.dataset.inCart === "true") {
+            cart = cart.filter(item => item.id !== p.id);
             btn.dataset.inCart = "false";
             btn.classList.remove("added");
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+          } else {
+            cart.push(p);
+            btn.dataset.inCart = "true";
+            btn.classList.add("added");
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+            snackbar.classList.add("show");
+            setTimeout(() => snackbar.classList.remove("show"), 2400);
           }
           updateCartDisplay();
-        }
-      });
-
-      themeBtn.addEventListener("click", toggleTheme);
-
-      document.getElementById("langBtn").addEventListener("click", e => {
-        e.stopPropagation();
-        document.getElementById("languagePopover").classList.toggle("show");
-      });
-
-      document.addEventListener("click", e => {
-        if (!document.getElementById("langBtn").contains(e.target) && !document.getElementById("languagePopover").contains(e.target)) {
-          document.getElementById("languagePopover").classList.remove("show");
-        }
-      });
-
-      document.querySelectorAll(".lang-item").forEach(item => {
-        item.addEventListener("click", () => {
-          setLanguage(item.dataset.lang);
-          document.getElementById("languagePopover").classList.remove("show");
         });
       });
+    }
 
-      // Init
-      createCards();
+    function updateCartDisplay() {
+      const count = cart.length;
+      cartCountEl.textContent = count;
+      floatingCartCountEl.textContent = count;
+
+      cartItemsEl.innerHTML = "";
+      realTotalUSD = 0;
+
+      cart.forEach((item, idx) => {
+        realTotalUSD += item.price;
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div class="cart-item-info">
+            <div class="cart-item-title">${item.title}</div>
+            <div class="cart-item-price">${formatPrice(item.price, currentCurrency)}</div>
+          </div>
+          <button class="cart-item-remove" data-idx="${idx}">×</button>
+        `;
+        cartItemsEl.appendChild(div);
+      });
+
+      cartTotalEl.textContent = formatPrice(realTotalUSD, currentCurrency);
+
+      const isActive = count > 0;
+      [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
+    }
+
+    function filterAndSort() {
+      const query = searchInput.value.toLowerCase().trim();
+      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+      productsData.forEach(p => {
+        const matches = p.title.toLowerCase().includes(query);
+        p.element.classList.toggle("hidden", !matches);
+      });
+
+      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+
+      if (activeSort === "newest") {
+        visible.sort((a,b) => b.dataset.date - a.dataset.date);
+      } else if (activeSort === "oldest") {
+        visible.sort((a,b) => a.dataset.date - b.dataset.date);
+      } else if (activeSort === "price-asc") {
+        visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+      } else if (activeSort === "price-desc") {
+        visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+      }
+
+      visible.forEach(el => grid.appendChild(el));
+    }
+
+    function setSort(type) {
+      sortButtons.forEach(b => b.classList.remove("active"));
+      document.querySelector(`[data-sort="${type}"]`)?.classList.add("active");
       filterAndSort();
-      updateAllPrices();
-      setLanguage(currentLang);
+    }
 
-      if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
+    function toggleTheme() {
+      isDark = !isDark;
+      document.body.classList.toggle("dark", isDark);
+      localStorage.setItem("darkMode", isDark);
+    }
+
+    // Events
+    searchInput.addEventListener("input", filterAndSort);
+    sortButtons.forEach(btn => btn.addEventListener("click", () => setSort(btn.dataset.sort)));
+
+    cartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
+    floatingCartBtn.addEventListener("click", () => { cartDrawer.classList.toggle("open"); document.body.classList.toggle("drawer-open"); });
+    cartClose.addEventListener("click", () => { cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); });
+
+    document.addEventListener("click", e => {
+      if (cartDrawer.classList.contains("open") && !cartDrawer.contains(e.target) && !cartBtn.contains(e.target) && !floatingCartBtn.contains(e.target)) {
+        cartDrawer.classList.remove("open");
+        document.body.classList.remove("drawer-open");
+      }
     });
-  </script>
+
+    cartItemsEl.addEventListener("click", e => {
+      if (e.target.classList.contains("cart-item-remove")) {
+        const idx = parseInt(e.target.dataset.idx);
+        const removed = cart.splice(idx, 1)[0];
+        removed.inCart = false;
+        const card = removed.element;
+        if (card) {
+          const btn = card.querySelector(".cart-btn");
+          btn.dataset.inCart = "false";
+          btn.classList.remove("added");
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+        }
+        updateCartDisplay();
+      }
+    });
+
+    themeBtn.addEventListener("click", toggleTheme);
+
+    document.getElementById("langBtn").addEventListener("click", e => {
+      e.stopPropagation();
+      document.getElementById("languagePopover").classList.toggle("show");
+    });
+
+    document.addEventListener("click", e => {
+      if (!document.getElementById("langBtn").contains(e.target) && !document.getElementById("languagePopover").contains(e.target)) {
+        document.getElementById("languagePopover").classList.remove("show");
+      }
+    });
+
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        setLanguage(item.dataset.lang);
+        document.getElementById("languagePopover").classList.remove("show");
+      });
+    });
+
+    // Init
+    createCards();
+    filterAndSort();
+    updateAllPrices();
+    setLanguage(currentLang);
+
+    if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
+  });
+</script>
 
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
