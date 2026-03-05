@@ -106,6 +106,13 @@
       margin-bottom: 20px;
       color: var(--text);
     }
+    .illustration-count {
+      font-weight: bold;
+      font-size: 1.4rem;
+      color: var(--accent);
+      margin: 16px 0;
+      text-align: center;
+    }
     .price-section {
       margin: 28px 0;
       padding: 20px;
@@ -181,7 +188,7 @@
 </head>
 <body>
 
-  <!-- Header HTML inline (required until header.js inserts it) -->
+  <!-- Header inline (same as your original) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -262,18 +269,20 @@
     <span id="snackText">Added successfully</span>
   </div>
 
-  <!-- Dynamic content area -->
+  <!-- Dynamic content -->
   <main class="container">
     <div class="product">
       <div class="gallery-card" id="gallery">
         <p>Loading pack...</p>
       </div>
+
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="note" id="note"></div>
+          <div class="illustration-count" id="illustrationCount"></div>
           <div class="disclaimer" id="disclaimer"></div>
         </div>
       </div>
@@ -285,101 +294,107 @@
 
   <!-- Dynamic loading logic -->
   <script>
-    // Get pack ID from URL (?id=001, ?id=002, etc.)
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("id") || "001";
 
-    // Find pack
     const pack = packsData.find(p => p.id === packId);
 
     if (!pack) {
       document.getElementById("title").textContent = "Pack not found";
       document.getElementById("gallery").innerHTML = "<p>Invalid pack ID. Try ?id=001 or ?id=002</p>";
-    } else {
-      // Title
-      document.getElementById("title").textContent = pack.title;
+      return;
+    }
 
-      // Gallery + carousel
-      document.getElementById("gallery").innerHTML = `
-        <div class="carousel">
-          <div class="slides" id="slides">
-            ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
-          </div>
-          <button class="arrow prev" onclick="prevSlide()">❮</button>
-          <button class="arrow next" onclick="nextSlide()">❯</button>
+    // Title
+    document.getElementById("title").textContent = pack.title;
+
+    // Gallery + carousel
+    document.getElementById("gallery").innerHTML = `
+      <div class="carousel">
+        <div class="slides" id="slides">
+          ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
         </div>
-        <div class="thumbnails">
-          ${pack.images.map((img, i) => `
-            <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
-          `).join("")}
-        </div>
-      `;
+        <button class="arrow prev" onclick="prevSlide()">❮</button>
+        <button class="arrow next" onclick="nextSlide()">❯</button>
+      </div>
+      <div class="thumbnails">
+        ${pack.images.map((img, i) => `
+          <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
+        `).join("")}
+      </div>
+    `;
 
-      // Price section
-      document.getElementById("priceSection").innerHTML = `
-        <div>
-          <span class="price-label">Original Price:</span>
-          <span class="old-price">${pack.oldPrice}</span>
-        </div>
-        <div style="margin-top:8px;">
-          <span class="price-label">Current Price:</span>
-          <span class="current-price">${pack.price}</span>
-        </div>
-        <div class="save">${pack.saveText}</div>
-      `;
+    // Price section
+    document.getElementById("priceSection").innerHTML = `
+      <div>
+        <span class="price-label">Original Price:</span>
+        <span class="old-price">${pack.oldPrice}</span>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="price-label">Current Price:</span>
+        <span class="current-price">${pack.price}</span>
+      </div>
+      <div class="save">${pack.saveText}</div>
+    `;
 
-      // Buttons
-      document.getElementById("buttons").innerHTML = `
-        <button class="btn btn-buy">Buy Now</button>
-        <button class="btn btn-cart">Add to Cart</button>
-      `;
+    // Buttons
+    document.getElementById("buttons").innerHTML = `
+      <button class="btn btn-buy">Buy Now</button>
+      <button class="btn btn-cart">Add to Cart</button>
+    `;
 
-      // Note & Disclaimer (static for now)
-      document.getElementById("note").innerHTML = `
-        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-          <circle cx="256" cy="380" r="24" fill="#000000"/>
-        </svg>
-        Digital products are non-refundable after purchase.
-      `;
-      document.getElementById("disclaimer").innerHTML = `
-        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-          <circle cx="256" cy="380" r="24" fill="#000000"/>
-        </svg>
-        <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
-      `;
+    // Note (static)
+    document.getElementById("note").innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      Digital products are non-refundable after purchase.
+    `;
 
-      // Carousel script
-      const slidesContainer = document.getElementById('slides');
-      const thumbs = document.querySelectorAll('.thumb');
-      let current = 0;
-      const total = pack.images.length;
+    // Bold AI-generated illustrations count (dynamic)
+    document.getElementById("illustrationCount").innerHTML = `
+      <strong>${pack.illustrationCount} AI-generated illustrations</strong>
+    `;
 
-      function update() {
-        slidesContainer.style.transform = `translateX(-${current * 100}%)`;
-        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
-      }
+    // Exact disclaimer you requested
+    document.getElementById("disclaimer").innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
+    `;
 
-      function nextSlide() {
-        current = (current + 1) % total;
-        update();
-      }
+    // Carousel logic
+    const slidesContainer = document.getElementById('slides');
+    const thumbs = document.querySelectorAll('.thumb');
+    let current = 0;
+    const total = pack.images.length;
 
-      function prevSlide() {
-        current = (current - 1 + total) % total;
-        update();
-      }
+    function update() {
+      slidesContainer.style.transform = `translateX(-${current * 100}%)`;
+      thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+    }
 
-      function goToSlide(index) {
-        current = index;
-        update();
-      }
-
+    function nextSlide() {
+      current = (current + 1) % total;
       update();
     }
+
+    function prevSlide() {
+      current = (current - 1 + total) % total;
+      update();
+    }
+
+    function goToSlide(index) {
+      current = index;
+      update();
+    }
+
+    update();
   </script>
 
 </body>
