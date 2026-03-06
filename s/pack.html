@@ -25,7 +25,17 @@
     .thumb.active, .thumb:hover { border-color: #5D87FF; opacity: 1; transform: scale(1.04); }
     .info { padding: 28px; }
     h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
-    .category-info { font-size: 1.25rem; color: var(--gray); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .category-info { 
+      font-size: 1rem;          /* 0.8 of previous 1.25rem */
+      font-weight: bold; 
+      text-transform: uppercase; 
+      margin-bottom: 20px; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+    }
+    .female { color: #ec4899; }   /* vivid pink */
+    .femboy  { color: #3b82f6; }  /* bright blue */
     .category-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; }
     .contents-section { margin: 20px 0 8px 0; text-align: left; }
     .contents-title { font-weight: bold; font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
@@ -122,7 +132,7 @@
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
-          <!-- NEW: Category gender display (only for 1 or 2) -->
+          <!-- Category gender display -->
           <div class="category-info" id="categoryInfo"></div>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
@@ -147,7 +157,7 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
-    // NEW: Function to show category gender
+    // Show category gender only for 1 or 2
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
       if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
@@ -156,27 +166,28 @@
       }
 
       let iconSVG = "";
+      let textClass = "";
       let text = "";
 
       if (pack.category === 1) {
-        // Female symbol (from store.html)
         iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="7" r="4"/>
           <line x1="12" y1="11" x2="12" y2="21"/>
           <line x1="8" y1="17" x2="16" y2="17"/>
         </svg>`;
-        text = "Female";
+        textClass = "female";
+        text = "FEMALE";
       } else if (pack.category === 2) {
-        // Femboy symbol (from store.html)
         iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="9" cy="15" r="5"/>
           <line x1="12.5" y1="11.5" x2="20" y2="4"/>
           <polyline points="16,4 20,4 20,8"/>
         </svg>`;
-        text = "Femboy";
+        textClass = "femboy";
+        text = "FEMBOY";
       }
 
-      catInfo.innerHTML = `${iconSVG} ${text}`;
+      catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text}</span>`;
       catInfo.style.display = "flex";
     };
 
@@ -234,7 +245,7 @@
     } else {
       document.getElementById("title").textContent = pack.title;
 
-      // NEW: Call category display update
+      // Show category gender
       window.updateCategoryDisplay();
 
       document.getElementById("gallery").innerHTML = `
@@ -266,7 +277,7 @@
         window.updatePriceDisplay();
         window.updateButton();
         window.updateContents();
-        window.updateCategoryDisplay?.(); // also update on lang change if needed
+        window.updateCategoryDisplay?.();
       };
     });
   </script>
