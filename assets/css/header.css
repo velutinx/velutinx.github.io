@@ -89,8 +89,8 @@ body.dark .logo {
 .nav-icon {
   width: 42px;
   height: 42px;
-  border-radius: 9999px;
   background: var(--accent);
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,7 +115,7 @@ body.dark .logo {
 .nav-icon svg {
   width: 22px;
   height: 22px;
-  stroke: currentColor;
+  stroke: white;
   stroke-width: 1.5;
 }
 
@@ -209,27 +209,81 @@ body.dark .logo {
   position: relative;
 }
 
-.cart-badge,
-.floating-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: var(--red-discount);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: bold;
-  min-width: 22px;
-  height: 22px;
-  line-height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
-  border: 2px solid var(--darker);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+/* Shared cart styling (applied to both nav and floating) */
+.cart-icon,
+.floating-cart {
+  background: var(--accent) !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+  transition: all 0.25s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
 }
 
+.cart-icon:hover,
+.floating-cart:hover {
+  transform: scale(1.12) !important;
+  background: #38aae8 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+}
+
+.cart-icon svg,
+.floating-cart svg {
+  stroke: white !important;
+  stroke-width: 2 !important;
+}
+
+/* Top-right nav cart */
+.nav-icon#cartBtn {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.nav-icon#cartBtn svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* Bottom-right floating cart */
+.floating-cart {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.floating-cart svg {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* Badge (same for both) */
+.cart-badge,
+.floating-badge {
+  position: absolute !important;
+  top: -8px !important;
+  right: -8px !important;
+  background: var(--red-discount) !important;
+  color: white !important;
+  font-size: 0.75rem !important;
+  font-weight: bold !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 6px !important;
+  border: 2px solid var(--darker) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+}
+
+/* Cart drawer */
 .cart-drawer {
   position: fixed;
   top: 0;
@@ -325,41 +379,6 @@ body.dark .logo {
   margin-bottom: 1.2rem;
   font-weight: 600;
   font-size: 1.15rem;
-}
-
-/* Floating cart – matches nav cart exactly */
-.floating-cart {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 64px;
-  height: 64px;
-  background: var(--accent);
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  z-index: 1250;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.floating-cart:hover {
-  transform: scale(1.12);
-  background: #38aae8;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-}
-
-.floating-cart.active {
-  background: var(--success);
-}
-
-.floating-cart svg {
-  width: 28px;
-  height: 28px;
-  stroke: white;
-  stroke-width: 2;
 }
 
 /* ==================== SNACKBAR ==================== */
