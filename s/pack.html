@@ -11,41 +11,17 @@
     main { padding: 40px 0; }
     .product { display: grid; gap: 40px; }
     @media (min-width: 992px) { .product { grid-template-columns: 1fr 2fr; } }
-    .gallery-card, .info-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
+    .gallery-card, .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     .carousel { position: relative; overflow: hidden; }
     .slides { display: flex; transition: transform 0.5s ease-in-out; width: 100%; }
     .slide { flex: 0 0 100%; width: 100%; }
     .slide img { width: 100%; height: auto; display: block; }
-    .arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(0,0,0,0.4);
-      color: white;
-      border: none;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      font-size: 24px;
-      cursor: pointer;
-      z-index: 10;
-    }
+    .arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 10; }
     .arrow:hover { background: rgba(0,0,0,0.6); }
     .arrow.prev { left: 16px; }
     .arrow.next { right: 16px; }
-    .thumbnails {
-      display: flex; gap: 12px; justify-content: center; padding: 16px;
-      background: rgba(0,0,0,0.03); border-top: 1px solid var(--border); flex-wrap: wrap;
-    }
-    .thumb {
-      width: 90px; height: 120px; object-fit: cover; border-radius: 6px;
-      border: 3px solid transparent; cursor: pointer; transition: all 0.2s; opacity: 0.8;
-    }
+    .thumbnails { display: flex; gap: 12px; justify-content: center; padding: 16px; background: rgba(0,0,0,0.03); border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .thumb { width: 90px; height: 120px; object-fit: cover; border-radius: 6px; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; opacity: 0.8; }
     .thumb.active, .thumb:hover { border-color: #5D87FF; opacity: 1; transform: scale(1.04); }
     .info { padding: 28px; }
     h1 { font-size: 2.1rem; margin-bottom: 20px; color: var(--text); }
@@ -53,70 +29,17 @@
     .contents-title { font-weight: bold; font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
     .contents-list { list-style-type: disc; padding-left: 24px; margin: 0; }
     .contents-list li { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
-    .price-section {
-      margin: 28px 0; padding: 20px;
-      background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25);
-    }
+    .price-section { margin: 28px 0; padding: 20px; background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25); }
     .price-label { color: var(--text); font-size: 0.95rem; }
     .old-price { text-decoration: line-through; color: var(--text-light); margin-left: 12px; }
     .current-price { color: var(--red-discount); font-size: 2.2rem; font-weight: bold; }
     .save { color: #13DEB9; font-weight: bold; margin-top: 8px; display: inline-block; }
     .buttons { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
-    .btn {
-      flex: 1; min-width: 160px; padding: 14px 24px; border: none; border-radius: 8px;
-      font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s;
-    }
+    .btn { flex: 1; min-width: 160px; padding: 14px 24px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
-    .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
-    .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
-
-    /* Dark mode fixes */
-    body.dark .contents-section,
-    body.dark .contents-section *,
-    body.dark .contents-list,
-    body.dark .contents-list li,
-    body.dark .contents-title,
-    body.dark #contentsTitle,
-    body.dark #illustrationCount {
-      color: var(--text) !important;
-    }
-
-    body.dark .price-section,
-    body.dark .price-label,
-    body.dark .old-price,
-    body.dark .current-price,
-    body.dark .save,
-    body.dark #priceSection *,
-    body.dark #priceSection span {
-      color: var(--text) !important;
-    }
-
-    body.dark .current-price {
-      color: var(--red-discount) !important;
-    }
-
-    body.dark #disclaimer,
-    body.dark #disclaimer * {
-      color: var(--text) !important;
-    }
-
-    body.dark #disclaimer svg {
-      fill: #FFC107 !important;
-      stroke: var(--border) !important;
-    }
-
-    /* Force vertical stacking */
-    #disclaimer {
-      display: block !important;
-      column-count: 1 !important;
-      columns: 1 !important;
-    }
-    #disclaimer > div {
-      width: 100% !important;
-      margin-bottom: 16px !important;
-    }
+    .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
   </style>
 </head>
 <body>
@@ -126,77 +49,44 @@
     <div class="nav-actions">
       <button class="login-btn" id="loginBtn">Website</button>
       <div id="langContainer">
-        <button class="nav-icon lang-btn" id="langBtn" title="Language">
+        <button class="nav-icon lang-btn" id="langBtn">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path>
-            <path d="M7 4c0 4.846 0 7 .5 8"></path>
-            <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
-            <path d="M12 20l4 -9l4 9"></path>
-            <path d="M19.1 18h-6.2"></path>
+            <path d="M4 5h7M7 4c0 4.846 0 7 .5 8M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143M12 20l4 -9l4 9M19.1 18h-6.2"></path>
           </svg>
         </button>
         <div id="languagePopover">
-          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
-          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
-          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX" /><p>Español (MXN)</p></div>
+          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
+          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
+          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
+          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
         </div>
       </div>
-      <button class="nav-icon" id="themeBtn" title="Night Mode">
+      <button class="nav-icon" id="themeBtn">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
-          <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
       <div class="cart-wrapper">
-        <button class="nav-icon" id="cartBtn" title="Cart">
-          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path>
-            <path d="M19 16v6"></path>
-          </svg>
-        </button>
+        <button class="nav-icon" id="cartBtn"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 17h-11v-14h-2M6 5l14 1l-.86 6.017m-2.64 .983h-10.5M16 19h6M19 16v6"></path></svg></button>
         <span class="cart-badge" id="cartCount">0</span>
       </div>
     </div>
   </nav>
-  <button class="floating-cart" id="floatingCartBtn" title="Cart">
-    <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 17h-11v-14h-2"></path>
-      <path d="M6 5l14 1l-1 7h-13"></path>
-    </svg>
-    <span class="floating-badge" id="floatingCartCount">0</span>
-  </button>
+
   <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header">
-      <h5 id="cartTitle">Shopping Cart</h5>
-      <button class="cart-close" id="cartClose">×</button>
-    </div>
+    <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
     <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total">
-      <div class="cart-total-row">
-        <span id="totalLabel">Total</span>
-        <span id="cartTotal">US$0.00</span>
-      </div>
-      <div id="paypal-button-container"></div>
-    </div>
+    <div class="cart-total"><div class="cart-total-row"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div><div id="paypal-button-container"></div></div>
   </div>
+
   <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="M20 6L9 17l-5-5"></path>
-    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
     <span id="snackText">Added successfully</span>
   </div>
+
   <main class="container">
     <div class="product">
-      <div class="gallery-card" id="gallery">
-        <p>Loading pack...</p>
-      </div>
+      <div class="gallery-card" id="gallery"><p>Loading pack...</p></div>
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
@@ -204,9 +94,7 @@
           <div class="buttons" id="buttons"></div>
           <div class="contents-section" id="contentsSection">
             <div class="contents-title" id="contentsTitle">Contents:</div>
-            <ul class="contents-list">
-              <li id="illustrationCount"></li>
-            </ul>
+            <ul class="contents-list"><li id="illustrationCount"></li></ul>
           </div>
           <div class="disclaimer" id="disclaimer"></div>
         </div>
@@ -214,7 +102,6 @@
     </div>
   </main>
 
-  <!-- Shared scripts -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
@@ -222,121 +109,86 @@
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
     let currentLang = localStorage.getItem("language") || "en";
-
-    function updatePriceDisplay(pack) {
-      const priceNum = window.getPriceForPack?.(pack) ?? 0;
-      const t = translations[currentLang] || translations.en;
-      const html = `
-        <div>
-          <span class="price-label">${t.originalPrice || "Original Price:"}</span>
-          <span class="old-price">${pack.oldPrice || ""}</span>
-        </div>
-        <div style="margin-top:8px;">
-          <span class="price-label">${t.currentPrice || "Current Price:"}</span>
-          <span class="current-price">${window.formatPrice?.(priceNum) ?? "N/A"}</span>
-        </div>
-        <div class="save">${pack.saveText || ""}</div>
-      `;
-      document.getElementById("priceSection").innerHTML = html;
-    }
-
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
+    // Globalizing these so shop-shared.js and language switchers can call them
+    window.updatePriceDisplay = function() {
+      if (!pack) return;
+      const priceNum = window.getPriceForPack?.(pack) ?? 0;
+      const t = window.translations[currentLang] || window.translations.en;
+      document.getElementById("priceSection").innerHTML = `
+        <div><span class="price-label">${t.originalPrice}</span><span class="old-price">${pack.oldPrice || ""}</span></div>
+        <div style="margin-top:8px;"><span class="price-label">${t.currentPrice}</span><span class="current-price">${window.formatPrice?.(priceNum)}</span></div>
+        <div class="save">${pack.saveText || ""}</div>
+      `;
+    };
+
+    window.updateButton = function() {
+      if (!pack) return;
+      const t = window.translations[currentLang] || window.translations.en;
+      const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+      const btnText = isInCart ? t.removeFromCart : t.addToCart;
+      document.getElementById("buttons").innerHTML = `<button class="btn btn-cart" id="addCartBtn">${btnText}</button>`;
+      document.getElementById("addCartBtn").onclick = handleCartClick;
+    };
+
+    window.updateContents = function() {
+      if (!pack) return;
+      const t = window.translations[currentLang] || window.translations.en;
+      document.getElementById("contentsTitle").textContent = t.contentsTitle;
+      document.getElementById("illustrationCount").textContent = t.contentsDesc.replace("{count}", pack.illustrationCount);
+    };
+
+    const handleCartClick = () => {
+      window.addOrToggleCart?.(pack);
+      window.updateButton();
+      const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+      const t = window.translations[currentLang] || window.translations.en;
+      document.getElementById("snackText").textContent = nowInCart ? t.snackText : "Removed from cart";
+      document.getElementById("snackbar").classList.add("show");
+      setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
+    };
+
     if (!pack) {
       document.getElementById("title").textContent = "Pack not found";
-      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
     } else {
       document.getElementById("title").textContent = pack.title;
-
       document.getElementById("gallery").innerHTML = `
-        <div class="carousel">
-          <div class="slides" id="slides">
-            ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
-          </div>
-          <button class="arrow prev" onclick="prevSlide()">❮</button>
-          <button class="arrow next" onclick="nextSlide()">❯</button>
-        </div>
-        <div class="thumbnails">
-          ${pack.images.map((img, i) => `
-            <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
-          `).join("")}
-        </div>
+        <div class="carousel"><div class="slides" id="slides">${pack.images.map(img => `<div class="slide"><img src="${img}"></div>`).join("")}</div>
+        <button class="arrow prev" onclick="prevSlide()">❮</button><button class="arrow next" onclick="nextSlide()">❯</button></div>
+        <div class="thumbnails">${pack.images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" onclick="goToSlide(${i})">`).join("")}</div>
       `;
 
-      updatePriceDisplay(pack);
-
-      const updateButton = () => {
-        const t = translations[currentLang] || translations.en;
-        const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-        const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
-        document.getElementById("buttons").innerHTML = `
-          <button class="btn btn-cart" id="addCartBtn">
-            ${btnText}
-          </button>
-        `;
-
-        // Re-attach listener
-        const btn = document.getElementById("addCartBtn");
-        btn.removeEventListener("click", handleCartClick); // prevent duplicates
-        btn.addEventListener("click", handleCartClick);
-      };
-
-      const handleCartClick = () => {
-        window.addOrToggleCart?.(pack);
-        updateButton();
-        const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-
-        const t = translations[currentLang] || translations.en;
-        const snack = document.getElementById("snackbar");
-        document.getElementById("snackText").textContent = nowInCart ? (t.snackText || "Added successfully") : "Removed from cart";
-        snack.classList.add("show");
-        setTimeout(() => snack.classList.remove("show"), 2400);
-
-        window.updateCartDisplay?.();
-      };
-
-      updateButton();
-
-      const updateContents = () => {
-        const t = translations[currentLang] || translations.en;
-        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
-        const desc = t.contentsDesc || "ZIP file containing {count} AI-generated illustrations";
-        document.getElementById("illustrationCount").textContent = desc.replace("{count}", pack.illustrationCount);
-      };
-      updateContents();
-
+      // Initial render
+      window.updatePriceDisplay();
+      window.updateButton();
+      window.updateContents();
       window.updateDisclaimers?.();
 
-      const slides = document.getElementById('slides');
-      const thumbs = document.querySelectorAll('.thumb');
+      // Carousel logic
       let current = 0;
       const total = pack.images.length;
-      function update() {
-        slides.style.transform = `translateX(-${current * 100}%)`;
-        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+      window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
+      window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
+      window.goToSlide = (i) => { current = i; updateCarousel(); };
+      function updateCarousel() {
+        document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
+        document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === current));
       }
-      window.prevSlide = () => { current = (current - 1 + total) % total; update(); };
-      window.nextSlide = () => { current = (current + 1) % total; update(); };
-      window.goToSlide = (i) => { current = i; update(); };
-      update();
     }
 
+    // Language switch listener
     document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        window.setLanguage?.(item.dataset.lang);
-        currentLang = item.dataset.lang; // sync local var
-        if (pack) {
-          updatePriceDisplay(pack);
-          updateButton();
-          updateContents();
-        }
-        window.updateDisclaimers?.();
-      });
+      item.onclick = () => {
+        currentLang = item.dataset.lang;
+        window.setLanguage?.(currentLang);
+        window.updatePriceDisplay();
+        window.updateButton();
+        window.updateContents();
+      };
     });
-
-    window.updateCartDisplay?.();
   </script>
 </body>
 </html>
