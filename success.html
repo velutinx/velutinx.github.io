@@ -84,57 +84,40 @@
     </div>
   </main>
 
-  <script>
+<script>
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     const section = document.getElementById("download-section");
-    const orderDisplay = document.getElementById("order-id");
-
-    // For now, we hardcode the order ID as requested. 
-    // Later, your API will return the real database ID.
-    orderDisplay.textContent = "#00001";
 
     if (!token) {
-      section.innerHTML = `<p class="error-text">No payment token found. If you believe this is an error, please contact support.</p>`;
+        section.innerHTML = `<p class="error-text">No payment token found. Please check your email.</p>`;
     } else {
-      fetch(`/api/get-download?token=${token}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Invalid token");
-          return res.json();
-        })
-        .then(data => {
-          // Expecting data.items to be an array: [{title: "Pack A", link: "..."}, {title: "Pack B", link: "..."}]
-          if (data.items && data.items.length > 0) {
-            let html = `<p>Your files are ready:</p><div class="download-list">`;
-            
-            data.items.forEach(item => {
-              html += `
-                <a href="${item.link}" class="download-item" target="_blank">
-                  <span>${item.title}</span>
-                  <span class="download-btn-text">Download ZIP ↓</span>
-                </a>
-              `;
+        // We fetch from the new Cloudflare Function you just verified
+        fetch(`/get-download?token=${token}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.items && data.items.length > 0) {
+                    let html = `<p>Your files are ready:</p><div class="download-list">`;
+                    
+                    data.items.forEach(item => {
+                        html += `
+                            <a href="${item.link}" class="download-item" target="_blank">
+                                <span>${item.title}</span>
+                                <span class="download-btn-text">Download Now ↓</span>
+                            </a>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                    section.innerHTML = html;
+                } else {
+                    section.innerHTML = `<p class="error-text">Unable to find items for this order.</p>`;
+                }
+            })
+            .catch(err => {
+                section.innerHTML = `<p class="error-text">Error verifying purchase. Please contact support.</p>`;
             });
-            
-            html += `</div>`;
-            section.innerHTML = html;
-          } else if (data.link) { 
-            // Fallback for single link format
-            section.innerHTML = `
-              <div class="download-list">
-                <a href="${data.link}" class="download-item" target="_blank">
-                  <span>Full Purchase</span>
-                  <span class="download-btn-text">Download Now ↓</span>
-                </a>
-              </div>`;
-          } else {
-            section.innerHTML = `<p class="error-text">Payment invalid or files expired.</p>`;
-          }
-        })
-        .catch(err => {
-          section.innerHTML = `<p class="error-text">Error: Unable to verify purchase. Please refresh or try again later.</p>`;
-        });
     }
-  </script>
+</script>
 </body>
 </html>
