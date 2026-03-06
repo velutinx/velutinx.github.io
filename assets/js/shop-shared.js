@@ -244,30 +244,36 @@
     }, 2400);
   }
 
-  /* ==================== PAYPAL INTEGRATION ==================== */
+/* ==================== PAYPAL INTEGRATION ==================== */
   function loadAndInitPayPal() {
-    if (window.paypalLoaded) return;
-    window.paypalLoaded = true;
+    if (window.paypalLoading || window.paypal) return;
+    window.paypalLoading = true;
+
     const loader = document.createElement('script');
-loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
+    // Note: Cloudflare Pages maps /functions/paypal-sdk.js to /paypal-sdk
+    loader.src = "/paypal-sdk"; 
     loader.async = true;
+    
     loader.onload = () => {
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        if (typeof window.paypal !== 'undefined') {
-          clearInterval(interval);
-          initPayPalButtons();
-        } else if (attempts > 50) clearInterval(interval);
-      }, 200);
+        console.log("PayPal SDK Script Loaded");
+        initPayPalButtons();
     };
+
+    loader.onerror = () => {
+        console.error("Failed to load PayPal SDK from /paypal-sdk. Check your Cloudflare Function.");
+    };
+
     document.head.appendChild(loader);
   }
 
   function initPayPalButtons() {
     const container = document.getElementById("paypal-button-container");
-    if (!container || typeof paypal === 'undefined') return;
-    container.innerHTML = '';
+    if (!container || typeof paypal === 'undefined' || getCart().length === 0) {
+        if (container) container.innerHTML = ''; 
+        return;
+    }
+
+    container.innerHTML = ''; // Clear previous instances
     paypal.Buttons({
       createOrder: (data, actions) => {
         const cart = getCart();
@@ -279,18 +285,31 @@ loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
       onApprove: async (data, actions) => {
         const details = await actions.order.capture();
         window.location.href = `/success.html?orderID=${details.id}`;
+      },
+      onError: (err) => {
+          console.error("PayPal Button Error:", err);
       }
     }).render("#paypal-button-container");
   }
 
-  // Global Exports
-  window.translations = translations;
-  window.getPriceForPack = getPriceForPack;
-  window.formatPrice = formatPrice;
-  window.getCart = getCart;
-  window.addOrToggleCart = addOrToggleCart;
-  window.updateCartDisplay = updateCartDisplay;
-  window.initPayPalButtons = initPayPalButtons;
+  /* ==================== GLOBAL EXPORTS & INIT ==================== */
+  window.addOrToggleCart = (pack) => {
+    let cart = getCart();
+    const index = cart.findIndex(item => item.id === pack.id);
+    if (index !== -1) {
+      cart.splice(index, 1);
+    } else {
+      cart.push({
+        id: pack.id,
+        title: pack.title,
+        image: pack.image || (pack.images && pack.images[0]) || "",
+        price: getPriceForPack(pack)
+      });
+    }
+    saveCart(cart);
+    updateCartDisplay();
+  };
+
   window.removeItem = (idx) => {
     let cart = getCart();
     cart.splice(idx, 1);
@@ -302,8 +321,9 @@ loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
     updateCartDisplay();
     const cartBtn = document.getElementById("cartBtn");
     cartBtn?.addEventListener("click", () => {
-        document.getElementById("cartDrawer")?.classList.toggle("open");
+        document.getElementById("cartDrawer")?.classList.add("open");
         loadAndInitPayPal();
     });
   });
+
 })();
