@@ -1,6 +1,5 @@
 // ================================================
 // Shared shop logic: cart, currency, translations
-// Used by store2.html + all /s/pack?id=xxx pages
 // ================================================
 
 const translations = {
@@ -90,7 +89,7 @@ const tierMap = {
 
 const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-// Use var for globals to avoid redeclaration errors
+// Use var to prevent redeclaration errors (var is allowed to be redeclared)
 var currentLang = localStorage.getItem("language") || "en";
 var currentCurrency = currentLang === "en" ? "USD" :
                       currentLang === "ja" ? "JPY" :
@@ -127,7 +126,7 @@ function updateAllPrices() {
   });
 }
 
-// Sync cart count, items list, total (called after add/remove)
+// Sync cart count, items list, total
 function updateCartDisplay() {
   const countEls = [document.getElementById("cartCount"), document.getElementById("floatingCartCount")];
   const count = window.cart.length;
@@ -210,7 +209,7 @@ function setLanguage(lang) {
   updateCartDisplay();
 }
 
-// Initial setup on every page load
+// Initial setup
 document.addEventListener("DOMContentLoaded", () => {
   updateCartDisplay();
   updateAllPrices();
