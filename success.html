@@ -149,24 +149,28 @@
 </div>
 
 <script>
-// Read token from URL
 const urlParams = new URLSearchParams(window.location.search);
 const token = urlParams.get("token");
 
 const section = document.getElementById("download-section");
 
 if (!token) {
-    section.innerHTML = `<p class="error-text">No payment token found.</p>`;
+    section.innerHTML = `<p class="error-text">No payment token found. Something went wrong with the payment process.</p>`;
 } else {
     fetch(`/get-download?token=${token}`)
         .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok) {
+                throw new Error(`Server responded with status ${res.status}`);
+            }
             return res.json();
         })
         .then(data => {
-            // Show real order number from Supabase if available
+            // Update order number from Supabase if present
             if (data.order_number) {
                 document.getElementById("order-id").textContent = `#${data.order_number}`;
+            } else if (token) {
+                // Fallback to last part of token if no order_number returned
+                document.getElementById("order-id").textContent = `#${token.slice(-8)}`;
             }
 
             if (data.items && data.items.length > 0) {
@@ -178,17 +182,22 @@ if (!token) {
                                 Download ${item.title} ↓
                             </a>`;
                     } else {
-                        html += `<p class="error-text">Missing link for ${item.title}</p>`;
+                        html += `<p class="error-text">Missing download link for ${item.title}</p>`;
                     }
                 });
                 section.innerHTML = html;
             } else {
-                section.innerHTML = `<p class="error-text">No downloadable items found for this order.</p>`;
+                section.innerHTML = `<p class="error-text">No files available for this order. Contact support.</p>`;
             }
         })
         .catch(err => {
-            console.error("Download fetch error:", err);
-            section.innerHTML = `<p class="error-text">Failed to load files. Please contact support with your order number.</p>`;
+            console.error("Download fetch failed:", err);
+            // Show token in error message for support
+            document.getElementById("order-id").textContent = `#${token.slice(-8)}`;
+            section.innerHTML = `<p class="error-text">
+                Failed to load your files (${err.message}).<br>
+                Please contact support on Discord (velutinxx) and provide this token: <strong>${token}</strong>
+            </p>`;
         });
 }
 </script>
