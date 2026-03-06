@@ -1,28 +1,48 @@
 export async function onRequestPost({ request, env }) {
   try {
-    const body = await request.json();
-    const items = body.items || [];
+    const { items } = await request.json();
 
-    return new Response(JSON.stringify({
-      status: "FUNCTION_WORKING",
-      message: "✅ Function is running!",
-      itemsReceived: items,
-      priceLow: env.PRICE_LOW || "MISSING",
-      priceMed: env.PRICE_MED || "MISSING",
-      priceHigh: env.PRICE_HIGH || "MISSING",
-      note: "If you see this JSON, everything is set up correctly"
-    }), {
-      headers: { "Content-Type": "application/json" }
-    });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
+    }
+
+    // Hardcoded prices for testing (remove later once env works)
+    const prices = {
+      LOW: 1.5,
+      MED: 3.0,
+      HIGH: 10.0
+    };
+
+    // Debug: log what env actually contains
+    console.log("Available env keys:", Object.keys(env || {}));
+
+    let total = 0;
+
+    // Fetch packs-data.js (your source of truth)
+    const packsRes = await fetch("https://velutinx.github.io/assets/js/packs-data.js");
+    const packsText = await packsRes.text();
+
+    const match = packsText.match(/const packsData = (\[[\s\S]*?\]);/);
+    if (!match) throw new Error("Cannot parse packsData");
+
+    const packsData = JSON.parse(match[1]);
+
+    for (const id of items) {
+      const pack = packsData.find(p => String(p.id) === String(id));
+      if (!pack) continue;
+
+      const tier = pack.price.replace("PRICE_", ""); // LOW / MED / HIGH
+      const price = prices[tier] || 3.0;
+      total += price;
+    }
+
+    return new Response(
+      JSON.stringify({ total: total.toFixed(2) }),
+      { headers: { "Content-Type": "application/json" } }
+    );
 
   } catch (err) {
-    return new Response(JSON.stringify({
-      status: "ERROR",
-      message: err.message,
-      stack: err.stack
-    }), { 
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    console.error("Pricing error:", err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }
