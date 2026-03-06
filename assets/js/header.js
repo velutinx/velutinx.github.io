@@ -122,35 +122,12 @@ function updateCartDisplay() {
 
 /* ==================== INIT ==================== */
 document.addEventListener("DOMContentLoaded", () => {
-  const langBtn = document.getElementById("langBtn");
-  const langContainer = document.getElementById("langContainer");
-  const popover = document.getElementById("languagePopover");
+  const themeBtn = document.getElementById("themeBtn");
   const cartDrawer = document.getElementById("cartDrawer");
   const cartClose = document.getElementById("cartClose");
-  const themeBtn = document.getElementById("themeBtn");
   const cartBtn = document.getElementById("cartBtn");
   const floatCartBtn = document.getElementById("floatingCartBtn");
   const cartItems = document.getElementById("cartItems");
-
-  if (langBtn && popover) {
-    langBtn.addEventListener("click", e => {
-      e.stopPropagation();
-      popover.classList.toggle("show");
-    });
-  }
-
-  document.addEventListener("click", e => {
-    if (langContainer && popover && !langContainer.contains(e.target)) {
-      popover.classList.remove("show");
-    }
-  });
-
-  document.querySelectorAll(".lang-item").forEach(item => {
-    item.addEventListener("click", () => {
-      setLanguage(item.dataset.lang);
-      if (popover) popover.classList.remove("show");
-    });
-  });
 
   if (themeBtn) {
     themeBtn.addEventListener("click", () => {
@@ -196,7 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   updateCartDisplay();
-  setLanguage(currentLang);
 });
 
 /* ==================== PAYPAL SDK ==================== */
@@ -257,32 +233,36 @@ function initPayPalButtons() {
       });
     },
 
-onApprove: (data, actions) => {
-  return actions.order.capture().then(async (details) => {
-    const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
-    const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
+    onApprove: (data, actions) => {
+      return actions.order.capture().then(async (details) => {
+        const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
+        const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
 
-    const orderData = {
-      paypal_token: details.id,
-      paypal_email: details.payer.email_address,
-      amount: details.purchase_units[0].amount.value,
-      currency: "USD",
-      cart: itemNames,
-      status: 'COMPLETED'
-      // no lang anymore
-    };
+        const orderData = {
+          paypal_token: details.id,
+          paypal_email: details.payer.email_address,
+          amount: details.purchase_units[0].amount.value,
+          currency: "USD",
+          cart: itemNames,
+          status: 'COMPLETED'
+        };
 
-    try {
-      await fetch('/save-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
+        try {
+          await fetch('/save-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+          });
+        } catch (err) {
+          console.error("Save order error:", err);
+        }
+
+        window.location.href = `/success.html?token=${details.id}`;
       });
-    } catch (err) {
-      console.error("Save order error:", err);
-    }
+    },
 
-    // Redirect without lang
-    window.location.href = `/success.html?token=${details.id}`;
-  });
-},
+    onError: (err) => {
+      console.error("PayPal Error:", err);
+    }
+  }).render("#paypal-button-container");
+}
