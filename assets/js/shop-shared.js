@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  /* ==================== TRANSLATIONS ==================== */
   const translations = {
     en: {
       shopTitle: "My Store",
@@ -34,7 +35,7 @@
       filterTitle: "カテゴリでフィルター",
       catAll: "すべて",
       catFemale: "女性",
-      catFemboy: "男の娘",
+      catFemboy: "フェンボーイ",
       catCollections: "コレクション",
       sortTitle: "並び替え",
       sortNewest: "最新",
@@ -112,6 +113,7 @@
     }
   };
 
+  /* ==================== PRICE & CURRENCY ==================== */
   const tierMap = {
     1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
     3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
@@ -128,16 +130,8 @@
   let prices = { low: 1.5, med: 3.0, high: 10.0 };
 
   async function loadPrices() {
-    try {
-      const res = await fetch("/prices");
-      if (!res.ok) throw new Error("Prices fetch failed");
-      const data = await res.json();
-      prices.low = data.low || 1.5;
-      prices.med = data.med || 3.0;
-      prices.high = data.high || 10.0;
-    } catch (err) {
-      console.warn("Could not load prices — using defaults", err);
-    }
+    // Optional: fetch real prices if you have an endpoint
+    // try { ... } catch { use defaults }
   }
 
   function getPriceForPack(pack) {
@@ -150,37 +144,20 @@
   }
 
   function formatPrice(value, currency = currentCurrency) {
-    let priceStr;
-
-    if (currency === "USD") {
-      priceStr = `US$${value.toFixed(2)}`;
-    } else {
-      const rounded = Math.round(value * 100) / 100;
-      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-        const converted = tierMap[rounded][currency];
-        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-        priceStr = `${symbol}${converted}`;
-      } else {
-        let converted = value * (approxRates[currency] || 1);
-        converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-        priceStr = `${symbol}${converted}`;
-      }
+    if (currency === "USD") return `US$${value.toFixed(2)}`;
+    const rounded = Math.round(value * 100) / 100;
+    if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+      const converted = tierMap[rounded][currency];
+      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+      return `${symbol}${converted}`;
     }
-
-    // Add separator after label in updatePriceDisplay (handled there)
-    return priceStr;
+    let converted = value * (approxRates[currency] || 1);
+    converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
+    const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+    return `${symbol}${converted}`;
   }
 
-  function updateAllPrices() {
-    document.querySelectorAll(".price").forEach(el => {
-      const base = parseFloat(el.dataset.price);
-      if (!isNaN(base)) {
-        el.innerHTML = formatPrice(base);
-      }
-    });
-  }
-
+  /* ==================== CART MANAGEMENT ==================== */
   function getCart() {
     try {
       const saved = localStorage.getItem("velutinx_cart");
@@ -197,8 +174,14 @@
   function addOrToggleCart(pack) {
     let cart = getCart();
     const index = cart.findIndex(item => item.id === pack.id);
+
+    let message = "";
+    let isSuccess = true;
+
     if (index !== -1) {
       cart.splice(index, 1);
+      message = "Removed from cart";
+      isSuccess = false;
     } else {
       cart.push({
         id: pack.id,
@@ -207,9 +190,18 @@
         price: getPriceForPack(pack),
         quantity: 1
       });
+      message = "Added successfully";
+      isSuccess = true;
     }
+
     saveCart(cart);
     updateCartDisplay();
+
+    // Show snackbar with animation
+    showSnackbar(message, isSuccess);
+
+    // Sync all cart buttons on the page
+    updateAllCartButtons();
   }
 
   function updateCartDisplay() {
@@ -246,6 +238,70 @@
     }
   }
 
+  /* ==================== SNACKBAR ANIMATIONS ==================== */
+  function showSnackbar(message, isSuccess = true) {
+    const snackbar = document.getElementById("snackbar");
+    if (!snackbar) return;
+
+    const snackText = document.getElementById("snackText");
+    if (snackText) snackText.textContent = message;
+
+    // Reset and apply style
+    snackbar.className = "snackbar"; // clear previous classes
+    snackbar.style.background = isSuccess ? "#22c55e" : "#ef4444"; // green / red
+
+    // Trigger show animation
+    snackbar.classList.add("show");
+
+    // Auto-hide
+    setTimeout(() => {
+      snackbar.classList.remove("show");
+    }, 2400);
+  }
+
+  /* ==================== CART BUTTON SYNC ==================== */
+  function updateAllCartButtons() {
+    const cart = getCart();
+
+    // Update buttons in store grid (.product-card)
+    document.querySelectorAll(".product-card .cart-btn").forEach(btn => {
+      const card = btn.closest(".product-card");
+      const productId = card?.dataset.id;
+      if (!productId) return;
+
+      const isInCart = cart.some(item => item.id === productId);
+      btn.classList.toggle("added", isInCart);
+
+      btn.innerHTML = isInCart ? `
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+          <path d="M11.5 17h-5.5v-14h-2"></path>
+          <path d="M6 5l14 1l-1 7h-13"></path>
+          <path d="M15 19l2 2l4 -4"></path>
+        </svg>
+      ` : `
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+          <path d="M12.5 17h-6.5v-14h-2"></path>
+          <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+          <path d="M16 19h6"></path>
+          <path d="M19 16v6"></path>
+        </svg>
+      `;
+    });
+
+    // Update button in pack.html (if present)
+    const packBtn = document.getElementById("addCartBtn");
+    if (packBtn) {
+      const packId = new URLSearchParams(window.location.search).get("id") || "001";
+      const isInCart = cart.some(item => item.id === packId);
+
+      packBtn.textContent = isInCart ? translations[currentLang]?.removeFromCart || "Remove from Cart" : translations[currentLang]?.addToCart || "Add to Cart";
+      packBtn.classList.toggle("added", isInCart); // optional styling
+    }
+  }
+
+  /* ==================== LANGUAGE & OTHER HELPERS ==================== */
   function updateDisclaimers() {
     const t = translations[currentLang] || translations.en;
     const el = document.getElementById("disclaimer");
@@ -291,21 +347,16 @@
 
     ids.forEach(id => {
       const el = document.getElementById(id);
-      if (el && t[id]) {
-        el.textContent = t[id];
-      }
+      if (el && t[id]) el.textContent = t[id];
     });
 
     updateCartDisplay();
     updateDisclaimers();
     updateAllPrices();
+    updateAllCartButtons();
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    await loadPrices();
-    setLanguage(currentLang);
-  });
-
+  /* ==================== EXPORTS / GLOBAL ACCESS ==================== */
   window.translations = translations;
   window.getCart = getCart;
   window.addOrToggleCart = addOrToggleCart;
@@ -314,4 +365,12 @@
   window.updateCartDisplay = updateCartDisplay;
   window.setLanguage = setLanguage;
   window.updateDisclaimers = updateDisclaimers;
+  window.updateAllCartButtons = updateAllCartButtons;
+  window.showSnackbar = showSnackbar;
+
+  // Auto-init language on load
+  document.addEventListener("DOMContentLoaded", () => {
+    setLanguage(currentLang);
+  });
+
 })();
