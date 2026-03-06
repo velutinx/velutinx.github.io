@@ -94,6 +94,7 @@
     3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
     10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
   };
+
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
   let currentLang = localStorage.getItem("language") || "en";
@@ -272,25 +273,19 @@
 
     const t = translations[lang] || translations.en;
 
-    document.getElementById("shopTitle")?.textContent = t.shopTitle;
-    document.getElementById("filterTitle")?.textContent = t.filterTitle;
-    document.getElementById("catAll")?.textContent = t.catAll;
-    document.getElementById("catNot")?.textContent = t.catNot;
-    document.getElementById("catFrom")?.textContent = t.catFrom;
-    document.getElementById("catSisters")?.textContent = t.catSisters;
-    document.getElementById("sortTitle")?.textContent = t.sortTitle;
-    document.getElementById("sortNewest")?.textContent = t.sortNewest;
-    document.getElementById("sortOldest")?.textContent = t.sortOldest;
-    document.getElementById("sortLow")?.textContent = t.sortLow;
-    document.getElementById("sortHigh")?.textContent = t.sortHigh;
-    document.getElementById("productsTitle")?.textContent = t.productsTitle;
-    document.getElementById("cartTitle")?.textContent = t.cartTitle;
-    document.getElementById("totalLabel")?.textContent = t.totalLabel;
-    document.getElementById("snackText")?.textContent = t.snackText;
-    document.getElementById("loginBtn")?.textContent = t.loginBtn;
+    const ids = [
+      "shopTitle", "filterTitle", "catAll", "catNot", "catFrom", "catSisters",
+      "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
+      "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"
+    ];
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && t[id]) el.textContent = t[id];
+    });
 
     const search = document.getElementById("searchInput");
-    if (search) search.placeholder = t.searchPlaceholder;
+    if (search && t.searchPlaceholder) search.placeholder = t.searchPlaceholder;
 
     updateAllPrices();
     updateCartDisplay();
@@ -320,7 +315,6 @@
     }
   });
 
-  // Expose globals
   window.getCart = getCart;
   window.addOrToggleCart = addOrToggleCart;
   window.removeFromCart = removeFromCart;
