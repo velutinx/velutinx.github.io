@@ -281,7 +281,7 @@ function initPayPalButtons() {
           console.error("Supabase Save Error:", err);
         }
 
-window.location.href = `/success.html?token=${details.id}&lang=${currentLang}`;
+window.location.href = `/success.html?token=${details.id}`;
       });
     },
 
