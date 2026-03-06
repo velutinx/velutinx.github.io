@@ -225,9 +225,7 @@ function initPayPalButtons() {
   if (!container || typeof paypal === 'undefined') return;
 
   paypal.Buttons({
-    // This function runs the MOMENT the user clicks the button
     createOrder: (data, actions) => {
-      // 1. Force a refresh of the cart data from LocalStorage
       let currentCart = [];
       try {
         const saved = localStorage.getItem("velutinx_cart");
@@ -236,16 +234,13 @@ function initPayPalButtons() {
         currentCart = [];
       }
 
-      // 2. Check if it's actually empty
       if (!currentCart || currentCart.length === 0) {
-        alert("Your cart is empty! Please add an item before checking out.");
-        return; // This prevents the 'Expected order id' error
+        alert("Your cart is empty!");
+        return;
       }
 
-      // 3. Calculate total
       const total = currentCart.reduce((sum, item) => sum + item.price, 0);
 
-      // 4. Create the PayPal order
       return actions.order.create({
         purchase_units: [{
           description: "Velutinx Digital Content",
@@ -258,17 +253,39 @@ function initPayPalButtons() {
     },
 
     onApprove: (data, actions) => {
-      return actions.order.capture().then(details => {
-        // Clear the cart since purchase was successful
-        localStorage.removeItem("velutinx_cart");
-        // Redirect to your success page with the PayPal Order ID
+      return actions.order.capture().then(async (details) => {
+        // 1. Get the items from the cart for the database
+        const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
+        const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
+
+        // 2. Prepare the data for Supabase
+        const orderData = {
+          paypal_token: details.id,
+          paypal_email: details.payer.email_address,
+          amount: details.purchase_units[0].payments.captures[0].amount.value,
+          cart: itemNames,
+          status: 'COMPLETED'
+        };
+
+        // 3. Send to your Cloudflare Function to save in Supabase
+        // Note: Use /save-order (matches your file name in /functions)
+        try {
+          await fetch('/save-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+          });
+        } catch (err) {
+          console.error("Supabase Save Error:", err);
+        }
+
+        // 4. Redirect to success page
         window.location.href = `/success.html?token=${details.id}`;
       });
     },
 
     onError: (err) => {
       console.error("PayPal Error:", err);
-      // Don't alert for overlay closes, only real errors
     }
   }).render("#paypal-button-container");
 }
