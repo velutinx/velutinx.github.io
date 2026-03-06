@@ -175,7 +175,8 @@
   </main>
 
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
-  <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
+  <!-- Cache-busting version to force fresh load -->
+  <script src="https://velutinx.github.io/assets/js/shop-shared.js?v=20250306"></script>
 
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
@@ -185,6 +186,10 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
+    // Debug: log pack data to confirm loading
+    console.log("Pack data:", pack);
+    console.log("Images:", pack?.images);
+
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
       if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
@@ -192,7 +197,7 @@
         return;
       }
 
-      const t = window.translations[currentLang] || window.translations.en;
+      const t = window.translations?.[currentLang] || window.translations?.en || {};
 
       let iconSVG = "";
       let textClass = "";
@@ -205,7 +210,7 @@
           <line x1="8" y1="17" x2="16" y2="17"/>
         </svg>`;
         textClass = "female";
-        text = t.catFemale.toUpperCase();
+        text = (t.catFemale || "Female").toUpperCase();
       } else if (pack.category === 2) {
         iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="9" cy="15" r="5"/>
@@ -213,7 +218,7 @@
           <polyline points="16,4 20,4 20,8"/>
         </svg>`;
         textClass = "femboy";
-        text = t.catFemboy.toUpperCase();
+        text = (t.catFemboy || "Femboy").toUpperCase();
       }
 
       catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text}</span>`;
@@ -223,20 +228,20 @@
     window.updatePriceDisplay = function() {
       if (!pack) return;
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
-      const t = window.translations[currentLang] || window.translations.en;
+      const t = window.translations?.[currentLang] || window.translations?.en || {};
 
       let priceHTML = `
         <div>
-          <span class="price-label">${t.currentPrice}</span>
+          <span class="price-label">${t.currentPrice || "Current Price"}:</span>
           <span style="color: var(--gray); margin: 0 8px;">│</span>
-          <span class="current-price">${window.formatPrice?.(priceNum)}</span>
+          <span class="current-price">${window.formatPrice?.(priceNum) || `US$${priceNum.toFixed(2)}`}</span>
         </div>
       `;
 
       if (pack.oldPrice && pack.oldPrice.trim() !== "") {
         priceHTML = `
           <div>
-            <span class="price-label">${t.originalPrice}</span>
+            <span class="price-label">${t.originalPrice || "Original Price"}:</span>
             <span style="color: var(--gray); margin: 0 8px;">│</span>
             <span class="old-price">${pack.oldPrice}</span>
           </div>
@@ -253,45 +258,50 @@
 
     window.updateButton = function() {
       if (!pack) return;
-      const t = window.translations[currentLang] || window.translations.en;
+      const t = window.translations?.[currentLang] || window.translations?.en || {};
       const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-      const btnText = isInCart ? t.removeFromCart : t.addToCart;
+      const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
       document.getElementById("buttons").innerHTML = `<button class="btn btn-cart" id="addCartBtn">${btnText}</button>`;
 
       document.getElementById("addCartBtn").onclick = () => {
-        window.addOrToggleCart(pack);
-        window.updateButton(); // refresh button text/icon
+        window.addOrToggleCart?.(pack);
+        window.updateButton?.();
       };
     };
 
     window.updateContents = function() {
       if (!pack) return;
-      const t = window.translations[currentLang] || window.translations.en;
-      document.getElementById("contentsTitle").textContent = t.contentsTitle;
-      document.getElementById("illustrationCount").textContent = t.contentsDesc.replace("{count}", pack.illustrationCount);
+      const t = window.translations?.[currentLang] || window.translations?.en || {};
+      document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
+      document.getElementById("illustrationCount").textContent = (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations")
+        .replace("{count}", pack.illustrationCount || "X");
     };
 
     if (!pack) {
       document.getElementById("title").textContent = "Pack not found";
     } else {
-      document.getElementById("title").textContent = pack.title;
-      window.updateCategoryDisplay();
+      document.getElementById("title").textContent = pack.title || "Untitled Pack";
+      window.updateCategoryDisplay?.();
       document.getElementById("gallery").innerHTML = `
         <div class="carousel">
-          <div class="slides" id="slides">${pack.images.map(img => `<div class="slide"><img src="${img}"></div>`).join("")}</div>
+          <div class="slides" id="slides">
+            ${pack.images?.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'">`).join('') || '<p>No images available</p>'}
+          </div>
           <button class="arrow prev" onclick="prevSlide()">❮</button>
           <button class="arrow next" onclick="nextSlide()">❯</button>
         </div>
-        <div class="thumbnails">${pack.images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" onclick="goToSlide(${i})">`).join("")}</div>
+        <div class="thumbnails">
+          ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail ${i+1}" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
+        </div>
       `;
 
-      window.updatePriceDisplay();
-      window.updateButton();
-      window.updateContents();
+      window.updatePriceDisplay?.();
+      window.updateButton?.();
+      window.updateContents?.();
       window.updateDisclaimers?.();
 
       let current = 0;
-      const total = pack.images.length;
+      const total = pack.images?.length || 0;
       window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
       window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
       window.goToSlide = (i) => { current = i; updateCarousel(); };
@@ -305,10 +315,10 @@
       item.onclick = () => {
         currentLang = item.dataset.lang;
         window.setLanguage?.(currentLang);
-        window.updatePriceDisplay();
-        window.updateButton();
-        window.updateContents();
-        window.updateCategoryDisplay();
+        window.updatePriceDisplay?.();
+        window.updateButton?.();
+        window.updateContents?.();
+        window.updateCategoryDisplay?.();
       };
     });
   </script>
