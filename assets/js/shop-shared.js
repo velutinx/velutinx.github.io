@@ -249,7 +249,7 @@
     if (window.paypalLoaded) return;
     window.paypalLoaded = true;
     const loader = document.createElement('script');
-    loader.src = "/paypal-sdk";
+loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
     loader.async = true;
     loader.onload = () => {
       let attempts = 0;
