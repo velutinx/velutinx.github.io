@@ -34,8 +34,8 @@
       align-items: center; 
       gap: 8px; 
     }
-    .female { color: #ec4899; }   /* vivid pink */
-    .femboy  { color: #3b82f6; }  /* bright blue */
+    .female { color: #ec4899; }
+    .femboy  { color: #3b82f6; }
     .category-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; }
     .contents-section { margin: 20px 0 8px 0; text-align: left; }
     .contents-title { font-weight: bold; font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
@@ -50,36 +50,7 @@
     .btn { flex: 1; min-width: 160px; padding: 14px 24px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
-    .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
-    .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
-
-    /* Snackbar */
-    #snackbar {
-      position: fixed;
-      top: 28px;
-      right: 28px;
-      background: #22c55e;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 1300;
-      transform: translateY(-100px);
-      opacity: 0;
-      transition: all 0.4s ease;
-      font-size: 0.95rem;
-      min-width: 220px;
-    }
-    #snackbar.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    #snackbar.remove {
-      background: #ef4444;
-    }
+    .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
   </style>
 </head>
 <body>
@@ -161,7 +132,6 @@
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
-          <!-- Category now has fallback text -->
           <div class="category-info" id="categoryInfo"></div>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
@@ -176,8 +146,8 @@
   </main>
 
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
-  <!-- Force fresh load of shop-shared.js (change v= number if needed) -->
-  <script src="https://velutinx.github.io/assets/js/shop-shared.js?v=20250307"></script>
+  <!-- Cache-busting — change v= number when you edit shop-shared.js -->
+  <script src="https://velutinx.github.io/assets/js/shop-shared.js?v=20250308"></script>
 
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
@@ -187,9 +157,9 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
-    // Debug logging — check console after reload
-    console.log("Pack loaded:", pack);
+    // Debug: check if translations loaded
     console.log("Translations available:", !!window.translations);
+    console.log("Pack loaded:", pack);
 
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
@@ -202,7 +172,7 @@
 
       let iconSVG = "";
       let textClass = "";
-      let text = "";
+      let text = t.catFemale || "Female";
 
       if (pack.category === 1) {
         iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -211,7 +181,6 @@
           <line x1="8" y1="17" x2="16" y2="17"/>
         </svg>`;
         textClass = "female";
-        text = (t.catFemale || "Female").toUpperCase();
       } else if (pack.category === 2) {
         iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="9" cy="15" r="5"/>
@@ -219,10 +188,10 @@
           <polyline points="16,4 20,4 20,8"/>
         </svg>`;
         textClass = "femboy";
-        text = (t.catFemboy || "Femboy").toUpperCase();
+        text = t.catFemboy || "Femboy";
       }
 
-      catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text}</span>`;
+      catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text.toUpperCase()}</span>`;
       catInfo.style.display = "flex";
     };
 
@@ -283,13 +252,13 @@
     } else {
       document.getElementById("title").textContent = pack.title || "Untitled Pack";
 
-      // Force update all sections
+      // Run all updates
       window.updateCategoryDisplay?.();
       window.updatePriceDisplay?.();
       window.updateButton?.();
       window.updateContents?.();
 
-      // Carousel — with fallback placeholder if images fail
+      // Carousel
       document.getElementById("gallery").innerHTML = `
         <div class="carousel">
           <div class="slides" id="slides">
@@ -299,11 +268,10 @@
           <button class="arrow next" onclick="nextSlide()">❯</button>
         </div>
         <div class="thumbnails">
-          ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail ${i+1}" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
+          ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
         </div>
       `;
 
-      // Carousel controls
       let current = 0;
       const total = pack.images?.length || 0;
       window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
@@ -315,7 +283,6 @@
       }
     }
 
-    // Language switcher
     document.querySelectorAll(".lang-item").forEach(item => {
       item.onclick = () => {
         currentLang = item.dataset.lang;
