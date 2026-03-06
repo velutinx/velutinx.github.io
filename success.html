@@ -151,64 +151,62 @@
 </div>
 
 <script>
-    // 1. Initial configuration
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     const section = document.getElementById("download-section");
 
-    // 2. Read the cart from LocalStorage
+    // 1. Get the items from the cart
     const savedCart = localStorage.getItem("velutinx_cart");
     const cart = savedCart ? JSON.parse(savedCart) : [];
     
-    // Convert shop IDs (e.g., "item-178") to Vault IDs ("PACK178")
+    // 2. Map IDs carefully (Converts "item-178", "pack-178", or "178" to "PACK178")
     const itemNames = cart.map(item => {
-        return item.id.replace('item-', 'PACK').toUpperCase();
+        let id = item.id.toLowerCase();
+        if (id.includes('item-')) id = id.replace('item-', 'pack');
+        if (!id.includes('pack')) id = 'pack' + id;
+        return id.toUpperCase();
     }).join(',');
 
-    // 3. Logic Execution
     if (!token) {
-        section.innerHTML = `<p class="error-text">Missing transaction token. If you were charged, please check your email or contact support.</p>`;
+        section.innerHTML = `<p class="error-text">No payment token found.</p>`;
     } else if (cart.length === 0) {
-        // Fallback for page refreshes
+        // This shows if the user refreshed or the cart was already wiped
         section.innerHTML = `
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px dashed #ccc;">
-                <p><strong>Links already generated.</strong></p>
-                <p style="font-size: 0.9em;">If you need to download your files again, please check your email or contact support with your order ID.</p>
+                <p><strong>Links already delivered.</strong></p>
+                <p style="font-size: 0.9em;">If your buttons disappeared, please refresh or contact support with your order ID.</p>
             </div>`;
     } else {
-        // Fetch from Cloudflare Function
+        // 3. Fetch from your Cloudflare Function
+        // We add a console.log so you can see what is being sent in the browser F12 menu
+        console.log("Requesting links for:", itemNames);
+
         fetch(`/get-download?token=${token}&items=${itemNames}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Network response was not ok");
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 if (data.items && data.items.length > 0) {
-                    let html = `<p style="margin-bottom: 20px; font-weight: 500;">Your downloads are ready:</p><div class="download-list">`;
-                    
+                    let html = `<p style="margin-bottom:15px;">Your files are ready:</p>`;
                     data.items.forEach(item => {
                         html += `
                             <a href="${item.link}" class="download-item" target="_blank">
                                 <span>${item.title}</span>
-                                <span>Download ZIP ↓</span>
+                                <span>Download Now ↓</span>
                             </a>`;
                     });
-                    
-                    html += `</div>`;
                     section.innerHTML = html;
                     
-                    // SUCCESS: Clear the cart so the user doesn't buy the same things again by mistake
+                    // Only clear cart after links are shown
                     localStorage.removeItem("velutinx_cart");
                 } else {
-                    section.innerHTML = `<p class="error-text">No matching files found. Please contact support with Order #00001.</p>`;
+                    // This tells us exactly what name the code looked for but couldn't find
+                    section.innerHTML = `<p class="error-text">Vault Error: Could not find files for [${itemNames}]. Please contact support.</p>`;
                 }
             })
             .catch(err => {
-                console.error("Fetch error:", err);
-                section.innerHTML = `<p class="error-text">Error retrieving links. Please try refreshing the page.</p>`;
+                section.innerHTML = `<p class="error-text">Connection error. Please refresh the page.</p>`;
             });
     }
-</script>
+</script></script>
 
 </body>
 </html>
