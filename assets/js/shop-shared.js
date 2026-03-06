@@ -244,30 +244,41 @@
     }, 2400);
   }
 
-/* ==================== PAYPAL INTEGRATION ==================== */
+  /* ==================== PAYPAL INTEGRATION ==================== */
   function loadAndInitPayPal() {
-    if (window.paypal) { initPayPalButtons(); return; }
+    if (window.paypalLoaded) return;
+    window.paypalLoaded = true;
     const loader = document.createElement('script');
-    // REPLACE YOUR_CLIENT_ID with your actual PayPal Client ID
-    loader.src = "https://www.paypal.com/sdk/js?client-id=test&currency=USD"; 
+    loader.src = "/paypal-sdk";
     loader.async = true;
-    loader.onload = initPayPalButtons;
+    loader.onload = () => {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (typeof window.paypal !== 'undefined') {
+          clearInterval(interval);
+          initPayPalButtons();
+        } else if (attempts > 50) clearInterval(interval);
+      }, 200);
+    };
     document.head.appendChild(loader);
   }
 
   function initPayPalButtons() {
     const container = document.getElementById("paypal-button-container");
-    const cart = getCart();
-    if (!container || !window.paypal || cart.length === 0) return;
+    if (!container || typeof paypal === 'undefined') return;
     container.innerHTML = '';
     paypal.Buttons({
       createOrder: (data, actions) => {
+        const cart = getCart();
         const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-        return actions.order.create({ purchase_units: [{ amount: { value: total } }] });
+        return actions.order.create({
+          purchase_units: [{ amount: { currency_code: "USD", value: total } }]
+        });
       },
       onApprove: async (data, actions) => {
         const details = await actions.order.capture();
-        window.location.href = `https://velutinx.github.io/success.html?orderID=${details.id}`;
+        window.location.href = `/success.html?orderID=${details.id}`;
       }
     }).render("#paypal-button-container");
   }
@@ -279,25 +290,20 @@
   window.getCart = getCart;
   window.addOrToggleCart = addOrToggleCart;
   window.updateCartDisplay = updateCartDisplay;
+  window.initPayPalButtons = initPayPalButtons;
   window.removeItem = (idx) => {
-    let cart = getCart(); cart.splice(idx, 1); saveCart(cart); updateCartDisplay();
-    if (window.updateButton) window.updateButton();
-  };
-  window.setLanguage = (lang) => {
-    currentLang = lang;
-    currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
-    localStorage.setItem("language", lang);
+    let cart = getCart();
+    cart.splice(idx, 1);
+    saveCart(cart);
     updateCartDisplay();
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     updateCartDisplay();
-    document.getElementById("cartBtn")?.addEventListener("click", () => {
-      document.getElementById("cartDrawer")?.classList.toggle("open");
-      if (getCart().length > 0) loadAndInitPayPal();
-    });
-    document.getElementById("cartClose")?.addEventListener("click", () => {
-        document.getElementById("cartDrawer")?.classList.remove("open");
+    const cartBtn = document.getElementById("cartBtn");
+    cartBtn?.addEventListener("click", () => {
+        document.getElementById("cartDrawer")?.classList.toggle("open");
+        loadAndInitPayPal();
     });
   });
 })();
