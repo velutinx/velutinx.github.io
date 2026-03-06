@@ -24,7 +24,8 @@
     .thumb { width: 90px; height: 120px; object-fit: cover; border-radius: 6px; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; opacity: 0.8; }
     .thumb.active, .thumb:hover { border-color: #5D87FF; opacity: 1; transform: scale(1.04); }
     .info { padding: 28px; }
-    h1 { font-size: 2.1rem; margin-bottom: 20px; color: var(--text); }
+    h1 { font-size: 2.1rem; margin-bottom: 12px; color: var(--text); }
+    .category-label { font-size: 1.1rem; color: var(--gray); margin-bottom: 20px; }
     .contents-section { margin: 20px 0 8px 0; text-align: left; }
     .contents-title { font-weight: bold; font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
     .contents-list { list-style-type: disc; padding-left: 24px; margin: 0; }
@@ -90,6 +91,10 @@
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
+          <!-- NEW: Category display between title and price -->
+          <div class="category-label">
+            <strong>Category:</strong> <span id="packCategory">?</span>
+          </div>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="contents-section" id="contentsSection">
@@ -118,6 +123,10 @@
       if (!pack) return;
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
       const t = window.translations[currentLang] || window.translations.en;
+
+      // Show category
+      const catNum = pack.category || "?";
+      document.getElementById("packCategory").textContent = catNum;
 
       let priceHTML = `
         <div><span class="price-label">${t.currentPrice}</span><span class="current-price">${window.formatPrice?.(priceNum)}</span></div>
@@ -168,10 +177,20 @@
       document.getElementById("title").textContent = "Pack not found";
     } else {
       document.getElementById("title").textContent = pack.title;
+
       document.getElementById("gallery").innerHTML = `
-        <div class="carousel"><div class="slides" id="slides">${pack.images.map(img => `<div class="slide"><img src="${img}"></div>`).join("")}</div>
-        <button class="arrow prev" onclick="prevSlide()">❮</button><button class="arrow next" onclick="nextSlide()">❯</button></div>
-        <div class="thumbnails">${pack.images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" onclick="goToSlide(${i})">`).join("")}</div>
+        <div class="carousel">
+          <div class="slides" id="slides">
+            ${pack.images.map(img => `<div class="slide"><img src="${img}"></div>`).join("")}
+          </div>
+          <button class="arrow prev" onclick="prevSlide()">❮</button>
+          <button class="arrow next" onclick="nextSlide()">❯</button>
+        </div>
+        <div class="thumbnails">
+          ${pack.images.map((img, i) => `
+            <img class="thumb ${i===0?'active':''}" src="${img}" onclick="goToSlide(${i})">
+          `).join("")}
+        </div>
       `;
 
       // Initial render
