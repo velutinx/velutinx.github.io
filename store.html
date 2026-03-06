@@ -254,11 +254,14 @@
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Ko-fi Floating Widget Script (add this before </body>) -->
-  <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
-  <script type='text/javascript'>
-    kofiwidget2.init('Support Me on Ko-fi', '#29abe0', 'YOUR_KOFI_USERNAME');  // ← REPLACE 'YOUR_KOFI_USERNAME' with your Ko-fi username (e.g. 'velutinx')
-    kofiwidget2.draw();  // This creates the floating button that expands on click (as in your GIF)
+<script src="https://storage.ko-fi.com/cdn/scripts/overlay-widget.js"></script>
+  <script>
+    kofiWidgetOverlay.draw('velutinxstudio', {
+      'type': 'floating-chat',
+      'floating-chat.donateButton.text': 'Support Me',
+      'floating-chat.donateButton.background-color': '#29abe0',
+      'floating-chat.donateButton.text-color': '#fff'
+    });
   </script>
 
   <!-- Product listing script -->
