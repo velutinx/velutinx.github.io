@@ -89,33 +89,40 @@
     const token = urlParams.get("token");
     const section = document.getElementById("download-section");
 
+    // 1. Get the items from the cart before we clear it
+    const savedCart = localStorage.getItem("velutinx_cart");
+    const cart = savedCart ? JSON.parse(savedCart) : [];
+    
+    // Create a string like "PACK001,PACK178"
+    const itemNames = cart.map(item => item.id).join(',');
+
     if (!token) {
-        section.innerHTML = `<p class="error-text">No payment token found. Please check your email.</p>`;
+        section.innerHTML = `<p class="error-text">No payment token found.</p>`;
     } else {
-        // We fetch from the new Cloudflare Function you just verified
-        fetch(`/get-download?token=${token}`)
+        // 2. Send the token AND the item list to your function
+        fetch(`/get-download?token=${token}&items=${itemNames}`)
             .then(res => res.json())
             .then(data => {
                 if (data.items && data.items.length > 0) {
                     let html = `<p>Your files are ready:</p><div class="download-list">`;
-                    
                     data.items.forEach(item => {
                         html += `
                             <a href="${item.link}" class="download-item" target="_blank">
                                 <span>${item.title}</span>
                                 <span class="download-btn-text">Download Now ↓</span>
-                            </a>
-                        `;
+                            </a>`;
                     });
-                    
                     html += `</div>`;
                     section.innerHTML = html;
+                    
+                    // 3. Clear the cart now that we have the links
+                    localStorage.removeItem("velutinx_cart");
                 } else {
-                    section.innerHTML = `<p class="error-text">Unable to find items for this order.</p>`;
+                    section.innerHTML = `<p class="error-text">No items found for this order.</p>`;
                 }
             })
             .catch(err => {
-                section.innerHTML = `<p class="error-text">Error verifying purchase. Please contact support.</p>`;
+                section.innerHTML = `<p class="error-text">Error fetching downloads.</p>`;
             });
     }
 </script>
