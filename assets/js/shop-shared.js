@@ -1,6 +1,5 @@
 (function () {
   "use strict";
-
   /* ==================== TRANSLATIONS ==================== */
   const translations = {
     en: {
@@ -112,23 +111,18 @@
       removeFromCart: "Eliminar del carrito"
     }
   };
-
   /* ==================== PRICE & CURRENCY ==================== */
   const tierMap = {
     1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
     3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
     10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
   };
-
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
   let currentLang = localStorage.getItem("language") || "en";
   let currentCurrency = currentLang === "en" ? "USD" :
                         currentLang === "ja" ? "JPY" :
                         currentLang === "zh" ? "CNY" : "MXN";
-
   let prices = { low: 1.5, med: 3.0, high: 10.0 };
-
   function getPriceForPack(pack) {
     switch (pack.price) {
       case "PRICE_LOW": return prices.low;
@@ -137,7 +131,6 @@
       default: return prices.med;
     }
   }
-
   function formatPrice(value, currency = currentCurrency) {
     if (currency === "USD") return `US$${value.toFixed(2)}`;
     const rounded = Math.round(value * 100) / 100;
@@ -151,7 +144,6 @@
     const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
     return `${symbol}${converted}`;
   }
-
   /* ==================== CART MANAGEMENT ==================== */
   function getCart() {
     try {
@@ -161,17 +153,14 @@
       return [];
     }
   }
-
   function saveCart(cart) {
     localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
   }
-
   function addOrToggleCart(pack) {
     let cart = getCart();
     const index = cart.findIndex(item => item.id === pack.id);
     let message = "";
     let isSuccess = true;
-
     if (index !== -1) {
       cart.splice(index, 1);
       message = translations[currentLang]?.removeFromCart || "Removed from cart";
@@ -187,22 +176,18 @@
       message = translations[currentLang]?.snackText || "Added successfully";
       isSuccess = true;
     }
-
     saveCart(cart);
     updateCartDisplay();
     showSnackbar(message, isSuccess);
     if (window.updateAllCartButtons) window.updateAllCartButtons();
   }
-
   function updateCartDisplay() {
     const cart = getCart();
     const count = cart.length;
     const total = cart.reduce((sum, item) => sum + item.price, 0);
-
     document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
       if (el) el.textContent = count;
     });
-
     const itemsEl = document.getElementById("cartItems");
     if (itemsEl) {
       itemsEl.innerHTML = "";
@@ -228,50 +213,61 @@
     }
     if (window.initPayPalButtons) window.initPayPalButtons();
   }
-
   /* ==================== SNACKBAR ==================== */
   function showSnackbar(message, isSuccess = true) {
     const snackbar = document.getElementById("snackbar");
     if (!snackbar) return;
     const snackText = document.getElementById("snackText");
     if (snackText) snackText.textContent = message;
-
     snackbar.className = "snackbar show";
     snackbar.style.background = isSuccess ? "#22c55e" : "#ef4444";
-
     setTimeout(() => {
       snackbar.classList.remove("show");
     }, 2400);
   }
-
   /* ==================== PAYPAL INTEGRATION ==================== */
   function loadAndInitPayPal() {
     if (window.paypalLoaded) return;
     window.paypalLoaded = true;
     const loader = document.createElement('script');
-loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
+    loader.src = "/functions/paypal-sdk";  // <-- This is the fix for Cloudflare Pages Functions
     loader.async = true;
     loader.onload = () => {
+      console.log("[PayPal Loader] Script tag loaded successfully");
       let attempts = 0;
       const interval = setInterval(() => {
         attempts++;
         if (typeof window.paypal !== 'undefined') {
+          console.log("[PayPal Loader] PayPal SDK is now available – calling initPayPalButtons");
           clearInterval(interval);
           initPayPalButtons();
-        } else if (attempts > 50) clearInterval(interval);
+        } else if (attempts > 50) {
+          console.error("[PayPal Loader] Timeout: PayPal SDK never loaded after 50 attempts");
+          clearInterval(interval);
+        }
       }, 200);
+    };
+    loader.onerror = function(e) {
+      console.error("[PayPal Loader] Failed to load /functions/paypal-sdk", e);
     };
     document.head.appendChild(loader);
   }
-
   function initPayPalButtons() {
     const container = document.getElementById("paypal-button-container");
-    if (!container || typeof paypal === 'undefined') return;
+    if (!container || typeof paypal === 'undefined') {
+      console.warn("[PayPal Buttons] Cannot render: container missing or paypal undefined");
+      return;
+    }
+    console.log("[PayPal Buttons] Rendering PayPal buttons now");
     container.innerHTML = '';
     paypal.Buttons({
       createOrder: (data, actions) => {
         const cart = getCart();
         const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+        if (parseFloat(total) <= 0) {
+          console.warn("[PayPal] Cart total is 0 – not creating order");
+          return Promise.reject("Cart is empty");
+        }
         return actions.order.create({
           purchase_units: [{ amount: { currency_code: "USD", value: total } }]
         });
@@ -282,7 +278,6 @@ loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
       }
     }).render("#paypal-button-container");
   }
-
   // Global Exports
   window.translations = translations;
   window.getPriceForPack = getPriceForPack;
@@ -297,7 +292,6 @@ loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
     saveCart(cart);
     updateCartDisplay();
   };
-
   document.addEventListener("DOMContentLoaded", () => {
     updateCartDisplay();
     const cartBtn = document.getElementById("cartBtn");
