@@ -15,12 +15,8 @@
         #download-section { margin: 30px 0; min-height: 50px; }
         .download-item { display: flex; align-items: center; justify-content: center; background: #49BEFF; color: white !important; text-decoration: none; padding: 18px 24px; border-radius: 10px; margin-bottom: 12px; font-weight: 600; transition: transform 0.2s, background 0.2s; }
         .download-item:hover { background: #38aae8; transform: translateY(-2px); }
-        .disclaimer-box { margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee; text-align: left; }
-        .disclaimer-box p { color: #000000 !important; font-size: 14px; margin-bottom: 12px; line-height: 1.6; }
-        .id-note { background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; font-size: 13px !important; }
-        .error-text { color: #d9534f !important; font-weight: bold; padding: 20px; background: #fdf2f2; border-radius: 8px; }
-        .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
-        @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } }
+        .disclaimer-box { margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee; text-align: left; font-size: 14px; }
+        .id-note { background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -31,29 +27,31 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
-        <h1 id="confTitle">Confirming...</h1>
-        <p><span id="orderLabel">Order Number:</span> <span class="order-number" id="order-id">#00000</span></p>
-        <div id="download-section"><p class="loading-dots">Preparing your digital assets</p></div>
+        <h1 id="confTitle">Loading...</h1>
+        <p><span id="orderLabel">Order:</span> <span class="order-number" id="order-id">#00000</span></p>
+        <div id="download-section"></div>
         <div class="disclaimer-box">
             <p id="supportText"></p>
             <p id="idText" class="id-note"></p>
-            <p id="noticeText" style="font-weight: bold; margin-top:10px;"></p>
+            <p id="noticeText" style="font-weight: bold; margin-top: 10px;"></p>
         </div>
     </div>
 </div>
 
-<script src="https://velutinx.github.io/header.js"></script>
+<script src="https://velutinx.github.io/header.js" crossorigin="anonymous"></script>
 
 <script>
-    window.addEventListener('load', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get("token");
-        const lang = urlParams.get("lang") || "en";
-        
-        // Fail-safe translation check
-        const t = (window.translations && window.translations[lang]) 
-                  ? window.translations[lang] 
-                  : (window.translations?.en || {
+    const hardcoded = {
+        ja: {
+            confTitle: "購入が完了しました！",
+            orderLabel: "注文番号:",
+            readyLabel: "ダウンロードの準備ができました:",
+            dlBtn: "ダウンロード",
+            supportText: "サポート: Discord (velutinxx) またはメール support@velutinx.com まで。",
+            idText: "本人確認: 注文番号とPayPalのメールアドレスを記載してください。",
+            noticeText: "注意: リンクは24時間有効です。共有しないでください。"
+        },
+        en: {
             confTitle: "Purchase Confirmed!",
             orderLabel: "Order Number:",
             readyLabel: "Your files are ready:",
@@ -61,42 +59,40 @@
             supportText: "Support: Message me on Discord (velutinxx) or email support@velutinx.com.",
             idText: "Identification: Include your Order Number and PayPal Email.",
             noticeText: "Notice: Links valid for 24 hours. Do not share."
-        });
+        }
+    };
 
-        // Apply UI text
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        let lang = urlParams.get("lang") || "en";
+        if (lang === "zh") lang = "ja"; // Correcting your DB error on the fly
+
+        // Get from header.js OR fallback to hardcoded above
+        const t = (window.translations && window.translations[lang]) ? window.translations[lang] : hardcoded[lang] || hardcoded.en;
+
         document.getElementById("confTitle").textContent = t.confTitle;
         document.getElementById("orderLabel").textContent = t.orderLabel;
         document.getElementById("supportText").innerHTML = t.supportText.replace('Discord (velutinxx)', '<strong>Discord (velutinxx)</strong>').replace('support@velutinx.com', '<strong>support@velutinx.com</strong>');
-        document.getElementById("idText").innerHTML = t.idText.replace('Order Number', '<strong>Order Number</strong>').replace('PayPal Email', '<strong>PayPal Email</strong>');
+        document.getElementById("idText").innerHTML = t.idText.replace('注文番号', '<strong>注文番号</strong>').replace('Order Number', '<strong>Order Number</strong>').replace('PayPal Email', '<strong>PayPal Email</strong>');
         document.getElementById("noticeText").textContent = t.noticeText;
 
-        const section = document.getElementById("download-section");
-        const orderIdSpan = document.getElementById("order-id");
+        if (!token) return;
 
-        if (!token) {
-            section.innerHTML = `<p class="error-text">No payment token found.</p>`;
-            return;
-        }
-
-        // Fetch links from your Cloudflare Worker
         fetch(`/get-download?token=${token}`)
             .then(res => res.json())
             .then(data => {
-                if (data.items && data.items.length > 0) {
-                    if (orderIdSpan && data.order_number) {
-                        orderIdSpan.innerText = "#" + data.order_number.toString().padStart(5, '0');
-                    }
-                    let html = `<p style="margin-bottom:15px; font-weight:bold;">${t.readyLabel}</p>`;
+                const section = document.getElementById("download-section");
+                if (data.items) {
+                    document.getElementById("order-id").innerText = "#" + data.order_number.toString().padStart(5, '0');
+                    let html = `<p style="font-weight:bold; margin-bottom:10px;">${t.readyLabel}</p>`;
                     data.items.forEach(item => {
                         html += `<a href="${item.link}" class="download-item" target="_blank">${t.dlBtn} ${item.title} ↓</a>`;
                     });
                     section.innerHTML = html;
                     localStorage.removeItem("velutinx_cart");
-                } else {
-                    section.innerHTML = `<p class="error-text">Vault Error: Links not found for this order.</p>`;
                 }
-            })
-            .catch(() => { section.innerHTML = `<p class="error-text">Server error. Please refresh.</p>`; });
+            });
     });
 </script>
 </body>
