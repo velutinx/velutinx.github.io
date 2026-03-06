@@ -225,22 +225,50 @@ function initPayPalButtons() {
   if (!container || typeof paypal === 'undefined') return;
 
   paypal.Buttons({
+    // This function runs the MOMENT the user clicks the button
     createOrder: (data, actions) => {
-      if (!window.cart || !window.cart.length) {
-        alert("Cart is empty!");
-        return;
+      // 1. Force a refresh of the cart data from LocalStorage
+      let currentCart = [];
+      try {
+        const saved = localStorage.getItem("velutinx_cart");
+        currentCart = saved ? JSON.parse(saved) : [];
+      } catch (e) {
+        currentCart = [];
       }
-      const total = window.cart.reduce((sum, item) => sum + item.price, 0);
+
+      // 2. Check if it's actually empty
+      if (!currentCart || currentCart.length === 0) {
+        alert("Your cart is empty! Please add an item before checking out.");
+        return; // This prevents the 'Expected order id' error
+      }
+
+      // 3. Calculate total
+      const total = currentCart.reduce((sum, item) => sum + item.price, 0);
+
+      // 4. Create the PayPal order
       return actions.order.create({
-        purchase_units: [{ amount: { value: total.toFixed(2), currency_code: "USD" } }]
+        purchase_units: [{
+          description: "Velutinx Digital Content",
+          amount: {
+            currency_code: "USD",
+            value: total.toFixed(2)
+          }
+        }]
       });
     },
+
     onApprove: (data, actions) => {
       return actions.order.capture().then(details => {
-        alert("Payment successful!");
-        window.cart = [];
-        updateCartDisplay();
+        // Clear the cart since purchase was successful
+        localStorage.removeItem("velutinx_cart");
+        // Redirect to your success page with the PayPal Order ID
+        window.location.href = `/success.html?token=${details.id}`;
       });
+    },
+
+    onError: (err) => {
+      console.error("PayPal Error:", err);
+      // Don't alert for overlay closes, only real errors
     }
   }).render("#paypal-button-container");
 }
