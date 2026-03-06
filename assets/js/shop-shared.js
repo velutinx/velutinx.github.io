@@ -1,6 +1,7 @@
+// assets/js/shop-shared.js
 // ================================================
-// Shared shop logic: cart, currency, translations
-// Wrapped in IIFE to avoid ALL global redeclaration conflicts
+// Shared shop logic: cart, currency, translations, prices
+// Wrapped in IIFE to avoid global redeclaration conflicts
 // ================================================
 
 (function () {
@@ -93,13 +94,37 @@
 
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-  // Local variables inside IIFE - no global conflict possible
   let currentLang = localStorage.getItem("language") || "en";
   let currentCurrency = currentLang === "en" ? "USD" :
                         currentLang === "ja" ? "JPY" :
                         currentLang === "zh" ? "CNY" : "MXN";
 
   window.cart = window.cart || [];
+
+  // Price tiers fetched from Cloudflare env vars
+  let prices = { low: 1.5, med: 3.0, high: 10.0 };
+
+  async function loadPrices() {
+    try {
+      const res = await fetch("/prices");
+      if (!res.ok) throw new Error("Prices fetch failed");
+      const data = await res.json();
+      prices.low  = data.low  || 1.5;
+      prices.med  = data.med  || 3.0;
+      prices.high = data.high || 10.0;
+      console.log("Prices loaded:", prices);
+    } catch (err) {
+      console.warn("Could not load prices — using defaults", err);
+    }
+  }
+
+  // Assign price based on pack ID (customize this rule as you like)
+  function getPriceForPack(id) {
+    // Example: low for IDs 176+, med for 170-175, high for older
+    if (id >= 176) return prices.low;
+    if (id >= 170 && id <= 175) return prices.med;
+    return prices.high;
+  }
 
   function formatPrice(value, currency = currentCurrency) {
     if (currency === "USD") return `US$${value.toFixed(2)}`;
@@ -210,7 +235,8 @@
   }
 
   // Initial setup
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadPrices(); // fetch env var prices first
     updateCartDisplay();
     updateAllPrices();
     setLanguage(currentLang);
@@ -228,4 +254,10 @@
       });
     }
   });
+
+  // Export needed globals/functions for store2.html
+  window.formatPrice = formatPrice;
+  window.updateCartDisplay = updateCartDisplay;
+  window.setLanguage = setLanguage;
+  window.getPriceForPack = getPriceForPack;
 })();
