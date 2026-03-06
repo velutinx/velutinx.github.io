@@ -61,9 +61,7 @@
         }
 
         .download-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: block;
             background: #49BEFF;
             color: white !important;
             text-decoration: none;
@@ -72,6 +70,7 @@
             margin-bottom: 12px;
             font-weight: 600;
             transition: transform 0.2s, background 0.2s;
+            text-align: center;
         }
 
         .download-item:hover {
@@ -150,8 +149,8 @@
 </div>
 
 <script>
-// Success-page specific translations (extracted from your header.js)
-const successTranslations = {
+// Success page translations
+const translations = {
   en: { 
     confTitle: "Purchase Confirmed!",
     orderLabel: "Order Number:",
@@ -190,25 +189,24 @@ const successTranslations = {
   }
 };
 
-// Get URL params
+// Read URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const token = urlParams.get("token");
-let langFromUrl = urlParams.get("lang");
+const langParam = urlParams.get("lang");
 
-// Determine final language
+// Determine language (URL > localStorage > default en)
 let currentLang = "en";
-if (langFromUrl && successTranslations[langFromUrl]) {
-  currentLang = langFromUrl;
-  localStorage.setItem("language", currentLang);
+if (langParam && translations[langParam]) {
+    currentLang = langParam;
+    localStorage.setItem("language", currentLang);
 } else {
-  const savedLang = localStorage.getItem("language");
-  if (savedLang && successTranslations[savedLang]) {
-    currentLang = savedLang;
-  }
+    const saved = localStorage.getItem("language");
+    if (saved && translations[saved]) currentLang = saved;
 }
 
+const t = translations[currentLang];
+
 // Apply translations
-const t = successTranslations[currentLang] || successTranslations.en;
 document.getElementById("confTitle").textContent = t.confTitle;
 document.getElementById("orderLabel").firstChild.textContent = t.orderLabel + " ";
 document.getElementById("loadingText").textContent = t.loadingText;
@@ -216,48 +214,43 @@ document.getElementById("supportText").innerHTML = t.supportText;
 document.getElementById("idText").innerHTML = t.idText;
 document.getElementById("noticeText").innerHTML = t.noticeText;
 
-// Your original download logic (unchanged)
+// Download section logic
 const section = document.getElementById("download-section");
-
-const savedCart = localStorage.getItem("velutinx_cart");
-const cart = savedCart ? JSON.parse(savedCart) : [];
-
-const itemNames = cart.map(item => {
-    let id = item.id.toLowerCase();
-    if (id.includes('item-')) id = id.replace('item-', 'pack');
-    if (!id.includes('pack')) id = 'pack' + id;
-    return id.toUpperCase();
-}).join(',');
 
 if (!token) {
     section.innerHTML = `<p class="error-text">No payment token found.</p>`;
-} else if (cart.length === 0) {
-    section.innerHTML = `<p class="error-text">Your cart is empty. Go back to the shop and add items before visiting this page.</p>`;
 } else {
-    fetch(`/get-download?token=${token}&items=${itemNames}`)
-        .then(res => res.json())
+    fetch(`/get-download?token=${token}`)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        })
         .then(data => {
+            // Update real order number from Supabase
+            if (data.order_number) {
+                document.getElementById("order-id").textContent = `#${data.order_number}`;
+            }
+
             if (data.items && data.items.length > 0) {
                 let html = `<p style="margin-bottom:15px; font-weight:bold;">${t.readyLabel}</p>`;
                 data.items.forEach(item => {
-                    html += `
-                        <a href="${item.link}" class="download-item" target="_blank" style="display:block; background:#49BEFF; color:white; padding:15px; margin-bottom:10px; border-radius:8px; text-decoration:none; text-align:center;">
-                            Download ${item.title} ↓
-                        </a>`;
+                    if (item.link) {
+                        html += `
+                            <a href="${item.link}" class="download-item" target="_blank">
+                                Download ${item.title} ↓
+                            </a>`;
+                    } else {
+                        html += `<p class="error-text">Missing link for ${item.title}</p>`;
+                    }
                 });
                 section.innerHTML = html;
-                
-                // Optional: show real order id from response if you ever return it
-                if (data.order_id) {
-                    document.getElementById("order-id").textContent = `#${data.order_id}`;
-                }
             } else {
-                section.innerHTML = `<p class="error-text">Vault Error: The vault doesn't recognize [${itemNames}]. Check your get-download.js file names.</p>`;
+                section.innerHTML = `<p class="error-text">No downloadable items found for this order.</p>`;
             }
         })
         .catch(err => {
-            console.error(err);
-            section.innerHTML = `<p class="error-text">Fetch Error. Is your Cloudflare Worker/Function active?</p>`;
+            console.error("Download fetch error:", err);
+            section.innerHTML = `<p class="error-text">Failed to load files. Please contact support with your order number.</p>`;
         });
 }
 </script>
