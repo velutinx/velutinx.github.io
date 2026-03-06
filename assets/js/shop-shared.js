@@ -90,7 +90,7 @@ const tierMap = {
 
 const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-// Use var for global variables to prevent redeclaration errors
+// Use var for globals to avoid redeclaration errors
 var currentLang = localStorage.getItem("language") || "en";
 var currentCurrency = currentLang === "en" ? "USD" :
                       currentLang === "ja" ? "JPY" :
@@ -157,7 +157,6 @@ function updateCartDisplay() {
   const totalEl = document.getElementById("cartTotal");
   if (totalEl) totalEl.textContent = formatPrice(total);
 
-  // Optional: toggle active class on cart buttons
   const active = count > 0;
   [document.getElementById("cartBtn"), document.getElementById("floatingCartBtn")].forEach(btn => {
     if (btn) btn.classList.toggle("active", active);
