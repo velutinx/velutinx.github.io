@@ -40,6 +40,7 @@
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
+    /* Removed conflicting badge styles here — header.css now controls them */
   </style>
 </head>
 <body>
@@ -67,20 +68,50 @@
         </svg>
       </button>
       <div class="cart-wrapper">
-        <button class="nav-icon" id="cartBtn"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 17h-11v-14h-2M6 5l14 1l-.86 6.017m-2.64 .983h-10.5M16 19h6M19 16v6"></path></svg></button>
+        <button class="nav-icon cart-icon" id="cartBtn">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
+          </svg>
+        </button>
         <span class="cart-badge" id="cartCount">0</span>
       </div>
     </div>
   </nav>
 
+  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
+
   <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
     <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total"><div class="cart-total-row"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div><div id="paypal-button-container"></div></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <div id="paypal-button-container"></div>
+    </div>
   </div>
 
   <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
     <span id="snackText">Added successfully</span>
   </div>
 
@@ -113,7 +144,6 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
-    // Global functions for updates
     window.updatePriceDisplay = function() {
       if (!pack) return;
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
@@ -123,7 +153,6 @@
         <div><span class="price-label">${t.currentPrice}</span><span class="current-price">${window.formatPrice?.(priceNum)}</span></div>
       `;
 
-      // Only show original price if oldPrice exists and is not empty
       if (pack.oldPrice && pack.oldPrice.trim() !== "") {
         priceHTML = `
           <div><span class="price-label">${t.originalPrice}</span><span class="old-price">${pack.oldPrice}</span></div>
@@ -174,13 +203,11 @@
         <div class="thumbnails">${pack.images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" onclick="goToSlide(${i})">`).join("")}</div>
       `;
 
-      // Initial render
       window.updatePriceDisplay();
       window.updateButton();
       window.updateContents();
       window.updateDisclaimers?.();
 
-      // Carousel logic
       let current = 0;
       const total = pack.images.length;
       window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
@@ -192,7 +219,6 @@
       }
     }
 
-    // Language switch listener (updates price, button, contents)
     document.querySelectorAll(".lang-item").forEach(item => {
       item.onclick = () => {
         currentLang = item.dataset.lang;
