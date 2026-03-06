@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Store</title>
 
-  <!-- Shared header styles (top nav, cart drawer, language popover, dark mode, etc.) -->
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Page-specific shop/product styles -->
   <style>
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
@@ -71,7 +69,6 @@
 </head>
 <body>
 
-  <!-- Shared UI elements controlled by header.js -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -152,7 +149,6 @@
     <span id="snackText">Added successfully</span>
   </div>
 
-  <!-- Shop content -->
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
@@ -213,117 +209,117 @@
     </main>
   </div>
 
-  <!-- Load shared scripts -->
+  <!-- Shared scripts -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-<!-- Page-specific product listing, search, sort, add-to-cart logic -->
-<script type="module">
-  // Import packs metadata
-  import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
+  <!-- Product listing + redirect to pack detail on click -->
+  <script type="module">
+    import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
-  window.addEventListener('load', async () => {
-    // Enrich packs with REAL numeric prices from env vars
-    const productsData = packsData.map(p => {
-      const realPrice = window.getPriceForPack(p); // <--- THIS calls the function!
-      return {
+    window.addEventListener('load', async () => {
+      // Enrich packs with real prices
+      const productsData = packsData.map(p => ({
         ...p,
-        price: realPrice,  // now it's a number (1.5, 3, 10)
+        price: window.getPriceForPack(p),  // converts "PRICE_LOW" → real number
         date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7)
-      };
-    });
+      }));
 
-    const grid = document.getElementById("productGrid");
-    const searchInput = document.getElementById("searchInput");
-    const sortButtons = document.querySelectorAll(".sort-btn");
+      const grid = document.getElementById("productGrid");
+      const searchInput = document.getElementById("searchInput");
+      const sortButtons = document.querySelectorAll(".sort-btn");
 
-    function createCards() {
-      productsData.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "product-card";
-        card.dataset.title = p.title.toLowerCase();
-        card.dataset.price = p.price;  // real number now
-        card.dataset.date = p.date;
+      function createCards() {
+        productsData.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.dataset.title = p.title.toLowerCase();
+          card.dataset.price = p.price;
+          card.dataset.date = p.date;
 
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.title}" class="card-image" loading="lazy">
-          <div class="card-content">
-            <div class="card-title">${p.title}</div>
-            <div class="price-row">
-              <div class="price" data-price="${p.price}"></div> <!-- real price -->
-              <button class="cart-btn" title="Add to Cart">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                  <path d="M12.5 17h-6.5v-14h-2"></path>
-                  <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-                  <path d="M16 19h6"></path>
-                  <path d="M19 16v6"></path>
-                </svg>
-              </button>
+          card.innerHTML = `
+            <img src="${p.image}" alt="${p.title}" class="card-image" loading="lazy">
+            <div class="card-content">
+              <div class="card-title">${p.title}</div>
+              <div class="price-row">
+                <div class="price" data-price="${p.price}"></div>
+                <button class="cart-btn" title="Add to Cart">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                    <path d="M12.5 17h-6.5v-14h-2"></path>
+                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                    <path d="M16 19h6"></path>
+                    <path d="M19 16v6"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
-        `;
+          `;
 
-        card.addEventListener("click", e => {
-          if (e.target.closest(".cart-btn")) return;
-          alert(`Pack detail: ${p.id} (to implement)`);
+          // Click card → redirect to pack detail page
+          card.addEventListener("click", e => {
+            if (e.target.closest(".cart-btn")) return;
+            window.location.href = `/s/pack?id=${p.id}`;
+          });
+
+          grid.appendChild(card);
+          p.element = card;
+
+          // Cart button logic
+          const btn = card.querySelector(".cart-btn");
+          btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const alreadyInCart = window.cart.some(item => item.id === p.id);
+            if (alreadyInCart) {
+              window.cart = window.cart.filter(item => item.id !== p.id);
+              btn.classList.remove("added");
+              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+            } else {
+              window.cart.push(p);
+              btn.classList.add("added");
+              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+              document.getElementById("snackbar").classList.add("show");
+              setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
+            }
+            window.updateCartDisplay();
+          });
         });
 
-        grid.appendChild(card);
-        p.element = card;
+        window.updateAllPrices();
+      }
 
-        const btn = card.querySelector(".cart-btn");
-        btn.addEventListener("click", e => {
-          e.stopPropagation();
-          const alreadyInCart = window.cart.some(item => item.id === p.id);
-          if (alreadyInCart) {
-            window.cart = window.cart.filter(item => item.id !== p.id);
-            btn.classList.remove("added");
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-          } else {
-            window.cart.push(p);
-            btn.classList.add("added");
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-            document.getElementById("snackbar").classList.add("show");
-            setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
-          }
-          window.updateCartDisplay();
+      function filterAndSort() {
+        const query = searchInput.value.toLowerCase().trim();
+        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+        productsData.forEach(p => {
+          p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
+        });
+
+        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+
+        if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
+        else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
+        else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+
+        visible.forEach(el => grid.appendChild(el));
+      }
+
+      sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          sortButtons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          filterAndSort();
         });
       });
 
-      // Apply prices (now data-price is a real number)
-      window.updateAllPrices();
-    }
+      searchInput.addEventListener("input", filterAndSort);
 
-    function filterAndSort() {
-      const query = searchInput.value.toLowerCase().trim();
-      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
-      productsData.forEach(p => {
-        p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
-      });
-
-      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-
-      if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
-      else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
-      else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-      else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-
-      visible.forEach(el => grid.appendChild(el));
-    }
-
-    sortButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        sortButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        filterAndSort();
-      });
+      createCards();
+      filterAndSort();
     });
+  </script>
 
-    searchInput.addEventListener("input", filterAndSort);
-
-    createCards();
-    filterAndSort();
-  });
-</script>
+</body>
+</html>
