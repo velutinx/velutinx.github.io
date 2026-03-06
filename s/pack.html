@@ -190,102 +190,120 @@
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
   <!-- Pack data -->
-  <script type="module">
-    import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
+<script type="module">
+  import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
-    // Language support (updates price display)
-    function updatePriceDisplay(pack) {
-      const priceNum = window.getPriceForPack(pack); // real number
-      const html = `
-        <div>
-          <span class="price-label">Original Price:</span>
-          <span class="old-price">${pack.oldPrice || ""}</span>
+  // Language support (updates price display)
+  function updatePriceDisplay(pack) {
+    const priceNum = window.getPriceForPack(pack);
+    const html = `
+      <div>
+        <span class="price-label">Original Price:</span>
+        <span class="old-price">${pack.oldPrice || ""}</span>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="price-label">Current Price:</span>
+        <span class="current-price">${window.formatPrice(priceNum)}</span>
+      </div>
+      <div class="save">${pack.saveText || ""}</div>
+    `;
+    document.getElementById("priceSection").innerHTML = html;
+  }
+
+  // Load pack
+  const params = new URLSearchParams(window.location.search);
+  const packId = params.get("id") || "001";
+  const pack = packsData.find(p => p.id === packId);
+
+  if (!pack) {
+    document.getElementById("title").textContent = "Pack not found";
+    document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
+  } else {
+    document.getElementById("title").textContent = pack.title;
+
+    // Gallery
+    document.getElementById("gallery").innerHTML = `
+      <div class="carousel">
+        <div class="slides" id="slides">
+          ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
         </div>
-        <div style="margin-top:8px;">
-          <span class="price-label">Current Price:</span>
-          <span class="current-price">${window.formatPrice(priceNum)}</span>
-        </div>
-        <div class="save">${pack.saveText || ""}</div>
-      `;
-      document.getElementById("priceSection").innerHTML = html;
-    }
+        <button class="arrow prev" onclick="prevSlide()">❮</button>
+        <button class="arrow next" onclick="nextSlide()">❯</button>
+      </div>
+      <div class="thumbnails">
+        ${pack.images.map((img, i) => `
+          <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
+        `).join("")}
+      </div>
+    `;
 
-    // Load pack
-    const params = new URLSearchParams(window.location.search);
-    const packId = params.get("id") || "001";
+    // Price
+    updatePriceDisplay(pack);
 
-    const pack = packsData.find(p => p.id === packId);
+    // Buttons – now using persistent cart
+    const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+    document.getElementById("buttons").innerHTML = `
+      <button class="btn btn-buy">Buy Now</button>
+      <button class="btn btn-cart" id="addCartBtn">
+        ${isInCart ? "Remove from Cart" : "Add to Cart"}
+      </button>
+    `;
 
-    if (!pack) {
-      document.getElementById("title").textContent = "Pack not found";
-      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
-    } else {
-      document.getElementById("title").textContent = pack.title;
+    // Cart toggle logic
+    const addCartBtn = document.getElementById("addCartBtn");
+    addCartBtn.addEventListener("click", () => {
+      window.addOrToggleCart(pack);
+      const nowInCart = window.getCart().some(item => item.id === pack.id);
+      addCartBtn.textContent = nowInCart ? "Remove from Cart" : "Add to Cart";
 
-      // Gallery
-      document.getElementById("gallery").innerHTML = `
-        <div class="carousel">
-          <div class="slides" id="slides">
-            ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
-          </div>
-          <button class="arrow prev" onclick="prevSlide()">❮</button>
-          <button class="arrow next" onclick="nextSlide()">❯</button>
-        </div>
-        <div class="thumbnails">
-          ${pack.images.map((img, i) => `
-            <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
-          `).join("")}
-        </div>
-      `;
-
-      // Price
-      updatePriceDisplay(pack);
-
-      // Buttons
-      document.getElementById("buttons").innerHTML = `
-        <button class="btn btn-buy">Buy Now</button>
-        <button class="btn btn-cart">Add to Cart</button>
-      `;
-
-      // Contents
-      document.getElementById("illustrationCount").textContent = `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
-
-      // Disclaimer
-      document.getElementById("disclaimer").innerHTML = `
-        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-          <circle cx="256" cy="380" r="24" fill="#000000"/>
-        </svg>
-        <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
-      `;
-
-      // Carousel logic
-      const slides = document.getElementById('slides');
-      const thumbs = document.querySelectorAll('.thumb');
-      let current = 0;
-      const total = pack.images.length;
-
-      function update() {
-        slides.style.transform = `translateX(-${current * 100}%)`;
-        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
-      }
-
-      window.prevSlide = () => { current = (current - 1 + total) % total; update(); };
-      window.nextSlide = () => { current = (current + 1) % total; update(); };
-      window.goToSlide = (i) => { current = i; update(); };
-
-      update();
-    }
-
-    // Language change updates price
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        window.setLanguage(item.dataset.lang);
-        updatePriceDisplay(pack);
-      });
+      // Optional: snackbar feedback
+      const snack = document.getElementById("snackbar");
+      const msg = nowInCart ? "Added to cart!" : "Removed from cart";
+      document.getElementById("snackText").textContent = msg;
+      snack.classList.add("show");
+      setTimeout(() => snack.classList.remove("show"), 2400);
     });
-  </script>
+
+    // Contents
+    document.getElementById("illustrationCount").textContent =
+      `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
+
+    // Disclaimer (unchanged)
+    document.getElementById("disclaimer").innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
+    `;
+
+    // Carousel logic (unchanged)
+    const slides = document.getElementById('slides');
+    const thumbs = document.querySelectorAll('.thumb');
+    let current = 0;
+    const total = pack.images.length;
+    function update() {
+      slides.style.transform = `translateX(-${current * 100}%)`;
+      thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+    }
+    window.prevSlide = () => { current = (current - 1 + total) % total; update(); };
+    window.nextSlide = () => { current = (current + 1) % total; update(); };
+    window.goToSlide = (i) => { current = i; update(); };
+    update();
+  }
+
+  // Language change → update price & UI
+  document.querySelectorAll(".lang-item").forEach(item => {
+    item.addEventListener("click", () => {
+      window.setLanguage(item.dataset.lang);
+      if (pack) updatePriceDisplay(pack);
+    });
+  });
+
+  // Make sure cart display is fresh (in case opened from other page)
+  window.updateCartDisplay?.();
+</script>
 
 </body>
 </html>
