@@ -1,8 +1,7 @@
-// assets/js/shop-shared.js
 (function () {
   "use strict";
 
-const translations = {
+  const translations = {
     en: {
       shopTitle: "My Store",
       filterTitle: "Filter by Category",
@@ -136,7 +135,6 @@ const translations = {
       prices.low = data.low || 1.5;
       prices.med = data.med || 3.0;
       prices.high = data.high || 10.0;
-      console.log("Prices loaded:", prices);
     } catch (err) {
       console.warn("Could not load prices — using defaults", err);
     }
@@ -180,7 +178,6 @@ const translations = {
       const saved = localStorage.getItem("velutinx_cart");
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error("Cart parse error", e);
       return [];
     }
   }
@@ -207,24 +204,10 @@ const translations = {
     updateCartDisplay();
   }
 
-  function removeFromCart(id) {
-    let cart = getCart();
-    cart = cart.filter(item => item.id !== id);
-    saveCart(cart);
-    updateCartDisplay();
-  }
-
-  function getCartCount() {
-    return getCart().length;
-  }
-
-  function getCartTotal() {
-    return getCart().reduce((sum, item) => sum + item.price, 0);
-  }
-
   function updateCartDisplay() {
-    const count = getCartCount();
-    const total = getCartTotal();
+    const cart = getCart();
+    const count = cart.length;
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
 
     document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
       if (el) el.textContent = count;
@@ -236,7 +219,7 @@ const translations = {
       if (count === 0) {
         itemsEl.innerHTML = "<p>Your cart is empty</p>";
       } else {
-        getCart().forEach((item, idx) => {
+        cart.forEach((item, idx) => {
           const div = document.createElement("div");
           div.className = "cart-item";
           div.innerHTML = `
@@ -253,109 +236,65 @@ const translations = {
       const totalEl = document.getElementById("cartTotal");
       if (totalEl) totalEl.textContent = formatPrice(total);
     }
-
-    const active = count > 0;
-    [document.getElementById("cartBtn"), document.getElementById("floatingCartBtn")].forEach(btn => {
-      if (btn) btn.classList.toggle("active", active);
-    });
   }
 
-function updateDisclaimers() {
-  const t = translations[currentLang] || translations.en;
-  const el = document.getElementById("disclaimer");
-  if (el) {
-    el.innerHTML = `
-      <div style="margin-bottom: 16px;">
-        <div style="display: flex; align-items: flex-start; gap: 10px;">
-          <svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
-            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
-            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
-            <circle cx="256" cy="380" r="24" fill="#000"/>
-          </svg>
-          <span style="line-height: 1.45;">${t.disclaimerAge}</span>
+  function updateDisclaimers() {
+    const t = translations[currentLang] || translations.en;
+    const el = document.getElementById("disclaimer");
+    if (el) {
+      el.innerHTML = `
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 512 512" style="flex-shrink: 0; margin-top: 2px;">
+              <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
+              <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
+              <circle cx="256" cy="380" r="24" fill="#000"/>
+            </svg>
+            <span style="line-height: 1.45;">${t.disclaimerAge}</span>
+          </div>
         </div>
-      </div>
-      <div>
-        <div style="display: flex; align-items: flex-start; gap: 10px;">
-          <svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
-            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
-            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
-            <circle cx="256" cy="380" r="24" fill="#000"/>
-          </svg>
-          <span style="line-height: 1.45;">${t.disclaimerRefund}</span>
+        <div>
+          <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 512 512" style="flex-shrink: 0; margin-top: 2px;">
+              <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
+              <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
+              <circle cx="256" cy="380" r="24" fill="#000"/>
+            </svg>
+            <span style="line-height: 1.45;">${t.disclaimerRefund}</span>
+          </div>
         </div>
-      </div>
-    `;
-    // Force no columns/flex-wrap on parent if needed
-    el.style.display = "block";
-    el.style.columnCount = "1";
+      `;
+    }
   }
-}
 
   function setLanguage(lang) {
-    if (currentLang === lang) return;
     currentLang = lang;
     currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
     localStorage.setItem("language", lang);
 
-    const swipe = document.getElementById("langSwipe");
-    if (swipe) {
-      swipe.classList.remove("active");
-      void swipe.offsetHeight;
-      swipe.classList.add("active");
-    }
-
     const t = translations[lang] || translations.en;
-
-    const ids = [
-      "shopTitle", "filterTitle", "catAll", "catNot", "catFrom", "catSisters",
-      "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
-      "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"
-    ];
-
+    const ids = ["shopTitle", "filterTitle", "catAll", "catNot", "catFrom", "catSisters", "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh", "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"];
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (el && t[id]) el.textContent = t[id];
     });
 
-    const search = document.getElementById("searchInput");
-    if (search && t.searchPlaceholder) search.placeholder = t.searchPlaceholder;
-
-    updateAllPrices();
     updateCartDisplay();
     updateDisclaimers();
+    updateAllPrices();
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
     await loadPrices();
-    updateCartDisplay();
-    updateAllPrices();
-    updateDisclaimers();
     setLanguage(currentLang);
-setTimeout(updateCartDisplay, 300);  // ← add this as safety net
-    const itemsEl = document.getElementById("cartItems");
-    if (itemsEl) {
-      itemsEl.addEventListener("click", e => {
-        if (e.target.classList.contains("cart-item-remove")) {
-          const idx = parseInt(e.target.dataset.idx, 10);
-          if (!isNaN(idx)) {
-            let cart = getCart();
-            cart.splice(idx, 1);
-            saveCart(cart);
-            updateCartDisplay();
-          }
-        }
-      });
-    }
   });
 
+  window.translations = translations;
   window.getCart = getCart;
   window.addOrToggleCart = addOrToggleCart;
-  window.removeFromCart = removeFromCart;
   window.formatPrice = formatPrice;
   window.getPriceForPack = getPriceForPack;
   window.updateCartDisplay = updateCartDisplay;
   window.setLanguage = setLanguage;
-  window.updateAllPrices = updateAllPrices;
   window.updateDisclaimers = updateDisclaimers;
 })();
