@@ -56,13 +56,14 @@
     .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: var(--success); }
-    /* Removed conflicting badge styles here — header.css now controls them */
   </style>
 </head>
 <body>
   <div class="lang-swipe" id="langSwipe"></div>
   <nav class="top-nav">
-    <div class="logo">VELUTINX</div>
+    <div class="logo" style="cursor: pointer;">
+      VELUTINX
+    </div>
     <div class="nav-actions">
       <button class="login-btn" id="loginBtn">Website</button>
       <div id="langContainer">
@@ -141,7 +142,7 @@
       <div class="shop-left">
         <div style="display:flex; align-items:center; gap:1.2rem;">
           <h1 class="shop-title" id="shopTitle">My Store</h1>
-          <button class="gift-btn" title="Gift / Support">
+          <button class="gift-btn" id="kofiBtn" title="Gift / Support">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
               <path d="M3 8m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"></path>
               <path d="M12 8l0 13"></path>
@@ -249,9 +250,21 @@
     </main>
   </div>
 
+  <!-- Scripts -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
+  <!-- Ko-fi widget script -->
+  <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+  <script type='text/javascript'>
+    kofiwidget2.init('Support Me on Ko-fi', '#29abe0', 'YOUR_KOFI_USERNAME');  // ← REPLACE WITH YOUR USERNAME
+    document.getElementById('kofiBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      kofiwidget2.draw();  // Opens Ko-fi tip popup
+    });
+  </script>
+
+  <!-- Product listing script -->
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
