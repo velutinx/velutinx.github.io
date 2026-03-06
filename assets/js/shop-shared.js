@@ -118,13 +118,16 @@
     }
   }
 
-  // Assign price based on pack ID (customize this rule as you like)
-  function getPriceForPack(id) {
-    // Example: low for IDs 176+, med for 170-175, high for older
-    if (id >= 176) return prices.low;
-    if (id >= 170 && id <= 175) return prices.med;
-    return prices.high;
+// Inside the (function () { ... })() block
+
+function getPriceForPack(pack) {
+  switch (pack.price) {
+    case "PRICE_LOW":  return prices.low;
+    case "PRICE_MED":  return prices.med;
+    case "PRICE_HIGH": return prices.high;
+    default:           return prices.med; // fallback if missing or invalid
   }
+}
 
   function formatPrice(value, currency = currentCurrency) {
     if (currency === "USD") return `US$${value.toFixed(2)}`;
