@@ -119,6 +119,7 @@
     </div>
   </div>
 
+  <!-- Snackbar -->
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
@@ -132,7 +133,6 @@
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
-          <!-- Translated & styled category gender -->
           <div class="category-info" id="categoryInfo"></div>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
@@ -157,7 +157,6 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
-    // Show translated category gender (only for 1 or 2)
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
       if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
@@ -230,7 +229,12 @@
       const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
       const btnText = isInCart ? t.removeFromCart : t.addToCart;
       document.getElementById("buttons").innerHTML = `<button class="btn btn-cart" id="addCartBtn">${btnText}</button>`;
-      document.getElementById("addCartBtn").onclick = handleCartClick;
+
+      document.getElementById("addCartBtn").onclick = () => {
+        window.addOrToggleCart(pack);
+        window.updateButton(); // refresh button icon/text
+        window.updateAllCartButtons?.(); // optional: sync other buttons if any
+      };
     };
 
     window.updateContents = function() {
@@ -240,27 +244,17 @@
       document.getElementById("illustrationCount").textContent = t.contentsDesc.replace("{count}", pack.illustrationCount);
     };
 
-    const handleCartClick = () => {
-      window.addOrToggleCart?.(pack);
-      window.updateButton();
-      const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-      const t = window.translations[currentLang] || window.translations.en;
-      document.getElementById("snackText").textContent = nowInCart ? t.snackText : "Removed from cart";
-      document.getElementById("snackbar").classList.add("show");
-      setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
-    };
-
     if (!pack) {
       document.getElementById("title").textContent = "Pack not found";
     } else {
       document.getElementById("title").textContent = pack.title;
-
-      // Show translated category gender
       window.updateCategoryDisplay();
-
       document.getElementById("gallery").innerHTML = `
-        <div class="carousel"><div class="slides" id="slides">${pack.images.map(img => `<div class="slide"><img src="${img}"></div>`).join("")}</div>
-        <button class="arrow prev" onclick="prevSlide()">❮</button><button class="arrow next" onclick="nextSlide()">❯</button></div>
+        <div class="carousel">
+          <div class="slides" id="slides">${pack.images.map(img => `<div class="slide"><img src="${img}"></div>`).join("")}</div>
+          <button class="arrow prev" onclick="prevSlide()">❮</button>
+          <button class="arrow next" onclick="nextSlide()">❯</button>
+        </div>
         <div class="thumbnails">${pack.images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" onclick="goToSlide(${i})">`).join("")}</div>
       `;
 
