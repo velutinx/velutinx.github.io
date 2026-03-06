@@ -180,7 +180,7 @@
 
     if (index !== -1) {
       cart.splice(index, 1);
-      message = "Removed from cart";
+      message = translations[currentLang]?.removeFromCart || "Removed from cart";
       isSuccess = false;
     } else {
       cart.push({
@@ -190,7 +190,7 @@
         price: getPriceForPack(pack),
         quantity: 1
       });
-      message = "Added successfully";
+      message = translations[currentLang]?.snackText || "Added successfully";
       isSuccess = true;
     }
 
@@ -296,7 +296,8 @@
       const packId = new URLSearchParams(window.location.search).get("id") || "001";
       const isInCart = cart.some(item => item.id === packId);
 
-      packBtn.textContent = isInCart ? translations[currentLang]?.removeFromCart || "Remove from Cart" : translations[currentLang]?.addToCart || "Add to Cart";
+      const t = translations[currentLang] || translations.en;
+      packBtn.textContent = isInCart ? t.removeFromCart : t.addToCart;
       packBtn.classList.toggle("added", isInCart); // optional styling
     }
   }
