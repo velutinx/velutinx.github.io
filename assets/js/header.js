@@ -184,7 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   updateCartDisplay();
-  // Set language without animation on load
   const t = translations[currentLang] || translations.en;
   const ids = ["shopTitle","filterTitle","catAll","catNot","catFrom","catSisters","sortTitle","sortDefault","sortNewest","sortLow","sortHigh","resetBtn","productsTitle","cartTitle","totalLabel","snackText","loginBtn"];
   ids.forEach(id => {
@@ -287,31 +286,4 @@ function initPayPalButtons() {
       console.error("PayPal Error:", err);
     }
   }).render("#paypal-button-container");
-}
-
-onApprove: function(data, actions) {
-    return actions.order.capture().then(function(details) {
-        // 1. Get the items from the cart
-        const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
-        const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
-
-        // 2. Prepare the data for Supabase
-        const orderData = {
-            paypal_token: details.id,
-            paypal_email: details.payer.email_address,
-            amount: details.purchase_units[0].amount.value,
-            cart: itemNames,
-            status: 'COMPLETED'
-        };
-
-        // 3. Send this to a new function that saves it to Supabase
-        // (We will create this file next)
-        fetch('/api/save-order', {
-            method: 'POST',
-            body: JSON.stringify(orderData)
-        });
-
-        // 4. Redirect to the success page
-        window.location.href = `success.html?token=${details.id}`;
-    });
 }
