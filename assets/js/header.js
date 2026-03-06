@@ -227,3 +227,18 @@ function initPayPalButtons() {
     }
   }).render("#paypal-button-container");
 }
+
+// Suppress PayPal sandbox console warnings (developer convenience only)
+if (console && console.warn) {
+  const originalWarn = console.warn;
+  console.warn = function (...args) {
+    if (typeof args[0] === 'string' && (
+      args[0].includes('Partitioned cookie') ||
+      args[0].includes('HTTP Referrer header') ||
+      args[0].includes('sandbox.paypal.com')
+    )) {
+      return; // ignore PayPal sandbox spam
+    }
+    originalWarn.apply(console, args);
+  };
+}
