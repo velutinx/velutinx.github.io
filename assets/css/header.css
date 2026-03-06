@@ -6,7 +6,7 @@
   --text-light: #e8e5d8;
   --accent: #aa9e76;
   --success: #22c55e;
-  --red-discount: #a64a5c;
+  --red-discount: #a64a5c; /* kept for other uses, but we override badge below */
   --gray: #8a7b6f;
   --border: #aa9e76;
   --overlay: rgba(170,158,118,0.25);
@@ -261,13 +261,14 @@ body.dark .logo {
   height: 28px !important;
 }
 
-/* Badge (same for both) */
+/* Badge – brighter red + perfect centering */
 .cart-badge,
 .floating-badge {
   position: absolute !important;
-  top: -8px !important;
-  right: -8px !important;
-  background: var(--red-discount) !important;
+  top: 0 !important;
+  right: 0 !important;
+  transform: translate(50%, -50%) !important; /* perfect center alignment */
+  background: #ef4444 !important; /* brighter red */
   color: white !important;
   font-size: 0.75rem !important;
   font-weight: bold !important;
