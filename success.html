@@ -155,11 +155,10 @@
     const token = urlParams.get("token");
     const section = document.getElementById("download-section");
 
-    // 1. Get the items from the cart
     const savedCart = localStorage.getItem("velutinx_cart");
     const cart = savedCart ? JSON.parse(savedCart) : [];
     
-    // 2. Map IDs carefully (Converts "item-178", "pack-178", or "178" to "PACK178")
+    // This part matches your Vault names
     const itemNames = cart.map(item => {
         let id = item.id.toLowerCase();
         if (id.includes('item-')) id = id.replace('item-', 'pack');
@@ -170,40 +169,31 @@
     if (!token) {
         section.innerHTML = `<p class="error-text">No payment token found.</p>`;
     } else if (cart.length === 0) {
-        // This shows if the user refreshed or the cart was already wiped
-        section.innerHTML = `
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px dashed #ccc;">
-                <p><strong>Links already delivered.</strong></p>
-                <p style="font-size: 0.9em;">If your buttons disappeared, please refresh or contact support with your order ID.</p>
-            </div>`;
+        // Updated message to help you debug
+        section.innerHTML = `<p class="error-text">Your cart is empty. Go back to the shop and add items before visiting this page.</p>`;
     } else {
-        // 3. Fetch from your Cloudflare Function
-        // We add a console.log so you can see what is being sent in the browser F12 menu
-        console.log("Requesting links for:", itemNames);
-
+        // Fetch from Cloudflare
         fetch(`/get-download?token=${token}&items=${itemNames}`)
             .then(res => res.json())
             .then(data => {
                 if (data.items && data.items.length > 0) {
-                    let html = `<p style="margin-bottom:15px;">Your files are ready:</p>`;
+                    let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
                     data.items.forEach(item => {
                         html += `
-                            <a href="${item.link}" class="download-item" target="_blank">
-                                <span>${item.title}</span>
-                                <span>Download Now ↓</span>
+                            <a href="${item.link}" class="download-item" target="_blank" style="display:block; background:#49BEFF; color:white; padding:15px; margin-bottom:10px; border-radius:8px; text-decoration:none; text-align:center;">
+                                Download ${item.title} ↓
                             </a>`;
                     });
                     section.innerHTML = html;
                     
-                    // Only clear cart after links are shown
-                    localStorage.removeItem("velutinx_cart");
+                    // DELETED: localStorage.removeItem("velutinx_cart"); 
+                    // (I removed the delete line so you can refresh during testing!)
                 } else {
-                    // This tells us exactly what name the code looked for but couldn't find
-                    section.innerHTML = `<p class="error-text">Vault Error: Could not find files for [${itemNames}]. Please contact support.</p>`;
+                    section.innerHTML = `<p class="error-text">Vault Error: The vault doesn't recognize [${itemNames}]. Check your get-download.js file names.</p>`;
                 }
             })
             .catch(err => {
-                section.innerHTML = `<p class="error-text">Connection error. Please refresh the page.</p>`;
+                section.innerHTML = `<p class="error-text">Fetch Error. Is your Cloudflare Worker/Function active?</p>`;
             });
     }
 </script>
