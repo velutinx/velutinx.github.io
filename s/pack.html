@@ -40,6 +40,7 @@
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
+    /* Removed conflicting badge styles here — header.css now controls them */
   </style>
 </head>
 <body>
@@ -67,7 +68,7 @@
         </svg>
       </button>
       <div class="cart-wrapper">
-        <button class="nav-icon" id="cartBtn">
+        <button class="nav-icon cart-icon" id="cartBtn">
           <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
             <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -82,16 +83,15 @@
     </div>
   </nav>
 
-  <!-- Floating cart button added here -->
-<button class="floating-cart" id="floatingCartBtn" title="Shopping Cart">
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-    <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-    <path d="M17 17h-11v-14h-2"></path>
-    <path d="M6 5l14 1l-1 7h-13"></path>
-  </svg>
-  <span class="floating-badge" id="floatingCartCount">0</span>
-</button>
+  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
 
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
