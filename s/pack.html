@@ -24,7 +24,9 @@
     .thumb { width: 90px; height: 120px; object-fit: cover; border-radius: 6px; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; opacity: 0.8; }
     .thumb.active, .thumb:hover { border-color: #5D87FF; opacity: 1; transform: scale(1.04); }
     .info { padding: 28px; }
-    h1 { font-size: 2.1rem; margin-bottom: 20px; color: var(--text); }
+    h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
+    .category-info { font-size: 1.25rem; color: var(--gray); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .category-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; }
     .contents-section { margin: 20px 0 8px 0; text-align: left; }
     .contents-title { font-weight: bold; font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
     .contents-list { list-style-type: disc; padding-left: 24px; margin: 0; }
@@ -40,7 +42,6 @@
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
-    /* Removed conflicting badge styles here — header.css now controls them */
   </style>
 </head>
 <body>
@@ -121,6 +122,8 @@
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
+          <!-- NEW: Category gender display (only for 1 or 2) -->
+          <div class="category-info" id="categoryInfo"></div>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="contents-section" id="contentsSection">
@@ -143,6 +146,39 @@
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
+
+    // NEW: Function to show category gender
+    window.updateCategoryDisplay = function() {
+      const catInfo = document.getElementById("categoryInfo");
+      if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
+        catInfo.style.display = "none";
+        return;
+      }
+
+      let iconSVG = "";
+      let text = "";
+
+      if (pack.category === 1) {
+        // Female symbol (from store.html)
+        iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="7" r="4"/>
+          <line x1="12" y1="11" x2="12" y2="21"/>
+          <line x1="8" y1="17" x2="16" y2="17"/>
+        </svg>`;
+        text = "Female";
+      } else if (pack.category === 2) {
+        // Femboy symbol (from store.html)
+        iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="15" r="5"/>
+          <line x1="12.5" y1="11.5" x2="20" y2="4"/>
+          <polyline points="16,4 20,4 20,8"/>
+        </svg>`;
+        text = "Femboy";
+      }
+
+      catInfo.innerHTML = `${iconSVG} ${text}`;
+      catInfo.style.display = "flex";
+    };
 
     window.updatePriceDisplay = function() {
       if (!pack) return;
@@ -197,6 +233,10 @@
       document.getElementById("title").textContent = "Pack not found";
     } else {
       document.getElementById("title").textContent = pack.title;
+
+      // NEW: Call category display update
+      window.updateCategoryDisplay();
+
       document.getElementById("gallery").innerHTML = `
         <div class="carousel"><div class="slides" id="slides">${pack.images.map(img => `<div class="slide"><img src="${img}"></div>`).join("")}</div>
         <button class="arrow prev" onclick="prevSlide()">❮</button><button class="arrow next" onclick="nextSlide()">❯</button></div>
@@ -226,6 +266,7 @@
         window.updatePriceDisplay();
         window.updateButton();
         window.updateContents();
+        window.updateCategoryDisplay?.(); // also update on lang change if needed
       };
     });
   </script>
