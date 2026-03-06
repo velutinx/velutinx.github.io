@@ -4,9 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx Pack</title>
-
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
-
   <style>
     .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
@@ -52,9 +50,9 @@
     .info { padding: 28px; }
     h1 { font-size: 2.1rem; margin-bottom: 20px; color: var(--text); }
     .contents-section { margin: 20px 0 8px 0; text-align: left; }
-    .contents-title { font-weight: bold; font-size: 1.4rem; color: #000; margin-bottom: 8px; }
+    .contents-title { font-weight: bold; font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
     .contents-list { list-style-type: disc; padding-left: 24px; margin: 0; }
-    .contents-list li { font-size: 1.1rem; color: #000; margin-bottom: 6px; }
+    .contents-list li { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
     .price-section {
       margin: 28px 0; padding: 20px;
       background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25);
@@ -72,20 +70,61 @@
     .btn-buy:hover { background: #4570ea; }
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
-    .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: #555; display: flex; align-items: center; gap: 8px; }
+    .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text-light); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
     .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
+
+    /* Dark mode fixes - ensure all text adapts */
+    body.dark .contents-section,
+    body.dark .contents-section *,
+    body.dark .contents-list,
+    body.dark .contents-list li,
+    body.dark .contents-title {
+      color: var(--text) !important;
+    }
+
+    body.dark .price-section,
+    body.dark .price-label,
+    body.dark .old-price,
+    body.dark .current-price,
+    body.dark .save,
+    body.dark #priceSection * {
+      color: var(--text-light) !important;
+    }
+
+    body.dark .current-price {
+      color: var(--red-discount) !important;
+    }
+
+    body.dark #disclaimer,
+    body.dark #disclaimer * {
+      color: var(--text) !important;
+    }
+
+    body.dark #disclaimer svg {
+      fill: #FFC107 !important;
+      stroke: var(--border) !important;
+    }
+
+    /* Force vertical stacking, no columns */
+    #disclaimer {
+      display: block !important;
+      column-count: 1 !important;
+      columns: 1 !important;
+      flex-direction: column !important;
+    }
+    #disclaimer > div {
+      width: 100% !important;
+      margin-bottom: 16px !important;
+    }
   </style>
 </head>
 <body>
-
   <div class="lang-swipe" id="langSwipe"></div>
-
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
       <button class="login-btn" id="loginBtn">Website</button>
-
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -103,14 +142,12 @@
           <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX" /><p>Español (MXN)</p></div>
         </div>
       </div>
-
       <button class="nav-icon" id="themeBtn" title="Night Mode">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
           <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
-
       <div class="cart-wrapper">
         <button class="nav-icon" id="cartBtn" title="Cart">
           <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -126,7 +163,6 @@
       </div>
     </div>
   </nav>
-
   <button class="floating-cart" id="floatingCartBtn" title="Cart">
     <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -136,7 +172,6 @@
     </svg>
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
-
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -151,34 +186,29 @@
       <div id="paypal-button-container"></div>
     </div>
   </div>
-
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
     </svg>
     <span id="snackText">Added successfully</span>
   </div>
-
   <main class="container">
     <div class="product">
       <div class="gallery-card" id="gallery">
         <p>Loading pack...</p>
       </div>
-
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="note" id="note"></div>
-
-          <div class="contents-section">
-            <div class="contents-title">Contents:</div>
+          <div class="contents-section" id="contentsSection">
+            <div class="contents-title" id="contentsTitle">Contents:</div>
             <ul class="contents-list">
               <li id="illustrationCount"></li>
             </ul>
           </div>
-
           <div class="disclaimer" id="disclaimer"></div>
         </div>
       </div>
@@ -189,104 +219,117 @@
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Pack data -->
-<script type="module">
-  import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
+  <script type="module">
+    import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
-  function updatePriceDisplay(pack) {
-    const priceNum = window.getPriceForPack?.(pack) ?? 0;
-    const html = `
-      <div>
-        <span class="price-label">Original Price:</span>
-        <span class="old-price">${pack.oldPrice || ""}</span>
-      </div>
-      <div style="margin-top:8px;">
-        <span class="price-label">Current Price:</span>
-        <span class="current-price">${window.formatPrice?.(priceNum) ?? "N/A"}</span>
-      </div>
-      <div class="save">${pack.saveText || ""}</div>
-    `;
-    document.getElementById("priceSection").innerHTML = html;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  const packId = params.get("id") || "001";
-  const pack = packsData.find(p => p.id === packId);
-
-  if (!pack) {
-    document.getElementById("title").textContent = "Pack not found";
-    document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
-  } else {
-    document.getElementById("title").textContent = pack.title;
-
-    document.getElementById("gallery").innerHTML = `
-      <div class="carousel">
-        <div class="slides" id="slides">
-          ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
+    function updatePriceDisplay(pack) {
+      const priceNum = window.getPriceForPack?.(pack) ?? 0;
+      const html = `
+        <div>
+          <span class="price-label">Original Price:</span>
+          <span class="old-price">${pack.oldPrice || ""}</span>
         </div>
-        <button class="arrow prev" onclick="prevSlide()">❮</button>
-        <button class="arrow next" onclick="nextSlide()">❯</button>
-      </div>
-      <div class="thumbnails">
-        ${pack.images.map((img, i) => `
-          <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
-        `).join("")}
-      </div>
-    `;
+        <div style="margin-top:8px;">
+          <span class="price-label">Current Price:</span>
+          <span class="current-price">${window.formatPrice?.(priceNum) ?? "N/A"}</span>
+        </div>
+        <div class="save">${pack.saveText || ""}</div>
+      `;
+      document.getElementById("priceSection").innerHTML = html;
+    }
 
-    updatePriceDisplay(pack);
+    const params = new URLSearchParams(window.location.search);
+    const packId = params.get("id") || "001";
+    const pack = packsData.find(p => p.id === packId);
 
-    const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-    document.getElementById("buttons").innerHTML = `
-      <button class="btn btn-cart" id="addCartBtn">
-        ${isInCart ? "Remove from Cart" : "Add to Cart"}
-      </button>
-    `;
+    if (!pack) {
+      document.getElementById("title").textContent = "Pack not found";
+      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
+    } else {
+      document.getElementById("title").textContent = pack.title;
 
-    document.getElementById("addCartBtn").addEventListener("click", () => {
-      window.addOrToggleCart?.(pack);
-      const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-      document.getElementById("addCartBtn").textContent = nowInCart ? "Remove from Cart" : "Add to Cart";
+      document.getElementById("gallery").innerHTML = `
+        <div class="carousel">
+          <div class="slides" id="slides">
+            ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
+          </div>
+          <button class="arrow prev" onclick="prevSlide()">❮</button>
+          <button class="arrow next" onclick="nextSlide()">❯</button>
+        </div>
+        <div class="thumbnails">
+          ${pack.images.map((img, i) => `
+            <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
+          `).join("")}
+        </div>
+      `;
 
-      const snack = document.getElementById("snackbar");
-      if (snack) {
+      updatePriceDisplay(pack);
+
+      const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+      document.getElementById("buttons").innerHTML = `
+        <button class="btn btn-cart" id="addCartBtn">
+          ${isInCart ? "Remove from Cart" : "Add to Cart"}
+        </button>
+      `;
+
+      document.getElementById("addCartBtn").addEventListener("click", () => {
+        window.addOrToggleCart?.(pack);
+        const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+        document.getElementById("addCartBtn").textContent = nowInCart ? "Remove from Cart" : "Add to Cart";
+
+        const snack = document.getElementById("snackbar");
         document.getElementById("snackText").textContent = nowInCart ? "Added successfully" : "Removed from cart";
         snack.classList.add("show");
         setTimeout(() => snack.classList.remove("show"), 2400);
-      }
 
-      window.updateCartDisplay?.();
-    });
+        window.updateCartDisplay?.();
+      });
 
-    document.getElementById("illustrationCount").textContent = 
-      `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
+      // Dynamic contents with translation
+      const updateContents = () => {
+        const t = translations[currentLang] || translations.en;
+        document.getElementById("contentsTitle").textContent = t.contentsTitle;
+        document.getElementById("illustrationCount").textContent = 
+          t.contentsDesc.replace("{count}", pack.illustrationCount);
+      };
+      updateContents();
 
-    window.updateDisclaimers?.();
-
-    const slides = document.getElementById('slides');
-    const thumbs = document.querySelectorAll('.thumb');
-    let current = 0;
-    const total = pack.images.length;
-    function update() {
-      slides.style.transform = `translateX(-${current * 100}%)`;
-      thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
-    }
-    window.prevSlide = () => { current = (current - 1 + total) % total; update(); };
-    window.nextSlide = () => { current = (current + 1) % total; update(); };
-    window.goToSlide = (i) => { current = i; update(); };
-    update();
-  }
-
-  document.querySelectorAll(".lang-item").forEach(item => {
-    item.addEventListener("click", () => {
-      window.setLanguage?.(item.dataset.lang);
-      if (pack) updatePriceDisplay(pack);
+      // Disclaimer (handled by shared function)
       window.updateDisclaimers?.();
+
+      document.getElementById("illustrationCount").textContent = 
+        `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
+
+      const slides = document.getElementById('slides');
+      const thumbs = document.querySelectorAll('.thumb');
+      let current = 0;
+      const total = pack.images.length;
+      function update() {
+        slides.style.transform = `translateX(-${current * 100}%)`;
+        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+      }
+      window.prevSlide = () => { current = (current - 1 + total) % total; update(); };
+      window.nextSlide = () => { current = (current + 1) % total; update(); };
+      window.goToSlide = (i) => { current = i; update(); };
+      update();
+    }
+
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        window.setLanguage?.(item.dataset.lang);
+        if (pack) updatePriceDisplay(pack);
+
+        // Update contents on language change
+        const t = translations[currentLang] || translations.en;
+        document.getElementById("contentsTitle").textContent = t.contentsTitle;
+        document.getElementById("illustrationCount").textContent = 
+          t.contentsDesc.replace("{count}", pack.illustrationCount);
+
+        window.updateDisclaimers?.();
+      });
     });
-  });
 
-  window.updateCartDisplay?.();
-</script>
-
+    window.updateCartDisplay?.();
+  </script>
 </body>
 </html>
