@@ -193,6 +193,7 @@
 <script type="module">
   import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
+  // Update price based on language/currency
   function updatePriceDisplay(pack) {
     const priceNum = window.getPriceForPack(pack);
     const html = `
@@ -209,6 +210,17 @@
     document.getElementById("priceSection").innerHTML = html;
   }
 
+  // Open cart drawer (reuses the same logic as header/cart buttons)
+  function openCartDrawer() {
+    const drawer = document.getElementById("cartDrawer");
+    if (drawer) {
+      drawer.classList.add("open");          // most common class for slide-in
+      document.body.classList.add("cart-open"); // sometimes blocks scroll or adds overlay
+      window.updateCartDisplay();            // refresh contents just in case
+    }
+  }
+
+  // Load selected pack
   const params = new URLSearchParams(window.location.search);
   const packId = params.get("id") || "001";
   const pack = packsData.find(p => p.id === packId);
@@ -219,6 +231,7 @@
   } else {
     document.getElementById("title").textContent = pack.title;
 
+    // Gallery setup
     document.getElementById("gallery").innerHTML = `
       <div class="carousel">
         <div class="slides" id="slides">
@@ -236,28 +249,41 @@
 
     updatePriceDisplay(pack);
 
+    // Buttons with correct cart state
     const isInCart = window.getCart().some(item => item.id === pack.id);
     document.getElementById("buttons").innerHTML = `
-      <button class="btn btn-buy">Buy Now</button>
-      <button class="btn btn-cart" id="cartBtn">
+      <button class="btn btn-buy" id="buyNowBtn">Buy Now</button>
+      <button class="btn btn-cart" id="addCartBtn">
         ${isInCart ? "Remove from Cart" : "Add to Cart"}
       </button>
     `;
 
-    document.getElementById("cartBtn").addEventListener("click", () => {
+    // Add to Cart toggle
+    document.getElementById("addCartBtn").addEventListener("click", () => {
       window.addOrToggleCart(pack);
-      const nowIn = window.getCart().some(item => item.id === pack.id);
-      document.getElementById("cartBtn").textContent = nowIn ? "Remove from Cart" : "Add to Cart";
-
+      const nowInCart = window.getCart().some(item => item.id === pack.id);
+      
+      document.getElementById("addCartBtn").textContent = 
+        nowInCart ? "Remove from Cart" : "Add to Cart";
+      
+      // Snackbar feedback
       const snack = document.getElementById("snackbar");
-      document.getElementById("snackText").textContent = nowIn ? "Added successfully" : "Removed from cart";
+      document.getElementById("snackText").textContent = 
+        nowInCart ? "Added successfully" : "Removed from cart";
       snack.classList.add("show");
       setTimeout(() => snack.classList.remove("show"), 2400);
 
       window.updateCartDisplay();
     });
 
-    document.getElementById("illustrationCount").textContent = `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
+    // Buy Now → just open the cart drawer (same animation as cart icon click)
+    document.getElementById("buyNowBtn").addEventListener("click", () => {
+      openCartDrawer();
+    });
+
+    // Contents & disclaimer (unchanged)
+    document.getElementById("illustrationCount").textContent = 
+      `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
 
     document.getElementById("disclaimer").innerHTML = `
       <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -268,6 +294,7 @@
       <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
     `;
 
+    // Carousel logic (unchanged)
     const slides = document.getElementById('slides');
     const thumbs = document.querySelectorAll('.thumb');
     let current = 0;
@@ -282,6 +309,7 @@
     update();
   }
 
+  // Language switch updates price
   document.querySelectorAll(".lang-item").forEach(item => {
     item.addEventListener("click", () => {
       window.setLanguage(item.dataset.lang);
@@ -289,7 +317,8 @@
     });
   });
 
-  window.updateCartDisplay();
+  // Ensure cart is up-to-date on load
+  window.updateCartDisplay?.();
 </script>
 
 </body>
