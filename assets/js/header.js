@@ -254,7 +254,7 @@ function initPayPalButtons() {
 
     onApprove: (data, actions) => {
       return actions.order.capture().then(async (details) => {
-        // 1. Get the items from the cart for the database
+        // 1. Get the items from the cart
         const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
         const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
 
@@ -262,13 +262,12 @@ function initPayPalButtons() {
         const orderData = {
           paypal_token: details.id,
           paypal_email: details.payer.email_address,
-          amount: details.purchase_units[0].payments.captures[0].amount.value,
+          amount: details.purchase_units[0].amount ? details.purchase_units[0].amount.value : 0,
           cart: itemNames,
           status: 'COMPLETED'
         };
 
-        // 3. Send to your Cloudflare Function to save in Supabase
-        // Note: Use /save-order (matches your file name in /functions)
+        // 3. Save to Supabase via your Cloudflare Function
         try {
           await fetch('/save-order', {
             method: 'POST',
