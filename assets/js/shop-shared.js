@@ -22,7 +22,9 @@
       snackText: "Added successfully",
       loginBtn: "Website",
       disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-      disclaimerRefund: "Digital products are non-refundable after purchase."
+      disclaimerRefund: "Digital products are non-refundable after purchase.",
+      contentsTitle: "Contents:",
+      contentsDesc: "ZIP file containing {count} AI-generated illustrations"
     },
     ja: {
       shopTitle: "マイストア",
@@ -43,7 +45,9 @@
       snackText: "カートに追加しました",
       loginBtn: "ウェブサイト",
       disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-      disclaimerRefund: "デジタル商品は購入後の返金はできません。"
+      disclaimerRefund: "デジタル商品は購入後の返金はできません。",
+      contentsTitle: "内容：",
+      contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル"
     },
     zh: {
       shopTitle: "我的商店",
@@ -64,7 +68,9 @@
       snackText: "已成功添加到购物车",
       loginBtn: "网站",
       disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
-      disclaimerRefund: "数字产品购买后不可退款。"
+      disclaimerRefund: "数字产品购买后不可退款。",
+      contentsTitle: "内容：",
+      contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件"
     },
     es: {
       shopTitle: "Mi Tienda",
@@ -85,7 +91,9 @@
       snackText: "Añadido con éxito",
       loginBtn: "Sitio web",
       disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
-      disclaimerRefund: "Los productos digitales no son reembolsables después de la compra."
+      disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
+      contentsTitle: "Contenido:",
+      contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA"
     }
   };
 
@@ -205,7 +213,7 @@
     document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
       if (el) {
         el.textContent = count;
-        el.style.display = 'inline-block'; // force visible
+        el.style.display = 'inline-block';
       }
     });
 
@@ -311,7 +319,6 @@
     updateDisclaimers();
     setLanguage(currentLang);
 
-    // Safety net for cart badge on load
     setTimeout(updateCartDisplay, 300);
 
     const itemsEl = document.getElementById("cartItems");
