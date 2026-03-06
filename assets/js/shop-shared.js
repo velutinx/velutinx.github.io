@@ -299,140 +299,138 @@
     });
   }
 
-/* ==================== PAYPAL INTEGRATION ==================== */
-function loadAndInitPayPal() {
-  if (window.paypalLoaded) return;
-  window.paypalLoaded = true;
+  /* ==================== PAYPAL INTEGRATION ==================== */
+  function loadAndInitPayPal() {
+    if (window.paypalLoaded) return;
+    window.paypalLoaded = true;
 
-  console.log("[PayPal] Starting SDK load via proxy /paypal-sdk");
+    console.log("[PayPal] Starting SDK load via proxy /paypal-sdk");
 
-  const loader = document.createElement('script');
-  loader.src = "/paypal-sdk";
-  loader.async = true;
+    const loader = document.createElement('script');
+    loader.src = "/paypal-sdk";
+    loader.async = true;
 
-  loader.onload = () => {
-    console.log("[PayPal] Proxy script tag loaded successfully");
+    loader.onload = () => {
+      console.log("[PayPal] Proxy script tag loaded successfully");
 
-    // Debug: log what the proxy returned
-    console.log("[PayPal] Checking if proxy loaded valid SDK...");
+      let attempts = 0;
+      const maxAttempts = 100;
+      const interval = setInterval(() => {
+        attempts++;
 
-    let attempts = 0;
-    const maxAttempts = 100; // ~50 seconds max
-    const interval = setInterval(() => {
-      attempts++;
+        if (typeof window.paypal !== 'undefined' && typeof window.paypal.Buttons === 'function') {
+          clearInterval(interval);
+          console.log("[PayPal] SUCCESS: window.paypal is ready after " + attempts + " attempts");
+          initPayPalButtons();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          console.error("[PayPal] FAILED: window.paypal never appeared after " + maxAttempts + " attempts");
+          alert("PayPal failed to initialize. Please check console or try again later.");
+        } else if (attempts % 10 === 0) {
+          console.log("[PayPal] Still waiting for paypal global... attempt " + attempts + "/" + maxAttempts);
+        }
+      }, 500);
+    };
 
-      if (typeof window.paypal !== 'undefined' && typeof window.paypal.Buttons === 'function') {
-        clearInterval(interval);
-        console.log("[PayPal] SUCCESS: window.paypal is ready after " + attempts + " attempts");
-        initPayPalButtons();
-      } else if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        console.error("[PayPal] FAILED: window.paypal never appeared after " + maxAttempts + " attempts");
-        alert("PayPal failed to initialize. Please check console or try again later.");
-      } else if (attempts % 10 === 0) {
-        console.log("[PayPal] Still waiting for paypal global... attempt " + attempts + "/" + maxAttempts);
-      }
-    }, 500);
-  };
+    loader.onerror = (e) => {
+      console.error("[PayPal] Proxy script /paypal-sdk failed to load", e);
+      alert("Failed to load PayPal SDK proxy. Check console.");
+    };
 
-  loader.onerror = (e) => {
-    console.error("[PayPal] Proxy script /paypal-sdk failed to load", e);
-    alert("Failed to load PayPal SDK proxy. Check console.");
-  };
-
-  document.head.appendChild(loader);
-}
-
-function initPayPalButtons() {
-  const container = document.getElementById("paypal-button-container");
-  if (!container) {
-    console.warn("[PayPal] No #paypal-button-container found");
-    return;
+    document.head.appendChild(loader);
   }
 
-  console.log("[PayPal] Attempting to render buttons");
-
-  container.innerHTML = '<div>Loading PayPal...</div>'; // visual feedback
-
-  try {
-    if (typeof paypal === 'undefined') {
-      throw new Error("paypal is still undefined");
+  function initPayPalButtons() {
+    const container = document.getElementById("paypal-button-container");
+    if (!container) {
+      console.warn("[PayPal] No #paypal-button-container found");
+      return;
     }
 
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        const cart = getCart();
-        if (cart.length === 0) {
-          alert("Your cart is empty!");
-          return Promise.reject();
-        }
+    console.log("[PayPal] Attempting to render buttons");
 
-        const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-        console.log("[PayPal] Order total: $" + total);
+    container.innerHTML = '<div>Loading PayPal...</div>';
 
-        return actions.order.create({
-          purchase_units: [{
-            amount: {
-              currency_code: "USD",
-              value: total
-            },
-            description: "Velutinx Digital Content Purchase"
-          }]
-        });
-      },
-
-      onApprove: async (data, actions) => {
-        console.log("[PayPal] Payment approved - capturing...");
-        try {
-          const details = await actions.order.capture();
-          console.log("[PayPal] Capture success:", details);
-          alert(`Payment successful! Thank you ${details.payer.name.given_name || 'customer'}! Order ID: ${details.id}`);
-          window.location.href = `/success.html?orderID=${details.id}`;
-        } catch (err) {
-          console.error("[PayPal] Capture error:", err);
-          alert("Payment capture failed. Please contact support.");
-        }
-      },
-
-      onCancel: () => {
-        console.log("[PayPal] Cancelled by user");
-        alert("Payment cancelled");
-      },
-
-      onError: (err) => {
-        console.error("[PayPal] Button runtime error:", err);
-        alert("PayPal error. Check console or try again.");
+    try {
+      if (typeof paypal === 'undefined') {
+        throw new Error("paypal is still undefined");
       }
 
-    }).render("#paypal-button-container")
-      .then(() => console.log("[PayPal] Render completed successfully"))
-      .catch(err => console.error("[PayPal] Render promise rejected:", err));
+      paypal.Buttons({
+        createOrder: (data, actions) => {
+          const cart = getCart();
+          if (cart.length === 0) {
+            alert("Your cart is empty!");
+            return Promise.reject();
+          }
 
-  } catch (err) {
-    console.error("[PayPal] Fatal init error:", err);
-    container.innerHTML = '<div style="color:red;">PayPal failed to load. Check console.</div>';
+          const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+          console.log("[PayPal] Order total: $" + total);
+
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                currency_code: "USD",
+                value: total
+              },
+              description: "Velutinx Digital Content Purchase"
+            }]
+          });
+        },
+
+        onApprove: async (data, actions) => {
+          console.log("[PayPal] Payment approved - capturing...");
+          try {
+            const details = await actions.order.capture();
+            console.log("[PayPal] Capture success:", details);
+            alert(`Payment successful! Thank you ${details.payer.name.given_name || 'customer'}! Order ID: ${details.id}`);
+            window.location.href = `/success.html?orderID=${details.id}`;
+          } catch (err) {
+            console.error("[PayPal] Capture error:", err);
+            alert("Payment capture failed. Please contact support.");
+          }
+        },
+
+        onCancel: () => {
+          console.log("[PayPal] Cancelled by user");
+          alert("Payment cancelled");
+        },
+
+        onError: (err) => {
+          console.error("[PayPal] Button runtime error:", err);
+          alert("PayPal error. Check console or try again.");
+        }
+
+      }).render("#paypal-button-container")
+        .then(() => console.log("[PayPal] Render completed successfully"))
+        .catch(err => console.error("[PayPal] Render promise rejected:", err));
+
+    } catch (err) {
+      console.error("[PayPal] Fatal init error:", err);
+      container.innerHTML = '<div style="color:red;">PayPal failed to load. Check console.</div>';
+    }
   }
-}
 
-// Trigger on cart open + initial check
-document.addEventListener("DOMContentLoaded", () => {
-  const cartBtn = document.getElementById("cartBtn");
-  const floatingCartBtn = document.getElementById("floatingCartBtn");
+  // Trigger on cart open + initial check
+  document.addEventListener("DOMContentLoaded", () => {
+    const cartBtn = document.getElementById("cartBtn");
+    const floatingCartBtn = document.getElementById("floatingCartBtn");
 
-  const openCartHandler = () => {
-    console.log("[PayPal] Cart opened → loading SDK");
-    loadAndInitPayPal();
-  };
-
-  cartBtn?.addEventListener("click", openCartHandler);
-  floatingCartBtn?.addEventListener("click", openCartHandler);
-
-  // One-time check on load
-  setTimeout(() => {
-    if (document.getElementById("cartDrawer")?.classList.contains("open") ||
-        document.querySelector("#paypal-button-container")) {
-      console.log("[PayPal] Detected cart elements on load → forcing SDK init");
+    const openCartHandler = () => {
+      console.log("[PayPal] Cart opened → loading SDK");
       loadAndInitPayPal();
-    }
-  }, 2000);
-});();
+    };
+
+    cartBtn?.addEventListener("click", openCartHandler);
+    floatingCartBtn?.addEventListener("click", openCartHandler);
+
+    setTimeout(() => {
+      if (document.getElementById("cartDrawer")?.classList.contains("open") ||
+          document.querySelector("#paypal-button-container")) {
+        console.log("[PayPal] Detected cart elements on load → forcing SDK init");
+        loadAndInitPayPal();
+      }
+    }, 2000);
+  });
+
+})();  // ← correct closing — no extra ()
