@@ -280,14 +280,18 @@ function setLanguage(lang) {
 
 /* ==================== DOM READY ==================== */
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadPrices();
+  // Load prices if needed
+  // await loadPrices();   ← comment out if you don't have /prices endpoint
+
   setLanguage(currentLang);
 
   // 1. VELUTINX logo click → redirect to store
   const logo = document.querySelector(".logo");
   if (logo) {
     logo.style.cursor = "pointer";
-    logo.addEventListener("click", () => {
+    logo.addEventListener("click", (e) => {
+      // Prevent bubbling if needed
+      e.preventDefault();
       window.location.href = "https://velutinx.com/store";
     });
   }
@@ -295,7 +299,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 2. Website button click → redirect to main site
   const loginBtn = document.getElementById("loginBtn");
   if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
+    loginBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       window.location.href = "https://velutinx.com/";
     });
   }
