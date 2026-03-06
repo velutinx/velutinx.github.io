@@ -34,7 +34,6 @@
             border: 1px solid #eee;
         }
 
-        /* Force all text to be black/dark for readability */
         .success-container h1 {
             color: #000000;
             margin-bottom: 8px;
@@ -64,7 +63,7 @@
         .download-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             background: #49BEFF;
             color: white !important;
             text-decoration: none;
@@ -131,63 +130,82 @@
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
         
-        <h1>Purchase Confirmed!</h1>
-        <p>Order Number: <span class="order-number" id="order-id">#00001</span></p>
+        <h1 id="confTitle">Confirming...</h1>
+        <p><span id="orderLabel">Order Number:</span> <span class="order-number" id="order-id">#00000</span></p>
 
         <div id="download-section">
-            <p class="loading-dots">Preparing your digital assets</p>
+            <p class="loading-dots" id="loadingText">Preparing your digital assets</p>
         </div>
 
         <div class="disclaimer-box">
-            <p><strong>Support:</strong> If you have any issues, please message me on <strong>Discord (velutinxx)</strong> or email <strong>support@velutinx.com</strong>.</p>
-            
-            <p class="id-note">
-                <strong>Identification:</strong> When contacting support, please include your <strong>Order Number</strong> and your <strong>PayPal Email</strong> address. This helps me verify your transaction quickly.
-            </p>
-            
-            <p><strong>Notice:</strong> Download links are valid for 24 hours. Please do not share these links with others.</p>
+            <p id="supportText"></p>
+            <p id="idText" class="id-note"></p>
+            <p id="noticeText" style="font-weight: bold;"></p>
         </div>
     </div>
 </div>
 
+<script src="header.js"></script>
+
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    const section = document.getElementById("download-section");
-    const orderIdSpan = document.getElementById("order-id"); // The span we just made
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        const lang = urlParams.get("lang") || "en";
+        
+        // 1. Get translations from the object in header.js
+        const t = (typeof translations !== 'undefined') ? (translations[lang] || translations.en) : {
+            confTitle: "Purchase Confirmed!",
+            orderLabel: "Order Number:",
+            readyLabel: "Your files are ready:",
+            dlBtn: "Download",
+            supportText: "Support: Message me on Discord (velutinxx) or email support@velutinx.com.",
+            idText: "Identification: Include your Order Number and PayPal Email.",
+            noticeText: "Notice: Links valid for 24 hours. Do not share."
+        };
 
-    if (!token) {
-        section.innerHTML = `<p class="error-text">No payment token found.</p>`;
-    } else {
-        fetch(`/get-download?token=${token}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.items && data.items.length > 0) {
-                    
-                    // Update Order Number from Supabase
-                    // .padStart(5, '0') turns "2" into "00002"
-                    if (orderIdSpan && data.order_number) {
-                        orderIdSpan.innerText = "#" + data.order_number.toString().padStart(5, '0');
+        // 2. Map UI elements
+        document.getElementById("confTitle").textContent = t.confTitle;
+        document.getElementById("orderLabel").textContent = t.orderLabel;
+        document.getElementById("supportText").innerHTML = t.supportText.replace('Discord (velutinxx)', '<strong>Discord (velutinxx)</strong>').replace('support@velutinx.com', '<strong>support@velutinx.com</strong>');
+        document.getElementById("idText").innerHTML = t.idText.replace('Order Number', '<strong>Order Number</strong>').replace('PayPal Email', '<strong>PayPal Email</strong>');
+        document.getElementById("noticeText").textContent = t.noticeText;
+
+        const section = document.getElementById("download-section");
+        const orderIdSpan = document.getElementById("order-id");
+
+        if (!token) {
+            section.innerHTML = `<p class="error-text">No payment token found.</p>`;
+        } else {
+            fetch(`/get-download?token=${token}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.items && data.items.length > 0) {
+                        // Set the Order ID from Supabase
+                        if (orderIdSpan && data.order_number) {
+                            orderIdSpan.innerText = "#" + data.order_number.toString().padStart(5, '0');
+                        }
+
+                        let html = `<p style="margin-bottom:15px; font-weight:bold;">${t.readyLabel}</p>`;
+                        data.items.forEach(item => {
+                            html += `
+                                <a href="${item.link}" class="download-item" target="_blank">
+                                    ${t.dlBtn} ${item.title} ↓
+                                </a>`;
+                        });
+                        section.innerHTML = html;
+                        
+                        // Clear cart since purchase is done
+                        localStorage.removeItem("velutinx_cart");
+                    } else {
+                        section.innerHTML = `<p class="error-text">Vault Error: Links not found for this order.</p>`;
                     }
-
-                    let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
-                    data.items.forEach(item => {
-                        html += `
-                            <a href="${item.link}" class="download-item" target="_blank" style="display:block; background:#49BEFF; color:white; padding:15px; margin-bottom:10px; border-radius:8px; text-decoration:none; text-align:center;">
-                                Download ${item.title} ↓
-                            </a>`;
-                    });
-                    section.innerHTML = html;
-                    
-                    localStorage.removeItem("velutinx_cart");
-                } else {
-                    section.innerHTML = `<p class="error-text">Vault Error: Links not found for this order.</p>`;
-                }
-            })
-            .catch(err => {
-                section.innerHTML = `<p class="error-text">Server error. Please refresh.</p>`;
-            });
-    }
+                })
+                .catch(err => {
+                    section.innerHTML = `<p class="error-text">Server error. Please refresh.</p>`;
+                });
+        }
+    });
 </script>
 
 </body>
