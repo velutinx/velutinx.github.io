@@ -3,7 +3,7 @@ export async function onRequest(context) {
 
   if (!clientId || typeof clientId !== 'string' || clientId.trim() === '') {
     return new Response(
-      'console.error("PAYPAL_CLIENT_ID missing or invalid in Cloudflare env vars");',
+      'console.error("Missing or invalid PAYPAL_CLIENT_ID in Cloudflare environment variables");',
       {
         status: 500,
         headers: { "Content-Type": "application/javascript" }
@@ -11,24 +11,32 @@ export async function onRequest(context) {
     );
   }
 
-  // Clean client-id (strip any accidental prefixes/suffixes)
-  const cleanClientId = clientId.trim();
+  // Clean and encode only the client-id part
+  const cleanId = clientId.trim();
+  const encodedId = encodeURIComponent(cleanId);
+  const sdkUrl = `https://www.paypal.com/sdk/js?client-id=${encodedId}&currency=USD`;
 
-  const sdkUrl = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cleanClientId)}&currency=USD`;
+  // Safe JS injection: escape quotes and backticks in URL (though not needed for PayPal ID, it's defensive)
+  const escapedUrl = sdkUrl.replace(/`/g, '\\`').replace(/"/g, '\\"');
 
-  // Pure JS that injects the script safely
   const jsCode = `
     (function() {
       const script = document.createElement('script');
-      script.src = "${sdkUrl.replace(/"/g, '\\"')}";  // escape any quotes
+      script.src = "${escapedUrl}";
       script.async = true;
-      script.onload = () => console.log("PayPal SDK loaded OK");
-      script.onerror = (err) => console.error("PayPal SDK load failed", err);
+      script.onload = function() {
+        console.log("PayPal SDK loaded successfully");
+        // Optional: trigger your initPayPal() if not using interval
+        if (typeof window.initPayPal === 'function') window.initPayPal();
+      };
+      script.onerror = function(err) {
+        console.error("PayPal SDK failed to load", err);
+      };
       document.head.appendChild(script);
     })();
   `;
 
-  return new Response(jsCode, {
+  return new Response(jsCode.trim(), {
     headers: {
       "Content-Type": "application/javascript; charset=utf-8",
       "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400"
