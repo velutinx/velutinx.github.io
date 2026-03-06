@@ -10,7 +10,7 @@ export async function onRequest(context) {
     // Add as many as you want here. Just follow the pattern.
     const vault = {
         "PACK001": "https://mega.nz/file/HIUl3LQI#2qV6CTq4mWazPxmSq6Ua0ePI8EqEOifWScjpJ5UnycU",
-        "PACK005": "https://mega.nz/file/6N0WhJrK#AuvjKD8oA8_vv8ELqPut0Dz0CbgQylAyWyN569e89zU",
+        "PACK178": "https://mega.nz/file/6N0WhJrK#AuvjKD8oA8_vv8ELqPut0Dz0CbgQylAyWyN569e89zU",
         "PACK003": "https://mega.nz/another-link-here",
         "PACK010": "https://mega.nz/yet-another-link"
     };
