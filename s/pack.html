@@ -26,7 +26,7 @@
     .info { padding: 28px; }
     h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
     .category-info { 
-      font-size: 1rem;          /* 0.8 of previous 1.25rem */
+      font-size: 1rem; 
       font-weight: bold; 
       text-transform: uppercase; 
       margin-bottom: 20px; 
@@ -132,7 +132,7 @@
       <div class="info-card">
         <div class="info" id="info">
           <h1 id="title">Loading...</h1>
-          <!-- Category gender display -->
+          <!-- Translated & styled category gender -->
           <div class="category-info" id="categoryInfo"></div>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
@@ -157,13 +157,15 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
-    // Show category gender only for 1 or 2
+    // Show translated category gender (only for 1 or 2)
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
       if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
         catInfo.style.display = "none";
         return;
       }
+
+      const t = window.translations[currentLang] || window.translations.en;
 
       let iconSVG = "";
       let textClass = "";
@@ -176,7 +178,7 @@
           <line x1="8" y1="17" x2="16" y2="17"/>
         </svg>`;
         textClass = "female";
-        text = "FEMALE";
+        text = t.catFemale.toUpperCase();
       } else if (pack.category === 2) {
         iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="9" cy="15" r="5"/>
@@ -184,43 +186,43 @@
           <polyline points="16,4 20,4 20,8"/>
         </svg>`;
         textClass = "femboy";
-        text = "FEMBOY";
+        text = t.catFemboy.toUpperCase();
       }
 
       catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text}</span>`;
       catInfo.style.display = "flex";
     };
 
-window.updatePriceDisplay = function() {
-  if (!pack) return;
-  const priceNum = window.getPriceForPack?.(pack) ?? 0;
-  const t = window.translations[currentLang] || window.translations.en;
+    window.updatePriceDisplay = function() {
+      if (!pack) return;
+      const priceNum = window.getPriceForPack?.(pack) ?? 0;
+      const t = window.translations[currentLang] || window.translations.en;
 
-  let priceHTML = `
-    <div>
-      <span class="price-label">${t.currentPrice}</span>
-      <span style="color: var(--gray); margin: 0 8px;">│</span>
-      <span class="current-price">${window.formatPrice?.(priceNum)}</span>
-    </div>
-  `;
+      let priceHTML = `
+        <div>
+          <span class="price-label">${t.currentPrice}</span>
+          <span style="color: var(--gray); margin: 0 8px;">│</span>
+          <span class="current-price">${window.formatPrice?.(priceNum)}</span>
+        </div>
+      `;
 
-  if (pack.oldPrice && pack.oldPrice.trim() !== "") {
-    priceHTML = `
-      <div>
-        <span class="price-label">${t.originalPrice}</span>
-        <span style="color: var(--gray); margin: 0 8px;">│</span>
-        <span class="old-price">${pack.oldPrice}</span>
-      </div>
-      ${priceHTML}
-    `;
-  }
+      if (pack.oldPrice && pack.oldPrice.trim() !== "") {
+        priceHTML = `
+          <div>
+            <span class="price-label">${t.originalPrice}</span>
+            <span style="color: var(--gray); margin: 0 8px;">│</span>
+            <span class="old-price">${pack.oldPrice}</span>
+          </div>
+          ${priceHTML}
+        `;
+      }
 
-  if (pack.saveText) {
-    priceHTML += `<div class="save">${pack.saveText}</div>`;
-  }
+      if (pack.saveText) {
+        priceHTML += `<div class="save">${pack.saveText}</div>`;
+      }
 
-  document.getElementById("priceSection").innerHTML = priceHTML;
-};
+      document.getElementById("priceSection").innerHTML = priceHTML;
+    };
 
     window.updateButton = function() {
       if (!pack) return;
@@ -253,7 +255,7 @@ window.updatePriceDisplay = function() {
     } else {
       document.getElementById("title").textContent = pack.title;
 
-      // Show category gender
+      // Show translated category gender
       window.updateCategoryDisplay();
 
       document.getElementById("gallery").innerHTML = `
@@ -285,7 +287,7 @@ window.updatePriceDisplay = function() {
         window.updatePriceDisplay();
         window.updateButton();
         window.updateContents();
-        window.updateCategoryDisplay?.();
+        window.updateCategoryDisplay();
       };
     });
   </script>
