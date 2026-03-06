@@ -56,11 +56,30 @@
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: #22c55e; }
 
-    /* Snackbar (Shared) */
-    #snackbar { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; }
-    #snackbar.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.0s; }
-    @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
-    @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    /* Snackbar - restored to small top-right style */
+    #snackbar {
+      position: fixed;
+      top: 28px;
+      right: 28px;
+      background: var(--success);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 10px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 1300;
+      transform: translateY(-120px);
+      opacity: 0;
+      transition: all 0.45s ease;
+      min-width: 220px;
+      font-size: 0.95rem;
+    }
+    #snackbar.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -121,6 +140,7 @@
     </div>
   </div>
 
+  <!-- Snackbar - small top-right position restored -->
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
@@ -175,18 +195,20 @@
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Ko-fi Floating Chat Widget (lazy-loaded to avoid Quirks Mode warning) -->
+  <!-- Ko-fi Floating Chat - lazy-loaded to avoid Quirks Mode warning -->
   <script>
-    window.addEventListener("load", () => {
+    window.addEventListener("load", function() {
       const script = document.createElement("script");
       script.src = "https://storage.ko-fi.com/cdn/scripts/overlay-widget.js";
-      script.onload = () => {
-        kofiWidgetOverlay.draw('velutinxstudio', {
-          'type': 'floating-chat',
-          'floating-chat.donateButton.text': 'Support Me',
-          'floating-chat.donateButton.background-color': '#aa9e76',
-          'floating-chat.donateButton.text-color': '#fff'
-        });
+      script.onload = function() {
+        if (typeof kofiWidgetOverlay !== 'undefined') {
+          kofiWidgetOverlay.draw('velutinxstudio', {
+            'type': 'floating-chat',
+            'floating-chat.donateButton.text': 'Support Me',
+            'floating-chat.donateButton.background-color': '#aa9e76',
+            'floating-chat.donateButton.text-color': '#fff'
+          });
+        }
       };
       document.body.appendChild(script);
     });
