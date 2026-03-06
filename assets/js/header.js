@@ -257,36 +257,32 @@ function initPayPalButtons() {
       });
     },
 
-    onApprove: (data, actions) => {
-      return actions.order.capture().then(async (details) => {
-        const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
-        const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
+onApprove: (data, actions) => {
+  return actions.order.capture().then(async (details) => {
+    const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
+    const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
 
-        const orderData = {
-          paypal_token: details.id,
-          paypal_email: details.payer.email_address,
-          amount: details.purchase_units[0].amount ? details.purchase_units[0].amount.value : 0,
-          cart: itemNames,
-          status: 'COMPLETED',
-          lang: currentLang // Capturing the language selected at checkout
-        };
+    const orderData = {
+      paypal_token: details.id,
+      paypal_email: details.payer.email_address,
+      amount: details.purchase_units[0].amount.value,
+      currency: "USD",
+      cart: itemNames,
+      status: 'COMPLETED'
+      // no lang anymore
+    };
 
-        try {
-          await fetch('/save-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-          });
-        } catch (err) {
-          console.error("Supabase Save Error:", err);
-        }
-
-window.location.href = `/success.html?token=${details.id}`;
+    try {
+      await fetch('/save-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
       });
-    },
-
-    onError: (err) => {
-      console.error("PayPal Error:", err);
+    } catch (err) {
+      console.error("Save order error:", err);
     }
-  }).render("#paypal-button-container");
-}
+
+    // Redirect without lang
+    window.location.href = `/success.html?token=${details.id}`;
+  });
+},
