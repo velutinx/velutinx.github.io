@@ -6,9 +6,9 @@
       shopTitle: "My Store",
       filterTitle: "Filter by Category",
       catAll: "All",
-      catNot: "Not On Booth",
-      catFrom: "From Booth",
-      catSisters: "The Sisters Corner",
+      catFemale: "Female",
+      catFemboy: "Femboy",
+      catCollections: "Collections",
       sortTitle: "Sort by",
       sortNewest: "Newest",
       sortOldest: "Oldest",
@@ -33,9 +33,9 @@
       shopTitle: "マイストア",
       filterTitle: "カテゴリでフィルター",
       catAll: "すべて",
-      catNot: "ブースにない",
-      catFrom: "ブースから",
-      catSisters: "シスターズコーナー",
+      catFemale: "女性",
+      catFemboy: "フェンボーイ",
+      catCollections: "コレクション",
       sortTitle: "並び替え",
       sortNewest: "最新",
       sortOldest: "最古",
@@ -60,9 +60,9 @@
       shopTitle: "我的商店",
       filterTitle: "按类别筛选",
       catAll: "全部",
-      catNot: "不在展位上",
-      catFrom: "来自展位",
-      catSisters: "姐妹角落",
+      catFemale: "女性",
+      catFemboy: "伪娘",
+      catCollections: "收藏",
       sortTitle: "排序方式",
       sortNewest: "最新",
       sortOldest: "最旧",
@@ -87,9 +87,9 @@
       shopTitle: "Mi Tienda",
       filterTitle: "Filtrar por Categoría",
       catAll: "Todos",
-      catNot: "No en Booth",
-      catFrom: "Desde Booth",
-      catSisters: "El Rincón de las Hermanas",
+      catFemale: "Femenino",
+      catFemboy: "Femboy",
+      catCollections: "Colecciones",
       sortTitle: "Ordenar por",
       sortNewest: "Más reciente",
       sortOldest: "Más antiguo",
@@ -273,7 +273,12 @@
     localStorage.setItem("language", lang);
 
     const t = translations[lang] || translations.en;
-    const ids = ["shopTitle", "filterTitle", "catAll", "catNot", "catFrom", "catSisters", "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh", "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"];
+    const ids = [
+      "shopTitle", "filterTitle", "catAll", "catFemale", "catFemboy", "catCollections",
+      "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
+      "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"
+    ];
+
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (el && t[id]) el.textContent = t[id];
