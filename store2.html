@@ -6,6 +6,7 @@
   <title>My Store</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
   <style>
+    /* (your existing styles – unchanged) */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -169,7 +170,7 @@
             <path d="M6.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
             <path d="M17.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
           </svg>
-          <span>All</span>
+          <span id="catAll">All</span>
         </li>
         <li>
           <svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -177,7 +178,7 @@
             <line x1="12" y1="11" x2="12" y2="21"/>
             <line x1="8" y1="17" x2="16" y2="17"/>
           </svg>
-          <span>Female</span>
+          <span id="catFemale">Female</span>
         </li>
         <li>
           <svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -185,7 +186,7 @@
             <line x1="12.5" y1="11.5" x2="20" y2="4"/>
             <polyline points="16,4 20,4 20,8"/>
           </svg>
-          <span>Femboy</span>
+          <span id="catFemboy">Femboy</span>
         </li>
         <li>
           <svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -194,7 +195,7 @@
             <rect x="3" y="14" width="7" height="7"/>
             <rect x="14" y="14" width="7" height="7"/>
           </svg>
-          <span>Collections</span>
+          <span id="catCollections">Collections</span>
         </li>
       </ul>
       <div class="sort-options">
@@ -258,7 +259,7 @@
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Product listing script -->
+  <!-- Product listing script (unchanged) -->
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
