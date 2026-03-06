@@ -241,23 +241,30 @@ function updateDisclaimers() {
   const el = document.getElementById("disclaimer");
   if (el) {
     el.innerHTML = `
-      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
-        <svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
-          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-          <circle cx="256" cy="380" r="24" fill="#000000"/>
-        </svg>
-        <span style="line-height: 1.5;">${t.disclaimerAge}</span>
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
+            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
+            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
+            <circle cx="256" cy="380" r="24" fill="#000"/>
+          </svg>
+          <span style="line-height: 1.45;">${t.disclaimerAge}</span>
+        </div>
       </div>
-      <div style="display: flex; align-items: flex-start; gap: 12px;">
-        <svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
-          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-          <circle cx="256" cy="380" r="24" fill="#000000"/>
-        </svg>
-        <span style="line-height: 1.5;">${t.disclaimerRefund}</span>
+      <div>
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
+            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
+            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
+            <circle cx="256" cy="380" r="24" fill="#000"/>
+          </svg>
+          <span style="line-height: 1.45;">${t.disclaimerRefund}</span>
+        </div>
       </div>
     `;
+    // Force no columns/flex-wrap on parent if needed
+    el.style.display = "block";
+    el.style.columnCount = "1";
   }
 }
 
