@@ -532,74 +532,68 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <!-- PayPal SDK -->
-  <script>
-  const script = document.createElement("script");
-  script.src = `https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&debug=true`;
-  script.onload = initPayPal;
-  document.body.appendChild(script);
+<script>
+const script = document.createElement("script");
+script.src = `https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&debug=true`;
+script.onload = initPayPal;
+document.body.appendChild(script);
 
-  let secureTotalUSD = 0;
+let secureTotalUSD = 0;
 
-  function initPayPal() {
-    paypal.Buttons({
-      createOrder: async function(data, actions) {
-        if (!window.cart || window.cart.length === 0) {
-          alert("Your cart is empty!");
-          return;
-        }
-
-        const cartIds = window.cart.map(item => item.id);
-
-        // TEMPORARY: fixed price so popup opens (remove this once /api/pricing works)
-        secureTotalUSD = 3.00;
-
-        return actions.order.create({
-          purchase_units: [{
-            amount: {
-              value: secureTotalUSD.toFixed(2),
-              currency_code: "USD"
-            }
-          }]
-        });
-
-        // ───────────────────────────────────────────────
-        // Uncomment this block when /api/pricing returns 200 OK
-        /*
-        const res = await fetch("/api/pricing", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items: cartIds })
-        });
-
-        if (!res.ok) {
-          console.error("Pricing API error:", res.status, await res.text());
-          alert("Payment setup failed - pricing error");
-          return;
-        }
-
-        const result = await res.json();
-        secureTotalUSD = parseFloat(result.total);
-
-        return actions.order.create({
-          purchase_units: [{ amount: { value: result.total, currency_code: "USD" } }]
-        });
-        */
-      },
-
-      onApprove: async function(data, actions) {
-        await actions.order.capture();
-        alert("✅ Payment successful! Order ID: " + data.orderID);
-        window.cart = [];
-        updateCartDisplay();
-      },
-
-      onError: function(err) {
-        console.error("PayPal Error:", err);
-        alert("PayPal error - check console (F12)");
+function initPayPal() {
+  paypal.Buttons({
+    createOrder: async (data, actions) => {
+      if (!window.cart?.length) {
+        alert("Cart is empty!");
+        return;
       }
-    }).render("#paypal-button-container");
-  }
-  </script>
+
+      const cartIds = window.cart.map(item => item.id);
+
+      const res = await fetch("/api/pricing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: cartIds })
+      });
+
+      if (!res.ok) {
+        console.error("Pricing failed:", res.status, await res.text());
+        alert("Pricing error - check console (F12)");
+        return;
+      }
+
+      const result = await res.json();
+      secureTotalUSD = parseFloat(result.total);
+
+      if (!secureTotalUSD || secureTotalUSD <= 0) {
+        alert("Invalid total from server");
+        return;
+      }
+
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: secureTotalUSD.toFixed(2),
+            currency_code: "USD"
+          }
+        }]
+      });
+    },
+
+    onApprove: async (data, actions) => {
+      await actions.order.capture();
+      alert(`Success! Order ${data.orderID}`);
+      window.cart = [];
+      updateCartDisplay();
+    },
+
+    onError: err => {
+      console.error("PayPal error:", err);
+      alert("PayPal failed - check console");
+    }
+  }).render("#paypal-button-container");
+}
+</script>  </script>
 
 </body>
 </html>
