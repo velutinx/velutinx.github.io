@@ -152,3 +152,78 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCartDisplay();
   setLanguage(currentLang);   // no swipe on first load
 });
+
+// ================================================
+// PayPal SDK secure loading + buttons (shared)
+// ================================================
+
+(function loadPayPalSDK() {
+  // Load our Cloudflare proxy that delivers the real SDK
+  const loader = document.createElement('script');
+  loader.src = "/paypal-sdk";
+  loader.async = true;
+  loader.onload = function() {
+    console.log("PayPal proxy loader executed");
+    waitForPayPalSDK();
+  };
+  loader.onerror = function(err) {
+    console.error("Failed to load PayPal proxy /paypal-sdk", err);
+  };
+  document.head.appendChild(loader);
+})();
+
+function waitForPayPalSDK() {
+  const maxAttempts = 50; // ~15 seconds
+  let attempts = 0;
+
+  const interval = setInterval(() => {
+    attempts++;
+    if (typeof paypal !== 'undefined') {
+      clearInterval(interval);
+      initPayPalButtons();
+      console.log("PayPal SDK ready → buttons initialized");
+    } else if (attempts >= maxAttempts) {
+      clearInterval(interval);
+      console.error("PayPal SDK timed out after ~15 seconds");
+    }
+  }, 300);
+}
+
+function initPayPalButtons() {
+  if (typeof paypal === 'undefined') return;
+
+  paypal.Buttons({
+    createOrder: (data, actions) => {
+      if (!window.cart || !window.cart.length) {
+        alert("Cart is empty!");
+        return;
+      }
+
+      const total = window.cart.reduce((sum, item) => sum + item.price, 0);
+
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: total.toFixed(2),
+            currency_code: "USD"
+          }
+        }]
+      });
+    },
+
+    onApprove: (data, actions) => {
+      return actions.order.capture().then(details => {
+        alert(`Payment successful! Order ID: ${data.orderID}`);
+        window.cart = [];
+        if (typeof updateCartDisplay === 'function') {
+          updateCartDisplay();
+        }
+      });
+    },
+
+    onError: err => {
+      console.error("PayPal checkout error:", err);
+      alert("Payment failed – please try again or contact support.");
+    }
+  }).render("#paypal-button-container");
+}
