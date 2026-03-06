@@ -113,16 +113,29 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
-    // Globalizing these so shop-shared.js and language switchers can call them
+    // Global functions for updates
     window.updatePriceDisplay = function() {
       if (!pack) return;
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
       const t = window.translations[currentLang] || window.translations.en;
-      document.getElementById("priceSection").innerHTML = `
-        <div><span class="price-label">${t.originalPrice}</span><span class="old-price">${pack.oldPrice || ""}</span></div>
-        <div style="margin-top:8px;"><span class="price-label">${t.currentPrice}</span><span class="current-price">${window.formatPrice?.(priceNum)}</span></div>
-        <div class="save">${pack.saveText || ""}</div>
+
+      let priceHTML = `
+        <div><span class="price-label">${t.currentPrice}</span><span class="current-price">${window.formatPrice?.(priceNum)}</span></div>
       `;
+
+      // Only show original price if oldPrice exists and is not empty
+      if (pack.oldPrice && pack.oldPrice.trim() !== "") {
+        priceHTML = `
+          <div><span class="price-label">${t.originalPrice}</span><span class="old-price">${pack.oldPrice}</span></div>
+          ${priceHTML}
+        `;
+      }
+
+      if (pack.saveText) {
+        priceHTML += `<div class="save">${pack.saveText}</div>`;
+      }
+
+      document.getElementById("priceSection").innerHTML = priceHTML;
     };
 
     window.updateButton = function() {
@@ -179,7 +192,7 @@
       }
     }
 
-    // Language switch listener
+    // Language switch listener (updates price, button, contents)
     document.querySelectorAll(".lang-item").forEach(item => {
       item.onclick = () => {
         currentLang = item.dataset.lang;
