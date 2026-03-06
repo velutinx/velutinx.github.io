@@ -434,3 +434,9 @@
   });
 
 })();  // ← correct closing — no extra ()
+window.translations = translations;
+window.getPriceForPack = getPriceForPack;
+window.formatPrice = formatPrice;
+window.getCart = getCart;
+window.addOrToggleCart = addOrToggleCart;
+window.updateCartDisplay = updateCartDisplay;
