@@ -273,15 +273,20 @@
     localStorage.setItem("language", lang);
 
     const t = translations[lang] || translations.en;
+
+    // Updated list with new category IDs
     const ids = [
-      "shopTitle", "filterTitle", "catAll", "catFemale", "catFemboy", "catCollections",
+      "shopTitle", "filterTitle",
+      "catAll", "catFemale", "catFemboy", "catCollections",
       "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
       "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"
     ];
 
     ids.forEach(id => {
       const el = document.getElementById(id);
-      if (el && t[id]) el.textContent = t[id];
+      if (el && t[id]) {
+        el.textContent = t[id];
+      }
     });
 
     updateCartDisplay();
