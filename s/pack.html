@@ -40,6 +40,51 @@
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
+
+    /* Floating cart button – same as store2.html */
+    .floating-cart {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 70px;
+      height: 70px;
+      background: #49BEFF;
+      border: none;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      cursor: pointer;
+      z-index: 9999;
+      transition: all 0.25s;
+    }
+    .floating-cart:hover {
+      transform: scale(1.1);
+      background: #38aae8;
+    }
+    .floating-cart svg {
+      width: 32px;
+      height: 32px;
+      stroke: white;
+      stroke-width: 2;
+    }
+    .floating-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      min-width: 24px;
+      height: 24px;
+      line-height: 24px;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
@@ -67,20 +112,51 @@
         </svg>
       </button>
       <div class="cart-wrapper">
-        <button class="nav-icon" id="cartBtn"><svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 17h-11v-14h-2M6 5l14 1l-.86 6.017m-2.64 .983h-10.5M16 19h6M19 16v6"></path></svg></button>
+        <button class="nav-icon" id="cartBtn">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
+          </svg>
+        </button>
         <span class="cart-badge" id="cartCount">0</span>
       </div>
     </div>
   </nav>
 
+  <!-- Floating cart button – added here -->
+  <button class="floating-cart" id="floatingCartBtn" title="Shopping Cart">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
+
   <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
     <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total"><div class="cart-total-row"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div><div id="paypal-button-container"></div></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <div id="paypal-button-container"></div>
+    </div>
   </div>
 
   <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
     <span id="snackText">Added successfully</span>
   </div>
 
@@ -123,7 +199,6 @@
         <div><span class="price-label">${t.currentPrice}</span><span class="current-price">${window.formatPrice?.(priceNum)}</span></div>
       `;
 
-      // Only show original price if oldPrice exists and is not empty
       if (pack.oldPrice && pack.oldPrice.trim() !== "") {
         priceHTML = `
           <div><span class="price-label">${t.originalPrice}</span><span class="old-price">${pack.oldPrice}</span></div>
@@ -192,7 +267,7 @@
       }
     }
 
-    // Language switch listener (updates price, button, contents)
+    // Language switch listener
     document.querySelectorAll(".lang-item").forEach(item => {
       item.onclick = () => {
         currentLang = item.dataset.lang;
