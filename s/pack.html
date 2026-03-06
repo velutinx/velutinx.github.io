@@ -194,7 +194,7 @@
   import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
   function updatePriceDisplay(pack) {
-    const priceNum = window.getPriceForPack(pack);
+    const priceNum = window.getPriceForPack?.(pack) ?? 0;
     const html = `
       <div>
         <span class="price-label">Original Price:</span>
@@ -202,7 +202,7 @@
       </div>
       <div style="margin-top:8px;">
         <span class="price-label">Current Price:</span>
-        <span class="current-price">${window.formatPrice(priceNum)}</span>
+        <span class="current-price">${window.formatPrice?.(priceNum) ?? "N/A"}</span>
       </div>
       <div class="save">${pack.saveText || ""}</div>
     `;
@@ -236,8 +236,7 @@
 
     updatePriceDisplay(pack);
 
-    // Only Add to Cart button (no Buy Now)
-    const isInCart = window.getCart().some(item => item.id === pack.id);
+    const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
     document.getElementById("buttons").innerHTML = `
       <button class="btn btn-cart" id="addCartBtn">
         ${isInCart ? "Remove from Cart" : "Add to Cart"}
@@ -245,24 +244,24 @@
     `;
 
     document.getElementById("addCartBtn").addEventListener("click", () => {
-      window.addOrToggleCart(pack);
-      const nowInCart = window.getCart().some(item => item.id === pack.id);
+      window.addOrToggleCart?.(pack);
+      const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
       document.getElementById("addCartBtn").textContent = nowInCart ? "Remove from Cart" : "Add to Cart";
 
       const snack = document.getElementById("snackbar");
-      document.getElementById("snackText").textContent = nowInCart ? "Added successfully" : "Removed from cart";
-      snack.classList.add("show");
-      setTimeout(() => snack.classList.remove("show"), 2400);
+      if (snack) {
+        document.getElementById("snackText").textContent = nowInCart ? "Added successfully" : "Removed from cart";
+        snack.classList.add("show");
+        setTimeout(() => snack.classList.remove("show"), 2400);
+      }
 
-      window.updateCartDisplay();
+      window.updateCartDisplay?.();
     });
 
     document.getElementById("illustrationCount").textContent = 
       `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
 
-    // Combined disclaimer (translated, no divider)
-    document.getElementById("disclaimer").innerHTML = ""; // will be filled by updateDisclaimers()
-    window.updateDisclaimers();
+    window.updateDisclaimers?.();
 
     const slides = document.getElementById('slides');
     const thumbs = document.querySelectorAll('.thumb');
@@ -280,9 +279,9 @@
 
   document.querySelectorAll(".lang-item").forEach(item => {
     item.addEventListener("click", () => {
-      window.setLanguage(item.dataset.lang);
+      window.setLanguage?.(item.dataset.lang);
       if (pack) updatePriceDisplay(pack);
-      window.updateDisclaimers(); // refresh translated notices
+      window.updateDisclaimers?.();
     });
   });
 
