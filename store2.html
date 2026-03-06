@@ -71,7 +71,7 @@
 </head>
 <body>
 
-  <!-- These elements are controlled by header.js -->
+  <!-- Shared UI elements controlled by header.js -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -213,116 +213,121 @@
     </main>
   </div>
 
-  <!-- Shared scripts – header + shop logic + PayPal loader -->
+  <!-- Load shared scripts -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Page-specific logic (products, filtering, adding to cart, etc.) -->
+  <!-- Page-specific product listing, search, sort, add-to-cart logic -->
   <script>
-  window.addEventListener('load', () => {
-    // Temporary static products – replace with Supabase fetch later
-    const productsData = [
-      { id: 178, title: "[Pack 178] Mitsuri Kanroji - Kimetsu no Yaiba", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=178" },
-      { id: 177, title: "[Pack 177] Kei Karuizawa - Classroom of the Elite", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=177" },
-      { id: 176, title: "[Pack 176] Mikamo Neru - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=176" },
-      { id: 175, title: "[Pack 175] Misery Stentrem - Youkoso! Skebe Elf no Mori e", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=175" },
-      { id: 174, title: "[Pack 174] Jessie - Pokemon", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=174" },
-      { id: 173, title: "[Pack 173] Akane - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=173" },
-      { id: 172, title: "[Pack 172] Hu Tao - Genshin Impact", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=172" },
-      { id: 171, title: "[Pack 171] Chloe von Einzbern - Fate/Grand Order", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=171" },
-    ].map((p, i) => ({ ...p, date: Date.now() - i * 86400000 * 7 }));
+    window.addEventListener('load', () => {
+      // Temporary static products – later replace with Supabase query
+      const productsData = [
+        { id: 178, title: "[Pack 178] Mitsuri Kanroji - Kimetsu no Yaiba", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=178" },
+        { id: 177, title: "[Pack 177] Kei Karuizawa - Classroom of the Elite", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=177" },
+        { id: 176, title: "[Pack 176] Mikamo Neru - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=176" },
+        { id: 175, title: "[Pack 175] Misery Stentrem - Youkoso! Skebe Elf no Mori e", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=175" },
+        { id: 174, title: "[Pack 174] Jessie - Pokemon", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=174" },
+        { id: 173, title: "[Pack 173] Akane - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=173" },
+        { id: 172, title: "[Pack 172] Hu Tao - Genshin Impact", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=172" },
+        { id: 171, title: "[Pack 171] Chloe von Einzbern - Fate/Grand Order", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=171" },
+      ].map((p, i) => ({ ...p, date: Date.now() - i * 86400000 * 7 }));
 
-    const grid = document.getElementById("productGrid");
-    const searchInput = document.getElementById("searchInput");
-    const sortButtons = document.querySelectorAll(".sort-btn");
+      const grid = document.getElementById("productGrid");
+      const searchInput = document.getElementById("searchInput");
+      const sortButtons = document.querySelectorAll(".sort-btn");
 
-    function createCards() {
-      productsData.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "product-card";
-        card.dataset.title = p.title.toLowerCase();
-        card.dataset.price = p.price;
-        card.dataset.date = p.date;
+      function createCards() {
+        productsData.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.dataset.title = p.title.toLowerCase();
+          card.dataset.price = p.price;
+          card.dataset.date = p.date;
 
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.title}" class="card-image" loading="lazy">
-          <div class="card-content">
-            <div class="card-title">${p.title}</div>
-            <div class="price-row">
-              <div class="price" data-price="${p.price}">${formatPrice(p.price)}</div>
-              <button class="cart-btn" title="Add to Cart">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                  <path d="M12.5 17h-6.5v-14h-2"></path>
-                  <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-                  <path d="M16 19h6"></path>
-                  <path d="M19 16v6"></path>
-                </svg>
-              </button>
+          card.innerHTML = `
+            <img src="${p.image}" alt="${p.title}" class="card-image" loading="lazy">
+            <div class="card-content">
+              <div class="card-title">${p.title}</div>
+              <div class="price-row">
+                <div class="price" data-price="${p.price}"></div> <!-- price filled by shop-shared.js -->
+                <button class="cart-btn" title="Add to Cart">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                    <path d="M12.5 17h-6.5v-14h-2"></path>
+                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                    <path d="M16 19h6"></path>
+                    <path d="M19 16v6"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
-        `;
+          `;
 
-        card.addEventListener("click", e => {
-          if (e.target.closest(".cart-btn")) return;
-          alert(`Detail page for pack ${p.id} (implement later)`);
+          // Click card → detail page (placeholder)
+          card.addEventListener("click", e => {
+            if (e.target.closest(".cart-btn")) return;
+            alert(`Pack detail page: ${p.id} (to be implemented)`);
+          });
+
+          grid.appendChild(card);
+          p.element = card;
+
+          // Add/remove from cart
+          const btn = card.querySelector(".cart-btn");
+          btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const alreadyInCart = window.cart.some(item => item.id === p.id);
+            if (alreadyInCart) {
+              window.cart = window.cart.filter(item => item.id !== p.id);
+              btn.classList.remove("added");
+              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+            } else {
+              window.cart.push(p);
+              btn.classList.add("added");
+              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+              document.getElementById("snackbar").classList.add("show");
+              setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
+            }
+            updateCartDisplay(); // from shop-shared.js
+          });
         });
 
-        grid.appendChild(card);
-        p.element = card;
+        // Initial price update (from shop-shared.js)
+        updateAllPrices();
+      }
 
-        const btn = card.querySelector(".cart-btn");
-        btn.addEventListener("click", e => {
-          e.stopPropagation();
-          const alreadyInCart = window.cart.some(item => item.id === p.id);
-          if (alreadyInCart) {
-            window.cart = window.cart.filter(item => item.id !== p.id);
-            btn.classList.remove("added");
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-          } else {
-            window.cart.push(p);
-            btn.classList.add("added");
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-            document.getElementById("snackbar").classList.add("show");
-            setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
-          }
-          updateCartDisplay();
+      function filterAndSort() {
+        const query = searchInput.value.toLowerCase().trim();
+        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+        productsData.forEach(p => {
+          p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
+        });
+
+        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+
+        if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
+        else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
+        else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+
+        visible.forEach(el => grid.appendChild(el));
+      }
+
+      sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          sortButtons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          filterAndSort();
         });
       });
-    }
 
-    function filterAndSort() {
-      const query = searchInput.value.toLowerCase().trim();
-      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+      searchInput.addEventListener("input", filterAndSort);
 
-      productsData.forEach(p => {
-        p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
-      });
-
-      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-
-      if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
-      else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
-      else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-      else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-
-      visible.forEach(el => grid.appendChild(el));
-    }
-
-    sortButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        sortButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        filterAndSort();
-      });
+      // Build everything
+      createCards();
+      filterAndSort();
     });
-
-    searchInput.addEventListener("input", filterAndSort);
-
-    createCards();
-    filterAndSort();
-    // updateCartDisplay() is already called from shop-shared.js on DOMContentLoaded
-  });
   </script>
 
 </body>
