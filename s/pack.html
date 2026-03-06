@@ -52,6 +52,34 @@
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
+
+    /* Snackbar - small top-right toast */
+    #snackbar {
+      position: fixed;
+      top: 28px;
+      right: 28px;
+      background: #22c55e;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 1300;
+      transform: translateY(-100px);
+      opacity: 0;
+      transition: all 0.4s ease;
+      font-size: 0.95rem;
+      min-width: 220px;
+    }
+    #snackbar.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    #snackbar.remove {
+      background: #ef4444;
+    }
   </style>
 </head>
 <body>
@@ -232,8 +260,7 @@
 
       document.getElementById("addCartBtn").onclick = () => {
         window.addOrToggleCart(pack);
-        window.updateButton(); // refresh button icon/text
-        window.updateAllCartButtons?.(); // optional: sync other buttons if any
+        window.updateButton(); // refresh button text/icon
       };
     };
 
