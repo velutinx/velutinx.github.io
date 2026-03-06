@@ -299,176 +299,117 @@
     });
   }
 
-  /* ==================== PAYPAL INTEGRATION ==================== */
-  function loadAndInitPayPal() {
-    if (window.paypalLoaded) return;
-    window.paypalLoaded = true;
+/* ==================== PAYPAL INTEGRATION ==================== */
+function loadAndInitPayPal() {
+  if (window.paypalLoaded) return;
+  window.paypalLoaded = true;
 
-    const loader = document.createElement('script');
-    loader.src = "/paypal-sdk";  // Your Cloudflare Worker proxy
-    loader.async = true;
-    loader.onload = () => {
-      console.log("PayPal SDK loaded via proxy");
-      initPayPalButtons();
-    };
-    loader.onerror = (e) => {
-      console.error("PayPal SDK proxy failed:", e);
-    };
-    document.head.appendChild(loader);
+  const loader = document.createElement('script');
+  loader.src = "/paypal-sdk";  // your Cloudflare Worker proxy
+  loader.async = true;
+  loader.onload = () => {
+    console.log("PayPal SDK script tag loaded via proxy");
+
+    // Wait for paypal object to actually be ready (retry up to 10 times, 300ms apart)
+    let attempts = 0;
+    const maxAttempts = 10;
+    const interval = setInterval(() => {
+      attempts++;
+      if (typeof paypal !== 'undefined' && paypal.Buttons) {
+        clearInterval(interval);
+        console.log("PayPal global is now available → initializing buttons");
+        initPayPalButtons();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.error("PayPal global never became available after", maxAttempts, "attempts");
+      }
+    }, 300);
+  };
+  loader.onerror = (e) => {
+    console.error("PayPal SDK proxy load failed:", e);
+  };
+  document.head.appendChild(loader);
+}
+
+function initPayPalButtons() {
+  const container = document.getElementById("paypal-button-container");
+  if (!container) {
+    console.warn("paypal-button-container not found");
+    return;
   }
 
-  function initPayPalButtons() {
-    const container = document.getElementById("paypal-button-container");
-    if (!container) {
-      console.warn("paypal-button-container not found");
-      return;
-    }
-    if (typeof paypal === 'undefined') {
-      console.warn("paypal global not available yet");
-      return;
-    }
+  // Clear any previous content/buttons
+  container.innerHTML = '';
 
-    // Clear previous buttons
-    container.innerHTML = '';
-
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        const cart = getCart();
-        if (cart.length === 0) {
-          alert("Your cart is empty!");
-          return Promise.reject();
-        }
-
-        const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-
-        return actions.order.create({
-          purchase_units: [{
-            amount: {
-              currency_code: "USD",
-              value: total
-            },
-            description: "Velutinx Digital Content Purchase"
-          }]
-        });
-      },
-
-      onApprove: async (data, actions) => {
-        try {
-          const details = await actions.order.capture();
-          alert(`Payment successful! Thank you ${details.payer.name.given_name}! Order ID: ${details.id}`);
-
-          // Optional: clear cart
-          // saveCart([]);
-          // updateCartDisplay();
-
-          window.location.href = `/success.html?orderID=${details.id}`;
-        } catch (err) {
-          console.error("Capture failed:", err);
-          alert("Payment capture failed. Please contact support.");
-        }
-      },
-
-      onCancel: () => {
-        alert("Payment cancelled");
-      },
-
-      onError: (err) => {
-        console.error("PayPal Error:", err);
-        alert("Sorry, something went wrong with PayPal.");
+  paypal.Buttons({
+    createOrder: (data, actions) => {
+      const cart = getCart();
+      if (cart.length === 0) {
+        alert("Your cart is empty!");
+        return Promise.reject();
       }
 
-    }).render("#paypal-button-container");
-  }
+      const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
 
-  /* ==================== LANGUAGE & HELPERS ==================== */
-  function updateDisclaimers() {
-    const t = translations[currentLang] || translations.en;
-    const el = document.getElementById("disclaimer");
-    if (el) {
-      el.innerHTML = `
-        <div style="margin-bottom: 16px;">
-          <div style="display: flex; align-items: flex-start; gap: 10px;">
-            <svg width="20" height="20" viewBox="0 0 512 512" style="flex-shrink: 0; margin-top: 2px;">
-              <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
-              <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
-              <circle cx="256" cy="380" r="24" fill="#000"/>
-            </svg>
-            <span style="line-height: 1.45;">${t.disclaimerAge}</span>
-          </div>
-        </div>
-        <div>
-          <div style="display: flex; align-items: flex-start; gap: 10px;">
-            <svg width="20" height="20" viewBox="0 0 512 512" style="flex-shrink: 0; margin-top: 2px;">
-              <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
-              <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
-              <circle cx="256" cy="380" r="24" fill="#000"/>
-            </svg>
-            <span style="line-height: 1.45;">${t.disclaimerRefund}</span>
-          </div>
-        </div>
-      `;
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            currency_code: "USD",
+            value: total
+          },
+          description: "Velutinx Digital Content Purchase"
+        }]
+      });
+    },
+
+    onApprove: async (data, actions) => {
+      try {
+        const details = await actions.order.capture();
+        alert(`Payment successful! Thank you ${details.payer.name.given_name}! Order ID: ${details.id}`);
+
+        // Optional: clear cart after success
+        // saveCart([]);
+        // updateCartDisplay();
+
+        window.location.href = `/success.html?orderID=${details.id}`;
+      } catch (err) {
+        console.error("Capture failed:", err);
+        alert("Payment capture failed. Please contact support.");
+      }
+    },
+
+    onCancel: () => {
+      alert("Payment cancelled");
+    },
+
+    onError: (err) => {
+      console.error("PayPal Error:", err);
+      alert("Sorry, something went wrong with PayPal.");
     }
-  }
 
-  function setLanguage(lang) {
-    currentLang = lang;
-    currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
-    localStorage.setItem("language", lang);
-
-    const t = translations[lang] || translations.en;
-
-    const ids = [
-      "shopTitle", "filterTitle",
-      "catAll", "catFemale", "catFemboy", "catCollections",
-      "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
-      "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"
-    ];
-
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      if (el && t[id]) el.textContent = t[id];
+  }).render("#paypal-button-container")
+    .catch(err => {
+      console.error("PayPal render failed:", err);
     });
+}
 
-    updateCartDisplay();
-    updateDisclaimers();
-    updateAllCartButtons();
-  }
+// Auto-load when cart opens
+document.addEventListener("DOMContentLoaded", () => {
+  const cartBtn = document.getElementById("cartBtn");
+  const floatingCartBtn = document.getElementById("floatingCartBtn");
 
-  /* ==================== GLOBAL EXPORTS ==================== */
-  window.translations = translations;
-  window.getCart = getCart;
-  window.addOrToggleCart = addOrToggleCart;
-  window.formatPrice = formatPrice;
-  window.getPriceForPack = getPriceForPack;
-  window.updateCartDisplay = updateCartDisplay;
-  window.setLanguage = setLanguage;
-  window.updateDisclaimers = updateDisclaimers;
-  window.updateAllCartButtons = updateAllCartButtons;
-  window.showSnackbar = showSnackbar;
-  window.initPayPalButtons = initPayPalButtons;
-  window.loadAndInitPayPal = loadAndInitPayPal;
+  const openCartHandler = () => {
+    loadAndInitPayPal();
+  };
 
-  // Auto-init language and PayPal on page load
-  document.addEventListener("DOMContentLoaded", () => {
-    setLanguage(currentLang);
+  cartBtn?.addEventListener("click", openCartHandler);
+  floatingCartBtn?.addEventListener("click", openCartHandler);
 
-    // Load PayPal when cart is opened
-    const cartBtn = document.getElementById("cartBtn");
-    const floatingCartBtn = document.getElementById("floatingCartBtn");
-
-    const openCartHandler = () => {
+  // One-time attempt on page load (in case cart is already open somehow)
+  setTimeout(() => {
+    if (document.getElementById("cartDrawer")?.classList.contains("open") ||
+        document.querySelector("#paypal-button-container")) {
       loadAndInitPayPal();
-    };
-
-    cartBtn?.addEventListener("click", openCartHandler);
-    floatingCartBtn?.addEventListener("click", openCartHandler);
-
-    // Initial try in case cart is somehow open
-    setTimeout(() => {
-      if (document.getElementById("cartDrawer")?.classList.contains("open")) {
-        loadAndInitPayPal();
-      }
-    }, 1500);
-  });
-
-})();
+    }
+  }, 2000);
+});
