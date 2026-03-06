@@ -89,8 +89,8 @@ body.dark .logo {
 .nav-icon {
   width: 42px;
   height: 42px;
-  border-radius: 9999px; /* fully round */
-  background: var(--accent); /* brighter */
+  border-radius: 9999px;
+  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,7 +103,8 @@ body.dark .logo {
 
 .nav-icon:hover {
   transform: scale(1.12);
-  background: #38aae8; /* brighter hover */
+  background: #38aae8;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 
 .nav-icon.active {
@@ -326,7 +327,7 @@ body.dark .logo {
   font-size: 1.15rem;
 }
 
-/* Floating cart – now matches nav cart style */
+/* Floating cart – matches nav cart exactly */
 .floating-cart {
   position: fixed;
   bottom: 24px;
@@ -347,6 +348,7 @@ body.dark .logo {
 .floating-cart:hover {
   transform: scale(1.12);
   background: #38aae8;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
 }
 
 .floating-cart.active {
@@ -360,7 +362,7 @@ body.dark .logo {
   stroke-width: 2;
 }
 
-/* Snackbar */
+/* ==================== SNACKBAR ==================== */
 #snackbar {
   position: fixed;
   top: 28px;
