@@ -3,7 +3,6 @@
 // Used by store2.html + all /s/pack?id=xxx pages
 // ================================================
 
-// Translations object
 const translations = {
   en: {
     shopTitle: "My Store",
@@ -83,7 +82,6 @@ const translations = {
   }
 };
 
-// Price conversion maps
 const tierMap = {
   1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
   3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
@@ -92,13 +90,12 @@ const tierMap = {
 
 const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-// Global language & currency (use var to avoid redeclaration issues)
+// Use var for global variables to prevent redeclaration errors
 var currentLang = localStorage.getItem("language") || "en";
 var currentCurrency = currentLang === "en" ? "USD" :
                       currentLang === "ja" ? "JPY" :
                       currentLang === "zh" ? "CNY" : "MXN";
 
-// Cart state (persistent across pages)
 window.cart = window.cart || [];
 
 // Format price with current currency
@@ -160,7 +157,7 @@ function updateCartDisplay() {
   const totalEl = document.getElementById("cartTotal");
   if (totalEl) totalEl.textContent = formatPrice(total);
 
-  // Toggle active class on cart buttons
+  // Optional: toggle active class on cart buttons
   const active = count > 0;
   [document.getElementById("cartBtn"), document.getElementById("floatingCartBtn")].forEach(btn => {
     if (btn) btn.classList.toggle("active", active);
@@ -216,12 +213,10 @@ function setLanguage(lang) {
 
 // Initial setup on every page load
 document.addEventListener("DOMContentLoaded", () => {
-  // Apply saved language and update UI
   updateCartDisplay();
   updateAllPrices();
   setLanguage(currentLang);
 
-  // Shared cart remove listener
   const itemsEl = document.getElementById("cartItems");
   if (itemsEl) {
     itemsEl.addEventListener("click", e => {
