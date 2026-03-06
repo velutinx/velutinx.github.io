@@ -6,7 +6,9 @@
   <title>SHOP | VELUTINX</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
   <style>
-    /* Base Layout */
+    /* ────────────────────────────────────────────────
+       Base Layout & Shared Styles
+    ──────────────────────────────────────────────── */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -17,7 +19,7 @@
     .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
     .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text); padding-left: 0.5rem; }
-    
+
     /* Category & Sort Sidebar */
     .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); padding: 0; }
     .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
@@ -35,7 +37,7 @@
     .products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem; }
     .products-header h2 { font-size: 1.65rem; font-weight: 700; color: var(--text); }
     .search-bar-wrapper { width: 340px; max-width: 100%; }
-    
+
     .input-base { position: relative; display: flex; align-items: center; background: var(--card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); padding-left: 12px; transition: border-color 0.2s; }
     .input-base:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(170,158,118,0.2); }
     .input-element { flex: 1; padding: 12px; background: transparent; border: none; outline: none; color: var(--text); font-size: 0.95rem; }
@@ -45,36 +47,36 @@
     .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); cursor: pointer; position: relative; }
     .product-card.hidden { display: none; }
     .product-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
-    
+
     .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; display: block; }
     .card-content { padding: 1.2rem; }
     .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
     .price-row { display: flex; justify-content: space-between; align-items: center; }
     .price { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-    
+
     .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: #22c55e; }
 
-    /* Snackbar - restored to small top-right style */
+    /* Snackbar - small top-right toast (restored original style) */
     #snackbar {
       position: fixed;
       top: 28px;
       right: 28px;
-      background: var(--success);
+      background: #22c55e;
       color: white;
-      padding: 14px 22px;
-      border-radius: 10px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       z-index: 1300;
-      transform: translateY(-120px);
+      transform: translateY(-100px);
       opacity: 0;
-      transition: all 0.45s ease;
-      min-width: 220px;
+      transition: all 0.4s ease;
       font-size: 0.95rem;
+      min-width: 220px;
     }
     #snackbar.show {
       transform: translateY(0);
@@ -84,7 +86,7 @@
 </head>
 <body>
   <div class="lang-swipe" id="langSwipe"></div>
-  
+
   <nav class="top-nav">
     <div class="logo" onclick="window.location.href='/'" style="cursor: pointer;">VELUTINX</div>
     <div class="nav-actions">
@@ -140,7 +142,7 @@
     </div>
   </div>
 
-  <!-- Snackbar - small top-right position restored -->
+  <!-- Snackbar - small top-right toast -->
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
@@ -195,23 +197,11 @@
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Ko-fi Floating Chat - lazy-loaded to avoid Quirks Mode warning -->
-  <script>
-    window.addEventListener("load", function() {
-      const script = document.createElement("script");
-      script.src = "https://storage.ko-fi.com/cdn/scripts/overlay-widget.js";
-      script.onload = function() {
-        if (typeof kofiWidgetOverlay !== 'undefined') {
-          kofiWidgetOverlay.draw('velutinxstudio', {
-            'type': 'floating-chat',
-            'floating-chat.donateButton.text': 'Support Me',
-            'floating-chat.donateButton.background-color': '#aa9e76',
-            'floating-chat.donateButton.text-color': '#fff'
-          });
-        }
-      };
-      document.body.appendChild(script);
-    });
+  <!-- Ko-fi Simple Floating Button Widget (cleaner, much less console noise) -->
+  <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+  <script type='text/javascript'>
+    kofiwidget2.init('Support Me', '#aa9e76', 'velutinxstudio');
+    kofiwidget2.draw();
   </script>
 
   <!-- Product listing script -->
