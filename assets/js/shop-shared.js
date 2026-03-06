@@ -308,7 +308,7 @@ function updateDisclaimers() {
     updateAllPrices();
     updateDisclaimers();
     setLanguage(currentLang);
-
+setTimeout(updateCartDisplay, 300);  // ← add this as safety net
     const itemsEl = document.getElementById("cartItems");
     if (itemsEl) {
       itemsEl.addEventListener("click", e => {
