@@ -193,7 +193,6 @@
 <script type="module">
   import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
-  // Update price display for current currency/language
   function updatePriceDisplay(pack) {
     const priceNum = window.getPriceForPack(pack);
     const html = `
@@ -210,26 +209,45 @@
     document.getElementById("priceSection").innerHTML = html;
   }
 
-  // Open cart by simulating click on the main cart button (reuses existing animation/logic)
+  // Open cart drawer - tries multiple reliable ways
   function openCartDrawer() {
-    // Try the desktop nav cart button first
-    const mainCartBtn = document.getElementById("cartBtn");
-    if (mainCartBtn) {
-      mainCartBtn.click();
+    // Option 1: Call the function if it exists in global scope (common in header.js)
+    if (typeof window.toggleCart === 'function') {
+      window.toggleCart();
       return;
     }
-    
-    // Fallback to floating button if main one not found
-    const floatingCartBtn = document.getElementById("floatingCartBtn");
-    if (floatingCartBtn) {
-      floatingCartBtn.click();
+    if (typeof window.openCart === 'function') {
+      window.openCart();
       return;
     }
-    
-    console.warn("No cart button found to simulate click");
+    if (typeof window.showCartDrawer === 'function') {
+      window.showCartDrawer();
+      return;
+    }
+
+    // Option 2: Simulate click on the known working buttons
+    const cartBtn = document.getElementById("cartBtn");
+    if (cartBtn) {
+      cartBtn.click();
+      return;
+    }
+
+    const floatingBtn = document.getElementById("floatingCartBtn");
+    if (floatingBtn) {
+      floatingBtn.click();
+      return;
+    }
+
+    // Fallback: direct class toggle (adjust class name if needed)
+    const drawer = document.getElementById("cartDrawer");
+    if (drawer) {
+      drawer.classList.add("open");           // change to "active", "visible", etc. if needed
+      document.body.classList.add("no-scroll"); // optional: common overlay/scroll lock class
+    }
+
+    window.updateCartDisplay?.();
   }
 
-  // Load pack data
   const params = new URLSearchParams(window.location.search);
   const packId = params.get("id") || "001";
   const pack = packsData.find(p => p.id === packId);
@@ -240,7 +258,6 @@
   } else {
     document.getElementById("title").textContent = pack.title;
 
-    // Gallery
     document.getElementById("gallery").innerHTML = `
       <div class="carousel">
         <div class="slides" id="slides">
@@ -258,7 +275,6 @@
 
     updatePriceDisplay(pack);
 
-    // Buttons
     const isInCart = window.getCart().some(item => item.id === pack.id);
     document.getElementById("buttons").innerHTML = `
       <button class="btn btn-buy" id="buyNowBtn">Buy Now</button>
@@ -267,34 +283,24 @@
       </button>
     `;
 
-    // Add/Remove from cart
     document.getElementById("addCartBtn").addEventListener("click", () => {
       window.addOrToggleCart(pack);
       const nowInCart = window.getCart().some(item => item.id === pack.id);
-      
-      document.getElementById("addCartBtn").textContent = 
-        nowInCart ? "Remove from Cart" : "Add to Cart";
-      
-      // Snackbar
+      document.getElementById("addCartBtn").textContent = nowInCart ? "Remove from Cart" : "Add to Cart";
+
       const snack = document.getElementById("snackbar");
-      document.getElementById("snackText").textContent = 
-        nowInCart ? "Added successfully" : "Removed from cart";
+      document.getElementById("snackText").textContent = nowInCart ? "Added successfully" : "Removed from cart";
       snack.classList.add("show");
       setTimeout(() => snack.classList.remove("show"), 2400);
 
       window.updateCartDisplay();
     });
 
-    // Buy Now → open cart drawer by simulating click on working cart icon
-    document.getElementById("buyNowBtn").addEventListener("click", () => {
-      openCartDrawer();
-    });
+    // Buy Now opens the cart drawer
+    document.getElementById("buyNowBtn").addEventListener("click", openCartDrawer);
 
-    // Contents
-    document.getElementById("illustrationCount").textContent = 
-      `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
+    document.getElementById("illustrationCount").textContent = `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
 
-    // Disclaimer
     document.getElementById("disclaimer").innerHTML = `
       <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
         <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
@@ -304,7 +310,21 @@
       <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
     `;
 
-    // Carousel
+    // Add the new non-refundable notice below the disclaimer
+    const noteSection = document.getElementById("disclaimer").parentElement; // or wherever you want it
+    const refundNote = document.createElement("div");
+    refundNote.className = "disclaimer";
+    refundNote.style.marginTop = "16px";
+    refundNote.innerHTML = `
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+        <circle cx="256" cy="380" r="24" fill="#000000"/>
+      </svg>
+      <span>Digital products are non-refundable after purchase.</span>
+    `;
+    document.getElementById("disclaimer").insertAdjacentElement("afterend", refundNote);
+
     const slides = document.getElementById('slides');
     const thumbs = document.querySelectorAll('.thumb');
     let current = 0;
@@ -319,7 +339,6 @@
     update();
   }
 
-  // Language change → refresh price
   document.querySelectorAll(".lang-item").forEach(item => {
     item.addEventListener("click", () => {
       window.setLanguage(item.dataset.lang);
@@ -327,7 +346,6 @@
     });
   });
 
-  // Refresh cart UI on load
   window.updateCartDisplay?.();
 </script>
 
