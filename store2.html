@@ -4,38 +4,30 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Store</title>
-
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
-
   <style>
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
     .shop-title { font-size: 2.3rem; font-weight: 800; color: #000; margin: 0; }
     body.dark .shop-title { color: var(--accent); }
-
     .gift-btn { width: 68px; height: 68px; background: transparent; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.25s; color: #22c55e; }
     .gift-btn:hover { transform: scale(1.18); }
     .gift-btn svg { width: 48px; height: 48px; stroke: currentColor; stroke-width: 2; }
-
     .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
     .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
-
     .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text); padding-left: 0.5rem; }
-
     .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
     .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
     .category-list li:hover { background: #c0bcaa; }
     .category-list li.active { background: var(--accent); color: #1f1a12; font-weight: 600; }
     .category-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
-
     .sort-options { margin-top: 2rem; }
     .sort-btn { width: 100%; padding: 1rem 1.25rem; background: var(--card); border: 1px solid var(--border); text-align: left; margin-bottom: 0.5rem; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.9rem; color: var(--text); }
     .sort-btn.active { background: var(--accent); color: #1f1a12; }
     .sort-btn:hover:not(.active) { background: #c0bcaa; }
     .sort-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
-
     .products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem; }
     .products-header h2 { font-size: 1.65rem; font-weight: 700; color: var(--text); }
     .search-bar-wrapper { width: 340px; max-width: 100%; }
@@ -49,7 +41,6 @@
     .notched-outline { position: absolute; inset: -1px 0 0; pointer-events: none; border: 1px solid var(--border); border-radius: inherit; transition: border-color 0.2s; }
     .outlined-input:focus-within .notched-outline { border-color: var(--accent); }
     .notched-outline legend { padding: 0 6px; font-size: 0.75rem; visibility: hidden; width: auto; height: 0; line-height: 0; }
-
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
     .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); cursor: pointer; }
     .product-card.hidden { display: none; }
@@ -65,17 +56,26 @@
     .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: var(--success); }
+    /* Force cart badge visible even when 0 */
+    .cart-badge, .floating-badge {
+      display: inline-block !important;
+      min-width: 18px;
+      height: 18px;
+      line-height: 18px;
+      text-align: center;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-
   <div class="lang-swipe" id="langSwipe"></div>
-
   <nav class="top-nav">
     <div class="logo">MY STORE</div>
     <div class="nav-actions">
       <button class="login-btn" id="loginBtn">Website</button>
-
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -93,14 +93,12 @@
           <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX" /><p>Español (MXN)</p></div>
         </div>
       </div>
-
       <button class="nav-icon" id="themeBtn" title="Night Mode">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
           <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
-
       <div class="cart-wrapper">
         <button class="nav-icon" id="cartBtn" title="Cart">
           <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -116,7 +114,6 @@
       </div>
     </div>
   </nav>
-
   <button class="floating-cart" id="floatingCartBtn" title="Cart">
     <svg id="floatingCartIcon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -126,7 +123,6 @@
     </svg>
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
-
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -141,14 +137,12 @@
       <div id="paypal-button-container"></div>
     </div>
   </div>
-
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
     </svg>
     <span id="snackText">Added successfully</span>
   </div>
-
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
@@ -166,7 +160,6 @@
       </div>
     </div>
   </header>
-
   <div class="main-container">
     <aside class="sidebar">
       <div class="section-title" id="filterTitle">Filter by Category</div>
@@ -176,7 +169,6 @@
         <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catFrom">From Booth</span></li>
         <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catSisters">The Sisters Corner</span></li>
       </ul>
-
       <div class="sort-options">
         <div class="section-title" id="sortTitle">Sort by</div>
         <button class="sort-btn active" data-sort="newest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg> <span id="sortNewest">Newest</span></button>
@@ -185,7 +177,6 @@
         <button class="sort-btn" data-sort="price-desc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M14 15l3 3l3 -3"></path><path d="M17 18v-12"></path></svg> <span id="sortHigh">Price: High to Low</span></button>
       </div>
     </aside>
-
     <main class="products-section">
       <div class="products-header">
         <h2 id="productsTitle">Products</h2>
@@ -204,7 +195,6 @@
           </div>
         </div>
       </div>
-
       <div class="product-grid" id="productGrid"></div>
     </main>
   </div>
@@ -214,119 +204,123 @@
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
   <!-- Product listing + redirect to pack detail on click -->
-<script type="module">
-  import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
+  <script type="module">
+    import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
-  window.addEventListener('load', async () => {
-    const productsData = packsData.map(p => ({
-      ...p,
-      price: window.getPriceForPack(p),
-      date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7)
-    }));
+    window.addEventListener('load', async () => {
+      const productsData = packsData.map(p => ({
+        ...p,
+        price: window.getPriceForPack?.(p) ?? 0,
+        date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7)
+      }));
 
-    const grid = document.getElementById("productGrid");
-    const searchInput = document.getElementById("searchInput");
-    const sortButtons = document.querySelectorAll(".sort-btn");
+      const grid = document.getElementById("productGrid");
+      const searchInput = document.getElementById("searchInput");
+      const sortButtons = document.querySelectorAll(".sort-btn");
 
-    function createCards() {
-productsData.forEach(p => {
-  const card = document.createElement("div");
-  card.className = "product-card";
-  card.dataset.title = p.title.toLowerCase();
-  card.dataset.price = p.price;
-  card.dataset.date = p.date;
-  card.dataset.id = p.id;                    // ← crucial line for sorting by ID
+      function createCards() {
+        productsData.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.dataset.title = p.title.toLowerCase();
+          card.dataset.price = p.price;
+          card.dataset.date = p.date;
+          card.dataset.id = p.id;
 
-  card.innerHTML = `
-<img src="https://velutinx.neocities.org/i/pack${p.id}-1.jpg" 
-     alt="${p.title}" 
-     class="card-image" 
-     loading="lazy"
-     onerror="this.src='https://via.placeholder.com/248x300?text=No+Image';">
-     
-     <div class="card-content">
-      <div class="card-title">${p.title}</div>
-      <div class="price-row">
-        <div class="price" data-price="${p.price}"></div>
-        <button class="cart-btn" title="Add to Cart">
-          <svg ...> ... </svg>
-        </button>
-      </div>
-    </div>
-  `;
+          card.innerHTML = `
+            <img src="https://velutinx.neocities.org/i/pack${parseInt(p.id)}-1.jpg"
+                 alt="${p.title}"
+                 class="card-image"
+                 loading="lazy"
+                 onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+p.id;">
+            <div class="card-content">
+              <div class="card-title">${p.title}</div>
+              <div class="price-row">
+                <div class="price" data-price="${p.price}"></div>
+                <button class="cart-btn" title="Add to Cart">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                    <path d="M12.5 17h-6.5v-14h-2"></path>
+                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                    <path d="M16 19h6"></path>
+                    <path d="M19 16v6"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
 
-        card.addEventListener("click", e => {
-          if (e.target.closest(".cart-btn")) return;
-          window.location.href = `/s/pack?id=${p.id}`;
+          card.addEventListener("click", e => {
+            if (e.target.closest(".cart-btn")) return;
+            window.location.href = `/s/pack?id=${p.id}`;
+          });
+
+          grid.appendChild(card);
+          p.element = card;
+          p.cartBtn = card.querySelector(".cart-btn");
+
+          // Initial cart state
+          const isInCart = window.getCart?.().some(item => item.id === p.id) ?? false;
+          if (isInCart) {
+            p.cartBtn.classList.add("added");
+            p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+          }
+
+          p.cartBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            window.addOrToggleCart?.(p);
+            const nowInCart = window.getCart?.().some(item => item.id === p.id) ?? false;
+            p.cartBtn.classList.toggle("added", nowInCart);
+            if (nowInCart) {
+              p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+              document.getElementById("snackbar")?.classList.add("show");
+              setTimeout(() => document.getElementById("snackbar")?.classList.remove("show"), 2400);
+            } else {
+              p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+            }
+            window.updateCartDisplay?.();
+          });
+        });
+        window.updateAllPrices?.();
+      }
+
+      function filterAndSort() {
+        const query = searchInput.value.toLowerCase().trim();
+        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+        productsData.forEach(p => {
+          p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
         });
 
-        grid.appendChild(card);
-        p.element = card;
-        p.cartBtn = card.querySelector(".cart-btn");
+        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
 
-        // Initial state
-        const isInCart = window.getCart().some(item => item.id === p.id);
-        if (isInCart) {
-          p.cartBtn.classList.add("added");
-          p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+        if (activeSort === "newest") {
+          visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
+        } else if (activeSort === "oldest") {
+          visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
+        } else if (activeSort === "price-asc") {
+          visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        } else if (activeSort === "price-desc") {
+          visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
         }
 
-        p.cartBtn.addEventListener("click", e => {
-          e.stopPropagation();
-          window.addOrToggleCart(p);
-          const nowInCart = window.getCart().some(item => item.id === p.id);
-          p.cartBtn.classList.toggle("added", nowInCart);
-          if (nowInCart) {
-            p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-            document.getElementById("snackbar").classList.add("show");
-            setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
-          } else {
-            p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-          }
-          window.updateCartDisplay();
+        visible.forEach(el => grid.appendChild(el));
+      }
+
+      sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          sortButtons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          filterAndSort();
         });
       });
-      window.updateAllPrices();
-    }
 
-function filterAndSort() {
-  const query = searchInput.value.toLowerCase().trim();
-  const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+      searchInput.addEventListener("input", filterAndSort);
 
-  productsData.forEach(p => {
-    p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
-  });
-
-  let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-
-  if (activeSort === "newest") {
-    visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
-  } else if (activeSort === "oldest") {
-    visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
-  } else if (activeSort === "price-asc") {
-    visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-  } else if (activeSort === "price-desc") {
-    visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-  }
-
-  visible.forEach(el => grid.appendChild(el));
-}
-
-    sortButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        sortButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        filterAndSort();
-      });
+      createCards();
+      filterAndSort();
+      window.updateCartDisplay?.();
     });
-
-    searchInput.addEventListener("input", filterAndSort);
-
-    createCards();
-    filterAndSort();
-    window.updateCartDisplay();
-  });
-</script>
-
+  </script>
 </body>
 </html>
