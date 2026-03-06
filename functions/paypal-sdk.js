@@ -1,45 +1,34 @@
 export async function onRequest(context) {
   const clientId = context.env.PAYPAL_CLIENT_ID;
 
-  if (!clientId || typeof clientId !== 'string' || clientId.trim() === '') {
-    return new Response(
-      'console.error("Missing or invalid PAYPAL_CLIENT_ID in Cloudflare environment variables");',
-      {
-        status: 500,
-        headers: { "Content-Type": "application/javascript" }
-      }
-    );
+  if (!clientId) {
+    return new Response('console.error("PAYPAL_CLIENT_ID not set");', {
+      headers: { "Content-Type": "application/javascript" }
+    });
   }
 
-  // Clean and encode only the client-id part
+  // Clean and encode ONLY the client-id
   const cleanId = clientId.trim();
-  const encodedId = encodeURIComponent(cleanId);
-  const sdkUrl = `https://www.paypal.com/sdk/js?client-id=${encodedId}&currency=USD`;
+  const sdkUrl = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cleanId)}&currency=USD`;
 
-  // Safe JS injection: escape quotes and backticks in URL (though not needed for PayPal ID, it's defensive)
-  const escapedUrl = sdkUrl.replace(/`/g, '\\`').replace(/"/g, '\\"');
+  // Build safe JS code without template literal issues
+  const escapedUrl = sdkUrl.replace(/"/g, '\\"').replace(/\\/g, '\\\\');
 
   const jsCode = `
     (function() {
-      const script = document.createElement('script');
+      var script = document.createElement("script");
       script.src = "${escapedUrl}";
       script.async = true;
-      script.onload = function() {
-        console.log("PayPal SDK loaded successfully");
-        // Optional: trigger your initPayPal() if not using interval
-        if (typeof window.initPayPal === 'function') window.initPayPal();
-      };
-      script.onerror = function(err) {
-        console.error("PayPal SDK failed to load", err);
-      };
+      script.onload = function() { console.log("PayPal SDK loaded"); };
+      script.onerror = function(err) { console.error("PayPal SDK load failed", err); };
       document.head.appendChild(script);
     })();
   `;
 
   return new Response(jsCode.trim(), {
     headers: {
-      "Content-Type": "application/javascript; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400"
+      "Content-Type": "application/javascript",
+      "Cache-Control": "public, max-age=3600"
     }
   });
 }
