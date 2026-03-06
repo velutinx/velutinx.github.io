@@ -366,27 +366,44 @@
   </script>
 
 <!-- PayPal SDK loader via secure Cloudflare proxy -->
-<script src="/paypal-sdk"></script>
-
-<!-- Your existing PayPal Buttons init code (unchanged) -->
 <script>
-function initPayPal() {
-  if (typeof paypal === 'undefined') {
-    console.error("PayPal SDK not available yet – check /paypal-sdk");
-    return;
-  }
-  paypal.Buttons({
-    // ... your createOrder, onApprove, onError code ...
-  }).render("#paypal-button-container");
-}
+  window.initPayPal = function() {
+    if (typeof paypal === 'undefined') {
+      console.error("PayPal SDK not ready");
+      return;
+    }
+    paypal.Buttons({
+      createOrder: (data, actions) => {
+        if (!window.cart?.length) {
+          alert("Cart is empty!");
+          return;
+        }
+        const total = window.cart.reduce((sum, item) => sum + item.price, 0);
+        return actions.order.create({
+          purchase_units: [{ amount: { value: total.toFixed(2), currency_code: "USD" } }]
+        });
+      },
+      onApprove: (data, actions) => {
+        return actions.order.capture().then(details => {
+          alert("Payment completed successfully!");
+          window.cart = [];
+          updateCartDisplay(); // your function
+        });
+      },
+      onError: err => {
+        console.error("PayPal error:", err);
+        alert("Payment processing failed – please try again.");
+      }
+    }).render("#paypal-button-container");
+  };
 
-// Auto-init once loaded
-const paypalInitInterval = setInterval(() => {
-  if (typeof paypal !== 'undefined') {
-    clearInterval(paypalInitInterval);
-    initPayPal();
-  }
-}, 300);
+  // Fallback: poll if onload doesn't fire
+  const paypalCheck = setInterval(() => {
+    if (typeof paypal !== 'undefined') {
+      clearInterval(paypalCheck);
+      window.initPayPal();
+    }
+  }, 400);
 </script>
 
 </body>
