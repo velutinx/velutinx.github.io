@@ -221,15 +221,18 @@
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
+    let currentLang = localStorage.getItem("language") || "en";
+
     function updatePriceDisplay(pack) {
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
+      const t = translations[currentLang] || translations.en;
       const html = `
         <div>
-          <span class="price-label" data-translate="originalPrice">Original Price:</span>
+          <span class="price-label">${t.originalPrice || "Original Price:"}</span>
           <span class="old-price">${pack.oldPrice || ""}</span>
         </div>
         <div style="margin-top:8px;">
-          <span class="price-label" data-translate="currentPrice">Current Price:</span>
+          <span class="price-label">${t.currentPrice || "Current Price:"}</span>
           <span class="current-price">${window.formatPrice?.(priceNum) ?? "N/A"}</span>
         </div>
         <div class="save">${pack.saveText || ""}</div>
@@ -264,32 +267,43 @@
 
       updatePriceDisplay(pack);
 
-      const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-      document.getElementById("buttons").innerHTML = `
-        <button class="btn btn-cart" id="addCartBtn" data-translate="addToCart">
-          ${isInCart ? "Remove from Cart" : "Add to Cart"}
-        </button>
-      `;
-
-      document.getElementById("addCartBtn").addEventListener("click", () => {
-        window.addOrToggleCart?.(pack);
-        const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+      const updateButton = () => {
         const t = translations[currentLang] || translations.en;
-        document.getElementById("addCartBtn").textContent = nowInCart ? t.removeFromCart : t.addToCart;
+        const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+        const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
+        document.getElementById("buttons").innerHTML = `
+          <button class="btn btn-cart" id="addCartBtn">
+            ${btnText}
+          </button>
+        `;
 
+        // Re-attach listener
+        const btn = document.getElementById("addCartBtn");
+        btn.removeEventListener("click", handleCartClick); // prevent duplicates
+        btn.addEventListener("click", handleCartClick);
+      };
+
+      const handleCartClick = () => {
+        window.addOrToggleCart?.(pack);
+        updateButton();
+        const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+
+        const t = translations[currentLang] || translations.en;
         const snack = document.getElementById("snackbar");
-        document.getElementById("snackText").textContent = nowInCart ? t.snackText : "Removed from cart";
+        document.getElementById("snackText").textContent = nowInCart ? (t.snackText || "Added successfully") : "Removed from cart";
         snack.classList.add("show");
         setTimeout(() => snack.classList.remove("show"), 2400);
 
         window.updateCartDisplay?.();
-      });
+      };
+
+      updateButton();
 
       const updateContents = () => {
         const t = translations[currentLang] || translations.en;
-        document.getElementById("contentsTitle").textContent = t.contentsTitle;
-        document.getElementById("illustrationCount").textContent = 
-          t.contentsDesc.replace("{count}", pack.illustrationCount);
+        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
+        const desc = t.contentsDesc || "ZIP file containing {count} AI-generated illustrations";
+        document.getElementById("illustrationCount").textContent = desc.replace("{count}", pack.illustrationCount);
       };
       updateContents();
 
@@ -309,34 +323,15 @@
       update();
     }
 
-    // Language change handler
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
-        const lang = item.dataset.lang;
-        window.setLanguage(lang);
-        currentLang = lang;
-
+        window.setLanguage?.(item.dataset.lang);
+        currentLang = item.dataset.lang; // sync local var
         if (pack) {
           updatePriceDisplay(pack);
-
-          const t = translations[lang] || translations.en;
-
-          // Update contents
-          document.getElementById("contentsTitle").textContent = t.contentsTitle;
-          document.getElementById("illustrationCount").textContent = 
-            t.contentsDesc.replace("{count}", pack.illustrationCount);
-
-          // Update button
-          const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-          document.getElementById("addCartBtn").textContent = isInCart ? t.removeFromCart : t.addToCart;
-
-          // Update price labels
-          document.querySelectorAll(".price-label").forEach(label => {
-            if (label.textContent.includes("Original")) label.textContent = t.originalPrice;
-            if (label.textContent.includes("Current")) label.textContent = t.currentPrice;
-          });
+          updateButton();
+          updateContents();
         }
-
         window.updateDisclaimers?.();
       });
     });
