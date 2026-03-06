@@ -154,29 +154,22 @@
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     const section = document.getElementById("download-section");
-
-    const savedCart = localStorage.getItem("velutinx_cart");
-    const cart = savedCart ? JSON.parse(savedCart) : [];
-    
-    // This part matches your Vault names
-    const itemNames = cart.map(item => {
-        let id = item.id.toLowerCase();
-        if (id.includes('item-')) id = id.replace('item-', 'pack');
-        if (!id.includes('pack')) id = 'pack' + id;
-        return id.toUpperCase();
-    }).join(',');
+    const orderIdSpan = document.getElementById("order-id"); // The span we just made
 
     if (!token) {
         section.innerHTML = `<p class="error-text">No payment token found.</p>`;
-    } else if (cart.length === 0) {
-        // Updated message to help you debug
-        section.innerHTML = `<p class="error-text">Your cart is empty. Go back to the shop and add items before visiting this page.</p>`;
     } else {
-        // Fetch from Cloudflare
-        fetch(`/get-download?token=${token}&items=${itemNames}`)
+        fetch(`/get-download?token=${token}`)
             .then(res => res.json())
             .then(data => {
                 if (data.items && data.items.length > 0) {
+                    
+                    // Update Order Number from Supabase
+                    // .padStart(5, '0') turns "2" into "00002"
+                    if (orderIdSpan && data.order_number) {
+                        orderIdSpan.innerText = "#" + data.order_number.toString().padStart(5, '0');
+                    }
+
                     let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
                     data.items.forEach(item => {
                         html += `
@@ -186,14 +179,13 @@
                     });
                     section.innerHTML = html;
                     
-                    // DELETED: localStorage.removeItem("velutinx_cart"); 
-                    // (I removed the delete line so you can refresh during testing!)
+                    localStorage.removeItem("velutinx_cart");
                 } else {
-                    section.innerHTML = `<p class="error-text">Vault Error: The vault doesn't recognize [${itemNames}]. Check your get-download.js file names.</p>`;
+                    section.innerHTML = `<p class="error-text">Vault Error: Links not found for this order.</p>`;
                 }
             })
             .catch(err => {
-                section.innerHTML = `<p class="error-text">Fetch Error. Is your Cloudflare Worker/Function active?</p>`;
+                section.innerHTML = `<p class="error-text">Server error. Please refresh.</p>`;
             });
     }
 </script>
