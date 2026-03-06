@@ -242,7 +242,7 @@ function updateDisclaimers() {
   if (el) {
     el.innerHTML = `
       <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
-        <svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+        <svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
           <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
           <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
           <circle cx="256" cy="380" r="24" fill="#000000"/>
@@ -250,7 +250,7 @@ function updateDisclaimers() {
         <span style="line-height: 1.5;">${t.disclaimerAge}</span>
       </div>
       <div style="display: flex; align-items: flex-start; gap: 12px;">
-        <svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+        <svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0; margin-top: 2px;">
           <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
           <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
           <circle cx="256" cy="380" r="24" fill="#000000"/>
