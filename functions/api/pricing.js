@@ -1,27 +1,37 @@
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request }) {
   try {
-    const { items } = await request.json();
+    // Read raw body first to debug
+    const rawBody = await request.text();
+    console.log("Raw request body:", rawBody);
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch (parseErr) {
+      console.error("JSON parse failed:", parseErr.message);
+      return new Response(JSON.stringify({
+        error: "Invalid JSON in request body",
+        rawBody: rawBody,
+        parseError: parseErr.message
+      }), { 
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
     }
 
-    // Hardcoded prices for testing (remove later once env works)
-    const prices = {
-      LOW: 1.5,
-      MED: 3.0,
-      HIGH: 10.0
-    };
+    const items = body.items || [];
+    if (!Array.isArray(items)) {
+      return new Response(JSON.stringify({ error: "items must be an array" }), { status: 400 });
+    }
 
-    // Debug: log what env actually contains
-    console.log("Available env keys:", Object.keys(env || {}));
+    // Hardcoded prices for now (we'll fix env later)
+    const prices = { LOW: 1.5, MED: 3.0, HIGH: 10.0 };
 
     let total = 0;
 
-    // Fetch packs-data.js (your source of truth)
+    // Fetch packs-data.js
     const packsRes = await fetch("https://velutinx.github.io/assets/js/packs-data.js");
     const packsText = await packsRes.text();
-
     const match = packsText.match(/const packsData = (\[[\s\S]*?\]);/);
     if (!match) throw new Error("Cannot parse packsData");
 
@@ -29,11 +39,11 @@ export async function onRequestPost({ request, env }) {
 
     for (const id of items) {
       const pack = packsData.find(p => String(p.id) === String(id));
-      if (!pack) continue;
-
-      const tier = pack.price.replace("PRICE_", ""); // LOW / MED / HIGH
-      const price = prices[tier] || 3.0;
-      total += price;
+      if (pack) {
+        const tier = pack.price.replace("PRICE_", "");
+        const price = prices[tier.toUpperCase()] || 3.0;
+        total += price;
+      }
     }
 
     return new Response(
@@ -42,7 +52,7 @@ export async function onRequestPost({ request, env }) {
     );
 
   } catch (err) {
-    console.error("Pricing error:", err);
+    console.error("Pricing crash:", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }
