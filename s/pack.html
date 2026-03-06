@@ -209,45 +209,6 @@
     document.getElementById("priceSection").innerHTML = html;
   }
 
-  // Open cart drawer - tries multiple reliable ways
-  function openCartDrawer() {
-    // Option 1: Call the function if it exists in global scope (common in header.js)
-    if (typeof window.toggleCart === 'function') {
-      window.toggleCart();
-      return;
-    }
-    if (typeof window.openCart === 'function') {
-      window.openCart();
-      return;
-    }
-    if (typeof window.showCartDrawer === 'function') {
-      window.showCartDrawer();
-      return;
-    }
-
-    // Option 2: Simulate click on the known working buttons
-    const cartBtn = document.getElementById("cartBtn");
-    if (cartBtn) {
-      cartBtn.click();
-      return;
-    }
-
-    const floatingBtn = document.getElementById("floatingCartBtn");
-    if (floatingBtn) {
-      floatingBtn.click();
-      return;
-    }
-
-    // Fallback: direct class toggle (adjust class name if needed)
-    const drawer = document.getElementById("cartDrawer");
-    if (drawer) {
-      drawer.classList.add("open");           // change to "active", "visible", etc. if needed
-      document.body.classList.add("no-scroll"); // optional: common overlay/scroll lock class
-    }
-
-    window.updateCartDisplay?.();
-  }
-
   const params = new URLSearchParams(window.location.search);
   const packId = params.get("id") || "001";
   const pack = packsData.find(p => p.id === packId);
@@ -275,9 +236,9 @@
 
     updatePriceDisplay(pack);
 
+    // Only Add to Cart button (no Buy Now)
     const isInCart = window.getCart().some(item => item.id === pack.id);
     document.getElementById("buttons").innerHTML = `
-      <button class="btn btn-buy" id="buyNowBtn">Buy Now</button>
       <button class="btn btn-cart" id="addCartBtn">
         ${isInCart ? "Remove from Cart" : "Add to Cart"}
       </button>
@@ -296,34 +257,12 @@
       window.updateCartDisplay();
     });
 
-    // Buy Now opens the cart drawer
-    document.getElementById("buyNowBtn").addEventListener("click", openCartDrawer);
+    document.getElementById("illustrationCount").textContent = 
+      `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
 
-    document.getElementById("illustrationCount").textContent = `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
-
-    document.getElementById("disclaimer").innerHTML = `
-      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-        <circle cx="256" cy="380" r="24" fill="#000000"/>
-      </svg>
-      <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
-    `;
-
-    // Add the new non-refundable notice below the disclaimer
-    const noteSection = document.getElementById("disclaimer").parentElement; // or wherever you want it
-    const refundNote = document.createElement("div");
-    refundNote.className = "disclaimer";
-    refundNote.style.marginTop = "16px";
-    refundNote.innerHTML = `
-      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-        <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-        <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-        <circle cx="256" cy="380" r="24" fill="#000000"/>
-      </svg>
-      <span>Digital products are non-refundable after purchase.</span>
-    `;
-    document.getElementById("disclaimer").insertAdjacentElement("afterend", refundNote);
+    // Combined disclaimer (translated, no divider)
+    document.getElementById("disclaimer").innerHTML = ""; // will be filled by updateDisclaimers()
+    window.updateDisclaimers();
 
     const slides = document.getElementById('slides');
     const thumbs = document.querySelectorAll('.thumb');
@@ -343,6 +282,7 @@
     item.addEventListener("click", () => {
       window.setLanguage(item.dataset.lang);
       if (pack) updatePriceDisplay(pack);
+      window.updateDisclaimers(); // refresh translated notices
     });
   });
 
