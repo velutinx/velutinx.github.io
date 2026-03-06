@@ -218,19 +218,17 @@
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
   <!-- Page-specific product listing, search, sort, add-to-cart logic -->
-  <script>
-    window.addEventListener('load', () => {
-      // Temporary static products – later replace with Supabase query
-      const productsData = [
-        { id: 178, title: "[Pack 178] Mitsuri Kanroji - Kimetsu no Yaiba", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=178" },
-        { id: 177, title: "[Pack 177] Kei Karuizawa - Classroom of the Elite", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=177" },
-        { id: 176, title: "[Pack 176] Mikamo Neru - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=176" },
-        { id: 175, title: "[Pack 175] Misery Stentrem - Youkoso! Skebe Elf no Mori e", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=175" },
-        { id: 174, title: "[Pack 174] Jessie - Pokemon", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=174" },
-        { id: 173, title: "[Pack 173] Akane - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=173" },
-        { id: 172, title: "[Pack 172] Hu Tao - Genshin Impact", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=172" },
-        { id: 171, title: "[Pack 171] Chloe von Einzbern - Fate/Grand Order", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=171" },
-      ].map((p, i) => ({ ...p, date: Date.now() - i * 86400000 * 7 }));
+  <script type="module">
+    // Import packs metadata from packs-data.js
+    import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
+
+    window.addEventListener('load', async () => {
+      // Enrich packs with real prices from env vars (via /prices)
+      const productsData = packsData.map(p => ({
+        ...p,
+        price: window.getPriceForPack(p.id),  // uses prices from Cloudflare env vars
+        date: p.date || Date.now() - (p.id * 86400000 * 7) // fallback date if not set
+      }));
 
       const grid = document.getElementById("productGrid");
       const searchInput = document.getElementById("searchInput");
@@ -249,7 +247,7 @@
             <div class="card-content">
               <div class="card-title">${p.title}</div>
               <div class="price-row">
-                <div class="price" data-price="${p.price}"></div> <!-- price filled by shop-shared.js -->
+                <div class="price" data-price="${p.price}"></div>
                 <button class="cart-btn" title="Add to Cart">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
@@ -263,16 +261,14 @@
             </div>
           `;
 
-          // Click card → detail page (placeholder)
           card.addEventListener("click", e => {
             if (e.target.closest(".cart-btn")) return;
-            alert(`Pack detail page: ${p.id} (to be implemented)`);
+            alert(`Pack detail: ${p.id} (to implement)`);
           });
 
           grid.appendChild(card);
           p.element = card;
 
-          // Add/remove from cart
           const btn = card.querySelector(".cart-btn");
           btn.addEventListener("click", e => {
             e.stopPropagation();
@@ -288,12 +284,12 @@
               document.getElementById("snackbar").classList.add("show");
               setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
             }
-            updateCartDisplay(); // from shop-shared.js
+            window.updateCartDisplay();
           });
         });
 
-        // Initial price update (from shop-shared.js)
-        updateAllPrices();
+        // Apply prices from shared logic
+        window.updateAllPrices();
       }
 
       function filterAndSort() {
@@ -324,7 +320,6 @@
 
       searchInput.addEventListener("input", filterAndSort);
 
-      // Build everything
       createCards();
       filterAndSort();
     });
