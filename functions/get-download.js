@@ -1,13 +1,12 @@
 export async function onRequest(context) {
     const { searchParams } = new URL(context.request.url);
     const token = searchParams.get('token');
-    const itemsParam = searchParams.get('items'); // Get the list of packs from the URL
+    const itemsParam = searchParams.get('items');
 
     if (!token) {
         return new Response(JSON.stringify({ error: "No token" }), { status: 400 });
     }
 
-    // --- YOUR FULL VAULT ---
     const vault = {
         "PACK001": "https://mega.nz/file/HE9zFQCA#4Q0od_bgqFSCyqlP42u3YvK-0AE29ffzjyojYckKsPU",
         "PACK175": "https://mega.nz/file/yNEXHaaT#QdLyraYfzXST9VAwbQurSJih4Ftcy2qIFUx6IdNVWi4",
@@ -16,26 +15,18 @@ export async function onRequest(context) {
         "PACK178": "https://mega.nz/file/bUdgmASK#TnNMZ8tUWHaOS7hne4VxncEea5fCwLBbaQQ4dkeyAG8"
     };
 
-    // Split the items (e.g., "PACK001,PACK175") into an array
     const requestedPacks = itemsParam ? itemsParam.split(',') : [];
 
-    // Filter the vault to only include what was requested
     const itemsToReturn = requestedPacks.map(pkg => {
+        // Clean the name just in case
+        const cleanName = pkg.trim().toUpperCase();
         return {
-            title: pkg,
-            link: vault[pkg] || "#" // Returns # if the pack name is misspelled
+            title: cleanName,
+            link: vault[cleanName] || null
         };
-    }).filter(item => item.link !== "#");
+    }).filter(item => item.link !== null);
 
-    const result = {
-        order_id: "00001",
-        items: itemsToReturn
-    };
-
-    return new Response(JSON.stringify(result), {
-        headers: { 
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*" 
-        }
+    return new Response(JSON.stringify({ order_id: "00001", items: itemsToReturn }), {
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
     });
 }
