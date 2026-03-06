@@ -1,21 +1,140 @@
-<script>
-const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get("token");
-
-fetch(`/api/get-download?token=${token}`)
-  .then(res => res.json())
-  .then(data => {
-    const section = document.getElementById("download-section");
-
-    if (data.link) {
-      section.innerHTML = `
-        <p>Click below to download your purchase:</p>
-        <a href="${data.link}" class="download-btn" target="_blank">
-          Download Now
-        </a>
-      `;
-    } else {
-      section.innerHTML = `<p id="error-message">Invalid payment.</p>`;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful - Velutinx</title>
+  <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
+  <style>
+    .success-container {
+      max-width: 600px;
+      margin: 80px auto;
+      padding: 32px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-  });
-</script>
+    .order-number {
+      font-family: monospace;
+      background: rgba(0,0,0,0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .download-list {
+      margin: 32px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .download-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: rgba(73, 190, 255, 0.1);
+      border: 1px solid rgba(73, 190, 255, 0.3);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.2s;
+    }
+    .download-item:hover {
+      transform: translateY(-2px);
+      background: rgba(73, 190, 255, 0.2);
+    }
+    .download-btn-text { font-weight: bold; color: #49BEFF; }
+    
+    .disclaimer-box {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-light);
+      text-align: left;
+    }
+    .error-text { color: var(--red-discount); font-weight: bold; }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="logo">VELUTINX</div>
+  </nav>
+
+  <main class="container">
+    <div class="success-container">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#13DEB9" stroke-width="2" style="margin-bottom: 20px;">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      
+      <h1>Thank you for your purchase!</h1>
+      <p>Order Number: <span class="order-number" id="order-id">#00001</span></p>
+
+      <div id="download-section">
+        <p>Validating payment and preparing your files...</p>
+      </div>
+
+      <div class="disclaimer-box">
+        <p><strong>Note:</strong> Download links are valid for 24 hours. If you experience issues, please contact support with your order number.</p>
+        <p>All sales of digital products are final and non-refundable.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    const section = document.getElementById("download-section");
+    const orderDisplay = document.getElementById("order-id");
+
+    // For now, we hardcode the order ID as requested. 
+    // Later, your API will return the real database ID.
+    orderDisplay.textContent = "#00001";
+
+    if (!token) {
+      section.innerHTML = `<p class="error-text">No payment token found. If you believe this is an error, please contact support.</p>`;
+    } else {
+      fetch(`/api/get-download?token=${token}`)
+        .then(res => {
+          if (!res.ok) throw new Error("Invalid token");
+          return res.json();
+        })
+        .then(data => {
+          // Expecting data.items to be an array: [{title: "Pack A", link: "..."}, {title: "Pack B", link: "..."}]
+          if (data.items && data.items.length > 0) {
+            let html = `<p>Your files are ready:</p><div class="download-list">`;
+            
+            data.items.forEach(item => {
+              html += `
+                <a href="${item.link}" class="download-item" target="_blank">
+                  <span>${item.title}</span>
+                  <span class="download-btn-text">Download ZIP ↓</span>
+                </a>
+              `;
+            });
+            
+            html += `</div>`;
+            section.innerHTML = html;
+          } else if (data.link) { 
+            // Fallback for single link format
+            section.innerHTML = `
+              <div class="download-list">
+                <a href="${data.link}" class="download-item" target="_blank">
+                  <span>Full Purchase</span>
+                  <span class="download-btn-text">Download Now ↓</span>
+                </a>
+              </div>`;
+          } else {
+            section.innerHTML = `<p class="error-text">Payment invalid or files expired.</p>`;
+          }
+        })
+        .catch(err => {
+          section.innerHTML = `<p class="error-text">Error: Unable to verify purchase. Please refresh or try again later.</p>`;
+        });
+    }
+  </script>
+</body>
+</html>
