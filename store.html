@@ -171,16 +171,24 @@
     </main>
   </div>
 
+  <!-- Scripts -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <script src="https://storage.ko-fi.com/cdn/scripts/overlay-widget.js"></script>
+  <!-- Ko-fi Floating Chat Widget (lazy-loaded to avoid Quirks Mode warning) -->
   <script>
-    kofiWidgetOverlay.draw('velutinxstudio', {
-      'type': 'floating-chat',
-      'floating-chat.donateButton.text': 'Support Me',
-      'floating-chat.donateButton.background-color': '#aa9e76',
-      'floating-chat.donateButton.text-color': '#fff'
+    window.addEventListener("load", () => {
+      const script = document.createElement("script");
+      script.src = "https://storage.ko-fi.com/cdn/scripts/overlay-widget.js";
+      script.onload = () => {
+        kofiWidgetOverlay.draw('velutinxstudio', {
+          'type': 'floating-chat',
+          'floating-chat.donateButton.text': 'Support Me',
+          'floating-chat.donateButton.background-color': '#aa9e76',
+          'floating-chat.donateButton.text-color': '#fff'
+        });
+      };
+      document.body.appendChild(script);
     });
   </script>
 
