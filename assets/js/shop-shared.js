@@ -34,7 +34,7 @@
       filterTitle: "カテゴリでフィルター",
       catAll: "すべて",
       catFemale: "女性",
-      catFemboy: "フェンボーイ",
+      catFemboy: "男の娘",
       catCollections: "コレクション",
       sortTitle: "並び替え",
       sortNewest: "最新",
