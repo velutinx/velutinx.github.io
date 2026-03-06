@@ -24,7 +24,11 @@
       disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
       disclaimerRefund: "Digital products are non-refundable after purchase.",
       contentsTitle: "Contents:",
-      contentsDesc: "ZIP file containing {count} AI-generated illustrations"
+      contentsDesc: "ZIP file containing {count} AI-generated illustrations",
+      originalPrice: "Original Price:",
+      currentPrice: "Current Price:",
+      addToCart: "Add to Cart",
+      removeFromCart: "Remove from Cart"
     },
     ja: {
       shopTitle: "マイストア",
@@ -47,7 +51,11 @@
       disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
       disclaimerRefund: "デジタル商品は購入後の返金はできません。",
       contentsTitle: "内容：",
-      contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル"
+      contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
+      originalPrice: "元の価格：",
+      currentPrice: "現在の価格：",
+      addToCart: "カートに追加",
+      removeFromCart: "カートから削除"
     },
     zh: {
       shopTitle: "我的商店",
@@ -70,7 +78,11 @@
       disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
       disclaimerRefund: "数字产品购买后不可退款。",
       contentsTitle: "内容：",
-      contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件"
+      contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
+      originalPrice: "原价：",
+      currentPrice: "现价：",
+      addToCart: "加入购物车",
+      removeFromCart: "从购物车移除"
     },
     es: {
       shopTitle: "Mi Tienda",
@@ -93,7 +105,11 @@
       disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
       disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
       contentsTitle: "Contenido:",
-      contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA"
+      contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
+      originalPrice: "Precio original:",
+      currentPrice: "Precio actual:",
+      addToCart: "Añadir al carrito",
+      removeFromCart: "Eliminar del carrito"
     }
   };
 
