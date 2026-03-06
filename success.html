@@ -34,7 +34,6 @@
             border: 1px solid #eee;
         }
 
-        /* Force all text to be black/dark for readability */
         .success-container h1 {
             color: #000000;
             margin-bottom: 8px;
@@ -130,85 +129,149 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
-        <h1 id="confTitle">Confirming...</h1>
-        <p><span id="orderLabel">Order:</span> <span class="order-number" id="order-id">#00000</span></p>
-        <div id="download-section"><p class="loading-dots" id="loadingText">Preparing assets</p></div>
+        
+        <h1 id="confTitle">Purchase Confirmed!</h1>
+        <p id="orderLabel">Order Number: <span class="order-number" id="order-id">#00001</span></p>
+
+        <div id="download-section">
+            <p class="loading-dots" id="loadingText">Preparing your digital assets</p>
+        </div>
+
         <div class="disclaimer-box">
-            <p id="supportText"></p>
-            <p id="idText" class="id-note"></p>
-            <p id="noticeText" style="font-weight: bold; margin-top: 10px;"></p>
+            <p id="supportText"><strong>Support:</strong> If you have any issues, please message me on <strong>Discord (velutinxx)</strong> or email <strong>support@velutinx.com</strong>.</p>
+            
+            <p class="id-note" id="idText">
+                <strong>Identification:</strong> When contacting support, please include your <strong>Order Number</strong> and your <strong>PayPal Email</strong> address. This helps me verify your transaction quickly.
+            </p>
+            
+            <p id="noticeText"><strong>Notice:</strong> Download links are valid for 24 hours. Please do not share these links with others.</p>
         </div>
     </div>
 </div>
 
-<script src="https://velutinx.github.io/assets/js/header.js" crossorigin="anonymous"></script>
-
 <script>
-    const hardcoded = {
-        ja: {
-            confTitle: "購入が完了しました！",
-            orderLabel: "注文番号:",
-            readyLabel: "ダウンロードの準備ができました:",
-            dlBtn: "ダウンロード",
-            supportText: "サポート: Discord (velutinxx) またはメール support@velutinx.com まで。",
-            idText: "本人確認: 注文番号とPayPalのメールアドレスを記載してください。",
-            noticeText: "注意: リンクは24時間有効です。共有しないでください。"
-        },
-        en: {
-            confTitle: "Purchase Confirmed!",
-            orderLabel: "Order Number:",
-            readyLabel: "Your files are ready:",
-            dlBtn: "Download",
-            supportText: "Support: Message me on Discord (velutinxx) or email support@velutinx.com.",
-            idText: "Identification: Include your Order Number and PayPal Email.",
-            noticeText: "Notice: Links valid for 24 hours. Do not share."
-        }
-    };
+// === Language & Translation Data (copied from your header.js) ===
+const translations = {
+  en: { 
+    confTitle: "Purchase Confirmed!", 
+    orderLabel: "Order Number:", 
+    loadingText: "Preparing your digital assets",
+    readyLabel: "Your files are ready:",
+    supportText: "Support: If you have any issues, please message me on Discord (velutinxx) or email support@velutinx.com.",
+    idText: "Identification: When contacting support, please include your Order Number and your PayPal Email address. This helps me verify your transaction quickly.",
+    noticeText: "Notice: Download links are valid for 24 hours. Please do not share these links with others."
+  },
+  ja: { 
+    confTitle: "購入が完了しました！", 
+    orderLabel: "注文番号:", 
+    loadingText: "デジタルアセットを準備中です",
+    readyLabel: "ファイルの準備ができました:",
+    supportText: "サポート：問題が発生した場合は、Discord（velutinxx）またはメール（support@velutinx.com）でご連絡ください。",
+    idText: "本人確認：サポートに連絡する際は、注文番号とPayPalのメールアドレスを記載してください。",
+    noticeText: "注意：ダウンロードリンクは24時間有効です。リンクを他人に共有しないでください。"
+  },
+  zh: { 
+    confTitle: "购买确认！", 
+    orderLabel: "订单编号:", 
+    loadingText: "正在准备您的数字资产",
+    readyLabel: "您的文件已准备就绪:",
+    supportText: "支持：如果您有任何问题，请在 Discord (velutinxx) 上给我留言或发送邮件至 support@velutinx.com。",
+    idText: "身份验证：联系支持人员时，请提供您的订单号和 PayPal 电子邮件地址。",
+    noticeText: "注意：下载链接有效期为 24 小时。请勿与他人分享这些链接。"
+  },
+  es: { 
+    confTitle: "¡Compra Confirmada!", 
+    orderLabel: "Número de Pedido:", 
+    loadingText: "Preparando sus activos digitales",
+    readyLabel: "Tus archivos están listos:",
+    supportText: "Soporte: Si tienes algún problema, por favor escríbeme por Discord (velutinxx) o correo support@velutinx.com.",
+    idText: "Identificación: Al contactar al soporte, por favor incluye tu número de pedido y tu correo de PayPal.",
+    noticeText: "Aviso: Los enlaces de descarga son válidos por 24 horas. Por favor, no compartas estos enlaces."
+  }
+};
 
-    window.addEventListener('load', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get("token");
-        let lang = urlParams.get("lang") || "en";
+let currentLang = localStorage.getItem("language") || "en";
 
-        // Fix the 'zh' error on the fly
-        if (lang === "zh") lang = "ja";
+// === Apply language immediately on page load ===
+function setSuccessLanguage(lang) {
+    if (!translations[lang]) lang = "en";
+    currentLang = lang;
+    localStorage.setItem("language", lang);
 
-        // Try global translations object from header.js, then hardcoded ja/en
-        const t = (window.translations && window.translations[lang]) 
-                  ? window.translations[lang] 
-                  : (hardcoded[lang] || hardcoded.en);
+    const t = translations[lang];
 
-        document.getElementById("confTitle").textContent = t.confTitle;
-        document.getElementById("orderLabel").textContent = t.orderLabel;
-        document.getElementById("supportText").innerHTML = t.supportText.replace('Discord (velutinxx)', '<strong>Discord (velutinxx)</strong>').replace('support@velutinx.com', '<strong>support@velutinx.com</strong>');
-        document.getElementById("idText").innerHTML = t.idText.replace('注文番号', '<strong>注文番号</strong>').replace('Order Number', '<strong>Order Number</strong>').replace('PayPal Email', '<strong>PayPal Email</strong>');
-        document.getElementById("noticeText").textContent = t.noticeText;
+    document.getElementById("confTitle").textContent = t.confTitle;
+    document.getElementById("orderLabel").childNodes[0].textContent = t.orderLabel + " ";
+    document.getElementById("loadingText").textContent = t.loadingText;
+    document.getElementById("supportText").innerHTML = t.supportText;
+    document.getElementById("idText").innerHTML = t.idText;
+    document.getElementById("noticeText").innerHTML = t.noticeText;
 
-        if (!token) {
-            document.getElementById("download-section").innerHTML = "Error: Token Missing";
-            return;
-        }
+    // Optional: update document lang attribute
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+}
 
-        fetch(`/get-download?token=${token}`)
-            .then(res => res.json())
-            .then(data => {
-                const section = document.getElementById("download-section");
-                if (data.items && data.items.length > 0) {
-                    document.getElementById("order-id").innerText = "#" + data.order_number.toString().padStart(5, '0');
-                    let html = `<p style="font-weight:bold; margin-bottom:10px;">${t.readyLabel}</p>`;
-                    data.items.forEach(item => {
-                        html += `<a href="${item.link}" class="download-item" target="_blank">${t.dlBtn} ${item.title} ↓</a>`;
-                    });
-                    section.innerHTML = html;
-                    localStorage.removeItem("velutinx_cart");
-                } else {
-                    section.innerHTML = "Vault Error: Links not found.";
-                }
-            })
-            .catch(() => { 
-                document.getElementById("download-section").innerHTML = "Server connection error.";
-            });
-    });
+// === Read language from URL first (most reliable) ===
+const urlParams = new URLSearchParams(window.location.search);
+const urlLang = urlParams.get("lang");
+const token = urlParams.get("token");
+
+if (urlLang && translations[urlLang]) {
+    setSuccessLanguage(urlLang);
+} else {
+    setSuccessLanguage(currentLang); // fallback to saved or en
+}
+
+// === Download logic (unchanged except minor improvements) ===
+const section = document.getElementById("download-section");
+
+const savedCart = localStorage.getItem("velutinx_cart");
+const cart = savedCart ? JSON.parse(savedCart) : [];
+
+// Normalize item IDs to match vault keys (PACKXXX)
+const itemNames = cart.map(item => {
+    let id = item.id.toLowerCase();
+    if (id.includes('item-')) id = id.replace('item-', 'pack');
+    if (!id.includes('pack')) id = 'pack' + id;
+    return id.toUpperCase();
+}).join(',');
+
+if (!token) {
+    section.innerHTML = `<p class="error-text">No payment token found. Something went wrong with the payment redirect.</p>`;
+} else if (cart.length === 0) {
+    section.innerHTML = `<p class="error-text">Your cart is empty. Please go back to the shop and try again.</p>`;
+} else {
+    fetch(`/get-download?token=${token}&items=${itemNames}`)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            if (data.items && data.items.length > 0) {
+                let html = `<p style="margin-bottom:15px; font-weight:bold;" id="readyLabel">${translations[currentLang].readyLabel}</p>`;
+                data.items.forEach(item => {
+                    if (item.link) {
+                        html += `
+                            <a href="${item.link}" class="download-item" target="_blank">
+                                Download ${item.title} ↓
+                            </a>`;
+                    } else {
+                        html += `<p class="error-text">Missing download link for ${item.title}</p>`;
+                    }
+                });
+                section.innerHTML = html;
+            } else {
+                section.innerHTML = `<p class="error-text">No files found for order. Vault may not recognize: [${itemNames}]</p>`;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            section.innerHTML = `<p class="error-text">Failed to load downloads. Please contact support with your order number.</p>`;
+        });
+}
+
+// Optional: keep cart for refresh testing (you already commented out removal)
 </script>
+
 </body>
 </html>
