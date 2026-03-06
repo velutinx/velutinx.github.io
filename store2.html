@@ -267,22 +267,28 @@
 
           // Cart button logic
           const btn = card.querySelector(".cart-btn");
-          btn.addEventListener("click", e => {
-            e.stopPropagation();
-            const alreadyInCart = window.cart.some(item => item.id === p.id);
-            if (alreadyInCart) {
-              window.cart = window.cart.filter(item => item.id !== p.id);
-              btn.classList.remove("added");
-              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-            } else {
-              window.cart.push(p);
-              btn.classList.add("added");
-              btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-              document.getElementById("snackbar").classList.add("show");
-              setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
-            }
-            window.updateCartDisplay();
-          });
+btn.addEventListener("click", e => {
+  e.stopPropagation();
+
+  // Get pack data (you already have p from productsData.forEach)
+  const pack = p;  // ← p is in scope from forEach
+
+  window.addOrToggleCart(pack);
+
+  const isNowInCart = window.getCart().some(item => item.id === pack.id);
+
+  btn.classList.toggle("added", isNowInCart);
+
+  if (isNowInCart) {
+    btn.innerHTML = `<svg ... > ... <path d="M15 19l2 2l4 -4"/></svg>`;  // checkmark icon you had
+    document.getElementById("snackbar").classList.add("show");
+    setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
+  } else {
+    btn.innerHTML = `<svg ... > ... original cart icon ... </svg>`;
+  }
+
+  window.updateCartDisplay();
+});
         });
 
         window.updateAllPrices();
