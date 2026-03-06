@@ -288,23 +288,28 @@
       window.updateAllPrices();
     }
 
-    function filterAndSort() {
-      const query = searchInput.value.toLowerCase().trim();
-      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+function filterAndSort() {
+  const query = searchInput.value.toLowerCase().trim();
+  const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
 
-      productsData.forEach(p => {
-        p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
-      });
+  productsData.forEach(p => {
+    p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
+  });
 
-      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+  let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
 
-      if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
-      else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
-      else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-      else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+  if (activeSort === "newest") {
+    visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
+  } else if (activeSort === "oldest") {
+    visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
+  } else if (activeSort === "price-asc") {
+    visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+  } else if (activeSort === "price-desc") {
+    visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+  }
 
-      visible.forEach(el => grid.appendChild(el));
-    }
+  visible.forEach(el => grid.appendChild(el));
+}
 
     sortButtons.forEach(btn => {
       btn.addEventListener("click", () => {
