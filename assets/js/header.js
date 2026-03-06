@@ -14,7 +14,7 @@ const translations = {
   },
   es: { 
     shopTitle: "Mi Tienda", filterTitle: "Filtrar por Categoría", catAll: "Todos", catNot: "No en Booth", catFrom: "Desde Booth", catSisters: "El Rincón de las Hermanas", sortTitle: "Ordenar por", sortDefault: "Predeterminado", sortNewest: "Más reciente", sortLow: "Precio: Bajo a Alto", sortHigh: "Precio: Alto a Bajo", resetBtn: "Reiniciar", productsTitle: "Productos", cartTitle: "Carrito de Compras", totalLabel: "Total", snackText: "Añadido con éxito", loginBtn: "Sitio web", searchPlaceholder: "Buscar...",
-    confTitle: "¡Compra Confirmada!", orderLabel: "Número de Pedido:", readyLabel: "Tus archivos están listos:", dlBtn: "Descargar", supportText: "Soporte: Si tienes algún problema, por favor escríbeme por Discord (velutinxx) o correo support@velutinx.com.", idText: "Identificación: Al contactar al soporte, por favor incluye tu número de pedido y tu correo de PayPal.", noticeText: "Aviso: Los enlaces de descarga son válidos por 24 horas. Por favor, no compartas estos enlaces."
+    confTitle: "¡Compra Confirmada!", orderLabel: "Número de Pedido:", readyLabel: "Tus archivos están listos:", dlBtn: "Download", supportText: "Soporte: Si tienes algún problema, por favor escríbeme por Discord (velutinxx) o correo support@velutinx.com.", idText: "Identificación: Al contactar al soporte, por favor incluye tu número de pedido y tu correo de PayPal.", noticeText: "Aviso: Los enlaces de descarga son válidos por 24 horas. Por favor, no compartas estos enlaces."
   }
 };
 
@@ -196,13 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   updateCartDisplay();
-  const t = translations[currentLang] || translations.en;
-  const ids = ["shopTitle","filterTitle","catAll","catNot","catFrom","catSisters","sortTitle","sortDefault","sortNewest","sortLow","sortHigh","resetBtn","productsTitle","cartTitle","totalLabel","snackText","loginBtn"];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && t[id]) el.textContent = t[id];
-  });
-  updateAllPrices();
+  setLanguage(currentLang);
 });
 
 /* ==================== PAYPAL SDK ==================== */
@@ -265,20 +259,18 @@ function initPayPalButtons() {
 
     onApprove: (data, actions) => {
       return actions.order.capture().then(async (details) => {
-        // 1. Get the items from the cart
         const cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
         const itemNames = cart.map(item => item.id.replace('item-', 'PACK').toUpperCase()).join(',');
 
-        // 2. Prepare the data for Supabase
         const orderData = {
           paypal_token: details.id,
           paypal_email: details.payer.email_address,
           amount: details.purchase_units[0].amount ? details.purchase_units[0].amount.value : 0,
           cart: itemNames,
-          status: 'COMPLETED'
+          status: 'COMPLETED',
+          lang: currentLang // Capturing the language selected at checkout
         };
 
-        // 3. Save to Supabase via your Cloudflare Function
         try {
           await fetch('/save-order', {
             method: 'POST',
@@ -289,7 +281,6 @@ function initPayPalButtons() {
           console.error("Supabase Save Error:", err);
         }
 
-        // 4. Redirect to success page
         window.location.href = `/success.html?token=${details.id}`;
       });
     },
