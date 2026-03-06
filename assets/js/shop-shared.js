@@ -1,9 +1,11 @@
 // ================================================
 // Shared shop logic: cart, currency, translations
-// Wrapped in IIFE to eliminate all global redeclaration risks
+// Wrapped in IIFE to avoid ALL global redeclaration conflicts
 // ================================================
 
 (function () {
+  "use strict";
+
   const translations = {
     en: {
       shopTitle: "My Store",
@@ -91,7 +93,7 @@
 
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-  // Local variables - no global conflict
+  // Local variables inside IIFE - no global conflict possible
   let currentLang = localStorage.getItem("language") || "en";
   let currentCurrency = currentLang === "en" ? "USD" :
                         currentLang === "ja" ? "JPY" :
