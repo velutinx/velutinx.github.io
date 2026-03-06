@@ -17,6 +17,8 @@
         .download-item:hover { background: #38aae8; transform: translateY(-2px); }
         .disclaimer-box { margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee; text-align: left; font-size: 14px; }
         .id-note { background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; margin-top: 10px; }
+        .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } }
     </style>
 </head>
 <body>
@@ -27,9 +29,9 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
-        <h1 id="confTitle">Loading...</h1>
+        <h1 id="confTitle">Confirming...</h1>
         <p><span id="orderLabel">Order:</span> <span class="order-number" id="order-id">#00000</span></p>
-        <div id="download-section"></div>
+        <div id="download-section"><p class="loading-dots" id="loadingText">Preparing assets</p></div>
         <div class="disclaimer-box">
             <p id="supportText"></p>
             <p id="idText" class="id-note"></p>
@@ -39,7 +41,7 @@
 </div>
 
 <script src="https://velutinx.github.io/assets/js/header.js" crossorigin="anonymous"></script>
-    
+
 <script>
     const hardcoded = {
         ja: {
@@ -66,10 +68,14 @@
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get("token");
         let lang = urlParams.get("lang") || "en";
-        if (lang === "zh") lang = "ja"; // Correcting your DB error on the fly
 
-        // Get from header.js OR fallback to hardcoded above
-        const t = (window.translations && window.translations[lang]) ? window.translations[lang] : hardcoded[lang] || hardcoded.en;
+        // Fix the 'zh' error on the fly
+        if (lang === "zh") lang = "ja";
+
+        // Try global translations object from header.js, then hardcoded ja/en
+        const t = (window.translations && window.translations[lang]) 
+                  ? window.translations[lang] 
+                  : (hardcoded[lang] || hardcoded.en);
 
         document.getElementById("confTitle").textContent = t.confTitle;
         document.getElementById("orderLabel").textContent = t.orderLabel;
@@ -77,13 +83,16 @@
         document.getElementById("idText").innerHTML = t.idText.replace('注文番号', '<strong>注文番号</strong>').replace('Order Number', '<strong>Order Number</strong>').replace('PayPal Email', '<strong>PayPal Email</strong>');
         document.getElementById("noticeText").textContent = t.noticeText;
 
-        if (!token) return;
+        if (!token) {
+            document.getElementById("download-section").innerHTML = "Error: Token Missing";
+            return;
+        }
 
         fetch(`/get-download?token=${token}`)
             .then(res => res.json())
             .then(data => {
                 const section = document.getElementById("download-section");
-                if (data.items) {
+                if (data.items && data.items.length > 0) {
                     document.getElementById("order-id").innerText = "#" + data.order_number.toString().padStart(5, '0');
                     let html = `<p style="font-weight:bold; margin-bottom:10px;">${t.readyLabel}</p>`;
                     data.items.forEach(item => {
@@ -91,7 +100,12 @@
                     });
                     section.innerHTML = html;
                     localStorage.removeItem("velutinx_cart");
+                } else {
+                    section.innerHTML = "Vault Error: Links not found.";
                 }
+            })
+            .catch(() => { 
+                document.getElementById("download-section").innerHTML = "Server connection error.";
             });
     });
 </script>
