@@ -74,7 +74,7 @@
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
     .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
 
-    /* Dark mode fixes - ensure all text adapts */
+    /* Dark mode fixes - force text colors */
     body.dark .contents-section,
     body.dark .contents-section *,
     body.dark .contents-list,
@@ -106,7 +106,7 @@
       stroke: var(--border) !important;
     }
 
-    /* Force vertical stacking, no columns */
+    /* Force vertical stacking for disclaimers */
     #disclaimer {
       display: block !important;
       column-count: 1 !important;
@@ -202,7 +202,6 @@
           <h1 id="title">Loading...</h1>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
-          <div class="note" id="note"></div>
           <div class="contents-section" id="contentsSection">
             <div class="contents-title" id="contentsTitle">Contents:</div>
             <ul class="contents-list">
@@ -288,17 +287,14 @@
       // Dynamic contents with translation
       const updateContents = () => {
         const t = translations[currentLang] || translations.en;
-        document.getElementById("contentsTitle").textContent = t.contentsTitle;
+        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
         document.getElementById("illustrationCount").textContent = 
-          t.contentsDesc.replace("{count}", pack.illustrationCount);
+          (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations").replace("{count}", pack.illustrationCount);
       };
       updateContents();
 
-      // Disclaimer (handled by shared function)
+      // Disclaimer
       window.updateDisclaimers?.();
-
-      document.getElementById("illustrationCount").textContent = 
-        `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
 
       const slides = document.getElementById('slides');
       const thumbs = document.querySelectorAll('.thumb');
@@ -321,9 +317,9 @@
 
         // Update contents on language change
         const t = translations[currentLang] || translations.en;
-        document.getElementById("contentsTitle").textContent = t.contentsTitle;
+        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
         document.getElementById("illustrationCount").textContent = 
-          t.contentsDesc.replace("{count}", pack.illustrationCount);
+          (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations").replace("{count}", pack.illustrationCount);
 
         window.updateDisclaimers?.();
       });
