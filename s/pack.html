@@ -55,6 +55,8 @@
       position: fixed;
       top: 28px;
       right: 28px;
+      background: #22c55e;
+      color: white;
       padding: 12px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -67,11 +69,13 @@
       transition: all 0.4s ease;
       font-size: 0.95rem;
       min-width: 220px;
-      color: white;
     }
     #snackbar.show {
       transform: translateY(0);
       opacity: 1;
+    }
+    #snackbar.remove {
+      background: #ef4444;
     }
   </style>
 </head>
@@ -140,7 +144,6 @@
     </div>
   </div>
 
-  <!-- Snackbar -->
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
@@ -169,7 +172,7 @@
 
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <!-- Cache-busting: change the v= number every time you update shop-shared.js -->
-  <script src="https://velutinx.github.io/assets/js/shop-shared.js?v=20250311"></script>
+  <script src="https://velutinx.github.io/assets/js/shop-shared.js?v=20250310"></script>
 
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
