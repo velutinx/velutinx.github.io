@@ -150,18 +150,26 @@
   }
 
   function formatPrice(value, currency = currentCurrency) {
-    if (currency === "USD") return `US$${value.toFixed(2)}`;
-    const rounded = Math.round(value * 100) / 100;
-    if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-      const converted = tierMap[rounded][currency];
-      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-      return `${symbol}${converted}`;
+    let priceStr;
+
+    if (currency === "USD") {
+      priceStr = `US$${value.toFixed(2)}`;
+    } else {
+      const rounded = Math.round(value * 100) / 100;
+      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+        const converted = tierMap[rounded][currency];
+        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+        priceStr = `${symbol}${converted}`;
+      } else {
+        let converted = value * (approxRates[currency] || 1);
+        converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
+        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+        priceStr = `${symbol}${converted}`;
+      }
     }
-    let converted = value * approxRates[currency];
-    if (currency === "JPY" || currency === "MXN") converted = Math.ceil(converted);
-    else converted = Math.ceil(converted * 10) / 10;
-    const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-    return `${symbol}${converted}`;
+
+    // Add separator after label in updatePriceDisplay (handled there)
+    return priceStr;
   }
 
   function updateAllPrices() {
@@ -274,7 +282,6 @@
 
     const t = translations[lang] || translations.en;
 
-    // Updated list with new category IDs
     const ids = [
       "shopTitle", "filterTitle",
       "catAll", "catFemale", "catFemboy", "catCollections",
