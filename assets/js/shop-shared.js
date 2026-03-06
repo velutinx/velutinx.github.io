@@ -21,7 +21,9 @@
       cartTitle: "Shopping Cart",
       totalLabel: "Total",
       snackText: "Added successfully",
-      loginBtn: "Website"
+      loginBtn: "Website",
+      disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+      disclaimerRefund: "Digital products are non-refundable after purchase."
     },
     ja: {
       shopTitle: "マイストア",
@@ -40,7 +42,9 @@
       cartTitle: "ショッピングカート",
       totalLabel: "合計",
       snackText: "カートに追加しました",
-      loginBtn: "ウェブサイト"
+      loginBtn: "ウェブサイト",
+      disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+      disclaimerRefund: "デジタル商品は購入後の返金はできません。"
     },
     zh: {
       shopTitle: "我的商店",
@@ -59,7 +63,9 @@
       cartTitle: "购物车",
       totalLabel: "总计",
       snackText: "已成功添加到购物车",
-      loginBtn: "网站"
+      loginBtn: "网站",
+      disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
+      disclaimerRefund: "数字产品购买后不可退款。"
     },
     es: {
       shopTitle: "Mi Tienda",
@@ -78,7 +84,9 @@
       cartTitle: "Carrito de Compras",
       totalLabel: "Total",
       snackText: "Añadido con éxito",
-      loginBtn: "Sitio web"
+      loginBtn: "Sitio web",
+      disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
+      disclaimerRefund: "Los productos digitales no son reembolsables después de la compra."
     }
   };
 
@@ -143,7 +151,7 @@
     });
   }
 
-  // ── Persistent cart ────────────────────────────────────────────────
+  // Persistent cart
   function getCart() {
     try {
       const saved = localStorage.getItem("velutinx_cart");
@@ -241,28 +249,52 @@
     }
 
     const t = translations[lang] || translations.en;
-    document.getElementById("shopTitle").textContent = t.shopTitle;
-    document.getElementById("filterTitle").textContent = t.filterTitle;
-    document.getElementById("catAll").textContent = t.catAll;
-    document.getElementById("catNot").textContent = t.catNot;
-    document.getElementById("catFrom").textContent = t.catFrom;
-    document.getElementById("catSisters").textContent = t.catSisters;
-    document.getElementById("sortTitle").textContent = t.sortTitle;
-    document.getElementById("sortNewest").textContent = t.sortNewest;
-    document.getElementById("sortOldest").textContent = t.sortOldest;
-    document.getElementById("sortLow").textContent = t.sortLow;
-    document.getElementById("sortHigh").textContent = t.sortHigh;
-    document.getElementById("productsTitle").textContent = t.productsTitle;
-    document.getElementById("cartTitle").textContent = t.cartTitle;
-    document.getElementById("totalLabel").textContent = t.totalLabel;
-    document.getElementById("snackText").textContent = t.snackText;
-    document.getElementById("loginBtn").textContent = t.loginBtn;
+
+    document.getElementById("shopTitle")?.textContent = t.shopTitle;
+    document.getElementById("filterTitle")?.textContent = t.filterTitle;
+    document.getElementById("catAll")?.textContent = t.catAll;
+    document.getElementById("catNot")?.textContent = t.catNot;
+    document.getElementById("catFrom")?.textContent = t.catFrom;
+    document.getElementById("catSisters")?.textContent = t.catSisters;
+    document.getElementById("sortTitle")?.textContent = t.sortTitle;
+    document.getElementById("sortNewest")?.textContent = t.sortNewest;
+    document.getElementById("sortOldest")?.textContent = t.sortOldest;
+    document.getElementById("sortLow")?.textContent = t.sortLow;
+    document.getElementById("sortHigh")?.textContent = t.sortHigh;
+    document.getElementById("productsTitle")?.textContent = t.productsTitle;
+    document.getElementById("cartTitle")?.textContent = t.cartTitle;
+    document.getElementById("totalLabel")?.textContent = t.totalLabel;
+    document.getElementById("snackText")?.textContent = t.snackText;
+    document.getElementById("loginBtn")?.textContent = t.loginBtn;
 
     const search = document.getElementById("searchInput");
     if (search) search.placeholder = t.searchPlaceholder;
 
     updateAllPrices();
     updateCartDisplay();
+    updateDisclaimers();   // ← updates the two notes when language changes
+  }
+
+  function updateDisclaimers() {
+    const t = translations[currentLang] || translations.en;
+    const el = document.getElementById("disclaimer");
+    if (el) {
+      el.innerHTML = `
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+          <circle cx="256" cy="380" r="24" fill="#000000"/>
+        </svg>
+        <span>${t.disclaimerAge}</span>
+        <br><br>
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+          <circle cx="256" cy="380" r="24" fill="#000000"/>
+        </svg>
+        <span>${t.disclaimerRefund}</span>
+      `;
+    }
   }
 
   // Init
@@ -288,14 +320,14 @@
     }
   });
 
-  // Expose everything we need
-  window.getCart          = getCart;
-  window.addOrToggleCart  = addOrToggleCart;
-  window.removeFromCart   = removeFromCart;
-  window.formatPrice      = formatPrice;
-  window.getPriceForPack  = getPriceForPack;
+  // Expose
+  window.getCart = getCart;
+  window.addOrToggleCart = addOrToggleCart;
+  window.removeFromCart = removeFromCart;
+  window.formatPrice = formatPrice;
+  window.getPriceForPack = getPriceForPack;
   window.updateCartDisplay = updateCartDisplay;
-  window.setLanguage      = setLanguage;
-  window.updateAllPrices  = updateAllPrices;
-
+  window.setLanguage = setLanguage;
+  window.updateAllPrices = updateAllPrices;
+  window.updateDisclaimers = updateDisclaimers;
 })();
