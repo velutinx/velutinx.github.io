@@ -6,12 +6,11 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({ error: "Missing token" }), { status: 400 });
     }
 
-    // Grab variables from your Cloudflare Dashboard settings
     const supabaseUrl = context.env.SUPABASE_URL;
     const supabaseKey = context.env.SUPABASE_ANON_KEY;
 
     try {
-        // 1. Ask Supabase for the order details using the PayPal token
+        // 1. Ask Supabase for the order details
         const response = await fetch(`${supabaseUrl}/rest/v1/success?paypal_token=eq.${token}&select=cart,id`, {
             headers: { 
                 'apikey': supabaseKey, 
@@ -35,13 +34,20 @@ export async function onRequest(context) {
             "PACK178": "https://mega.nz/file/bUdgmASK#TnNMZ8tUWHaOS7hne4VxncEea5fCwLBbaQQ4dkeyAG8"
         };
 
-        // 3. Map the 'cart' column (e.g. "PACK001,PACK178") to the Vault
-        const purchasedItems = order.cart.split(',');
-        const results = purchasedItems.map(name => {
-            const cleanName = name.trim().toUpperCase();
+        // 3. Map the 'cart' column to the Vault
+        // This part handles "175, 176" AND "PACK175, PACK176"
+        const rawItems = order.cart.split(',');
+        const results = rawItems.map(item => {
+            let id = item.trim().toUpperCase();
+            
+            // If the ID is just "001", turn it into "PACK001"
+            if (!id.startsWith('PACK')) {
+                id = 'PACK' + id;
+            }
+
             return {
-                title: cleanName,
-                link: vault[cleanName] || null
+                title: id,
+                link: vault[id] || null
             };
         }).filter(item => item.link !== null);
 
