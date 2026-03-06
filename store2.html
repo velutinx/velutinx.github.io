@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>My Store</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Store</title>
 
-<!-- Your existing header styles -->
-<link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
+  <!-- Shared header styles (top nav, cart drawer, language popover, dark mode, etc.) -->
+  <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-<!-- Shop/product specific styles -->
-<style>
+  <!-- Page-specific shop/product styles -->
+  <style>
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -67,10 +67,11 @@
     .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: var(--success); }
-</style>
+  </style>
 </head>
 <body>
 
+  <!-- These elements are controlled by header.js -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -212,13 +213,14 @@
     </main>
   </div>
 
-  <!-- Load shared header logic (language, theme, cart drawer, animations, etc.) -->
+  <!-- Shared scripts – header + shop logic + PayPal loader -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
+  <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Shop logic -->
+  <!-- Page-specific logic (products, filtering, adding to cart, etc.) -->
   <script>
   window.addEventListener('load', () => {
-    // Temporary static products – replace with Supabase later
+    // Temporary static products – replace with Supabase fetch later
     const productsData = [
       { id: 178, title: "[Pack 178] Mitsuri Kanroji - Kimetsu no Yaiba", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=178" },
       { id: 177, title: "[Pack 177] Kei Karuizawa - Classroom of the Elite", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=177" },
@@ -234,12 +236,6 @@
     const searchInput = document.getElementById("searchInput");
     const sortButtons = document.querySelectorAll(".sort-btn");
 
-    window.cart = [];
-
-    function formatPrice(value) {
-      return `US$${value.toFixed(2)}`; // simplify for now - header.js can override if needed
-    }
-
     function createCards() {
       productsData.forEach(p => {
         const card = document.createElement("div");
@@ -253,7 +249,7 @@
           <div class="card-content">
             <div class="card-title">${p.title}</div>
             <div class="price-row">
-              <div class="price">${formatPrice(p.price)}</div>
+              <div class="price" data-price="${p.price}">${formatPrice(p.price)}</div>
               <button class="cart-btn" title="Add to Cart">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
@@ -269,7 +265,7 @@
 
         card.addEventListener("click", e => {
           if (e.target.closest(".cart-btn")) return;
-          alert(`Detail page for pack ${p.id} (add later)`);
+          alert(`Detail page for pack ${p.id} (implement later)`);
         });
 
         grid.appendChild(card);
@@ -295,33 +291,6 @@
       });
     }
 
-    function updateCartDisplay() {
-      const count = window.cart.length;
-      document.getElementById("cartCount").textContent = count;
-      document.getElementById("floatingCartCount").textContent = count;
-
-      const itemsEl = document.getElementById("cartItems");
-      itemsEl.innerHTML = "";
-      let total = 0;
-
-      window.cart.forEach((item, idx) => {
-        total += item.price;
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
-          </div>
-          <button class="cart-item-remove" data-idx="${idx}">×</button>
-        `;
-        itemsEl.appendChild(div);
-      });
-
-      document.getElementById("cartTotal").textContent = formatPrice(total);
-    }
-
     function filterAndSort() {
       const query = searchInput.value.toLowerCase().trim();
       const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
@@ -330,7 +299,7 @@
         p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
       });
 
-      let visible = [...grid.children].filter(el => !el.classList.contains("hidden"));
+      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
 
       if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
       else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
@@ -350,61 +319,11 @@
 
     searchInput.addEventListener("input", filterAndSort);
 
-    // Cart remove (header.js already handles most, but we sync display)
-    document.getElementById("cartItems").addEventListener("click", e => {
-      if (e.target.classList.contains("cart-item-remove")) {
-        const idx = parseInt(e.target.dataset.idx);
-        window.cart.splice(idx, 1);
-        updateCartDisplay();
-      }
-    });
-
     createCards();
     filterAndSort();
-    updateCartDisplay();
+    // updateCartDisplay() is already called from shop-shared.js on DOMContentLoaded
   });
   </script>
-
-<!-- PayPal SDK loader via secure Cloudflare proxy -->
-<script>
-  window.initPayPal = function() {
-    if (typeof paypal === 'undefined') {
-      console.error("PayPal SDK not ready");
-      return;
-    }
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        if (!window.cart?.length) {
-          alert("Cart is empty!");
-          return;
-        }
-        const total = window.cart.reduce((sum, item) => sum + item.price, 0);
-        return actions.order.create({
-          purchase_units: [{ amount: { value: total.toFixed(2), currency_code: "USD" } }]
-        });
-      },
-      onApprove: (data, actions) => {
-        return actions.order.capture().then(details => {
-          alert("Payment completed successfully!");
-          window.cart = [];
-          updateCartDisplay(); // your function
-        });
-      },
-      onError: err => {
-        console.error("PayPal error:", err);
-        alert("Payment processing failed – please try again.");
-      }
-    }).render("#paypal-button-container");
-  };
-
-  // Fallback: poll if onload doesn't fire
-  const paypalCheck = setInterval(() => {
-    if (typeof paypal !== 'undefined') {
-      clearInterval(paypalCheck);
-      window.initPayPal();
-    }
-  }, 400);
-</script>
 
 </body>
 </html>
