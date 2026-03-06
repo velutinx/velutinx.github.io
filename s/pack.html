@@ -5,54 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx Pack</title>
 
-  <!-- Shared header styles -->
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Product page styles -->
   <style>
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-    @media (min-width: 600px) {
-      .container { padding: 0 24px; }
-    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+    @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
-    .product {
-      display: grid;
-      gap: 40px;
-    }
-    @media (min-width: 992px) {
-      .product { grid-template-columns: 1fr 2fr; }
-    }
-    .gallery-card,
-    .info-card {
+    .product { display: grid; gap: 40px; }
+    @media (min-width: 992px) { .product { grid-template-columns: 1fr 2fr; } }
+    .gallery-card, .info-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
-    .carousel {
-      position: relative;
-      overflow: hidden;
-      height: auto;
-    }
-    .slides {
-      display: flex;
-      transition: transform 0.5s ease-in-out;
-      width: 100%;
-    }
-    .slide {
-      flex: 0 0 100%;
-      width: 100%;
-    }
-    .slide img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+    .carousel { position: relative; overflow: hidden; }
+    .slides { display: flex; transition: transform 0.5s ease-in-out; width: 100%; }
+    .slide { flex: 0 0 100%; width: 100%; }
+    .slide img { width: 100%; height: auto; display: block; }
     .arrow {
       position: absolute;
       top: 50%;
@@ -60,148 +31,54 @@
       background: rgba(0,0,0,0.4);
       color: white;
       border: none;
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       font-size: 24px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       z-index: 10;
     }
     .arrow:hover { background: rgba(0,0,0,0.6); }
     .arrow.prev { left: 16px; }
     .arrow.next { right: 16px; }
     .thumbnails {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      padding: 16px;
-      background: rgba(0,0,0,0.03);
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
+      display: flex; gap: 12px; justify-content: center; padding: 16px;
+      background: rgba(0,0,0,0.03); border-top: 1px solid var(--border); flex-wrap: wrap;
     }
     .thumb {
-      width: 90px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 3px solid transparent;
-      cursor: pointer;
-      transition: all 0.2s;
-      opacity: 0.8;
+      width: 90px; height: 120px; object-fit: cover; border-radius: 6px;
+      border: 3px solid transparent; cursor: pointer; transition: all 0.2s; opacity: 0.8;
     }
-    .thumb.active,
-    .thumb:hover {
-      border-color: #5D87FF;
-      opacity: 1;
-      transform: scale(1.04);
-    }
-    .info {
-      padding: 28px;
-    }
-    h1 {
-      font-size: 2.1rem;
-      margin-bottom: 20px;
-      color: var(--text);
-    }
-    .contents-section {
-      margin: 20px 0 8px 0;
-      text-align: left;
-    }
-    .contents-title {
-      font-weight: bold;
-      font-size: 1.4rem;
-      color: #000000;
-      margin-bottom: 8px;
-    }
-    .contents-list {
-      list-style-type: disc;
-      padding-left: 24px;
-      margin: 0;
-    }
-    .contents-list li {
-      font-size: 1.1rem;
-      color: #000000;
-      margin-bottom: 6px;
-    }
+    .thumb.active, .thumb:hover { border-color: #5D87FF; opacity: 1; transform: scale(1.04); }
+    .info { padding: 28px; }
+    h1 { font-size: 2.1rem; margin-bottom: 20px; color: var(--text); }
+    .contents-section { margin: 20px 0 8px 0; text-align: left; }
+    .contents-title { font-weight: bold; font-size: 1.4rem; color: #000; margin-bottom: 8px; }
+    .contents-list { list-style-type: disc; padding-left: 24px; margin: 0; }
+    .contents-list li { font-size: 1.1rem; color: #000; margin-bottom: 6px; }
     .price-section {
-      margin: 28px 0;
-      padding: 20px;
-      background: rgba(250,137,107,0.08);
-      border-radius: 12px;
-      border: 1px solid rgba(250,137,107,0.25);
+      margin: 28px 0; padding: 20px;
+      background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25);
     }
     .price-label { color: var(--text-light); font-size: 0.95rem; }
-    .old-price {
-      text-decoration: line-through;
-      color: var(--text-light);
-      margin-left: 12px;
-    }
-    .current-price {
-      color: var(--red-discount);
-      font-size: 2.2rem;
-      font-weight: bold;
-    }
-    .save {
-      color: #13DEB9;
-      font-weight: bold;
-      margin-top: 8px;
-      display: inline-block;
-    }
-    .buttons {
-      display: flex;
-      gap: 16px;
-      margin-top: 32px;
-      flex-wrap: wrap;
-    }
+    .old-price { text-decoration: line-through; color: var(--text-light); margin-left: 12px; }
+    .current-price { color: var(--red-discount); font-size: 2.2rem; font-weight: bold; }
+    .save { color: #13DEB9; font-weight: bold; margin-top: 8px; display: inline-block; }
+    .buttons { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
     .btn {
-      flex: 1;
-      min-width: 160px;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.2s;
+      flex: 1; min-width: 160px; padding: 14px 24px; border: none; border-radius: 8px;
+      font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s;
     }
-    .btn-buy {
-      background: #5D87FF;
-      color: white;
-    }
+    .btn-buy { background: #5D87FF; color: white; }
     .btn-buy:hover { background: #4570ea; }
-    .btn-cart {
-      background: #49BEFF;
-      color: white;
-    }
+    .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
-    .note,
-    .disclaimer {
-      margin-top: 24px;
-      font-size: 0.95rem;
-      color: #555;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .disclaimer {
-      margin-top: 32px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-    }
-    .note svg,
-    .disclaimer svg {
-      flex-shrink: 0;
-      width: 20px;
-      height: 20px;
-    }
+    .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: #555; display: flex; align-items: center; gap: 8px; }
+    .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
   </style>
 </head>
 <body>
 
-  <!-- Header inline -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <nav class="top-nav">
@@ -223,7 +100,7 @@
           <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
           <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
           <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="ES" /><p>Español</p></div>
+          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX" /><p>Español (MXN)</p></div>
         </div>
       </div>
 
@@ -282,7 +159,6 @@
     <span id="snackText">Added successfully</span>
   </div>
 
-  <!-- Dynamic content -->
   <main class="container">
     <div class="product">
       <div class="gallery-card" id="gallery">
@@ -296,7 +172,6 @@
           <div class="buttons" id="buttons"></div>
           <div class="note" id="note"></div>
 
-          <!-- Contents section -->
           <div class="contents-section">
             <div class="contents-title">Contents:</div>
             <ul class="contents-list">
@@ -310,48 +185,17 @@
     </div>
   </main>
 
-  <!-- Load packs data -->
-  <script src="https://velutinx.github.io/assets/js/packs-data.js"></script>
+  <!-- Shared scripts -->
+  <script src="https://velutinx.github.io/assets/js/header.js"></script>
+  <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Dynamic loading logic + PRICE TOKEN SUPPORT -->
-  <script>
-    // ====================== PRICE TOKEN SUPPORT ======================
-    const priceTierMap = {
-      "PRICE_LOW": 1.5,
-      "PRICE_MED": 3.0,
-      "PRICE_HIGH": 10.0
-    };
+  <!-- Pack data -->
+  <script type="module">
+    import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
-    const tierMap = {
-      1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
-      3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
-      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
-    };
-
-    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
-    let currentCurrency = "USD";
-
-    function formatPrice(value, currency) {
-      if (currency === "USD") return `US$${value.toFixed(2)}`;
-
-      const rounded = Math.round(value * 100) / 100;
-      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-        const converted = tierMap[rounded][currency];
-        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-        return `${symbol}${converted}`;
-      }
-
-      let converted = value * approxRates[currency];
-      if (currency === "JPY" || currency === "MXN") converted = Math.ceil(converted);
-      else converted = Math.ceil(converted * 10) / 10;
-
-      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-      return `${symbol}${converted}`;
-    }
-
+    // Language support (updates price display)
     function updatePriceDisplay(pack) {
-      const priceNum = priceTierMap[pack.price] || 3.0;
+      const priceNum = window.getPriceForPack(pack); // real number
       const html = `
         <div>
           <span class="price-label">Original Price:</span>
@@ -359,128 +203,88 @@
         </div>
         <div style="margin-top:8px;">
           <span class="price-label">Current Price:</span>
-          <span class="current-price">${formatPrice(priceNum, currentCurrency)}</span>
+          <span class="current-price">${window.formatPrice(priceNum)}</span>
         </div>
         <div class="save">${pack.saveText || ""}</div>
       `;
       document.getElementById("priceSection").innerHTML = html;
     }
 
-    // ====================== LANGUAGE SUPPORT ======================
-    function setLanguage(lang) {
-      currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
-      const packId = new URLSearchParams(window.location.search).get("id") || "001";
-      const pack = packsData.find(p => p.id === packId);
-      if (pack) updatePriceDisplay(pack);
-    }
-
-    // ====================== MAIN PACK LOADING ======================
+    // Load pack
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("id") || "001";
 
-    if (typeof packsData === 'undefined' || !Array.isArray(packsData)) {
-      document.getElementById("title").textContent = "Error loading pack data";
-      document.getElementById("gallery").innerHTML = "<p>Check packs-data.js for syntax errors (no 'return' outside functions)</p>";
-      console.error("packsData is not defined or invalid");
+    const pack = packsData.find(p => p.id === packId);
+
+    if (!pack) {
+      document.getElementById("title").textContent = "Pack not found";
+      document.getElementById("gallery").innerHTML = "<p>Invalid pack ID</p>";
     } else {
-      const pack = packsData.find(p => p.id === packId);
+      document.getElementById("title").textContent = pack.title;
 
-      if (!pack) {
-        document.getElementById("title").textContent = "Pack not found";
-        document.getElementById("gallery").innerHTML = "<p>Invalid pack ID. Try ?id=001 or ?id=002</p>";
-      } else {
-        // Title
-        document.getElementById("title").textContent = pack.title;
-
-        // Gallery + carousel
-        document.getElementById("gallery").innerHTML = `
-          <div class="carousel">
-            <div class="slides" id="slides">
-              ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
-            </div>
-            <button class="arrow prev" onclick="prevSlide()">❮</button>
-            <button class="arrow next" onclick="nextSlide()">❯</button>
+      // Gallery
+      document.getElementById("gallery").innerHTML = `
+        <div class="carousel">
+          <div class="slides" id="slides">
+            ${pack.images.map(img => `<div class="slide"><img src="${img}" alt=""></div>`).join("")}
           </div>
-          <div class="thumbnails">
-            ${pack.images.map((img, i) => `
-              <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
-            `).join("")}
-          </div>
-        `;
+          <button class="arrow prev" onclick="prevSlide()">❮</button>
+          <button class="arrow next" onclick="nextSlide()">❯</button>
+        </div>
+        <div class="thumbnails">
+          ${pack.images.map((img, i) => `
+            <img class="thumb ${i===0 ? 'active' : ''}" src="${img}" onclick="goToSlide(${i})" alt="">
+          `).join("")}
+        </div>
+      `;
 
-        // Price section - NOW USING TOKEN → REAL PRICE
-        updatePriceDisplay(pack);
+      // Price
+      updatePriceDisplay(pack);
 
-        // Buttons
-        document.getElementById("buttons").innerHTML = `
-          <button class="btn btn-buy">Buy Now</button>
-          <button class="btn btn-cart">Add to Cart</button>
-        `;
+      // Buttons
+      document.getElementById("buttons").innerHTML = `
+        <button class="btn btn-buy">Buy Now</button>
+        <button class="btn btn-cart">Add to Cart</button>
+      `;
 
-        // Note
-        document.getElementById("note").innerHTML = `
-          <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-            <circle cx="256" cy="380" r="24" fill="#000000"/>
-          </svg>
-          Digital products are non-refundable after purchase.
-        `;
+      // Contents
+      document.getElementById("illustrationCount").textContent = `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
 
-        // Contents section
-        document.getElementById("illustrationCount").innerHTML = `
-          ZIP file containing ${pack.illustrationCount} AI-generated illustrations
-        `;
+      // Disclaimer
+      document.getElementById("disclaimer").innerHTML = `
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+          <circle cx="256" cy="380" r="24" fill="#000000"/>
+        </svg>
+        <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
+      `;
 
-        // Disclaimer
-        document.getElementById("disclaimer").innerHTML = `
-          <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-            <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-            <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-            <circle cx="256" cy="380" r="24" fill="#000000"/>
-          </svg>
-          <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
-        `;
+      // Carousel logic
+      const slides = document.getElementById('slides');
+      const thumbs = document.querySelectorAll('.thumb');
+      let current = 0;
+      const total = pack.images.length;
 
-        // Carousel logic
-        const slidesContainer = document.getElementById('slides');
-        const thumbs = document.querySelectorAll('.thumb');
-        let current = 0;
-        const total = pack.images.length;
-
-        function update() {
-          slidesContainer.style.transform = `translateX(-${current * 100}%)`;
-          thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
-        }
-
-        function nextSlide() {
-          current = (current + 1) % total;
-          update();
-        }
-
-        function prevSlide() {
-          current = (current - 1 + total) % total;
-          update();
-        }
-
-        function goToSlide(index) {
-          current = index;
-          update();
-        }
-
-        update();
+      function update() {
+        slides.style.transform = `translateX(-${current * 100}%)`;
+        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
       }
+
+      window.prevSlide = () => { current = (current - 1 + total) % total; update(); };
+      window.nextSlide = () => { current = (current + 1) % total; update(); };
+      window.goToSlide = (i) => { current = i; update(); };
+
+      update();
     }
 
-    // Language switcher support (updates price instantly)
+    // Language change updates price
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
-        setLanguage(item.dataset.lang);
+        window.setLanguage(item.dataset.lang);
+        updatePriceDisplay(pack);
       });
     });
-
-    // Initial load
-    setLanguage("en");
   </script>
 
 </body>
