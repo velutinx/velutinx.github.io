@@ -66,20 +66,20 @@
       flex: 1; min-width: 160px; padding: 14px 24px; border: none; border-radius: 8px;
       font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s;
     }
-    .btn-buy { background: #5D87FF; color: white; }
-    .btn-buy:hover { background: #4570ea; }
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text-light); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
     .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
 
-    /* Dark mode fixes - force text colors */
+    /* Dark mode fixes */
     body.dark .contents-section,
     body.dark .contents-section *,
     body.dark .contents-list,
     body.dark .contents-list li,
-    body.dark .contents-title {
+    body.dark .contents-title,
+    body.dark #contentsTitle,
+    body.dark #illustrationCount {
       color: var(--text) !important;
     }
 
@@ -88,7 +88,8 @@
     body.dark .old-price,
     body.dark .current-price,
     body.dark .save,
-    body.dark #priceSection * {
+    body.dark #priceSection *,
+    body.dark #priceSection span {
       color: var(--text-light) !important;
     }
 
@@ -111,7 +112,6 @@
       display: block !important;
       column-count: 1 !important;
       columns: 1 !important;
-      flex-direction: column !important;
     }
     #disclaimer > div {
       width: 100% !important;
@@ -223,13 +223,14 @@
 
     function updatePriceDisplay(pack) {
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
+      const t = translations[currentLang] || translations.en;
       const html = `
         <div>
-          <span class="price-label">Original Price:</span>
+          <span class="price-label">${t.originalPrice}</span>
           <span class="old-price">${pack.oldPrice || ""}</span>
         </div>
         <div style="margin-top:8px;">
-          <span class="price-label">Current Price:</span>
+          <span class="price-label">${t.currentPrice}</span>
           <span class="current-price">${window.formatPrice?.(priceNum) ?? "N/A"}</span>
         </div>
         <div class="save">${pack.saveText || ""}</div>
@@ -264,32 +265,36 @@
 
       updatePriceDisplay(pack);
 
-      const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-      document.getElementById("buttons").innerHTML = `
-        <button class="btn btn-cart" id="addCartBtn">
-          ${isInCart ? "Remove from Cart" : "Add to Cart"}
-        </button>
-      `;
+      const updateButton = () => {
+        const t = translations[currentLang] || translations.en;
+        const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+        document.getElementById("buttons").innerHTML = `
+          <button class="btn btn-cart" id="addCartBtn">
+            ${isInCart ? t.removeFromCart : t.addToCart}
+          </button>
+        `;
 
-      document.getElementById("addCartBtn").addEventListener("click", () => {
-        window.addOrToggleCart?.(pack);
-        const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-        document.getElementById("addCartBtn").textContent = nowInCart ? "Remove from Cart" : "Add to Cart";
+        document.getElementById("addCartBtn").addEventListener("click", () => {
+          window.addOrToggleCart?.(pack);
+          updateButton(); // re-update button text
+          const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
 
-        const snack = document.getElementById("snackbar");
-        document.getElementById("snackText").textContent = nowInCart ? "Added successfully" : "Removed from cart";
-        snack.classList.add("show");
-        setTimeout(() => snack.classList.remove("show"), 2400);
+          const snack = document.getElementById("snackbar");
+          document.getElementById("snackText").textContent = nowInCart ? t.snackText : "Removed from cart";
+          snack.classList.add("show");
+          setTimeout(() => snack.classList.remove("show"), 2400);
 
-        window.updateCartDisplay?.();
-      });
+          window.updateCartDisplay?.();
+        });
+      };
+      updateButton();
 
-      // Dynamic contents with translation
+      // Dynamic contents
       const updateContents = () => {
         const t = translations[currentLang] || translations.en;
-        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
+        document.getElementById("contentsTitle").textContent = t.contentsTitle;
         document.getElementById("illustrationCount").textContent = 
-          (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations").replace("{count}", pack.illustrationCount);
+          t.contentsDesc.replace("{count}", pack.illustrationCount);
       };
       updateContents();
 
@@ -313,14 +318,11 @@
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
         window.setLanguage?.(item.dataset.lang);
-        if (pack) updatePriceDisplay(pack);
-
-        // Update contents on language change
-        const t = translations[currentLang] || translations.en;
-        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
-        document.getElementById("illustrationCount").textContent = 
-          (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations").replace("{count}", pack.illustrationCount);
-
+        if (pack) {
+          updatePriceDisplay(pack);
+          updateButton();
+          updateContents();
+        }
         window.updateDisclaimers?.();
       });
     });
