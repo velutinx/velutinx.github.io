@@ -84,22 +84,37 @@
     </div>
   </main>
 
+<style>
+  /* Fix for the white text issue */
+  .disclaimer-box, .disclaimer-box p, .disclaimer-box strong {
+    color: #000000 !important; 
+    margin-bottom: 10px;
+  }
+  .success-container h1 { color: #000000; }
+  .success-container p { color: #333333; }
+</style>
+
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     const section = document.getElementById("download-section");
 
-    // 1. Get the items from the cart before we clear it
+    // 1. Get the items from the cart
     const savedCart = localStorage.getItem("velutinx_cart");
     const cart = savedCart ? JSON.parse(savedCart) : [];
     
-    // Create a string like "PACK001,PACK178"
-    const itemNames = cart.map(item => item.id).join(',');
-
-    if (!token) {
+    // Safety: If cart is empty, we can't show links. 
+    // We only clear the cart AFTER a successful fetch.
+    if (cart.length === 0) {
+        section.innerHTML = `<p class="error-text">Cart data missing. Please check your email or contact support.</p>`;
+    } else if (!token) {
         section.innerHTML = `<p class="error-text">No payment token found.</p>`;
     } else {
-        // 2. Send the token AND the item list to your function
+        // Convert IDs to match your Vault (e.g., "item-178" -> "PACK178")
+        const itemNames = cart.map(item => {
+            return item.id.replace('item-', 'PACK').toUpperCase();
+        }).join(',');
+
         fetch(`/get-download?token=${token}&items=${itemNames}`)
             .then(res => res.json())
             .then(data => {
@@ -115,14 +130,14 @@
                     html += `</div>`;
                     section.innerHTML = html;
                     
-                    // 3. Clear the cart now that we have the links
+                    // ONLY clear the cart now that buttons are visible
                     localStorage.removeItem("velutinx_cart");
                 } else {
-                    section.innerHTML = `<p class="error-text">No items found for this order.</p>`;
+                    section.innerHTML = `<p class="error-text">No items found. Expected: ${itemNames}</p>`;
                 }
             })
             .catch(err => {
-                section.innerHTML = `<p class="error-text">Error fetching downloads.</p>`;
+                section.innerHTML = `<p class="error-text">Error fetching downloads. Please refresh.</p>`;
             });
     }
 </script>
