@@ -12,50 +12,41 @@
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
     .shop-title { font-size: 2.3rem; font-weight: 800; color: #000; margin: 0; }
     body.dark .shop-title { color: var(--accent); }
-
     .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
     .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
     .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text); padding-left: 0.5rem; }
-
     /* Category & Sort Sidebar */
     .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); padding: 0; }
     .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
     .category-list li:hover { background: #c0bcaa; }
     .category-list li.active { background: var(--accent); color: #1f1a12; font-weight: 600; }
     .category-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
-
     .sort-options { margin-top: 2rem; }
     .sort-btn { width: 100%; padding: 1rem 1.25rem; background: var(--card); border: 1px solid var(--border); text-align: left; margin-bottom: 0.5rem; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.9rem; color: var(--text); }
     .sort-btn.active { background: var(--accent); color: #1f1a12; }
     .sort-btn:hover:not(.active) { background: #c0bcaa; }
     .sort-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
-
     /* Header & Search */
     .products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem; }
     .products-header h2 { font-size: 1.65rem; font-weight: 700; color: var(--text); }
     .search-bar-wrapper { width: 340px; max-width: 100%; }
-
     .input-base { position: relative; display: flex; align-items: center; background: var(--card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); padding-left: 12px; transition: border-color 0.2s; }
     .input-base:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(170,158,118,0.2); }
     .input-element { flex: 1; padding: 12px; background: transparent; border: none; outline: none; color: var(--text); font-size: 0.95rem; }
-
     /* Product Grid */
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
     .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); cursor: pointer; position: relative; }
     .product-card.hidden { display: none; }
     .product-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
-
     .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; display: block; }
     .card-content { padding: 1.2rem; }
     .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
     .price-row { display: flex; justify-content: space-between; align-items: center; }
     .price { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-
     .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: #22c55e; }
-
     /* Snackbar - small top-right toast */
     #snackbar {
       position: fixed;
@@ -84,7 +75,6 @@
 </head>
 <body>
   <div class="lang-swipe" id="langSwipe"></div>
-
   <nav class="top-nav">
     <div class="logo" onclick="window.location.href='/'" style="cursor: pointer;">VELUTINX</div>
     <div class="nav-actions">
@@ -117,14 +107,12 @@
       </div>
     </div>
   </nav>
-
   <button class="floating-cart cart-icon" id="floatingCartBtn">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path>
     </svg>
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
-
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -139,7 +127,6 @@
       <div id="paypal-button-container"></div>
     </div>
   </div>
-
   <!-- Snackbar - small top-right toast -->
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -147,7 +134,6 @@
     </svg>
     <span id="snackText">Added successfully</span>
   </div>
-
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
@@ -155,7 +141,6 @@
       </div>
     </div>
   </header>
-
   <div class="main-container">
     <aside class="sidebar">
       <div class="section-title" id="filterTitle">Filter by Category</div>
@@ -165,7 +150,6 @@
         <li data-cat="2"><span id="catFemboy">Femboy Models</span></li>
         <li data-cat="3"><span id="catCollections">Full Collections</span></li>
       </ul>
-
       <div class="sort-options">
         <div class="section-title" id="sortTitle">Sort by</div>
         <button class="sort-btn active" data-sort="newest"><span id="sortNewest">Newest</span></button>
@@ -174,7 +158,6 @@
         <button class="sort-btn" data-sort="price-desc"><span id="sortHigh">Price: High to Low</span></button>
       </div>
     </aside>
-
     <main class="products-section">
       <div class="products-header">
         <h2 id="productsTitle">Latest Content</h2>
@@ -190,15 +173,12 @@
       <div class="product-grid" id="productGrid"></div>
     </main>
   </div>
-
   <!-- Scripts -->
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
-
   <!-- Product listing script -->
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
-
     window.addEventListener('load', async () => {
       const productsData = packsData.map(p => ({
         ...p,
@@ -206,14 +186,11 @@
         date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
         category: p.category || 0
       }));
-
       const grid = document.getElementById("productGrid");
       const searchInput = document.getElementById("searchInput");
       const sortButtons = document.querySelectorAll(".sort-btn");
       const categoryItems = document.querySelectorAll(".category-list li");
-
       let currentCategory = 0;
-
       function createCards() {
         grid.innerHTML = "";
         productsData.forEach(p => {
@@ -224,7 +201,6 @@
           card.dataset.date = p.date;
           card.dataset.id = p.id;
           card.dataset.category = p.category;
-
           card.innerHTML = `
             <img src="https://velutinx.neocities.org/i/pack${parseInt(p.id)}-1.jpg"
                  alt="${p.title}"
@@ -247,22 +223,18 @@
               </div>
             </div>
           `;
-
           card.addEventListener("click", e => {
             if (e.target.closest(".cart-btn")) return;
             window.location.href = `/s/pack?id=${p.id}`;
           });
-
           grid.appendChild(card);
           p.element = card;
           p.cartBtn = card.querySelector(".cart-btn");
-
           const isInCart = window.getCart?.().some(item => item.id === p.id) ?? false;
           if (isInCart) {
             p.cartBtn.classList.add("added");
             p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
           }
-
           p.cartBtn.addEventListener("click", e => {
             e.stopPropagation();
             window.addOrToggleCart?.(p);
@@ -280,19 +252,15 @@
         });
         window.updateAllPrices?.();
       }
-
       function filterAndSort() {
         const query = searchInput.value.toLowerCase().trim();
         const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
         productsData.forEach(p => {
           const titleMatch = p.title.toLowerCase().includes(query);
           const categoryMatch = currentCategory === 0 || p.category === currentCategory;
           p.element.classList.toggle("hidden", !(titleMatch && categoryMatch));
         });
-
         let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-
         if (activeSort === "newest") {
           visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
         } else if (activeSort === "oldest") {
@@ -302,10 +270,8 @@
         } else if (activeSort === "price-desc") {
           visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
         }
-
         visible.forEach(el => grid.appendChild(el));
       }
-
       categoryItems.forEach((item, index) => {
         item.addEventListener("click", () => {
           categoryItems.forEach(i => i.classList.remove("active"));
@@ -314,7 +280,6 @@
           filterAndSort();
         });
       });
-
       sortButtons.forEach(btn => {
         btn.addEventListener("click", () => {
           sortButtons.forEach(b => b.classList.remove("active"));
@@ -322,13 +287,44 @@
           filterAndSort();
         });
       });
-
       searchInput.addEventListener("input", filterAndSort);
-
       createCards();
       filterAndSort();
       window.updateCartDisplay?.();
     });
   </script>
+
+  <!-- Drawer open/close logic (added because original relied on external header.js) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cartBtn = document.getElementById('cartBtn');
+      const floatingCartBtn = document.getElementById('floatingCartBtn');
+      const cartDrawer = document.getElementById('cartDrawer');
+      const cartClose = document.getElementById('cartClose');
+
+      function openDrawer() {
+        cartDrawer.classList.add('open');
+      }
+
+      function closeDrawer() {
+        cartDrawer.classList.remove('open');
+      }
+
+      cartBtn?.addEventListener('click', openDrawer);
+      floatingCartBtn?.addEventListener('click', openDrawer);
+      cartClose?.addEventListener('click', closeDrawer);
+
+      // Close when clicking outside the drawer
+      document.addEventListener('click', (e) => {
+        if (cartDrawer.classList.contains('open') &&
+            !cartDrawer.contains(e.target) &&
+            !cartBtn.contains(e.target) &&
+            !floatingCartBtn.contains(e.target)) {
+          closeDrawer();
+        }
+      });
+    });
+  </script>
+
 </body>
 </html>
