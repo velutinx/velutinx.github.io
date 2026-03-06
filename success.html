@@ -6,7 +6,7 @@
     <title>Purchase Successful - VELUTINX</title>
     <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
     <style>
-        :root { --success-green: #13DEB9; --paypal-blue: #0070ba; --bg-light: #f8f9fa; }
+        :root { --success-green: #13DEB9; --bg-light: #f8f9fa; }
         body { background-color: var(--bg-light); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         .success-wrapper { max-width: 650px; margin: 60px auto; padding: 20px; }
         .success-container { background: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; border: 1px solid #eee; }
@@ -24,6 +24,7 @@
     </style>
 </head>
 <body>
+
 <div class="success-wrapper">
     <div class="success-container">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#13DEB9" stroke-width="2.5" style="margin-bottom: 20px;">
@@ -49,8 +50,10 @@
         const token = urlParams.get("token");
         const lang = urlParams.get("lang") || "en";
         
-        // Ensure translations object exists from header.js
-        const t = (window.translations && window.translations[lang]) ? window.translations[lang] : (window.translations?.en || {
+        // Fail-safe translation check
+        const t = (window.translations && window.translations[lang]) 
+                  ? window.translations[lang] 
+                  : (window.translations?.en || {
             confTitle: "Purchase Confirmed!",
             orderLabel: "Order Number:",
             readyLabel: "Your files are ready:",
@@ -60,6 +63,7 @@
             noticeText: "Notice: Links valid for 24 hours. Do not share."
         });
 
+        // Apply UI text
         document.getElementById("confTitle").textContent = t.confTitle;
         document.getElementById("orderLabel").textContent = t.orderLabel;
         document.getElementById("supportText").innerHTML = t.supportText.replace('Discord (velutinxx)', '<strong>Discord (velutinxx)</strong>').replace('support@velutinx.com', '<strong>support@velutinx.com</strong>');
@@ -71,26 +75,28 @@
 
         if (!token) {
             section.innerHTML = `<p class="error-text">No payment token found.</p>`;
-        } else {
-            fetch(`/get-download?token=${token}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.items && data.items.length > 0) {
-                        if (orderIdSpan && data.order_number) {
-                            orderIdSpan.innerText = "#" + data.order_number.toString().padStart(5, '0');
-                        }
-                        let html = `<p style="margin-bottom:15px; font-weight:bold;">${t.readyLabel}</p>`;
-                        data.items.forEach(item => {
-                            html += `<a href="${item.link}" class="download-item" target="_blank">${t.dlBtn} ${item.title} ↓</a>`;
-                        });
-                        section.innerHTML = html;
-                        localStorage.removeItem("velutinx_cart");
-                    } else {
-                        section.innerHTML = `<p class="error-text">Vault Error: Links not found for this order.</p>`;
-                    }
-                })
-                .catch(() => { section.innerHTML = `<p class="error-text">Server error. Please refresh.</p>`; });
+            return;
         }
+
+        // Fetch links from your Cloudflare Worker
+        fetch(`/get-download?token=${token}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.items && data.items.length > 0) {
+                    if (orderIdSpan && data.order_number) {
+                        orderIdSpan.innerText = "#" + data.order_number.toString().padStart(5, '0');
+                    }
+                    let html = `<p style="margin-bottom:15px; font-weight:bold;">${t.readyLabel}</p>`;
+                    data.items.forEach(item => {
+                        html += `<a href="${item.link}" class="download-item" target="_blank">${t.dlBtn} ${item.title} ↓</a>`;
+                    });
+                    section.innerHTML = html;
+                    localStorage.removeItem("velutinx_cart");
+                } else {
+                    section.innerHTML = `<p class="error-text">Vault Error: Links not found for this order.</p>`;
+                }
+            })
+            .catch(() => { section.innerHTML = `<p class="error-text">Server error. Please refresh.</p>`; });
     });
 </script>
 </body>
