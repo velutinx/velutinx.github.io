@@ -238,8 +238,13 @@ productsData.forEach(p => {
   card.dataset.id = p.id;                    // ← crucial line for sorting by ID
 
   card.innerHTML = `
-    <img src="${p.image}" alt="${p.title}" class="card-image" loading="lazy">
-    <div class="card-content">
+<img src="https://velutinx.neocities.org/Images/i/pack${p.id}-1.jpg" 
+     alt="${p.title}" 
+     class="card-image" 
+     loading="lazy"
+     onerror="this.src='https://via.placeholder.com/248x300?text=No+Image';">
+     
+     <div class="card-content">
       <div class="card-title">${p.title}</div>
       <div class="price-row">
         <div class="price" data-price="${p.price}"></div>
