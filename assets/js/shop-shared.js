@@ -1,13 +1,8 @@
 // assets/js/shop-shared.js
-// ================================================
-// Shared shop logic: cart (persistent), currency, translations, prices
-// ================================================
+// Shared shop logic: persistent cart, currency, translations, prices
 (function () {
   "use strict";
 
-  // ───────────────────────────────────────────────
-  // Translations
-  // ───────────────────────────────────────────────
   const translations = {
     en: {
       shopTitle: "My Store",
@@ -87,9 +82,6 @@
     }
   };
 
-  // ───────────────────────────────────────────────
-  // Price conversion helpers
-  // ───────────────────────────────────────────────
   const tierMap = {
     1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
     3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
@@ -102,7 +94,6 @@
                         currentLang === "ja" ? "JPY" :
                         currentLang === "zh" ? "CNY" : "MXN";
 
-  // Price tiers (will be overwritten if /prices endpoint works)
   let prices = { low: 1.5, med: 3.0, high: 10.0 };
 
   async function loadPrices() {
@@ -121,10 +112,10 @@
 
   function getPriceForPack(pack) {
     switch (pack.price) {
-      case "PRICE_LOW":  return prices.low;
-      case "PRICE_MED":  return prices.med;
+      case "PRICE_LOW": return prices.low;
+      case "PRICE_MED": return prices.med;
       case "PRICE_HIGH": return prices.high;
-      default:           return prices.med;
+      default: return prices.med;
     }
   }
 
@@ -143,65 +134,6 @@
     return `${symbol}${converted}`;
   }
 
-  // ───────────────────────────────────────────────
-  // Persistent Cart (localStorage)
-  // ───────────────────────────────────────────────
-  function getCart() {
-    try {
-      const saved = localStorage.getItem("velutinx_cart");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Cart parse error → returning empty", e);
-      return [];
-    }
-  }
-
-  function saveCart(cartArray) {
-    localStorage.setItem("velutinx_cart", JSON.stringify(cartArray));
-  }
-
-  function addOrToggleCart(pack) {
-    let cart = getCart();
-    const existingIndex = cart.findIndex(item => item.id === pack.id);
-
-    if (existingIndex !== -1) {
-      // Toggle → remove if already present
-      cart.splice(existingIndex, 1);
-    } else {
-      // Add
-      cart.push({
-        id: pack.id,
-        title: pack.title,
-        image: pack.image || pack.images?.[0] || "",
-        price: getPriceForPack(pack),
-        quantity: 1
-      });
-    }
-
-    saveCart(cart);
-    updateCartDisplay();
-    return cart;
-  }
-
-  function removeFromCart(id) {
-    let cart = getCart();
-    cart = cart.filter(item => item.id !== id);
-    saveCart(cart);
-    updateCartDisplay();
-    return cart;
-  }
-
-  function getCartItemCount() {
-    return getCart().reduce((sum, item) => sum + (item.quantity || 1), 0);
-  }
-
-  function getCartTotal() {
-    return getCart().reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  }
-
-  // ───────────────────────────────────────────────
-  // UI updates
-  // ───────────────────────────────────────────────
   function updateAllPrices() {
     document.querySelectorAll(".price").forEach(el => {
       const base = parseFloat(el.dataset.price);
@@ -211,47 +143,90 @@
     });
   }
 
+  // ── Persistent cart ────────────────────────────────────────────────
+  function getCart() {
+    try {
+      const saved = localStorage.getItem("velutinx_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Cart parse error", e);
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
+  }
+
+  function addOrToggleCart(pack) {
+    let cart = getCart();
+    const index = cart.findIndex(item => item.id === pack.id);
+    if (index !== -1) {
+      cart.splice(index, 1);
+    } else {
+      cart.push({
+        id: pack.id,
+        title: pack.title,
+        image: pack.image || (pack.images && pack.images[0]) || "",
+        price: getPriceForPack(pack),
+        quantity: 1
+      });
+    }
+    saveCart(cart);
+    updateCartDisplay();
+  }
+
+  function removeFromCart(id) {
+    let cart = getCart();
+    cart = cart.filter(item => item.id !== id);
+    saveCart(cart);
+    updateCartDisplay();
+  }
+
+  function getCartCount() {
+    return getCart().length;
+  }
+
+  function getCartTotal() {
+    return getCart().reduce((sum, item) => sum + item.price, 0);
+  }
+
   function updateCartDisplay() {
-    const count = getCartItemCount();
+    const count = getCartCount();
     const total = getCartTotal();
 
-    // Badges
-    [document.getElementById("cartCount"), document.getElementById("floatingCartCount")]
+    document.querySelectorAll("#cartCount, #floatingCartCount")
       .forEach(el => { if (el) el.textContent = count; });
 
     const itemsEl = document.getElementById("cartItems");
-    if (!itemsEl) return;
-
-    itemsEl.innerHTML = "";
-    if (count === 0) {
-      itemsEl.innerHTML = "<p style='text-align:center; padding:2rem;'>Your cart is empty</p>";
-    } else {
-      getCart().forEach(item => {
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}" style="width:48px;height:64px;object-fit:cover;border-radius:4px;">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
-          </div>
-          <button class="cart-item-remove" data-id="${item.id}">×</button>
-        `;
-        itemsEl.appendChild(div);
-      });
+    if (itemsEl) {
+      itemsEl.innerHTML = "";
+      if (count === 0) {
+        itemsEl.innerHTML = "<p>Your cart is empty</p>";
+      } else {
+        getCart().forEach((item, idx) => {
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <img src="${item.image}" alt="${item.title}">
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.title}</div>
+              <div class="cart-item-price">${formatPrice(item.price)}</div>
+            </div>
+            <button class="cart-item-remove" data-idx="${idx}">×</button>
+          `;
+          itemsEl.appendChild(div);
+        });
+      }
+      const totalEl = document.getElementById("cartTotal");
+      if (totalEl) totalEl.textContent = formatPrice(total);
     }
-
-    const totalEl = document.getElementById("cartTotal");
-    if (totalEl) totalEl.textContent = formatPrice(total);
 
     const active = count > 0;
     [document.getElementById("cartBtn"), document.getElementById("floatingCartBtn")]
       .forEach(btn => { if (btn) btn.classList.toggle("active", active); });
   }
 
-  // ───────────────────────────────────────────────
-  // Language switch
-  // ───────────────────────────────────────────────
   function setLanguage(lang) {
     if (currentLang === lang) return;
     currentLang = lang;
@@ -261,34 +236,27 @@
     const swipe = document.getElementById("langSwipe");
     if (swipe) {
       swipe.classList.remove("active");
-      void swipe.offsetHeight; // force reflow
+      void swipe.offsetHeight;
       swipe.classList.add("active");
     }
 
     const t = translations[lang] || translations.en;
-    const texts = {
-      shopTitle: t.shopTitle,
-      filterTitle: t.filterTitle,
-      catAll: t.catAll,
-      catNot: t.catNot,
-      catFrom: t.catFrom,
-      catSisters: t.catSisters,
-      sortTitle: t.sortTitle,
-      sortNewest: t.sortNewest,
-      sortOldest: t.sortOldest,
-      sortLow: t.sortLow,
-      sortHigh: t.sortHigh,
-      productsTitle: t.productsTitle,
-      cartTitle: t.cartTitle,
-      totalLabel: t.totalLabel,
-      snackText: t.snackText,
-      loginBtn: t.loginBtn
-    };
-
-    Object.entries(texts).forEach(([id, value]) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = value;
-    });
+    document.getElementById("shopTitle").textContent = t.shopTitle;
+    document.getElementById("filterTitle").textContent = t.filterTitle;
+    document.getElementById("catAll").textContent = t.catAll;
+    document.getElementById("catNot").textContent = t.catNot;
+    document.getElementById("catFrom").textContent = t.catFrom;
+    document.getElementById("catSisters").textContent = t.catSisters;
+    document.getElementById("sortTitle").textContent = t.sortTitle;
+    document.getElementById("sortNewest").textContent = t.sortNewest;
+    document.getElementById("sortOldest").textContent = t.sortOldest;
+    document.getElementById("sortLow").textContent = t.sortLow;
+    document.getElementById("sortHigh").textContent = t.sortHigh;
+    document.getElementById("productsTitle").textContent = t.productsTitle;
+    document.getElementById("cartTitle").textContent = t.cartTitle;
+    document.getElementById("totalLabel").textContent = t.totalLabel;
+    document.getElementById("snackText").textContent = t.snackText;
+    document.getElementById("loginBtn").textContent = t.loginBtn;
 
     const search = document.getElementById("searchInput");
     if (search) search.placeholder = t.searchPlaceholder;
@@ -297,9 +265,7 @@
     updateCartDisplay();
   }
 
-  // ───────────────────────────────────────────────
-  // Event listeners & init
-  // ───────────────────────────────────────────────
+  // Init
   document.addEventListener("DOMContentLoaded", async () => {
     await loadPrices();
     updateCartDisplay();
@@ -310,24 +276,26 @@
     if (itemsEl) {
       itemsEl.addEventListener("click", e => {
         if (e.target.classList.contains("cart-item-remove")) {
-          const id = e.target.dataset.id;
-          if (id) {
-            removeFromCart(id);
+          const idx = parseInt(e.target.dataset.idx);
+          if (!isNaN(idx)) {
+            let cart = getCart();
+            cart.splice(idx, 1);
+            saveCart(cart);
+            updateCartDisplay();
           }
         }
       });
     }
   });
 
-  // ───────────────────────────────────────────────
-  // Expose to window
-  // ───────────────────────────────────────────────
-  window.formatPrice      = formatPrice;
-  window.getPriceForPack  = getPriceForPack;
-  window.updateAllPrices  = updateAllPrices;
-  window.updateCartDisplay = updateCartDisplay;
-  window.setLanguage      = setLanguage;
+  // Expose everything we need
+  window.getCart          = getCart;
   window.addOrToggleCart  = addOrToggleCart;
   window.removeFromCart   = removeFromCart;
+  window.formatPrice      = formatPrice;
+  window.getPriceForPack  = getPriceForPack;
+  window.updateCartDisplay = updateCartDisplay;
+  window.setLanguage      = setLanguage;
+  window.updateAllPrices  = updateAllPrices;
 
 })();
