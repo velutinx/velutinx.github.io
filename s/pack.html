@@ -57,9 +57,7 @@
       margin: 28px 0; padding: 20px;
       background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25);
     }
-    .price-label, .price-section span {
-      color: var(--text-light); font-size: 0.95rem;
-    }
+    .price-label { color: var(--text); font-size: 0.95rem; } /* improved contrast */
     .old-price { text-decoration: line-through; color: var(--text-light); margin-left: 12px; }
     .current-price { color: var(--red-discount); font-size: 2.2rem; font-weight: bold; }
     .save { color: #13DEB9; font-weight: bold; margin-top: 8px; display: inline-block; }
@@ -74,19 +72,7 @@
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
     .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
 
-    /* Dark mode fixes - ensure visibility in light mode too */
-    .price-label, .old-price, .current-price, .save {
-      color: var(--text-light) !important;
-    }
-
-    body.dark .price-label, body.dark .old-price, body.dark .save {
-      color: var(--text-light) !important;
-    }
-
-    body.dark .current-price {
-      color: var(--red-discount) !important;
-    }
-
+    /* Dark mode fixes - high contrast in light mode too */
     body.dark .contents-section,
     body.dark .contents-section *,
     body.dark .contents-list,
@@ -95,6 +81,20 @@
     body.dark #contentsTitle,
     body.dark #illustrationCount {
       color: var(--text) !important;
+    }
+
+    body.dark .price-section,
+    body.dark .price-label,
+    body.dark .old-price,
+    body.dark .current-price,
+    body.dark .save,
+    body.dark #priceSection *,
+    body.dark #priceSection span {
+      color: var(--text) !important;
+    }
+
+    body.dark .current-price {
+      color: var(--red-discount) !important;
     }
 
     body.dark #disclaimer,
@@ -226,11 +226,11 @@
       const t = translations[currentLang] || translations.en;
       const html = `
         <div>
-          <span class="price-label">${t.originalPrice}</span>
+          <span class="price-label">${t.originalPrice || "Original Price:"}</span>
           <span class="old-price">${pack.oldPrice || ""}</span>
         </div>
         <div style="margin-top:8px;">
-          <span class="price-label">${t.currentPrice}</span>
+          <span class="price-label">${t.currentPrice || "Current Price:"}</span>
           <span class="current-price">${window.formatPrice?.(priceNum) ?? "N/A"}</span>
         </div>
         <div class="save">${pack.saveText || ""}</div>
@@ -270,7 +270,7 @@
         const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
         document.getElementById("buttons").innerHTML = `
           <button class="btn btn-cart" id="addCartBtn">
-            ${isInCart ? t.removeFromCart : t.addToCart}
+            ${isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart")}
           </button>
         `;
 
@@ -280,7 +280,7 @@
           const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
 
           const snack = document.getElementById("snackbar");
-          document.getElementById("snackText").textContent = nowInCart ? t.snackText : "Removed from cart";
+          document.getElementById("snackText").textContent = nowInCart ? (t.snackText || "Added successfully") : "Removed from cart";
           snack.classList.add("show");
           setTimeout(() => snack.classList.remove("show"), 2400);
 
@@ -292,9 +292,9 @@
       // Dynamic contents
       const updateContents = () => {
         const t = translations[currentLang] || translations.en;
-        document.getElementById("contentsTitle").textContent = t.contentsTitle;
-        document.getElementById("illustrationCount").textContent = 
-          t.contentsDesc.replace("{count}", pack.illustrationCount);
+        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
+        const descTemplate = t.contentsDesc || "ZIP file containing {count} AI-generated illustrations";
+        document.getElementById("illustrationCount").textContent = descTemplate.replace("{count}", pack.illustrationCount);
       };
       updateContents();
 
