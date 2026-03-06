@@ -366,29 +366,47 @@
   </script>
 
   <!-- PayPal SDK - REPLACE CLIENT-ID -->
-  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID_HERE&currency=USD"></script>
-  <script>
-  function initPayPal() {
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        if (!window.cart.length) return alert("Cart is empty");
-        const total = window.cart.reduce((sum, item) => sum + item.price, 0);
-        return actions.order.create({
-          purchase_units: [{ amount: { value: total.toFixed(2), currency_code: "USD" } }]
-        });
-      },
-      onApprove: (data, actions) => {
-        return actions.order.capture().then(details => {
-          alert("Payment completed! Thank you.");
-          window.cart = [];
-          updateCartDisplay();
-        });
-      },
-      onError: err => console.error("PayPal error:", err)
-    }).render("#paypal-button-container");
+<script src="/paypal-sdk"></script>
+
+<script>
+function initPayPal() {
+  if (typeof paypal === 'undefined') {
+    console.error("PayPal SDK failed to load – check /paypal-sdk response");
+    return;
   }
-  if (typeof paypal !== 'undefined') initPayPal();
-  </script>
+  paypal.Buttons({
+    createOrder: (data, actions) => {
+      if (!window.cart?.length) return alert("Cart is empty");
+      const total = window.cart.reduce((sum, item) => sum + item.price, 0);
+      return actions.order.create({
+        purchase_units: [{ amount: { value: total.toFixed(2), currency_code: "USD" } }]
+      });
+    },
+    onApprove: (data, actions) => {
+      return actions.order.capture().then(details => {
+        alert("Payment success! Order ID: " + data.orderID);
+        window.cart = [];
+        updateCartDisplay();
+      });
+    },
+    onError: err => console.error("PayPal error:", err)
+  }).render("#paypal-button-container");
+}
+
+// Run init after SDK loads
+window.addEventListener('load', () => {
+  if (typeof paypal !== 'undefined') {
+    initPayPal();
+  } else {
+    const checkSdk = setInterval(() => {
+      if (typeof paypal !== 'undefined') {
+        clearInterval(checkSdk);
+        initPayPal();
+      }
+    }, 500);
+  }
+});
+</script>
 
 </body>
 </html>
