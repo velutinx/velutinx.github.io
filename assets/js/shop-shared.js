@@ -113,85 +113,138 @@
     }
   };
 
-/* ==================== PRICE & CURRENCY ==================== */
-  const tierMap = { 1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } };
+  /* ==================== PRICE & CURRENCY ==================== */
+  const tierMap = {
+    1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
+    3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
+    10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
+  };
+
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
   let currentLang = localStorage.getItem("language") || "en";
-  let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
+  let currentCurrency = currentLang === "en" ? "USD" :
+                        currentLang === "ja" ? "JPY" :
+                        currentLang === "zh" ? "CNY" : "MXN";
+
+  let prices = { low: 1.5, med: 3.0, high: 10.0 };
 
   function getPriceForPack(pack) {
-    const prices = { low: 1.5, med: 3.0, high: 10.0 };
-    if (pack.price === "PRICE_LOW") return prices.low;
-    if (pack.price === "PRICE_HIGH") return prices.high;
-    return prices.med;
+    switch (pack.price) {
+      case "PRICE_LOW": return prices.low;
+      case "PRICE_MED": return prices.med;
+      case "PRICE_HIGH": return prices.high;
+      default: return prices.med;
+    }
   }
 
   function formatPrice(value, currency = currentCurrency) {
     if (currency === "USD") return `US$${value.toFixed(2)}`;
     const rounded = Math.round(value * 100) / 100;
-    const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-    if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) return `${symbol}${tierMap[rounded][currency]}`;
+    if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+      const converted = tierMap[rounded][currency];
+      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+      return `${symbol}${converted}`;
+    }
     let converted = value * (approxRates[currency] || 1);
     converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
+    const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
     return `${symbol}${converted}`;
   }
 
   /* ==================== CART MANAGEMENT ==================== */
-  function getCart() { try { return JSON.parse(localStorage.getItem("velutinx_cart")) || []; } catch (e) { return []; } }
-  function saveCart(cart) { localStorage.setItem("velutinx_cart", JSON.stringify(cart || [])); }
+  function getCart() {
+    try {
+      const saved = localStorage.getItem("velutinx_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
+  }
 
   function addOrToggleCart(pack) {
     let cart = getCart();
     const index = cart.findIndex(item => item.id === pack.id);
+    let message = "";
+    let isSuccess = true;
+
     if (index !== -1) {
       cart.splice(index, 1);
-      showSnackbar("Removed from cart", false);
+      message = translations[currentLang]?.removeFromCart || "Removed from cart";
+      isSuccess = false;
     } else {
-      cart.push({ id: pack.id, title: pack.title, image: pack.images[0], price: getPriceForPack(pack), quantity: 1 });
-      showSnackbar(translations[currentLang].snackText, true);
+      cart.push({
+        id: pack.id,
+        title: pack.title,
+        image: pack.image || (pack.images && pack.images[0]) || "",
+        price: getPriceForPack(pack),
+        quantity: 1
+      });
+      message = translations[currentLang]?.snackText || "Added successfully";
+      isSuccess = true;
     }
+
     saveCart(cart);
     updateCartDisplay();
+    showSnackbar(message, isSuccess);
+    if (window.updateAllCartButtons) window.updateAllCartButtons();
   }
 
   function updateCartDisplay() {
     const cart = getCart();
+    const count = cart.length;
     const total = cart.reduce((sum, item) => sum + item.price, 0);
-    document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => el.textContent = cart.length);
-    
+
+    document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
+      if (el) el.textContent = count;
+    });
+
     const itemsEl = document.getElementById("cartItems");
     if (itemsEl) {
-      itemsEl.innerHTML = cart.length ? cart.map((item, idx) => `
-        <div class="cart-item">
-          <img src="${item.image}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
-          </div>
-          <button class="cart-item-remove" onclick="window.removeItem(${idx})">×</button>
-        </div>`).join('') : "<p>Your cart is empty</p>";
+      itemsEl.innerHTML = "";
+      if (count === 0) {
+        itemsEl.innerHTML = "<p>Your cart is empty</p>";
+      } else {
+        cart.forEach((item, idx) => {
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <img src="${item.image}" alt="${item.title}">
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.title}</div>
+              <div class="cart-item-price">${formatPrice(item.price)}</div>
+            </div>
+            <button class="cart-item-remove" onclick="window.removeItem(${idx})">×</button>
+          `;
+          itemsEl.appendChild(div);
+        });
+      }
+      const totalEl = document.getElementById("cartTotal");
+      if (totalEl) totalEl.textContent = formatPrice(total);
     }
-    const totalEl = document.getElementById("cartTotal");
-    if (totalEl) totalEl.textContent = formatPrice(total);
-    
-    // Refresh PayPal if buttons already exist
-    if (window.paypal && cart.length > 0) initPayPalButtons();
-    else if (cart.length === 0 && document.getElementById("paypal-button-container")) {
-        document.getElementById("paypal-button-container").innerHTML = '';
-    }
+    if (window.initPayPalButtons) window.initPayPalButtons();
   }
 
-  function showSnackbar(msg, isSuccess) {
+  /* ==================== SNACKBAR ==================== */
+  function showSnackbar(message, isSuccess = true) {
     const snackbar = document.getElementById("snackbar");
+    if (!snackbar) return;
     const snackText = document.getElementById("snackText");
-    if (!snackbar || !snackText) return;
-    snackText.textContent = msg;
-    snackbar.className = "snackbar show " + (isSuccess ? "" : "remove");
-    setTimeout(() => snackbar.classList.remove("show"), 2400);
+    if (snackText) snackText.textContent = message;
+
+    snackbar.className = "snackbar show";
+    snackbar.style.background = isSuccess ? "#22c55e" : "#ef4444";
+
+    setTimeout(() => {
+      snackbar.classList.remove("show");
+    }, 2400);
   }
 
-  /* ==================== PAYPAL INTEGRATION ==================== */
+/* ==================== PAYPAL INTEGRATION ==================== */
   function loadAndInitPayPal() {
     if (window.paypal) { initPayPalButtons(); return; }
     const loader = document.createElement('script');
