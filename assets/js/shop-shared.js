@@ -1,5 +1,4 @@
 // assets/js/shop-shared.js
-// Shared shop logic: persistent cart, currency, translations, prices
 (function () {
   "use strict";
 
@@ -151,7 +150,6 @@
     });
   }
 
-  // Persistent cart
   function getCart() {
     try {
       const saved = localStorage.getItem("velutinx_cart");
@@ -203,8 +201,9 @@
     const count = getCartCount();
     const total = getCartTotal();
 
-    document.querySelectorAll("#cartCount, #floatingCartCount")
-      .forEach(el => { if (el) el.textContent = count; });
+    document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
+      if (el) el.textContent = count;
+    });
 
     const itemsEl = document.getElementById("cartItems");
     if (itemsEl) {
@@ -231,8 +230,31 @@
     }
 
     const active = count > 0;
-    [document.getElementById("cartBtn"), document.getElementById("floatingCartBtn")]
-      .forEach(btn => { if (btn) btn.classList.toggle("active", active); });
+    [document.getElementById("cartBtn"), document.getElementById("floatingCartBtn")].forEach(btn => {
+      if (btn) btn.classList.toggle("active", active);
+    });
+  }
+
+  function updateDisclaimers() {
+    const t = translations[currentLang] || translations.en;
+    const el = document.getElementById("disclaimer");
+    if (el) {
+      el.innerHTML = `
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+          <circle cx="256" cy="380" r="24" fill="#000000"/>
+        </svg>
+        <span>${t.disclaimerAge}</span>
+        <br><br>
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
+          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
+          <circle cx="256" cy="380" r="24" fill="#000000"/>
+        </svg>
+        <span>${t.disclaimerRefund}</span>
+      `;
+    }
   }
 
   function setLanguage(lang) {
@@ -272,43 +294,21 @@
 
     updateAllPrices();
     updateCartDisplay();
-    updateDisclaimers();   // ← updates the two notes when language changes
+    updateDisclaimers();
   }
 
-  function updateDisclaimers() {
-    const t = translations[currentLang] || translations.en;
-    const el = document.getElementById("disclaimer");
-    if (el) {
-      el.innerHTML = `
-        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-          <circle cx="256" cy="380" r="24" fill="#000000"/>
-        </svg>
-        <span>${t.disclaimerAge}</span>
-        <br><br>
-        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
-          <rect x="236" y="180" width="40" height="160" rx="20" fill="#000000"/>
-          <circle cx="256" cy="380" r="24" fill="#000000"/>
-        </svg>
-        <span>${t.disclaimerRefund}</span>
-      `;
-    }
-  }
-
-  // Init
   document.addEventListener("DOMContentLoaded", async () => {
     await loadPrices();
     updateCartDisplay();
     updateAllPrices();
+    updateDisclaimers();
     setLanguage(currentLang);
 
     const itemsEl = document.getElementById("cartItems");
     if (itemsEl) {
       itemsEl.addEventListener("click", e => {
         if (e.target.classList.contains("cart-item-remove")) {
-          const idx = parseInt(e.target.dataset.idx);
+          const idx = parseInt(e.target.dataset.idx, 10);
           if (!isNaN(idx)) {
             let cart = getCart();
             cart.splice(idx, 1);
@@ -320,7 +320,7 @@
     }
   });
 
-  // Expose
+  // Expose globals
   window.getCart = getCart;
   window.addOrToggleCart = addOrToggleCart;
   window.removeFromCart = removeFromCart;
