@@ -150,11 +150,11 @@
 </div>
 
 <script>
-// === Language & Translation Data (copied from your header.js) ===
-const translations = {
+// Success-page specific translations (extracted from your header.js)
+const successTranslations = {
   en: { 
-    confTitle: "Purchase Confirmed!", 
-    orderLabel: "Order Number:", 
+    confTitle: "Purchase Confirmed!",
+    orderLabel: "Order Number:",
     loadingText: "Preparing your digital assets",
     readyLabel: "Your files are ready:",
     supportText: "Support: If you have any issues, please message me on Discord (velutinxx) or email support@velutinx.com.",
@@ -162,8 +162,8 @@ const translations = {
     noticeText: "Notice: Download links are valid for 24 hours. Please do not share these links with others."
   },
   ja: { 
-    confTitle: "購入が完了しました！", 
-    orderLabel: "注文番号:", 
+    confTitle: "購入が完了しました！",
+    orderLabel: "注文番号:",
     loadingText: "デジタルアセットを準備中です",
     readyLabel: "ファイルの準備ができました:",
     supportText: "サポート：問題が発生した場合は、Discord（velutinxx）またはメール（support@velutinx.com）でご連絡ください。",
@@ -171,8 +171,8 @@ const translations = {
     noticeText: "注意：ダウンロードリンクは24時間有効です。リンクを他人に共有しないでください。"
   },
   zh: { 
-    confTitle: "购买确认！", 
-    orderLabel: "订单编号:", 
+    confTitle: "购买确认！",
+    orderLabel: "订单编号:",
     loadingText: "正在准备您的数字资产",
     readyLabel: "您的文件已准备就绪:",
     supportText: "支持：如果您有任何问题，请在 Discord (velutinxx) 上给我留言或发送邮件至 support@velutinx.com。",
@@ -180,8 +180,8 @@ const translations = {
     noticeText: "注意：下载链接有效期为 24 小时。请勿与他人分享这些链接。"
   },
   es: { 
-    confTitle: "¡Compra Confirmada!", 
-    orderLabel: "Número de Pedido:", 
+    confTitle: "¡Compra Confirmada!",
+    orderLabel: "Número de Pedido:",
     loadingText: "Preparando sus activos digitales",
     readyLabel: "Tus archivos están listos:",
     supportText: "Soporte: Si tienes algún problema, por favor escríbeme por Discord (velutinxx) o correo support@velutinx.com.",
@@ -190,45 +190,38 @@ const translations = {
   }
 };
 
-let currentLang = localStorage.getItem("language") || "en";
-
-// === Apply language immediately on page load ===
-function setSuccessLanguage(lang) {
-    if (!translations[lang]) lang = "en";
-    currentLang = lang;
-    localStorage.setItem("language", lang);
-
-    const t = translations[lang];
-
-    document.getElementById("confTitle").textContent = t.confTitle;
-    document.getElementById("orderLabel").childNodes[0].textContent = t.orderLabel + " ";
-    document.getElementById("loadingText").textContent = t.loadingText;
-    document.getElementById("supportText").innerHTML = t.supportText;
-    document.getElementById("idText").innerHTML = t.idText;
-    document.getElementById("noticeText").innerHTML = t.noticeText;
-
-    // Optional: update document lang attribute
-    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
-}
-
-// === Read language from URL first (most reliable) ===
+// Get URL params
 const urlParams = new URLSearchParams(window.location.search);
-const urlLang = urlParams.get("lang");
 const token = urlParams.get("token");
+let langFromUrl = urlParams.get("lang");
 
-if (urlLang && translations[urlLang]) {
-    setSuccessLanguage(urlLang);
+// Determine final language
+let currentLang = "en";
+if (langFromUrl && successTranslations[langFromUrl]) {
+  currentLang = langFromUrl;
+  localStorage.setItem("language", currentLang);
 } else {
-    setSuccessLanguage(currentLang); // fallback to saved or en
+  const savedLang = localStorage.getItem("language");
+  if (savedLang && successTranslations[savedLang]) {
+    currentLang = savedLang;
+  }
 }
 
-// === Download logic (unchanged except minor improvements) ===
+// Apply translations
+const t = successTranslations[currentLang] || successTranslations.en;
+document.getElementById("confTitle").textContent = t.confTitle;
+document.getElementById("orderLabel").firstChild.textContent = t.orderLabel + " ";
+document.getElementById("loadingText").textContent = t.loadingText;
+document.getElementById("supportText").innerHTML = t.supportText;
+document.getElementById("idText").innerHTML = t.idText;
+document.getElementById("noticeText").innerHTML = t.noticeText;
+
+// Your original download logic (unchanged)
 const section = document.getElementById("download-section");
 
 const savedCart = localStorage.getItem("velutinx_cart");
 const cart = savedCart ? JSON.parse(savedCart) : [];
 
-// Normalize item IDs to match vault keys (PACKXXX)
 const itemNames = cart.map(item => {
     let id = item.id.toLowerCase();
     if (id.includes('item-')) id = id.replace('item-', 'pack');
@@ -237,40 +230,36 @@ const itemNames = cart.map(item => {
 }).join(',');
 
 if (!token) {
-    section.innerHTML = `<p class="error-text">No payment token found. Something went wrong with the payment redirect.</p>`;
+    section.innerHTML = `<p class="error-text">No payment token found.</p>`;
 } else if (cart.length === 0) {
-    section.innerHTML = `<p class="error-text">Your cart is empty. Please go back to the shop and try again.</p>`;
+    section.innerHTML = `<p class="error-text">Your cart is empty. Go back to the shop and add items before visiting this page.</p>`;
 } else {
     fetch(`/get-download?token=${token}&items=${itemNames}`)
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
             if (data.items && data.items.length > 0) {
-                let html = `<p style="margin-bottom:15px; font-weight:bold;" id="readyLabel">${translations[currentLang].readyLabel}</p>`;
+                let html = `<p style="margin-bottom:15px; font-weight:bold;">${t.readyLabel}</p>`;
                 data.items.forEach(item => {
-                    if (item.link) {
-                        html += `
-                            <a href="${item.link}" class="download-item" target="_blank">
-                                Download ${item.title} ↓
-                            </a>`;
-                    } else {
-                        html += `<p class="error-text">Missing download link for ${item.title}</p>`;
-                    }
+                    html += `
+                        <a href="${item.link}" class="download-item" target="_blank" style="display:block; background:#49BEFF; color:white; padding:15px; margin-bottom:10px; border-radius:8px; text-decoration:none; text-align:center;">
+                            Download ${item.title} ↓
+                        </a>`;
                 });
                 section.innerHTML = html;
+                
+                // Optional: show real order id from response if you ever return it
+                if (data.order_id) {
+                    document.getElementById("order-id").textContent = `#${data.order_id}`;
+                }
             } else {
-                section.innerHTML = `<p class="error-text">No files found for order. Vault may not recognize: [${itemNames}]</p>`;
+                section.innerHTML = `<p class="error-text">Vault Error: The vault doesn't recognize [${itemNames}]. Check your get-download.js file names.</p>`;
             }
         })
         .catch(err => {
             console.error(err);
-            section.innerHTML = `<p class="error-text">Failed to load downloads. Please contact support with your order number.</p>`;
+            section.innerHTML = `<p class="error-text">Fetch Error. Is your Cloudflare Worker/Function active?</p>`;
         });
 }
-
-// Optional: keep cart for refresh testing (you already commented out removal)
 </script>
 
 </body>
