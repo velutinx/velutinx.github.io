@@ -89,7 +89,7 @@ const tierMap = {
 
 const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-// Use var to prevent redeclaration errors (var is allowed to be redeclared)
+// Use var to prevent redeclaration error (var allows it)
 var currentLang = localStorage.getItem("language") || "en";
 var currentCurrency = currentLang === "en" ? "USD" :
                       currentLang === "ja" ? "JPY" :
