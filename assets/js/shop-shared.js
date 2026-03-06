@@ -375,3 +375,103 @@
   });
 
 })();
+
+/* ==================== PAYPAL INTEGRATION ==================== */
+function loadAndInitPayPal() {
+  // Only load once
+  if (window.paypalLoaded) return;
+  window.paypalLoaded = true;
+
+  const loader = document.createElement('script');
+  loader.src = "/paypal-sdk";  // ← your Cloudflare Worker proxy
+  loader.async = true;
+  loader.onload = () => {
+    console.log("PayPal SDK loaded via proxy");
+    initPayPalButtons();
+  };
+  loader.onerror = (e) => {
+    console.error("PayPal SDK proxy failed:", e);
+  };
+  document.head.appendChild(loader);
+}
+
+function initPayPalButtons() {
+  const container = document.getElementById("paypal-button-container");
+  if (!container) {
+    console.warn("paypal-button-container not found");
+    return;
+  }
+  if (typeof paypal === 'undefined') {
+    console.warn("paypal global not available yet");
+    return;
+  }
+
+  // Clear old buttons if re-init
+  container.innerHTML = '';
+
+  paypal.Buttons({
+    createOrder: (data, actions) => {
+      const cart = getCart();
+      if (cart.length === 0) {
+        alert("Your cart is empty!");
+        return Promise.reject();
+      }
+
+      const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            currency_code: "USD",
+            value: total
+          },
+          description: "Velutinx Digital Content"
+        }]
+      });
+    },
+
+    onApprove: async (data, actions) => {
+      try {
+        const details = await actions.order.capture();
+        alert(`Payment successful! Thank you ${details.payer.name.given_name}! Order ID: ${details.id}`);
+
+        // Optional: clear cart after success
+        // saveCart([]);
+        // updateCartDisplay();
+
+        window.location.href = `/success.html?orderID=${details.id}`;
+      } catch (err) {
+        console.error("Capture failed:", err);
+        alert("Payment capture failed. Please contact support.");
+      }
+    },
+
+    onCancel: () => {
+      alert("Payment cancelled");
+    },
+
+    onError: (err) => {
+      console.error("PayPal Error:", err);
+      alert("Sorry, something went wrong with PayPal.");
+    }
+
+  }).render("#paypal-button-container");
+}
+
+// Auto-load when cart opens
+document.addEventListener("DOMContentLoaded", () => {
+  const cartBtn = document.getElementById("cartBtn");
+  const floatingCartBtn = document.getElementById("floatingCartBtn");
+
+  const tryInitPayPal = () => {
+    if (document.getElementById("paypal-button-container")) {
+      loadAndInitPayPal();
+    }
+  };
+
+  cartBtn?.addEventListener("click", tryInitPayPal);
+  floatingCartBtn?.addEventListener("click", tryInitPayPal);
+
+  // Also try once on page load (in case cart is open somehow)
+  setTimeout(tryInitPayPal, 1500);
+});
