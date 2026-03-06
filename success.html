@@ -129,92 +129,30 @@
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
         
-        <h1 id="confTitle">Purchase Confirmed!</h1>
-        <p id="orderLabel">Order Number: <span class="order-number" id="order-id">#00001</span></p>
+        <h1>Purchase Confirmed!</h1>
+        <p>Order Number: <span class="order-number" id="order-id">#00001</span></p>
 
         <div id="download-section">
-            <p class="loading-dots" id="loadingText">Preparing your digital assets</p>
+            <p class="loading-dots">Preparing your digital assets</p>
         </div>
 
         <div class="disclaimer-box">
-            <p id="supportText"><strong>Support:</strong> If you have any issues, please message me on <strong>Discord (velutinxx)</strong> or email <strong>support@velutinx.com</strong>.</p>
+            <p><strong>Support:</strong> If you have any issues, please message me on <strong>Discord (velutinxx)</strong> or email <strong>support@velutinx.com</strong>.</p>
             
-            <p class="id-note" id="idText">
+            <p class="id-note">
                 <strong>Identification:</strong> When contacting support, please include your <strong>Order Number</strong> and your <strong>PayPal Email</strong> address. This helps me verify your transaction quickly.
             </p>
             
-            <p id="noticeText"><strong>Notice:</strong> Download links are valid for 24 hours. Please do not share these links with others.</p>
+            <p><strong>Notice:</strong> Download links are valid for 24 hours. Please do not share these links with others.</p>
         </div>
     </div>
 </div>
 
 <script>
-// Success page translations
-const translations = {
-  en: { 
-    confTitle: "Purchase Confirmed!",
-    orderLabel: "Order Number:",
-    loadingText: "Preparing your digital assets",
-    readyLabel: "Your files are ready:",
-    supportText: "Support: If you have any issues, please message me on Discord (velutinxx) or email support@velutinx.com.",
-    idText: "Identification: When contacting support, please include your Order Number and your PayPal Email address. This helps me verify your transaction quickly.",
-    noticeText: "Notice: Download links are valid for 24 hours. Please do not share these links with others."
-  },
-  ja: { 
-    confTitle: "購入が完了しました！",
-    orderLabel: "注文番号:",
-    loadingText: "デジタルアセットを準備中です",
-    readyLabel: "ファイルの準備ができました:",
-    supportText: "サポート：問題が発生した場合は、Discord（velutinxx）またはメール（support@velutinx.com）でご連絡ください。",
-    idText: "本人確認：サポートに連絡する際は、注文番号とPayPalのメールアドレスを記載してください。",
-    noticeText: "注意：ダウンロードリンクは24時間有効です。リンクを他人に共有しないでください。"
-  },
-  zh: { 
-    confTitle: "购买确认！",
-    orderLabel: "订单编号:",
-    loadingText: "正在准备您的数字资产",
-    readyLabel: "您的文件已准备就绪:",
-    supportText: "支持：如果您有任何问题，请在 Discord (velutinxx) 上给我留言或发送邮件至 support@velutinx.com。",
-    idText: "身份验证：联系支持人员时，请提供您的订单号和 PayPal 电子邮件地址。",
-    noticeText: "注意：下载链接有效期为 24 小时。请勿与他人分享这些链接。"
-  },
-  es: { 
-    confTitle: "¡Compra Confirmada!",
-    orderLabel: "Número de Pedido:",
-    loadingText: "Preparando sus activos digitales",
-    readyLabel: "Tus archivos están listos:",
-    supportText: "Soporte: Si tienes algún problema, por favor escríbeme por Discord (velutinxx) o correo support@velutinx.com.",
-    idText: "Identificación: Al contactar al soporte, por favor incluye tu número de pedido y tu correo de PayPal.",
-    noticeText: "Aviso: Los enlaces de descarga son válidos por 24 horas. Por favor, no compartas estos enlaces."
-  }
-};
-
-// Read URL parameters
+// Read token from URL
 const urlParams = new URLSearchParams(window.location.search);
 const token = urlParams.get("token");
-const langParam = urlParams.get("lang");
 
-// Determine language (URL > localStorage > default en)
-let currentLang = "en";
-if (langParam && translations[langParam]) {
-    currentLang = langParam;
-    localStorage.setItem("language", currentLang);
-} else {
-    const saved = localStorage.getItem("language");
-    if (saved && translations[saved]) currentLang = saved;
-}
-
-const t = translations[currentLang];
-
-// Apply translations
-document.getElementById("confTitle").textContent = t.confTitle;
-document.getElementById("orderLabel").firstChild.textContent = t.orderLabel + " ";
-document.getElementById("loadingText").textContent = t.loadingText;
-document.getElementById("supportText").innerHTML = t.supportText;
-document.getElementById("idText").innerHTML = t.idText;
-document.getElementById("noticeText").innerHTML = t.noticeText;
-
-// Download section logic
 const section = document.getElementById("download-section");
 
 if (!token) {
@@ -226,13 +164,13 @@ if (!token) {
             return res.json();
         })
         .then(data => {
-            // Update real order number from Supabase
+            // Show real order number from Supabase if available
             if (data.order_number) {
                 document.getElementById("order-id").textContent = `#${data.order_number}`;
             }
 
             if (data.items && data.items.length > 0) {
-                let html = `<p style="margin-bottom:15px; font-weight:bold;">${t.readyLabel}</p>`;
+                let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
                 data.items.forEach(item => {
                     if (item.link) {
                         html += `
