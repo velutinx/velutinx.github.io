@@ -221,6 +221,8 @@
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
+    let currentLang = localStorage.getItem("language") || "en";
+
     function updatePriceDisplay(pack) {
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
       const t = translations[currentLang] || translations.en;
@@ -268,15 +270,15 @@
       const updateButton = () => {
         const t = translations[currentLang] || translations.en;
         const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+        const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
         document.getElementById("buttons").innerHTML = `
           <button class="btn btn-cart" id="addCartBtn">
-            ${isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart")}
+            ${btnText}
           </button>
         `;
 
         // Re-attach listener
-        const btn = document.getElementById("addCartBtn");
-        btn.addEventListener("click", () => {
+        document.getElementById("addCartBtn").addEventListener("click", () => {
           window.addOrToggleCart?.(pack);
           updateButton();
           const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
@@ -291,7 +293,6 @@
       };
       updateButton();
 
-      // Dynamic contents
       const updateContents = () => {
         const t = translations[currentLang] || translations.en;
         document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
@@ -319,6 +320,7 @@
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
         window.setLanguage?.(item.dataset.lang);
+        currentLang = item.dataset.lang; // sync local variable
         if (pack) {
           updatePriceDisplay(pack);
           updateButton();
