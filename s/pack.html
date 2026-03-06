@@ -191,28 +191,36 @@
       catInfo.style.display = "flex";
     };
 
-    window.updatePriceDisplay = function() {
-      if (!pack) return;
-      const priceNum = window.getPriceForPack?.(pack) ?? 0;
-      const t = window.translations[currentLang] || window.translations.en;
+window.updatePriceDisplay = function() {
+  if (!pack) return;
+  const priceNum = window.getPriceForPack?.(pack) ?? 0;
+  const t = window.translations[currentLang] || window.translations.en;
 
-      let priceHTML = `
-        <div><span class="price-label">${t.currentPrice}</span><span class="current-price">${window.formatPrice?.(priceNum)}</span></div>
-      `;
+  let priceHTML = `
+    <div>
+      <span class="price-label">${t.currentPrice}</span>
+      <span style="color: var(--gray); margin: 0 8px;">│</span>
+      <span class="current-price">${window.formatPrice?.(priceNum)}</span>
+    </div>
+  `;
 
-      if (pack.oldPrice && pack.oldPrice.trim() !== "") {
-        priceHTML = `
-          <div><span class="price-label">${t.originalPrice}</span><span class="old-price">${pack.oldPrice}</span></div>
-          ${priceHTML}
-        `;
-      }
+  if (pack.oldPrice && pack.oldPrice.trim() !== "") {
+    priceHTML = `
+      <div>
+        <span class="price-label">${t.originalPrice}</span>
+        <span style="color: var(--gray); margin: 0 8px;">│</span>
+        <span class="old-price">${pack.oldPrice}</span>
+      </div>
+      ${priceHTML}
+    `;
+  }
 
-      if (pack.saveText) {
-        priceHTML += `<div class="save">${pack.saveText}</div>`;
-      }
+  if (pack.saveText) {
+    priceHTML += `<div class="save">${pack.saveText}</div>`;
+  }
 
-      document.getElementById("priceSection").innerHTML = priceHTML;
-    };
+  document.getElementById("priceSection").innerHTML = priceHTML;
+};
 
     window.updateButton = function() {
       if (!pack) return;
