@@ -193,7 +193,6 @@
 <script type="module">
   import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
 
-  // Language support (updates price display)
   function updatePriceDisplay(pack) {
     const priceNum = window.getPriceForPack(pack);
     const html = `
@@ -210,7 +209,6 @@
     document.getElementById("priceSection").innerHTML = html;
   }
 
-  // Load pack
   const params = new URLSearchParams(window.location.search);
   const packId = params.get("id") || "001";
   const pack = packsData.find(p => p.id === packId);
@@ -221,7 +219,6 @@
   } else {
     document.getElementById("title").textContent = pack.title;
 
-    // Gallery
     document.getElementById("gallery").innerHTML = `
       <div class="carousel">
         <div class="slides" id="slides">
@@ -237,38 +234,31 @@
       </div>
     `;
 
-    // Price
     updatePriceDisplay(pack);
 
-    // Buttons – now using persistent cart
-    const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+    const isInCart = window.getCart().some(item => item.id === pack.id);
     document.getElementById("buttons").innerHTML = `
       <button class="btn btn-buy">Buy Now</button>
-      <button class="btn btn-cart" id="addCartBtn">
+      <button class="btn btn-cart" id="cartBtn">
         ${isInCart ? "Remove from Cart" : "Add to Cart"}
       </button>
     `;
 
-    // Cart toggle logic
-    const addCartBtn = document.getElementById("addCartBtn");
-    addCartBtn.addEventListener("click", () => {
+    document.getElementById("cartBtn").addEventListener("click", () => {
       window.addOrToggleCart(pack);
-      const nowInCart = window.getCart().some(item => item.id === pack.id);
-      addCartBtn.textContent = nowInCart ? "Remove from Cart" : "Add to Cart";
+      const nowIn = window.getCart().some(item => item.id === pack.id);
+      document.getElementById("cartBtn").textContent = nowIn ? "Remove from Cart" : "Add to Cart";
 
-      // Optional: snackbar feedback
       const snack = document.getElementById("snackbar");
-      const msg = nowInCart ? "Added to cart!" : "Removed from cart";
-      document.getElementById("snackText").textContent = msg;
+      document.getElementById("snackText").textContent = nowIn ? "Added successfully" : "Removed from cart";
       snack.classList.add("show");
       setTimeout(() => snack.classList.remove("show"), 2400);
+
+      window.updateCartDisplay();
     });
 
-    // Contents
-    document.getElementById("illustrationCount").textContent =
-      `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
+    document.getElementById("illustrationCount").textContent = `ZIP file containing ${pack.illustrationCount} AI-generated illustrations`;
 
-    // Disclaimer (unchanged)
     document.getElementById("disclaimer").innerHTML = `
       <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
         <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000000" stroke-width="32" stroke-linejoin="round"/>
@@ -278,7 +268,6 @@
       <span>Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.</span>
     `;
 
-    // Carousel logic (unchanged)
     const slides = document.getElementById('slides');
     const thumbs = document.querySelectorAll('.thumb');
     let current = 0;
@@ -293,7 +282,6 @@
     update();
   }
 
-  // Language change → update price & UI
   document.querySelectorAll(".lang-item").forEach(item => {
     item.addEventListener("click", () => {
       window.setLanguage(item.dataset.lang);
@@ -301,8 +289,7 @@
     });
   });
 
-  // Make sure cart display is fresh (in case opened from other page)
-  window.updateCartDisplay?.();
+  window.updateCartDisplay();
 </script>
 
 </body>
