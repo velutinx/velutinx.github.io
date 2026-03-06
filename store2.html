@@ -1,145 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Store</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Store</title>
 
-  <!-- Inline header CSS (originally from https://velutinx.github.io/assets/css/header.css) -->
-  <style>
-    :root {
-      --bg: #d3d0c1; --card: #e8e5d8; --darker: #c0bcaa; --text: #3a3528;
-      --text-light: #e8e5d8; --accent: #aa9e76; --success: #22c55e;
-      --red-discount: #a64a5c; --gray: #8a7b6f; --border: #aa9e76;
-      --overlay: rgba(170,158,118,0.25); --btn-cart: #3a3528;
-      --btn-cart-hover: #4a4538;
-    }
-    body.dark {
-      --bg: #0f0f12; --card: #1a1a20; --darker: #121216; --text: #e6e3d8;
-      --text-light: #e6e3d8; --accent: #d4c08a; --success: #8b8a5e;
-      --red-discount: #a64a5c; --gray: #b8b3a5; --border: #6f6a4e;
-      --overlay: rgba(15,15,18,0.75);
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg); color: var(--text); line-height: 1.5;
-      transition: background 0.4s, color 0.4s;
-    }
-    body.drawer-open::after {
-      content: ""; position: fixed; inset: 0; background: var(--overlay);
-      z-index: 1190; pointer-events: none;
-    }
-    body.drawer-open .floating-cart { display: none; }
+<!-- Your existing header styles -->
+<link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-    /* Top nav */
-    .top-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.9rem 2.5rem; background: var(--darker);
-      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000;
-    }
-    .logo { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; color: #000; }
-    body.dark .logo { color: var(--accent); }
-
-    .nav-actions { display: flex; align-items: center; gap: 1rem; position: relative; }
-
-    .nav-icon {
-      width: 42px; height: 42px; border-radius: 50%; background: transparent;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text); border: 1px solid rgba(58,53,40,0.2);
-      transition: all 0.22s; cursor: pointer;
-    }
-    .nav-icon:hover { background: #d3d0c1; color: #3a3528; transform: scale(1.08); border-color: #aa9e76; }
-    .nav-icon.active { background: var(--success); color: white; border-color: transparent; }
-    .nav-icon svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.5; }
-
-    .login-btn {
-      padding: 0.55rem 1.6rem; background: transparent; color: var(--accent);
-      border: 1px solid var(--accent); border-radius: 9999px;
-      font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.18s;
-    }
-    .login-btn:hover { background: rgba(170,158,118,0.15); }
-
-    /* Language popover, cart drawer, floating cart, snackbar styles same as original */
-    #languagePopover {
-      position: absolute; top: 55px; right: 8px; background: var(--card);
-      border: 1px solid var(--border); border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3); min-width: 230px; z-index: 1100;
-      opacity: 0; visibility: hidden; transform: translateY(-10px);
-      transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.51s;
-    }
-    #languagePopover.show { opacity: 1; visibility: visible; transform: translateY(0); transition-delay: 0s; }
-    .lang-item {
-      display: flex; align-items: center; gap: 14px; padding: 12px 18px;
-      cursor: pointer; transition: background 0.2s; color: var(--text);
-    }
-    .lang-item:hover { background: #c0bcaa; }
-    .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-
-    .lang-swipe {
-      position: fixed; bottom: -100%; left: 0; width: 100%; height: 20%;
-      background: var(--accent); z-index: 10000; pointer-events: none; opacity: 0.9;
-    }
-    .lang-swipe.active { animation: langSwipeUp 0.55s ease-in forwards; }
-    @keyframes langSwipeUp { to { bottom: 100%; } }
-
-    .cart-wrapper { position: relative; }
-    .cart-badge {
-      position: absolute; top: -8px; right: -8px; background: var(--red-discount);
-      color: white; font-size: 0.75rem; font-weight: bold; min-width: 22px;
-      height: 22px; border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; padding: 0 6px; border: 2px solid var(--darker);
-    }
-
-    .cart-drawer {
-      position: fixed; top: 0; right: -400px; width: 400px; height: 100%;
-      background: var(--accent); border-left: 1px solid var(--border);
-      box-shadow: -10px 0 30px rgba(0,0,0,0.5); z-index: 1200;
-      transition: right 0.35s ease; display: flex; flex-direction: column;
-      color: #1f1a12;
-    }
-    .cart-drawer.open { right: 0; }
-    .cart-header { display: flex; justify-content: space-between; align-items: center; padding: 1.4rem 1.6rem; border-bottom: 1px solid var(--border); }
-    .cart-header h5 { margin: 0; font-size: 1.45rem; }
-    .cart-close { background: none; border: none; color: #1f1a12; font-size: 1.8rem; cursor: pointer; }
-    .cart-items { flex: 1; overflow-y: auto; padding: 1.2rem; }
-    .cart-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-    .cart-item img { width: 85px; height: 85px; object-fit: cover; border-radius: 8px; }
-    .cart-item-info { flex: 1; }
-    .cart-item-title { font-weight: 600; margin-bottom: 6px; }
-    .cart-item-price { color: #1f1a12; font-weight: 700; }
-    .cart-item-remove { background: none; border: none; color: var(--red-discount); font-size: 1.4rem; cursor: pointer; align-self: flex-start; }
-    .cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
-    .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
-
-    .floating-cart {
-      position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px;
-      background: var(--accent); border-radius: 50%; display: flex;
-      align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-      z-index: 1250; cursor: pointer; transition: all 0.25s;
-    }
-    .floating-cart:hover { transform: scale(1.12); }
-    .floating-cart.active { background: var(--success); }
-    .floating-cart svg { width: 28px; height: 28px; stroke: white; stroke-width: 2; }
-    .floating-badge {
-      position: absolute; top: -8px; right: -8px; background: var(--red-discount);
-      color: white; font-size: 0.75rem; font-weight: bold; min-width: 22px;
-      height: 22px; border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; padding: 0 6px; border: 2px solid var(--darker);
-    }
-
-    #snackbar {
-      position: fixed; top: 28px; right: 28px; background: var(--success);
-      color: white; padding: 14px 22px; border-radius: 10px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.5); display: flex; align-items: center;
-      gap: 14px; z-index: 1300; transform: translateY(-120px); opacity: 0;
-      transition: all 0.45s ease;
-    }
-    #snackbar.show { transform: translateY(0); opacity: 1; }
-  </style>
-
-  <!-- Shop/product styles (same as provided) -->
-  <style>
+<!-- Shop/product specific styles -->
+<style>
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -188,7 +58,7 @@
     .product-card.added-flash { animation: flashGreen 0.6s ease-out; }
     @keyframes flashGreen { 0% { box-shadow: 0 0 0 4px rgba(34,197,94,0.6); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
     .product-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
-    .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; }
+    .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; display: block; }
     .card-content { padding: 1.2rem; }
     .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
     .price-row { display: flex; justify-content: space-between; align-items: center; }
@@ -197,7 +67,7 @@
     .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: var(--success); }
-  </style>
+</style>
 </head>
 <body>
 
@@ -211,15 +81,18 @@
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path>
+            <path d="M4 5h7"></path>
+            <path d="M7 4c0 4.846 0 7 .5 8"></path>
             <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
-            <path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
+            <path d="M12 20l4 -9l4 9"></path>
+            <path d="M19.1 18h-6.2"></path>
           </svg>
         </button>
         <div id="languagePopover">
           <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US" /><p>English (USD)</p></div>
+          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP" /><p>日本語 (円)</p></div>
+          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN" /><p>简体中文 (元)</p></div>
           <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX" /><p>Español (MXN)</p></div>
-          <!-- Add more if needed -->
         </div>
       </div>
 
@@ -237,7 +110,8 @@
             <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
             <path d="M17 17h-11v-14h-2"></path>
             <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path><path d="M19 16v6"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
           </svg>
         </button>
         <span class="cart-badge" id="cartCount">0</span>
@@ -277,12 +151,13 @@
     <span id="snackText">Added successfully</span>
   </div>
 
+  <!-- Shop content -->
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
         <div style="display:flex; align-items:center; gap:1.2rem;">
           <h1 class="shop-title" id="shopTitle">My Store</h1>
-          <button class="gift-btn" title="Support">
+          <button class="gift-btn" title="Gift / Support">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
               <path d="M3 8m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"></path>
               <path d="M12 8l0 13"></path>
@@ -300,16 +175,17 @@
       <div class="section-title" id="filterTitle">Filter by Category</div>
       <ul class="category-list">
         <li class="active"><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M6.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M17.5 17m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path></svg> <span id="catAll">All</span></li>
-        <!-- Add your real categories here -->
-        <li><svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span>Not On Booth</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catNot">Not On Booth</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catFrom">From Booth</span></li>
+        <li><svg class="category-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 20.415a8 8 0 1 0 3 -15.415h-3"></path><path d="M13 8l-3 -3l3 -3"></path><path d="M7 17l4 -4l-4 -4l-4 4z"></path></svg> <span id="catSisters">The Sisters Corner</span></li>
       </ul>
 
       <div class="sort-options">
         <div class="section-title" id="sortTitle">Sort by</div>
-        <button class="sort-btn active" data-sort="newest"><svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg> <span id="sortNewest">Newest</span></button>
-        <button class="sort-btn" data-sort="oldest"><svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6.5v11M5 12h14"></path><path d="M12 17.5l-7-7 7-7"></path></svg> <span id="sortOldest">Oldest</span></button>
-        <button class="sort-btn" data-sort="price-asc"><svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9l3 -3l3 3"></path><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M17 6v12"></path></svg> <span id="sortLow">Price: Low to High</span></button>
-        <button class="sort-btn" data-sort="price-desc"><svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M14 15l3 3l3 -3"></path><path d="M17 18v-12"></path></svg> <span id="sortHigh">Price: High to Low</span></button>
+        <button class="sort-btn active" data-sort="newest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg> <span id="sortNewest">Newest</span></button>
+        <button class="sort-btn" data-sort="oldest"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6.5v11M5 12h14"></path><path d="M12 17.5l-7-7 7-7"></path></svg> <span id="sortOldest">Oldest</span></button>
+        <button class="sort-btn" data-sort="price-asc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9l3 -3l3 3"></path><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M17 6v12"></path></svg> <span id="sortLow">Price: Low to High</span></button>
+        <button class="sort-btn" data-sort="price-desc"><svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M5 14m0 .5a.5 .5 0 0 1 .5 -.5h4a.5 .5 0 0 1 .5 .5v4a.5 .5 0 0 1 -.5 .5h-4a.5 .5 0 0 1 -.5 -.5z"></path><path d="M14 15l3 3l3 -3"></path><path d="M17 18v-12"></path></svg> <span id="sortHigh">Price: High to Low</span></button>
       </div>
     </aside>
 
@@ -336,210 +212,183 @@
     </main>
   </div>
 
-  <!-- Temporary static products (replace with Supabase fetch later) -->
+  <!-- Load shared header logic (language, theme, cart drawer, animations, etc.) -->
+  <script src="https://velutinx.github.io/assets/js/header.js"></script>
+
+  <!-- Shop logic -->
   <script>
-    // Example products – later fetch from Supabase table 'products'
+  window.addEventListener('load', () => {
+    // Temporary static products – replace with Supabase later
     const productsData = [
-      { id: 178, title: "[Pack 178] Mitsuri Kanroji - Kimetsu no Yaiba", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=178" },
-      { id: 177, title: "[Pack 177] Kei Karuizawa - Classroom of the Elite", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=177" },
-      { id: 176, title: "[Pack 176] Mikamo Neru - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=176" },
-      { id: 175, title: "[Pack 175] Misery Stentrem - Youkoso! Skebe Elf no Mori e", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=175" },
-      // Add more – match your screenshot layout
-      { id: 174, title: "[Pack 174] Jessie - Pokemon", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=174" },
-      { id: 173, title: "[Pack 173] Akane - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=173" },
-      { id: 172, title: "[Pack 172] Hu Tao - Genshin Impact", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=172" },
-      { id: 171, title: "[Pack 171] Chloe von Einzbern - Fate/Grand Order", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/1a1a20?text=171" },
-    ].map(p => ({ ...p, date: Date.now() - (productsData?.length || 0 - p.id) * 86400000 * 7 })); // fake recent dates
+      { id: 178, title: "[Pack 178] Mitsuri Kanroji - Kimetsu no Yaiba", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=178" },
+      { id: 177, title: "[Pack 177] Kei Karuizawa - Classroom of the Elite", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=177" },
+      { id: 176, title: "[Pack 176] Mikamo Neru - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=176" },
+      { id: 175, title: "[Pack 175] Misery Stentrem - Youkoso! Skebe Elf no Mori e", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=175" },
+      { id: 174, title: "[Pack 174] Jessie - Pokemon", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=174" },
+      { id: 173, title: "[Pack 173] Akane - Blue Archive", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=173" },
+      { id: 172, title: "[Pack 172] Hu Tao - Genshin Impact", price: 1.50, image: "https://via.placeholder.com/248x300/aa9e76/111?text=172" },
+      { id: 171, title: "[Pack 171] Chloe von Einzbern - Fate/Grand Order", price: 3.00, image: "https://via.placeholder.com/248x300/aa9e76/111?text=171" },
+    ].map((p, i) => ({ ...p, date: Date.now() - i * 86400000 * 7 }));
 
-    // The rest of the shop logic (almost identical to original)
-    window.addEventListener('load', () => {
-      const grid = document.getElementById("productGrid");
-      const searchInput = document.getElementById("searchInput");
-      const sortButtons = document.querySelectorAll(".sort-btn");
-      const cartBtn = document.getElementById("cartBtn");
-      const floatingCartBtn = document.getElementById("floatingCartBtn");
-      const cartDrawer = document.getElementById("cartDrawer");
-      const cartClose = document.getElementById("cartClose");
-      const cartCountEl = document.getElementById("cartCount");
-      const floatingCartCountEl = document.getElementById("floatingCartCount");
-      const cartItemsEl = document.getElementById("cartItems");
-      const cartTotalEl = document.getElementById("cartTotal");
-      const snackbar = document.getElementById("snackbar");
-      const themeBtn = document.getElementById("themeBtn");
+    const grid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortButtons = document.querySelectorAll(".sort-btn");
 
-      window.cart = [];
-      let secureTotalUSD = 0;
+    window.cart = [];
 
-      let currentCurrency = "USD";
-      let isDark = localStorage.getItem("darkMode") === "true";
-      if (isDark) document.body.classList.add("dark");
+    function formatPrice(value) {
+      return `US$${value.toFixed(2)}`; // simplify for now - header.js can override if needed
+    }
 
-      function formatPrice(value) {
-        return currentCurrency === "USD" ? `US$${value.toFixed(2)}` : `$${value.toFixed(2)}`; // stub
-      }
+    function createCards() {
+      productsData.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.dataset.title = p.title.toLowerCase();
+        card.dataset.price = p.price;
+        card.dataset.date = p.date;
 
-      function createCards() {
-        productsData.forEach(p => {
-          const card = document.createElement("div");
-          card.className = "product-card";
-          card.dataset.title = p.title.toLowerCase();
-          card.dataset.price = p.price;
-          card.dataset.date = p.date;
-
-          card.innerHTML = `
-            <img src="${p.image}" alt="${p.title}" class="card-image" loading="lazy">
-            <div class="card-content">
-              <div class="card-title">${p.title}</div>
-              <div class="price-row">
-                <div class="price" data-price="${p.price}">${formatPrice(p.price)}</div>
-                <button class="cart-btn" title="Add to Cart">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                    <path d="M12.5 17h-6.5v-14h-2"></path>
-                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-                    <path d="M16 19h6"></path><path d="M19 16v6"></path>
-                  </svg>
-                </button>
-              </div>
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.title}" class="card-image" loading="lazy">
+          <div class="card-content">
+            <div class="card-title">${p.title}</div>
+            <div class="price-row">
+              <div class="price">${formatPrice(p.price)}</div>
+              <button class="cart-btn" title="Add to Cart">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                  <path d="M12.5 17h-6.5v-14h-2"></path>
+                  <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                  <path d="M16 19h6"></path>
+                  <path d="M19 16v6"></path>
+                </svg>
+              </button>
             </div>
-          `;
+          </div>
+        `;
 
-          // Click card → could go to detail page later
-          card.addEventListener("click", e => {
-            if (e.target.closest(".cart-btn")) return;
-            alert(`Detail view for pack ${p.id} (implement later)`);
-          });
-
-          grid.appendChild(card);
-          p.element = card;
-
-          const btn = card.querySelector(".cart-btn");
-          btn.addEventListener("click", e => {
-            e.stopPropagation();
-            const inCart = window.cart.some(item => item.id === p.id);
-            if (inCart) {
-              window.cart = window.cart.filter(item => item.id !== p.id);
-              btn.innerHTML = `<svg>...</svg>`; // reset icon (copy from original)
-              btn.classList.remove("added");
-            } else {
-              window.cart.push(p);
-              btn.classList.add("added");
-              // change to checkmark icon (copy SVG from original)
-              btn.innerHTML = `<svg>...</svg>`;
-              snackbar.classList.add("show");
-              setTimeout(() => snackbar.classList.remove("show"), 2400);
-            }
-            updateCartDisplay();
-          });
-        });
-      }
-
-      function updateCartDisplay() {
-        const count = window.cart.length;
-        cartCountEl.textContent = count;
-        floatingCartCountEl.textContent = count;
-
-        cartItemsEl.innerHTML = "";
-        secureTotalUSD = 0;
-
-        window.cart.forEach((item, idx) => {
-          secureTotalUSD += item.price;
-          const div = document.createElement("div");
-          div.className = "cart-item";
-          div.innerHTML = `
-            <img src="${item.image}" alt="${item.title}">
-            <div class="cart-item-info">
-              <div class="cart-item-title">${item.title}</div>
-              <div class="cart-item-price">${formatPrice(item.price)}</div>
-            </div>
-            <button class="cart-item-remove" data-idx="${idx}">×</button>
-          `;
-          cartItemsEl.appendChild(div);
+        card.addEventListener("click", e => {
+          if (e.target.closest(".cart-btn")) return;
+          alert(`Detail page for pack ${p.id} (add later)`);
         });
 
-        cartTotalEl.textContent = formatPrice(secureTotalUSD);
+        grid.appendChild(card);
+        p.element = card;
 
-        const isActive = count > 0;
-        [cartBtn, floatingCartBtn].forEach(btn => btn.classList.toggle("active", isActive));
-      }
-
-      function filterAndSort() {
-        const query = searchInput.value.toLowerCase().trim();
-        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
-        productsData.forEach(p => {
-          p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
+        const btn = card.querySelector(".cart-btn");
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          const alreadyInCart = window.cart.some(item => item.id === p.id);
+          if (alreadyInCart) {
+            window.cart = window.cart.filter(item => item.id !== p.id);
+            btn.classList.remove("added");
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+          } else {
+            window.cart.push(p);
+            btn.classList.add("added");
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+            document.getElementById("snackbar").classList.add("show");
+            setTimeout(() => document.getElementById("snackbar").classList.remove("show"), 2400);
+          }
+          updateCartDisplay();
         });
+      });
+    }
 
-        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+    function updateCartDisplay() {
+      const count = window.cart.length;
+      document.getElementById("cartCount").textContent = count;
+      document.getElementById("floatingCartCount").textContent = count;
 
-        if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
-        else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
-        else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-        else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+      const itemsEl = document.getElementById("cartItems");
+      itemsEl.innerHTML = "";
+      let total = 0;
 
-        visible.forEach(el => grid.appendChild(el));
-      }
+      window.cart.forEach((item, idx) => {
+        total += item.price;
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div class="cart-item-info">
+            <div class="cart-item-title">${item.title}</div>
+            <div class="cart-item-price">${formatPrice(item.price)}</div>
+          </div>
+          <button class="cart-item-remove" data-idx="${idx}">×</button>
+        `;
+        itemsEl.appendChild(div);
+      });
 
-      sortButtons.forEach(btn => btn.addEventListener("click", () => {
+      document.getElementById("cartTotal").textContent = formatPrice(total);
+    }
+
+    function filterAndSort() {
+      const query = searchInput.value.toLowerCase().trim();
+      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+      productsData.forEach(p => {
+        p.element.classList.toggle("hidden", !p.title.toLowerCase().includes(query));
+      });
+
+      let visible = [...grid.children].filter(el => !el.classList.contains("hidden"));
+
+      if (activeSort === "newest") visible.sort((a,b) => b.dataset.date - a.dataset.date);
+      else if (activeSort === "oldest") visible.sort((a,b) => a.dataset.date - b.dataset.date);
+      else if (activeSort === "price-asc") visible.sort((a,b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+      else if (activeSort === "price-desc") visible.sort((a,b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+
+      visible.forEach(el => grid.appendChild(el));
+    }
+
+    sortButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
         sortButtons.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         filterAndSort();
-      }));
-
-      searchInput.addEventListener("input", filterAndSort);
-
-      cartBtn.addEventListener("click", () => cartDrawer.classList.toggle("open"));
-      floatingCartBtn.addEventListener("click", () => cartDrawer.classList.toggle("open"));
-      cartClose.addEventListener("click", () => cartDrawer.classList.remove("open"));
-
-      cartItemsEl.addEventListener("click", e => {
-        if (e.target.classList.contains("cart-item-remove")) {
-          const idx = parseInt(e.target.dataset.idx);
-          window.cart.splice(idx, 1);
-          updateCartDisplay();
-        }
       });
-
-      themeBtn.addEventListener("click", () => {
-        isDark = !isDark;
-        document.body.classList.toggle("dark", isDark);
-        localStorage.setItem("darkMode", isDark);
-      });
-
-      createCards();
-      filterAndSort();
     });
+
+    searchInput.addEventListener("input", filterAndSort);
+
+    // Cart remove (header.js already handles most, but we sync display)
+    document.getElementById("cartItems").addEventListener("click", e => {
+      if (e.target.classList.contains("cart-item-remove")) {
+        const idx = parseInt(e.target.dataset.idx);
+        window.cart.splice(idx, 1);
+        updateCartDisplay();
+      }
+    });
+
+    createCards();
+    filterAndSort();
+    updateCartDisplay();
+  });
   </script>
 
-  <!-- PayPal SDK (use your own client-id) -->
+  <!-- PayPal SDK - REPLACE CLIENT-ID -->
   <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID_HERE&currency=USD"></script>
   <script>
-    function initPayPal() {
-      paypal.Buttons({
-        createOrder: (data, actions) => {
-          if (!window.cart.length) return alert("Cart empty");
-          const total = window.cart.reduce((sum, item) => sum + item.price, 0);
-          return actions.order.create({
-            purchase_units: [{ amount: { value: total.toFixed(2), currency_code: "USD" } }]
-          });
-        },
-        onApprove: (data, actions) => {
-          return actions.order.capture().then(details => {
-            alert("Payment success! Order ID: " + data.orderID);
-            window.cart = [];
-            updateCartDisplay();
-          });
-        },
-        onError: err => console.error("PayPal error", err)
-      }).render("#paypal-button-container");
-    }
-    if (window.paypal) initPayPal();
+  function initPayPal() {
+    paypal.Buttons({
+      createOrder: (data, actions) => {
+        if (!window.cart.length) return alert("Cart is empty");
+        const total = window.cart.reduce((sum, item) => sum + item.price, 0);
+        return actions.order.create({
+          purchase_units: [{ amount: { value: total.toFixed(2), currency_code: "USD" } }]
+        });
+      },
+      onApprove: (data, actions) => {
+        return actions.order.capture().then(details => {
+          alert("Payment completed! Thank you.");
+          window.cart = [];
+          updateCartDisplay();
+        });
+      },
+      onError: err => console.error("PayPal error:", err)
+    }).render("#paypal-button-container");
+  }
+  if (typeof paypal !== 'undefined') initPayPal();
   </script>
-
-  <!-- Later: Supabase client -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
-  <!-- <script> const supabase = Supabase.createClient('YOUR_URL', 'YOUR_KEY'); </script> -->
 
 </body>
 </html>
