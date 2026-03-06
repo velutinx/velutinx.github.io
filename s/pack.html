@@ -40,51 +40,6 @@
     .btn-cart:hover { background: #23afdb; }
     .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; }
-
-    /* Floating cart button – same as store2.html */
-    .floating-cart {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 70px;
-      height: 70px;
-      background: #49BEFF;
-      border: none;
-      border-radius: 50%;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-      cursor: pointer;
-      z-index: 9999;
-      transition: all 0.25s;
-    }
-    .floating-cart:hover {
-      transform: scale(1.1);
-      background: #38aae8;
-    }
-    .floating-cart svg {
-      width: 32px;
-      height: 32px;
-      stroke: white;
-      stroke-width: 2;
-    }
-    .floating-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: red;
-      color: white;
-      border-radius: 50%;
-      min-width: 24px;
-      height: 24px;
-      line-height: 24px;
-      font-size: 14px;
-      font-weight: bold;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
   </style>
 </head>
 <body>
@@ -127,7 +82,7 @@
     </div>
   </nav>
 
-  <!-- Floating cart button – added here -->
+  <!-- Floating cart button added here -->
   <button class="floating-cart" id="floatingCartBtn" title="Shopping Cart">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -189,7 +144,6 @@
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
 
-    // Global functions for updates
     window.updatePriceDisplay = function() {
       if (!pack) return;
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
@@ -249,13 +203,11 @@
         <div class="thumbnails">${pack.images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" onclick="goToSlide(${i})">`).join("")}</div>
       `;
 
-      // Initial render
       window.updatePriceDisplay();
       window.updateButton();
       window.updateContents();
       window.updateDisclaimers?.();
 
-      // Carousel logic
       let current = 0;
       const total = pack.images.length;
       window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
@@ -267,7 +219,6 @@
       }
     }
 
-    // Language switch listener
     document.querySelectorAll(".lang-item").forEach(item => {
       item.onclick = () => {
         currentLang = item.dataset.lang;
