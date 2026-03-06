@@ -57,7 +57,7 @@
       margin: 28px 0; padding: 20px;
       background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25);
     }
-    .price-label { color: var(--text); font-size: 0.95rem; } /* improved contrast */
+    .price-label { color: var(--text); font-size: 0.95rem; }
     .old-price { text-decoration: line-through; color: var(--text-light); margin-left: 12px; }
     .current-price { color: var(--red-discount); font-size: 2.2rem; font-weight: bold; }
     .save { color: #13DEB9; font-weight: bold; margin-top: 8px; display: inline-block; }
@@ -72,7 +72,7 @@
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
     .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
 
-    /* Dark mode fixes - high contrast in light mode too */
+    /* Dark mode fixes */
     body.dark .contents-section,
     body.dark .contents-section *,
     body.dark .contents-list,
@@ -107,7 +107,7 @@
       stroke: var(--border) !important;
     }
 
-    /* Force vertical stacking for disclaimers */
+    /* Force vertical stacking */
     #disclaimer {
       display: block !important;
       column-count: 1 !important;
@@ -274,7 +274,9 @@
           </button>
         `;
 
-        document.getElementById("addCartBtn").addEventListener("click", () => {
+        // Re-attach listener
+        const btn = document.getElementById("addCartBtn");
+        btn.addEventListener("click", () => {
           window.addOrToggleCart?.(pack);
           updateButton();
           const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
@@ -293,12 +295,11 @@
       const updateContents = () => {
         const t = translations[currentLang] || translations.en;
         document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
-        const descTemplate = t.contentsDesc || "ZIP file containing {count} AI-generated illustrations";
-        document.getElementById("illustrationCount").textContent = descTemplate.replace("{count}", pack.illustrationCount);
+        const desc = t.contentsDesc || "ZIP file containing {count} AI-generated illustrations";
+        document.getElementById("illustrationCount").textContent = desc.replace("{count}", pack.illustrationCount);
       };
       updateContents();
 
-      // Disclaimer
       window.updateDisclaimers?.();
 
       const slides = document.getElementById('slides');
