@@ -57,7 +57,9 @@
       margin: 28px 0; padding: 20px;
       background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25);
     }
-    .price-label { color: var(--text-light); font-size: 0.95rem; }
+    .price-label, .price-section span {
+      color: var(--text-light); font-size: 0.95rem;
+    }
     .old-price { text-decoration: line-through; color: var(--text-light); margin-left: 12px; }
     .current-price { color: var(--red-discount); font-size: 2.2rem; font-weight: bold; }
     .save { color: #13DEB9; font-weight: bold; margin-top: 8px; display: inline-block; }
@@ -68,11 +70,23 @@
     }
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
-    .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text-light); display: flex; align-items: center; gap: 8px; }
+    .note, .disclaimer { margin-top: 24px; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
     .note svg, .disclaimer svg { flex-shrink: 0; width: 20px; height: 20px; }
 
-    /* Dark mode fixes */
+    /* Dark mode fixes - ensure visibility in light mode too */
+    .price-label, .old-price, .current-price, .save {
+      color: var(--text-light) !important;
+    }
+
+    body.dark .price-label, body.dark .old-price, body.dark .save {
+      color: var(--text-light) !important;
+    }
+
+    body.dark .current-price {
+      color: var(--red-discount) !important;
+    }
+
     body.dark .contents-section,
     body.dark .contents-section *,
     body.dark .contents-list,
@@ -81,20 +95,6 @@
     body.dark #contentsTitle,
     body.dark #illustrationCount {
       color: var(--text) !important;
-    }
-
-    body.dark .price-section,
-    body.dark .price-label,
-    body.dark .old-price,
-    body.dark .current-price,
-    body.dark .save,
-    body.dark #priceSection *,
-    body.dark #priceSection span {
-      color: var(--text-light) !important;
-    }
-
-    body.dark .current-price {
-      color: var(--red-discount) !important;
     }
 
     body.dark #disclaimer,
@@ -276,7 +276,7 @@
 
         document.getElementById("addCartBtn").addEventListener("click", () => {
           window.addOrToggleCart?.(pack);
-          updateButton(); // re-update button text
+          updateButton();
           const nowInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
 
           const snack = document.getElementById("snackbar");
