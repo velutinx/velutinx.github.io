@@ -1,26 +1,36 @@
 (function(){
-  // Normalize pathname: remove trailing slash, convert to lowercase
+  // 1. Get the current path and lowercase it
   let path = window.location.pathname.toLowerCase();
-  if (path.endsWith('/')) path = path.slice(0, -1);
-
-  // Define root-like paths (long intro plays here)
-  const isRoot = (
-    path === '' ||                    // https://velutinx.com
-    path === '/' ||                   // https://velutinx.com/
-    path === '/index' ||              // sometimes people type this
-    path === '/index.html'            // manual /index.html
-  );
-
-  // Skip intro on any non-root path (including typos/404 fallbacks)
-  if (!isRoot) {
-    const main = document.getElementById('mainWebsite');
-    if (main) main.style.opacity = '1';
-    return;
+  
+  // 2. Remove trailing slash for comparison
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.slice(0, -1);
   }
 
-  // Long cinematic intro only runs on true root
+  // 3. STRICT CHECK: 
+  // Play long intro ONLY if path is empty OR just a single slash.
+  // We EXPLICITLY skip it if the path contains "index", ".html", or any other text.
+  const isTrueRoot = (path === '' || path === '/');
+  const isExplicitFile = path.includes('index') || path.includes('.html') || path.length > 1;
+
+  // 4. Decide: Play Intro OR Show Website
+  if (!isTrueRoot || isExplicitFile) {
+    // SKIP INTRO - Show website immediately
+    document.addEventListener("DOMContentLoaded", function(){
+      const main = document.getElementById('mainWebsite');
+      if (main) {
+        main.style.transition = 'none'; 
+        main.style.opacity = '1';
+      }
+    });
+    return; // Exit script
+  }
+
+  // 5. Cinematic Intro (Only runs if path is exactly "/" and nothing else)
   document.addEventListener("DOMContentLoaded", function(){
-    const intro = document.createElement("div");
+    // ... rest of your intro code ...
+    
+        const intro = document.createElement("div");
     intro.id = "cinematicIntro";
     intro.innerHTML = `
       <style>
