@@ -6,14 +6,17 @@
   <title>SHOP | VELUTINX</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Google Material Symbols – required for the male icon -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <!-- Google Material Symbols – optimized for female icon -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=female">
+
+  <!-- Lordicon for the animated icon -->
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
 
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
-    /* Your original styles – unchanged, just added icon styling */
+    /* Icon styling */
     .material-symbols-outlined {
       font-variation-settings:
         'FILL' 0,
@@ -29,7 +32,14 @@
       display: flex;
       align-items: center;
     }
-    /* Rest of your styles remain exactly the same */
+    /* Lordicon in sort button – make it smaller to fit nicely */
+    .sort-btn lord-icon {
+      width: 20px !important;
+      height: 20px !important;
+      margin-right: 8px;
+    }
+
+    /* Your original styles remain unchanged below */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -205,7 +215,7 @@
           <span id="catAll">All Products</span>
         </li>
         <li data-cat="1">
-          <span class="material-symbols-outlined">male</span>
+          <span class="material-symbols-outlined">female</span>
           <span id="catFemale">Female Models</span>
         </li>
         <li data-cat="2">
@@ -232,7 +242,13 @@
           <span id="sortLow">Price: Low to High</span>
         </button>
         <button class="sort-btn" data-sort="price-desc">
-          <span class="material-symbols-outlined">male</span>
+          <!-- Animated Lordicon for "High to Low" sorting -->
+          <lord-icon
+            src="https://cdn.lordicon.com/zwtssiaj.json"
+            trigger="loop"
+            delay="5000"
+            style="width:20px;height:20px;">
+          </lord-icon>
           <span id="sortHigh">Price: High to Low</span>
         </button>
       </div>
