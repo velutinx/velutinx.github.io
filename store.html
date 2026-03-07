@@ -6,15 +6,14 @@
   <title>SHOP | VELUTINX</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Reliable single Material Symbols link (loads all icons) -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap">
+  <!-- Single combined Material Symbols link – loads ALL your icons reliably -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=done_all,female,male,collections_bookmark,clock_arrow_up,clock_arrow_down,stat_3,stat_minus_3&display=swap">
 
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
-
-
   <style>
+    /* Material Symbols styling */
     .material-symbols-outlined {
       font-variation-settings:
         'FILL' 0,
@@ -32,7 +31,7 @@
       align-items: center;
     }
 
-    /* Rest of your original styles remain unchanged */
+    /* Your original styles (unchanged) */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -46,12 +45,10 @@
     .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
     .category-list li:hover { background: #c0bcaa; }
     .category-list li.active { background: var(--accent); color: #1f1a12; font-weight: 600; }
-    .category-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
     .sort-options { margin-top: 2rem; }
     .sort-btn { width: 100%; padding: 1rem 1.25rem; background: var(--card); border: 1px solid var(--border); text-align: left; margin-bottom: 0.5rem; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.9rem; color: var(--text); }
     .sort-btn.active { background: var(--accent); color: #1f1a12; }
     .sort-btn:hover:not(.active) { background: #c0bcaa; }
-    .sort-icon { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.5; flex-shrink: 0; }
     .products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem; }
     .products-header h2 { font-size: 1.65rem; font-weight: 700; color: var(--text); }
     .search-bar-wrapper { width: 340px; max-width: 100%; }
@@ -199,7 +196,7 @@
       </div>
     </div>
   </header>
-  <div   <div class="main-container">
+  <div class="main-container">
     <aside class="sidebar">
       <div class="section-title" id="filterTitle">Filter by Category</div>
       <ul class="category-list">
@@ -223,24 +220,23 @@
       <div class="sort-options">
         <div class="section-title" id="sortTitle">Sort by</div>
         <button class="sort-btn active" data-sort="newest">
-          <span class="material-symbols-outlined">trending_up</span>
+          <span class="material-symbols-outlined">clock_arrow_up</span>
           <span id="sortNewest">Newest</span>
         </button>
         <button class="sort-btn" data-sort="oldest">
-          <span class="material-symbols-outlined">trending_down</span>
+          <span class="material-symbols-outlined">clock_arrow_down</span>
           <span id="sortOldest">Oldest</span>
         </button>
         <button class="sort-btn" data-sort="price-asc">
-          <span class="material-symbols-outlined">trending_up</span>
+          <span class="material-symbols-outlined">stat_3</span>
           <span id="sortLow">Price: Low to High</span>
         </button>
         <button class="sort-btn" data-sort="price-desc">
-          <span class="material-symbols-outlined">trending_down</span>
+          <span class="material-symbols-outlined">stat_minus_3</span>
           <span id="sortHigh">Price: High to Low</span>
         </button>
       </div>
     </aside>
-    
     <main class="products-section">
       <div class="products-header">
         <h2 id="productsTitle">Latest Content</h2>
