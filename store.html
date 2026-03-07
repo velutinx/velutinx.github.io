@@ -6,20 +6,13 @@
   <title>SHOP | VELUTINX</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Material Symbols stylesheets – one per icon as requested -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=female">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=stat_3">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=stat_minus_3">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=collections_bookmark">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=clock_arrow_down">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=clock_arrow_up">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=done_all">
+  <!-- One combined Material Symbols link with ALL needed icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=done_all,female,male,collections_bookmark,trending_up,trending_down">
 
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
-    /* Material Symbols common styling */
     .material-symbols-outlined {
       font-variation-settings:
         'FILL' 0,
@@ -32,7 +25,6 @@
       color: inherit;
     }
 
-    /* Ensure icons align nicely in lists/buttons */
     .category-list li, .sort-btn {
       display: flex;
       align-items: center;
@@ -205,7 +197,7 @@
       </div>
     </div>
   </header>
-  <div class="main-container">
+  <div   <div class="main-container">
     <aside class="sidebar">
       <div class="section-title" id="filterTitle">Filter by Category</div>
       <ul class="category-list">
@@ -229,23 +221,24 @@
       <div class="sort-options">
         <div class="section-title" id="sortTitle">Sort by</div>
         <button class="sort-btn active" data-sort="newest">
-          <span class="material-symbols-outlined">clock_arrow_up</span>
+          <span class="material-symbols-outlined">trending_up</span>
           <span id="sortNewest">Newest</span>
         </button>
         <button class="sort-btn" data-sort="oldest">
-          <span class="material-symbols-outlined">clock_arrow_down</span>
+          <span class="material-symbols-outlined">trending_down</span>
           <span id="sortOldest">Oldest</span>
         </button>
         <button class="sort-btn" data-sort="price-asc">
-          <span class="material-symbols-outlined">stat_3</span>
+          <span class="material-symbols-outlined">trending_up</span>
           <span id="sortLow">Price: Low to High</span>
         </button>
         <button class="sort-btn" data-sort="price-desc">
-          <span class="material-symbols-outlined">stat_minus_3</span>
+          <span class="material-symbols-outlined">trending_down</span>
           <span id="sortHigh">Price: High to Low</span>
         </button>
       </div>
     </aside>
+    
     <main class="products-section">
       <div class="products-header">
         <h2 id="productsTitle">Latest Content</h2>
