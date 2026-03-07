@@ -1,20 +1,27 @@
-// assets/js/intro-loader.js
 (function(){
-  // Only run on root (/)
-  const path = window.location.pathname.toLowerCase();
-  const isRoot = path === '/' || path === '';
+  // Normalize pathname: remove trailing slash, convert to lowercase
+  let path = window.location.pathname.toLowerCase();
+  if (path.endsWith('/')) path = path.slice(0, -1);
 
+  // Define root-like paths (long intro plays here)
+  const isRoot = (
+    path === '' ||                    // https://velutinx.com
+    path === '/' ||                   // https://velutinx.com/
+    path === '/index' ||              // sometimes people type this
+    path === '/index.html'            // manual /index.html
+  );
+
+  // Skip intro on any non-root path (including typos/404 fallbacks)
   if (!isRoot) {
-    // Skip intro on /index.html or subpages
     const main = document.getElementById('mainWebsite');
     if (main) main.style.opacity = '1';
     return;
   }
 
+  // Long cinematic intro only runs on true root
   document.addEventListener("DOMContentLoaded", function(){
     const intro = document.createElement("div");
     intro.id = "cinematicIntro";
-
     intro.innerHTML = `
       <style>
         #cinematicIntro {
@@ -24,7 +31,6 @@
           z-index: 999999;
           overflow: hidden;
         }
-
         .container {
           position: absolute;
           inset: 0;
@@ -34,7 +40,6 @@
           flex-direction: column;
           z-index: 10;
         }
-
         .card {
           border: 2px solid black;
           padding: 5px 60px;
@@ -46,18 +51,15 @@
           cursor: pointer;
           display: inline-block;
         }
-
         @keyframes loadIn {
           to { transform: scale(1); filter: blur(0); opacity: 1; }
         }
-
         .japanese {
           font-family: 'Kozuka Mincho Pr6N L', serif;
           font-size: 20px;
           letter-spacing: 0.35em;
           font-weight: bold;
         }
-
         .english {
           font-family: 'Trajan Pro Bold', serif;
           font-size: 7px;
@@ -67,63 +69,55 @@
           opacity: 0;
           animation: fadeInText 0.4s ease 0.15s forwards;
         }
-
         @keyframes fadeInText {
           to { opacity: 1; }
         }
-
         .fade-out {
           animation: blurFade 1.2s ease forwards;
         }
-
         @keyframes blurFade {
-          0%   { filter: blur(0); opacity: 1; }
-          50%  { filter: blur(8px); opacity: 0.6; }
+          0% { filter: blur(0); opacity: 1; }
+          50% { filter: blur(8px); opacity: 0.6; }
           100% { filter: blur(20px); opacity: 0; }
         }
-
-.tv-glitch {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0;
-  background:
-    repeating-linear-gradient(to bottom,
-      transparent 0px,
-      #111 1px,
-      transparent 3px,
-      #000 4px),
-    linear-gradient(90deg,
-      rgba(255,0,0,0.15) 0%,
-      transparent 33%,
-      rgba(0,255,255,0.12) 66%,
-      transparent 100%);
-  background-size: 100% 4px, 100% 100%;
-  mix-blend-mode: multiply;
-}
-
-.tv-glitch.active {
-  opacity: 0.9;
-  animation:
-    glitchShake 1.2s steps(10) forwards,
-    verticalRoll 0.10s linear infinite;
-}
-
-@keyframes glitchShake {
-  0% { transform: translate(0,0); opacity: 0; }
-  10% { transform: translate(6px,-6px); opacity: 1; }
-  30% { transform: translate(-7px,7px); }
-  50% { transform: translate(5px,-5px); }
-  70% { transform: translate(-6px,6px); }
-  100% { transform: translate(0,0); opacity: 0; }
-}
-
-@keyframes verticalRoll {
-  0% { background-position: 0 0, 0 0; }
-  100% { background-position: 0 12px, 0 0; }
-}
-
+        .tv-glitch {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 100;
+          opacity: 0;
+          background:
+            repeating-linear-gradient(to bottom,
+              transparent 0px,
+              #111 1px,
+              transparent 3px,
+              #000 4px),
+            linear-gradient(90deg,
+              rgba(255,0,0,0.15) 0%,
+              transparent 33%,
+              rgba(0,255,255,0.12) 66%,
+              transparent 100%);
+          background-size: 100% 4px, 100% 100%;
+          mix-blend-mode: multiply;
+        }
+        .tv-glitch.active {
+          opacity: 0.9;
+          animation:
+            glitchShake 1.2s steps(10) forwards,
+            verticalRoll 0.10s linear infinite;
+        }
+        @keyframes glitchShake {
+          0% { transform: translate(0,0); opacity: 0; }
+          10% { transform: translate(6px,-6px); opacity: 1; }
+          30% { transform: translate(-7px,7px); }
+          50% { transform: translate(5px,-5px); }
+          70% { transform: translate(-6px,6px); }
+          100% { transform: translate(0,0); opacity: 0; }
+        }
+        @keyframes verticalRoll {
+          0% { background-position: 0 0, 0 0; }
+          100% { background-position: 0 12px, 0 0; }
+        }
         .white-screen {
           position: absolute;
           inset: 0;
@@ -132,9 +126,7 @@
           opacity: 0;
           transition: opacity 0.4s ease;
         }
-
         .white-screen.active { opacity: 1; }
-
         .shutdown {
           position: absolute;
           inset: 0;
@@ -145,26 +137,21 @@
           justify-content: center;
           align-items: center;
         }
-
         .shutdown.active { opacity: 1; }
-
         .shutdown-line {
           width: 100%;
           height: 100%;
           background: white;
           transform-origin: center;
         }
-
         @keyframes collapseY {
           0% { transform: scaleY(1); }
           100% { transform: scaleY(0.02); }
         }
-
         @keyframes collapseX {
           0% { transform: scaleX(1); }
           100% { transform: scaleX(0); }
         }
-
         .loading-screen {
           position: absolute;
           inset: 0;
@@ -175,19 +162,14 @@
           z-index: 300;
           opacity: 0;
         }
-
         .loading-screen.active { opacity: 1; }
-
         :root { --coffee: #E6D5B8; }
-
         .wrapper { text-align: center; }
-
         .loader {
           position: relative;
           width: 600px;
           height: 32px;
         }
-
         .fill {
           position: absolute;
           top: 8px;
@@ -196,14 +178,12 @@
           width: 0%;
           background: var(--coffee);
         }
-
         svg {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
         }
-
         rect.progress-border {
           fill: none;
           stroke: var(--coffee);
@@ -212,7 +192,6 @@
           stroke-dasharray: 1264;
           stroke-dashoffset: 1264;
         }
-
         .percent {
           margin-top: 18px;
           font-size: 48px;
@@ -220,41 +199,33 @@
           color: var(--coffee);
           letter-spacing: 2px;
         }
-
         .flash {
           animation: flashAnim 0.18s ease-in-out 3;
         }
-
         @keyframes flashAnim {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
         }
-
         @keyframes fillBar {
           from { width: 0%; }
           to { width: calc(100% - 16px); }
         }
-
         @keyframes borderBuild {
           from { stroke-dashoffset: 1264; }
           to { stroke-dashoffset: 0; }
         }
       </style>
-
       <div class="container">
         <div class="card" id="card">
           <div class="japanese">入場</div>
         </div>
         <div class="english">ACCESS WEBSITE</div>
       </div>
-
       <div class="tv-glitch" id="glitch"></div>
       <div class="white-screen" id="whiteScreen"></div>
-
       <div class="shutdown" id="shutdown">
         <div class="shutdown-line" id="shutdownLine"></div>
       </div>
-
       <div class="loading-screen" id="loadingScreen">
         <div class="wrapper">
           <div class="loader">
@@ -269,10 +240,9 @@
         </div>
       </div>
     `;
-
     document.body.prepend(intro);
 
-    // Auto-play sequence
+    // Auto-play sequence (unchanged)
     const glitch = document.getElementById('glitch');
     const whiteScreen = document.getElementById('whiteScreen');
     const shutdown = document.getElementById('shutdown');
@@ -286,7 +256,6 @@
       line.style.animation = "collapseY 0.35s forwards";
       setTimeout(() => line.style.animation = "collapseX 0.25s forwards", 350);
     }, 2100);
-
     setTimeout(() => {
       loadingScreen.classList.add("active");
       document.getElementById("fill").style.animation = "fillBar 1.3s linear forwards";
@@ -298,25 +267,21 @@
       const duration = 1300;
       const percentEl = document.getElementById("percent");
       let start = null;
-
       function animate(timestamp){
         if(!start) start = timestamp;
         let progress = timestamp - start;
         let percent = Math.min(Math.floor((progress/duration)*100),100);
         percentEl.textContent = percent + "%";
-
         if(progress < duration){
           requestAnimationFrame(animate);
         } else {
           percentEl.classList.add("flash");
-
           setTimeout(() => {
             intro.remove();
             document.getElementById("mainWebsite").style.opacity = "1";
           }, 500);
         }
       }
-
       requestAnimationFrame(animate);
     }
   });
