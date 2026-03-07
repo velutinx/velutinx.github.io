@@ -267,6 +267,11 @@ function setLanguage(lang) {
     }
   });
 
+  // ──────────────────────────────────────────────── ADD THESE TWO LINES HERE
+  const titleEl = document.getElementById("shopTitle");
+  if (titleEl) titleEl.classList.add("loaded");
+  // ────────────────────────────────────────────────
+
   updateCartDisplay();
   updateDisclaimers();
   updateAllPrices();
