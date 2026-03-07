@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
   <!-- PayPal SDK – use your LIVE client ID here -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
+ <!-- <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script> -->
 
   <style>
     /* Your original styles – unchanged */
@@ -396,5 +396,28 @@
       });
     });
   </script>
+
+  <script>
+  (function() {
+    if (window.paypalLoaded) return;
+    window.paypalLoaded = true;
+
+    const script = document.createElement('script');
+    script.src = "/functions/paypal-sdk";  // ← this hits your Cloudflare function
+    script.async = true;
+    script.onload = () => {
+      // Wait for real SDK to be ready
+      const check = setInterval(() => {
+        if (window.paypal) {
+          clearInterval(check);
+          // Optional: call your init function here if you want auto-init
+          // initPayPalButtons();
+        }
+      }, 200);
+    };
+    document.head.appendChild(script);
+  })();
+</script>
+  
 </body>
 </html>
