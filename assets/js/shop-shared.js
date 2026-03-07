@@ -21,8 +21,26 @@
       totalLabel: "Total",
       snackText: "Added successfully",
       loginBtn: "Website",
-      disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-      disclaimerRefund: "Digital products are non-refundable after purchase.",
+disclaimerAge: `
+<lord-icon
+src="warning.json"
+trigger="loop"
+delay="2000"
+style="width:28px;height:28px;vertical-align:middle;margin-right:8px">
+</lord-icon>
+Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.
+`,
+
+disclaimerRefund: `
+<lord-icon
+src="warning.json"
+trigger="loop"
+delay="2000"
+style="width:28px;height:28px;vertical-align:middle;margin-right:8px">
+</lord-icon>
+Digital products are non-refundable after purchase.
+`,
+
       contentsTitle: "Contents:",
       contentsDesc: "ZIP file containing {count} AI-generated illustrations",
       originalPrice: "Original Price:",
