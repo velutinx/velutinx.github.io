@@ -1,283 +1,153 @@
-(function(){
-  // Normalize pathname: lowercase + remove trailing slash
-  let path = window.location.pathname.toLowerCase();
-  if (path.endsWith('/')) path = path.slice(0, -1);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>VELUTINX</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
 
-  // Long cinematic intro ONLY on true root (empty or exactly "/")
-  const isRoot = (path === '' || path === '/');
+  <!-- Swipe animation layer -->
+  <div class="lang-swipe" id="langSwipe"></div>
 
-  if (!isRoot) {
-    // Skip intro → show main content immediately
-    const main = document.getElementById('mainWebsite');
-    if (main) main.style.opacity = '1';
-    return;
-  }
+  <div class="background-wrapper">
+    <div class="background-gradient"></div>
+    <div class="wave-overlay"></div>
+  </div>
 
-  // If we reach here → it's true root → run long intro
-  document.addEventListener("DOMContentLoaded", function(){
-    const intro = document.createElement("div");
-    intro.id = "cinematicIntro";
-    intro.innerHTML = `
-      <style>
-        #cinematicIntro {
-          position: fixed;
-          inset: 0;
-          background: white;
-          z-index: 999999;
-          overflow: hidden;
-        }
-        .container {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          z-index: 10;
-        }
-        .card {
-          border: 2px solid black;
-          padding: 5px 60px;
-          background: white;
-          transform: scale(5);
-          filter: blur(12px);
-          opacity: 0;
-          animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-          cursor: pointer;
-          display: inline-block;
-        }
-        @keyframes loadIn {
-          to { transform: scale(1); filter: blur(0); opacity: 1; }
-        }
-        .japanese {
-          font-family: 'Kozuka Mincho Pr6N L', serif;
-          font-size: 20px;
-          letter-spacing: 0.35em;
-          font-weight: bold;
-        }
-        .english {
-          font-family: 'Trajan Pro Bold', serif;
-          font-size: 7px;
-          letter-spacing: 0.5em;
-          text-transform: uppercase;
-          margin-top: 20px;
-          opacity: 0;
-          animation: fadeInText 0.4s ease 0.15s forwards;
-        }
-        @keyframes fadeInText {
-          to { opacity: 1; }
-        }
-        .fade-out {
-          animation: blurFade 1.2s ease forwards;
-        }
-        @keyframes blurFade {
-          0% { filter: blur(0); opacity: 1; }
-          50% { filter: blur(8px); opacity: 0.6; }
-          100% { filter: blur(20px); opacity: 0; }
-        }
-        .tv-glitch {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 100;
-          opacity: 0;
-          background:
-            repeating-linear-gradient(to bottom,
-              transparent 0px,
-              #111 1px,
-              transparent 3px,
-              #000 4px),
-            linear-gradient(90deg,
-              rgba(255,0,0,0.15) 0%,
-              transparent 33%,
-              rgba(0,255,255,0.12) 66%,
-              transparent 100%);
-          background-size: 100% 4px, 100% 100%;
-          mix-blend-mode: multiply;
-        }
-        .tv-glitch.active {
-          opacity: 0.9;
-          animation:
-            glitchShake 1.2s steps(10) forwards,
-            verticalRoll 0.10s linear infinite;
-        }
-        @keyframes glitchShake {
-          0% { transform: translate(0,0); opacity: 0; }
-          10% { transform: translate(6px,-6px); opacity: 1; }
-          30% { transform: translate(-7px,7px); }
-          50% { transform: translate(5px,-5px); }
-          70% { transform: translate(-6px,6px); }
-          100% { transform: translate(0,0); opacity: 0; }
-        }
-        @keyframes verticalRoll {
-          0% { background-position: 0 0, 0 0; }
-          100% { background-position: 0 12px, 0 0; }
-        }
-        .white-screen {
-          position: absolute;
-          inset: 0;
-          background: white;
-          z-index: 150;
-          opacity: 0;
-          transition: opacity 0.4s ease;
-        }
-        .white-screen.active { opacity: 1; }
-        .shutdown {
-          position: absolute;
-          inset: 0;
-          background: black;
-          z-index: 200;
-          opacity: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .shutdown.active { opacity: 1; }
-        .shutdown-line {
-          width: 100%;
-          height: 100%;
-          background: white;
-          transform-origin: center;
-        }
-        @keyframes collapseY {
-          0% { transform: scaleY(1); }
-          100% { transform: scaleY(0.02); }
-        }
-        @keyframes collapseX {
-          0% { transform: scaleX(1); }
-          100% { transform: scaleX(0); }
-        }
-        .loading-screen {
-          position: absolute;
-          inset: 0;
-          background: black;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 300;
-          opacity: 0;
-        }
-        .loading-screen.active { opacity: 1; }
-        :root { --coffee: #E6D5B8; }
-        .wrapper { text-align: center; }
-        .loader {
-          position: relative;
-          width: 600px;
-          height: 32px;
-        }
-        .fill {
-          position: absolute;
-          top: 8px;
-          left: 8px;
-          height: 16px;
-          width: 0%;
-          background: var(--coffee);
-        }
-        svg {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-        }
-        rect.progress-border {
-          fill: none;
-          stroke: var(--coffee);
-          stroke-width: 3;
-          stroke-linecap: round;
-          stroke-dasharray: 1264;
-          stroke-dashoffset: 1264;
-        }
-        .percent {
-          margin-top: 18px;
-          font-size: 48px;
-          font-family: 'Trajan Pro Bold', serif;
-          color: var(--coffee);
-          letter-spacing: 2px;
-        }
-        .flash {
-          animation: flashAnim 0.18s ease-in-out 3;
-        }
-        @keyframes flashAnim {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-        @keyframes fillBar {
-          from { width: 0%; }
-          to { width: calc(100% - 16px); }
-        }
-        @keyframes borderBuild {
-          from { stroke-dashoffset: 1264; }
-          to { stroke-dashoffset: 0; }
-        }
-      </style>
-      <div class="container">
-        <div class="card" id="card">
-          <div class="japanese">入場</div>
+  <!-- Language selector: globe button + popover -->
+  <div id="langContainer">
+    <button class="lang-btn" title="Select Language">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5h7"></path>
+        <path d="M7 4c0 4.846 0 7 .5 8"></path>
+        <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+        <path d="M12 20l4 -9l4 9"></path>
+        <path d="M19.1 18h-6.2"></path>
+      </svg>
+    </button>
+
+    <div id="languagePopover">
+      <div class="lang-item" data-lang="en">
+        <img src="https://flagcdn.com/w40/us.png" alt="English" />
+        <p>English</p>
+      </div>
+      <div class="lang-item" data-lang="ja">
+        <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
+        <p>日本語</p>
+      </div>
+      <div class="lang-item" data-lang="zh">
+        <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
+        <p>简体中文</p>
+      </div>
+      <div class="lang-item" data-lang="es">
+        <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
+        <p>Español</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme toggle -->
+  <div class="theme-toggle" id="themeToggle">
+    <div class="theme-knob"></div>
+  </div>
+
+  <!-- MAIN WEBSITE CONTENT -->
+  <div id="mainWebsite" style="opacity:0; transition:opacity 0.8s ease;">
+
+    <div id="page">
+      <div id="navContainer"></div>
+      <div class="divider"></div>
+
+      <section class="hero">
+        <div class="hero-image" id="heroImage">
+          <img src="/images/Main.jpg" alt="Velutinx">
         </div>
-        <div class="english">ACCESS WEBSITE</div>
-      </div>
-      <div class="tv-glitch" id="glitch"></div>
-      <div class="white-screen" id="whiteScreen"></div>
-      <div class="shutdown" id="shutdown">
-        <div class="shutdown-line" id="shutdownLine"></div>
-      </div>
-      <div class="loading-screen" id="loadingScreen">
-        <div class="wrapper">
-          <div class="loader">
-            <div class="fill" id="fill"></div>
-            <svg viewBox="0 0 600 32">
-              <rect class="progress-border" id="border"
-                    x="1.5" y="1.5"
-                    width="597" height="29"/>
-            </svg>
-          </div>
-          <div class="percent" id="percent">0%</div>
+
+        <div class="hero-text">
+          <div class="hero-name">VELUTINX</div>
+          <div class="hero-sub" id="heroSub">♡ Freelance Illustrator ♡</div>
+          <div class="hero-sub">🇺🇸 / 🇯🇵 / 🇪🇸 = OK!</div>
+          <div class="divider"></div>
+
+          <a class="discord-link" href="https://discord.gg/XF363uYfSh" target="_blank">
+            <img src="/images/LogoDiscord.png" alt="Discord">
+          </a>
         </div>
-      </div>
-    `;
-    document.body.prepend(intro);
+      </section>
 
-    // Auto-play sequence (unchanged from your original)
-    const glitch = document.getElementById('glitch');
-    const whiteScreen = document.getElementById('whiteScreen');
-    const shutdown = document.getElementById('shutdown');
-    const loadingScreen = document.getElementById('loadingScreen');
+      <div class="divider"></div>
+    </div>
 
-    setTimeout(() => glitch.classList.add('active'), 500);
-    setTimeout(() => whiteScreen.classList.add('active'), 1700);
-    setTimeout(() => {
-      shutdown.classList.add('active');
-      const line = document.getElementById("shutdownLine");
-      line.style.animation = "collapseY 0.35s forwards";
-      setTimeout(() => line.style.animation = "collapseX 0.25s forwards", 350);
-    }, 2100);
-    setTimeout(() => {
-      loadingScreen.classList.add("active");
-      document.getElementById("fill").style.animation = "fillBar 1.3s linear forwards";
-      document.getElementById("border").style.animation = "borderBuild 1.3s linear forwards";
-      startPercent();
-    }, 2700);
+  </div>
 
-    function startPercent(){
-      const duration = 1300;
-      const percentEl = document.getElementById("percent");
-      let start = null;
-      function animate(timestamp){
-        if(!start) start = timestamp;
-        let progress = timestamp - start;
-        let percent = Math.min(Math.floor((progress/duration)*100),100);
-        percentEl.textContent = percent + "%";
-        if(progress < duration){
-          requestAnimationFrame(animate);
-        } else {
-          percentEl.classList.add("flash");
-          setTimeout(() => {
-            intro.remove();
-            document.getElementById("mainWebsite").style.opacity = "1";
-          }, 500);
-        }
-      }
-      requestAnimationFrame(animate);
+  <!-- Load long cinematic intro only on root (/) -->
+  <script src="/assets/js/intro-loader.js"></script>
+
+  <!-- Scripts -->
+  <script src="/assets/js/navigation.js"></script>
+  <script src="/assets/js/translations.js"></script>
+
+  <script>
+    // Apply dark mode
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark");
     }
-  });
-})();
+
+    // Theme toggle
+    document.getElementById("themeToggle").onclick = () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    };
+
+    // Cursor sparkles
+    let lastStarTime = 0;
+    document.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastStarTime < 45) return;
+      lastStarTime = now;
+
+      const star = document.createElement("div");
+      star.className = "star";
+      star.textContent = "✦";
+      star.style.setProperty("--drift", Math.random());
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 2000);
+    });
+
+    // Social-star sparkles on hero image
+    const heroImage = document.getElementById("heroImage");
+    if (heroImage) {
+      setInterval(() => {
+        const star = document.createElement("div");
+        star.className = "social-star";
+        star.textContent = "✦";
+        star.style.left = `${Math.random() * heroImage.clientWidth}px`;
+        star.style.top = "0px";
+        heroImage.appendChild(star);
+        setTimeout(() => star.remove(), 6000);
+      }, 700);
+    }
+
+    // Language switch – using translations.js
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        setLanguage(item.dataset.lang);
+      });
+    });
+
+    // Apply index page translations on load
+    applyTranslations('index');
+
+    // Re-apply translations after any language change
+    document.addEventListener('languageChanged', () => {
+      applyTranslations('index');
+    });
+  </script>
+
+  <script src="/assets/js/tab-title-animation.js"></script>
+
+</body>
+</html>
