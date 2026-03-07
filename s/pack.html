@@ -6,8 +6,11 @@
   <title>Velutinx Pack</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- PayPal SDK – direct include (same as store.html) -->
+  <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
+
+  <!-- Lordicon script for animated icons -->
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
 
   <style>
     .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
@@ -55,6 +58,8 @@
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
+    
+    /* Updated snackbar with animated Lordicon */
     #snackbar {
       position: fixed;
       top: 28px;
@@ -72,7 +77,7 @@
       opacity: 0;
       transition: all 0.4s ease;
       font-size: 0.95rem;
-      min-width: 220px;
+      min-width: 260px;
     }
     #snackbar.show {
       transform: translateY(0);
@@ -88,7 +93,7 @@
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
-<button class="login-btn" id="loginBtn" onclick="window.location.href='https://velutinx.com/home'">Website</button>
+      <button class="login-btn" id="loginBtn" onclick="window.location.href='https://velutinx.com/home'">Website</button>
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -145,12 +150,19 @@
       <div id="paypal-button-container"></div>
     </div>
   </div>
+
+  <!-- Updated snackbar with animated Lordicon warning -->
   <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="M20 6L9 17l-5-5"></path>
-    </svg>
+    <lord-icon
+      src="https://cdn.lordicon.com/jzwvffwx.json"
+      trigger="loop"
+      delay="2000"
+      colors="primary:#ffcc00,secondary:#ff4444"
+      style="width:32px;height:32px;">
+    </lord-icon>
     <span id="snackText">Added successfully</span>
   </div>
+
   <main class="container">
     <div class="product">
       <div class="gallery-card" id="gallery"><p>Loading pack...</p></div>
@@ -300,7 +312,7 @@
     });
   </script>
 
-  <!-- PayPal button integration – same as store.html -->
+  <!-- PayPal button integration -->
   <script>
     let paypalButtonsRendered = false;
 
