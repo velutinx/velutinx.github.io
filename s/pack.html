@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Load Lordicon as early as possible -->
+  <!-- Lordicon script FIRST -->
   <script src="https://cdn.lordicon.com/lordicon.js"></script>
 
   <meta charset="UTF-8"/>
@@ -155,7 +155,7 @@
     </div>
   </div>
 
-  <!-- Updated snackbar: animated Lordicon warning, no old ! or checkmark -->
+  <!-- Snackbar with animated Lordicon – no old SVG/check/exclamation -->
   <div id="snackbar">
     <lord-icon
       src="https://cdn.lordicon.com/jzwvffwx.json"
@@ -164,7 +164,7 @@
       colors="primary:#ffcc00,secondary:#ff4444"
       style="width:32px;height:32px;">
     </lord-icon>
-    <!-- Hidden fallback in case animation fails -->
+    <!-- Hidden fallback if animation never loads -->
     <span class="lordicon-fallback">⚠️</span>
     <span id="snackText">Added successfully</span>
   </div>
@@ -318,6 +318,7 @@
     });
   </script>
 
+  <!-- PayPal + Snackbar logic with readiness check -->
   <script>
     let paypalButtonsRendered = false;
 
@@ -352,6 +353,38 @@
       paypalButtonsRendered = true;
     }
 
+    // Improved snackbar function with Lordicon readiness check
+    function showSnackbar(message = "Added successfully", isSuccess = true) {
+      const snackbar = document.getElementById("snackbar");
+      const snackText = document.getElementById("snackText");
+      if (!snackbar || !snackText) return;
+
+      snackText.textContent = message;
+
+      snackbar.style.background = isSuccess ? "#22c55e" : "#ef4444";
+
+      // Wait for Lordicon to be ready (max 1.5 seconds)
+      const checkLordicon = setInterval(() => {
+        if (typeof LordIconElement !== 'undefined' && LordIconElement.ready) {
+          clearInterval(checkLordicon);
+          snackbar.classList.add("show");
+        }
+      }, 100);
+
+      // Fallback timeout – show anyway after 1.5s even if animation not ready
+      setTimeout(() => {
+        clearInterval(checkLordicon);
+        if (!snackbar.classList.contains("show")) {
+          snackbar.classList.add("show");
+          console.log("Lordicon not ready in time – showing fallback");
+        }
+      }, 1500);
+
+      setTimeout(() => {
+        snackbar.classList.remove("show");
+      }, 4000); // longer visible time to see animation
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       const originalUpdate = window.updateCartDisplay || function() {};
       window.updateCartDisplay = function() {
@@ -384,6 +417,16 @@
           drawer.classList.remove("open");
         }
       });
+
+      // Override addOrToggleCart to use new showSnackbar
+      const originalAddOrToggle = window.addOrToggleCart;
+      window.addOrToggleCart = function(pack) {
+        if (originalAddOrToggle) originalAddOrToggle(pack);
+        // Force show snackbar with our safe version
+        const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+        const message = isInCart ? "Removed from cart" : "Added successfully";
+        showSnackbar(message, !isInCart); // success = added (green), remove = error/red
+      };
     });
   </script>
 </body>
