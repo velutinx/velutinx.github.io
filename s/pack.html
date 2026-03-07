@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Lordicon script FIRST -->
-  <script src="https://cdn.lordicon.com/lordicon.js"></script>
-
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx Pack</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- PayPal SDK -->
+  <!-- PayPal SDK – direct include (same as store.html) -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
@@ -58,7 +55,6 @@
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
-
     #snackbar {
       position: fixed;
       top: 28px;
@@ -76,7 +72,7 @@
       opacity: 0;
       transition: all 0.4s ease;
       font-size: 0.95rem;
-      min-width: 260px;
+      min-width: 220px;
     }
     #snackbar.show {
       transform: translateY(0);
@@ -85,11 +81,6 @@
     #snackbar.remove {
       background: #ef4444;
     }
-    #snackbar .lordicon-fallback {
-      display: none;
-      font-size: 22px;
-      line-height: 1;
-    }
   </style>
 </head>
 <body>
@@ -97,7 +88,7 @@
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
     <div class="nav-actions">
-      <button class="login-btn" id="loginBtn" onclick="window.location.href='https://velutinx.com/home'">Website</button>
+<button class="login-btn" id="loginBtn" onclick="window.location.href='https://velutinx.com/home'">Website</button>
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -154,21 +145,12 @@
       <div id="paypal-button-container"></div>
     </div>
   </div>
-
-  <!-- Snackbar with animated Lordicon – no old SVG/check/exclamation -->
   <div id="snackbar">
-    <lord-icon
-      src="https://cdn.lordicon.com/jzwvffwx.json"
-      trigger="loop"
-      delay="2000"
-      colors="primary:#ffcc00,secondary:#ff4444"
-      style="width:32px;height:32px;">
-    </lord-icon>
-    <!-- Hidden fallback if animation never loads -->
-    <span class="lordicon-fallback">⚠️</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
     <span id="snackText">Added successfully</span>
   </div>
-
   <main class="container">
     <div class="product">
       <div class="gallery-card" id="gallery"><p>Loading pack...</p></div>
@@ -318,7 +300,7 @@
     });
   </script>
 
-  <!-- PayPal + Snackbar logic with readiness check -->
+  <!-- PayPal button integration – same as store.html -->
   <script>
     let paypalButtonsRendered = false;
 
@@ -353,38 +335,6 @@
       paypalButtonsRendered = true;
     }
 
-    // Improved snackbar function with Lordicon readiness check
-    function showSnackbar(message = "Added successfully", isSuccess = true) {
-      const snackbar = document.getElementById("snackbar");
-      const snackText = document.getElementById("snackText");
-      if (!snackbar || !snackText) return;
-
-      snackText.textContent = message;
-
-      snackbar.style.background = isSuccess ? "#22c55e" : "#ef4444";
-
-      // Wait for Lordicon to be ready (max 1.5 seconds)
-      const checkLordicon = setInterval(() => {
-        if (typeof LordIconElement !== 'undefined' && LordIconElement.ready) {
-          clearInterval(checkLordicon);
-          snackbar.classList.add("show");
-        }
-      }, 100);
-
-      // Fallback timeout – show anyway after 1.5s even if animation not ready
-      setTimeout(() => {
-        clearInterval(checkLordicon);
-        if (!snackbar.classList.contains("show")) {
-          snackbar.classList.add("show");
-          console.log("Lordicon not ready in time – showing fallback");
-        }
-      }, 1500);
-
-      setTimeout(() => {
-        snackbar.classList.remove("show");
-      }, 4000); // longer visible time to see animation
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
       const originalUpdate = window.updateCartDisplay || function() {};
       window.updateCartDisplay = function() {
@@ -417,16 +367,6 @@
           drawer.classList.remove("open");
         }
       });
-
-      // Override addOrToggleCart to use new showSnackbar
-      const originalAddOrToggle = window.addOrToggleCart;
-      window.addOrToggleCart = function(pack) {
-        if (originalAddOrToggle) originalAddOrToggle(pack);
-        // Force show snackbar with our safe version
-        const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-        const message = isInCart ? "Removed from cart" : "Added successfully";
-        showSnackbar(message, !isInCart); // success = added (green), remove = error/red
-      };
     });
   </script>
 </body>
