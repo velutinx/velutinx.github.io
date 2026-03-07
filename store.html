@@ -13,16 +13,16 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
-    /* Prevent flash of untranslated / old title */
+    /* Prevent flash of old title */
     #shopTitle {
       visibility: hidden;
-      transition: visibility 0s linear 0.1s; /* small delay to avoid flicker */
+      transition: visibility 0s linear 0.1s;
     }
     #shopTitle.loaded {
       visibility: visible;
     }
 
-    /* Material Symbols styling (already in your css file, but repeated here for completeness) */
+    /* Material Symbols */
     .material-symbols-outlined {
       font-family: 'Material Symbols Outlined';
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -38,7 +38,7 @@
       align-items: center;
     }
 
-    /* Your original styles (unchanged) */
+    /* Your original styles */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -199,7 +199,6 @@
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
-        <!-- Initial placeholder – will be replaced by JS without flicker -->
         <h1 class="shop-title" id="shopTitle">Loading...</h1>
       </div>
     </div>
