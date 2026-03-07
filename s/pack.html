@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Lordicon script FIRST so it loads early -->
+  <!-- Load Lordicon as early as possible -->
   <script src="https://cdn.lordicon.com/lordicon.js"></script>
 
   <meta charset="UTF-8"/>
@@ -59,7 +59,6 @@
     .btn-cart:hover { background: #23afdb; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
 
-    /* Snackbar with animated Lordicon */
     #snackbar {
       position: fixed;
       top: 28px;
@@ -156,9 +155,8 @@
     </div>
   </div>
 
-  <!-- Snackbar with animated Lordicon warning (no old ! or checkmark) -->
+  <!-- Updated snackbar: animated Lordicon warning, no old ! or checkmark -->
   <div id="snackbar">
-    <!-- Animated warning icon -->
     <lord-icon
       src="https://cdn.lordicon.com/jzwvffwx.json"
       trigger="loop"
@@ -166,8 +164,8 @@
       colors="primary:#ffcc00,secondary:#ff4444"
       style="width:32px;height:32px;">
     </lord-icon>
-    <!-- Fallback if animation fails to load -->
-    <span class="lordicon-fallback" style="font-size:22px; line-height:1;">⚠️</span>
+    <!-- Hidden fallback in case animation fails -->
+    <span class="lordicon-fallback">⚠️</span>
     <span id="snackText">Added successfully</span>
   </div>
 
@@ -320,7 +318,6 @@
     });
   </script>
 
-  <!-- PayPal button integration -->
   <script>
     let paypalButtonsRendered = false;
 
