@@ -6,31 +6,13 @@
   <title>SHOP | VELUTINX</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Single combined Material Symbols link – loads ALL your icons reliably -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=done_all,female,male,collections_bookmark,clock_arrow_up,clock_arrow_down,stat_3,stat_minus_3&display=swap">
+  <!-- Self-hosted Material Symbols – no external Google Fonts -->
+  <link rel="stylesheet" href="https://velutinx.github.io/assets/css/material-symbols.css">
 
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
-    /* Material Symbols styling */
-    .material-symbols-outlined {
-      font-variation-settings:
-        'FILL' 0,
-        'wght' 400,
-        'GRAD' 0,
-        'opsz' 24;
-      font-size: 20px;
-      vertical-align: middle;
-      margin-right: 8px;
-      color: inherit;
-    }
-
-    .category-list li, .sort-btn {
-      display: flex;
-      align-items: center;
-    }
-
     /* Your original styles (unchanged) */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
@@ -257,7 +239,7 @@
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Product listing script – unchanged -->
+  <!-- Product listing script -->
   <script type="module">
     import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
     window.addEventListener('load', async () => {
