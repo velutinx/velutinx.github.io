@@ -6,13 +6,38 @@
   <title>SHOP | VELUTINX</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- Self-hosted Material Symbols – no external Google Fonts -->
+  <!-- Self-hosted Material Symbols -->
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/material-symbols.css">
 
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
+    /* Prevent flash of untranslated / old title */
+    #shopTitle {
+      visibility: hidden;
+      transition: visibility 0s linear 0.1s; /* small delay to avoid flicker */
+    }
+    #shopTitle.loaded {
+      visibility: visible;
+    }
+
+    /* Material Symbols styling (already in your css file, but repeated here for completeness) */
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 20px;
+      line-height: 1;
+      vertical-align: middle;
+      margin-right: 8px;
+      color: inherit;
+    }
+
+    .category-list li, .sort-btn {
+      display: flex;
+      align-items: center;
+    }
+
     /* Your original styles (unchanged) */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
@@ -174,7 +199,8 @@
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
-        <h1 class="shop-title" id="shopTitle">Velutinx Studio</h1>
+        <!-- Initial placeholder – will be replaced by JS without flicker -->
+        <h1 class="shop-title" id="shopTitle">Loading...</h1>
       </div>
     </div>
   </header>
