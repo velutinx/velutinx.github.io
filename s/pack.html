@@ -142,7 +142,7 @@
         <span id="totalLabel">Total</span>
         <span id="cartTotal">US$0.00</span>
       </div>
-      <!-- PayPal container added here – same as store.html -->
+      <!-- PayPal button container -->
       <div id="paypal-button-container"></div>
     </div>
   </div>
@@ -180,8 +180,6 @@
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packId);
-    console.log("Pack loaded:", pack);
-    console.log("Translations available:", !!window.translations);
 
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
@@ -303,7 +301,7 @@
     });
   </script>
 
-  <!-- PayPal button logic – same as store.html -->
+  <!-- PayPal button integration – same as store.html -->
   <script>
     let paypalButtonsRendered = false;
 
