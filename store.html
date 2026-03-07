@@ -6,19 +6,6 @@
   <title>SHOP | VELUTINX</title>
   <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
 
-  <!-- PayPal SDK loaded directly – replace the client-id value below -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
-
-  <style>
-    /* Base Layout & Shared Styles */
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SHOP | VELUTINX</title>
-  <link rel="stylesheet" href="https://velutinx.github.io/assets/css/header.css">
-
   <!-- PayPal SDK – use your LIVE client ID here -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
@@ -84,8 +71,7 @@
       transform: translateY(0);
       opacity: 1;
     }
-
-    /* Ensure drawer is visible when open (add this if not already in header.css) */
+    /* Drawer visibility styles */
     .cart-drawer {
       position: fixed;
       top: 0;
@@ -118,7 +104,6 @@
   </style>
 </head>
 <body>
-  <!-- Your full body content – unchanged -->
   <div class="lang-swipe" id="langSwipe"></div>
   <nav class="top-nav">
     <div class="logo" onclick="window.location.href='/'" style="cursor: pointer;">VELUTINX</div>
@@ -340,60 +325,36 @@
     });
   </script>
 
-  <!-- Fixed PayPal integration – render only once when drawer is open and stable -->
+  <!-- Clean PayPal integration – no console logs, render only once -->
   <script>
     let paypalButtonsRendered = false;
 
     function initPayPalButtons() {
-      if (paypalButtonsRendered) {
-        console.log("[PayPal] Buttons already rendered – skipping duplicate call");
-        return;
-      }
+      if (paypalButtonsRendered) return;
 
       const drawer = document.getElementById("cartDrawer");
       const container = document.getElementById("paypal-button-container");
 
-      if (!drawer || !drawer.classList.contains("open")) {
-        console.log("[PayPal] Drawer not open yet – waiting");
-        return;
-      }
+      if (!drawer || !drawer.classList.contains("open")) return;
+      if (!container) return;
+      if (typeof paypal === 'undefined') return;
 
-      if (!container) {
-        console.warn("[PayPal] Container #paypal-button-container not found");
-        return;
-      }
-
-      if (typeof paypal === 'undefined') {
-        console.error("[PayPal] SDK not loaded – paypal object missing");
-        return;
-      }
-
-      console.log("[PayPal] Rendering buttons ONE TIME");
-
-      // Clear only if needed – but avoid clearing after first render
-      if (container.children.length === 0) {
-        container.innerHTML = '';
-      }
+      container.innerHTML = '';
 
       paypal.Buttons({
         createOrder: (data, actions) => {
           const cart = window.getCart ? window.getCart() : [];
           const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
-          if (parseFloat(total) <= 0) {
-            alert("Your cart is empty or total is zero.");
-            return Promise.reject("Invalid cart total");
-          }
+          if (parseFloat(total) <= 0) return Promise.reject("Cart is empty");
           return actions.order.create({
             purchase_units: [{ amount: { currency_code: "USD", value: total } }]
           });
         },
         onApprove: async (data, actions) => {
           const details = await actions.order.capture();
-          console.log("[PayPal] Success – Order ID:", details.id);
           window.location.href = `/success.html?orderID=${details.id}`;
         },
         onError: (err) => {
-          console.error("[PayPal] Error:", err);
           alert("There was a problem with PayPal. Please try again.");
         }
       }).render("#paypal-button-container");
@@ -402,22 +363,18 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Enhance updateCartDisplay to trigger PayPal only when drawer is open
       const originalUpdate = window.updateCartDisplay || function() {};
       window.updateCartDisplay = function() {
         originalUpdate();
-        // Only try to render if drawer is already visible
         const drawer = document.getElementById("cartDrawer");
         if (drawer && drawer.classList.contains("open")) {
-          setTimeout(initPayPalButtons, 400); // give time for DOM to settle
+          setTimeout(initPayPalButtons, 400);
         }
       };
 
-      // Drawer open handlers
       const openDrawer = () => {
         const drawer = document.getElementById("cartDrawer");
         drawer?.classList.add("open");
-        // Give time for cart items to render before initializing PayPal
         setTimeout(initPayPalButtons, 600);
       };
 
@@ -428,7 +385,6 @@
         document.getElementById("cartDrawer")?.classList.remove("open");
       });
 
-      // Optional: close on outside click
       document.addEventListener("click", (e) => {
         const drawer = document.getElementById("cartDrawer");
         if (drawer?.classList.contains("open") &&
