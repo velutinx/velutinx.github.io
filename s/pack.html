@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Lordicon script FIRST so it loads early -->
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
+
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx Pack</title>
@@ -8,9 +11,6 @@
 
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
-
-  <!-- Lordicon script for animated icons -->
-  <script src="https://cdn.lordicon.com/lordicon.js"></script>
 
   <style>
     .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
@@ -58,8 +58,8 @@
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
-    
-    /* Updated snackbar with animated Lordicon */
+
+    /* Snackbar with animated Lordicon */
     #snackbar {
       position: fixed;
       top: 28px;
@@ -85,6 +85,11 @@
     }
     #snackbar.remove {
       background: #ef4444;
+    }
+    #snackbar .lordicon-fallback {
+      display: none;
+      font-size: 22px;
+      line-height: 1;
     }
   </style>
 </head>
@@ -151,8 +156,9 @@
     </div>
   </div>
 
-  <!-- Updated snackbar with animated Lordicon warning -->
+  <!-- Snackbar with animated Lordicon warning (no old ! or checkmark) -->
   <div id="snackbar">
+    <!-- Animated warning icon -->
     <lord-icon
       src="https://cdn.lordicon.com/jzwvffwx.json"
       trigger="loop"
@@ -160,6 +166,8 @@
       colors="primary:#ffcc00,secondary:#ff4444"
       style="width:32px;height:32px;">
     </lord-icon>
+    <!-- Fallback if animation fails to load -->
+    <span class="lordicon-fallback" style="font-size:22px; line-height:1;">⚠️</span>
     <span id="snackText">Added successfully</span>
   </div>
 
