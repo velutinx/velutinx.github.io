@@ -38,7 +38,7 @@
       align-items: center;
     }
 
-    /* Your original styles */
+    /* Your original styles (unchanged) */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -252,7 +252,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
               <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
             </svg>
-            <input type="search" id="searchInput" placeholder="Search products..." class="input-element" />
+            <!-- Placeholder will be set by JS – no hardcoded value -->
+            <input type="search" id="searchInput" class="input-element" />
           </div>
         </div>
       </div>
