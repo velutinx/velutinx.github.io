@@ -1,3 +1,24 @@
+(function(){
+
+  let path = window.location.pathname;
+  
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.slice(0, -1);
+  }
+
+  const isTrueRoot = (path === '' || path === '/');
+
+  if (!isTrueRoot) {
+    const main = document.getElementById('mainWebsite');
+    if (main) {
+      main.style.transition = 'none'; // Skip the 0.8s fade for instant load
+      main.style.opacity = '1';
+    }
+    return;
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
