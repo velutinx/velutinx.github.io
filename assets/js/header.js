@@ -31,7 +31,7 @@ const translations = {
     sortLow: "Price: Low to High",
     sortHigh: "Price: High to Low",
     productsTitle: "Products",
-    searchPlaceholder: "Search",
+    searchPlaceholder: "Search products...",
     cartTitle: "Shopping Cart",
     totalLabel: "Total",
     snackText: "Added successfully",
@@ -50,7 +50,7 @@ const translations = {
     filterTitle: "カテゴリでフィルター",
     catAll: "すべて",
     catFemale: "女性",
-    catFemboy: "フェンボーイ",
+    catFemboy: "男の娘",
     catCollections: "コレクション",
     sortTitle: "並び替え",
     sortNewest: "最新",
@@ -58,7 +58,7 @@ const translations = {
     sortLow: "価格: 低い → 高い",
     sortHigh: "価格: 高い → 低い",
     productsTitle: "商品",
-    searchPlaceholder: "検索",
+    searchPlaceholder: "商品を検索...",
     cartTitle: "ショッピングカート",
     totalLabel: "合計",
     snackText: "カートに追加しました",
@@ -85,7 +85,7 @@ const translations = {
     sortLow: "价格: 低到高",
     sortHigh: "价格: 高到低",
     productsTitle: "商品",
-    searchPlaceholder: "搜索",
+    searchPlaceholder: "搜索商品...",
     cartTitle: "购物车",
     totalLabel: "总计",
     snackText: "已成功添加到购物车",
@@ -112,7 +112,7 @@ const translations = {
     sortLow: "Precio: Bajo a Alto",
     sortHigh: "Precio: Alto a Bajo",
     productsTitle: "Productos",
-    searchPlaceholder: "Buscar",
+    searchPlaceholder: "Buscar productos...",
     cartTitle: "Carrito de Compras",
     totalLabel: "Total",
     snackText: "Añadido con éxito",
@@ -246,6 +246,7 @@ function updateDisclaimers() {
   }
 }
 
+/* ==================== setLanguage function – updated to handle search placeholder ==================== */
 function setLanguage(lang) {
   currentLang = lang;
   currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
@@ -257,20 +258,26 @@ function setLanguage(lang) {
     "shopTitle", "filterTitle",
     "catAll", "catFemale", "catFemboy", "catCollections",
     "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
-    "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn"
+    "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn",
+    "searchInput"  // ← Added this to update placeholder
   ];
 
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el && t[id]) {
-      el.textContent = t[id];
+      if (id === "searchInput") {
+        el.placeholder = t[id];  // Special case: input placeholder
+      } else {
+        el.textContent = t[id];
+      }
     }
   });
 
-  // ──────────────────────────────────────────────── ADD THESE TWO LINES HERE
+  // Make title visible after update (flicker fix)
   const titleEl = document.getElementById("shopTitle");
-  if (titleEl) titleEl.classList.add("loaded");
-  // ────────────────────────────────────────────────
+  if (titleEl) {
+    titleEl.classList.add("loaded");
+  }
 
   updateCartDisplay();
   updateDisclaimers();
