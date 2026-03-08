@@ -409,7 +409,7 @@
     });
   </script>
 
-  <!-- PayPal + Cart enhancements -->
+  <!-- Cart + PayPal + Fixes -->
   <script>
     let paypalButtonsRendered = false;
 
@@ -417,12 +417,9 @@
       if (paypalButtonsRendered) return;
       const drawer = document.getElementById("cartDrawer");
       const container = document.getElementById("paypal-button-container");
-      if (!drawer || !drawer.classList.contains("open")) return;
-      if (!container) return;
-      if (typeof paypal === 'undefined') return;
+      if (!drawer?.classList.contains("open") || !container || typeof paypal === 'undefined') return;
 
       container.innerHTML = '';
-
       paypal.Buttons({
         createOrder: (data, actions) => {
           const cart = window.getCart ? window.getCart() : [];
@@ -437,16 +434,20 @@
           window.location.href = `/success.html?orderID=${details.id}`;
         },
         onError: (err) => {
-          alert("There was a problem with PayPal. Please try again.");
+          alert("PayPal error. Please try again.");
         }
       }).render("#paypal-button-container");
 
       paypalButtonsRendered = true;
     }
 
-    // Cart helpers (safe overrides / fallbacks)
-    window.getCart = window.getCart || function() {
-      try { return JSON.parse(localStorage.getItem('velutinxCart') || '[]'); } catch { return []; }
+    // Cart storage (force localStorage usage for reliability)
+    window.getCart = function() {
+      try {
+        return JSON.parse(localStorage.getItem('velutinxCart') || '[]');
+      } catch {
+        return [];
+      }
     };
 
     function saveCart(cart) {
@@ -454,12 +455,15 @@
       window.updateCartDisplay?.();
     }
 
+    // Remove single item
     function removeFromCart(id) {
       let cart = window.getCart();
-      cart = cart.filter(item => item.id !== id);
+      cart = cart.filter(item => String(item.id) !== String(id)); // type-safe compare
       saveCart(cart);
+      console.log(`Removed item ${id}, cart now has ${cart.length} items`);
     }
 
+    // Clear all (no confirm)
     function clearCart() {
       saveCart([]);
       const snack = document.getElementById("snackbar");
@@ -468,16 +472,14 @@
         snack.classList.add("show");
         setTimeout(() => snack.classList.remove("show"), 2400);
       }
+      console.log("Cart fully cleared");
     }
 
-    // Enhanced cart display
-    const originalUpdate = window.updateCartDisplay || function() {};
+    // Full cart renderer (runs on every change)
     window.updateCartDisplay = function() {
-      originalUpdate();
-
       const cartItemsEl = document.getElementById("cartItems");
       const cartTotalEl = document.getElementById("cartTotal");
-      if (!cartItemsEl) return;
+      if (!cartItemsEl || !cartTotalEl) return;
 
       const cart = window.getCart();
       cartItemsEl.innerHTML = "";
@@ -485,8 +487,8 @@
       if (cart.length === 0) {
         cartItemsEl.innerHTML = '<p style="text-align:center; padding:2rem; color:#888;">Your cart is empty</p>';
         cartTotalEl.textContent = 'US$0.00';
-        const clearBtn = document.getElementById("clearCartBtn");
-        if (clearBtn) clearBtn.remove();
+        document.getElementById("clearCartBtn")?.remove();
+        updateBadge(0);
         return;
       }
 
@@ -495,57 +497,65 @@
         total += Number(item.price || 0);
         const itemEl = document.createElement("div");
         itemEl.className = "cart-item";
+        itemEl.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:1rem 0; border-bottom:1px solid var(--border);";
         itemEl.innerHTML = `
           <div>
             <strong>${item.title || `Pack ${item.id}`}</strong><br>
             <span style="color:var(--accent);">US$${Number(item.price || 0).toFixed(2)}</span>
           </div>
-          <button class="remove-btn" data-id="${item.id}" title="Remove item">×</button>
+          <button class="remove-btn" data-id="${item.id}">×</button>
         `;
         cartItemsEl.appendChild(itemEl);
       });
 
       cartTotalEl.textContent = `US$${total.toFixed(2)}`;
 
-      // Remove item listeners
+      // Attach remove listeners with strong propagation stop
       cartItemsEl.querySelectorAll(".remove-btn").forEach(btn => {
-        btn.addEventListener("click", e => {
-          e.stopPropagation();
+        btn.addEventListener("click", function(e) {
           e.preventDefault();
-          removeFromCart(btn.dataset.id);
-          window.updateCartDisplay();
-        });
+          e.stopPropagation();
+          e.stopImmediatePropagation(); // extra strong stop
+          const id = this.dataset.id;
+          removeFromCart(id);
+          window.updateCartDisplay(); // refresh immediately
+        }, { capture: true }); // capture phase for priority
       });
 
-      // Clear all button
-      if (!document.getElementById("clearCartBtn")) {
-        const clearBtn = document.createElement("button");
+      // Add/clear button
+      let clearBtn = document.getElementById("clearCartBtn");
+      if (!clearBtn) {
+        clearBtn = document.createElement("button");
         clearBtn.id = "clearCartBtn";
+        clearBtn.className = "clear-cart-btn";
         clearBtn.textContent = "Remove All Items";
-        clearBtn.style.cssText = "width:100%; margin:1rem 0 0; padding:0.8rem; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;";
-        clearBtn.addEventListener("click", e => {
+        clearBtn.addEventListener("click", function(e) {
+          e.preventDefault();
           e.stopPropagation();
-          if (confirm("Clear entire cart?")) {
-            clearCart();
-          }
+          e.stopImmediatePropagation();
+          clearCart();
+          window.updateCartDisplay();
         });
         document.querySelector(".cart-total").prepend(clearBtn);
       }
 
-      // Update badges
-      const count = cart.length;
-      document.getElementById("cartCount").textContent = count;
-      document.getElementById("floatingCartCount").textContent = count;
+      updateBadge(cart.length);
     };
 
+    function updateBadge(count) {
+      document.getElementById("cartCount").textContent = count;
+      document.getElementById("floatingCartCount").textContent = count;
+    }
+
+    // Drawer open/close logic
     document.addEventListener("DOMContentLoaded", () => {
       const drawer = document.getElementById("cartDrawer");
 
-      const openDrawer = () => {
+      function openDrawer() {
         drawer?.classList.add("open");
-        setTimeout(initPayPalButtons, 600);
-        window.updateCartDisplay?.();
-      };
+        setTimeout(initPayPalButtons, 400);
+        window.updateCartDisplay();
+      }
 
       document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
       document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
@@ -554,7 +564,7 @@
         drawer?.classList.remove("open");
       });
 
-      // Close on outside click (but NOT when clicking remove or clear buttons)
+      // Outside click close (but ignores clicks inside cart items/buttons)
       document.addEventListener("click", e => {
         if (drawer?.classList.contains("open") &&
             !drawer.contains(e.target) &&
@@ -564,9 +574,12 @@
         }
       });
 
-      // Initial render
-      window.updateCartDisplay?.();
+      // Initial load
+      window.updateCartDisplay();
     });
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
