@@ -38,7 +38,22 @@
       align-items: center;
     }
 
-    /* Your original styles (unchanged) */
+    /* Cart item remove button hover */
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0 0.5rem;
+      transition: all 0.2s;
+    }
+    .remove-btn:hover {
+      color: #b91c1c;
+      transform: scale(1.2);
+    }
+
+    /* Your original styles */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -125,6 +140,13 @@
     .cart-total {
       padding: 1.5rem;
       border-top: 1px solid var(--border);
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
     }
   </style>
 </head>
@@ -252,8 +274,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
               <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
             </svg>
-            <!-- Placeholder will be set by JS – no hardcoded value -->
-            <input type="search" id="searchInput" class="input-element" />
+            <input type="search" id="searchInput" class="input-element" placeholder="Search products..." />
           </div>
         </div>
       </div>
@@ -280,6 +301,7 @@
       const sortButtons = document.querySelectorAll(".sort-btn");
       const categoryItems = document.querySelectorAll(".category-list li");
       let currentCategory = 0;
+
       function createCards() {
         grid.innerHTML = "";
         productsData.forEach(p => {
@@ -291,11 +313,11 @@
           card.dataset.id = p.id;
           card.dataset.category = p.category;
           card.innerHTML = `
-  <img src="https://velutinx.neocities.org/i/pack${String(p.id).padStart(3, '0')}-1.jpg"
-       alt="${p.title}"
-       class="card-image"
-       loading="lazy"
-       onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+${p.id}+';">
+            <img src="https://velutinx.neocities.org/i/pack${String(p.id).padStart(3, '0')}-1.jpg"
+                 alt="${p.title}"
+                 class="card-image"
+                 loading="lazy"
+                 onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+${p.id}+';">
             <div class="card-content">
               <div class="card-title">${p.title}</div>
               <div class="price-row">
@@ -341,6 +363,7 @@
         });
         window.updateAllPrices?.();
       }
+
       function filterAndSort() {
         const query = searchInput.value.toLowerCase().trim();
         const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
@@ -361,6 +384,7 @@
         }
         visible.forEach(el => grid.appendChild(el));
       }
+
       categoryItems.forEach((item, index) => {
         item.addEventListener("click", () => {
           categoryItems.forEach(i => i.classList.remove("active"));
@@ -369,6 +393,7 @@
           filterAndSort();
         });
       });
+
       sortButtons.forEach(btn => {
         btn.addEventListener("click", () => {
           sortButtons.forEach(b => b.classList.remove("active"));
@@ -376,6 +401,7 @@
           filterAndSort();
         });
       });
+
       searchInput.addEventListener("input", filterAndSort);
       createCards();
       filterAndSort();
@@ -383,7 +409,7 @@
     });
   </script>
 
-  <!-- PayPal integration -->
+  <!-- PayPal + Cart enhancements -->
   <script>
     let paypalButtonsRendered = false;
 
@@ -418,31 +444,118 @@
       paypalButtonsRendered = true;
     }
 
+    // Cart helpers (safe overrides / fallbacks)
+    window.getCart = window.getCart || function() {
+      try { return JSON.parse(localStorage.getItem('velutinxCart') || '[]'); } catch { return []; }
+    };
+
+    function saveCart(cart) {
+      localStorage.setItem('velutinxCart', JSON.stringify(cart));
+      window.updateCartDisplay?.();
+    }
+
+    function removeFromCart(id) {
+      let cart = window.getCart();
+      cart = cart.filter(item => item.id !== id);
+      saveCart(cart);
+    }
+
+    function clearCart() {
+      saveCart([]);
+      const snack = document.getElementById("snackbar");
+      if (snack) {
+        document.getElementById("snackText").textContent = "Cart cleared";
+        snack.classList.add("show");
+        setTimeout(() => snack.classList.remove("show"), 2400);
+      }
+    }
+
+    // Enhanced cart display
+    const originalUpdate = window.updateCartDisplay || function() {};
+    window.updateCartDisplay = function() {
+      originalUpdate();
+
+      const cartItemsEl = document.getElementById("cartItems");
+      const cartTotalEl = document.getElementById("cartTotal");
+      if (!cartItemsEl) return;
+
+      const cart = window.getCart();
+      cartItemsEl.innerHTML = "";
+
+      if (cart.length === 0) {
+        cartItemsEl.innerHTML = '<p style="text-align:center; padding:2rem; color:#888;">Your cart is empty</p>';
+        cartTotalEl.textContent = 'US$0.00';
+        const clearBtn = document.getElementById("clearCartBtn");
+        if (clearBtn) clearBtn.remove();
+        return;
+      }
+
+      let total = 0;
+      cart.forEach(item => {
+        total += Number(item.price || 0);
+        const itemEl = document.createElement("div");
+        itemEl.className = "cart-item";
+        itemEl.innerHTML = `
+          <div>
+            <strong>${item.title || `Pack ${item.id}`}</strong><br>
+            <span style="color:var(--accent);">US$${Number(item.price || 0).toFixed(2)}</span>
+          </div>
+          <button class="remove-btn" data-id="${item.id}" title="Remove item">×</button>
+        `;
+        cartItemsEl.appendChild(itemEl);
+      });
+
+      cartTotalEl.textContent = `US$${total.toFixed(2)}`;
+
+      // Remove item listeners
+      cartItemsEl.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          e.preventDefault();
+          removeFromCart(btn.dataset.id);
+          window.updateCartDisplay();
+        });
+      });
+
+      // Clear all button
+      if (!document.getElementById("clearCartBtn")) {
+        const clearBtn = document.createElement("button");
+        clearBtn.id = "clearCartBtn";
+        clearBtn.textContent = "Remove All Items";
+        clearBtn.style.cssText = "width:100%; margin:1rem 0 0; padding:0.8rem; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;";
+        clearBtn.addEventListener("click", e => {
+          e.stopPropagation();
+          if (confirm("Clear entire cart?")) {
+            clearCart();
+          }
+        });
+        document.querySelector(".cart-total").prepend(clearBtn);
+      }
+
+      // Update badges
+      const count = cart.length;
+      document.getElementById("cartCount").textContent = count;
+      document.getElementById("floatingCartCount").textContent = count;
+    };
+
     document.addEventListener("DOMContentLoaded", () => {
-      const originalUpdate = window.updateCartDisplay || function() {};
-      window.updateCartDisplay = function() {
-        originalUpdate();
-        const drawer = document.getElementById("cartDrawer");
-        if (drawer && drawer.classList.contains("open")) {
-          setTimeout(initPayPalButtons, 400);
-        }
-      };
+      const drawer = document.getElementById("cartDrawer");
 
       const openDrawer = () => {
-        const drawer = document.getElementById("cartDrawer");
         drawer?.classList.add("open");
         setTimeout(initPayPalButtons, 600);
+        window.updateCartDisplay?.();
       };
 
       document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
       document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
 
       document.getElementById("cartClose")?.addEventListener("click", () => {
-        document.getElementById("cartDrawer")?.classList.remove("open");
+        drawer?.classList.remove("open");
       });
 
-      document.addEventListener("click", (e) => {
-        const drawer = document.getElementById("cartDrawer");
+      // Close on outside click (but NOT when clicking remove or clear buttons)
+      document.addEventListener("click", e => {
         if (drawer?.classList.contains("open") &&
             !drawer.contains(e.target) &&
             !document.getElementById("cartBtn")?.contains(e.target) &&
@@ -450,6 +563,9 @@
           drawer.classList.remove("open");
         }
       });
+
+      // Initial render
+      window.updateCartDisplay?.();
     });
   </script>
 </body>
