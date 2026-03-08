@@ -1,8 +1,12 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 // ===============================
 // CANVAS SETUP
 // ===============================
 
 const canvas = document.getElementById("cursorCanvas");
+if(!canvas) return;
+
 const ctx = canvas.getContext("2d");
 
 let w = canvas.width = window.innerWidth;
@@ -125,6 +129,10 @@ class Triangle{
 
 }
 
+// ===============================
+// COLOR
+// ===============================
+
 function pastel(){
 
   const colors = [
@@ -139,14 +147,16 @@ function pastel(){
 
 }
 
+// ===============================
+// PARTICLE SPAWN
+// ===============================
+
 function spawnTriangle(x,y){
 
   if(particles.length > MAX_PARTICLES) return;
 
   if(Math.random() < 0.035){
-
     particles.push(new Triangle(x,y));
-
   }
 
 }
@@ -160,9 +170,7 @@ function updateParticles(){
     p.update();
 
     if(p.life <= 0){
-
       particles.splice(i,1);
-
     }
 
   }
@@ -172,9 +180,7 @@ function updateParticles(){
 function drawParticles(){
 
   for(let p of particles){
-
     p.draw();
-
   }
 
 }
@@ -214,3 +220,5 @@ function loop(time){
 }
 
 requestAnimationFrame(loop);
+
+});
