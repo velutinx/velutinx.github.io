@@ -153,6 +153,7 @@
   }
 
   /* ==================== CART MANAGEMENT ==================== */
+
   function getCart() {
     try {
       const saved = localStorage.getItem("velutinx_cart");
@@ -195,6 +196,10 @@
   }
 
   function updateCartDisplay() {
+
+    const drawer = document.getElementById("cartDrawer");
+    const wasOpen = drawer?.classList.contains("open");
+
     const cart = getCart();
     const count = cart.length;
     const total = cart.reduce((sum, item) => sum + item.price, 0);
@@ -204,8 +209,10 @@
     });
 
     const itemsEl = document.getElementById("cartItems");
+
     if (itemsEl) {
       itemsEl.innerHTML = "";
+
       if (count === 0) {
         itemsEl.innerHTML = "<p>Your cart is empty</p>";
       } else {
@@ -223,13 +230,28 @@
           itemsEl.appendChild(div);
         });
       }
+
       const totalEl = document.getElementById("cartTotal");
       if (totalEl) totalEl.textContent = formatPrice(total);
     }
+
+    /* reset product buttons */
+    document.querySelectorAll(".product-card").forEach(card => {
+      const id = card.dataset.id;
+      const btn = card.querySelector(".cart-btn");
+      if (!btn) return;
+
+      const inCart = cart.some(item => item.id == id);
+      btn.classList.toggle("added", inCart);
+    });
+
+    if (wasOpen) drawer.classList.add("open");
+
     if (window.initPayPalButtons) window.initPayPalButtons();
   }
 
   /* ==================== SNACKBAR ==================== */
+
   function showSnackbar(message, isSuccess = true) {
     const snackbar = document.getElementById("snackbar");
     if (!snackbar) return;
@@ -244,46 +266,65 @@
     }, 2400);
   }
 
-  /* ==================== PAYPAL INTEGRATION ==================== */
+  /* ==================== PAYPAL ==================== */
+
   function loadAndInitPayPal() {
     if (window.paypalLoaded) return;
+
     window.paypalLoaded = true;
+
     const loader = document.createElement('script');
-loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
+    loader.src = "/functions/paypal-sdk";
     loader.async = true;
+
     loader.onload = () => {
       let attempts = 0;
+
       const interval = setInterval(() => {
+
         attempts++;
+
         if (typeof window.paypal !== 'undefined') {
           clearInterval(interval);
           initPayPalButtons();
-        } else if (attempts > 50) clearInterval(interval);
+        }
+
+        else if (attempts > 50) clearInterval(interval);
+
       }, 200);
     };
+
     document.head.appendChild(loader);
   }
 
   function initPayPalButtons() {
     const container = document.getElementById("paypal-button-container");
     if (!container || typeof paypal === 'undefined') return;
+
     container.innerHTML = '';
+
     paypal.Buttons({
       createOrder: (data, actions) => {
         const cart = getCart();
         const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+
         return actions.order.create({
-          purchase_units: [{ amount: { currency_code: "USD", value: total } }]
+          purchase_units: [{
+            amount: { currency_code: "USD", value: total }
+          }]
         });
       },
+
       onApprove: async (data, actions) => {
         const details = await actions.order.capture();
         window.location.href = `/success.html?orderID=${details.id}`;
       }
+
     }).render("#paypal-button-container");
   }
 
-  // Global Exports
+  /* ==================== GLOBAL EXPORTS ==================== */
+
   window.translations = translations;
   window.getPriceForPack = getPriceForPack;
   window.formatPrice = formatPrice;
@@ -291,6 +332,7 @@ loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
   window.addOrToggleCart = addOrToggleCart;
   window.updateCartDisplay = updateCartDisplay;
   window.initPayPalButtons = initPayPalButtons;
+
   window.removeItem = (idx) => {
     let cart = getCart();
     cart.splice(idx, 1);
@@ -299,11 +341,16 @@ loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
   };
 
   document.addEventListener("DOMContentLoaded", () => {
+
     updateCartDisplay();
+
     const cartBtn = document.getElementById("cartBtn");
+
     cartBtn?.addEventListener("click", () => {
-        document.getElementById("cartDrawer")?.classList.toggle("open");
-        loadAndInitPayPal();
+      document.getElementById("cartDrawer")?.classList.toggle("open");
+      loadAndInitPayPal();
     });
+
   });
+
 })();
