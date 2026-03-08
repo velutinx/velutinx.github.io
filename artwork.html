@@ -1,219 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>VELUTINX — Artwork</title>
-  <link rel="stylesheet" href="/assets/css/styles.css">
+<meta charset="utf-8">
+<title>VELUTINX — Artwork</title>
+
+<link rel="stylesheet" href="/assets/css/styles.css">
+<link rel="stylesheet" href="/assets/css/cursor.css">
+
 </head>
+
 <body>
 
-  <!-- Swipe animation layer -->
-  <div class="lang-swipe" id="langSwipe"></div>
+<!-- Swipe animation layer -->
+<div class="lang-swipe" id="langSwipe"></div>
 
-  <div class="background-wrapper">
-    <div class="background-gradient"></div>
-    <div class="wave-overlay"></div>
-  </div>
+<div class="background-wrapper">
+  <div class="background-gradient"></div>
+  <div class="wave-overlay"></div>
+</div>
 
-  <!-- Language selector: globe button + popover -->
-  <div id="langContainer">
-    <button class="lang-btn" title="Select Language">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 5h7"></path>
-        <path d="M7 4c0 4.846 0 7 .5 8"></path>
-        <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
-        <path d="M12 20l4 -9l4 9"></path>
-        <path d="M19.1 18h-6.2"></path>
-      </svg>
-    </button>
+<!-- Language selector -->
+<div id="langContainer">
+  <button class="lang-btn" title="Select Language">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 5h7"></path>
+      <path d="M7 4c0 4.846 0 7 .5 8"></path>
+      <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
+      <path d="M12 20l4 -9l4 9"></path>
+      <path d="M19.1 18h-6.2"></path>
+    </svg>
+  </button>
 
-    <div id="languagePopover">
-      <div class="lang-item" data-lang="en">
-        <img src="https://flagcdn.com/w40/us.png" alt="English" />
-        <p>English</p>
-      </div>
-      <div class="lang-item" data-lang="ja">
-        <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
-        <p>日本語</p>
-      </div>
-      <div class="lang-item" data-lang="zh">
-        <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
-        <p>简体中文</p>
-      </div>
-      <div class="lang-item" data-lang="es">
-        <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
-        <p>Español</p>
-      </div>
+  <div id="languagePopover">
+    <div class="lang-item" data-lang="en">
+      <img src="https://flagcdn.com/w40/us.png" alt="English">
+      <p>English</p>
+    </div>
+
+    <div class="lang-item" data-lang="ja">
+      <img src="https://flagcdn.com/w40/jp.png" alt="Japanese">
+      <p>日本語</p>
+    </div>
+
+    <div class="lang-item" data-lang="zh">
+      <img src="https://flagcdn.com/w40/cn.png" alt="Chinese">
+      <p>简体中文</p>
+    </div>
+
+    <div class="lang-item" data-lang="es">
+      <img src="https://flagcdn.com/w40/mx.png" alt="Spanish">
+      <p>Español</p>
     </div>
   </div>
+</div>
 
-  <!-- Theme toggle -->
-  <div class="theme-toggle" id="themeToggle">
-    <div class="theme-knob"></div>
-  </div>
+<!-- Theme toggle -->
+<div class="theme-toggle" id="themeToggle">
+  <div class="theme-knob"></div>
+</div>
 
-  <!-- Page wrapper -->
-  <div id="page">
-    <div id="navContainer"></div>
-    <div class="divider"></div>
+<!-- Page wrapper -->
+<div id="page">
 
-    <section class="artwork-wrap">
-      <div class="artwork-intro" id="artworkIntro">
-        Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images
-      </div>
-      <div class="gallery" id="gallery"></div>
-    </section>
+  <div id="navContainer"></div>
 
-    <div class="divider"></div>
-  </div>
+  <div class="divider"></div>
 
-  <!-- Zoom overlay -->
-  <div class="zoom-overlay" id="zoomOverlay"></div>
+  <section class="artwork-wrap">
 
-  <!-- Scripts -->
-  <script src="/assets/js/navigation.js"></script>
-  <script src="/assets/js/translations.js"></script>
+    <div class="artwork-intro" id="artworkIntro">
+      Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images
+    </div>
 
-  <script>
-    // Apply dark mode
-    if (localStorage.getItem("darkMode") === "true") {
-      document.body.classList.add("dark");
+    <div class="gallery" id="gallery"></div>
+
+  </section>
+
+  <div class="divider"></div>
+
+</div>
+
+<!-- Zoom overlay -->
+<div class="zoom-overlay" id="zoomOverlay"></div>
+
+<!-- Scripts -->
+<script src="/assets/js/navigation.js"></script>
+<script src="/assets/js/translations.js"></script>
+
+<script>
+
+if (localStorage.getItem("darkMode") === "true") {
+  document.body.classList.add("dark");
+}
+
+document.getElementById("themeToggle").onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+};
+
+/* ===============================
+   GALLERY LOADING
+================================ */
+
+const MAX_IMAGES = 45;
+const BASE = "https://www.velutinx.com/images/artwork/";
+
+const gallery = document.getElementById("gallery");
+
+for (let i = 1; i <= MAX_IMAGES; i++) {
+
+  const img = document.createElement("img");
+
+  img.src = BASE + i + ".jpg";
+  img.alt = `Artwork sample ${i}`;
+  img.loading = "lazy";
+
+  img.onerror = () => img.remove();
+
+  gallery.appendChild(img);
+
+}
+
+/* ===============================
+   IMAGE ZOOM
+================================ */
+
+let activeClone = null;
+let originRect = null;
+
+document.addEventListener("click", (e) => {
+
+  const img = e.target.closest(".gallery img");
+  if (!img) return;
+
+  originRect = img.getBoundingClientRect();
+
+  const scrollY = window.scrollY;
+
+  const clone = img.cloneNode();
+
+  clone.className = "zoom-image";
+
+  clone.style.top = originRect.top + scrollY + "px";
+  clone.style.left = originRect.left + "px";
+  clone.style.width = originRect.width + "px";
+  clone.style.height = originRect.height + "px";
+
+  document.body.appendChild(clone);
+
+  activeClone = clone;
+
+  clone.getBoundingClientRect();
+
+  document.getElementById("zoomOverlay").classList.add("active");
+  document.body.classList.add("zoom-active");
+
+  requestAnimationFrame(() => {
+
+    const vw = window.innerWidth * 0.9;
+    const vh = window.innerHeight * 0.9;
+
+    const imgRatio = originRect.width / originRect.height;
+    const viewRatio = vw / vh;
+
+    let w, h;
+
+    if (imgRatio > viewRatio) {
+      w = vw;
+      h = vw / imgRatio;
+    } else {
+      h = vh;
+      w = vh * imgRatio;
     }
 
-    // Theme toggle
-    document.getElementById("themeToggle").onclick = () => {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-    };
+    clone.style.left = (window.innerWidth - w) / 2 + "px";
+    clone.style.top = (window.innerHeight - h) / 2 + scrollY + "px";
+    clone.style.width = w + "px";
+    clone.style.height = h + "px";
 
-    // Cursor sparkles
-    let lastStarTime = 0;
-    document.addEventListener("mousemove", (e) => {
-      const now = Date.now();
-      if (now - lastStarTime < 45) return;
-      lastStarTime = now;
+  });
 
-      const star = document.createElement("div");
-      star.className = "star";
-      star.textContent = "✦";
-      star.style.setProperty("--drift", Math.random());
-      star.style.left = `${e.clientX}px`;
-      star.style.top = `${e.clientY}px`;
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 2000);
-    });
+});
 
-    // Full-page falling sparkles
-    setInterval(() => {
-      const star = document.createElement("div");
-      star.className = "falling-star";
-      star.textContent = "✦";
-      star.style.left = Math.random() * 100 + "vw";
-      star.style.top = "-10vh";
-      star.style.setProperty("--drift", Math.random() * 2 - 1);
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 8000);
-    }, 400);
+document.getElementById("zoomOverlay").onclick = () => {
 
-    // Gallery loading
-    const MAX_IMAGES = 45;
-    const BASE = "https://www.velutinx.com/images/artwork/";
+  if (!activeClone) return;
 
-    const gallery = document.getElementById("gallery");
+  const scrollY = window.scrollY;
 
-    for (let i = 1; i <= MAX_IMAGES; i++) {
-      const img = document.createElement("img");
-      img.src = BASE + i + ".jpg";
-      img.alt = `Artwork sample ${i}`;
-      img.onerror = () => img.remove();
-      img.loading = "lazy";
-      gallery.appendChild(img);
-    }
+  activeClone.style.left = originRect.left + "px";
+  activeClone.style.top = originRect.top + scrollY + "px";
+  activeClone.style.width = originRect.width + "px";
+  activeClone.style.height = originRect.height + "px";
 
-    // Zoom functionality
-    let activeClone = null;
-    let originRect = null;
+  document.getElementById("zoomOverlay").classList.remove("active");
+  document.body.classList.remove("zoom-active");
 
-    document.addEventListener("click", (e) => {
-      const img = e.target.closest(".gallery img");
-      if (!img) return;
+  setTimeout(() => {
 
-      originRect = img.getBoundingClientRect();
-      const scrollY = window.scrollY;
+    activeClone.remove();
 
-      const clone = img.cloneNode();
-      clone.className = "zoom-image";
+    activeClone = null;
+    originRect = null;
 
-      clone.style.top = originRect.top + scrollY + "px";
-      clone.style.left = originRect.left + "px";
-      clone.style.width = originRect.width + "px";
-      clone.style.height = originRect.height + "px";
+  }, 230);
 
-      document.body.appendChild(clone);
-      activeClone = clone;
+};
 
-      clone.getBoundingClientRect();
-      document.getElementById("zoomOverlay").classList.add("active");
-      document.body.classList.add("zoom-active");
+/* ===============================
+   LANGUAGE SYSTEM
+================================ */
 
-      requestAnimationFrame(() => {
-        const vw = window.innerWidth * 0.9;
-        const vh = window.innerHeight * 0.9;
-        const imgRatio = originRect.width / originRect.height;
-        const viewRatio = vw / vh;
+document.querySelectorAll('.lang-item').forEach(item => {
 
-        let w, h;
-        if (imgRatio > viewRatio) {
-          w = vw;
-          h = vw / imgRatio;
-        } else {
-          h = vh;
-          w = vh * imgRatio;
-        }
+  item.addEventListener('click', () => {
+    setLanguage(item.dataset.lang);
+  });
 
-        clone.style.left = (window.innerWidth - w) / 2 + "px";
-        clone.style.top = (window.innerHeight - h) / 2 + scrollY + "px";
-        clone.style.width = w + "px";
-        clone.style.height = h + "px";
-      });
-    });
+});
 
-    document.getElementById("zoomOverlay").onclick = () => {
-      if (!activeClone) return;
+applyTranslations('artwork');
 
-      const scrollY = window.scrollY;
-      activeClone.style.left = originRect.left + "px";
-      activeClone.style.top = originRect.top + scrollY + "px";
-      activeClone.style.width = originRect.width + "px";
-      activeClone.style.height = originRect.height + "px";
+document.addEventListener('languageChanged', () => {
+  applyTranslations('artwork');
+});
 
-      document.getElementById("zoomOverlay").classList.remove("active");
-      document.body.classList.remove("zoom-active");
+</script>
 
-      setTimeout(() => {
-        activeClone.remove();
-        activeClone = null;
-        originRect = null;
-      }, 230);
-    };
-
-    // Language switch – using translations.js
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        setLanguage(item.dataset.lang);
-      });
-    });
-
-    // Apply artwork translations on load
-    applyTranslations('artwork');
-
-    // Re-apply translations after any language change
-    document.addEventListener('languageChanged', () => {
-      applyTranslations('artwork');
-    });
-  </script>
-
-  <script src="/assets/js/tab-title-animation.js"></script>
+<script src="/assets/js/tab-title-animation.js"></script>
+<script src="/assets/js/cursor.js"></script>
 
 </body>
 </html>
