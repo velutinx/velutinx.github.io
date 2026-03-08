@@ -358,29 +358,7 @@ function initPayPalButtons() {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* hook cart display update */
-  const originalUpdate = window.updateCartDisplay || function(){};
-
-  window.updateCartDisplay = function() {
-
-    originalUpdate();
-
-    /* force pack page button state refresh */
-    if (window.updateButton) {
-      try {
-        window.updateButton();
-      } catch(e){}
-    }
-
-    const drawer = document.getElementById("cartDrawer");
-
-    if (drawer && drawer.classList.contains("open")) {
-      setTimeout(initPayPalButtons, 300);
-    }
-
-  };
-
-
+  /* PAYPAL INIT WHEN CART OPENS */
   const openDrawer = () => {
 
     const drawer = document.getElementById("cartDrawer");
@@ -399,7 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  /* click outside drawer */
+  /* CLICK OUTSIDE CLOSE */
   document.addEventListener("click", (e) => {
 
     const drawer = document.getElementById("cartDrawer");
@@ -415,8 +393,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   });
 
+
+  /* CART STATE WATCHER (this is the key fix) */
+
+  let lastCart = JSON.stringify(window.getCart ? window.getCart() : []);
+
+  setInterval(() => {
+
+    const cart = window.getCart ? window.getCart() : [];
+    const current = JSON.stringify(cart);
+
+    if (current !== lastCart) {
+
+      lastCart = current;
+
+      if (window.updateButton) {
+        try {
+          window.updateButton();
+        } catch(e){}
+      }
+
+    }
+
+  }, 200);
+
 });
 </script>
+
 
 
 </body>
