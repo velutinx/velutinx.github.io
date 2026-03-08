@@ -317,7 +317,7 @@
     updateCartDisplay();
     updateAllCartButtons();
 
-    // Corrected language change handler (no syntax error)
+    // Language change handler – no invalid syntax
     document.addEventListener("languageChanged", () => {
       currentLang = localStorage.getItem("language") || "en";
       currentCurrency = currentLang === "en" ? "USD" :
