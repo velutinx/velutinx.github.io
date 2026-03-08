@@ -291,11 +291,12 @@
           card.dataset.id = p.id;
           card.dataset.category = p.category;
           card.innerHTML = `
-            <img src="https://velutinx.neocities.org/i/pack${parseInt(p.id)}-1.jpg"
-                 alt="${p.title}"
-                 class="card-image"
-                 loading="lazy"
-                 onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+p.id;">
+          const html = `
+  <img src="https://velutinx.neocities.org/i/pack${String(p.id).padStart(3, '0')}-1.jpg"
+       alt="${p.title}"
+       class="card-image"
+       loading="lazy"
+       onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+${p.id}+';">
             <div class="card-content">
               <div class="card-title">${p.title}</div>
               <div class="price-row">
