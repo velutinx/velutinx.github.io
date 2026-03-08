@@ -137,7 +137,7 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: url('/images/cross.png') center / 65% no-repeat;
+      background: url('https://www.velutinx.com/images/cross.png') center / 65% no-repeat;
       opacity: 0.65;
       pointer-events: none;
       z-index: 5;
@@ -288,10 +288,10 @@
       <div class="poll-page">
         <!-- Big cards -->
         <div class="big-card" id="leftBig">
-          <img id="leftImg" src="/images/poll/1.jpg" loading="lazy">
+          <img id="leftImg" src="https://www.velutinx.com/images/poll/1.jpg" loading="lazy">
         </div>
         <div class="big-card" id="rightBig">
-          <img id="rightImg" src="/images/poll/1.jpg" loading="lazy">
+          <img id="rightImg" src="https://www.velutinx.com/images/poll/1.jpg" loading="lazy">
         </div>
 
         <!-- Center content -->
@@ -307,7 +307,7 @@
 
             <div class="icon-wrapper">
               <a class="icon-link" href="https://discord.gg/XF363uYfSh" target="_blank">
-                <img src="/images/LogoDiscord.png" alt="Discord">
+                <img src="https://www.velutinx.com/images/LogoDiscord.png" alt="Discord">
               </a>
               <div class="discord-disclaimer" id="discordDisclaimer">Join discord for an extra vote!!</div>
             </div>
@@ -396,7 +396,7 @@
       card.dataset.id = i;
 
       card.innerHTML = `
-        <img src="/images/poll/${i}.jpg" loading="lazy">
+        <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
         <div class="progress">
           <div class="progress-fill"></div>
           <div class="progress-text">0%</div>
@@ -415,7 +415,7 @@
     function showSelected(id) {
       leftBig.classList.remove("show");
       setTimeout(() => {
-        leftImg.src = `/images/poll/${id}.jpg`;
+        leftImg.src = `https://www.velutinx.com/images/poll/${id}.jpg`;
         leftBig.classList.add("show");
       }, 150);
     }
@@ -423,7 +423,7 @@
     function rotate() {
       rightBig.classList.remove("show");
       setTimeout(() => {
-        rightImg.src = `/images/poll/${rotateIndex}.jpg`;
+        rightImg.src = `https://www.velutinx.com/images/poll/${rotateIndex}.jpg`;
         rightBig.classList.add("show");
         rotateIndex = (rotateIndex % TOTAL) + 1;
       }, 150);
