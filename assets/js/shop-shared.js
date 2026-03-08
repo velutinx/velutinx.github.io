@@ -19,7 +19,11 @@
       searchPlaceholder: "Search",
       cartTitle: "Shopping Cart",
       totalLabel: "Total",
-      snackText: "Added successfully",
+      emptyCartText: "Your cart is empty",
+      clearCartBtn: "Clear Cart",
+      snackAdded: "Added successfully",
+      snackRemoved: "Removed from cart",
+      snackCleared: "Cart cleared",
       loginBtn: "Website",
       disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
       disclaimerRefund: "Digital products are non-refundable after purchase.",
@@ -46,7 +50,11 @@
       searchPlaceholder: "検索",
       cartTitle: "ショッピングカート",
       totalLabel: "合計",
-      snackText: "カートに追加しました",
+      emptyCartText: "カートは空です",
+      clearCartBtn: "カートをクリア",
+      snackAdded: "カートに追加しました",
+      snackRemoved: "カートから削除しました",
+      snackCleared: "カートをクリアしました",
       loginBtn: "ウェブサイト",
       disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
       disclaimerRefund: "デジタル商品は購入後の返金はできません。",
@@ -73,7 +81,11 @@
       searchPlaceholder: "搜索",
       cartTitle: "购物车",
       totalLabel: "总计",
-      snackText: "已成功添加到购物车",
+      emptyCartText: "您的购物车为空",
+      clearCartBtn: "清空购物车",
+      snackAdded: "已成功添加到购物车",
+      snackRemoved: "已从购物车移除",
+      snackCleared: "购物车已清空",
       loginBtn: "网站",
       disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
       disclaimerRefund: "数字产品购买后不可退款。",
@@ -100,7 +112,11 @@
       searchPlaceholder: "Buscar",
       cartTitle: "Carrito de Compras",
       totalLabel: "Total",
-      snackText: "Añadido con éxito",
+      emptyCartText: "Tu carrito está vacío",
+      clearCartBtn: "Vaciar carrito",
+      snackAdded: "Añadido con éxito",
+      snackRemoved: "Eliminado del carrito",
+      snackCleared: "Carrito vaciado",
       loginBtn: "Sitio web",
       disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
       disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
@@ -113,6 +129,14 @@
     }
   };
 
+  /* ==================== LANGUAGE & CURRENCY ==================== */
+  let currentLang = localStorage.getItem("language") || "en";
+  let currentCurrency = currentLang === "en" ? "USD" :
+                        currentLang === "ja" ? "JPY" :
+                        currentLang === "zh" ? "CNY" : "MXN";
+
+  const t = (key) => translations[currentLang]?.[key] || translations.en[key] || key;
+
   /* ==================== PRICE & CURRENCY ==================== */
   const tierMap = {
     1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
@@ -121,11 +145,6 @@
   };
 
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
-  let currentLang = localStorage.getItem("language") || "en";
-  let currentCurrency = currentLang === "en" ? "USD" :
-                        currentLang === "ja" ? "JPY" :
-                        currentLang === "zh" ? "CNY" : "MXN";
 
   let prices = { low: 1.5, med: 3.0, high: 10.0 };
 
@@ -174,7 +193,7 @@
 
     if (index !== -1) {
       cart.splice(index, 1);
-      message = translations[currentLang]?.removeFromCart || "Removed from cart";
+      message = t("removeFromCart");
       isSuccess = false;
     } else {
       cart.push({
@@ -184,14 +203,30 @@
         price: getPriceForPack(pack),
         quantity: 1
       });
-      message = translations[currentLang]?.snackText || "Added successfully";
+      message = t("snackAdded");
       isSuccess = true;
     }
 
     saveCart(cart);
     updateCartDisplay();
     showSnackbar(message, isSuccess);
-    if (window.updateAllCartButtons) window.updateAllCartButtons();
+    updateAllCartButtons();  // Sync all buttons after change
+  }
+
+  function removeItem(idx) {
+    let cart = getCart();
+    cart.splice(idx, 1);
+    saveCart(cart);
+    updateCartDisplay();
+    updateAllCartButtons();
+    showSnackbar(t("snackRemoved"), false);
+  }
+
+  function clearCart() {
+    saveCart([]);
+    updateCartDisplay();
+    updateAllCartButtons();
+    showSnackbar(t("snackCleared"), false);
   }
 
   function updateCartDisplay() {
@@ -207,18 +242,18 @@
     if (itemsEl) {
       itemsEl.innerHTML = "";
       if (count === 0) {
-        itemsEl.innerHTML = "<p>Your cart is empty</p>";
+        itemsEl.innerHTML = `<p>${t("emptyCartText")}</p>`;
       } else {
         cart.forEach((item, idx) => {
           const div = document.createElement("div");
           div.className = "cart-item";
           div.innerHTML = `
-            <img src="${item.image}" alt="${item.title}">
+            <img src="${item.image}" alt="${item.title}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
             <div class="cart-item-info">
               <div class="cart-item-title">${item.title}</div>
               <div class="cart-item-price">${formatPrice(item.price)}</div>
             </div>
-            <button class="cart-item-remove" onclick="window.removeItem(${idx})">×</button>
+            <button class="remove-btn" onclick="window.removeItem(${idx})">×</button>
           `;
           itemsEl.appendChild(div);
         });
@@ -226,7 +261,38 @@
       const totalEl = document.getElementById("cartTotal");
       if (totalEl) totalEl.textContent = formatPrice(total);
     }
+
+    // Update cart title translation
+    document.getElementById("cartTitle")?.textContent = t("cartTitle");
+    document.getElementById("totalLabel")?.textContent = t("totalLabel");
+
+    // Update clear button text if exists
+    document.querySelector(".clear-cart-btn")?.textContent = t("clearCartBtn");
+
     if (window.initPayPalButtons) window.initPayPalButtons();
+  }
+
+  /* ==================== SYNC ALL CART BUTTONS ON STORE PAGE ==================== */
+  function updateAllCartButtons() {
+    const cart = getCart();
+    const cartIds = new Set(cart.map(item => item.id));
+
+    document.querySelectorAll(".product-card .cart-btn").forEach(btn => {
+      const card = btn.closest(".product-card");
+      const id = card?.dataset?.id;
+
+      if (!id) return;
+
+      const isInCart = cartIds.has(id);
+
+      btn.classList.toggle("added", isInCart);
+
+      if (isInCart) {
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
+      } else {
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
+      }
+    });
   }
 
   /* ==================== SNACKBAR ==================== */
@@ -236,7 +302,7 @@
     const snackText = document.getElementById("snackText");
     if (snackText) snackText.textContent = message;
 
-    snackbar.className = "snackbar show";
+    snackbar.classList.add("show");
     snackbar.style.background = isSuccess ? "#22c55e" : "#ef4444";
 
     setTimeout(() => {
@@ -244,66 +310,29 @@
     }, 2400);
   }
 
-  /* ==================== PAYPAL INTEGRATION ==================== */
-  function loadAndInitPayPal() {
-    if (window.paypalLoaded) return;
-    window.paypalLoaded = true;
-    const loader = document.createElement('script');
-loader.src = "/functions/paypal-sdk"; // or "/functions/paypal-sdk.js"
-    loader.async = true;
-    loader.onload = () => {
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        if (typeof window.paypal !== 'undefined') {
-          clearInterval(interval);
-          initPayPalButtons();
-        } else if (attempts > 50) clearInterval(interval);
-      }, 200);
-    };
-    document.head.appendChild(loader);
-  }
-
-  function initPayPalButtons() {
-    const container = document.getElementById("paypal-button-container");
-    if (!container || typeof paypal === 'undefined') return;
-    container.innerHTML = '';
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        const cart = getCart();
-        const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-        return actions.order.create({
-          purchase_units: [{ amount: { currency_code: "USD", value: total } }]
-        });
-      },
-      onApprove: async (data, actions) => {
-        const details = await actions.order.capture();
-        window.location.href = `/success.html?orderID=${details.id}`;
-      }
-    }).render("#paypal-button-container");
-  }
-
-  // Global Exports
+  /* ==================== GLOBAL EXPORTS ==================== */
   window.translations = translations;
   window.getPriceForPack = getPriceForPack;
   window.formatPrice = formatPrice;
   window.getCart = getCart;
   window.addOrToggleCart = addOrToggleCart;
   window.updateCartDisplay = updateCartDisplay;
-  window.initPayPalButtons = initPayPalButtons;
-  window.removeItem = (idx) => {
-    let cart = getCart();
-    cart.splice(idx, 1);
-    saveCart(cart);
-    updateCartDisplay();
-  };
+  window.updateAllCartButtons = updateAllCartButtons;
+  window.removeItem = removeItem;
+  window.clearCart = clearCart;  // For clear button
+  window.t = t;  // Shortcut for translations
 
+  // Initial setup
   document.addEventListener("DOMContentLoaded", () => {
     updateCartDisplay();
-    const cartBtn = document.getElementById("cartBtn");
-    cartBtn?.addEventListener("click", () => {
-        document.getElementById("cartDrawer")?.classList.toggle("open");
-        loadAndInitPayPal();
+    updateAllCartButtons();
+
+    // Optional: handle language change (if you have lang switcher)
+    document.addEventListener("languageChanged", () => {
+      currentLang = localStorage.getItem("language") || "en";
+      currentCurrency = /* recalculate currency based on lang */;
+      updateCartDisplay();
+      // Re-translate other elements if needed
     });
   });
 })();
