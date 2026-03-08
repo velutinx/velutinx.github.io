@@ -38,67 +38,20 @@
       align-items: center;
     }
 
-/* Cart item remove button */
-.remove-btn {
-  --color-normal: #ef4444;
-  --color-hover: #dc2626;
-  --scale-hover: 1.25;
-
-  background: none;
-  border: none;
-  color: var(--color-normal);
-  font-size: 1.5rem;              /* slightly larger for better touch targets */
-  line-height: 1;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 50%;             /* circular hit area */
-  transition: 
-    color 0.2s ease,
-    transform 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.remove-btn:hover,
-.remove-btn:focus-visible {
-  color: var(--color-hover);
-  background-color: rgba(239, 68, 68, 0.12); /* subtle red background on hover */
-  transform: scale(var(--scale-hover));
-  outline: none;
-}
-
-/* Optional: active state (when clicked) */
-.remove-btn:active {
-  transform: scale(0.95);
-  background-color: rgba(239, 68, 68, 0.25);
-}
-
-/* Make it more accessible */
-.remove-btn[aria-label] {
-  position: relative;
-}
-
-.remove-btn[aria-label]::after {
-  content: attr(aria-label);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1f2937;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-}
-
-.remove-btn:hover[aria-label]::after,
-.remove-btn:focus-visible[aria-label]::after {
-  opacity: 1;
-}
+    /* Cart item remove button hover */
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0 0.5rem;
+      transition: all 0.2s;
+    }
+    .remove-btn:hover {
+      color: #b91c1c;
+      transform: scale(1.2);
+    }
 
     /* Your original styles */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
@@ -456,180 +409,164 @@
     });
   </script>
 
-<!-- PayPal + Enhanced Cart (integrates with shop-shared.js) -->
-<script>
-  let paypalButtonsRendered = false;
+  <!-- PayPal + Cart enhancements -->
+  <script>
+    let paypalButtonsRendered = false;
 
-  function initPayPalButtons() {
-    if (paypalButtonsRendered) return;
-    const drawer = document.getElementById("cartDrawer");
-    const container = document.getElementById("paypal-button-container");
-    if (!drawer?.classList.contains("open") || !container || typeof paypal === 'undefined') return;
+    function initPayPalButtons() {
+      if (paypalButtonsRendered) return;
+      const drawer = document.getElementById("cartDrawer");
+      const container = document.getElementById("paypal-button-container");
+      if (!drawer || !drawer.classList.contains("open")) return;
+      if (!container) return;
+      if (typeof paypal === 'undefined') return;
 
-    container.innerHTML = '';
+      container.innerHTML = '';
 
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        const cart = window.getCart ? window.getCart() : [];
-        const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
-        if (parseFloat(total) <= 0) return Promise.reject("Cart is empty");
-        return actions.order.create({
-          purchase_units: [{ amount: { currency_code: "USD", value: total } }]
-        });
-      },
-      onApprove: async (data, actions) => {
-        const details = await actions.order.capture();
-        window.location.href = `/success.html?orderID=${details.id}`;
-      },
-      onError: (err) => {
-        alert("There was a problem with PayPal. Please try again.");
+      paypal.Buttons({
+        createOrder: (data, actions) => {
+          const cart = window.getCart ? window.getCart() : [];
+          const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
+          if (parseFloat(total) <= 0) return Promise.reject("Cart is empty");
+          return actions.order.create({
+            purchase_units: [{ amount: { currency_code: "USD", value: total } }]
+          });
+        },
+        onApprove: async (data, actions) => {
+          const details = await actions.order.capture();
+          window.location.href = `/success.html?orderID=${details.id}`;
+        },
+        onError: (err) => {
+          alert("There was a problem with PayPal. Please try again.");
+        }
+      }).render("#paypal-button-container");
+
+      paypalButtonsRendered = true;
+    }
+
+    // Cart helpers (safe overrides / fallbacks)
+    window.getCart = window.getCart || function() {
+      try { return JSON.parse(localStorage.getItem('velutinxCart') || '[]'); } catch { return []; }
+    };
+
+    function saveCart(cart) {
+      localStorage.setItem('velutinxCart', JSON.stringify(cart));
+      window.updateCartDisplay?.();
+    }
+
+    function removeFromCart(id) {
+      let cart = window.getCart();
+      cart = cart.filter(item => item.id !== id);
+      saveCart(cart);
+    }
+
+    function clearCart() {
+      saveCart([]);
+      const snack = document.getElementById("snackbar");
+      if (snack) {
+        document.getElementById("snackText").textContent = "Cart cleared";
+        snack.classList.add("show");
+        setTimeout(() => snack.classList.remove("show"), 2400);
       }
-    }).render("#paypal-button-container");
+    }
 
-    paypalButtonsRendered = true;
-  }
+    // Enhanced cart display
+    const originalUpdate = window.updateCartDisplay || function() {};
+    window.updateCartDisplay = function() {
+      originalUpdate();
 
-  // Enhanced updateCartDisplay – builds on shop-shared.js version
-  const originalUpdateCartDisplay = window.updateCartDisplay || function() {};
-  window.updateCartDisplay = function() {
-    // Run original first (from shop-shared.js)
-    originalUpdateCartDisplay();
+      const cartItemsEl = document.getElementById("cartItems");
+      const cartTotalEl = document.getElementById("cartTotal");
+      if (!cartItemsEl) return;
 
-    const cartItemsEl = document.getElementById("cartItems");
-    const cartTotalEl = document.getElementById("cartTotal");
-    if (!cartItemsEl || !cartTotalEl) return;
+      const cart = window.getCart();
+      cartItemsEl.innerHTML = "";
 
-    const cart = window.getCart?.() || [];
-    cartItemsEl.innerHTML = "";
+      if (cart.length === 0) {
+        cartItemsEl.innerHTML = '<p style="text-align:center; padding:2rem; color:#888;">Your cart is empty</p>';
+        cartTotalEl.textContent = 'US$0.00';
+        const clearBtn = document.getElementById("clearCartBtn");
+        if (clearBtn) clearBtn.remove();
+        return;
+      }
 
-    if (cart.length === 0) {
-      cartItemsEl.innerHTML = `<p style="text-align:center; padding:2rem; color:#888;">${window.t?.("emptyCartText") || "Your cart is empty"}</p>`;
-      cartTotalEl.textContent = 'US$0.00';
-      document.getElementById("clearCartBtn")?.remove();
-    } else {
       let total = 0;
       cart.forEach(item => {
         total += Number(item.price || 0);
-
         const itemEl = document.createElement("div");
         itemEl.className = "cart-item";
         itemEl.innerHTML = `
           <div>
             <strong>${item.title || `Pack ${item.id}`}</strong><br>
-            <span style="color:var(--accent);">${window.formatPrice?.(item.price) || `US$${Number(item.price || 0).toFixed(2)}`}</span>
+            <span style="color:var(--accent);">US$${Number(item.price || 0).toFixed(2)}</span>
           </div>
-          <button class="remove-btn" data-id="${item.id}" title="${window.t?.("removeFromCart") || "Remove"}">×</button>
+          <button class="remove-btn" data-id="${item.id}" title="Remove item">×</button>
         `;
         cartItemsEl.appendChild(itemEl);
       });
 
-      cartTotalEl.textContent = window.formatPrice?.(total) || `US$${total.toFixed(2)}`;
-    }
+      cartTotalEl.textContent = `US$${total.toFixed(2)}`;
 
-    // Attach remove listeners (strong stop propagation)
-    cartItemsEl.querySelectorAll(".remove-btn").forEach(btn => {
-      btn.addEventListener("click", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        const id = this.dataset.id;
-
-        // Use shop-shared.js remove if available, else fallback
-        if (typeof window.removeItem === 'function') {
-          // If shop-shared uses index-based removeItem, find index
-          const cart = window.getCart?.() || [];
-          const idx = cart.findIndex(i => String(i.id) === String(id));
-          if (idx !== -1) window.removeItem(idx);
-        } else if (typeof window.removeFromCart === 'function') {
-          window.removeFromCart(id);
-        } else {
-          let currentCart = window.getCart?.() || [];
-          currentCart = currentCart.filter(i => String(i.id) !== String(id));
-          if (typeof window.saveCart === 'function') {
-            window.saveCart(currentCart);
-          }
-        }
-
-        window.updateCartDisplay?.();
-        window.updateAllCartButtons?.(); // Reset green/added state on store cards
-      }, { capture: true });
-    });
-
-    // Clear all button – styled as circular red button
-    let clearBtn = document.getElementById("clearCartBtn");
-    if (!clearBtn && cart.length > 0) {
-      clearBtn = document.createElement("button");
-      clearBtn.id = "clearCartBtn";
-      clearBtn.className = "cart-btn clear-cart-btn"; // Reuse cart-btn class + extra
-      clearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"></path></svg>`;
-      clearBtn.title = window.t?.("clearCartBtn") || "Remove All Items";
-      clearBtn.style.background = "#ef4444";
-      clearBtn.addEventListener("click", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        if (typeof window.clearCart === 'function') {
-          window.clearCart();
-        } else {
-          if (typeof window.saveCart === 'function') {
-            window.saveCart([]);
-          }
-          const snack = document.getElementById("snackbar");
-          if (snack) {
-            document.getElementById("snackText").textContent = window.t?.("snackCleared") || "Cart cleared";
-            snack.classList.add("show");
-            setTimeout(() => snack.classList.remove("show"), 2400);
-          }
-        }
-
-        window.updateCartDisplay?.();
-        window.updateAllCartButtons?.();
+      // Remove item listeners
+      cartItemsEl.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          e.preventDefault();
+          removeFromCart(btn.dataset.id);
+          window.updateCartDisplay();
+        });
       });
-      document.querySelector(".cart-total")?.prepend(clearBtn);
-    }
 
-    // Badges
-    const count = cart.length;
-    document.getElementById("cartCount").textContent = count;
-    document.getElementById("floatingCartCount").textContent = count;
+      // Clear all button
+      if (!document.getElementById("clearCartBtn")) {
+        const clearBtn = document.createElement("button");
+        clearBtn.id = "clearCartBtn";
+        clearBtn.textContent = "Remove All Items";
+        clearBtn.style.cssText = "width:100%; margin:1rem 0 0; padding:0.8rem; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;";
+        clearBtn.addEventListener("click", e => {
+          e.stopPropagation();
+          if (confirm("Clear entire cart?")) {
+            clearCart();
+          }
+        });
+        document.querySelector(".cart-total").prepend(clearBtn);
+      }
 
-    // Translate static cart texts
-    document.getElementById("cartTitle")?.textContent = window.t?.("cartTitle") || "Shopping Cart";
-    document.getElementById("totalLabel")?.textContent = window.t?.("totalLabel") || "Total";
-  };
-
-  // Drawer open/close logic
-  document.addEventListener("DOMContentLoaded", () => {
-    const drawer = document.getElementById("cartDrawer");
-
-    const openDrawer = () => {
-      drawer?.classList.add("open");
-      setTimeout(initPayPalButtons, 400);
-      window.updateCartDisplay?.();
+      // Update badges
+      const count = cart.length;
+      document.getElementById("cartCount").textContent = count;
+      document.getElementById("floatingCartCount").textContent = count;
     };
 
-    document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
-    document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
+    document.addEventListener("DOMContentLoaded", () => {
+      const drawer = document.getElementById("cartDrawer");
 
-    document.getElementById("cartClose")?.addEventListener("click", () => {
-      drawer?.classList.remove("open");
+      const openDrawer = () => {
+        drawer?.classList.add("open");
+        setTimeout(initPayPalButtons, 600);
+        window.updateCartDisplay?.();
+      };
+
+      document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
+      document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
+
+      document.getElementById("cartClose")?.addEventListener("click", () => {
+        drawer?.classList.remove("open");
+      });
+
+      // Close on outside click (but NOT when clicking remove or clear buttons)
+      document.addEventListener("click", e => {
+        if (drawer?.classList.contains("open") &&
+            !drawer.contains(e.target) &&
+            !document.getElementById("cartBtn")?.contains(e.target) &&
+            !document.getElementById("floatingCartBtn")?.contains(e.target)) {
+          drawer.classList.remove("open");
+        }
+      });
+
+      // Initial render
+      window.updateCartDisplay?.();
     });
-
-    // Close on outside click
-    document.addEventListener("click", e => {
-      if (drawer?.classList.contains("open") &&
-          !drawer.contains(e.target) &&
-          !document.getElementById("cartBtn")?.contains(e.target) &&
-          !document.getElementById("floatingCartBtn")?.contains(e.target)) {
-        drawer.classList.remove("open");
-      }
-    });
-
-    // Initial render
-    window.updateCartDisplay?.();
-  });
-</script>
+  </script>
 </body>
 </html>
