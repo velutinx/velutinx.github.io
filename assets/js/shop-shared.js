@@ -317,15 +317,14 @@
     updateCartDisplay();
     updateAllCartButtons();
 
-    // Language change handler (fixed syntax)
+    // Language change handler – FIXED SYNTAX
     document.addEventListener("languageChanged", () => {
       currentLang = localStorage.getItem("language") || "en";
-      // Recalculate currency based on language
       currentCurrency = currentLang === "en" ? "USD" :
                         currentLang === "ja" ? "JPY" :
                         currentLang === "zh" ? "CNY" : "MXN";
       updateCartDisplay();
-      // Add any other re-translation calls here if needed
+      // Add other re-translation calls here if needed
     });
   });
 })();
