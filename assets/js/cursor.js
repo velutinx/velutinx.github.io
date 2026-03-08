@@ -325,9 +325,7 @@ function drawHead(){
 function loop(){
 
   hue = (hue + 0.6) % 360;
-
-  ctx.fillStyle="rgba(0,0,0,0.22)";
-  ctx.fillRect(0,0,w,h);
+ctx.clearRect(0,0,w,h);
 
   comet.x += (mouse.x-comet.x)*0.2;
   comet.y += (mouse.y-comet.y)*0.2;
