@@ -1,16 +1,10 @@
 /* ===============================
-   PAGE BASE STYLE
+   PAGE BASE
 ================================ */
 
 html, body{
   margin:0;
-  padding:50px;
-
-  background:#111;
-  color:white;
-
-  font-family:sans-serif;
-
+  padding:0;
   min-height:100vh;
 }
 
