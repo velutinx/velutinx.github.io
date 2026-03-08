@@ -205,7 +205,7 @@ function updateCartDisplay() {
   const count = cart.length;
   const total = cart.reduce((sum, item) => sum + item.price, 0);
 
-  /* update counters */
+  /* update cart counters */
   document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
     if (el) el.textContent = count;
   });
@@ -213,10 +213,13 @@ function updateCartDisplay() {
   const itemsEl = document.getElementById("cartItems");
 
   if (itemsEl) {
+
     itemsEl.innerHTML = "";
 
     if (count === 0) {
+
       itemsEl.innerHTML = "<p>Your cart is empty</p>";
+
     } else {
 
       cart.forEach((item, idx) => {
@@ -230,7 +233,7 @@ function updateCartDisplay() {
             <div class="cart-item-title">${item.title}</div>
             <div class="cart-item-price">${formatPrice(item.price)}</div>
           </div>
-          <button class="cart-item-remove" onclick="window.removeItem(event, ${idx})">×</button>
+          <button class="cart-item-remove" data-index="${idx}">×</button>
         `;
 
         itemsEl.appendChild(div);
@@ -243,7 +246,28 @@ function updateCartDisplay() {
     if (totalEl) totalEl.textContent = formatPrice(total);
   }
 
-  /* reset product buttons */
+  /* attach remove handlers (prevents drawer closing) */
+  document.querySelectorAll(".cart-item-remove").forEach(btn => {
+
+    btn.addEventListener("click", function(e) {
+
+      e.stopPropagation();
+      e.preventDefault();
+
+      const idx = parseInt(this.dataset.index);
+
+      let cart = getCart();
+      cart.splice(idx, 1);
+
+      saveCart(cart);
+
+      updateCartDisplay();
+
+    });
+
+  });
+
+  /* sync product buttons */
   document.querySelectorAll(".product-card").forEach(card => {
 
     const id = card.dataset.id;
@@ -269,20 +293,6 @@ function updateCartDisplay() {
   }
 
 }
-
-/* remove item with event stop */
-window.removeItem = (e, idx) => {
-
-  if (e) e.stopPropagation();
-
-  let cart = getCart();
-  cart.splice(idx, 1);
-
-  saveCart(cart);
-
-  updateCartDisplay();
-
-};
 
 
 
