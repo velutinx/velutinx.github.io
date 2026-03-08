@@ -152,103 +152,129 @@
     return `${symbol}${converted}`;
   }
 
-  /* ==================== CART MANAGEMENT ==================== */
+/* ==================== CART MANAGEMENT ==================== */
 
-  function getCart() {
-    try {
-      const saved = localStorage.getItem("velutinx_cart");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
+function getCart() {
+  try {
+    const saved = localStorage.getItem("velutinx_cart");
+    return saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCart(cart) {
+  localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
+}
+
+function addOrToggleCart(pack) {
+  let cart = getCart();
+  const index = cart.findIndex(item => item.id === pack.id);
+  let message = "";
+  let isSuccess = true;
+
+  if (index !== -1) {
+    cart.splice(index, 1);
+    message = translations[currentLang]?.removeFromCart || "Removed from cart";
+    isSuccess = false;
+  } else {
+    cart.push({
+      id: pack.id,
+      title: pack.title,
+      image: pack.image || (pack.images && pack.images[0]) || "",
+      price: getPriceForPack(pack),
+      quantity: 1
+    });
+    message = translations[currentLang]?.snackText || "Added successfully";
+    isSuccess = true;
   }
 
-  function saveCart(cart) {
-    localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
-  }
+  saveCart(cart);
+  updateCartDisplay();
+  showSnackbar(message, isSuccess);
 
-  function addOrToggleCart(pack) {
-    let cart = getCart();
-    const index = cart.findIndex(item => item.id === pack.id);
-    let message = "";
-    let isSuccess = true;
+  if (window.updateAllCartButtons) window.updateAllCartButtons();
+}
 
-    if (index !== -1) {
-      cart.splice(index, 1);
-      message = translations[currentLang]?.removeFromCart || "Removed from cart";
-      isSuccess = false;
+function updateCartDisplay() {
+
+  const drawer = document.getElementById("cartDrawer");
+  const wasOpen = drawer?.classList.contains("open");
+
+  const cart = getCart();
+  const count = cart.length;
+  const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+  /* update counters */
+  document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
+    if (el) el.textContent = count;
+  });
+
+  const itemsEl = document.getElementById("cartItems");
+
+  if (itemsEl) {
+    itemsEl.innerHTML = "";
+
+    if (count === 0) {
+      itemsEl.innerHTML = "<p>Your cart is empty</p>";
     } else {
-      cart.push({
-        id: pack.id,
-        title: pack.title,
-        image: pack.image || (pack.images && pack.images[0]) || "",
-        price: getPriceForPack(pack),
-        quantity: 1
+
+      cart.forEach((item, idx) => {
+
+        const div = document.createElement("div");
+        div.className = "cart-item";
+
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div class="cart-item-info">
+            <div class="cart-item-title">${item.title}</div>
+            <div class="cart-item-price">${formatPrice(item.price)}</div>
+          </div>
+          <button class="cart-item-remove" onclick="window.removeItem(${idx})">×</button>
+        `;
+
+        itemsEl.appendChild(div);
+
       });
-      message = translations[currentLang]?.snackText || "Added successfully";
-      isSuccess = true;
+
     }
 
-    saveCart(cart);
-    updateCartDisplay();
-    showSnackbar(message, isSuccess);
-    if (window.updateAllCartButtons) window.updateAllCartButtons();
+    const totalEl = document.getElementById("cartTotal");
+    if (totalEl) totalEl.textContent = formatPrice(total);
   }
 
-  function updateCartDisplay() {
+  /* reset product buttons */
+  document.querySelectorAll(".product-card").forEach(card => {
 
-    const drawer = document.getElementById("cartDrawer");
-    const wasOpen = drawer?.classList.contains("open");
+    const id = card.dataset.id;
+    const btn = card.querySelector(".cart-btn");
 
-    const cart = getCart();
-    const count = cart.length;
-    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    if (!btn) return;
 
-    document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
-      if (el) el.textContent = count;
-    });
+    const inCart = cart.some(item => item.id == id);
+    btn.classList.toggle("added", inCart);
 
-    const itemsEl = document.getElementById("cartItems");
+  });
 
-    if (itemsEl) {
-      itemsEl.innerHTML = "";
+  /* restore drawer AFTER paypal refresh */
+  if (window.initPayPalButtons) {
 
-      if (count === 0) {
-        itemsEl.innerHTML = "<p>Your cart is empty</p>";
-      } else {
-        cart.forEach((item, idx) => {
-          const div = document.createElement("div");
-          div.className = "cart-item";
-          div.innerHTML = `
-            <img src="${item.image}" alt="${item.title}">
-            <div class="cart-item-info">
-              <div class="cart-item-title">${item.title}</div>
-              <div class="cart-item-price">${formatPrice(item.price)}</div>
-            </div>
-            <button class="cart-item-remove" onclick="window.removeItem(${idx})">×</button>
-          `;
-          itemsEl.appendChild(div);
-        });
-      }
+    setTimeout(() => {
 
-      const totalEl = document.getElementById("cartTotal");
-      if (totalEl) totalEl.textContent = formatPrice(total);
-    }
+      window.initPayPalButtons();
 
-    /* reset product buttons */
-    document.querySelectorAll(".product-card").forEach(card => {
-      const id = card.dataset.id;
-      const btn = card.querySelector(".cart-btn");
-      if (!btn) return;
+      if (wasOpen) drawer?.classList.add("open");
 
-      const inCart = cart.some(item => item.id == id);
-      btn.classList.toggle("added", inCart);
-    });
+    }, 50);
 
-    if (wasOpen) drawer.classList.add("open");
+  } else {
 
-    if (window.initPayPalButtons) window.initPayPalButtons();
+    if (wasOpen) drawer?.classList.add("open");
+
   }
+
+}
+
 
   /* ==================== SNACKBAR ==================== */
 
