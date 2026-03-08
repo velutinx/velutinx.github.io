@@ -1,0 +1,39 @@
+/* ===============================
+   PAGE BASE STYLE
+================================ */
+
+html, body{
+  margin:0;
+  padding:50px;
+
+  background:#111;
+  color:white;
+
+  font-family:sans-serif;
+
+  min-height:100vh;
+}
+
+/* ===============================
+   HIDE SYSTEM CURSOR
+================================ */
+
+html, body, *{
+  cursor:none !important;
+}
+
+/* ===============================
+   CURSOR CANVAS
+================================ */
+
+#cursorCanvas{
+  position:fixed;
+  inset:0;
+
+  width:100vw;
+  height:100vh;
+
+  pointer-events:none;
+
+  z-index:999999;
+}
