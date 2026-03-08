@@ -230,7 +230,7 @@ function updateCartDisplay() {
             <div class="cart-item-title">${item.title}</div>
             <div class="cart-item-price">${formatPrice(item.price)}</div>
           </div>
-          <button class="cart-item-remove" onclick="window.removeItem(${idx})">×</button>
+          <button class="cart-item-remove" onclick="window.removeItem(event, ${idx})">×</button>
         `;
 
         itemsEl.appendChild(div);
@@ -256,24 +256,34 @@ function updateCartDisplay() {
 
   });
 
-  /* restore drawer AFTER paypal refresh */
+  /* restore drawer state */
+  if (wasOpen) drawer?.classList.add("open");
+
+  /* refresh PayPal buttons */
   if (window.initPayPalButtons) {
 
     setTimeout(() => {
-
       window.initPayPalButtons();
-
-      if (wasOpen) drawer?.classList.add("open");
-
     }, 50);
-
-  } else {
-
-    if (wasOpen) drawer?.classList.add("open");
 
   }
 
 }
+
+/* remove item with event stop */
+window.removeItem = (e, idx) => {
+
+  if (e) e.stopPropagation();
+
+  let cart = getCart();
+  cart.splice(idx, 1);
+
+  saveCart(cart);
+
+  updateCartDisplay();
+
+};
+
 
 
   /* ==================== SNACKBAR ==================== */
