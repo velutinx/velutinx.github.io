@@ -34,7 +34,6 @@
 .wave-overlay {
   position: absolute;
   inset: 0;
-  background-image: url('/images/background-wave.png');   /* ← changed here */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
