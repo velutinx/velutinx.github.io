@@ -305,6 +305,7 @@
   let paypalButtonsRendered = false;
 
   function initPayPalButtons() {
+
     if (paypalButtonsRendered) return;
 
     const drawer = document.getElementById("cartDrawer");
@@ -317,6 +318,7 @@
     container.innerHTML = '';
 
     paypal.Buttons({
+
       createOrder: (data, actions) => {
 
         const cart = window.getCart ? window.getCart() : [];
@@ -360,10 +362,12 @@
 
       originalUpdate();
 
-      /* keep pack page button synced with cart */
-      if (window.updateButton) {
-        window.updateButton();
-      }
+      /* delay so cart state is updated before checking */
+      setTimeout(() => {
+        if (window.updateButton) {
+          window.updateButton();
+        }
+      }, 50);
 
       const drawer = document.getElementById("cartDrawer");
 
@@ -407,5 +411,6 @@
 
   });
 </script>
+
 </body>
 </html>
