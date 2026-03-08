@@ -265,24 +265,40 @@
   <script src="https://velutinx.github.io/assets/js/header.js"></script>
   <script src="https://velutinx.github.io/assets/js/shop-shared.js"></script>
 
-  <!-- Product listing script -->
-  <script type="module">
-    import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
-    window.addEventListener('load', async () => {
-      const productsData = packsData.map(p => ({
-        ...p,
-        price: window.getPriceForPack?.(p) ?? 0,
-        date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
-        category: p.category || 0
-      }));
-      const grid = document.getElementById("productGrid");
-      const searchInput = document.getElementById("searchInput");
-      const sortButtons = document.querySelectorAll(".sort-btn");
-      const categoryItems = document.querySelectorAll(".category-list li");
-      let currentCategory = 0;
-      function createCards() {
-        grid.innerHTML = "";
-        productsData.forEach(p => {
+<!-- Product listing script -->
+<script type="module">
+  import packsData from 'https://velutinx.github.io/assets/js/packs-data.js';
+
+  window.addEventListener('load', async () => {
+    const productsData = packsData.map(p => ({
+      ...p,
+      price: window.getPriceForPack?.(p) ?? 0,
+      date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7), // fallback date
+      category: p.category || 0
+    }));
+
+    const grid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortButtons = document.querySelectorAll(".sort-btn");
+    const categoryItems = document.querySelectorAll(".category-list li");
+    let currentCategory = 0;
+
+    // Debug: Log how many packs we're actually working with
+    console.log(`Loaded ${productsData.length} packs from packs-data.js`);
+    console.log(`Highest ID: ${Math.max(...productsData.map(p => Number(p.id || 0)))}`);
+
+    function createCards() {
+      grid.innerHTML = "";
+
+      // FIX: Only render packs that actually exist (adjust maxId as you upload more images)
+      const maxExistingId = 10;
+      productsData
+        .filter(p => Number(p.id) <= maxExistingId)
+        .forEach(p => {
+          const paddedId = String(p.id).padStart(3, '0');
+          const imageUrl = `https://velutinx.neocities.org/i/pack${paddedId}-1.jpg`;
+          const fallbackUrl = `https://via.placeholder.com/248x300?text=Pack+${p.id}`;
+
           const card = document.createElement("div");
           card.className = "product-card";
           card.dataset.title = p.title.toLowerCase();
@@ -290,12 +306,15 @@
           card.dataset.date = p.date;
           card.dataset.id = p.id;
           card.dataset.category = p.category;
+
           card.innerHTML = `
-  <img src="https://velutinx.neocities.org/i/pack${String(p.id).padStart(3, '0')}-1.jpg"
-       alt="${p.title}"
-       class="card-image"
-       loading="lazy"
-       onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+${p.id}+';">
+            <img 
+              src="${imageUrl}"
+              alt="${p.title.replace(/"/g, '&quot;')}"
+              class="card-image"
+              loading="lazy"
+              onerror="this.onerror=null; this.src='${fallbackUrl}';"
+            >
             <div class="card-content">
               <div class="card-title">${p.title}</div>
               <div class="price-row">
@@ -312,23 +331,31 @@
               </div>
             </div>
           `;
+
+          // Click to go to pack detail (ignore if clicking cart)
           card.addEventListener("click", e => {
             if (e.target.closest(".cart-btn")) return;
             window.location.href = `/s/pack?id=${p.id}`;
           });
+
           grid.appendChild(card);
           p.element = card;
           p.cartBtn = card.querySelector(".cart-btn");
+
+          // Initial cart state
           const isInCart = window.getCart?.().some(item => item.id === p.id) ?? false;
           if (isInCart) {
             p.cartBtn.classList.add("added");
             p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
           }
+
+          // Cart toggle
           p.cartBtn.addEventListener("click", e => {
             e.stopPropagation();
             window.addOrToggleCart?.(p);
             const nowInCart = window.getCart?.().some(item => item.id === p.id) ?? false;
             p.cartBtn.classList.toggle("added", nowInCart);
+
             if (nowInCart) {
               p.cartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
               document.getElementById("snackbar")?.classList.add("show");
@@ -339,49 +366,60 @@
             window.updateCartDisplay?.();
           });
         });
-        window.updateAllPrices?.();
-      }
-      function filterAndSort() {
-        const query = searchInput.value.toLowerCase().trim();
-        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-        productsData.forEach(p => {
-          const titleMatch = p.title.toLowerCase().includes(query);
-          const categoryMatch = currentCategory === 0 || p.category === currentCategory;
-          p.element.classList.toggle("hidden", !(titleMatch && categoryMatch));
-        });
-        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-        if (activeSort === "newest") {
-          visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
-        } else if (activeSort === "oldest") {
-          visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
-        } else if (activeSort === "price-asc") {
-          visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-        } else if (activeSort === "price-desc") {
-          visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-        }
-        visible.forEach(el => grid.appendChild(el));
-      }
-      categoryItems.forEach((item, index) => {
-        item.addEventListener("click", () => {
-          categoryItems.forEach(i => i.classList.remove("active"));
-          item.classList.add("active");
-          currentCategory = index === 0 ? 0 : index;
-          filterAndSort();
-        });
+
+      window.updateAllPrices?.();
+    }
+
+    function filterAndSort() {
+      const query = searchInput.value.toLowerCase().trim();
+      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+      productsData.forEach(p => {
+        const titleMatch = p.title.toLowerCase().includes(query);
+        const categoryMatch = currentCategory === 0 || p.category === currentCategory;
+        const shouldShow = titleMatch && categoryMatch && Number(p.id) <= 10; // enforce limit here too
+        p.element?.classList.toggle("hidden", !shouldShow);
       });
-      sortButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-          sortButtons.forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          filterAndSort();
-        });
+
+      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+
+      if (activeSort === "newest") {
+        visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
+      } else if (activeSort === "oldest") {
+        visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
+      } else if (activeSort === "price-asc") {
+        visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+      } else if (activeSort === "price-desc") {
+        visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+      }
+
+      visible.forEach(el => grid.appendChild(el));
+    }
+
+    categoryItems.forEach((item, index) => {
+      item.addEventListener("click", () => {
+        categoryItems.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+        currentCategory = index === 0 ? 0 : index;
+        filterAndSort();
       });
-      searchInput.addEventListener("input", filterAndSort);
-      createCards();
-      filterAndSort();
-      window.updateCartDisplay?.();
     });
-  </script>
+
+    sortButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        sortButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        filterAndSort();
+      });
+    });
+
+    searchInput.addEventListener("input", filterAndSort);
+
+    createCards();
+    filterAndSort();
+    window.updateCartDisplay?.();
+  });
+</script>
 
   <!-- PayPal integration -->
   <script>
