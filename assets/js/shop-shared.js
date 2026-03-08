@@ -210,7 +210,7 @@
     saveCart(cart);
     updateCartDisplay();
     showSnackbar(message, isSuccess);
-    updateAllCartButtons();  // Sync all buttons after change
+    updateAllCartButtons();
   }
 
   function removeItem(idx) {
@@ -262,17 +262,13 @@
       if (totalEl) totalEl.textContent = formatPrice(total);
     }
 
-    // Update cart title translation
     document.getElementById("cartTitle")?.textContent = t("cartTitle");
     document.getElementById("totalLabel")?.textContent = t("totalLabel");
-
-    // Update clear button text if exists
     document.querySelector(".clear-cart-btn")?.textContent = t("clearCartBtn");
 
     if (window.initPayPalButtons) window.initPayPalButtons();
   }
 
-  /* ==================== SYNC ALL CART BUTTONS ON STORE PAGE ==================== */
   function updateAllCartButtons() {
     const cart = getCart();
     const cartIds = new Set(cart.map(item => item.id));
@@ -280,22 +276,18 @@
     document.querySelectorAll(".product-card .cart-btn").forEach(btn => {
       const card = btn.closest(".product-card");
       const id = card?.dataset?.id;
-
       if (!id) return;
 
       const isInCart = cartIds.has(id);
 
       btn.classList.toggle("added", isInCart);
 
-      if (isInCart) {
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-      } else {
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-      }
+      btn.innerHTML = isInCart
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
     });
   }
 
-  /* ==================== SNACKBAR ==================== */
   function showSnackbar(message, isSuccess = true) {
     const snackbar = document.getElementById("snackbar");
     if (!snackbar) return;
@@ -305,9 +297,7 @@
     snackbar.classList.add("show");
     snackbar.style.background = isSuccess ? "#22c55e" : "#ef4444";
 
-    setTimeout(() => {
-      snackbar.classList.remove("show");
-    }, 2400);
+    setTimeout(() => snackbar.classList.remove("show"), 2400);
   }
 
   /* ==================== GLOBAL EXPORTS ==================== */
@@ -319,20 +309,23 @@
   window.updateCartDisplay = updateCartDisplay;
   window.updateAllCartButtons = updateAllCartButtons;
   window.removeItem = removeItem;
-  window.clearCart = clearCart;  // For clear button
-  window.t = t;  // Shortcut for translations
+  window.clearCart = clearCart;
+  window.t = t;
 
   // Initial setup
   document.addEventListener("DOMContentLoaded", () => {
     updateCartDisplay();
     updateAllCartButtons();
 
-    // Optional: handle language change (if you have lang switcher)
+    // Language change handler (fixed syntax)
     document.addEventListener("languageChanged", () => {
       currentLang = localStorage.getItem("language") || "en";
-      currentCurrency = /* recalculate currency based on lang */;
+      // Recalculate currency based on language
+      currentCurrency = currentLang === "en" ? "USD" :
+                        currentLang === "ja" ? "JPY" :
+                        currentLang === "zh" ? "CNY" : "MXN";
       updateCartDisplay();
-      // Re-translate other elements if needed
+      // Add any other re-translation calls here if needed
     });
   });
 })();
