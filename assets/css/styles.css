@@ -44,7 +44,6 @@
 .wave-overlay {
   position: absolute;
   inset: 0;
-  background-image: url('/images/background-wave.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -965,3 +964,4 @@ body.dark .lang-item:hover {
   0%   { bottom: -100%; }
   100% { bottom: 100%; }
 }
+
