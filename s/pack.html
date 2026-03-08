@@ -301,73 +301,111 @@
   </script>
 
   <!-- PayPal button integration – same as store.html -->
-  <script>
-    let paypalButtonsRendered = false;
+<script>
+  let paypalButtonsRendered = false;
 
-    function initPayPalButtons() {
-      if (paypalButtonsRendered) return;
+  function initPayPalButtons() {
+    if (paypalButtonsRendered) return;
+
+    const drawer = document.getElementById("cartDrawer");
+    const container = document.getElementById("paypal-button-container");
+
+    if (!drawer || !drawer.classList.contains("open")) return;
+    if (!container) return;
+    if (typeof paypal === 'undefined') return;
+
+    container.innerHTML = '';
+
+    paypal.Buttons({
+      createOrder: (data, actions) => {
+
+        const cart = window.getCart ? window.getCart() : [];
+        const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
+
+        if (parseFloat(total) <= 0) return Promise.reject("Cart is empty");
+
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              currency_code: "USD",
+              value: total
+            }
+          }]
+        });
+
+      },
+
+      onApprove: async (data, actions) => {
+
+        const details = await actions.order.capture();
+        window.location.href = `/success.html?orderID=${details.id}`;
+
+      },
+
+      onError: () => {
+        alert("There was a problem with PayPal. Please try again.");
+      }
+
+    }).render("#paypal-button-container");
+
+    paypalButtonsRendered = true;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+
+    /* hook into shared cart updates */
+    const originalUpdate = window.updateCartDisplay || function(){};
+
+    window.updateCartDisplay = function() {
+
+      originalUpdate();
+
+      /* keep pack page button synced with cart */
+      if (window.updateButton) {
+        window.updateButton();
+      }
+
       const drawer = document.getElementById("cartDrawer");
-      const container = document.getElementById("paypal-button-container");
-      if (!drawer || !drawer.classList.contains("open")) return;
-      if (!container) return;
-      if (typeof paypal === 'undefined') return;
 
-      container.innerHTML = '';
+      if (drawer && drawer.classList.contains("open")) {
+        setTimeout(initPayPalButtons, 400);
+      }
 
-      paypal.Buttons({
-        createOrder: (data, actions) => {
-          const cart = window.getCart ? window.getCart() : [];
-          const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
-          if (parseFloat(total) <= 0) return Promise.reject("Cart is empty");
-          return actions.order.create({
-            purchase_units: [{ amount: { currency_code: "USD", value: total } }]
-          });
-        },
-        onApprove: async (data, actions) => {
-          const details = await actions.order.capture();
-          window.location.href = `/success.html?orderID=${details.id}`;
-        },
-        onError: (err) => {
-          alert("There was a problem with PayPal. Please try again.");
-        }
-      }).render("#paypal-button-container");
+    };
 
-      paypalButtonsRendered = true;
-    }
+    const openDrawer = () => {
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const originalUpdate = window.updateCartDisplay || function() {};
-      window.updateCartDisplay = function() {
-        originalUpdate();
-        const drawer = document.getElementById("cartDrawer");
-        if (drawer && drawer.classList.contains("open")) {
-          setTimeout(initPayPalButtons, 400);
-        }
-      };
+      const drawer = document.getElementById("cartDrawer");
+      drawer?.classList.add("open");
 
-      const openDrawer = () => {
-        const drawer = document.getElementById("cartDrawer");
-        drawer?.classList.add("open");
-        setTimeout(initPayPalButtons, 600);
-      };
+      setTimeout(initPayPalButtons, 600);
 
-      document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
-      document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
+    };
 
-      document.getElementById("cartClose")?.addEventListener("click", () => {
-        document.getElementById("cartDrawer")?.classList.remove("open");
-      });
+    document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
+    document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
 
-      document.addEventListener("click", (e) => {
-        const drawer = document.getElementById("cartDrawer");
-        if (drawer?.classList.contains("open") &&
-            !drawer.contains(e.target) &&
-            !document.getElementById("cartBtn")?.contains(e.target) &&
-            !document.getElementById("floatingCartBtn")?.contains(e.target)) {
-          drawer.classList.remove("open");
-        }
-      });
+    document.getElementById("cartClose")?.addEventListener("click", () => {
+      document.getElementById("cartDrawer")?.classList.remove("open");
     });
-  </script>
+
+    /* click outside closes drawer */
+    document.addEventListener("click", (e) => {
+
+      const drawer = document.getElementById("cartDrawer");
+
+      if (
+        drawer?.classList.contains("open") &&
+        !drawer.contains(e.target) &&
+        !document.getElementById("cartBtn")?.contains(e.target) &&
+        !document.getElementById("floatingCartBtn")?.contains(e.target)
+      ) {
+        drawer.classList.remove("open");
+      }
+
+    });
+
+  });
+</script>
 </body>
 </html>
