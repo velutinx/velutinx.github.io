@@ -4,9 +4,11 @@
   <meta charset="utf-8">
   <title>VELUTINX — Poll</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/assets/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Poll-specific styles (unchanged) */
+    /* Poll-specific styles */
     .poll-section {
       max-width: 1600px;
       margin: 0 auto;
@@ -90,6 +92,11 @@
       animation: blobWobble 1.6s ease-in-out infinite;
     }
 
+    .card.active-vote {
+      border-color: #5a8cff;
+      box-shadow: 0 0 15px rgba(90, 140, 255, 0.3);
+    }
+
     .card img {
       width: 100%;
       border-radius: 8px;
@@ -111,7 +118,7 @@
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg,#5a8cff,#8fb6ff);
-      transition: width 0.4s ease;
+      transition: width 0.6s cubic-bezier(0.1, 0.7, 1.0, 0.1);
     }
 
     .progress-text {
@@ -131,32 +138,6 @@
       text-align: center;
       font-size: 13px;
       font-weight: bold;
-    }
-
-    .card.winner::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: url('https://www.velutinx.com/images/cross.png') center / 65% no-repeat;
-      opacity: 0.65;
-      pointer-events: none;
-      z-index: 5;
-      mix-blend-mode: multiply;
-      animation: pulseCross 2.8s ease-in-out infinite;
-    }
-
-    body.dark .card.winner::after {
-      mix-blend-mode: screen;
-      opacity: 0.75;
-    }
-
-    .card.winner {
-      box-shadow: 0 0 0 3px #e63946 inset;
-    }
-
-    @keyframes pulseCross {
-      0%, 100% { opacity: 0.50; }
-      50%      { opacity: 0.80; }
     }
 
     .bottom {
@@ -180,39 +161,18 @@
     body.dark #leaderboard {
       background: rgba(30, 30, 35, 0.9);
       border: 3px solid #444;
-      color: var(--text-dark);
+      color: #fff;
     }
 
-    #leaderboard h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
+    #leaderboard h3 { margin: 0 0 8px; font-size: 16px; }
 
-    .tooltip {
-      font-size: 11px;
-      opacity: 0.7;
-      margin-bottom: 8px;
-    }
+    .tooltip { font-size: 11px; opacity: 0.7; margin-bottom: 8px; }
 
-    .leaderboard-entry {
-      font-size: 13px;
-      padding: 2px 0;
-    }
+    .leaderboard-entry { font-size: 13px; padding: 2px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
 
-    .icon-link img {
-      width: 180px;
-      transition: transform 0.25s ease;
-    }
-
-    .icon-link img:hover {
-      animation: blobWobble 1.6s ease-in-out infinite;
-    }
-
-    .discord-disclaimer {
-      margin-top: 8px;
-      font-size: 13px;
-      opacity: 0.9;
-    }
+    .icon-link img { width: 180px; transition: transform 0.25s ease; }
+    .icon-link img:hover { animation: blobWobble 1.6s ease-in-out infinite; }
+    .discord-disclaimer { margin-top: 8px; font-size: 13px; opacity: 0.9; }
 
     @media (max-width: 1200px) {
       .big-card { display: none; }
@@ -227,7 +187,6 @@
 </head>
 <body>
 
-  <!-- Swipe animation layer -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div class="background-wrapper">
@@ -235,7 +194,6 @@
     <div class="wave-overlay"></div>
   </div>
 
-  <!-- Language selector: globe button + popover -->
   <div id="langContainer">
     <button class="lang-btn" title="Select Language">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -246,65 +204,36 @@
         <path d="M19.1 18h-6.2"></path>
       </svg>
     </button>
-
     <div id="languagePopover">
-      <div class="lang-item" data-lang="en">
-        <img src="https://flagcdn.com/w40/us.png" alt="English" />
-        <p>English</p>
-      </div>
-      <div class="lang-item" data-lang="ja">
-        <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
-        <p>日本語</p>
-      </div>
-      <div class="lang-item" data-lang="zh">
-        <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
-        <p>简体中文</p>
-      </div>
-      <div class="lang-item" data-lang="es">
-        <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
-        <p>Español</p>
-      </div>
+      <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="English" /><p>English</p></div>
+      <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="Japanese" /><p>日本語</p></div>
+      <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="Chinese" /><p>简体中文</p></div>
+      <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="Spanish" /><p>Español</p></div>
     </div>
   </div>
 
-  <!-- Theme toggle -->
-  <div class="theme-toggle" id="themeToggle">
-    <div class="theme-knob"></div>
-  </div>
+  <div class="theme-toggle" id="themeToggle"><div class="theme-knob"></div></div>
 
-  <!-- Page wrapper -->
   <div id="page">
-
-    <!-- Navigation -->
     <div id="navContainer"></div>
-
     <div class="divider"></div>
 
-    <!-- Poll section -->
     <section class="poll-section">
       <h1 class="poll-title" id="pollTitle">Vote for Your Favorite Character</h1>
       <p class="poll-subtitle" id="pollSubtitle">Click once — you can change your vote anytime</p>
 
       <div class="poll-page">
-        <!-- Big cards -->
-        <div class="big-card" id="leftBig">
-          <img id="leftImg" src="https://www.velutinx.com/images/poll/1.jpg" loading="lazy">
-        </div>
-        <div class="big-card" id="rightBig">
-          <img id="rightImg" src="https://www.velutinx.com/images/poll/1.jpg" loading="lazy">
-        </div>
+        <div class="big-card" id="leftBig"><img id="leftImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
+        <div class="big-card" id="rightBig"><img id="rightImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
 
-        <!-- Center content -->
         <div class="center">
           <div class="grid" id="grid"></div>
-
           <div class="bottom">
             <div id="leaderboard">
               <h3 id="leaderboardTitle">Leaderboard</h3>
-              <div class="tooltip" id="leaderboardTooltip">Website + Discord votes</div>
+              <div class="tooltip" id="leaderboardTooltip">Website votes</div>
               <div id="results">Loading…</div>
             </div>
-
             <div class="icon-wrapper">
               <a class="icon-link" href="https://discord.gg/XF363uYfSh" target="_blank">
                 <img src="https://www.velutinx.com/images/LogoDiscord.png" alt="Discord">
@@ -315,258 +244,140 @@
         </div>
       </div>
     </section>
-
     <div class="divider"></div>
-
   </div>
 
-  <!-- Scripts -->
   <script src="/assets/js/navigation.js"></script>
   <script src="/assets/js/translations.js"></script>
 
   <script>
-    // Dark mode
-    if (localStorage.getItem("darkMode") === "true") {
-      document.body.classList.add("dark");
-    }
-
-    // Theme toggle
-    document.getElementById("themeToggle").onclick = () => {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-    };
-
-    // Cursor sparkles
-    let lastStarTime = 0;
-    document.addEventListener("mousemove", (e) => {
-      const now = Date.now();
-      if (now - lastStarTime < 45) return;
-      lastStarTime = now;
-
-      const star = document.createElement("div");
-      star.className = "star";
-      star.textContent = "✦";
-      star.style.setProperty("--drift", Math.random());
-      star.style.left = `${e.clientX}px`;
-      star.style.top = `${e.clientY}px`;
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 2000);
-    });
-
-    // Full-page falling sparkles
-    setInterval(() => {
-      const star = document.createElement("div");
-      star.className = "falling-star";
-      star.textContent = "✦";
-      star.style.left = Math.random() * 100 + "vw";
-      star.style.top = "-10vh";
-      star.style.setProperty("--drift", Math.random() * 2 - 1);
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 8000);
-    }, 400);
-
-    // Poll logic (unchanged except language)
-    const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+    // --- GLOBAL CONFIG ---
+    const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
+    const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
 
     const POLL_ID = "character_poll_new";
-    const TOTAL = 12;
-
+    const TOTAL_CARDS = 12;
     const grid = document.getElementById("grid");
     const resultsBox = document.getElementById("results");
 
-    const leftImg = document.getElementById("leftImg");
-    const leftBig = document.getElementById("leftBig");
-
-    const rightImg = document.getElementById("rightImg");
-    const rightBig = document.getElementById("rightBig");
-
-    let rotateIndex = 1;
-
-    let voterHash = localStorage.getItem("voter_hash_poll");
-    if (!voterHash) {
-      voterHash = crypto.randomUUID();
-      localStorage.setItem("voter_hash_poll", voterHash);
-    }
-
-    // Build small cards
-    for (let i = 1; i <= TOTAL; i++) {
+    // --- INITIALIZE UI ---
+    for (let i = 1; i <= TOTAL_CARDS; i++) {
       const card = document.createElement("div");
       card.className = "card";
       card.dataset.id = i;
-
       card.innerHTML = `
         <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
         <div class="progress">
           <div class="progress-fill"></div>
           <div class="progress-text">0%</div>
         </div>
-        <div class="label">Loading…</div>
+        <div class="label">Character ${i}</div>
       `;
-
-      card.onclick = async () => {
+      card.onclick = () => {
         showSelected(i);
-        await vote(i);
+        castVote(i);
       };
-
       grid.appendChild(card);
     }
 
-    function showSelected(id) {
-      leftBig.classList.remove("show");
-      setTimeout(() => {
-        leftImg.src = `https://www.velutinx.com/images/poll/${id}.jpg`;
-        leftBig.classList.add("show");
-      }, 150);
+    // --- VOTING CORE ---
+    async function castVote(id) {
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const { ip } = await ipRes.json();
+
+        const { error } = await sb.from('Website_voting').upsert(
+          { voter_id: ip, option_id: id, poll_id: POLL_ID },
+          { onConflict: 'voter_id' }
+        );
+
+        if (!error) {
+          localStorage.setItem('voted_id', id);
+          updateCardStyles(id);
+        }
+      } catch (err) { console.error("Vote failed", err); }
     }
 
-    function rotate() {
-      rightBig.classList.remove("show");
+    async function fetchResults() {
+      const { data, error } = await sb.from('Website_voting').select('option_id').eq('poll_id', POLL_ID);
+      if (error) return;
+
+      const counts = {};
+      for (let i = 1; i <= TOTAL_CARDS; i++) counts[i] = 0;
+      data.forEach(v => { if (counts[v.option_id] !== undefined) counts[v.option_id]++; });
+
+      const total = data.length || 1;
+      
+      // Update Grid Bars
+      document.querySelectorAll(".card").forEach(card => {
+        const id = Number(card.dataset.id);
+        const percent = Math.round((counts[id] / (data.length || 1)) * 100);
+        card.querySelector(".progress-fill").style.width = percent + "%";
+        card.querySelector(".progress-text").textContent = percent + "%";
+      });
+
+      // Update Leaderboard List
+      const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+      resultsBox.innerHTML = sorted.map(([id, count]) => 
+        `<div class="leaderboard-entry">Character ${id}: ${count} votes</div>`
+      ).join('') || "No votes yet";
+    }
+
+    function updateCardStyles(votedId) {
+      document.querySelectorAll('.card').forEach(c => {
+        c.classList.toggle('active-vote', Number(c.dataset.id) === votedId);
+      });
+    }
+
+    // --- REALTIME & INIT ---
+    async function init() {
+      await fetchResults();
+      const saved = localStorage.getItem('voted_id');
+      if (saved) updateCardStyles(Number(saved));
+
+      sb.channel('live-poll')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Website_voting' }, fetchResults)
+        .subscribe();
+    }
+
+    // --- VISUAL HELPERS ---
+    let rotateIndex = 1;
+    function showSelected(id) {
+      const left = document.getElementById("leftBig");
+      left.classList.remove("show");
       setTimeout(() => {
-        rightImg.src = `https://www.velutinx.com/images/poll/${rotateIndex}.jpg`;
-        rightBig.classList.add("show");
-        rotateIndex = (rotateIndex % TOTAL) + 1;
+        document.getElementById("leftImg").src = `https://www.velutinx.com/images/poll/${id}.jpg`;
+        left.classList.add("show");
+      }, 150);
+    }
+    function rotate() {
+      const right = document.getElementById("rightBig");
+      right.classList.remove("show");
+      setTimeout(() => {
+        document.getElementById("rightImg").src = `https://www.velutinx.com/images/poll/${rotateIndex}.jpg`;
+        right.classList.add("show");
+        rotateIndex = (rotateIndex % TOTAL_CARDS) + 1;
       }, 150);
     }
 
     setInterval(rotate, 3500);
     rotate();
     showSelected(1);
+    init();
 
-    async function vote(optionId) {
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/votes?on_conflict=poll_id,voter_hash`, {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`,
-            "Content-Type": "application/json",
-            Prefer: "resolution=merge-duplicates"
-          },
-          body: JSON.stringify({
-            poll_id: POLL_ID,
-            option_id: optionId,
-            voter_hash: voterHash,
-            source: "website"
-          })
-        });
-
-        if (response.ok || response.status === 409) {
-          console.log("Vote successful / updated");
-          setTimeout(() => {
-            fetchResults();
-            fetchLeaderboard();
-          }, 800);
-        } else {
-          console.error("Vote failed:", response.status);
-        }
-      } catch (err) {
-        console.error("Vote error:", err);
-      }
-    }
-
-    async function fetchResults() {
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?poll_id=eq.${POLL_ID}&select=option_id`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-        });
-
-        if (!res.ok) throw new Error(await res.text());
-
-        const votes = await res.json();
-        const counts = {};
-        for (let i = 1; i <= TOTAL; i++) counts[i] = 0;
-        votes.forEach(v => { if (v.option_id) counts[v.option_id]++; });
-
-        const total = votes.length || 1;
-
-        document.querySelectorAll(".card").forEach(card => {
-          const id = Number(card.dataset.id);
-          const percent = Math.round((counts[id] / total) * 100);
-          card.querySelector(".progress-fill").style.width = percent + "%";
-          card.querySelector(".progress-text").textContent = percent + "%";
-        });
-      } catch (err) {
-        console.error("fetchResults error:", err);
-      }
-    }
-
-    async function fetchLeaderboard() {
-      try {
-        const winRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/poll_winners?poll_id=eq.${POLL_ID}&select=option_id,selected_at`,
-          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-        );
-
-        const winners = await winRes.json();
-        const winnerIds = new Set(winners.map(w => Number(w.option_id)));
-
-        const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/poll_result?poll_id=eq.${POLL_ID}&order=option_id.asc&select=option_id,character_name,score`,
-          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-        );
-
-        const rows = await res.json();
-        const sortedRows = rows.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
-
-        let html = "";
-        sortedRows.forEach(r => {
-          const id = Number(r.option_id);
-          const isWinner = winnerIds.has(id);
-          const cls = isWinner ? "spoiled" : "";
-          const name = r.character_name || `Option ${id}`;
-          const score = Number(r.score || 0).toFixed(1);
-
-          html += `
-            <div class="leaderboard-entry ${cls}">
-              ${name}: ${score}
-            </div>
-          `;
-        });
-
-        resultsBox.innerHTML = html || "No votes yet";
-
-        document.querySelectorAll(".card").forEach(card => {
-          card.classList.remove("winner");
-          const id = Number(card.dataset.id);
-          const row = rows.find(r => Number(r.option_id) === id);
-
-          if (row?.character_name) {
-            card.querySelector(".label").textContent = row.character_name;
-          }
-
-          if (winnerIds.has(id)) {
-            card.classList.add("winner");
-          }
-        });
-      } catch (err) {
-        console.error("fetchLeaderboard error:", err);
-        resultsBox.innerHTML = "Error loading leaderboard";
-      }
-    }
-
-    fetchResults();
-    fetchLeaderboard();
-    setInterval(fetchResults, 30000);
-    setInterval(fetchLeaderboard, 30000);
-
-    // Language switch
+    // Theme & Lang logic
+    if (localStorage.getItem("darkMode") === "true") document.body.classList.add("dark");
+    document.getElementById("themeToggle").onclick = () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    };
     document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        setLanguage(item.dataset.lang);
-      });
+      item.addEventListener('click', () => setLanguage(item.dataset.lang));
     });
-
-    // Apply poll page translations on load
     applyTranslations('poll');
-
-    // Re-apply after language change
-    document.addEventListener('languageChanged', () => {
-      applyTranslations('poll');
-    });
+    document.addEventListener('languageChanged', () => applyTranslations('poll'));
   </script>
-
   <script src="/assets/js/tab-title-animation.js"></script>
-
 </body>
 </html>
