@@ -28,72 +28,81 @@
         <div id="scoreboard">Loading results...</div>
     </div>
 
-    <script>
-        const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<script>
+    const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+    
+    // RENAMED THIS to supabaseClient to avoid the error
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 1. Initial Load & Realtime Subscription
-        async function init() {
-            fetchResults();
-            
-            // Listen for changes in the table
-            supabase
-                .channel('schema-db-changes')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'website_voting_test' }, () => {
-                    fetchResults();
-                })
-                .subscribe();
+    async function init() {
+        fetchResults();
+        
+        // Listen for changes
+        supabaseClient
+            .channel('voting-updates')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'website_voting_test' }, () => {
+                fetchResults();
+            })
+            .subscribe();
+    }
+
+    async function fetchResults() {
+        const { data, error } = await supabaseClient
+            .from('website_voting_test')
+            .select('option_selected');
+        
+        if (error) {
+            console.error("Fetch error:", error);
+            return;
         }
 
-        // 2. Fetch and Display Results
-        async function fetchResults() {
-            const { data, error } = await supabase.from('website_voting_test').select('option_selected');
-            if (error) return;
+        const counts = { 'Option A': 0, 'Option B': 0, 'Option C': 0, 'Option D': 0, 'Option E': 0 };
+        data.forEach(row => {
+            if(counts.hasOwnProperty(row.option_selected)) counts[row.option_selected]++;
+        });
 
-            const counts = { 'Option A': 0, 'Option B': 0, 'Option C': 0, 'Option D': 0, 'Option E': 0 };
-            data.forEach(row => counts[row.option_selected]++);
+        const total = data.length;
+        let html = '';
+        for (const [opt, val] of Object.entries(counts)) {
+            const percent = total === 0 ? 0 : Math.round((val / total) * 100);
+            html += `<div><strong>${opt}:</strong> ${val} votes (${percent}%)
+                     <div class="bar" style="width: ${percent}%"></div></div>`;
+        }
+        document.getElementById('scoreboard').innerHTML = html || "No votes yet.";
+    }
 
-            const total = data.length;
-            let html = '';
-            for (const [opt, val] of Object.entries(counts)) {
-                const percent = total === 0 ? 0 : Math.round((val / total) * 100);
-                html += `<div><strong>${opt}:</strong> ${val} votes (${percent}%)
-                         <div class="bar" style="width: ${percent}%"></div></div>`;
-            }
-            document.getElementById('scoreboard').innerHTML = html;
+    async function castVote(choice) {
+        if (localStorage.getItem('hasVoted')) {
+            alert("You have already voted from this browser.");
+            return;
         }
 
-        // 3. Voting Logic
-        async function castVote(choice) {
-            // Check LocalStorage first (Simple UI deterrent)
-            if (localStorage.getItem('hasVoted')) {
-                alert("You have already voted from this browser.");
-                return;
-            }
-
-            // Get IP Address (using a free public API)
+        try {
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const { ip } = await ipRes.json();
 
-            // Insert into Supabase
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('website_voting_test')
                 .insert([{ option_selected: choice, voter_id: ip }]);
 
             if (error) {
-                if (error.code === '23505') { // Unique constraint violation
-                    alert("This computer/IP has already cast a vote.");
+                if (error.code === '23505') { 
+                    alert("This IP has already cast a vote.");
+                    localStorage.setItem('hasVoted', 'true'); // Sync local state
                 } else {
-                    alert("Error submitting vote: " + error.message);
+                    alert("Error: " + error.message);
                 }
             } else {
                 localStorage.setItem('hasVoted', 'true');
                 alert("Vote recorded!");
             }
+        } catch (err) {
+            alert("Connection error. Check your internet.");
         }
+    }
 
-        init();
-    </script>
+    init();
+</script>
 </body>
 </html>
