@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-time Voting</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; text-align: center; }
+        .options { display: flex; gap: 10px; justify-content: center; margin-bottom: 2rem; }
+        button { padding: 10px 20px; cursor: pointer; }
+        .results { background: #f4f4f4; padding: 20px; border-radius: 8px; }
+        .bar { background: #007bff; height: 20px; transition: width 0.3s; margin: 5px 0; }
+    </style>
+</head>
+<body>
+
+    <h2>Cast Your Vote</h2>
+    <div id="voting-section" class="options">
+        <button onclick="castVote('Option A')">Option A</button>
+        <button onclick="castVote('Option B')">Option B</button>
+        <button onclick="castVote('Option C')">Option C</button>
+        <button onclick="castVote('Option D')">Option D</button>
+        <button onclick="castVote('Option E')">Option E</button>
+    </div>
+
+    <div class="results">
+        <h3>Live Scoreboard</h3>
+        <div id="scoreboard">Loading results...</div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 1. Initial Load & Realtime Subscription
+        async function init() {
+            fetchResults();
+            
+            // Listen for changes in the table
+            supabase
+                .channel('schema-db-changes')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'website_voting_test' }, () => {
+                    fetchResults();
+                })
+                .subscribe();
+        }
+
+        // 2. Fetch and Display Results
+        async function fetchResults() {
+            const { data, error } = await supabase.from('website_voting_test').select('option_selected');
+            if (error) return;
+
+            const counts = { 'Option A': 0, 'Option B': 0, 'Option C': 0, 'Option D': 0, 'Option E': 0 };
+            data.forEach(row => counts[row.option_selected]++);
+
+            const total = data.length;
+            let html = '';
+            for (const [opt, val] of Object.entries(counts)) {
+                const percent = total === 0 ? 0 : Math.round((val / total) * 100);
+                html += `<div><strong>${opt}:</strong> ${val} votes (${percent}%)
+                         <div class="bar" style="width: ${percent}%"></div></div>`;
+            }
+            document.getElementById('scoreboard').innerHTML = html;
+        }
+
+        // 3. Voting Logic
+        async function castVote(choice) {
+            // Check LocalStorage first (Simple UI deterrent)
+            if (localStorage.getItem('hasVoted')) {
+                alert("You have already voted from this browser.");
+                return;
+            }
+
+            // Get IP Address (using a free public API)
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const { ip } = await ipRes.json();
+
+            // Insert into Supabase
+            const { error } = await supabase
+                .from('website_voting_test')
+                .insert([{ option_selected: choice, voter_id: ip }]);
+
+            if (error) {
+                if (error.code === '23505') { // Unique constraint violation
+                    alert("This computer/IP has already cast a vote.");
+                } else {
+                    alert("Error submitting vote: " + error.message);
+                }
+            } else {
+                localStorage.setItem('hasVoted', 'true');
+                alert("Vote recorded!");
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
