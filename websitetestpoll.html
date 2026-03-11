@@ -32,76 +32,90 @@
         <div id="scoreboard">Loading...</div>
     </div>
 
-    <script>
-        const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
-        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+<script>
+    const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+    
+    const sb = supabase.createClient(S_URL, S_KEY);
+
+    async function init() {
+        console.log("Initializing App...");
+        fetchResults();
         
-        // Use 'sb' to avoid global 'supabase' name conflicts
-        const sb = supabase.createClient(S_URL, S_KEY);
-
-        async function init() {
-            fetchResults();
-            
-            // Realtime listener
-            sb.channel('any').on('postgres_changes', 
-                { event: 'INSERT', schema: 'public', table: 'website_voting_test' }, 
-                () => fetchResults()
-            ).subscribe();
-
-            // Disable buttons if already voted
-            if (localStorage.getItem('voted_test')) {
-                disableButtons();
-            }
-        }
-
-        async function fetchResults() {
-            const { data, error } = await sb.from('website_voting_test').select('option_selected');
-            if (error) return console.error(error);
-
-            const options = ['Option A', 'Option B', 'Option C', 'Option D', 'Option E'];
-            const counts = {};
-            options.forEach(opt => counts[opt] = 0);
-            data.forEach(row => { if(counts[row.option_selected] !== undefined) counts[row.option_selected]++; });
-
-            const total = data.length;
-            let html = '';
-            options.forEach(opt => {
-                const count = counts[opt];
-                const percent = total === 0 ? 0 : Math.round((count / total) * 100);
-                html += `
-                    <div class="vote-item">${opt} (${count})</div>
-                    <div class="bar-container"><div class="bar" style="width: ${percent}%"></div></div>
-                `;
+        // Listen for ANY change on the table
+        const channel = sb.channel('db-changes')
+            .on('postgres_changes', 
+                { event: '*', schema: 'public', table: 'website_voting_test' }, 
+                (payload) => {
+                    console.log('Change received!', payload);
+                    fetchResults();
+                }
+            )
+            .subscribe((status) => {
+                console.log("Realtime status:", status);
             });
-            document.getElementById('scoreboard').innerHTML = html;
+
+        if (localStorage.getItem('voted_test')) {
+            disableButtons();
+        }
+    }
+
+    async function fetchResults() {
+        const { data, error } = await sb.from('website_voting_test').select('option_selected');
+        
+        if (error) {
+            console.error("Fetch Error:", error);
+            return;
         }
 
-        async function castVote(choice) {
-            try {
-                // 1. Get IP
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const { ip } = await ipRes.json();
+        const options = ['Option A', 'Option B', 'Option C', 'Option D', 'Option E'];
+        const counts = {};
+        options.forEach(opt => counts[opt] = 0);
+        data.forEach(row => { if(counts[row.option_selected] !== undefined) counts[row.option_selected]++; });
 
-                // 2. Submit to Supabase
-                const { error } = await sb.from('website_voting_test').insert([{ option_selected: choice, voter_id: ip }]);
+        const total = data.length;
+        let html = `<p><strong>Total Votes: ${total}</strong></p>`;
+        options.forEach(opt => {
+            const count = counts[opt];
+            const percent = total === 0 ? 0 : Math.round((count / total) * 100);
+            html += `
+                <div class="vote-item">${opt}: ${count}</div>
+                <div class="bar-container"><div class="bar" style="width: ${percent}%"></div></div>
+            `;
+        });
+        document.getElementById('scoreboard').innerHTML = html;
+    }
 
-                if (error) {
-                    if (error.code === '23505') alert("You have already voted.");
-                    else alert("Error: Make sure you ran the SQL to disable RLS!");
-                } else {
+    async function castVote(choice) {
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const { ip } = await ipRes.json();
+
+            const { error } = await sb.from('website_voting_test').insert([{ option_selected: choice, voter_id: ip }]);
+
+            if (error) {
+                if (error.code === '23505') {
+                    alert("You have already voted.");
                     localStorage.setItem('voted_test', 'true');
                     disableButtons();
+                } else {
+                    console.error("DB Error:", error);
                 }
-            } catch (e) {
-                console.error(e);
+            } else {
+                localStorage.setItem('voted_test', 'true');
+                disableButtons();
+                // We don't need an alert here as the bars will move automatically
             }
+        } catch (e) {
+            console.error("Network Error:", e);
         }
+    }
 
-        function disableButtons() {
-            document.querySelectorAll('#voting-section button').forEach(b => b.disabled = true);
-        }
+    function disableButtons() {
+        document.querySelectorAll('#voting-section button').forEach(b => b.disabled = true);
+    }
 
-        init();
-    </script>
+    init();
+</script>
 </body>
 </html>
