@@ -5,16 +5,20 @@
     <title>Real-time Voting</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; text-align: center; }
-        .options { display: flex; gap: 10px; justify-content: center; margin-bottom: 2rem; }
-        button { padding: 10px 20px; cursor: pointer; }
-        .results { background: #f4f4f4; padding: 20px; border-radius: 8px; }
-        .bar { background: #007bff; height: 20px; transition: width 0.3s; margin: 5px 0; }
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 500px; margin: 2rem auto; text-align: center; color: #333; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        button { padding: 12px; cursor: pointer; border: 1px solid #ddd; border-radius: 5px; background: white; transition: 0.2s; }
+        button:hover { background: #f0f0f0; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .results { background: #f9f9f9; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: left; }
+        .bar-container { background: #eee; border-radius: 10px; height: 12px; margin: 5px 0 15px 0; overflow: hidden; }
+        .bar { background: #4CAF50; height: 100%; width: 0%; transition: width 0.5s ease-in-out; }
+        .vote-item { font-size: 0.9rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>Cast Your Vote</h2>
+    <h2>Live Poll</h2>
     <div id="voting-section" class="options">
         <button onclick="castVote('Option A')">Option A</button>
         <button onclick="castVote('Option B')">Option B</button>
@@ -24,85 +28,80 @@
     </div>
 
     <div class="results">
-        <h3>Live Scoreboard</h3>
-        <div id="scoreboard">Loading results...</div>
+        <h3 style="margin-top:0">Results</h3>
+        <div id="scoreboard">Loading...</div>
     </div>
 
-<script>
-    const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
-    
-    // RENAMED THIS to supabaseClient to avoid the error
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    async function init() {
-        fetchResults();
+    <script>
+        const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
         
-        // Listen for changes
-        supabaseClient
-            .channel('voting-updates')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'website_voting_test' }, () => {
-                fetchResults();
-            })
-            .subscribe();
-    }
+        // Use 'sb' to avoid global 'supabase' name conflicts
+        const sb = supabase.createClient(S_URL, S_KEY);
 
-    async function fetchResults() {
-        const { data, error } = await supabaseClient
-            .from('website_voting_test')
-            .select('option_selected');
-        
-        if (error) {
-            console.error("Fetch error:", error);
-            return;
-        }
+        async function init() {
+            fetchResults();
+            
+            // Realtime listener
+            sb.channel('any').on('postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'website_voting_test' }, 
+                () => fetchResults()
+            ).subscribe();
 
-        const counts = { 'Option A': 0, 'Option B': 0, 'Option C': 0, 'Option D': 0, 'Option E': 0 };
-        data.forEach(row => {
-            if(counts.hasOwnProperty(row.option_selected)) counts[row.option_selected]++;
-        });
-
-        const total = data.length;
-        let html = '';
-        for (const [opt, val] of Object.entries(counts)) {
-            const percent = total === 0 ? 0 : Math.round((val / total) * 100);
-            html += `<div><strong>${opt}:</strong> ${val} votes (${percent}%)
-                     <div class="bar" style="width: ${percent}%"></div></div>`;
-        }
-        document.getElementById('scoreboard').innerHTML = html || "No votes yet.";
-    }
-
-    async function castVote(choice) {
-        if (localStorage.getItem('hasVoted')) {
-            alert("You have already voted from this browser.");
-            return;
-        }
-
-        try {
-            const ipRes = await fetch('https://api.ipify.org?format=json');
-            const { ip } = await ipRes.json();
-
-            const { error } = await supabaseClient
-                .from('website_voting_test')
-                .insert([{ option_selected: choice, voter_id: ip }]);
-
-            if (error) {
-                if (error.code === '23505') { 
-                    alert("This IP has already cast a vote.");
-                    localStorage.setItem('hasVoted', 'true'); // Sync local state
-                } else {
-                    alert("Error: " + error.message);
-                }
-            } else {
-                localStorage.setItem('hasVoted', 'true');
-                alert("Vote recorded!");
+            // Disable buttons if already voted
+            if (localStorage.getItem('voted_test')) {
+                disableButtons();
             }
-        } catch (err) {
-            alert("Connection error. Check your internet.");
         }
-    }
 
-    init();
-</script>
+        async function fetchResults() {
+            const { data, error } = await sb.from('website_voting_test').select('option_selected');
+            if (error) return console.error(error);
+
+            const options = ['Option A', 'Option B', 'Option C', 'Option D', 'Option E'];
+            const counts = {};
+            options.forEach(opt => counts[opt] = 0);
+            data.forEach(row => { if(counts[row.option_selected] !== undefined) counts[row.option_selected]++; });
+
+            const total = data.length;
+            let html = '';
+            options.forEach(opt => {
+                const count = counts[opt];
+                const percent = total === 0 ? 0 : Math.round((count / total) * 100);
+                html += `
+                    <div class="vote-item">${opt} (${count})</div>
+                    <div class="bar-container"><div class="bar" style="width: ${percent}%"></div></div>
+                `;
+            });
+            document.getElementById('scoreboard').innerHTML = html;
+        }
+
+        async function castVote(choice) {
+            try {
+                // 1. Get IP
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const { ip } = await ipRes.json();
+
+                // 2. Submit to Supabase
+                const { error } = await sb.from('website_voting_test').insert([{ option_selected: choice, voter_id: ip }]);
+
+                if (error) {
+                    if (error.code === '23505') alert("You have already voted.");
+                    else alert("Error: Make sure you ran the SQL to disable RLS!");
+                } else {
+                    localStorage.setItem('voted_test', 'true');
+                    disableButtons();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function disableButtons() {
+            document.querySelectorAll('#voting-section button').forEach(b => b.disabled = true);
+        }
+
+        init();
+    </script>
 </body>
 </html>
