@@ -3,129 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Switchable Poll</title>
+    <title>Real-time Voting System</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #4CAF50; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 2rem auto; padding: 0 20px; text-align: center; background: var(--bg); color: #333; }
-        
-        .card { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        
-        .options { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 25px 0; }
+        :root { --primary: #4CAF50; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 500px; margin: 2rem auto; padding: 20px; background: var(--bg); color: #333; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; color: #1a1a1a; }
+        .options { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 20px 0; }
         button { 
-            padding: 14px; cursor: pointer; border: 2px solid #eee; border-radius: 10px; 
-            background: white; font-weight: 600; transition: all 0.2s ease; font-size: 1rem;
+            padding: 12px; cursor: pointer; border: 2px solid #eee; border-radius: 8px; 
+            background: white; font-weight: 600; transition: 0.2s; font-size: 1rem;
         }
-        button:hover { border-color: var(--primary); background: #f1f8f1; }
+        button:hover { border-color: var(--primary); background: #f9fdf9; }
         button.active { border-color: var(--primary); background: #e8f5e9; color: #2e7d32; }
-
-        .results { text-align: left; margin-top: 30px; border-top: 1px solid #eee; pt: 20px; }
-        .bar-container { background: #eee; border-radius: 20px; height: 10px; margin: 8px 0 18px 0; overflow: hidden; }
-        .bar { background: var(--primary); height: 100%; width: 0%; transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .label-group { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; }
-        
-        #status-dot { height: 8px; width: 8px; background: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        #status-dot.online { background: #4CAF50; box-shadow: 0 0 5px #4CAF50; }
+        .results { text-align: left; margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; }
+        .bar-container { background: #eee; border-radius: 10px; height: 8px; margin: 5px 0 15px 0; overflow: hidden; }
+        .bar { background: var(--primary); height: 100%; width: 0%; transition: width 0.8s ease; }
+        .stats { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold; }
+        #status { font-size: 0.7rem; color: #888; display: flex; align-items: center; justify-content: flex-end; }
+        #dot { height: 6px; width: 6px; background: #bbb; border-radius: 50%; margin-right: 5px; }
+        #dot.live { background: #4CAF50; box-shadow: 0 0 5px #4CAF50; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>What's your pick?</h2>
-        <p style="font-size: 0.8rem; color: #666;">You can change your vote at any time.</p>
-
-        <div id="voting-section" class="options">
-            <button onclick="castVote('Option A')">Option A</button>
-            <button onclick="castVote('Option B')">Option B</button>
-            <button onclick="castVote('Option C')">Option C</button>
-            <button onclick="castVote('Option D')">Option D</button>
-            <button onclick="castVote('Option E')">Option E</button>
-        </div>
-
-        <div class="results">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Live Results</h3>
-                <span style="font-size: 0.7rem;"><span id="status-dot"></span> <span id="conn-text">Connecting...</span></span>
-            </div>
-            <div id="scoreboard">Loading scores...</div>
-        </div>
+<div class="card">
+    <h2>Live Poll</h2>
+    <div id="status"><span id="dot"></span> <span id="mode">Connecting...</span></div>
+    
+    <div id="voting-section" class="options">
+        <button onclick="castVote('Option A')">Option A</button>
+        <button onclick="castVote('Option B')">Option B</button>
+        <button onclick="castVote('Option C')">Option C</button>
+        <button onclick="castVote('Option D')">Option D</button>
+        <button onclick="castVote('Option E')">Option E</button>
     </div>
 
-    <script>
-        const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
-        const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+    <div class="results">
+        <div id="scoreboard">Loading scores...</div>
+    </div>
+</div>
+
+<script>
+    const URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+    const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+    const sb = supabase.createClient(URL, KEY);
+
+    async function init() {
+        await fetchResults();
         
-        const sb = supabase.createClient(S_URL, S_KEY);
-
-        async function init() {
-            fetchResults();
-            
-            // Subscribe to any change (Insert, Update, Delete)
-            sb.channel('live-poll')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting_test' }, () => {
-                  fetchResults();
-              })
-              .subscribe((status) => {
-                  if(status === 'SUBSCRIBED') {
-                      document.getElementById('status-dot').className = 'online';
-                      document.getElementById('conn-text').innerText = 'Live';
-                  }
-              });
-
-            // Highlight local choice if exists
-            const saved = localStorage.getItem('my_vote');
-            if (saved) highlightButton(saved);
-        }
-
-        async function fetchResults() {
-            const { data, error } = await sb.from('website_voting_test').select('option_selected');
-            if (error) return;
-
-            const options = ['Option A', 'Option B', 'Option C', 'Option D', 'Option E'];
-            const counts = {};
-            options.forEach(o => counts[o] = 0);
-            data.forEach(row => { if(counts[row.option_selected] !== undefined) counts[row.option_selected]++; });
-
-            const total = data.length;
-            let html = '';
-            options.forEach(opt => {
-                const count = counts[opt];
-                const percent = total === 0 ? 0 : Math.round((count / total) * 100);
-                html += `
-                    <div class="label-group"><span>${opt}</span><span>${count} (${percent}%)</span></div>
-                    <div class="bar-container"><div class="bar" style="width: ${percent}%"></div></div>
-                `;
-            });
-            document.getElementById('scoreboard').innerHTML = html;
-        }
-
-        async function castVote(choice) {
-            try {
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const { ip } = await ipRes.json();
-
-                // UPSERT: Create if new IP, Update if IP already exists
-                const { error } = await sb.from('website_voting_test').upsert(
-                    { voter_id: ip, option_selected: choice },
-                    { onConflict: 'voter_id' }
-                );
-
-                if (!error) {
-                    localStorage.setItem('my_vote', choice);
-                    highlightButton(choice);
-                } else {
-                    console.error(error);
+        // Subscription with Polling Fallback for CHANNEL_ERROR
+        const channel = sb.channel('poll-main')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting_test' }, () => {
+                fetchResults();
+            })
+            .subscribe((status) => {
+                const dot = document.getElementById('dot');
+                const mode = document.getElementById('mode');
+                
+                if (status === 'SUBSCRIBED') {
+                    dot.className = 'live';
+                    mode.innerText = 'Live';
+                } else if (status === 'CHANNEL_ERROR') {
+                    mode.innerText = 'Live (Fallback Mode)';
+                    setInterval(fetchResults, 5000); // Poll every 5s if Realtime fails
                 }
-            } catch (e) { console.error(e); }
-        }
-
-        function highlightButton(choice) {
-            document.querySelectorAll('#voting-section button').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText === choice);
             });
-        }
 
-        init();
-    </script>
+        const lastVote = localStorage.getItem('user_vote');
+        if (lastVote) updateUI(lastVote);
+    }
+
+    async function fetchResults() {
+        const { data, error } = await sb.from('website_voting_test').select('option_selected');
+        if (error) return;
+
+        const options = ['Option A', 'Option B', 'Option C', 'Option D', 'Option E'];
+        const counts = {};
+        options.forEach(o => counts[o] = 0);
+        data.forEach(row => { if(counts[row.option_selected] !== undefined) counts[row.option_selected]++; });
+
+        const total = data.length;
+        let html = `<p><strong>Total Voters: ${total}</strong></p>`;
+        options.forEach(opt => {
+            const count = counts[opt];
+            const percent = total === 0 ? 0 : Math.round((count / total) * 100);
+            html += `
+                <div class="stats"><span>${opt}</span><span>${count} (${percent}%)</span></div>
+                <div class="bar-container"><div class="bar" style="width: ${percent}%"></div></div>
+            `;
+        });
+        document.getElementById('scoreboard').innerHTML = html;
+    }
+
+    async function castVote(choice) {
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const { ip } = await ipRes.json();
+
+            // UPSERT: This handles both the "only one vote" and "switch vote" logic
+            const { error } = await sb.from('website_voting_test').upsert(
+                { voter_id: ip, option_selected: choice },
+                { onConflict: 'voter_id' }
+            );
+
+            if (!error) {
+                localStorage.setItem('user_vote', choice);
+                updateUI(choice);
+            }
+        } catch (e) { console.error("Vote failed", e); }
+    }
+
+    function updateUI(choice) {
+        document.querySelectorAll('#voting-section button').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText === choice);
+        });
+    }
+
+    init();
+</script>
 </body>
 </html>
