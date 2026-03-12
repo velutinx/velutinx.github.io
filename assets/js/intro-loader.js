@@ -7,15 +7,18 @@
     path = path.slice(0, -1);
   }
 
-  // 3. STRICT CHECK: 
-  // Play long intro ONLY if path is empty OR just a single slash.
-  // We EXPLICITLY skip it if the path contains "index", ".html", or any other text.
-  const isTrueRoot = (path === '' || path === '/');
-  const isExplicitFile = path.includes('index') || path.includes('.html') || path.length > 1;
+  // 3. Check for navigation flag (added to home blob link)
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromNav = urlParams.has('from') && urlParams.get('from') === 'nav';
 
-  // 4. Decide: Play Intro OR Show Website
-  if (!isTrueRoot || isExplicitFile) {
-    // SKIP INTRO - Show website immediately
+  // 4. Play long intro ONLY if:
+  //    - path is empty or just a single slash, AND
+  //    - not coming from a navigation click (i.e., no from=nav parameter)
+  const isTrueRoot = (path === '' || path === '/');
+  const shouldPlayLong = isTrueRoot && !fromNav;
+
+  // 5. If not playing long intro, show website immediately
+  if (!shouldPlayLong) {
     document.addEventListener("DOMContentLoaded", function(){
       const main = document.getElementById('mainWebsite');
       if (main) {
@@ -26,11 +29,9 @@
     return; // Exit script
   }
 
-  // 5. Cinematic Intro (Only runs if path is exactly "/" and nothing else)
+  // 6. Cinematic Intro (Only runs if shouldPlayLong is true)
   document.addEventListener("DOMContentLoaded", function(){
-    // ... rest of your intro code ...
-    
-        const intro = document.createElement("div");
+    const intro = document.createElement("div");
     intro.id = "cinematicIntro";
     intro.innerHTML = `
       <style>
@@ -252,7 +253,7 @@
     `;
     document.body.prepend(intro);
 
-    // Auto-play sequence (unchanged)
+    // Auto-play sequence
     const glitch = document.getElementById('glitch');
     const whiteScreen = document.getElementById('whiteScreen');
     const shutdown = document.getElementById('shutdown');
