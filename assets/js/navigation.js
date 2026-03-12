@@ -19,7 +19,7 @@ fetch('/assets/includes/navigation.html')
       blob.style.cursor = "pointer";
       blob.addEventListener('click', () => {
         const id = blob.id;
-        if (id === 'navHome') location.href = '/infex';
+        if (id === 'navHome') location.href = '/index';
         if (id === 'navCom') location.href = '/commission';
         if (id === 'navArt') location.href = '/artwork';
         if (id === 'navPoll') location.href = '/poll';
@@ -43,6 +43,7 @@ fetch('/assets/includes/navigation.html')
     });
   })
   .catch(err => console.error('Navigation load error:', err));
+
 
 
 
