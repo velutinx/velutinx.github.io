@@ -320,14 +320,12 @@
       const discordInput = document.getElementById('discordId');
       const statusDiv = document.getElementById('statusMessage');
 
-      // PayPal plan IDs – replace with your actual IDs
+      // PayPal plan IDs – replace with your sandbox IDs for testing
       const PLAN_IDS = {
-const PLAN_IDS = {
-  tier1: 'P-37M89451YE788052ENG3FYDQ', // <-- replace with your sandbox plan ID
-  tier2: 'P-2ND_PLAN_ID_HERE',         // comment out or set to same sandbox ID for now
-  tier3: 'P-3RD_PLAN_ID_HERE'          // comment out or set to same sandbox ID for now
-};
-
+        tier1: 'P-37M89451YE788052ENG3FYDQ', // your sandbox plan ID
+        tier2: 'P-2ND_PLAN_ID_HERE',         // replace with sandbox ID or same as tier1 for now
+        tier3: 'P-3RD_PLAN_ID_HERE'          // replace with sandbox ID or same as tier1 for now
+      };
 
       // Helper to clear status and validate Discord ID
       function validateAndClearStatus() {
@@ -352,13 +350,8 @@ const PLAN_IDS = {
         if (typeof paypal === 'undefined') return;
         paypal.Buttons({
           onClick: function() {
-            // Clear status and validate when clicked
             const discordId = validateAndClearStatus();
-            if (!discordId) {
-              // Prevent PayPal popup if validation fails
-              return false;
-            }
-            // Store the Discord ID for later use
+            if (!discordId) return false; // prevents PayPal popup
             window.currentSubscriptionData = {
               discordId: discordId,
               planId: planId,
@@ -367,23 +360,26 @@ const PLAN_IDS = {
             return true;
           },
           createSubscription: function(data, actions) {
-            // This runs only if onClick returned true
             const subData = window.currentSubscriptionData;
             if (!subData) {
               return Promise.reject(new Error('Missing subscription data'));
             }
             return actions.subscription.create({ 'plan_id': subData.planId });
           },
-onApprove: function(data, actions) {
-  console.log('Subscription approved!', data.subscriptionID);
-  statusDiv.className = 'success';
-  statusDiv.textContent = `✅ Success! (sandbox) Subscription ID: ${data.subscriptionID}`;
-  discordInput.value = '';
-  window.currentSubscriptionData = null;
-}
-            statusDiv.className = '';
-            statusDiv.textContent = '⏳ Processing payment...';
-
+          onApprove: function(data, actions) {
+            const subData = window.currentSubscriptionData;
+            if (!subData) {
+              statusDiv.className = 'error';
+              statusDiv.textContent = '❌ Session error. Please try again.';
+              return;
+            }
+            // Sandbox test – just show success message
+            statusDiv.className = 'success';
+            statusDiv.textContent = `✅ Success! (sandbox) Subscription ID: ${data.subscriptionID}`;
+            discordInput.value = '';
+            window.currentSubscriptionData = null;
+            // When you're ready to go live, replace the above with the fetch to your backend
+            /*
             fetch('https://your-bot-domain.com/api/subscription-success', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -411,10 +407,11 @@ onApprove: function(data, actions) {
               statusDiv.className = 'error';
               statusDiv.textContent = '❌ Failed to notify server. Please contact support.';
             });
+            */
           },
           onError: function(err) {
             console.error('PayPal error:', err);
-            // Only show generic error if it's not a validation cancellation
+            // Show error only if it's not a validation cancellation
             if (err.message !== 'Validation failed' && err.message !== 'Missing subscription data') {
               statusDiv.className = 'error';
               statusDiv.textContent = '❌ Payment failed. Please try again.';
@@ -434,7 +431,7 @@ onApprove: function(data, actions) {
         });
       }
 
-      // --- Cart drawer PayPal button fixes (if needed) ---
+      // Cart drawer PayPal button fixes (optional, if needed)
       if (window.initPayPalButtons) {
         const originalInit = window.initPayPalButtons;
         window.initPayPalButtons = function() {
