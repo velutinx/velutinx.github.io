@@ -4,76 +4,7 @@
   <meta charset="utf-8">
   <title>VELUTINX — Contact</title>
   <link rel="stylesheet" href="/assets/css/styles.css">
-  <style>
-    /* Circular menu styles – integrated from your standalone version */
-    .menu {
-      position: relative;
-      width: 60px;
-      height: 60px;
-      margin: 0 auto; /* center in the column */
-    }
-    .checkbox {
-      position: absolute;
-      opacity: 0;
-    }
-    .label_checkbox,
-    .menu_link {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: .35s;
-      background: white;
-      box-shadow: 0 0 8px rgba(0,0,0,.35);
-    }
-    .label_checkbox {
-      z-index: 10;
-      cursor: pointer;
-    }
-    .menu_icon {
-      width: 60%;
-      height: 60%;
-      object-fit: contain;
-    }
-    .icon_plus,
-    .icon_close {
-      width: 26px;
-      height: 26px;
-      position: absolute;
-      transition: .25s;
-    }
-    .icon_close {
-      opacity: 0;
-    }
-    .checkbox:checked ~ .label_checkbox .icon_plus {
-      opacity: 0;
-    }
-    .checkbox:checked ~ .label_checkbox .icon_close {
-      opacity: 1;
-    }
-    /* Radial positions */
-    .checkbox:checked ~ .twitter {
-      transform: translate(70px, -70px);
-    }
-    .checkbox:checked ~ .bluesky {
-      transform: translateY(-95px);
-    }
-    .checkbox:checked ~ .pixiv {
-      transform: translate(-70px, -70px);
-    }
-    .checkbox:checked ~ .kofi {
-      transform: translate(70px, 70px);
-    }
-    .checkbox:checked ~ .instagram {
-      transform: translateY(95px);
-    }
-    .checkbox:checked ~ .substar {
-      transform: translate(-70px, 70px);
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/css/socials.css"> <!-- new social menu styles -->
 </head>
 <body>
 
@@ -158,8 +89,8 @@
       </div>
 
       <div class="contact-right" id="socialArea">
-        <!-- Circular social menu -->
-        <div class="menu">
+        <!-- Circular social menu with 200px SE shift -->
+        <div class="menu menu-shifted">
           <input type="checkbox" id="check" class="checkbox">
           <label for="check" class="label_checkbox">
             <!-- PLUS -->
@@ -207,20 +138,21 @@
   <!-- Scripts -->
   <script src="/assets/js/navigation.js"></script>
   <script src="/assets/js/translations.js"></script>
+  <script src="/assets/js/socials"></script> <!-- new contact‑specific JS -->
+  <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Dark mode
+    // Dark mode and theme toggle remain here because they are global
     if (localStorage.getItem("darkMode") === "true") {
       document.body.classList.add("dark");
     }
 
-    // Theme toggle
     document.getElementById("themeToggle").onclick = () => {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark"));
     };
 
-    // Cursor sparkles
+    // Cursor sparkles (global effect)
     let lastStarTime = 0;
     document.addEventListener("mousemove", (e) => {
       const now = Date.now();
@@ -237,7 +169,7 @@
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Social area falling stars (applies to the new menu area)
+    // Social area falling stars
     const socialArea = document.getElementById("socialArea");
     if (socialArea) {
       setInterval(() => {
@@ -250,90 +182,6 @@
         setTimeout(() => star.remove(), 6000);
       }, 700);
     }
-
-    // Contact form submission + validation
-    document.getElementById("contactForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const name = document.getElementById("name");
-      const email = document.getElementById("email");
-      const message = document.getElementById("message");
-
-      [name, email, message].forEach(input => {
-        input.style.borderColor = '';
-        input.style.animation = 'none';
-      });
-
-      let hasError = false;
-
-      if (!name.value.trim()) { name.style.borderColor = '#b33'; name.style.animation = 'shake 0.35s'; hasError = true; }
-      if (!email.value.trim() || !email.value.includes("@")) { email.style.borderColor = '#b33'; email.style.animation = 'shake 0.35s'; hasError = true; }
-      if (!message.value.trim()) { message.style.borderColor = '#b33'; message.style.animation = 'shake 0.35s'; hasError = true; }
-
-      if (hasError) {
-        const errorText = translations.contact?.[currentLanguage]?.errorText || "Please fill out all fields correctly ♡";
-        showPopup(errorText);
-        return;
-      }
-
-      const successText = translations.contact?.[currentLanguage]?.successText || "Message sent successfully! You will hear back soon! ♡♡";
-      showPopup(successText);
-
-      this.submit();
-    });
-
-    // Popup function
-    function showPopup(text) {
-      const popup = document.createElement("div");
-      popup.textContent = text;
-      popup.style.position = "fixed";
-      popup.style.top = "20px";
-      popup.style.right = "20px";
-      popup.style.background = "#eeeae0";
-      popup.style.border = "3px solid #aa9e76";
-      popup.style.padding = "14px 18px";
-      popup.style.borderRadius = "10px";
-      popup.style.fontSize = "13px";
-      popup.style.fontWeight = "700";
-      popup.style.color = "#b33";
-      popup.style.boxShadow = "6px 6px 0 rgba(0,0,0,0.4)";
-      popup.style.zIndex = "99999";
-      popup.style.opacity = "0";
-      popup.style.transition = "opacity 0.5s ease";
-      document.body.appendChild(popup);
-
-      setTimeout(() => popup.style.opacity = "1", 10);
-      setTimeout(() => {
-        popup.style.opacity = "0";
-        setTimeout(() => popup.remove(), 500);
-      }, 5000);
-    }
-
-    // Send button shake
-    document.getElementById("sendBtn").addEventListener("click", () => {
-      const btn = document.getElementById("sendBtn");
-      btn.style.animation = "none";
-      void btn.offsetWidth;
-      btn.style.animation = "shake 0.35s";
-    });
-
-    // Language switch
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        setLanguage(item.dataset.lang);
-      });
-    });
-
-    // Apply contact page translations on load
-    applyTranslations('contact');
-
-    // Re-apply after language change
-    document.addEventListener('languageChanged', () => {
-      applyTranslations('contact');
-    });
   </script>
-
-  <script src="/assets/js/tab-title-animation.js"></script>
-
 </body>
 </html>
