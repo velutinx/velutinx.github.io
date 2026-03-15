@@ -320,15 +320,16 @@
     window.addEventListener('load', function() {
       const discordInput = document.getElementById('discordId');
       const statusDiv = document.getElementById('statusMessage');
+      let paypalButtonsRendered = { tier1: false, tier2: false, tier3: false };
 
-      // Replace these with your actual PayPal plan IDs from the PayPal dashboard
+      // Replace these with your actual PayPal plan IDs
       const PLAN_IDS = {
         tier1: 'P-37M89451YE788052ENG3FYDQ', // your existing plan
         tier2: 'P-2ND_PLAN_ID_HERE',         // create second plan
         tier3: 'P-3RD_PLAN_ID_HERE'          // create third plan
       };
 
-      function validateAndGetDiscordId() {
+      function validateDiscordId() {
         const discordId = discordInput.value.trim();
         if (!discordId) {
           statusDiv.className = 'error';
@@ -343,15 +344,16 @@
         return discordId;
       }
 
-      // Helper to create a PayPal button for a given tier
-      function renderPayPalButton(containerId, planId, tierName) {
-        if (typeof paypal === 'undefined') return;
+      // Render PayPal subscription buttons safely
+      function renderSubscriptionButton(containerId, planId, tierName) {
+        if (paypalButtonsRendered[tierName] || typeof paypal === 'undefined') return;
         paypal.Buttons({
           createSubscription: function(data, actions) {
-            const discordId = validateAndGetDiscordId();
-            if (!discordId) return false; // validation failed
-            // Store Discord ID in a data attribute or pass via metadata?
-            // We'll store it in a global and later send with onApprove
+            const discordId = validateDiscordId();
+            if (!discordId) {
+              // Return a rejected promise to stop the flow
+              return Promise.reject(new Error('Validation failed'));
+            }
             window.currentSubscriptionDiscordId = discordId;
             window.currentSubscriptionPlan = planId;
             return actions.subscription.create({ 'plan_id': planId });
@@ -361,7 +363,6 @@
             statusDiv.textContent = '⏳ Processing payment...';
             const discordId = window.currentSubscriptionDiscordId;
             const planId = window.currentSubscriptionPlan;
-            // Send to your server
             fetch('https://your-bot-domain.com/api/subscription-success', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -377,7 +378,7 @@
               if (data.success) {
                 statusDiv.className = 'success';
                 statusDiv.textContent = `✅ Success! Your ${tierName} role will be assigned shortly.`;
-                discordInput.value = ''; // clear for security
+                discordInput.value = '';
               } else {
                 statusDiv.className = 'error';
                 statusDiv.textContent = '❌ Server error: ' + (data.error || 'Please contact support');
@@ -391,24 +392,56 @@
           },
           onError: function(err) {
             console.error('PayPal error:', err);
-            statusDiv.className = 'error';
-            statusDiv.textContent = '❌ Payment failed. Please try again.';
+            // Don't show error if it was just validation (already handled)
+            if (err.message !== 'Validation failed') {
+              statusDiv.className = 'error';
+              statusDiv.textContent = '❌ Payment failed. Please try again.';
+            }
           }
-        }).render(`#${containerId}`);
+        }).render(`#${containerId}`).then(() => {
+          paypalButtonsRendered[tierName] = true;
+        });
       }
 
-      // Render buttons for each tier (if PayPal loaded)
+      // Render all three tier buttons
       if (typeof paypal !== 'undefined') {
-        renderPayPalButton('paypal-button-tier1', PLAN_IDS.tier1, 'The Vault');
-        renderPayPalButton('paypal-button-tier2', PLAN_IDS.tier2, 'Quick Request');
-        renderPayPalButton('paypal-button-tier3', PLAN_IDS.tier3, 'Premium Pack');
+        renderSubscriptionButton('paypal-button-tier1', PLAN_IDS.tier1, 'tier1');
+        renderSubscriptionButton('paypal-button-tier2', PLAN_IDS.tier2, 'tier2');
+        renderSubscriptionButton('paypal-button-tier3', PLAN_IDS.tier3, 'tier3');
       } else {
         document.querySelectorAll('.paypal-button-container').forEach(el => {
           el.innerHTML = '<p style="color:#ef4444;">PayPal SDK failed to load. Please refresh.</p>';
         });
       }
 
-      // Cart functionality (reuse from your existing shop)
+      // --- Fix for cart drawer PayPal button (from shop-shared.js) ---
+      // Override updateCartDisplay to prevent PayPal init when drawer is closed
+      if (window.updateCartDisplay) {
+        const originalUpdate = window.updateCartDisplay;
+        window.updateCartDisplay = function() {
+          // Always call original to update cart items
+          originalUpdate();
+          // But we need to ensure the PayPal button is only rendered when drawer is open
+          // The original calls initPayPalButtons, which we can override safely
+        };
+      }
+
+      // Override initPayPalButtons to check container existence
+      if (window.initPayPalButtons) {
+        const originalInit = window.initPayPalButtons;
+        window.initPayPalButtons = function() {
+          const container = document.getElementById('paypal-button-container');
+          const drawer = document.getElementById('cartDrawer');
+          if (container && drawer && drawer.classList.contains('open')) {
+            originalInit();
+          } else {
+            // Optionally clear container if drawer closed to avoid stale buttons
+            if (container) container.innerHTML = '';
+          }
+        };
+      }
+
+      // Manually trigger cart update (keeps cart count correct)
       if (window.updateCartDisplay) window.updateCartDisplay();
 
       // Theme toggle
@@ -420,12 +453,19 @@
         document.body.classList.add('dark');
       }
 
-      // Cart drawer
+      // Cart drawer open/close
       document.getElementById('cartBtn').addEventListener('click', () => {
         document.getElementById('cartDrawer').classList.add('open');
+        // Re-init PayPal button when drawer opens (if needed)
+        setTimeout(() => {
+          if (window.initPayPalButtons) window.initPayPalButtons();
+        }, 300);
       });
       document.getElementById('floatingCartBtn').addEventListener('click', () => {
         document.getElementById('cartDrawer').classList.add('open');
+        setTimeout(() => {
+          if (window.initPayPalButtons) window.initPayPalButtons();
+        }, 300);
       });
       document.getElementById('cartClose').addEventListener('click', () => {
         document.getElementById('cartDrawer').classList.remove('open');
