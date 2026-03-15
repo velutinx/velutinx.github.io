@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <!-- PayPal SDK for subscriptions -->
-<script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&vault=true&intent=subscription&currency=USD" data-sdk-integration-source="button-factory"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&vault=true&intent=subscription&currency=USD" data-sdk-integration-source="button-factory"></script>
   <style>
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
@@ -322,10 +322,12 @@
 
       // PayPal plan IDs – replace with your actual IDs
       const PLAN_IDS = {
-        tier1: 'P-37M89451YE788052ENG3FYDQ', // your Bronze plan
-        tier2: 'P-2ND_PLAN_ID_HERE',         // Silver
-        tier3: 'P-3RD_PLAN_ID_HERE'          // Gold
-      };
+const PLAN_IDS = {
+  tier1: 'P-37M89451YE788052ENG3FYDQ', // <-- replace with your sandbox plan ID
+  tier2: 'P-2ND_PLAN_ID_HERE',         // comment out or set to same sandbox ID for now
+  tier3: 'P-3RD_PLAN_ID_HERE'          // comment out or set to same sandbox ID for now
+};
+
 
       // Helper to clear status and validate Discord ID
       function validateAndClearStatus() {
@@ -372,13 +374,13 @@
             }
             return actions.subscription.create({ 'plan_id': subData.planId });
           },
-          onApprove: function(data, actions) {
-            const subData = window.currentSubscriptionData;
-            if (!subData) {
-              statusDiv.className = 'error';
-              statusDiv.textContent = '❌ Session error. Please try again.';
-              return;
-            }
+onApprove: function(data, actions) {
+  console.log('Subscription approved!', data.subscriptionID);
+  statusDiv.className = 'success';
+  statusDiv.textContent = `✅ Success! (sandbox) Subscription ID: ${data.subscriptionID}`;
+  discordInput.value = '';
+  window.currentSubscriptionData = null;
+}
             statusDiv.className = '';
             statusDiv.textContent = '⏳ Processing payment...';
 
