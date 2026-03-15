@@ -253,11 +253,11 @@
     <!-- Shared Discord ID input -->
     <div class="discord-section">
       <div class="discord-input">
-<label for="discordUsername">Your Discord Username <span style="color:#ef4444;">*</span></label>
-<input type="text" id="discordUsername" placeholder="e.g., username#1234 or newusername" required>
-<div class="discord-hint">
-  Your Discord username (e.g., velutinx#1234). If you use the new username system, just your name.
-</div>
+        <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
+        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
+        <div class="discord-hint">
+          How to find your Discord ID: Settings → Advanced → Developer Mode, then right-click your name → Copy ID
+        </div>
       </div>
       <div class="note-box">
         <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
@@ -329,23 +329,22 @@
       };
 
       // Helper to clear status and validate Discord ID
-function validateAndClearStatus() {
-  statusDiv.className = '';
-  statusDiv.textContent = '';
-  const discordUsername = document.getElementById('discordUsername').value.trim();
-  if (!discordUsername) {
-    statusDiv.className = 'error';
-    statusDiv.textContent = '❌ Please enter your Discord username';
-    return null;
-  }
-  // Basic validation: at least 2 characters, no spaces, allow # for old discriminator
-  if (!/^[^#\s]+(#\d{4})?$/.test(discordUsername)) {
-    statusDiv.className = 'error';
-    statusDiv.textContent = '❌ Invalid Discord username format';
-    return null;
-  }
-  return discordUsername;
-}
+      function validateAndClearStatus() {
+        statusDiv.className = '';
+        statusDiv.textContent = '';
+        const discordId = discordInput.value.trim();
+        if (!discordId) {
+          statusDiv.className = 'error';
+          statusDiv.textContent = '❌ Please enter your Discord ID';
+          return null;
+        }
+        if (!/^\d{17,19}$/.test(discordId)) {
+          statusDiv.className = 'error';
+          statusDiv.textContent = '❌ Invalid Discord ID format (should be 17‑19 numbers)';
+          return null;
+        }
+        return discordId;
+      }
 
       // Function to create a subscription button for a tier
       function createSubscriptionButton(containerId, planId, tierName) {
