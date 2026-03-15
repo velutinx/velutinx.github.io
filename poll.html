@@ -335,7 +335,7 @@
         const winRes = await sb.from('poll_winners').select('option_id').eq('poll_id', POLL_ID);
         const winnerIds = new Set(winRes.data?.map(w => Number(w.option_id)) || []);
 
-        const { data: rows, error } = await sb.from('poll_result')
+        const { data: rows, error } = await sb.from('final_votes')
           .select('option_id, character_name, score')
           .eq('poll_id', POLL_ID)
           .order('score', { ascending: false });
