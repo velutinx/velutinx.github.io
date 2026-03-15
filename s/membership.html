@@ -1,103 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Membership Tiers</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VELUTINX — Membership</title>
+  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+
+  <!-- PayPal SDK for subscriptions -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&vault=true&intent=subscription&currency=USD" data-sdk-integration-source="button-factory"></script>
+
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: var(--bg, #f5f5f5);
-      margin: 0;
-      padding: 2rem;
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+    @media (min-width: 600px) { .container { padding: 0 24px; } }
+    main { padding: 40px 0; }
+    
+    .membership-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 16px;
+      text-align: center;
     }
-    .tier-container {
+    
+    .membership-description {
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 1.2rem;
+    }
+    
+    /* Three‑column tier layout */
+    .tier-row {
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
       justify-content: center;
-      gap: 1rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .tier-cards {
-      display: flex;
       gap: 2rem;
-      overflow-x: auto;
-      scroll-behavior: smooth;
-      padding: 1rem 0;
-      flex: 1;
+      margin: 40px 0;
     }
+    
     .tier-card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
       padding: 2rem;
-      min-width: 280px;
-      max-width: 320px;
-      flex: 0 0 auto;
+      width: 300px;
+      max-width: 100%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: column;
+      transition: transform 0.2s;
     }
+    
+    .tier-card:hover {
+      transform: translateY(-4px);
+    }
+    
     .tier-card h3 {
       font-size: 1.8rem;
       margin: 0 0 0.5rem;
+      color: var(--text);
     }
+    
     .tier-price {
       font-size: 2.2rem;
       font-weight: bold;
-      color: #2c3e50;
-      margin: 0.5rem 0;
+      color: var(--accent);
+      margin: 0.5rem 0 1rem;
     }
+    
     .tier-price span {
       font-size: 1rem;
       font-weight: normal;
-      color: #7f8c8d;
+      color: var(--text-light);
     }
+    
     .tier-perks {
       list-style: none;
       padding: 0;
       margin: 1.5rem 0;
       flex: 1;
     }
+    
     .tier-perks li {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.8rem;
+      gap: 0.75rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 1rem;
     }
+    
+    .tier-perks li:last-child {
+      border-bottom: none;
+    }
+    
     .tier-perks li::before {
       content: "✓";
-      color: #27ae60;
+      color: var(--success);
       font-weight: bold;
+      font-size: 1.2rem;
     }
-    .nav-arrow {
-      background: #ddd;
-      border: none;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      font-size: 2rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.2s;
-    }
-    .nav-arrow:hover {
-      background: #ccc;
-    }
-    /* PayPal button container – you can style its height */
-    .paypal-container {
+    
+    .paypal-button-container {
       margin-top: 1.5rem;
       min-height: 45px;
+    }
+    
+    /* Discord input (shared) */
+    .discord-section {
+      max-width: 600px;
+      margin: 0 auto 40px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .discord-input label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .discord-input input {
+      width: 100%;
+      padding: 14px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    
+    .discord-input input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .discord-hint {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+    
+    .note-box {
+      background: rgba(170,158,118,0.1);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      margin: 24px 0 0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    
+    #statusMessage {
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 16px 0;
+      display: none;
+    }
+    
+    #statusMessage.success {
+      background: rgba(34,197,94,0.2);
+      color: var(--success);
+      border: 1px solid var(--success);
+      display: block;
+    }
+    
+    #statusMessage.error {
+      background: rgba(239,68,68,0.2);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div class="tier-container">
-    <button class="nav-arrow" id="scrollLeft">←</button>
-    <div class="tier-cards" id="tierCards">
-      <!-- Tier 1 card -->
+  <div class="lang-swipe" id="langSwipe"></div>
+  <nav class="top-nav">
+    <div class="logo">VELUTINX</div>
+    <div class="nav-actions">
+      <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
+      <div id="langContainer">
+        <button class="nav-icon lang-btn" id="langBtn" title="Language">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
+          </svg>
+        </button>
+        <div id="languagePopover">
+          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
+          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
+          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
+          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
+        </div>
+      </div>
+      <button class="nav-icon" id="themeBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+        </svg>
+      </button>
+      <div class="cart-wrapper">
+        <button class="nav-icon cart-icon" id="cartBtn">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
+          </svg>
+        </button>
+        <span class="cart-badge" id="cartCount">0</span>
+      </div>
+    </div>
+  </nav>
+  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <div id="paypal-button-container"></div>
+    </div>
+  </div>
+  <div id="snackbar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
+    <span id="snackText">Success</span>
+  </div>
+
+  <main class="container">
+    <h1 class="membership-title">✨ Choose Your Membership</h1>
+    <p class="membership-description">Support my work and unlock exclusive perks</p>
+
+    <!-- Shared Discord ID input -->
+    <div class="discord-section">
+      <div class="discord-input">
+        <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
+        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
+        <div class="discord-hint">
+          How to find your Discord ID: Settings → Advanced → Developer Mode, then right-click your name → Copy ID
+        </div>
+      </div>
+      <div class="note-box">
+        <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
+        <div style="margin-top:12px;">
+          <a href="https://discord.gg/YOUR_INVITE" target="_blank" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Three tier cards -->
+    <div class="tier-row">
+      <!-- Tier 1 -->
       <div class="tier-card">
         <h3>The Vault</h3>
         <div class="tier-price">$10 <span>/ month</span></div>
@@ -107,9 +279,10 @@
           <li>Access to supporter Discord</li>
           <li>High‑res wallpapers</li>
         </ul>
-        <div id="paypal-button-PLAN_ID_1" class="paypal-container"></div>
+        <div id="paypal-button-tier1" class="paypal-button-container"></div>
       </div>
-      <!-- Tier 2 card -->
+
+      <!-- Tier 2 -->
       <div class="tier-card">
         <h3>Quick Request</h3>
         <div class="tier-price">$20 <span>/ month</span></div>
@@ -119,9 +292,10 @@
           <li>2x poll voting power</li>
           <li>Behind‑the‑scenes WIPs</li>
         </ul>
-        <div id="paypal-button-PLAN_ID_2" class="paypal-container"></div>
+        <div id="paypal-button-tier2" class="paypal-button-container"></div>
       </div>
-      <!-- Tier 3 card -->
+
+      <!-- Tier 3 -->
       <div class="tier-card">
         <h3>Premium Pack</h3>
         <div class="tier-price">$40 <span>/ month</span></div>
@@ -131,51 +305,131 @@
           <li>Priority queue – 1–2 slots/month</li>
           <li>3x poll voting power</li>
         </ul>
-        <div id="paypal-button-PLAN_ID_3" class="paypal-container"></div>
+        <div id="paypal-button-tier3" class="paypal-button-container"></div>
       </div>
     </div>
-    <button class="nav-arrow" id="scrollRight">→</button>
-  </div>
 
-  <!-- PayPal SDK – include once -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&vault=true&intent=subscription"></script>
+    <!-- Status message -->
+    <div id="statusMessage"></div>
+  </main>
+
+  <script src="https://velutinx.com/assets/js/header.js"></script>
+  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
+
   <script>
-    // Wait for SDK to load
-    window.paypal?.Buttons?.().render; // optional check
+    window.addEventListener('load', function() {
+      const discordInput = document.getElementById('discordId');
+      const statusDiv = document.getElementById('statusMessage');
 
-    // Plan IDs – replace with your actual IDs
-    const plans = {
-      tier1: 'P-37M89451YE788052ENG3FYDQ', // your existing plan
-      tier2: 'P-YOUR_SECOND_PLAN_ID',
-      tier3: 'P-YOUR_THIRD_PLAN_ID'
-    };
+      // Replace these with your actual PayPal plan IDs from the PayPal dashboard
+      const PLAN_IDS = {
+        tier1: 'P-37M89451YE788052ENG3FYDQ', // your existing plan
+        tier2: 'P-2ND_PLAN_ID_HERE',         // create second plan
+        tier3: 'P-3RD_PLAN_ID_HERE'          // create third plan
+      };
 
-    // Render each button
-    if (typeof paypal !== 'undefined') {
-      // Tier 1
-      paypal.Buttons({
-        createSubscription: function(data, actions) {
-          return actions.subscription.create({ 'plan_id': plans.tier1 });
-        },
-        onApprove: function(data) {
-          alert('Subscription successful! ID: ' + data.subscriptionID);
-          // Here you would send data to your backend to link Discord ID
+      function validateAndGetDiscordId() {
+        const discordId = discordInput.value.trim();
+        if (!discordId) {
+          statusDiv.className = 'error';
+          statusDiv.textContent = '❌ Please enter your Discord ID';
+          return null;
         }
-      }).render('#paypal-button-PLAN_ID_1');
+        if (!/^\d{17,19}$/.test(discordId)) {
+          statusDiv.className = 'error';
+          statusDiv.textContent = '❌ Invalid Discord ID format (should be 17‑19 numbers)';
+          return null;
+        }
+        return discordId;
+      }
 
-      // Tier 2 (once you have the plan ID)
-      // paypal.Buttons({ createSubscription: (d,a) => a.subscription.create({ plan_id: plans.tier2 }) }).render('#paypal-button-PLAN_ID_2');
+      // Helper to create a PayPal button for a given tier
+      function renderPayPalButton(containerId, planId, tierName) {
+        if (typeof paypal === 'undefined') return;
+        paypal.Buttons({
+          createSubscription: function(data, actions) {
+            const discordId = validateAndGetDiscordId();
+            if (!discordId) return false; // validation failed
+            // Store Discord ID in a data attribute or pass via metadata?
+            // We'll store it in a global and later send with onApprove
+            window.currentSubscriptionDiscordId = discordId;
+            window.currentSubscriptionPlan = planId;
+            return actions.subscription.create({ 'plan_id': planId });
+          },
+          onApprove: function(data, actions) {
+            statusDiv.className = '';
+            statusDiv.textContent = '⏳ Processing payment...';
+            const discordId = window.currentSubscriptionDiscordId;
+            const planId = window.currentSubscriptionPlan;
+            // Send to your server
+            fetch('https://your-bot-domain.com/api/subscription-success', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                subscriptionID: data.subscriptionID,
+                discordID: discordId,
+                planID: planId,
+                status: 'active'
+              })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                statusDiv.className = 'success';
+                statusDiv.textContent = `✅ Success! Your ${tierName} role will be assigned shortly.`;
+                discordInput.value = ''; // clear for security
+              } else {
+                statusDiv.className = 'error';
+                statusDiv.textContent = '❌ Server error: ' + (data.error || 'Please contact support');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              statusDiv.className = 'error';
+              statusDiv.textContent = '❌ Failed to notify server. Please contact support.';
+            });
+          },
+          onError: function(err) {
+            console.error('PayPal error:', err);
+            statusDiv.className = 'error';
+            statusDiv.textContent = '❌ Payment failed. Please try again.';
+          }
+        }).render(`#${containerId}`);
+      }
 
-      // Tier 3
-      // paypal.Buttons({ createSubscription: (d,a) => a.subscription.create({ plan_id: plans.tier3 }) }).render('#paypal-button-PLAN_ID_3');
-    }
+      // Render buttons for each tier (if PayPal loaded)
+      if (typeof paypal !== 'undefined') {
+        renderPayPalButton('paypal-button-tier1', PLAN_IDS.tier1, 'The Vault');
+        renderPayPalButton('paypal-button-tier2', PLAN_IDS.tier2, 'Quick Request');
+        renderPayPalButton('paypal-button-tier3', PLAN_IDS.tier3, 'Premium Pack');
+      } else {
+        document.querySelectorAll('.paypal-button-container').forEach(el => {
+          el.innerHTML = '<p style="color:#ef4444;">PayPal SDK failed to load. Please refresh.</p>';
+        });
+      }
 
-    // Simple scroll arrows
-    document.getElementById('scrollLeft').addEventListener('click', () => {
-      document.getElementById('tierCards').scrollBy({ left: -320, behavior: 'smooth' });
-    });
-    document.getElementById('scrollRight').addEventListener('click', () => {
-      document.getElementById('tierCards').scrollBy({ left: 320, behavior: 'smooth' });
+      // Cart functionality (reuse from your existing shop)
+      if (window.updateCartDisplay) window.updateCartDisplay();
+
+      // Theme toggle
+      document.getElementById('themeBtn').onclick = function() {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+      };
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark');
+      }
+
+      // Cart drawer
+      document.getElementById('cartBtn').addEventListener('click', () => {
+        document.getElementById('cartDrawer').classList.add('open');
+      });
+      document.getElementById('floatingCartBtn').addEventListener('click', () => {
+        document.getElementById('cartDrawer').classList.add('open');
+      });
+      document.getElementById('cartClose').addEventListener('click', () => {
+        document.getElementById('cartDrawer').classList.remove('open');
+      });
     });
   </script>
 </body>
