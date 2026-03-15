@@ -55,7 +55,7 @@
   opacity: 1;
 }
 
-/* Radial positions */
+/* Radial positions – adjust these values if needed */
 .checkbox:checked ~ .twitter {
   transform: translate(70px, -70px);
 }
@@ -78,9 +78,4 @@
 
 .checkbox:checked ~ .substar {
   transform: translate(-70px, 70px);
-}
-
-/* Shift modifier – moves the whole menu 200px SE */
-.menu-shifted {
-  transform: translate(200px, 200px);
 }
