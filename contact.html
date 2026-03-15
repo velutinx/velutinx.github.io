@@ -4,6 +4,76 @@
   <meta charset="utf-8">
   <title>VELUTINX — Contact</title>
   <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    /* Circular menu styles – integrated from your standalone version */
+    .menu {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      margin: 0 auto; /* center in the column */
+    }
+    .checkbox {
+      position: absolute;
+      opacity: 0;
+    }
+    .label_checkbox,
+    .menu_link {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .35s;
+      background: white;
+      box-shadow: 0 0 8px rgba(0,0,0,.35);
+    }
+    .label_checkbox {
+      z-index: 10;
+      cursor: pointer;
+    }
+    .menu_icon {
+      width: 60%;
+      height: 60%;
+      object-fit: contain;
+    }
+    .icon_plus,
+    .icon_close {
+      width: 26px;
+      height: 26px;
+      position: absolute;
+      transition: .25s;
+    }
+    .icon_close {
+      opacity: 0;
+    }
+    .checkbox:checked ~ .label_checkbox .icon_plus {
+      opacity: 0;
+    }
+    .checkbox:checked ~ .label_checkbox .icon_close {
+      opacity: 1;
+    }
+    /* Radial positions */
+    .checkbox:checked ~ .twitter {
+      transform: translate(70px, -70px);
+    }
+    .checkbox:checked ~ .bluesky {
+      transform: translateY(-95px);
+    }
+    .checkbox:checked ~ .pixiv {
+      transform: translate(-70px, -70px);
+    }
+    .checkbox:checked ~ .kofi {
+      transform: translate(70px, 70px);
+    }
+    .checkbox:checked ~ .instagram {
+      transform: translateY(95px);
+    }
+    .checkbox:checked ~ .substar {
+      transform: translate(-70px, 70px);
+    }
+  </style>
 </head>
 <body>
 
@@ -60,7 +130,7 @@
 
     <div class="divider"></div>
 
-    <!-- Contact form & social links -->
+    <!-- Contact form & social menu -->
     <section class="contact-wrap">
       <div class="contact-left">
         <h2 id="contactTitle">CONTACT</h2>
@@ -88,24 +158,45 @@
       </div>
 
       <div class="contact-right" id="socialArea">
-        <a class="social-btn" href="https://x.com/VelutinxSFW" target="_blank">
-          <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter"> Twitter
-        </a>
-        <a class="social-btn" href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank">
-          <img src="https://www.velutinx.com/images/LogoBluesky.png" alt="Bluesky"> Bluesky
-        </a>
-        <a class="social-btn" href="https://www.instagram.com/velutinxx/" target="_blank">
-          <img src="https://www.velutinx.com/images/LogoInstagram.png" alt="Instagram"> Instagram
-        </a>
-        <a class="social-btn" href="https://www.pixiv.net/en/users/117116845" target="_blank">
-          <img src="https://www.velutinx.com/images/LogoPixiv.png" alt="Pixiv"> Pixiv
-        </a>
-        <a class="social-btn" href="https://ko-fi.com/velutinxstudio" target="_blank">
-          <img src="https://www.velutinx.com/images/LogoKoFi.png" alt="Ko-fi"> Ko-fi
-        </a>
-        <a class="social-btn" href="https://subscribestar.adult/velutinx" target="_blank">
-          <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" alt="SubscribeStar"> SubscribeStar
-        </a>
+        <!-- Circular social menu -->
+        <div class="menu">
+          <input type="checkbox" id="check" class="checkbox">
+          <label for="check" class="label_checkbox">
+            <!-- PLUS -->
+            <svg class="icon_plus" viewBox="0 0 24 24">
+              <path d="M12 3v18M3 12h18" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            <!-- X -->
+            <svg class="icon_close" viewBox="0 0 24 24">
+              <path d="M5 5L19 19M19 5L5 19" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </label>
+
+          <!-- Twitter -->
+          <a href="https://x.com/VelutinxSFW" target="_blank" class="menu_link twitter">
+            <img src="https://www.velutinx.com/images/LogoTwitter.png" class="menu_icon" alt="Twitter">
+          </a>
+          <!-- Bluesky -->
+          <a href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank" class="menu_link bluesky">
+            <img src="https://www.velutinx.com/images/LogoBluesky.png" class="menu_icon" alt="Bluesky">
+          </a>
+          <!-- Pixiv -->
+          <a href="https://www.pixiv.net/en/users/117116845" target="_blank" class="menu_link pixiv">
+            <img src="https://www.velutinx.com/images/LogoPixiv.png" class="menu_icon" alt="Pixiv">
+          </a>
+          <!-- Ko‑fi -->
+          <a href="https://ko-fi.com/velutinxstudio" target="_blank" class="menu_link kofi">
+            <img src="https://www.velutinx.com/images/LogoKoFi.png" class="menu_icon" alt="Ko‑fi">
+          </a>
+          <!-- Instagram -->
+          <a href="https://www.instagram.com/velutinxx/" target="_blank" class="menu_link instagram">
+            <img src="https://www.velutinx.com/images/LogoInstagram.png" class="menu_icon" alt="Instagram">
+          </a>
+          <!-- SubscribeStar -->
+          <a href="https://subscribestar.adult/velutinx" target="_blank" class="menu_link substar">
+            <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" class="menu_icon" alt="SubscribeStar">
+          </a>
+        </div>
       </div>
     </section>
 
@@ -146,7 +237,7 @@
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Social area falling stars
+    // Social area falling stars (applies to the new menu area)
     const socialArea = document.getElementById("socialArea");
     if (socialArea) {
       setInterval(() => {
