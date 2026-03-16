@@ -25,8 +25,8 @@ export default {
       // You also need the handle (or email) for each account.
       // You can store these as plain environment variables (not secrets)
       // For simplicity, we'll hardcode them here – replace with your actual handles!
-      const handle1 = 'your-sfw-handle.bsky.social';
-      const handle2 = 'your-nsfw-handle.bsky.social';
+      const handle1 = '‪@velutinx.bsky.social‬';
+      const handle2 = '‪@velutinxx.bsky.social‬';
       const handle = account === '1' ? handle1 : handle2;
 
       // Step 1: Authenticate with Bluesky to get a session token
