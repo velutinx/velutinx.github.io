@@ -591,25 +591,24 @@ const workerUrl = 'https://bluesky-proxy.velutinx.workers.dev';
         postElement.style.backgroundColor = originalText;
     }
 }
-
-// Add "Post" buttons to each account card
-document.querySelectorAll('.account-card').forEach(card => {
-    const accountId = card.dataset.account;
-    const button = document.createElement('button');
-    button.textContent = '🚀 Post to Bluesky';
-    button.style.marginTop = '15px';
-    button.style.padding = '10px';
-    button.style.width = '100%';
-    button.style.backgroundColor = '#4CAF50';
-    button.style.color = 'white';
-    button.style.border = 'none';
-    button.style.borderRadius = '6px';
-    button.style.cursor = 'pointer';
-    button.style.fontSize = '16px';
-    button.onclick = () => postToBluesky(accountId);
-    card.appendChild(button);
+// ----- Add "Post" buttons after the page is fully loaded -----
 document.addEventListener('DOMContentLoaded', function() {
-    // button creation code here
+    document.querySelectorAll('.account-card').forEach(card => {
+        const accountId = card.dataset.account;
+        const button = document.createElement('button');
+        button.textContent = '🚀 Post to Bluesky';
+        button.style.marginTop = '15px';
+        button.style.padding = '10px';
+        button.style.width = '100%';
+        button.style.backgroundColor = '#4CAF50';
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '6px';
+        button.style.cursor = 'pointer';
+        button.style.fontSize = '16px';
+        button.onclick = () => postToBluesky(accountId);
+        card.appendChild(button);
+    });
 });
 
         
