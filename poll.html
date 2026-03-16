@@ -7,8 +7,10 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- FingerprintJS for browser fingerprinting -->
+  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
   <style>
-    /* Poll-specific styles */
+    /* Poll-specific styles (unchanged) */
     .poll-section {
       max-width: 1600px;
       margin: 0 auto;
@@ -285,7 +287,10 @@
     const grid = document.getElementById("grid");
     const resultsBox = document.getElementById("results");
 
-    // Cookie helpers
+    // Fingerprint agent (lazy-loaded)
+    let fpPromise = null;
+
+    // Cookie helpers (unchanged)
     function setVoteCookie(optionId) {
       const d = new Date();
       d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
@@ -304,6 +309,15 @@
       return null;
     }
 
+    // Initialize FingerprintJS
+    async function initFingerprint() {
+      // Load the agent
+      const fp = await FingerprintJS.load();
+      // Get the visitor identifier
+      const result = await fp.get();
+      return result.visitorId; // a unique, persistent identifier
+    }
+
     // Init UI
     for (let i = 1; i <= TOTAL_CARDS; i++) {
       const card = document.createElement("div");
@@ -320,17 +334,24 @@
 
     async function castVote(id) {
       try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
-        const { ip } = await ipRes.json();
+        // Get fingerprint (or fallback to IP if fingerprint fails)
+        let visitorId;
+        try {
+          visitorId = await fpPromise;
+        } catch (e) {
+          console.warn('Fingerprint failed, using IP fallback', e);
+          const ipRes = await fetch('https://api.ipify.org?format=json');
+          const { ip } = await ipRes.json();
+          visitorId = ip;
+        }
+
         await sb.from('website_voting').upsert(
-          { voter_id: ip, option_id: id, poll_id: POLL_ID },
+          { voter_id: visitorId, option_id: id, poll_id: POLL_ID },
           { onConflict: 'voter_id' }
         );
 
-        // Store vote in localStorage (your existing)
+        // Store vote in localStorage and cookie (for UI highlight)
         localStorage.setItem('voted_id', id);
-
-        // Store vote in cookie (30 days)
         setVoteCookie(id);
 
         updateCardStyles(id);
@@ -393,6 +414,9 @@
     }
 
     async function init() {
+      // Initialize fingerprint and store the promise
+      fpPromise = initFingerprint().catch(() => null); // if fails, will be null
+
       await Promise.all([fetchGridResults(), fetchLeaderboard()]);
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
