@@ -565,7 +565,7 @@ async function postToBluesky(accountId) {
 
     try {
         // Call YOUR Cloudflare Worker (replace with your actual worker URL)
-const workerUrl = 'https://bluesky-proxy.your-subdomain.workers.dev';
+const workerUrl = 'https://bluesky-proxy.velutinx.workers.dev';
         
         const response = await fetch(workerUrl, {
             method: 'POST',
@@ -608,7 +608,10 @@ document.querySelectorAll('.account-card').forEach(card => {
     button.style.fontSize = '16px';
     button.onclick = () => postToBluesky(accountId);
     card.appendChild(button);
+document.addEventListener('DOMContentLoaded', function() {
+    // button creation code here
 });
+
         
     </script>
 </body>
