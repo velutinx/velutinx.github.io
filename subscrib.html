@@ -300,317 +300,320 @@
         </div>
     </div>
 
-    <script>
-        (function() {
-            // ----- Tab switching -----
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tabId = btn.dataset.tab;
-                    tabButtons.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    tabContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === tabId) content.classList.add('active');
-                    });
+<script>
+    (function() {
+        // ----- Tab switching -----
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                tabButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) content.classList.add('active');
                 });
             });
+        });
 
-            // ----- Subscribestar original code (unchanged) -----
-            const dropZone = document.getElementById('dropZone');
-            const fileInput = document.getElementById('fileInput');
-            const subscriberOutput = document.getElementById('subscriberOutput');
-            const publicOutput = document.getElementById('publicOutput');
-            const filenameHint = document.getElementById('filenameHint');
+        // ----- Subscribestar original code (unchanged) -----
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const subscriberOutput = document.getElementById('subscriberOutput');
+        const publicOutput = document.getElementById('publicOutput');
+        const filenameHint = document.getElementById('filenameHint');
 
-            dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('click', () => fileInput.click());
 
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#333';
-            });
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#333';
+        });
 
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.style.borderColor = '#aaa';
-            });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#aaa';
+        });
 
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#aaa';
-                const files = e.dataTransfer.files;
-                if (files.length > 0) handleFile(files[0]);
-            });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#aaa';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
 
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) handleFile(e.target.files[0]);
-            });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
 
-            function handleFile(file) {
-                if (!file.name.toLowerCase().endsWith('.zip')) {
-                    alert('Please select a zip file.');
-                    return;
-                }
-
-                filenameHint.textContent = `Processing: ${file.name}`;
-                subscriberOutput.value = 'Reading zip file...';
-                publicOutput.value = 'Reading zip file...';
-
-                const parsed = parseFilename(file.name);
-                if (!parsed) {
-                    subscriberOutput.value = '❌ Filename format not recognized.\nExpected: [Pack 123] Character Name - SERIES NAME.zip';
-                    publicOutput.value = '❌ Filename format not recognized.\nExpected: [Pack 123] Character Name - SERIES NAME.zip';
-                    filenameHint.textContent = 'Error: invalid filename format';
-                    return;
-                }
-
-                const { series, character, pack } = parsed;
-
-                JSZip.loadAsync(file)
-                    .then(zip => {
-                        let fileCount = 0;
-                        zip.forEach((relativePath, entry) => {
-                            if (!entry.dir) fileCount++;
-                        });
-
-                        const subscriberPost = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
-                        const publicPost = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
-
-                        subscriberOutput.value = subscriberPost;
-                        publicOutput.value = publicPost;
-                        filenameHint.textContent = `✅ Found ${fileCount} files in zip.`;
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        subscriberOutput.value = '❌ Error reading zip file.';
-                        publicOutput.value = '❌ Error reading zip file.';
-                        filenameHint.textContent = 'Error: could not read zip contents.';
-                    });
-            }
-
-            function parseFilename(filename) {
-                const base = filename.replace(/\.zip$/i, '');
-                const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
-                const match = base.match(regex);
-                if (!match) return null;
-                const pack = match[1];
-                let character = match[2].trim();
-                let series = match[3].trim().toUpperCase();
-                return { series, character, pack };
-            }
-
-            window.copyToClipboard = function(elementId) {
-                const textarea = document.getElementById(elementId);
-                textarea.select();
-                textarea.setSelectionRange(0, 99999);
-                document.execCommand('copy');
-                alert('Copied to clipboard!');
-            };
-
-            // ----- Bluesky tab functionality (two accounts) -----
-            const masterPost = document.getElementById('masterPost');
-            const accountPosts = [
-                document.getElementById('post1'),
-                document.getElementById('post2')
-            ];
-
-            // Master post mirrors to both (but they remain editable afterwards)
-            masterPost.addEventListener('input', () => {
-                accountPosts.forEach(ta => ta.value = masterPost.value);
-            });
-
-            // Set initial values from master (if any)
-            accountPosts.forEach(ta => ta.value = masterPost.value);
-
-            // Data structure for images per account (1 and 2)
-            const accountImages = { 1: [], 2: [] };
-
-            function renderThumbnails(accountId) {
-                const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
-                const files = accountImages[accountId];
-                container.innerHTML = '';
-                files.forEach((file, index) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const thumbDiv = document.createElement('div');
-                        thumbDiv.className = 'thumbnail-item';
-                        thumbDiv.draggable = true;
-                        thumbDiv.dataset.index = index;
-                        thumbDiv.dataset.account = accountId;
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        thumbDiv.appendChild(img);
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-btn';
-                        removeBtn.innerHTML = '✕';
-                        removeBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            accountImages[accountId].splice(index, 1);
-                            renderThumbnails(accountId);
-                        };
-                        thumbDiv.appendChild(removeBtn);
-
-                        // Drag events for reordering
-                        thumbDiv.addEventListener('dragstart', handleDragStart);
-                        thumbDiv.addEventListener('dragover', handleDragOver);
-                        thumbDiv.addEventListener('drop', handleDrop);
-                        thumbDiv.addEventListener('dragend', handleDragEnd);
-
-                        container.appendChild(thumbDiv);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            let dragSource = null;
-
-            function handleDragStart(e) {
-                dragSource = e.target.closest('.thumbnail-item');
-                if (!dragSource) return;
-                e.dataTransfer.setData('text/plain', '');
-                dragSource.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-            }
-
-            function handleDragOver(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-            }
-
-            function handleDrop(e) {
-                e.preventDefault();
-                const dropTarget = e.target.closest('.thumbnail-item');
-                if (!dropTarget || dropTarget === dragSource) return;
-
-                const sourceAccount = dragSource.dataset.account;
-                const targetAccount = dropTarget.dataset.account;
-                if (sourceAccount !== targetAccount) return;
-
-                const container = dropTarget.parentNode;
-                const items = [...container.querySelectorAll('.thumbnail-item')];
-                const sourceIndex = items.indexOf(dragSource);
-                const targetIndex = items.indexOf(dropTarget);
-
-                const files = accountImages[sourceAccount];
-                const [moved] = files.splice(sourceIndex, 1);
-                files.splice(targetIndex, 0, moved);
-
-                renderThumbnails(sourceAccount);
-            }
-
-            function handleDragEnd(e) {
-                e.target.classList.remove('dragging');
-                dragSource = null;
-            }
-
-            // Set up drop zones for both accounts
-            document.querySelectorAll('.account-card').forEach(card => {
-                const accountId = card.dataset.account;
-                const dropzone = card.querySelector('.dropzone');
-                const thumbnailContainer = card.querySelector('.thumbnail-container');
-
-                dropzone.addEventListener('click', () => {
-                    const filePicker = document.createElement('input');
-                    filePicker.type = 'file';
-                    filePicker.multiple = true;
-                    filePicker.accept = 'image/*';
-                    filePicker.onchange = () => {
-                        if (filePicker.files.length > 0) {
-                            accountImages[accountId].push(...Array.from(filePicker.files));
-                            renderThumbnails(accountId);
-                        }
-                    };
-                    filePicker.click();
-                });
-
-                dropzone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    dropzone.style.borderColor = '#4CAF50';
-                });
-
-                dropzone.addEventListener('dragleave', () => {
-                    dropzone.style.borderColor = '#aaa';
-                });
-
-                dropzone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    dropzone.style.borderColor = '#aaa';
-                    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                    if (files.length > 0) {
-                        accountImages[accountId].push(...files);
-                        renderThumbnails(accountId);
-                    }
-                });
-            });
-
-            // Prevent default drag on document
-            document.addEventListener('dragover', (e) => e.preventDefault());
-            document.addEventListener('drop', (e) => e.preventDefault());
-        })();
-
-        // ----- Post to Bluesky via backend API -----
-        async function postToBluesky(accountId) {
-            const postElement = document.getElementById(`post${accountId}`);
-            const postText = postElement.value.trim();
-            const images = accountImages[accountId] || [];
-
-            if (!postText && images.length === 0) {
-                alert('Please enter some text or add an image to post.');
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.zip')) {
+                alert('Please select a zip file.');
                 return;
             }
 
-            // Show loading state
-            const originalBg = postElement.style.backgroundColor;
-            postElement.style.backgroundColor = '#fff3cd';
+            filenameHint.textContent = `Processing: ${file.name}`;
+            subscriberOutput.value = 'Reading zip file...';
+            publicOutput.value = 'Reading zip file...';
 
-            try {
-                const formData = new FormData();
-                formData.append('account', accountId);
-                formData.append('text', postText);
-                images.forEach((file, index) => {
-                    formData.append(`image_${index}`, file); // simple naming
-                });
-
-                // Send to your backend endpoint (adjust URL if needed)
-                const response = await fetch('/api/bluesky-post', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    alert('✅ Post successful!');
-                    // Optionally clear images or text?
-                } else {
-                    alert('❌ Error: ' + (result.error || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('❌ Network error: ' + error.message);
-            } finally {
-                postElement.style.backgroundColor = originalBg;
+            const parsed = parseFilename(file.name);
+            if (!parsed) {
+                subscriberOutput.value = '❌ Filename format not recognized.\nExpected: [Pack 123] Character Name - SERIES NAME.zip';
+                publicOutput.value = '❌ Filename format not recognized.\nExpected: [Pack 123] Character Name - SERIES NAME.zip';
+                filenameHint.textContent = 'Error: invalid filename format';
+                return;
             }
+
+            const { series, character, pack } = parsed;
+
+            JSZip.loadAsync(file)
+                .then(zip => {
+                    let fileCount = 0;
+                    zip.forEach((relativePath, entry) => {
+                        if (!entry.dir) fileCount++;
+                    });
+
+                    const subscriberPost = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
+                    const publicPost = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
+
+                    subscriberOutput.value = subscriberPost;
+                    publicOutput.value = publicPost;
+                    filenameHint.textContent = `✅ Found ${fileCount} files in zip.`;
+                })
+                .catch(err => {
+                    console.error(err);
+                    subscriberOutput.value = '❌ Error reading zip file.';
+                    publicOutput.value = '❌ Error reading zip file.';
+                    filenameHint.textContent = 'Error: could not read zip contents.';
+                });
         }
 
-        // ----- Add "Post" buttons after the page is fully loaded -----
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.account-card').forEach(card => {
-                const accountId = card.dataset.account;
-                const button = document.createElement('button');
-                button.textContent = '🚀 Post to Bluesky';
-                button.style.marginTop = '15px';
-                button.style.padding = '10px';
-                button.style.width = '100%';
-                button.style.backgroundColor = '#4CAF50';
-                button.style.color = 'white';
-                button.style.border = 'none';
-                button.style.borderRadius = '6px';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '16px';
-                button.onclick = () => postToBluesky(accountId);
-                card.appendChild(button);
+        function parseFilename(filename) {
+            const base = filename.replace(/\.zip$/i, '');
+            const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
+            const match = base.match(regex);
+            if (!match) return null;
+            const pack = match[1];
+            let character = match[2].trim();
+            let series = match[3].trim().toUpperCase();
+            return { series, character, pack };
+        }
+
+        window.copyToClipboard = function(elementId) {
+            const textarea = document.getElementById(elementId);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        };
+    })();
+
+    // ----- Global variables for Bluesky tab -----
+    // Make accountImages globally accessible
+    window.accountImages = { 1: [], 2: [] };
+
+    // ----- Bluesky tab functionality (two accounts) -----
+    (function() {
+        const masterPost = document.getElementById('masterPost');
+        const accountPosts = [
+            document.getElementById('post1'),
+            document.getElementById('post2')
+        ];
+
+        // Master post mirrors to both (but they remain editable afterwards)
+        masterPost.addEventListener('input', () => {
+            accountPosts.forEach(ta => ta.value = masterPost.value);
+        });
+
+        // Set initial values from master (if any)
+        accountPosts.forEach(ta => ta.value = masterPost.value);
+
+        function renderThumbnails(accountId) {
+            const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
+            const files = window.accountImages[accountId];
+            container.innerHTML = '';
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const thumbDiv = document.createElement('div');
+                    thumbDiv.className = 'thumbnail-item';
+                    thumbDiv.draggable = true;
+                    thumbDiv.dataset.index = index;
+                    thumbDiv.dataset.account = accountId;
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    thumbDiv.appendChild(img);
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.innerHTML = '✕';
+                    removeBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        window.accountImages[accountId].splice(index, 1);
+                        renderThumbnails(accountId);
+                    };
+                    thumbDiv.appendChild(removeBtn);
+
+                    // Drag events for reordering
+                    thumbDiv.addEventListener('dragstart', handleDragStart);
+                    thumbDiv.addEventListener('dragover', handleDragOver);
+                    thumbDiv.addEventListener('drop', handleDrop);
+                    thumbDiv.addEventListener('dragend', handleDragEnd);
+
+                    container.appendChild(thumbDiv);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        let dragSource = null;
+
+        function handleDragStart(e) {
+            dragSource = e.target.closest('.thumbnail-item');
+            if (!dragSource) return;
+            e.dataTransfer.setData('text/plain', '');
+            dragSource.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropTarget = e.target.closest('.thumbnail-item');
+            if (!dropTarget || dropTarget === dragSource) return;
+
+            const sourceAccount = dragSource.dataset.account;
+            const targetAccount = dropTarget.dataset.account;
+            if (sourceAccount !== targetAccount) return;
+
+            const container = dropTarget.parentNode;
+            const items = [...container.querySelectorAll('.thumbnail-item')];
+            const sourceIndex = items.indexOf(dragSource);
+            const targetIndex = items.indexOf(dropTarget);
+
+            const files = window.accountImages[sourceAccount];
+            const [moved] = files.splice(sourceIndex, 1);
+            files.splice(targetIndex, 0, moved);
+
+            renderThumbnails(sourceAccount);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            dragSource = null;
+        }
+
+        // Set up drop zones for both accounts
+        document.querySelectorAll('.account-card').forEach(card => {
+            const accountId = card.dataset.account;
+            const dropzone = card.querySelector('.dropzone');
+            const thumbnailContainer = card.querySelector('.thumbnail-container');
+
+            dropzone.addEventListener('click', () => {
+                const filePicker = document.createElement('input');
+                filePicker.type = 'file';
+                filePicker.multiple = true;
+                filePicker.accept = 'image/*';
+                filePicker.onchange = () => {
+                    if (filePicker.files.length > 0) {
+                        window.accountImages[accountId].push(...Array.from(filePicker.files));
+                        renderThumbnails(accountId);
+                    }
+                };
+                filePicker.click();
+            });
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.style.borderColor = '#4CAF50';
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.style.borderColor = '#aaa';
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.style.borderColor = '#aaa';
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                if (files.length > 0) {
+                    window.accountImages[accountId].push(...files);
+                    renderThumbnails(accountId);
+                }
             });
         });
-    </script>
+
+        // Prevent default drag on document
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => e.preventDefault());
+    })();
+
+    // ----- Post to Bluesky via backend API -----
+    async function postToBluesky(accountId) {
+        const postElement = document.getElementById(`post${accountId}`);
+        const postText = postElement.value.trim();
+        const images = window.accountImages[accountId] || [];
+
+        if (!postText && images.length === 0) {
+            alert('Please enter some text or add an image to post.');
+            return;
+        }
+
+        // Show loading state
+        const originalBg = postElement.style.backgroundColor;
+        postElement.style.backgroundColor = '#fff3cd';
+
+        try {
+            const formData = new FormData();
+            formData.append('account', accountId);
+            formData.append('text', postText);
+            images.forEach((file, index) => {
+                formData.append(`image_${index}`, file);
+            });
+
+            // Send to your backend endpoint (adjust URL if needed)
+            const response = await fetch('/api/bluesky-post', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('✅ Post successful!');
+                // Optionally clear images or text?
+            } else {
+                alert('❌ Error: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('❌ Network error: ' + error.message);
+        } finally {
+            postElement.style.backgroundColor = originalBg;
+        }
+    }
+
+    // ----- Add "Post" buttons after the page is fully loaded -----
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.account-card').forEach(card => {
+            const accountId = card.dataset.account;
+            const button = document.createElement('button');
+            button.textContent = '🚀 Post to Bluesky';
+            button.style.marginTop = '15px';
+            button.style.padding = '10px';
+            button.style.width = '100%';
+            button.style.backgroundColor = '#4CAF50';
+            button.style.color = 'white';
+            button.style.border = 'none';
+            button.style.borderRadius = '6px';
+            button.style.cursor = 'pointer';
+            button.style.fontSize = '16px';
+            button.onclick = () => postToBluesky(accountId);
+            card.appendChild(button);
+        });
+    });
+</script>
 </body>
 </html>
