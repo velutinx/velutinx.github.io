@@ -565,7 +565,7 @@ async function postToBluesky(accountId) {
 
     try {
         // Call YOUR Cloudflare Worker (replace with your actual worker URL)
-const workerUrl = 'https://bluesky-proxy.velutinx.workers.dev';
+const workerUrl = 'https://bluesky-post-proxy.velutinx.workers.dev';
         
         const response = await fetch(workerUrl, {
             method: 'POST',
