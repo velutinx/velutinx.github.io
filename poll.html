@@ -285,6 +285,25 @@
     const grid = document.getElementById("grid");
     const resultsBox = document.getElementById("results");
 
+    // Cookie helpers
+    function setVoteCookie(optionId) {
+      const d = new Date();
+      d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+      document.cookie = `votedPoll=${optionId}; expires=${d.toUTCString()}; path=/`;
+    }
+
+    function getVoteCookie() {
+      const name = 'votedPoll=';
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const ca = decodedCookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+      }
+      return null;
+    }
+
     // Init UI
     for (let i = 1; i <= TOTAL_CARDS; i++) {
       const card = document.createElement("div");
@@ -307,7 +326,13 @@
           { voter_id: ip, option_id: id, poll_id: POLL_ID },
           { onConflict: 'voter_id' }
         );
+
+        // Store vote in localStorage (your existing)
         localStorage.setItem('voted_id', id);
+
+        // Store vote in cookie (30 days)
+        setVoteCookie(id);
+
         updateCardStyles(id);
         fetchGridResults(); // Refresh visual bars immediately
       } catch (err) { console.error("Vote failed", err); }
@@ -369,7 +394,7 @@
 
     async function init() {
       await Promise.all([fetchGridResults(), fetchLeaderboard()]);
-      const saved = localStorage.getItem('voted_id');
+      const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
       // Listen for grid updates
