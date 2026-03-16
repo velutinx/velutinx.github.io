@@ -548,70 +548,69 @@
             document.addEventListener('drop', (e) => e.preventDefault());
         })();
 
-        // ----- NEW: Post to Bluesky via Cloudflare Worker -----
-async function postToBluesky(accountId) {
-    // Get the post text from the correct textarea
-    const postElement = document.getElementById(`post${accountId}`);
-    const postText = postElement.value.trim();
+        // ----- Post to Bluesky via backend API -----
+        async function postToBluesky(accountId) {
+            const postElement = document.getElementById(`post${accountId}`);
+            const postText = postElement.value.trim();
+            const images = accountImages[accountId] || [];
 
-    if (!postText) {
-        alert('Please enter some text to post.');
-        return;
-    }
+            if (!postText && images.length === 0) {
+                alert('Please enter some text or add an image to post.');
+                return;
+            }
 
-    // Show loading state (optional)
-    const originalText = postElement.style.backgroundColor;
-    postElement.style.backgroundColor = '#fff3cd';
+            // Show loading state
+            const originalBg = postElement.style.backgroundColor;
+            postElement.style.backgroundColor = '#fff3cd';
 
-    try {
-        // Call YOUR Cloudflare Worker (replace with your actual worker URL)
-const workerUrl = 'https://bluesky-post-proxy.velutinx.workers.dev';
-        
-        const response = await fetch(workerUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                account: accountId,
-                text: postText
-            })
-        });
+            try {
+                const formData = new FormData();
+                formData.append('account', accountId);
+                formData.append('text', postText);
+                images.forEach((file, index) => {
+                    formData.append(`image_${index}`, file); // simple naming
+                });
 
-        const result = await response.json();
+                // Send to your backend endpoint (adjust URL if needed)
+                const response = await fetch('/api/bluesky-post', {
+                    method: 'POST',
+                    body: formData
+                });
 
-        if (response.ok) {
-            alert('✅ Post successful!');
-            // Optionally clear the post text
-            // postElement.value = '';
-        } else {
-            alert('❌ Error: ' + (result.message || 'Unknown error'));
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('✅ Post successful!');
+                    // Optionally clear images or text?
+                } else {
+                    alert('❌ Error: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Network error: ' + error.message);
+            } finally {
+                postElement.style.backgroundColor = originalBg;
+            }
         }
-    } catch (error) {
-        alert('❌ Network error: ' + error.message);
-    } finally {
-        postElement.style.backgroundColor = originalText;
-    }
-}
-// ----- Add "Post" buttons after the page is fully loaded -----
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.account-card').forEach(card => {
-        const accountId = card.dataset.account;
-        const button = document.createElement('button');
-        button.textContent = '🚀 Post to Bluesky';
-        button.style.marginTop = '15px';
-        button.style.padding = '10px';
-        button.style.width = '100%';
-        button.style.backgroundColor = '#4CAF50';
-        button.style.color = 'white';
-        button.style.border = 'none';
-        button.style.borderRadius = '6px';
-        button.style.cursor = 'pointer';
-        button.style.fontSize = '16px';
-        button.onclick = () => postToBluesky(accountId);
-        card.appendChild(button);
-    });
-});
 
-        
+        // ----- Add "Post" buttons after the page is fully loaded -----
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.account-card').forEach(card => {
+                const accountId = card.dataset.account;
+                const button = document.createElement('button');
+                button.textContent = '🚀 Post to Bluesky';
+                button.style.marginTop = '15px';
+                button.style.padding = '10px';
+                button.style.width = '100%';
+                button.style.backgroundColor = '#4CAF50';
+                button.style.color = 'white';
+                button.style.border = 'none';
+                button.style.borderRadius = '6px';
+                button.style.cursor = 'pointer';
+                button.style.fontSize = '16px';
+                button.onclick = () => postToBluesky(accountId);
+                card.appendChild(button);
+            });
+        });
     </script>
 </body>
 </html>
