@@ -1,3 +1,0 @@
-name = "bluesky-post-proxy"
-main = "worker.js"
-compatibility_date = "2026-03-15"
