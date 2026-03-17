@@ -525,11 +525,10 @@ async function postToBluesky(accountId) {
     postEl.style.backgroundColor = '#fff3cd';
 
     try {
-const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accountId, text })
-});
+const res = await fetch('https://bluesky-post-proxy-v2.velutinx.workers.dev', {  // ← new URL
+  method: 'OPTIONS',
+  headers: { 'Origin': location.origin }
+}).then(r => console.log(r.status, r.headers.get('Access-Control-Allow-Origin')));
 
         if (!res.ok) {
             const errData = await res.json();
