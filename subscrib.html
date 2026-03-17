@@ -543,7 +543,8 @@ async function postToBluesky(accountId) {
         const { Agent, CredentialSession } = await import('https://esm.sh/@atproto/api@0.19.3');
 
         // Create session and login
-const session = new CredentialSession('https://thingproxy.freeboard.io/fetch/https://bsky.social');
+const session = new CredentialSession('https://api.allorigins.win/get?url=' + encodeURIComponent('https://bsky.social'));
+        
         await session.login({
             identifier: handle,
             password: appPass
