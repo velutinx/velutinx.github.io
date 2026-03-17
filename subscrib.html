@@ -525,21 +525,17 @@ async function postToBluesky(accountId) {
     postEl.style.backgroundColor = '#fff3cd';
 
     try {
-const res = await fetch('https://bluesky-proxy.velutinx.workers.dev', {  // ← use YOUR real Worker URL here
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accountId, text })
-});
-
-        if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.message || `HTTP ${res.status}`);
-        }
-
+        const res = await fetch('https://worker.velutinx.workers.dev', {  // ← your Worker URL
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId, text })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
         alert('Posted successfully!');
     } catch (err) {
-        console.error('Post error:', err);
-        alert('Failed: ' + (err.message || 'Check console (F12)'));
+        alert('Post failed: ' + err.message);
+        console.error(err);
     } finally {
         postEl.style.backgroundColor = '';
     }
