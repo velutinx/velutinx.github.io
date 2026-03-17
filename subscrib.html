@@ -518,50 +518,64 @@
     document.addEventListener('drop', e => e.preventDefault());
 
     // Posting function (uses Agent + proxy)
-    async function postToBluesky(accountId) {
-        const postEl = document.getElementById(`post${accountId}`);
-        const text = postEl.value.trim();
-        if (!text) return alert('Write something');
+// Posting to Bluesky with correct session + agent pattern + CORS proxy
+async function postToBluesky(accountId) {
+    const postEl = document.getElementById(`post${accountId}`);
+    const text = postEl.value.trim();
+    if (!text) return alert('Write something');
 
-        let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
-        let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
+    let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
+    let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
 
-        if (!handle || !appPass) {
-            handle = prompt(`Enter handle for account ${accountId} (example: yourname.bsky.social)`);
-            if (!handle) return;
-            appPass = prompt(`Enter App Password for ${handle}`);
-            if (!appPass) return;
-            localStorage.setItem(`bluesky_handle_${accountId}`, handle);
-            localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
-        }
+    if (!handle || !appPass) {
+        handle = prompt(`Enter handle for account ${accountId} (example: yourname.bsky.social)`);
+        if (!handle) return;
+        appPass = prompt(`Enter App Password for ${handle}`);
+        if (!appPass) return;
+        localStorage.setItem(`bluesky_handle_${accountId}`, handle);
+        localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
+    }
 
-        const agent = new Agent({
-            service: 'https://corsproxy.io/?https://bsky.social'  // keep proxy for CORS
+    try {
+        postEl.style.backgroundColor = '#fff3cd';
+
+        // Import CredentialSession for password login
+        const { Agent, CredentialSession } = await import('https://esm.sh/@atproto/api@0.19.3');
+
+        // Create session and login
+        const session = new CredentialSession('https://corsproxy.io/?https://bsky.social');
+        await session.login({
+            identifier: handle,
+            password: appPass
         });
 
-        try {
-            postEl.style.backgroundColor = '#fff3cd';
-            await agent.login({ identifier: handle, password: appPass });
-            await agent.post({
-                text,
-                createdAt: new Date().toISOString()
-            });
-            alert('Posted successfully!');
-        } catch (err) {
-            console.error('Bluesky error:', err);
-            let msg = 'Failed to post.\n';
-            if (err.message?.includes('401') || err.message?.includes('auth')) {
-                msg += 'Wrong handle or app password.\nClear stored: F12 → Application → Local Storage → delete bluesky_*';
-            } else if (err.message?.includes('rate')) {
-                msg += 'Rate limited — wait a few minutes.';
-            } else {
-                msg += err.message || 'Check F12 console.';
-            }
-            alert(msg);
-        } finally {
-            postEl.style.backgroundColor = '';
+        // Create agent with authenticated session
+        const agent = new Agent(session);
+
+        // Post
+        await agent.post({
+            text,
+            createdAt: new Date().toISOString()
+        });
+
+        alert('Posted successfully!');
+    } catch (err) {
+        console.error('Bluesky error:', err);
+        let msg = 'Failed to post.\n';
+        if (err.message?.includes('401') || err.message?.includes('auth') || err.message?.includes('invalid')) {
+            msg += 'Invalid handle or app password.\nClear stored login: F12 → Application → Local Storage → delete entries starting with "bluesky_"';
+        } else if (err.message?.includes('rate')) {
+            msg += 'Rate limited — wait a few minutes and try again.';
+        } else if (err.message?.includes('proxy') || err.message?.includes('cors') || err.message?.includes('fetch')) {
+            msg += 'Proxy/CORS issue — try reloading or a different proxy (e.g., change to https://api.allorigins.win/raw?url=https://bsky.social in the code).';
+        } else {
+            msg += err.message || 'Unknown error — check F12 console for details.';
         }
+        alert(msg);
+    } finally {
+        postEl.style.backgroundColor = '';
     }
+}
 
     document.querySelectorAll('.post-btn').forEach(btn => {
         btn.addEventListener('click', () => postToBluesky(btn.dataset.account));
