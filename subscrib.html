@@ -551,49 +551,43 @@
         document.addEventListener('drop', (e) => e.preventDefault());
     })();
 
-    // ----- Post to Bluesky via backend API -----
-    async function postToBluesky(accountId) {
-        const postElement = document.getElementById(`post${accountId}`);
-        const postText = postElement.value.trim();
-        const images = window.accountImages[accountId] || [];
+// ----- Post to Bluesky via Pipedream -----
+async function postToBluesky(accountId) {
+    const postElement = document.getElementById(`post${accountId}`);
+    const postText = postElement.value.trim();
 
-        if (!postText && images.length === 0) {
-            alert('Please enter some text or add an image to post.');
-            return;
-        }
-
-        // Show loading state
-        const originalBg = postElement.style.backgroundColor;
-        postElement.style.backgroundColor = '#fff3cd';
-
-        try {
-            const formData = new FormData();
-            formData.append('account', accountId);
-            formData.append('text', postText);
-            images.forEach((file, index) => {
-                formData.append(`image_${index}`, file);
-            });
-
-            // Send to your backend endpoint (adjust URL if needed)
-const response = await fetch('https://eop4udrh97ted0g.m.pipedream.net', {
-    method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert('✅ Post successful!');
-                // Optionally clear images or text?
-            } else {
-                alert('❌ Error: ' + (result.error || 'Unknown error'));
-            }
-        } catch (error) {
-            alert('❌ Network error: ' + error.message);
-        } finally {
-            postElement.style.backgroundColor = originalBg;
-        }
+    if (!postText) {
+        alert('Please enter some text to post.');
+        return;
     }
+
+    // Show loading state
+    const originalBg = postElement.style.backgroundColor;
+    postElement.style.backgroundColor = '#fff3cd';
+
+    try {
+        const response = await fetch('https://eop4udrh97ted0g.m.pipedream.net', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                account: accountId,
+                text: postText
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('✅ Post successful!');
+        } else {
+            alert('❌ Error: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('❌ Network error: ' + error.message);
+    } finally {
+        postElement.style.backgroundColor = originalBg;
+    }
+}
 
     // ----- Add "Post" buttons after the page is fully loaded -----
     document.addEventListener('DOMContentLoaded', function() {
