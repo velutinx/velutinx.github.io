@@ -543,7 +543,7 @@ async function postToBluesky(accountId) {
         const { Agent, CredentialSession } = await import('https://esm.sh/@atproto/api@0.19.3');
 
         // Create session and login
-        const session = new CredentialSession('https://corsproxy.io/?https://bsky.social');
+const session = new CredentialSession('https://api.allorigins.win/raw?url=https://bsky.social');
         await session.login({
             identifier: handle,
             password: appPass
