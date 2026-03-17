@@ -528,13 +528,39 @@
         document.addEventListener('drop', e => e.preventDefault());
 
         // ── Posting to Bluesky ────────────────────────────────────────────────
-        async function postToBluesky(accountId) {
-            const postEl = document.getElementById(`post${accountId}`);
-            const text = postEl.value.trim();
-            if (!text) {
-                alert('Please write something to post.');
-                return;
-            }
+async function postToBluesky(accountId) {
+    const postEl = document.getElementById(`post${accountId}`);
+    const text = postEl.value.trim();
+    if (!text) return alert('Write something');
+
+    alert("Starting test fetch...");
+
+    try {
+        const res = await fetch('https://bsky.social/xrpc/com.atproto.server.describeServer', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        console.log('Status:', res.status);
+        const textBody = await res.text();   // ← use .text() first to see raw content
+        console.log('Raw response:', textBody);
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        let data;
+        try {
+            data = JSON.parse(textBody);
+        } catch (parseErr) {
+            console.error('Parse failed on:', textBody.substring(0, 200));
+            throw new Error('Not JSON: ' + textBody.substring(0, 100));
+        }
+
+        alert('Describe server worked!\n\n' + JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.error(err);
+        alert('Test fetch failed:\n' + err.message + '\n\nCheck F12 Console for more');
+    }
+}
 
             let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
             let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
