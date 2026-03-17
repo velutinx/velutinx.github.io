@@ -307,15 +307,16 @@
                 </div>
             </div>
             <p style="margin-top:20px; color:#666; font-size:0.9em;">
-                <strong>Important:</strong> This version uses a public CORS proxy to bypass Bluesky's browser restrictions.<br>
-                <strong>Do NOT enter your real main account password here</strong> — use app passwords only, and preferably throwaway/test accounts.<br>
-                Credentials are stored in localStorage (browser only).
+                <strong>Important:</strong> Uses public CORS proxy + latest @atproto/api (Agent class).<br>
+                Use app passwords only. Stored in browser localStorage.<br>
+                If posting fails, check F12 console for CORS/proxy errors.
             </p>
         </div>
     </div>
 
     <script type="module">
-        import { BskyAgent } from 'https://cdn.jsdelivr.net/npm/@atproto/api@0.13.0/dist/index.min.js';
+        import * as Atproto from 'https://cdn.jsdelivr.net/npm/@atproto/api@latest/dist/index.min.js';
+        const { Agent } = Atproto;  // This is the correct way now
 
         // Tab switching
         const tabButtons = document.querySelectorAll('.tab-button');
@@ -329,7 +330,7 @@
             });
         });
 
-        // ── Subscribestar logic ───────────────────────────────────────────────
+        // Subscribestar logic (unchanged)
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const subscriberOutput = document.getElementById('subscriberOutput');
@@ -403,7 +404,7 @@
             alert('Copied to clipboard!');
         };
 
-        // ── Bluesky logic ─────────────────────────────────────────────────────
+        // Bluesky logic
         window.accountImages = { 1: [], 2: [] };
 
         const masterPost = document.getElementById('masterPost');
@@ -516,7 +517,7 @@
         document.addEventListener('dragover', e => e.preventDefault());
         document.addEventListener('drop', e => e.preventDefault());
 
-        // ── Posting to Bluesky with CORS proxy ────────────────────────────────
+        // Posting to Bluesky with CORS proxy + fixed Agent import
         async function postToBluesky(accountId) {
             const postEl = document.getElementById(`post${accountId}`);
             const text = postEl.value.trim();
@@ -534,8 +535,7 @@
                 localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
             }
 
-            // Use CORS proxy
-            const agent = new BskyAgent({
+            const agent = new Agent({
                 service: 'https://corsproxy.io/?https://bsky.social'
             });
 
@@ -551,13 +551,11 @@
                 console.error('Bluesky error:', err);
                 let msg = 'Failed to post.\n';
                 if (err.message?.includes('401') || err.message?.includes('auth')) {
-                    msg += 'Wrong handle or app password.\nClear stored login: F12 → Application → Local Storage → delete entries starting with bluesky_';
+                    msg += 'Wrong handle or app password.\nClear stored login: F12 → Application → Local Storage → delete bluesky_* entries';
                 } else if (err.message?.includes('rate')) {
                     msg += 'Rate limited — wait a few minutes.';
-                } else if (err.message?.includes('proxy') || err.message?.includes('cors')) {
-                    msg += 'Proxy failed — try again later or use a different proxy.';
                 } else {
-                    msg += err.message || 'Check F12 console for details.';
+                    msg += err.message || 'Check F12 console.';
                 }
                 alert(msg);
             } finally {
