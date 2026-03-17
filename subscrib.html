@@ -314,258 +314,258 @@
         </div>
     </div>
 
-    <script type="module">
-        import * as Atproto from 'https://cdn.jsdelivr.net/npm/@atproto/api@latest/dist/index.min.js';
-        const { Agent } = Atproto;  // This is the correct way now
+<script type="module">
+    // Use esm.sh for proper ESM conversion (fixes exports/CommonJS issues)
+    import { Agent } from 'https://esm.sh/@atproto/api@0.19.3';  // latest as of 2026
 
-        // Tab switching
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                tabButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                tabContents.forEach(c => c.classList.remove('active'));
-                document.getElementById(btn.dataset.tab).classList.add('active');
+    // Tab switching (unchanged)
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            tabContents.forEach(c => c.classList.remove('active'));
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+
+    // Your Subscribestar logic here (copy-paste from your original, unchanged)
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const subscriberOutput = document.getElementById('subscriberOutput');
+    const publicOutput = document.getElementById('publicOutput');
+    const filenameHint = document.getElementById('filenameHint');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = '#333'; });
+    dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#aaa');
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#aaa';
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    function handleFile(file) {
+        if (!file.name.toLowerCase().endsWith('.zip')) {
+            alert('Please select a zip file.');
+            return;
+        }
+        filenameHint.textContent = `Processing: ${file.name}`;
+        subscriberOutput.value = 'Reading zip file...';
+        publicOutput.value = 'Reading zip file...';
+
+        const parsed = parseFilename(file.name);
+        if (!parsed) {
+            const errMsg = '❌ Filename format not recognized.\nExpected: [Pack 123] Character Name - SERIES NAME.zip';
+            subscriberOutput.value = errMsg;
+            publicOutput.value = errMsg;
+            filenameHint.textContent = 'Error: invalid filename format';
+            return;
+        }
+
+        const { series, character, pack } = parsed;
+
+        JSZip.loadAsync(file)
+            .then(zip => {
+                let fileCount = 0;
+                zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
+                subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
+                publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
+                filenameHint.textContent = `✅ Found ${fileCount} files in zip.`;
+            })
+            .catch(err => {
+                console.error(err);
+                subscriberOutput.value = publicOutput.value = '❌ Error reading zip file.';
+                filenameHint.textContent = 'Error: could not read zip contents.';
             });
-        });
+    }
 
-        // Subscribestar logic (unchanged)
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const subscriberOutput = document.getElementById('subscriberOutput');
-        const publicOutput = document.getElementById('publicOutput');
-        const filenameHint = document.getElementById('filenameHint');
-
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = '#333'; });
-        dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#aaa');
-        dropZone.addEventListener('drop', e => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#aaa';
-            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-        });
-        fileInput.addEventListener('change', e => {
-            if (e.target.files.length) handleFile(e.target.files[0]);
-        });
-
-        function handleFile(file) {
-            if (!file.name.toLowerCase().endsWith('.zip')) {
-                alert('Please select a zip file.');
-                return;
-            }
-            filenameHint.textContent = `Processing: ${file.name}`;
-            subscriberOutput.value = 'Reading zip file...';
-            publicOutput.value = 'Reading zip file...';
-
-            const parsed = parseFilename(file.name);
-            if (!parsed) {
-                const errMsg = '❌ Filename format not recognized.\nExpected: [Pack 123] Character Name - SERIES NAME.zip';
-                subscriberOutput.value = errMsg;
-                publicOutput.value = errMsg;
-                filenameHint.textContent = 'Error: invalid filename format';
-                return;
-            }
-
-            const { series, character, pack } = parsed;
-
-            JSZip.loadAsync(file)
-                .then(zip => {
-                    let fileCount = 0;
-                    zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
-                    subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
-                    publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
-                    filenameHint.textContent = `✅ Found ${fileCount} files in zip.`;
-                })
-                .catch(err => {
-                    console.error(err);
-                    subscriberOutput.value = publicOutput.value = '❌ Error reading zip file.';
-                    filenameHint.textContent = 'Error: could not read zip contents.';
-                });
-        }
-
-        function parseFilename(filename) {
-            const base = filename.replace(/\.zip$/i, '');
-            const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
-            const match = base.match(regex);
-            if (!match) return null;
-            return {
-                pack: match[1],
-                character: match[2].trim(),
-                series: match[3].trim().toUpperCase()
-            };
-        }
-
-        window.copyToClipboard = function(id) {
-            const el = document.getElementById(id);
-            el.select();
-            el.setSelectionRange(0, 99999);
-            document.execCommand('copy');
-            alert('Copied to clipboard!');
+    function parseFilename(filename) {
+        const base = filename.replace(/\.zip$/i, '');
+        const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
+        const match = base.match(regex);
+        if (!match) return null;
+        return {
+            pack: match[1],
+            character: match[2].trim(),
+            series: match[3].trim().toUpperCase()
         };
+    }
 
-        // Bluesky logic
-        window.accountImages = { 1: [], 2: [] };
+    window.copyToClipboard = function(id) {
+        const el = document.getElementById(id);
+        el.select();
+        el.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        alert('Copied to clipboard!');
+    };
 
-        const masterPost = document.getElementById('masterPost');
-        const accountPosts = [document.getElementById('post1'), document.getElementById('post2')];
+    // Bluesky logic (unchanged except Agent usage)
+    window.accountImages = { 1: [], 2: [] };
 
-        masterPost.addEventListener('input', () => {
-            accountPosts.forEach(ta => ta.value = masterPost.value);
-        });
+    const masterPost = document.getElementById('masterPost');
+    const accountPosts = [document.getElementById('post1'), document.getElementById('post2')];
+
+    masterPost.addEventListener('input', () => {
         accountPosts.forEach(ta => ta.value = masterPost.value);
+    });
+    accountPosts.forEach(ta => ta.value = masterPost.value);
 
-        function renderThumbnails(accountId) {
-            const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
-            const files = window.accountImages[accountId];
-            container.innerHTML = '';
-            files.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const thumbDiv = document.createElement('div');
-                    thumbDiv.className = 'thumbnail-item';
-                    thumbDiv.draggable = true;
-                    thumbDiv.dataset.index = index;
-                    thumbDiv.dataset.account = accountId;
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    thumbDiv.appendChild(img);
-                    const removeBtn = document.createElement('button');
-                    removeBtn.className = 'remove-btn';
-                    removeBtn.innerHTML = '✕';
-                    removeBtn.onclick = ev => {
-                        ev.stopPropagation();
-                        window.accountImages[accountId].splice(index, 1);
-                        renderThumbnails(accountId);
-                    };
-                    thumbDiv.appendChild(removeBtn);
-                    thumbDiv.addEventListener('dragstart', handleDragStart);
-                    thumbDiv.addEventListener('dragover', handleDragOver);
-                    thumbDiv.addEventListener('drop', handleDrop);
-                    thumbDiv.addEventListener('dragend', handleDragEnd);
-                    container.appendChild(thumbDiv);
+    function renderThumbnails(accountId) {
+        const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
+        const files = window.accountImages[accountId];
+        container.innerHTML = '';
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const thumbDiv = document.createElement('div');
+                thumbDiv.className = 'thumbnail-item';
+                thumbDiv.draggable = true;
+                thumbDiv.dataset.index = index;
+                thumbDiv.dataset.account = accountId;
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                thumbDiv.appendChild(img);
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '✕';
+                removeBtn.onclick = ev => {
+                    ev.stopPropagation();
+                    window.accountImages[accountId].splice(index, 1);
+                    renderThumbnails(accountId);
                 };
-                reader.readAsDataURL(file);
-            });
-        }
+                thumbDiv.appendChild(removeBtn);
+                thumbDiv.addEventListener('dragstart', handleDragStart);
+                thumbDiv.addEventListener('dragover', handleDragOver);
+                thumbDiv.addEventListener('drop', handleDrop);
+                thumbDiv.addEventListener('dragend', handleDragEnd);
+                container.appendChild(thumbDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
-        let dragSource = null;
-        function handleDragStart(e) {
-            dragSource = e.target.closest('.thumbnail-item');
-            if (!dragSource) return;
-            e.dataTransfer.setData('text/plain', '');
-            dragSource.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        }
-        function handleDrop(e) {
-            e.preventDefault();
-            const dropTarget = e.target.closest('.thumbnail-item');
-            if (!dropTarget || dropTarget === dragSource) return;
-            const srcAcc = dragSource.dataset.account;
-            const tgtAcc = dropTarget.dataset.account;
-            if (srcAcc !== tgtAcc) return;
-            const container = dropTarget.parentNode;
-            const items = [...container.querySelectorAll('.thumbnail-item')];
-            const srcIdx = items.indexOf(dragSource);
-            const tgtIdx = items.indexOf(dropTarget);
-            const files = window.accountImages[srcAcc];
-            const [moved] = files.splice(srcIdx, 1);
-            files.splice(tgtIdx, 0, moved);
-            renderThumbnails(srcAcc);
-        }
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            dragSource = null;
-        }
+    let dragSource = null;
+    function handleDragStart(e) {
+        dragSource = e.target.closest('.thumbnail-item');
+        if (!dragSource) return;
+        e.dataTransfer.setData('text/plain', '');
+        dragSource.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+    function handleDrop(e) {
+        e.preventDefault();
+        const dropTarget = e.target.closest('.thumbnail-item');
+        if (!dropTarget || dropTarget === dragSource) return;
+        const srcAcc = dragSource.dataset.account;
+        const tgtAcc = dropTarget.dataset.account;
+        if (srcAcc !== tgtAcc) return;
+        const container = dropTarget.parentNode;
+        const items = [...container.querySelectorAll('.thumbnail-item')];
+        const srcIdx = items.indexOf(dragSource);
+        const tgtIdx = items.indexOf(dropTarget);
+        const files = window.accountImages[srcAcc];
+        const [moved] = files.splice(srcIdx, 1);
+        files.splice(tgtIdx, 0, moved);
+        renderThumbnails(srcAcc);
+    }
+    function handleDragEnd(e) {
+        e.target.classList.remove('dragging');
+        dragSource = null;
+    }
 
-        document.querySelectorAll('.account-card').forEach(card => {
-            const accId = card.dataset.account;
-            const dropzone = card.querySelector('.dropzone');
-            dropzone.addEventListener('click', () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.multiple = true;
-                input.accept = 'image/*';
-                input.onchange = () => {
-                    if (input.files.length) {
-                        window.accountImages[accId].push(...Array.from(input.files));
-                        renderThumbnails(accId);
-                    }
-                };
-                input.click();
-            });
-            dropzone.addEventListener('dragover', e => {
-                e.preventDefault();
-                dropzone.style.borderColor = '#4CAF50';
-            });
-            dropzone.addEventListener('dragleave', () => dropzone.style.borderColor = '#aaa');
-            dropzone.addEventListener('drop', e => {
-                e.preventDefault();
-                dropzone.style.borderColor = '#aaa';
-                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                if (files.length) {
-                    window.accountImages[accId].push(...files);
+    document.querySelectorAll('.account-card').forEach(card => {
+        const accId = card.dataset.account;
+        const dropzone = card.querySelector('.dropzone');
+        dropzone.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.accept = 'image/*';
+            input.onchange = () => {
+                if (input.files.length) {
+                    window.accountImages[accId].push(...Array.from(input.files));
                     renderThumbnails(accId);
                 }
-            });
+            };
+            input.click();
         });
-
-        document.addEventListener('dragover', e => e.preventDefault());
-        document.addEventListener('drop', e => e.preventDefault());
-
-        // Posting to Bluesky with CORS proxy + fixed Agent import
-        async function postToBluesky(accountId) {
-            const postEl = document.getElementById(`post${accountId}`);
-            const text = postEl.value.trim();
-            if (!text) return alert('Write something');
-
-            let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
-            let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
-
-            if (!handle || !appPass) {
-                handle = prompt(`Enter handle for account ${accountId} (example: yourname.bsky.social)`);
-                if (!handle) return;
-                appPass = prompt(`Enter App Password for ${handle}`);
-                if (!appPass) return;
-                localStorage.setItem(`bluesky_handle_${accountId}`, handle);
-                localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
+        dropzone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropzone.style.borderColor = '#4CAF50';
+        });
+        dropzone.addEventListener('dragleave', () => dropzone.style.borderColor = '#aaa');
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.style.borderColor = '#aaa';
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            if (files.length) {
+                window.accountImages[accId].push(...files);
+                renderThumbnails(accId);
             }
+        });
+    });
 
-            const agent = new Agent({
-                service: 'https://corsproxy.io/?https://bsky.social'
-            });
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop', e => e.preventDefault());
 
-            try {
-                postEl.style.backgroundColor = '#fff3cd';
-                await agent.login({ identifier: handle, password: appPass });
-                await agent.post({
-                    text,
-                    createdAt: new Date().toISOString()
-                });
-                alert('Posted successfully!');
-            } catch (err) {
-                console.error('Bluesky error:', err);
-                let msg = 'Failed to post.\n';
-                if (err.message?.includes('401') || err.message?.includes('auth')) {
-                    msg += 'Wrong handle or app password.\nClear stored login: F12 → Application → Local Storage → delete bluesky_* entries';
-                } else if (err.message?.includes('rate')) {
-                    msg += 'Rate limited — wait a few minutes.';
-                } else {
-                    msg += err.message || 'Check F12 console.';
-                }
-                alert(msg);
-            } finally {
-                postEl.style.backgroundColor = '';
-            }
+    // Posting function (uses Agent + proxy)
+    async function postToBluesky(accountId) {
+        const postEl = document.getElementById(`post${accountId}`);
+        const text = postEl.value.trim();
+        if (!text) return alert('Write something');
+
+        let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
+        let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
+
+        if (!handle || !appPass) {
+            handle = prompt(`Enter handle for account ${accountId} (example: yourname.bsky.social)`);
+            if (!handle) return;
+            appPass = prompt(`Enter App Password for ${handle}`);
+            if (!appPass) return;
+            localStorage.setItem(`bluesky_handle_${accountId}`, handle);
+            localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
         }
 
-        document.querySelectorAll('.post-btn').forEach(btn => {
-            btn.addEventListener('click', () => postToBluesky(btn.dataset.account));
+        const agent = new Agent({
+            service: 'https://corsproxy.io/?https://bsky.social'  // keep proxy for CORS
         });
-    </script>
+
+        try {
+            postEl.style.backgroundColor = '#fff3cd';
+            await agent.login({ identifier: handle, password: appPass });
+            await agent.post({
+                text,
+                createdAt: new Date().toISOString()
+            });
+            alert('Posted successfully!');
+        } catch (err) {
+            console.error('Bluesky error:', err);
+            let msg = 'Failed to post.\n';
+            if (err.message?.includes('401') || err.message?.includes('auth')) {
+                msg += 'Wrong handle or app password.\nClear stored: F12 → Application → Local Storage → delete bluesky_*';
+            } else if (err.message?.includes('rate')) {
+                msg += 'Rate limited — wait a few minutes.';
+            } else {
+                msg += err.message || 'Check F12 console.';
+            }
+            alert(msg);
+        } finally {
+            postEl.style.backgroundColor = '';
+        }
+    }
+
+    document.querySelectorAll('.post-btn').forEach(btn => {
+        btn.addEventListener('click', () => postToBluesky(btn.dataset.account));
+    });
+</script>
 </body>
 </html>
