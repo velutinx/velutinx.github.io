@@ -525,8 +525,8 @@ async function postToBluesky(accountId) {
     postEl.style.backgroundColor = '#fff3cd';
 
     try {
-        const res = await fetch('https://your-worker-name.your-account.workers.dev', {  // ← PASTE YOUR WORKER URL
-            method: 'POST',
+const res = await fetch('https://bluesky-proxy.velutinx.workers.dev', {  // ← your actual Worker URL
+    method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accountId, text })
         });
