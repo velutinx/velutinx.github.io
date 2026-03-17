@@ -27,7 +27,6 @@
             margin-top: 0;
             color: #333;
         }
-        /* Tabs */
         .tab-bar {
             display: flex;
             gap: 10px;
@@ -56,7 +55,6 @@
         .tab-content.active {
             display: block;
         }
-        /* Subscribestar styles */
         .upload-area {
             border: 2px dashed #aaa;
             border-radius: 10px;
@@ -136,7 +134,6 @@
             color: #888;
             font-size: 0.9em;
         }
-        /* Bluesky tab styles */
         .master-post {
             width: 100%;
             padding: 15px;
@@ -261,7 +258,6 @@
 <body>
     <div class="container">
         <h1>📦 Zip to Post + 🦋 Bluesky Composer</h1>
-
         <div class="tab-bar">
             <button class="tab-button active" data-tab="subscribestar">Subscribestar</button>
             <button class="tab-button" data-tab="bluesky">Bluesky</button>
@@ -302,7 +298,6 @@
                     <div class="thumbnail-container" data-account="1"></div>
                     <button class="post-btn" data-account="1">🚀 Post to SFW Bluesky</button>
                 </div>
-
                 <div class="account-card" data-account="2">
                     <h3>🔴 NSFW Account</h3>
                     <textarea class="account-post" id="post2" rows="2" placeholder="Editable NSFW post..."></textarea>
@@ -312,8 +307,9 @@
                 </div>
             </div>
             <p style="margin-top:20px; color:#666; font-size:0.9em;">
-                Note: First time → it will ask for handle + app password (create app password here: <a href="https://bsky.app/settings/app-passwords" target="_blank">bsky.app/settings/app-passwords</a>).<br>
-                Credentials are stored only in your browser (localStorage).
+                <strong>Important:</strong> This version uses a public CORS proxy to bypass Bluesky's browser restrictions.<br>
+                <strong>Do NOT enter your real main account password here</strong> — use app passwords only, and preferably throwaway/test accounts.<br>
+                Credentials are stored in localStorage (browser only).
             </p>
         </div>
     </div>
@@ -430,11 +426,9 @@
                     thumbDiv.draggable = true;
                     thumbDiv.dataset.index = index;
                     thumbDiv.dataset.account = accountId;
-
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     thumbDiv.appendChild(img);
-
                     const removeBtn = document.createElement('button');
                     removeBtn.className = 'remove-btn';
                     removeBtn.innerHTML = '✕';
@@ -444,12 +438,10 @@
                         renderThumbnails(accountId);
                     };
                     thumbDiv.appendChild(removeBtn);
-
                     thumbDiv.addEventListener('dragstart', handleDragStart);
                     thumbDiv.addEventListener('dragover', handleDragOver);
                     thumbDiv.addEventListener('drop', handleDrop);
                     thumbDiv.addEventListener('dragend', handleDragEnd);
-
                     container.appendChild(thumbDiv);
                 };
                 reader.readAsDataURL(file);
@@ -475,12 +467,10 @@
             const srcAcc = dragSource.dataset.account;
             const tgtAcc = dropTarget.dataset.account;
             if (srcAcc !== tgtAcc) return;
-
             const container = dropTarget.parentNode;
             const items = [...container.querySelectorAll('.thumbnail-item')];
             const srcIdx = items.indexOf(dragSource);
             const tgtIdx = items.indexOf(dropTarget);
-
             const files = window.accountImages[srcAcc];
             const [moved] = files.splice(srcIdx, 1);
             files.splice(tgtIdx, 0, moved);
@@ -491,7 +481,6 @@
             dragSource = null;
         }
 
-        // Dropzone setup
         document.querySelectorAll('.account-card').forEach(card => {
             const accId = card.dataset.account;
             const dropzone = card.querySelector('.dropzone');
@@ -527,40 +516,11 @@
         document.addEventListener('dragover', e => e.preventDefault());
         document.addEventListener('drop', e => e.preventDefault());
 
-        // ── Posting to Bluesky ────────────────────────────────────────────────
-async function postToBluesky(accountId) {
-    const postEl = document.getElementById(`post${accountId}`);
-    const text = postEl.value.trim();
-    if (!text) return alert('Write something');
-
-    alert("Starting test fetch...");
-
-    try {
-        const res = await fetch('https://bsky.social/xrpc/com.atproto.server.describeServer', {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        });
-
-        console.log('Status:', res.status);
-        const textBody = await res.text();   // ← use .text() first to see raw content
-        console.log('Raw response:', textBody);
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        let data;
-        try {
-            data = JSON.parse(textBody);
-        } catch (parseErr) {
-            console.error('Parse failed on:', textBody.substring(0, 200));
-            throw new Error('Not JSON: ' + textBody.substring(0, 100));
-        }
-
-        alert('Describe server worked!\n\n' + JSON.stringify(data, null, 2));
-    } catch (err) {
-        console.error(err);
-        alert('Test fetch failed:\n' + err.message + '\n\nCheck F12 Console for more');
-    }
-}
+        // ── Posting to Bluesky with CORS proxy ────────────────────────────────
+        async function postToBluesky(accountId) {
+            const postEl = document.getElementById(`post${accountId}`);
+            const text = postEl.value.trim();
+            if (!text) return alert('Write something');
 
             let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
             let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
@@ -574,7 +534,10 @@ async function postToBluesky(accountId) {
                 localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
             }
 
-            const agent = new BskyAgent({ service: 'https://bsky.social' });
+            // Use CORS proxy
+            const agent = new BskyAgent({
+                service: 'https://corsproxy.io/?https://bsky.social'
+            });
 
             try {
                 postEl.style.backgroundColor = '#fff3cd';
@@ -585,14 +548,16 @@ async function postToBluesky(accountId) {
                 });
                 alert('Posted successfully!');
             } catch (err) {
-                console.error(err);
+                console.error('Bluesky error:', err);
                 let msg = 'Failed to post.\n';
                 if (err.message?.includes('401') || err.message?.includes('auth')) {
-                    msg += 'Wrong handle or app password.\nTry deleting saved login:\nF12 → Application → Local Storage → right-click → clear.';
+                    msg += 'Wrong handle or app password.\nClear stored login: F12 → Application → Local Storage → delete entries starting with bluesky_';
                 } else if (err.message?.includes('rate')) {
                     msg += 'Rate limited — wait a few minutes.';
+                } else if (err.message?.includes('proxy') || err.message?.includes('cors')) {
+                    msg += 'Proxy failed — try again later or use a different proxy.';
                 } else {
-                    msg += err.message || 'See console (F12) for details.';
+                    msg += err.message || 'Check F12 console for details.';
                 }
                 alert(msg);
             } finally {
@@ -600,7 +565,6 @@ async function postToBluesky(accountId) {
             }
         }
 
-        // Attach post buttons
         document.querySelectorAll('.post-btn').forEach(btn => {
             btn.addEventListener('click', () => postToBluesky(btn.dataset.account));
         });
