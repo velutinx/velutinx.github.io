@@ -517,8 +517,6 @@
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => e.preventDefault());
 
-    // Posting function (uses Agent + proxy)
-// Posting to Bluesky with correct session + agent pattern + CORS proxy
 async function postToBluesky(accountId) {
     const postEl = document.getElementById(`post${accountId}`);
     const text = postEl.value.trim();
@@ -539,21 +537,23 @@ async function postToBluesky(accountId) {
     try {
         postEl.style.backgroundColor = '#fff3cd';
 
-        // Import CredentialSession for password login
+        // Dynamic import (keeps it clean)
         const { Agent, CredentialSession } = await import('https://esm.sh/@atproto/api@0.19.3');
 
-        // Create session and login
-const session = new CredentialSession('https://api.allorigins.win/get?url=' + encodeURIComponent('https://bsky.social'));
-        
+        // Switch to a working proxy here – try allorigins first
+        const proxyBase = 'https://api.allorigins.win/raw?url=';  // or 'https://thingproxy.freeboard.io/fetch/'
+        const serviceUrl = proxyBase + encodeURIComponent('https://bsky.social');
+
+        console.log('Using service URL:', serviceUrl);  // debug
+
+        const session = new CredentialSession(serviceUrl);
         await session.login({
             identifier: handle,
             password: appPass
         });
 
-        // Create agent with authenticated session
         const agent = new Agent(session);
 
-        // Post
         await agent.post({
             text,
             createdAt: new Date().toISOString()
@@ -561,16 +561,16 @@ const session = new CredentialSession('https://api.allorigins.win/get?url=' + en
 
         alert('Posted successfully!');
     } catch (err) {
-        console.error('Bluesky error:', err);
-        let msg = 'Failed to post.\n';
-        if (err.message?.includes('401') || err.message?.includes('auth') || err.message?.includes('invalid')) {
-            msg += 'Invalid handle or app password.\nClear stored login: F12 → Application → Local Storage → delete entries starting with "bluesky_"';
+        console.error('Bluesky error details:', err);
+        let msg = 'Failed to post.\n\n';
+        if (err.message?.includes('401') || err.message?.includes('invalid') || err.message?.includes('auth')) {
+            msg += 'Invalid handle/app password. Clear stored: F12 → Application → Local Storage → delete "bluesky_" keys.';
+        } else if (err.message?.includes('fetch') || err.message?.includes('NetworkError') || err.message?.includes('CORS')) {
+            msg += 'Proxy/CORS failure. Try switching the proxyBase in code to:\n"https://thingproxy.freeboard.io/fetch/" or "https://cors-anywhere.herokuapp.com/"\nThen reload.';
         } else if (err.message?.includes('rate')) {
-            msg += 'Rate limited — wait a few minutes and try again.';
-        } else if (err.message?.includes('proxy') || err.message?.includes('cors') || err.message?.includes('fetch')) {
-            msg += 'Proxy/CORS issue — try reloading or a different proxy (e.g., change to https://api.allorigins.win/raw?url=https://bsky.social in the code).';
+            msg += 'Rate limited by Bluesky – wait 5–15 min.';
         } else {
-            msg += err.message || 'Unknown error — check F12 console for details.';
+            msg += 'Error: ' + (err.message || 'Unknown – check console for stack');
         }
         alert(msg);
     } finally {
