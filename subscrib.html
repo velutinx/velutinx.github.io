@@ -517,29 +517,51 @@
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => e.preventDefault());
 
-async function postToBluesky(accountId) {
-    const postEl = document.getElementById(`post${accountId}`);
-    const text = postEl.value.trim();
-    if (!text) return alert('Write something');
+    // Posting function (uses Agent + proxy)
+    async function postToBluesky(accountId) {
+        const postEl = document.getElementById(`post${accountId}`);
+        const text = postEl.value.trim();
+        if (!text) return alert('Write something');
 
-    postEl.style.backgroundColor = '#fff3cd';
+        let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
+        let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
 
-    try {
-        const res = await fetch('https://worker.velutinx.workers.dev', {  // ← your Worker URL
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accountId, text })
+        if (!handle || !appPass) {
+            handle = prompt(`Enter handle for account ${accountId} (example: yourname.bsky.social)`);
+            if (!handle) return;
+            appPass = prompt(`Enter App Password for ${handle}`);
+            if (!appPass) return;
+            localStorage.setItem(`bluesky_handle_${accountId}`, handle);
+            localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
+        }
+
+        const agent = new Agent({
+            service: 'https://corsproxy.io/?https://bsky.social'  // keep proxy for CORS
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed');
-        alert('Posted successfully!');
-    } catch (err) {
-        alert('Post failed: ' + err.message);
-        console.error(err);
-    } finally {
-        postEl.style.backgroundColor = '';
+
+        try {
+            postEl.style.backgroundColor = '#fff3cd';
+            await agent.login({ identifier: handle, password: appPass });
+            await agent.post({
+                text,
+                createdAt: new Date().toISOString()
+            });
+            alert('Posted successfully!');
+        } catch (err) {
+            console.error('Bluesky error:', err);
+            let msg = 'Failed to post.\n';
+            if (err.message?.includes('401') || err.message?.includes('auth')) {
+                msg += 'Wrong handle or app password.\nClear stored: F12 → Application → Local Storage → delete bluesky_*';
+            } else if (err.message?.includes('rate')) {
+                msg += 'Rate limited — wait a few minutes.';
+            } else {
+                msg += err.message || 'Check F12 console.';
+            }
+            alert(msg);
+        } finally {
+            postEl.style.backgroundColor = '';
+        }
     }
-}
 
     document.querySelectorAll('.post-btn').forEach(btn => {
         btn.addEventListener('click', () => postToBluesky(btn.dataset.account));
