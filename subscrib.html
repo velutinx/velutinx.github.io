@@ -517,65 +517,64 @@
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => e.preventDefault());
 
-async function postToBluesky(accountId) {
-    const postEl = document.getElementById(`post${accountId}`);
-    const text = postEl.value.trim();
-    if (!text) return alert('Write something');
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
 
-    let handle = localStorage.getItem(`bluesky_handle_${accountId}`);
-    let appPass = localStorage.getItem(`bluesky_apppass_${accountId}`);
+async function handleRequest(request) {
+  if (request.method !== 'POST') {
+    return new Response('Method Not Allowed', { status: 405 });
+  }
 
-    if (!handle || !appPass) {
-        handle = prompt(`Enter handle for account ${accountId} (example: yourname.bsky.social)`);
-        if (!handle) return;
-        appPass = prompt(`Enter App Password for ${handle}`);
-        if (!appPass) return;
-        localStorage.setItem(`bluesky_handle_${accountId}`, handle);
-        localStorage.setItem(`bluesky_apppass_${accountId}`, appPass);
-    }
+  const body = await request.json();
+  const { accountId, text } = body;
 
-    try {
-        postEl.style.backgroundColor = '#fff3cd';
+  const accounts = {
+    '1': { handle: 'YOUR_SFW_HANDLE.bsky.social', pass: 'YOUR_APP_PASSWORD_SFW' },
+    '2': { handle: 'YOUR_NSFW_HANDLE.bsky.social', pass: 'YOUR_APP_PASSWORD_NSFW' }
+  };
 
-        // Dynamic import (keeps it clean)
-        const { Agent, CredentialSession } = await import('https://esm.sh/@atproto/api@0.19.3');
+  const acc = accounts[accountId];
+  if (!acc) return new Response('Invalid account', { status: 400 });
 
-        // Switch to a working proxy here – try allorigins first
-        const proxyBase = 'https://api.allorigins.win/raw?url=';  // or 'https://thingproxy.freeboard.io/fetch/'
-        const serviceUrl = proxyBase + encodeURIComponent('https://bsky.social');
+  // Login
+  const loginRes = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier: acc.handle, password: acc.pass })
+  });
 
-        console.log('Using service URL:', serviceUrl);  // debug
+  if (!loginRes.ok) {
+    const err = await loginRes.json();
+    return new Response(JSON.stringify(err), { status: loginRes.status });
+  }
 
-        const session = new CredentialSession(serviceUrl);
-        await session.login({
-            identifier: handle,
-            password: appPass
-        });
+  const { did, accessJwt } = await loginRes.json();
 
-        const agent = new Agent(session);
+  // Post
+  const postRes = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessJwt}`
+    },
+    body: JSON.stringify({
+      repo: did,
+      collection: 'app.bsky.feed.post',
+      record: {
+        $type: 'app.bsky.feed.post',
+        text: text,
+        createdAt: new Date().toISOString()
+      }
+    })
+  });
 
-        await agent.post({
-            text,
-            createdAt: new Date().toISOString()
-        });
+  if (!postRes.ok) {
+    const err = await postRes.json();
+    return new Response(JSON.stringify(err), { status: postRes.status });
+  }
 
-        alert('Posted successfully!');
-    } catch (err) {
-        console.error('Bluesky error details:', err);
-        let msg = 'Failed to post.\n\n';
-        if (err.message?.includes('401') || err.message?.includes('invalid') || err.message?.includes('auth')) {
-            msg += 'Invalid handle/app password. Clear stored: F12 → Application → Local Storage → delete "bluesky_" keys.';
-        } else if (err.message?.includes('fetch') || err.message?.includes('NetworkError') || err.message?.includes('CORS')) {
-            msg += 'Proxy/CORS failure. Try switching the proxyBase in code to:\n"https://thingproxy.freeboard.io/fetch/" or "https://cors-anywhere.herokuapp.com/"\nThen reload.';
-        } else if (err.message?.includes('rate')) {
-            msg += 'Rate limited by Bluesky – wait 5–15 min.';
-        } else {
-            msg += 'Error: ' + (err.message || 'Unknown – check console for stack');
-        }
-        alert(msg);
-    } finally {
-        postEl.style.backgroundColor = '';
-    }
+  return new Response(JSON.stringify({ success: true }), { status: 200 });
 }
 
     document.querySelectorAll('.post-btn').forEach(btn => {
