@@ -517,64 +517,32 @@
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => e.preventDefault());
 
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});
+async function postToBluesky(accountId) {
+    const postEl = document.getElementById(`post${accountId}`);
+    const text = postEl.value.trim();
+    if (!text) return alert('Write something');
 
-async function handleRequest(request) {
-  if (request.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
-  }
+    postEl.style.backgroundColor = '#fff3cd';
 
-  const body = await request.json();
-  const { accountId, text } = body;
+    try {
+        const res = await fetch('https://your-worker-name.your-account.workers.dev', {  // ← PASTE YOUR WORKER URL
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId, text })
+        });
 
-  const accounts = {
-    '1': { handle: 'YOUR_SFW_HANDLE.bsky.social', pass: 'YOUR_APP_PASSWORD_SFW' },
-    '2': { handle: 'YOUR_NSFW_HANDLE.bsky.social', pass: 'YOUR_APP_PASSWORD_NSFW' }
-  };
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.message || `HTTP ${res.status}`);
+        }
 
-  const acc = accounts[accountId];
-  if (!acc) return new Response('Invalid account', { status: 400 });
-
-  // Login
-  const loginRes = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identifier: acc.handle, password: acc.pass })
-  });
-
-  if (!loginRes.ok) {
-    const err = await loginRes.json();
-    return new Response(JSON.stringify(err), { status: loginRes.status });
-  }
-
-  const { did, accessJwt } = await loginRes.json();
-
-  // Post
-  const postRes = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessJwt}`
-    },
-    body: JSON.stringify({
-      repo: did,
-      collection: 'app.bsky.feed.post',
-      record: {
-        $type: 'app.bsky.feed.post',
-        text: text,
-        createdAt: new Date().toISOString()
-      }
-    })
-  });
-
-  if (!postRes.ok) {
-    const err = await postRes.json();
-    return new Response(JSON.stringify(err), { status: postRes.status });
-  }
-
-  return new Response(JSON.stringify({ success: true }), { status: 200 });
+        alert('Posted successfully!');
+    } catch (err) {
+        console.error('Post error:', err);
+        alert('Failed: ' + (err.message || 'Check console (F12)'));
+    } finally {
+        postEl.style.backgroundColor = '';
+    }
 }
 
     document.querySelectorAll('.post-btn').forEach(btn => {
