@@ -358,113 +358,102 @@
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
-  <script>
-
-    // ----- Single purchase handler -----
-window.handleSinglePurchase = async function(tierNumber) {
-  const discordId = validateDiscordId(); // uses existing validateDiscordId()
-  if (!discordId) return;
-
-  // Map tier to price and plan name (we'll use price for order)
-  const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
-  const price = tierPrices[tierNumber];
-  if (!price) {
-    showStatus('Invalid tier', 'error');
-    return;
+<script>
+  // ----- Global helper: validate Discord ID (must be defined before any button clicks) -----
+  function validateDiscordId() {
+    const discordInput = document.getElementById('discordId');
+    const statusDiv = document.getElementById('statusMessage');
+    const id = discordInput.value.trim();
+    if (!id) {
+      statusDiv.className = 'error';
+      statusDiv.textContent = '❌ Please enter your Discord ID';
+      return null;
+    }
+    if (!/^\d{17,19}$/.test(id)) {
+      statusDiv.className = 'error';
+      statusDiv.textContent = '❌ Invalid Discord ID format (should be 17‑19 numbers)';
+      return null;
+    }
+    return id;
   }
 
-  try {
-    const res = await fetch('/api/create-paypal-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tier: tierNumber, discordId, price })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to create order');
-    // Redirect to PayPal approval URL
-    window.location.href = data.approvalUrl;
-  } catch (err) {
-    showStatus('Error: ' + err.message, 'error');
+  function showStatus(msg, type = 'success') {
+    const statusDiv = document.getElementById('statusMessage');
+    statusDiv.className = type;
+    statusDiv.textContent = msg;
   }
-}
 
-// Helper to show status in the statusDiv (reuse existing statusDiv)
-function showStatus(msg, type = 'success') {
-  const statusDiv = document.getElementById('statusMessage');
-  statusDiv.className = type;
-  statusDiv.textContent = msg;
-}
-    
-    window.addEventListener('load', function() {
-      const discordInput = document.getElementById('discordId');
-      const statusDiv = document.getElementById('statusMessage');
+  // ----- Single purchase handler (called from button) -----
+  window.handleSinglePurchase = async function(tierNumber) {
+    const discordId = validateDiscordId();
+    if (!discordId) return;
 
-      // Plan IDs for recurring (from your earlier setup)
-      const PLAN_IDS = {
-        tier1: 'P-37M89451YE788052ENG3FYDQ',
-        tier2: 'P-2ND_PLAN_ID_HERE', // replace with actual
-        tier3: 'P-3RD_PLAN_ID_HERE'  // replace with actual
-      };
+    const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
+    const price = tierPrices[tierNumber];
+    if (!price) {
+      showStatus('Invalid tier', 'error');
+      return;
+    }
 
-      // Helper to validate Discord ID
-      function validateDiscordId() {
-        const id = discordInput.value.trim();
-        if (!id) {
-          statusDiv.className = 'error';
-          statusDiv.textContent = '❌ Please enter your Discord ID';
-          return null;
-        }
-        if (!/^\d{17,19}$/.test(id)) {
-          statusDiv.className = 'error';
-          statusDiv.textContent = '❌ Invalid Discord ID format (should be 17‑19 numbers)';
-          return null;
-        }
-        return id;
-      }
-
-      // Function to handle recurring (same as before, but called from button)
-      window.handleRecurring = async function(tierNumber) {
-        const discordId = validateDiscordId();
-        if (!discordId) return;
-
-        const planId = PLAN_IDS[`tier${tierNumber}`];
-        if (!planId) {
-          statusDiv.className = 'error';
-          statusDiv.textContent = '❌ Plan not configured for this tier';
-          return;
-        }
-
-        statusDiv.className = '';
-        statusDiv.textContent = '⏳ Opening PayPal...';
-
-        // Call the PayPal subscription function (you'll need to integrate the SDK properly)
-        // For now, we'll simulate with a simple message
-        alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
-        // In a real implementation, you'd use paypal.Buttons with createSubscription.
-      };
-
-      // Theme toggle (unchanged)
-      document.getElementById('themeBtn').onclick = function() {
-        document.body.classList.toggle('dark');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-      };
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark');
-      }
-
-      // Cart drawer functionality (unchanged)
-      document.getElementById('cartBtn').addEventListener('click', () => {
-        document.getElementById('cartDrawer').classList.add('open');
+    try {
+      const res = await fetch('/api/create-paypal-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier: tierNumber, discordId, price })
       });
-      document.getElementById('floatingCartBtn').addEventListener('click', () => {
-        document.getElementById('cartDrawer').classList.add('open');
-      });
-      document.getElementById('cartClose').addEventListener('click', () => {
-        document.getElementById('cartDrawer').classList.remove('open');
-      });
-      if (window.updateCartDisplay) window.updateCartDisplay();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create order');
+      window.location.href = data.approvalUrl;
+    } catch (err) {
+      showStatus('Error: ' + err.message, 'error');
+    }
+  };
+
+  // ----- Recurring handler (placeholder) -----
+  window.handleRecurring = async function(tierNumber) {
+    const discordId = validateDiscordId();
+    if (!discordId) return;
+
+    const PLAN_IDS = {
+      tier1: 'P-37M89451YE788052ENG3FYDQ',
+      tier2: 'P-2ND_PLAN_ID_HERE',
+      tier3: 'P-3RD_PLAN_ID_HERE'
+    };
+    const planId = PLAN_IDS[`tier${tierNumber}`];
+    if (!planId) {
+      showStatus('❌ Plan not configured for this tier', 'error');
+      return;
+    }
+    alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
+  };
+
+  // ----- Page setup (load event) -----
+  window.addEventListener('load', function() {
+    const discordInput = document.getElementById('discordId');
+    const statusDiv = document.getElementById('statusMessage');
+
+    // Theme toggle
+    document.getElementById('themeBtn').onclick = function() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    };
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+    }
+
+    // Cart drawer (unchanged)
+    document.getElementById('cartBtn').addEventListener('click', () => {
+      document.getElementById('cartDrawer').classList.add('open');
     });
-
+    document.getElementById('floatingCartBtn').addEventListener('click', () => {
+      document.getElementById('cartDrawer').classList.add('open');
+    });
+    document.getElementById('cartClose').addEventListener('click', () => {
+      document.getElementById('cartDrawer').classList.remove('open');
+    });
+    if (window.updateCartDisplay) window.updateCartDisplay();
+  });
+</script>
     
   </script>
 </body>
