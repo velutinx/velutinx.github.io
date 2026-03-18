@@ -308,12 +308,16 @@
           <li>Access to supporter Discord</li>
           <li>High‑res wallpapers</li>
         </ul>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="alert('Single purchase for Tier 1 (not yet implemented)')">Single Purchase</button>
-          <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
-        </div>
+<!-- Replace the button-row divs for each tier with this structure (example for Tier 1) -->
+<div class="button-row">
+  <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
+  <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
+</div>
+        
       </div>
 
+
+      
       <!-- Tier 2 -->
       <div class="tier-card">
         <h3>Quick Request</h3>
@@ -355,6 +359,42 @@
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
   <script>
+
+    // ----- Single purchase handler -----
+window.handleSinglePurchase = async function(tierNumber) {
+  const discordId = validateDiscordId(); // uses existing validateDiscordId()
+  if (!discordId) return;
+
+  // Map tier to price and plan name (we'll use price for order)
+  const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
+  const price = tierPrices[tierNumber];
+  if (!price) {
+    showStatus('Invalid tier', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/create-paypal-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier: tierNumber, discordId, price })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create order');
+    // Redirect to PayPal approval URL
+    window.location.href = data.approvalUrl;
+  } catch (err) {
+    showStatus('Error: ' + err.message, 'error');
+  }
+}
+
+// Helper to show status in the statusDiv (reuse existing statusDiv)
+function showStatus(msg, type = 'success') {
+  const statusDiv = document.getElementById('statusMessage');
+  statusDiv.className = type;
+  statusDiv.textContent = msg;
+}
+    
     window.addEventListener('load', function() {
       const discordInput = document.getElementById('discordId');
       const statusDiv = document.getElementById('statusMessage');
@@ -424,6 +464,8 @@
       });
       if (window.updateCartDisplay) window.updateCartDisplay();
     });
+
+    
   </script>
 </body>
 </html>
