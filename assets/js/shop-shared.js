@@ -178,22 +178,13 @@ function addOrToggleCart(pack) {
     message = translations[currentLang]?.removeFromCart || "Removed from cart";
     isSuccess = false;
   } else {
-    // Start with all properties from the original pack
-    const newItem = {
+    cart.push({
       id: pack.id,
       title: pack.title,
       image: pack.image || (pack.images && pack.images[0]) || "",
       price: getPriceForPack(pack),
       quantity: 1
-    };
-    // Copy over any extra fields (like type, tier, discordId) that might exist
-    if (pack.type) newItem.type = pack.type;
-    if (pack.tier) newItem.tier = pack.tier;
-    if (pack.discordId) newItem.discordId = pack.discordId;
-    // Add any other custom fields you might need in the future
-    // (e.g., pack.description, pack.customData, etc.)
-
-    cart.push(newItem);
+    });
     message = translations[currentLang]?.snackText || "Added successfully";
     isSuccess = true;
   }
@@ -377,20 +368,15 @@ onApprove: async (data, actions) => {
           continue;
         }
         // Send to your backend
-const response = await fetch('https://velutinx.com/api/capture-membership-order', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    orderId: details.id,
-    tier: item.tier,
-    discordId: item.discordId
-  })
-});
-
-console.log('Capture response status:', response.status);
-const responseData = await response.json();
-console.log('Capture response data:', responseData);
-        
+        await fetch('https://velutinx.com/api/capture-membership-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: details.id,
+            tier: tier,
+            discordId: discordId
+          })
+        });
       }
       // Redirect with type=membership
       window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
