@@ -170,8 +170,9 @@ if (!orderId) {
     section.innerHTML = `<p class="error-text">No order information found. Something went wrong with the payment process.</p>`;
 } else {
     // Display order ID
-    document.getElementById("order-id").textContent = `#${orderId.slice(-8)}`;
-
+// Fixed line:
+document.getElementById("order-id").textContent = `#${orderId}`;
+    
     if (type === 'membership') {
         // Membership purchase – show activation message
         section.innerHTML = `
