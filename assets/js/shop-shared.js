@@ -178,13 +178,22 @@ function addOrToggleCart(pack) {
     message = translations[currentLang]?.removeFromCart || "Removed from cart";
     isSuccess = false;
   } else {
-    cart.push({
+    // Start with all properties from the original pack
+    const newItem = {
       id: pack.id,
       title: pack.title,
       image: pack.image || (pack.images && pack.images[0]) || "",
       price: getPriceForPack(pack),
       quantity: 1
-    });
+    };
+    // Copy over any extra fields (like type, tier, discordId) that might exist
+    if (pack.type) newItem.type = pack.type;
+    if (pack.tier) newItem.tier = pack.tier;
+    if (pack.discordId) newItem.discordId = pack.discordId;
+    // Add any other custom fields you might need in the future
+    // (e.g., pack.description, pack.customData, etc.)
+
+    cart.push(newItem);
     message = translations[currentLang]?.snackText || "Added successfully";
     isSuccess = true;
   }
