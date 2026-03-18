@@ -376,16 +376,16 @@ onApprove: async (data, actions) => {
         return;
       }
 
-      // Send the un-captured orderID (data.orderID) to your backend
-      const response = await fetch('https://velutinx.com/api/capture-membership-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: data.orderID, 
-          tier: item.tier,
-          discordId: item.discordId
-        })
-      });
+// To this:
+await fetch('https://d.velutinx.com/api/capture-membership-order', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    orderId: details.id,
+    tier: item.tier,
+    discordId: item.discordId
+  })
+});
 
       if (!response.ok) {
         const errorData = await response.json();
