@@ -532,15 +532,55 @@
       }
     });
 
+    // ----- Helper: get the current cart array (works with shop-shared.js) -----
+    function getCurrentCart() {
+      // Try window.cart first (most direct)
+      if (Array.isArray(window.cart)) {
+        return window.cart;
+      }
+      // Fallback to window.getCart() if available
+      if (typeof window.getCart === 'function') {
+        return window.getCart();
+      }
+      // Last resort: return empty array and warn
+      console.warn('Cart not found, initializing empty cart');
+      window.cart = [];
+      return window.cart;
+    }
+
+    // ----- Helper: save cart and trigger UI update -----
+    function updateCartAndUI(newCart) {
+      // Update the cart reference
+      if (Array.isArray(window.cart)) {
+        window.cart = newCart;
+      }
+      // If there's a setter function, use it
+      if (typeof window.setCart === 'function') {
+        window.setCart(newCart);
+      }
+      // Trigger display update
+      if (typeof window.updateCartDisplay === 'function') {
+        window.updateCartDisplay();
+      } else {
+        // If no update function, at least update membership buttons
+        updateMembershipButtons();
+        // Also try to update the cart count badge manually?
+        const cartCount = document.getElementById('cartCount');
+        if (cartCount) {
+          cartCount.textContent = newCart.length;
+        }
+      }
+    }
+
     // ----- Helper: check if a membership tier is in the cart -----
     function isMembershipInCart(tierNumber) {
-      const cart = window.getCart ? window.getCart() : [];
+      const cart = getCurrentCart();
       return cart.some(item => item.id === `membership-${tierNumber}`);
     }
 
     // ----- Get current highest membership tier from cart (or null) -----
     function getHighestMembershipTier() {
-      const cart = window.getCart ? window.getCart() : [];
+      const cart = getCurrentCart();
       const membershipItems = cart.filter(item => item.type === 'membership');
       if (membershipItems.length === 0) return null;
       const tiers = membershipItems.map(item => item.tier);
@@ -611,7 +651,7 @@
       };
 
       // Get current cart
-      let cart = window.getCart ? window.getCart() : [];
+      let cart = getCurrentCart();
       
       // Separate membership items from others
       const nonMembershipItems = cart.filter(item => item.type !== 'membership');
@@ -653,22 +693,11 @@
         }
       }
 
-      // Update the global cart (if we have direct access)
-      if (window.cart !== undefined) {
-        window.cart = cart;
-      } else {
-        // Fallback: try to use addOrToggleCart? But we've already decided the final cart.
-        // We'll assume window.cart exists.
-        console.warn('window.cart not found, cart may not update');
-      }
+      // Update the cart and UI
+      updateCartAndUI(cart);
       
-      // Trigger UI update
-      if (typeof window.updateCartDisplay === 'function') {
-        window.updateCartDisplay();
-      } else {
-        // Manual update of buttons at least
-        updateMembershipButtons();
-      }
+      // Also manually update membership buttons (in case updateCartDisplay doesn't do it)
+      updateMembershipButtons();
     };
 
     // ----- Recurring handler (placeholder, will be replaced with PayPal subscriptions) -----
