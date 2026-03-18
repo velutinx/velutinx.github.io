@@ -382,8 +382,12 @@
 
     // ----- Single purchase handler: add membership to cart -----
     window.handleSinglePurchase = async function(tierNumber) {
+      console.log('handleSinglePurchase called for tier', tierNumber);
       const discordId = validateDiscordId();
-      if (!discordId) return;
+      if (!discordId) {
+        console.log('Discord ID validation failed');
+        return;
+      }
 
       const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
       const price = tierPrices[tierNumber];
@@ -392,24 +396,39 @@
         return;
       }
 
-      // Create a membership item (similar to pack but with special ID)
+      // Create a membership item (same format as packs)
       const membershipItem = {
         id: `membership-${tierNumber}`,
         title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
         price: price,
         type: 'membership',
-        discordId: discordId // store discordId for later use
+        discordId: discordId
       };
+      console.log('Membership item created:', membershipItem);
 
-      // Add to cart using the existing cart function
-      if (window.addOrToggleCart) {
+      // Check if cart function exists
+      if (typeof window.addOrToggleCart === 'function') {
+        console.log('Calling window.addOrToggleCart');
         window.addOrToggleCart(membershipItem);
-        // Show a quick confirmation
+        console.log('addOrToggleCart executed');
+
+        // Verify cart contents (optional)
+        if (Array.isArray(window.cart)) {
+          console.log('Current cart:', window.cart);
+        } else if (window.getCart) {
+          console.log('Cart from getCart():', window.getCart());
+        }
+
+        // Show snackbar confirmation
         const snackbar = document.getElementById('snackbar');
-        document.getElementById('snackText').textContent = 'Added to cart';
-        snackbar.classList.add('show');
-        setTimeout(() => snackbar.classList.remove('show'), 2400);
+        const snackText = document.getElementById('snackText');
+        if (snackbar && snackText) {
+          snackText.textContent = 'Added to cart';
+          snackbar.classList.add('show');
+          setTimeout(() => snackbar.classList.remove('show'), 2400);
+        }
       } else {
+        console.error('window.addOrToggleCart is not a function!');
         showStatus('Cart system not available', 'error');
       }
     };
@@ -434,7 +453,7 @@
 
     // ----- Page setup (theme toggle, cart initialization) -----
     window.addEventListener('load', function() {
-      // Theme toggle (from header.js may already handle it, but we keep for safety)
+      // Theme toggle
       document.getElementById('themeBtn').onclick = function() {
         document.body.classList.toggle('dark');
         localStorage.setItem('darkMode', document.body.classList.contains('dark'));
@@ -443,18 +462,29 @@
         document.body.classList.add('dark');
       }
 
-      // Cart drawer open/close (already in shop-shared.js, but we ensure it's called)
-      document.getElementById('cartBtn').addEventListener('click', () => {
-        document.getElementById('cartDrawer').classList.add('open');
-        if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
-      });
-      document.getElementById('floatingCartBtn').addEventListener('click', () => {
-        document.getElementById('cartDrawer').classList.add('open');
-        if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
-      });
-      document.getElementById('cartClose').addEventListener('click', () => {
-        document.getElementById('cartDrawer').classList.remove('open');
-      });
+      // Cart drawer open/close
+      const cartBtn = document.getElementById('cartBtn');
+      const floatingCartBtn = document.getElementById('floatingCartBtn');
+      const cartClose = document.getElementById('cartClose');
+      const cartDrawer = document.getElementById('cartDrawer');
+
+      if (cartBtn) {
+        cartBtn.addEventListener('click', () => {
+          cartDrawer.classList.add('open');
+          if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
+        });
+      }
+      if (floatingCartBtn) {
+        floatingCartBtn.addEventListener('click', () => {
+          cartDrawer.classList.add('open');
+          if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
+        });
+      }
+      if (cartClose) {
+        cartClose.addEventListener('click', () => {
+          cartDrawer.classList.remove('open');
+        });
+      }
 
       // Update cart display on load
       if (window.updateCartDisplay) window.updateCartDisplay();
