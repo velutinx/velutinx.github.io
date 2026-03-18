@@ -136,6 +136,14 @@
       background: #059669;
     }
     
+    /* Remove from cart button */
+    .btn-remove {
+      background: #ef4444 !important;
+    }
+    .btn-remove:hover {
+      background: #dc2626 !important;
+    }
+    
     /* Discord input (shared) */
     .discord-section {
       max-width: 600px;
@@ -204,6 +212,11 @@
       color: #ef4444;
       border: 1px solid #ef4444;
       display: block;
+    }
+    
+    /* Snackbar error variant */
+    #snackbar.error {
+      background: #ef4444;
     }
   </style>
 </head>
@@ -348,7 +361,7 @@
       </div>
     </div>
 
-    <!-- Status message -->
+    <!-- Status message (kept for backward compatibility, but we'll use snackbar for errors) -->
     <div id="statusMessage"></div>
   </main>
 
@@ -356,47 +369,65 @@
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
   <script>
-    // ----- Global helper: validate Discord ID -----
+    // ----- Helper: check if a membership tier is in the cart -----
+    function isMembershipInCart(tierNumber) {
+      const cart = window.getCart ? window.getCart() : [];
+      return cart.some(item => item.id === `membership-${tierNumber}`);
+    }
+
+    // ----- Update all membership buttons based on cart state -----
+    function updateMembershipButtons() {
+      for (let tier = 1; tier <= 3; tier++) {
+        const card = document.querySelector(`.tier-card:nth-child(${tier})`);
+        if (!card) continue;
+        const btn = card.querySelector('.btn-single, .btn-remove');
+        if (!btn) continue;
+        const inCart = isMembershipInCart(tier);
+        btn.textContent = inCart ? 'Remove from Cart' : 'Single Purchase';
+        btn.classList.toggle('btn-single', !inCart);
+        btn.classList.toggle('btn-remove', inCart);
+      }
+    }
+
+    // ----- Show a snackbar message (green for success, red for error) -----
+    function showSnackbar(message, isError = false) {
+      const snackbar = document.getElementById('snackbar');
+      const snackText = document.getElementById('snackText');
+      snackText.textContent = message;
+      snackbar.classList.remove('error');
+      if (isError) snackbar.classList.add('error');
+      snackbar.classList.add('show');
+      setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
+    }
+
+    // ----- Validate Discord ID and return it, or show error snackbar -----
     function validateDiscordId() {
       const discordInput = document.getElementById('discordId');
-      const statusDiv = document.getElementById('statusMessage');
       const id = discordInput.value.trim();
       if (!id) {
-        statusDiv.className = 'error';
-        statusDiv.textContent = '❌ Please enter your Discord ID';
+        showSnackbar('❌ Please enter your Discord ID', true);
         return null;
       }
       if (!/^\d{17,19}$/.test(id)) {
-        statusDiv.className = 'error';
-        statusDiv.textContent = '❌ Invalid Discord ID format (should be 17‑19 numbers)';
+        showSnackbar('❌ Invalid Discord ID format (should be 17‑19 numbers)', true);
         return null;
       }
       return id;
     }
 
-    function showStatus(msg, type = 'success') {
-      const statusDiv = document.getElementById('statusMessage');
-      statusDiv.className = type;
-      statusDiv.textContent = msg;
-    }
-
-    // ----- Single purchase handler: add membership to cart -----
+    // ----- Single purchase handler: toggles item in cart -----
     window.handleSinglePurchase = async function(tierNumber) {
       console.log('handleSinglePurchase called for tier', tierNumber);
       const discordId = validateDiscordId();
-      if (!discordId) {
-        console.log('Discord ID validation failed');
-        return;
-      }
+      if (!discordId) return;
 
       const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
       const price = tierPrices[tierNumber];
       if (!price) {
-        showStatus('Invalid tier', 'error');
+        showSnackbar('Invalid tier', true);
         return;
       }
 
-      // Create a membership item (same format as packs)
       const membershipItem = {
         id: `membership-${tierNumber}`,
         title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
@@ -404,32 +435,15 @@
         type: 'membership',
         discordId: discordId
       };
-      console.log('Membership item created:', membershipItem);
 
-      // Check if cart function exists
       if (typeof window.addOrToggleCart === 'function') {
-        console.log('Calling window.addOrToggleCart');
         window.addOrToggleCart(membershipItem);
-        console.log('addOrToggleCart executed');
-
-        // Verify cart contents (optional)
-        if (Array.isArray(window.cart)) {
-          console.log('Current cart:', window.cart);
-        } else if (window.getCart) {
-          console.log('Cart from getCart():', window.getCart());
-        }
-
-        // Show snackbar confirmation
-        const snackbar = document.getElementById('snackbar');
-        const snackText = document.getElementById('snackText');
-        if (snackbar && snackText) {
-          snackText.textContent = 'Added to cart';
-          snackbar.classList.add('show');
-          setTimeout(() => snackbar.classList.remove('show'), 2400);
-        }
+        updateMembershipButtons();
+        // Determine if the item is now in cart after toggle
+        const nowInCart = isMembershipInCart(tierNumber);
+        showSnackbar(nowInCart ? 'Added to cart' : 'Removed from cart', false);
       } else {
-        console.error('window.addOrToggleCart is not a function!');
-        showStatus('Cart system not available', 'error');
+        showSnackbar('Cart system not available', true);
       }
     };
 
@@ -445,13 +459,20 @@
       };
       const planId = PLAN_IDS[`tier${tierNumber}`];
       if (!planId) {
-        showStatus('❌ Plan not configured for this tier', 'error');
+        showSnackbar('❌ Plan not configured for this tier', true);
         return;
       }
       alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
     };
 
-    // ----- Page setup (theme toggle, cart initialization) -----
+    // ----- Override updateCartDisplay to also refresh membership buttons -----
+    const originalUpdateCartDisplay = window.updateCartDisplay;
+    window.updateCartDisplay = function() {
+      if (originalUpdateCartDisplay) originalUpdateCartDisplay();
+      updateMembershipButtons();
+    };
+
+    // ----- Page setup -----
     window.addEventListener('load', function() {
       // Theme toggle
       document.getElementById('themeBtn').onclick = function() {
@@ -486,8 +507,8 @@
         });
       }
 
-      // Update cart display on load
-      if (window.updateCartDisplay) window.updateCartDisplay();
+      // Initial button state
+      updateMembershipButtons();
     });
   </script>
 </body>
