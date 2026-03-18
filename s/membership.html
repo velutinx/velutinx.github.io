@@ -428,13 +428,13 @@
         return;
       }
 
-      const membershipItem = {
-        id: `membership-${tierNumber}`,
-        title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
-        price: price,
-        type: 'membership',
-        discordId: discordId
-      };
+const membershipItem = {
+  id: `membership-${tierNumber}`,
+  title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
+  price: price,
+  type: 'membership',    // ← this is what we check for
+  discordId: discordId
+};
 
       if (typeof window.addOrToggleCart === 'function') {
         window.addOrToggleCart(membershipItem);
