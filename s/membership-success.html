@@ -45,7 +45,7 @@
         document.getElementById('status').textContent = 'Missing payment information';
         document.getElementById('message').className = 'error';
     } else {
-        fetch('/api/capture-membership-order', {
+        fetch('https://velutinx.com/api/capture-membership-order', { // Use your main domain or localhost for testing
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderId, tier, discordId })
