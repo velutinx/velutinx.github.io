@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership Successful - VELUTINX</title>
+    <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+    <style>
+        .success-wrapper {
+            max-width: 650px;
+            margin: 60px auto;
+            padding: 20px;
+        }
+        .success-container {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .success-container h1 { color: #000000; margin-bottom: 8px; }
+        .success-container p { color: #333333; }
+        .loading { margin: 30px 0; }
+        .error { color: #d9534f; }
+    </style>
+</head>
+<body>
+<div class="success-wrapper">
+    <div class="success-container">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#13DEB9" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <h1 id="status">Processing your membership...</h1>
+        <p id="message">Please wait while we confirm your payment.</p>
+    </div>
+</div>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('token'); // PayPal returns as 'token'
+    const tier = urlParams.get('tier');
+    const discordId = urlParams.get('discordId');
+
+    if (!orderId || !tier || !discordId) {
+        document.getElementById('status').textContent = 'Missing payment information';
+        document.getElementById('message').className = 'error';
+    } else {
+        fetch('/api/capture-membership-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, tier, discordId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('status').textContent = 'Membership activated!';
+                document.getElementById('message').textContent = 'Your role will be assigned shortly.';
+            } else {
+                document.getElementById('status').textContent = 'Error';
+                document.getElementById('message').textContent = data.error || 'Unknown error';
+            }
+        })
+        .catch(err => {
+            document.getElementById('status').textContent = 'Network error';
+            document.getElementById('message').textContent = err.message;
+        });
+    }
+</script>
+</body>
+</html>
