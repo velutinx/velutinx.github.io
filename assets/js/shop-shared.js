@@ -351,21 +351,26 @@ function initPayPalButtons() {
       });
     },
 
-    onApprove: async (data, actions) => {
-      try {
-        const details = await actions.order.capture();
-        const cart = getCart();
-        const hasMembership = cart.some(item => item.type === 'membership');
-        if (hasMembership) {
-          window.location.href = `/s/membership-success.html?orderID=${details.id}`;
-        } else {
-          window.location.href = `/success.html?orderID=${details.id}`;
-        }
-      } catch (err) {
-        console.error('PayPal capture error:', err);
-        alert('Payment failed. Please try again.');
-      }
-    },
+onApprove: async (data, actions) => {
+  try {
+    const details = await actions.order.capture();
+    const cart = getCart();
+    
+    // Check if the cart contains any membership items
+    const hasMembership = cart.some(item => item.type === 'membership');
+    
+    if (hasMembership) {
+      // Redirect to membership success page
+      window.location.href = `/s/membership-success.html?orderID=${details.id}`;
+    } else {
+      // Regular pack purchase
+      window.location.href = `/success.html?orderID=${details.id}`;
+    }
+  } catch (err) {
+    console.error('PayPal capture error:', err);
+    alert('Payment failed. Please try again.');
+  }
+},
 
     onError: (err) => {
       console.error('PayPal error:', err);
