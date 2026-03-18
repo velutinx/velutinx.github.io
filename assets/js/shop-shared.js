@@ -377,15 +377,15 @@ onApprove: async (data, actions) => {
           continue;
         }
         // Send to your backend
-        await fetch('https://velutinx.com/api/capture-membership-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderId: details.id,
-            tier: tier,
-            discordId: discordId
-          })
-        });
+const response = await fetch('https://velutinx.com/api/capture-membership-order', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    orderId: details.id,
+    tier: item.tier,
+    discordId: item.discordId
+  })
+});
 
 console.log('Capture response status:', response.status);
 const responseData = await response.json();
