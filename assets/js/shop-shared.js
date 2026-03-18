@@ -355,17 +355,33 @@ onApprove: async (data, actions) => {
   try {
     const details = await actions.order.capture();
     const cart = getCart();
-    
-    // Debug: log the cart to the console
-    console.log('Cart contents:', cart);
-    console.log('Cart items types:', cart.map(item => item.type));
-    
-    const hasMembership = cart.some(item => item.type === 'membership');
-    console.log('Has membership?', hasMembership);
 
-    if (hasMembership) {
-      window.location.href = `/s/membership-success.html?orderID=${details.id}`;
+    // Check if the cart contains any membership items
+    const membershipItems = cart.filter(item => item.type === 'membership');
+
+    if (membershipItems.length > 0) {
+      // Process each membership item (should be only one, but loop just in case)
+      for (const item of membershipItems) {
+        const { discordId, tier } = item; // discordId and tier must be stored in the cart item
+        if (!discordId || !tier) {
+          console.error('Membership item missing discordId or tier', item);
+          continue;
+        }
+        // Send to your backend capture endpoint
+        await fetch('/api/capture-membership-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: details.id,
+            tier: tier,
+            discordId: discordId
+          })
+        });
+      }
+      // After processing, redirect to membership‑aware success page
+      window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
     } else {
+      // Regular pack purchase
       window.location.href = `/s/success.html?orderID=${details.id}`;
     }
   } catch (err) {
