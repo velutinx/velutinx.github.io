@@ -427,14 +427,14 @@
         showSnackbar('Invalid tier', true);
         return;
       }
-
 const membershipItem = {
   id: `membership-${tierNumber}`,
   title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
   price: price,
-  type: 'membership',    // ← this is what we check for
+  type: 'membership',    // ← this must be present
   discordId: discordId
 };
+console.log('Adding membership item:', membershipItem); // ← add this
 
       if (typeof window.addOrToggleCart === 'function') {
         window.addOrToggleCart(membershipItem);
