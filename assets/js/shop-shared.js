@@ -366,7 +366,7 @@ onApprove: async (data, actions) => {
     if (hasMembership) {
       window.location.href = `/s/membership-success.html?orderID=${details.id}`;
     } else {
-      window.location.href = `/success.html?orderID=${details.id}`;
+      window.location.href = `/s/success.html?orderID=${details.id}`;
     }
   } catch (err) {
     console.error('PayPal capture error:', err);
