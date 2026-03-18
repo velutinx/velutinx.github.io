@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+
+  <!-- PayPal SDK – same as pack.html (regular orders, no subscription) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
+
   <style>
-    /* Keep all your existing styles – they are fine */
+    /* Keep all existing styles – unchanged */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -227,9 +231,50 @@
           <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
-      <!-- Cart removed – not needed for membership -->
+      <div class="cart-wrapper">
+        <button class="nav-icon cart-icon" id="cartBtn">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
+          </svg>
+        </button>
+        <span class="cart-badge" id="cartCount">0</span>
+      </div>
     </div>
   </nav>
+  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <div id="paypal-button-container"></div>
+    </div>
+  </div>
+  <div id="snackbar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
+    <span id="snackText">Success</span>
+  </div>
 
   <main class="container">
     <h1 class="membership-title">✨ Choose Your Membership</h1>
@@ -307,8 +352,8 @@
     <div id="statusMessage"></div>
   </main>
 
-  <!-- Keep only essential scripts – header.js for theme, no shop-shared.js -->
   <script src="https://velutinx.com/assets/js/header.js"></script>
+  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
   <script>
     // ----- Global helper: validate Discord ID -----
@@ -335,9 +380,8 @@
       statusDiv.textContent = msg;
     }
 
-    // ----- Single purchase handler (called from button) -----
+    // ----- Single purchase handler: add membership to cart -----
     window.handleSinglePurchase = async function(tierNumber) {
-      console.log('Single purchase clicked for tier', tierNumber); // 👈 Debug
       const discordId = validateDiscordId();
       if (!discordId) return;
 
@@ -348,18 +392,25 @@
         return;
       }
 
-      try {
-        const res = await fetch('/api/create-paypal-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tier: tierNumber, discordId, price })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to create order');
-        window.location.href = data.approvalUrl;
-      } catch (err) {
-        console.error(err); // 👈 Log error
-        showStatus('Error: ' + err.message, 'error');
+      // Create a membership item (similar to pack but with special ID)
+      const membershipItem = {
+        id: `membership-${tierNumber}`,
+        title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
+        price: price,
+        type: 'membership',
+        discordId: discordId // store discordId for later use
+      };
+
+      // Add to cart using the existing cart function
+      if (window.addOrToggleCart) {
+        window.addOrToggleCart(membershipItem);
+        // Show a quick confirmation
+        const snackbar = document.getElementById('snackbar');
+        document.getElementById('snackText').textContent = 'Added to cart';
+        snackbar.classList.add('show');
+        setTimeout(() => snackbar.classList.remove('show'), 2400);
+      } else {
+        showStatus('Cart system not available', 'error');
       }
     };
 
@@ -381,18 +432,32 @@
       alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
     };
 
-    // ----- Page setup (theme toggle) -----
+    // ----- Page setup (theme toggle, cart initialization) -----
     window.addEventListener('load', function() {
-      // Theme toggle (from header.js might already do this, but we keep it for safety)
-      if (typeof headerThemeToggle !== 'function') {
-        document.getElementById('themeBtn').onclick = function() {
-          document.body.classList.toggle('dark');
-          localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-        };
-        if (localStorage.getItem('darkMode') === 'true') {
-          document.body.classList.add('dark');
-        }
+      // Theme toggle (from header.js may already handle it, but we keep for safety)
+      document.getElementById('themeBtn').onclick = function() {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+      };
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark');
       }
+
+      // Cart drawer open/close (already in shop-shared.js, but we ensure it's called)
+      document.getElementById('cartBtn').addEventListener('click', () => {
+        document.getElementById('cartDrawer').classList.add('open');
+        if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
+      });
+      document.getElementById('floatingCartBtn').addEventListener('click', () => {
+        document.getElementById('cartDrawer').classList.add('open');
+        if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
+      });
+      document.getElementById('cartClose').addEventListener('click', () => {
+        document.getElementById('cartDrawer').classList.remove('open');
+      });
+
+      // Update cart display on load
+      if (window.updateCartDisplay) window.updateCartDisplay();
     });
   </script>
 </body>
