@@ -361,58 +361,53 @@ function initPayPalButtons() {
     },
 
 onApprove: async (data, actions) => {
-  try {
-    const cart = getCart();
-    // Check for membership items
-onApprove: async (data, actions) => {
-  try {
-    const cart = getCart();
-    // Check for membership items
-    const membershipItems = cart.filter(item => item.type === 'membership');
+      try {
+        const cart = getCart();
+        const membershipItems = cart.filter(item => item.type === 'membership');
 
-    if (membershipItems.length > 0) {
-      // 1. MEMBERSHIP ROUTE
-      const item = membershipItems[0]; 
-      
-      if (!item.discordId || !item.tier) {
-        console.error('Membership item missing discordId or tier', item);
-        alert('Missing Discord ID. Please remove the membership from your cart and add it again.');
-        return;
+        if (membershipItems.length > 0) {
+          // 1. MEMBERSHIP ROUTE
+          const item = membershipItems[0]; 
+          
+          if (!item.discordId || !item.tier) {
+            console.error('Membership item missing discordId or tier', item);
+            alert('Missing Discord ID. Please remove the membership from your cart and add it again.');
+            return;
+          }
+
+          // CRITICAL: Capture the order first so 'details' exists and money is taken
+          const details = await actions.order.capture();
+
+          // Send to Railway backend (d.velutinx.com)
+          const response = await fetch('https://d.velutinx.com/api/capture-membership-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: details.id, 
+              tier: item.tier,
+              discordId: item.discordId
+            })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Backend Error:', errorData);
+            throw new Error(errorData.error || 'Backend verification failed');
+          }
+
+          // Success redirect
+          window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
+
+        } else {
+          // 2. REGULAR PACK ROUTE
+          const details = await actions.order.capture();
+          window.location.href = `/s/success.html?orderID=${details.id}`;
+        }
+      } catch (err) {
+        console.error('PayPal capture error:', err);
+        alert('Payment was successful, but we had trouble updating your roles. Please contact support with your Order ID!');
       }
-
-      // First, capture the order on the frontend so the money is taken
-      const details = await actions.order.capture();
-
-      // Send the captured Order ID to your Railway backend to write to Supabase
-      const response = await fetch('https://d.velutinx.com/api/capture-membership-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: details.id, // Now 'details' is defined!
-          tier: item.tier,
-          discordId: item.discordId
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Backend Error:', errorData);
-        throw new Error(errorData.error || 'Backend verification failed');
-      }
-
-      // Redirect with type=membership
-      window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
-
-    } else {
-      // 2. REGULAR PACK ROUTE
-      const details = await actions.order.capture();
-      window.location.href = `/s/success.html?orderID=${details.id}`;
-    }
-  } catch (err) {
-    console.error('PayPal capture error:', err);
-    alert('Payment was successful, but we had trouble updating your roles. Please contact support with your Order ID!');
-  }
-},
+    },
 
     onError: (err) => {
       console.error('PayPal error:', err);
