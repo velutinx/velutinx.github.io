@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
-
-  <!-- PayPal SDK for subscriptions (keep for recurring) -->
-
   <style>
+    /* Keep all your existing styles – they are fine */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -229,50 +227,9 @@
           <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
-      <div class="cart-wrapper">
-        <button class="nav-icon cart-icon" id="cartBtn">
-          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path>
-            <path d="M19 16v6"></path>
-          </svg>
-        </button>
-        <span class="cart-badge" id="cartCount">0</span>
-      </div>
+      <!-- Cart removed – not needed for membership -->
     </div>
   </nav>
-  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 17h-11v-14h-2"></path>
-      <path d="M6 5l14 1l-1 7h-13"></path>
-    </svg>
-    <span class="floating-badge" id="floatingCartCount">0</span>
-  </button>
-  <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header">
-      <h5 id="cartTitle">Shopping Cart</h5>
-      <button class="cart-close" id="cartClose">×</button>
-    </div>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total">
-      <div class="cart-total-row">
-        <span id="totalLabel">Total</span>
-        <span id="cartTotal">US$0.00</span>
-      </div>
-      <div id="paypal-button-container"></div>
-    </div>
-  </div>
-  <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="M20 6L9 17l-5-5"></path>
-    </svg>
-    <span id="snackText">Success</span>
-  </div>
 
   <main class="container">
     <h1 class="membership-title">✨ Choose Your Membership</h1>
@@ -307,16 +264,12 @@
           <li>Access to supporter Discord</li>
           <li>High‑res wallpapers</li>
         </ul>
-<!-- Replace the button-row divs for each tier with this structure (example for Tier 1) -->
-<div class="button-row">
-  <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
-  <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
-</div>
-        
+        <div class="button-row">
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
+          <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
+        </div>
       </div>
 
-
-      
       <!-- Tier 2 -->
       <div class="tier-card">
         <h3>Quick Request</h3>
@@ -328,7 +281,7 @@
           <li>Behind‑the‑scenes WIPs</li>
         </ul>
         <div class="button-row">
-          <button class="tier-btn btn-single" onclick="alert('Single purchase for Tier 2 (not yet implemented)')">Single Purchase</button>
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)">Single Purchase</button>
           <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
         </div>
       </div>
@@ -344,7 +297,7 @@
           <li>3x poll voting power</li>
         </ul>
         <div class="button-row">
-          <button class="tier-btn btn-single" onclick="alert('Single purchase for Tier 3 (not yet implemented)')">Single Purchase</button>
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)">Single Purchase</button>
           <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
         </div>
       </div>
@@ -354,106 +307,93 @@
     <div id="statusMessage"></div>
   </main>
 
+  <!-- Keep only essential scripts – header.js for theme, no shop-shared.js -->
   <script src="https://velutinx.com/assets/js/header.js"></script>
-  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
-<script>
-  // ----- Global helper: validate Discord ID (must be defined before any button clicks) -----
-  function validateDiscordId() {
-    const discordInput = document.getElementById('discordId');
-    const statusDiv = document.getElementById('statusMessage');
-    const id = discordInput.value.trim();
-    if (!id) {
-      statusDiv.className = 'error';
-      statusDiv.textContent = '❌ Please enter your Discord ID';
-      return null;
-    }
-    if (!/^\d{17,19}$/.test(id)) {
-      statusDiv.className = 'error';
-      statusDiv.textContent = '❌ Invalid Discord ID format (should be 17‑19 numbers)';
-      return null;
-    }
-    return id;
-  }
-
-  function showStatus(msg, type = 'success') {
-    const statusDiv = document.getElementById('statusMessage');
-    statusDiv.className = type;
-    statusDiv.textContent = msg;
-  }
-
-  // ----- Single purchase handler (called from button) -----
-  window.handleSinglePurchase = async function(tierNumber) {
-    const discordId = validateDiscordId();
-    if (!discordId) return;
-
-    const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
-    const price = tierPrices[tierNumber];
-    if (!price) {
-      showStatus('Invalid tier', 'error');
-      return;
+  <script>
+    // ----- Global helper: validate Discord ID -----
+    function validateDiscordId() {
+      const discordInput = document.getElementById('discordId');
+      const statusDiv = document.getElementById('statusMessage');
+      const id = discordInput.value.trim();
+      if (!id) {
+        statusDiv.className = 'error';
+        statusDiv.textContent = '❌ Please enter your Discord ID';
+        return null;
+      }
+      if (!/^\d{17,19}$/.test(id)) {
+        statusDiv.className = 'error';
+        statusDiv.textContent = '❌ Invalid Discord ID format (should be 17‑19 numbers)';
+        return null;
+      }
+      return id;
     }
 
-    try {
-      const res = await fetch('/api/create-paypal-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier: tierNumber, discordId, price })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create order');
-      window.location.href = data.approvalUrl;
-    } catch (err) {
-      showStatus('Error: ' + err.message, 'error');
+    function showStatus(msg, type = 'success') {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.className = type;
+      statusDiv.textContent = msg;
     }
-  };
 
-  // ----- Recurring handler (placeholder) -----
-  window.handleRecurring = async function(tierNumber) {
-    const discordId = validateDiscordId();
-    if (!discordId) return;
+    // ----- Single purchase handler (called from button) -----
+    window.handleSinglePurchase = async function(tierNumber) {
+      console.log('Single purchase clicked for tier', tierNumber); // 👈 Debug
+      const discordId = validateDiscordId();
+      if (!discordId) return;
 
-    const PLAN_IDS = {
-      tier1: 'P-37M89451YE788052ENG3FYDQ',
-      tier2: 'P-2ND_PLAN_ID_HERE',
-      tier3: 'P-3RD_PLAN_ID_HERE'
+      const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
+      const price = tierPrices[tierNumber];
+      if (!price) {
+        showStatus('Invalid tier', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/create-paypal-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tier: tierNumber, discordId, price })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create order');
+        window.location.href = data.approvalUrl;
+      } catch (err) {
+        console.error(err); // 👈 Log error
+        showStatus('Error: ' + err.message, 'error');
+      }
     };
-    const planId = PLAN_IDS[`tier${tierNumber}`];
-    if (!planId) {
-      showStatus('❌ Plan not configured for this tier', 'error');
-      return;
-    }
-    alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
-  };
 
-  // ----- Page setup (load event) -----
-  window.addEventListener('load', function() {
-    const discordInput = document.getElementById('discordId');
-    const statusDiv = document.getElementById('statusMessage');
+    // ----- Recurring handler (placeholder) -----
+    window.handleRecurring = async function(tierNumber) {
+      const discordId = validateDiscordId();
+      if (!discordId) return;
 
-    // Theme toggle
-    document.getElementById('themeBtn').onclick = function() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+      const PLAN_IDS = {
+        tier1: 'P-37M89451YE788052ENG3FYDQ',
+        tier2: 'P-2ND_PLAN_ID_HERE',
+        tier3: 'P-3RD_PLAN_ID_HERE'
+      };
+      const planId = PLAN_IDS[`tier${tierNumber}`];
+      if (!planId) {
+        showStatus('❌ Plan not configured for this tier', 'error');
+        return;
+      }
+      alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
     };
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark');
-    }
 
-    // Cart drawer (unchanged)
-    document.getElementById('cartBtn').addEventListener('click', () => {
-      document.getElementById('cartDrawer').classList.add('open');
+    // ----- Page setup (theme toggle) -----
+    window.addEventListener('load', function() {
+      // Theme toggle (from header.js might already do this, but we keep it for safety)
+      if (typeof headerThemeToggle !== 'function') {
+        document.getElementById('themeBtn').onclick = function() {
+          document.body.classList.toggle('dark');
+          localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        };
+        if (localStorage.getItem('darkMode') === 'true') {
+          document.body.classList.add('dark');
+        }
+      }
     });
-    document.getElementById('floatingCartBtn').addEventListener('click', () => {
-      document.getElementById('cartDrawer').classList.add('open');
-    });
-    document.getElementById('cartClose').addEventListener('click', () => {
-      document.getElementById('cartDrawer').classList.remove('open');
-    });
-    if (window.updateCartDisplay) window.updateCartDisplay();
-  });
-</script>
-    
   </script>
 </body>
 </html>
