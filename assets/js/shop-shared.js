@@ -386,6 +386,20 @@ onApprove: async (data, actions) => {
             discordId: discordId
           })
         });
+
+        const response = await fetch('https://velutinx.com/api/capture-membership-order', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    orderId: details.id,
+    tier: item.tier,
+    discordId: item.discordId
+  })
+});
+console.log('Capture response status:', response.status);
+const responseData = await response.json();
+console.log('Capture response data:', responseData);
+        
       }
       // Redirect with type=membership
       window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
