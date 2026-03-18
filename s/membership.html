@@ -10,7 +10,7 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
-    /* Keep all existing styles – unchanged */
+    /* Keep all existing styles – unchanged, plus new carousel styles */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -30,13 +30,24 @@
       font-size: 1.2rem;
     }
     
-    /* Three‑column tier layout */
-    .tier-row {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 2rem;
+    /* Carousel layout for tier cards */
+    .carousel-container {
+      position: relative;
       margin: 40px 0;
+    }
+    
+    .carousel-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 2rem;
+      padding: 20px 0;
+      scroll-behavior: smooth;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    .carousel-scroll::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
     }
     
     .tier-card {
@@ -46,6 +57,7 @@
       padding: 2rem;
       width: 300px;
       max-width: 100%;
+      flex-shrink: 0;
       box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: column;
@@ -84,11 +96,12 @@
     
     .tier-perks li {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 0.75rem;
       padding: 0.75rem 0;
       border-bottom: 1px solid var(--border);
       font-size: 1rem;
+      line-height: 1.4;
     }
     
     .tier-perks li:last-child {
@@ -100,6 +113,7 @@
       color: var(--success);
       font-weight: bold;
       font-size: 1.2rem;
+      flex-shrink: 0;
     }
     
     /* Two‑button layout */
@@ -142,6 +156,48 @@
     }
     .btn-remove:hover {
       background: #dc2626 !important;
+    }
+    
+    /* Carousel arrows */
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--text);
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    
+    .carousel-arrow:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    
+    .arrow-left {
+      left: -20px;
+    }
+    
+    .arrow-right {
+      right: -20px;
+    }
+    
+    @media (max-width: 700px) {
+      .arrow-left { left: -10px; }
+      .arrow-right { right: -10px; }
     }
     
     /* Discord input (shared) */
@@ -310,55 +366,101 @@
       </div>
     </div>
 
-    <!-- Three tier cards -->
-    <div class="tier-row">
-      <!-- Tier 1 -->
-      <div class="tier-card">
-        <h3>The Vault</h3>
-        <div class="tier-price">$10 <span>/ month</span></div>
-        <ul class="tier-perks">
-          <li>Early access to new packs</li>
-          <li>1x poll voting power</li>
-          <li>Access to supporter Discord</li>
-          <li>High‑res wallpapers</li>
-        </ul>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
-          <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
+    <!-- Carousel with 5 tier cards -->
+    <div class="carousel-container">
+      <div class="carousel-scroll" id="tierCarousel">
+        <!-- Tier 1: Bronze -->
+        <div class="tier-card" data-tier="1">
+          <h3>✨ Bronze — Archive Access</h3>
+          <div class="tier-price">$5 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Full archive access immediately.</li>
+            <li>Includes all past releases & paid content.</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 2: Copper -->
+        <div class="tier-card" data-tier="2">
+          <h3>🔶 Copper — Monthly Custom (~20 img)</h3>
+          <div class="tier-price">$15 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) custom image request per billing cycle.</li>
+            <li>Approx. 20 images per request.</li>
+            <li>Single character, official/creator‑selected outfit.</li>
+            <li>Some character customization allowed.</li>
+            <li>Typical turnaround: ~1 day (queue order).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 3: Silver -->
+        <div class="tier-card" data-tier="3">
+          <h3>🥈 Silver — Monthly Custom (~40 img)</h3>
+          <div class="tier-price">$30 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) custom image request per billing cycle.</li>
+            <li>Approx. 40 images per request.</li>
+            <li>Single character, custom outfit allowed.</li>
+            <li>Character customization allowed.</li>
+            <li>Typical turnaround: ~1 day (queue order).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 4: Gold -->
+        <div class="tier-card" data-tier="4">
+          <h3>🏅 Gold — Large Custom (~80 img)</h3>
+          <div class="tier-price">$50 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) large custom image request per billing cycle.</li>
+            <li>Approx. 80 images per request.</li>
+            <li>Single character, custom outfit allowed.</li>
+            <li>Character customization allowed.</li>
+            <li>Typical turnaround: 3‑7 days (queue order).</li>
+            <li>Special/expanded requests may be discussed.</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 5: Platinum -->
+        <div class="tier-card" data-tier="5">
+          <h3>💎 Platinum — Priority Large Custom</h3>
+          <div class="tier-price">$75 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) large custom image request per billing cycle.</li>
+            <li>Approx. 80 images per request.</li>
+            <li>Single character, custom outfit allowed.</li>
+            <li>Character customization allowed.</li>
+            <li>⚡ Priority: worked on first after current tasks.</li>
+            <li>Typical turnaround: 3‑7 days (once started).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(5)">Recurring Membership</button>
+          </div>
         </div>
       </div>
 
-      <!-- Tier 2 -->
-      <div class="tier-card">
-        <h3>Quick Request</h3>
-        <div class="tier-price">$20 <span>/ month</span></div>
-        <ul class="tier-perks">
-          <li>All previous perks</li>
-          <li>1 custom quick request / month (color swap, outfit tweak)</li>
-          <li>2x poll voting power</li>
-          <li>Behind‑the‑scenes WIPs</li>
-        </ul>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)">Single Purchase</button>
-          <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
-        </div>
-      </div>
-
-      <!-- Tier 3 -->
-      <div class="tier-card">
-        <h3>Premium Pack</h3>
-        <div class="tier-price">$40 <span>/ month</span></div>
-        <ul class="tier-perks">
-          <li>All previous perks</li>
-          <li>Full custom pack (30–40 images, your theme)</li>
-          <li>Priority queue – 1–2 slots/month</li>
-          <li>3x poll voting power</li>
-        </ul>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)">Single Purchase</button>
-          <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
-        </div>
-      </div>
+      <!-- Carousel navigation arrows -->
+      <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)" aria-label="Previous tiers">←</button>
+      <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)" aria-label="Next tiers">→</button>
     </div>
 
     <!-- Status message (kept for backward compatibility, but we'll use snackbar for errors) -->
@@ -369,6 +471,14 @@
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
   <script>
+    // ----- Carousel scroll function -----
+    window.scrollCarousel = function(direction) {
+      const container = document.getElementById('tierCarousel');
+      if (!container) return;
+      const scrollAmount = 320; // approximate card width + gap
+      container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    };
+
     // ----- Helper: check if a membership tier is in the cart -----
     function isMembershipInCart(tierNumber) {
       const cart = window.getCart ? window.getCart() : [];
@@ -377,8 +487,8 @@
 
     // ----- Update all membership buttons based on cart state -----
     function updateMembershipButtons() {
-      for (let tier = 1; tier <= 3; tier++) {
-        const card = document.querySelector(`.tier-card:nth-child(${tier})`);
+      for (let tier = 1; tier <= 5; tier++) {
+        const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
         const btn = card.querySelector('.btn-single, .btn-remove');
         if (!btn) continue;
@@ -421,26 +531,36 @@
       const discordId = validateDiscordId();
       if (!discordId) return;
 
-      const tierPrices = { 1: 10.00, 2: 20.00, 3: 40.00 };
+      // Prices for tiers 1–5 (update as needed)
+      const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
       const price = tierPrices[tierNumber];
       if (!price) {
         showSnackbar('Invalid tier', true);
         return;
       }
-const membershipItem = {
-  id: `membership-${tierNumber}`,
-  title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
-  price: price,
-  type: 'membership',
-  tier: tierNumber,      // ← must be present
-  discordId: discordId   // ← must be present
-};
-console.log('Adding membership item:', membershipItem); // ← add this
+
+      // Tier titles for display
+      const tierTitles = {
+        1: 'Bronze — Archive Access',
+        2: 'Copper — Monthly Custom (~20 img)',
+        3: 'Silver — Monthly Custom (~40 img)',
+        4: 'Gold — Large Custom (~80 img)',
+        5: 'Platinum — Priority Large Custom'
+      };
+
+      const membershipItem = {
+        id: `membership-${tierNumber}`,
+        title: tierTitles[tierNumber] + ' (30 days)',
+        price: price,
+        type: 'membership',
+        tier: tierNumber,
+        discordId: discordId
+      };
+      console.log('Adding membership item:', membershipItem);
 
       if (typeof window.addOrToggleCart === 'function') {
         window.addOrToggleCart(membershipItem);
         updateMembershipButtons();
-        // Determine if the item is now in cart after toggle
         const nowInCart = isMembershipInCart(tierNumber);
         showSnackbar(nowInCart ? 'Added to cart' : 'Removed from cart', false);
       } else {
@@ -448,17 +568,20 @@ console.log('Adding membership item:', membershipItem); // ← add this
       }
     };
 
-    // ----- Recurring handler (placeholder) -----
+    // ----- Recurring handler (placeholder, will be replaced with PayPal subscriptions) -----
     window.handleRecurring = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
 
+      // Placeholder plan IDs – replace with actual PayPal plan IDs later
       const PLAN_IDS = {
-        tier1: 'P-37M89451YE788052ENG3FYDQ',
-        tier2: 'P-2ND_PLAN_ID_HERE',
-        tier3: 'P-3RD_PLAN_ID_HERE'
+        1: 'P-BRONZE_PLAN_ID',
+        2: 'P-COPPER_PLAN_ID',
+        3: 'P-SILVER_PLAN_ID',
+        4: 'P-GOLD_PLAN_ID',
+        5: 'P-PLATINUM_PLAN_ID'
       };
-      const planId = PLAN_IDS[`tier${tierNumber}`];
+      const planId = PLAN_IDS[tierNumber];
       if (!planId) {
         showSnackbar('❌ Plan not configured for this tier', true);
         return;
