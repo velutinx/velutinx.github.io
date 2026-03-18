@@ -354,16 +354,18 @@ function initPayPalButtons() {
 onApprove: async (data, actions) => {
   try {
     const details = await actions.order.capture();
-    const cart = getCart(); // uses the existing getCart function
-
-    // Check if the cart contains any membership items
+    const cart = getCart();
+    
+    // Debug: log the cart to the console
+    console.log('Cart contents:', cart);
+    console.log('Cart items types:', cart.map(item => item.type));
+    
     const hasMembership = cart.some(item => item.type === 'membership');
+    console.log('Has membership?', hasMembership);
 
     if (hasMembership) {
-      // Redirect to membership success page
       window.location.href = `/s/membership-success.html?orderID=${details.id}`;
     } else {
-      // Regular pack purchase
       window.location.href = `/success.html?orderID=${details.id}`;
     }
   } catch (err) {
