@@ -354,11 +354,11 @@ function initPayPalButtons() {
 onApprove: async (data, actions) => {
   try {
     const details = await actions.order.capture();
-    const cart = getCart();
-    
+    const cart = getCart(); // uses the existing getCart function
+
     // Check if the cart contains any membership items
     const hasMembership = cart.some(item => item.type === 'membership');
-    
+
     if (hasMembership) {
       // Redirect to membership success page
       window.location.href = `/s/membership-success.html?orderID=${details.id}`;
