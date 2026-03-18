@@ -10,7 +10,7 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
-    /* Keep all existing styles – unchanged, plus new carousel styles */
+    /* Keep all existing styles – unchanged, plus new carousel and dropdown styles */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -200,7 +200,7 @@
       .arrow-right { right: -10px; }
     }
     
-    /* Discord input (shared) */
+    /* Discord section */
     .discord-section {
       max-width: 600px;
       margin: 0 auto 40px;
@@ -237,6 +237,39 @@
       font-size: 0.9rem;
       color: var(--text-light);
       margin-top: 8px;
+    }
+    
+    /* Clickable help link */
+    .discord-help-link {
+      color: var(--accent);
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: 500;
+      margin-top: 12px;
+      display: inline-block;
+    }
+    
+    .discord-help-content {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    
+    .discord-help-content.show {
+      display: block;
+    }
+    
+    .discord-help-content p {
+      margin-bottom: 12px;
+    }
+    
+    .discord-help-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
     
     .note-box {
@@ -349,14 +382,22 @@
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
 
-    <!-- Shared Discord ID input -->
+    <!-- Shared Discord ID input + help dropdown -->
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
         <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
         <div class="discord-hint">
-          How to find your Discord ID: Settings → Advanced → Developer Mode, then right-click your name → Copy ID
+          How to find your Discord ID: 
+          <span class="discord-help-link" id="discordHelpToggle">Where do I find my Discord ID? (click)</span>
         </div>
+      </div>
+      <div class="discord-help-content" id="discordHelpContent">
+        <p><strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).</p>
+        <p><strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.</p>
+        <p><strong>Step 3:</strong> Right‑click your username anywhere (e.g., in a server or DM) and select <strong>Copy ID</strong>.</p>
+        <p><strong>Step 4:</strong> Paste that number here.</p>
+        <img src="https://www.velutinx.com/images/discordID.jpg" alt="Discord ID copy example" style="max-width:100%; border-radius:8px; margin-top:10px;">
       </div>
       <div class="note-box">
         <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
@@ -479,10 +520,31 @@
       container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
+    // ----- Discord help dropdown toggle -----
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggle = document.getElementById('discordHelpToggle');
+      const content = document.getElementById('discordHelpContent');
+      if (toggle && content) {
+        toggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          content.classList.toggle('show');
+        });
+      }
+    });
+
     // ----- Helper: check if a membership tier is in the cart -----
     function isMembershipInCart(tierNumber) {
       const cart = window.getCart ? window.getCart() : [];
       return cart.some(item => item.id === `membership-${tierNumber}`);
+    }
+
+    // ----- Get current highest membership tier from cart (or null) -----
+    function getHighestMembershipTier() {
+      const cart = window.getCart ? window.getCart() : [];
+      const membershipItems = cart.filter(item => item.type === 'membership');
+      if (membershipItems.length === 0) return null;
+      const tiers = membershipItems.map(item => item.tier);
+      return Math.max(...tiers);
     }
 
     // ----- Update all membership buttons based on cart state -----
@@ -525,7 +587,7 @@
       return id;
     }
 
-    // ----- Single purchase handler: toggles item in cart -----
+    // ----- Single purchase handler: enforces only one membership (highest tier) -----
     window.handleSinglePurchase = async function(tierNumber) {
       console.log('handleSinglePurchase called for tier', tierNumber);
       const discordId = validateDiscordId();
@@ -548,23 +610,64 @@
         5: 'Platinum — Priority Large Custom'
       };
 
-      const membershipItem = {
-        id: `membership-${tierNumber}`,
-        title: tierTitles[tierNumber] + ' (30 days)',
-        price: price,
-        type: 'membership',
-        tier: tierNumber,
-        discordId: discordId
-      };
-      console.log('Adding membership item:', membershipItem);
+      // Get current cart
+      let cart = window.getCart ? window.getCart() : [];
+      
+      // Separate membership items from others
+      const nonMembershipItems = cart.filter(item => item.type !== 'membership');
+      const existingMembershipItems = cart.filter(item => item.type === 'membership');
+      
+      // Determine highest existing tier (if any)
+      let highestExistingTier = null;
+      if (existingMembershipItems.length > 0) {
+        highestExistingTier = Math.max(...existingMembershipItems.map(item => item.tier));
+      }
 
-      if (typeof window.addOrToggleCart === 'function') {
-        window.addOrToggleCart(membershipItem);
-        updateMembershipButtons();
-        const nowInCart = isMembershipInCart(tierNumber);
-        showSnackbar(nowInCart ? 'Added to cart' : 'Removed from cart', false);
+      // Check if the clicked tier is already in cart (for toggle)
+      const alreadyInCart = existingMembershipItems.some(item => item.tier === tierNumber);
+
+      // Decision logic
+      if (alreadyInCart) {
+        // Remove this tier (toggle off)
+        cart = [...nonMembershipItems]; // keep only non-membership items
+        showSnackbar('Removed from cart', false);
       } else {
-        showSnackbar('Cart system not available', true);
+        // Not in cart: check if we can add
+        if (highestExistingTier !== null && tierNumber < highestExistingTier) {
+          // Trying to add a lower tier while higher exists -> error
+          showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
+          return;
+        } else {
+          // Allowed: remove any existing membership (lower or same? same not possible because alreadyInCart false)
+          // Then add the new tier
+          const newItem = {
+            id: `membership-${tierNumber}`,
+            title: tierTitles[tierNumber] + ' (30 days)',
+            price: price,
+            type: 'membership',
+            tier: tierNumber,
+            discordId: discordId
+          };
+          cart = [...nonMembershipItems, newItem];
+          showSnackbar('Added to cart', false);
+        }
+      }
+
+      // Update the global cart (if we have direct access)
+      if (window.cart !== undefined) {
+        window.cart = cart;
+      } else {
+        // Fallback: try to use addOrToggleCart? But we've already decided the final cart.
+        // We'll assume window.cart exists.
+        console.warn('window.cart not found, cart may not update');
+      }
+      
+      // Trigger UI update
+      if (typeof window.updateCartDisplay === 'function') {
+        window.updateCartDisplay();
+      } else {
+        // Manual update of buttons at least
+        updateMembershipButtons();
       }
     };
 
