@@ -431,7 +431,8 @@ const membershipItem = {
   id: `membership-${tierNumber}`,
   title: `The Vault ${tierNumber === 1 ? 'Bronze' : tierNumber === 2 ? 'Silver' : 'Gold'} Membership (30 days)`,
   price: price,
-  type: 'membership',    // ← this must be present
+  type: 'membership',
+  tier: tierNumber,           // ← add this
   discordId: discordId
 };
 console.log('Adding membership item:', membershipItem); // ← add this
