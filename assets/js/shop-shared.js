@@ -312,62 +312,101 @@ function updateCartDisplay() {
     }, 2400);
   }
 
-  /* ==================== PAYPAL ==================== */
+// ==================== PAYPAL ====================
 
-  function loadAndInitPayPal() {
-    if (window.paypalLoaded) return;
+let paypalButtonsRendered = false; // flag to prevent double rendering
 
-    window.paypalLoaded = true;
+function initPayPalButtons() {
+  const container = document.getElementById("paypal-button-container");
+  const drawer = document.getElementById("cartDrawer");
 
-    const loader = document.createElement('script');
-    loader.src = "/functions/paypal-sdk";
-    loader.async = true;
-
-    loader.onload = () => {
-      let attempts = 0;
-
-      const interval = setInterval(() => {
-
-        attempts++;
-
-        if (typeof window.paypal !== 'undefined') {
-          clearInterval(interval);
-          initPayPalButtons();
-        }
-
-        else if (attempts > 50) clearInterval(interval);
-
-      }, 200);
-    };
-
-    document.head.appendChild(loader);
+  // Only render if the drawer is open and container exists
+  if (!container || !drawer || !drawer.classList.contains("open")) {
+    return;
   }
 
-  function initPayPalButtons() {
-    const container = document.getElementById("paypal-button-container");
-    if (!container || typeof paypal === 'undefined') return;
+  if (paypalButtonsRendered) {
+    // If already rendered, just ensure it's visible (don't re-render)
+    return;
+  }
 
-    container.innerHTML = '';
+  if (typeof paypal === 'undefined') {
+    console.warn('PayPal SDK not loaded yet');
+    return;
+  }
 
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        const cart = getCart();
-        const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+  container.innerHTML = '';
 
-        return actions.order.create({
-          purchase_units: [{
-            amount: { currency_code: "USD", value: total }
-          }]
-        });
-      },
-
-      onApprove: async (data, actions) => {
-        const details = await actions.order.capture();
-        window.location.href = `/success.html?orderID=${details.id}`;
+  paypal.Buttons({
+    createOrder: (data, actions) => {
+      const cart = getCart();
+      const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+      if (parseFloat(total) <= 0) {
+        return Promise.reject('Cart is empty');
       }
+      return actions.order.create({
+        purchase_units: [{
+          amount: { currency_code: "USD", value: total }
+        }]
+      });
+    },
 
-    }).render("#paypal-button-container");
+    onApprove: async (data, actions) => {
+      try {
+        const details = await actions.order.capture();
+        const cart = getCart();
+        const hasMembership = cart.some(item => item.type === 'membership');
+        if (hasMembership) {
+          window.location.href = `/s/membership-success.html?orderID=${details.id}`;
+        } else {
+          window.location.href = `/success.html?orderID=${details.id}`;
+        }
+      } catch (err) {
+        console.error('PayPal capture error:', err);
+        alert('Payment failed. Please try again.');
+      }
+    },
+
+    onError: (err) => {
+      console.error('PayPal error:', err);
+      alert('PayPal encountered an error. Please try again.');
+    }
+
+  }).render("#paypal-button-container").then(() => {
+    paypalButtonsRendered = true;
+  });
+}
+
+// Modified loadAndInitPayPal – ensure we don't reset the flag when reopening the drawer
+function loadAndInitPayPal() {
+  if (window.paypalLoaded) {
+    // If already loaded, just try to init (it will check the drawer state)
+    initPayPalButtons();
+    return;
   }
+
+  window.paypalLoaded = true;
+
+  const loader = document.createElement('script');
+  loader.src = "/functions/paypal-sdk";
+  loader.async = true;
+
+  loader.onload = () => {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (typeof window.paypal !== 'undefined') {
+        clearInterval(interval);
+        initPayPalButtons();
+      } else if (attempts > 50) {
+        clearInterval(interval);
+        console.error('PayPal SDK failed to load');
+      }
+    }, 200);
+  };
+
+  document.head.appendChild(loader);
+}
 
   /* ==================== GLOBAL EXPORTS ==================== */
 
@@ -386,17 +425,19 @@ function updateCartDisplay() {
     updateCartDisplay();
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
+  updateCartDisplay();
 
-    updateCartDisplay();
-
-    const cartBtn = document.getElementById("cartBtn");
-
-    cartBtn?.addEventListener("click", () => {
-      document.getElementById("cartDrawer")?.classList.toggle("open");
-      loadAndInitPayPal();
-    });
-
+  const cartBtn = document.getElementById("cartBtn");
+  cartBtn?.addEventListener("click", () => {
+    const drawer = document.getElementById("cartDrawer");
+    drawer?.classList.toggle("open");
+    // Reset flag when drawer is closed so it can be re‑rendered on next open
+    if (!drawer?.classList.contains("open")) {
+      paypalButtonsRendered = false;
+    }
+    loadAndInitPayPal();
   });
+});
 
 })();
