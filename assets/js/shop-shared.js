@@ -356,19 +356,19 @@ onApprove: async (data, actions) => {
     const details = await actions.order.capture();
     const cart = getCart();
 
-    // Check if the cart contains any membership items
+    // Check for membership items
     const membershipItems = cart.filter(item => item.type === 'membership');
 
     if (membershipItems.length > 0) {
-      // Process each membership item (should be only one, but loop just in case)
+      // Process each membership (usually one)
       for (const item of membershipItems) {
-        const { discordId, tier } = item; // discordId and tier must be stored in the cart item
+        const { discordId, tier } = item; // Must be stored in the cart item
         if (!discordId || !tier) {
           console.error('Membership item missing discordId or tier', item);
           continue;
         }
-        // Send to your backend capture endpoint
-        await fetch('/api/capture-membership-order', {
+        // Send to your backend
+        await fetch('https://velutinx.com/api/capture-membership-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -378,7 +378,7 @@ onApprove: async (data, actions) => {
           })
         });
       }
-      // After processing, redirect to membership‑aware success page
+      // Redirect with type=membership
       window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
     } else {
       // Regular pack purchase
