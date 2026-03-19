@@ -238,7 +238,7 @@
     });
     // ===== END: Utility Functions =====
 
-// ===== START: Cart Helpers =====
+    // ===== START: Cart Helpers (standalone, no shop-shared interference) =====
     let paypalButtonsRendered = false;
 
     function getCurrentCart() {
@@ -263,15 +263,14 @@
     }
 
     function initPayPalButtons() {
-      // Logic synced with store.html
       if (paypalButtonsRendered) return;
       const drawer = document.getElementById("cartDrawer");
       const container = document.getElementById("paypal-button-container");
-      
       if (!drawer || !drawer.classList.contains("open")) return;
-      if (!container || typeof paypal === 'undefined') return;
+      if (!container) return;
+      if (typeof paypal === 'undefined') return;
 
-      container.innerHTML = ''; // Clear only once before rendering
+      container.innerHTML = ''; // clear once before first render
 
       paypal.Buttons({
         createOrder: (data, actions) => {
@@ -294,67 +293,69 @@
       paypalButtonsRendered = true;
     }
 
-    function manualRenderCart() { 
-      const cart = getCurrentCart(); 
-      const cartItemsContainer = document.getElementById('cartItems'); 
-      const cartTotalSpan = document.getElementById('cartTotal'); 
-      const cartCountSpan = document.getElementById('cartCount'); 
-      const floatingCountSpan = document.getElementById('floatingCartCount'); 
+    function manualRenderCart() {
+      const cart = getCurrentCart();
+      const cartItemsContainer = document.getElementById('cartItems');
+      const cartTotalSpan = document.getElementById('cartTotal');
+      const cartCountSpan = document.getElementById('cartCount');
+      const floatingCountSpan = document.getElementById('floatingCartCount');
 
-      if (!cartItemsContainer) return; 
+      if (!cartItemsContainer) return;
 
-      if (cart.length === 0) { 
-        cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Your cart is empty</p>'; 
-        cartTotalSpan.textContent = 'US$0.00'; 
-        // Reset PayPal state if empty
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Your cart is empty</p>';
+        cartTotalSpan.textContent = 'US$0.00';
+        // Clear PayPal button and allow re‑initialization later
         const ppContainer = document.getElementById("paypal-button-container");
         if (ppContainer) ppContainer.innerHTML = '';
-        paypalButtonsRendered = false; 
-      } else { 
-        let html = ''; 
-        let total = 0; 
-        cart.forEach(item => { 
-          total += item.price || 0; 
-          html += ` 
-            <div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border);"> 
-              <div style="flex:1;"> 
-                <div style="font-weight:600;">${item.title || 'Item'}</div> 
-                <div style="color:var(--accent);">US$${(item.price || 0).toFixed(2)}</div> 
-              </div> 
-              <button class="remove-item" data-id="${item.id}" 
-                style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">✕</button> 
-            </div> 
-          `; 
-        }); 
-        cartItemsContainer.innerHTML = html; 
-        cartTotalSpan.textContent = `US$${total.toFixed(2)}`; 
+        paypalButtonsRendered = false;
+      } else {
+        let html = '';
+        let total = 0;
+        cart.forEach(item => {
+          total += item.price || 0;
+          html += `
+            <div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border);">
+              <div style="flex:1;">
+                <div style="font-weight:600;">${item.title || 'Item'}</div>
+                <div style="color:var(--accent);">US$${(item.price || 0).toFixed(2)}</div>
+              </div>
+              <button class="remove-item" data-id="${item.id}"
+                style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">✕</button>
+            </div>
+          `;
+        });
+        cartItemsContainer.innerHTML = html;
+        cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
 
-        cartItemsContainer.querySelectorAll('.remove-item').forEach(btn => { 
-          btn.addEventListener('click', (e) => { 
-            e.stopPropagation(); // Prevents drawer from closing
-            const id = e.currentTarget.dataset.id; 
-            if (typeof window.removeFromCart === 'function') {
-              window.removeFromCart(id);
-            } else {
-              window.addOrToggleCart?.({ id: id });
+        // Attach remove listeners
+        cartItemsContainer.querySelectorAll('.remove-item').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = e.currentTarget.dataset.id;
+            // Use addOrToggleCart with just the ID to remove
+            if (typeof window.addOrToggleCart === 'function') {
+              window.addOrToggleCart({ id: id });
             }
-            // Trigger display update without destroying the PayPal buttons
-            window.updateCartDisplay(); 
-          }); 
-        }); 
-      } 
+            // Update UI without touching PayPal flag (unless cart becomes empty)
+            manualRenderCart();
+            updateMembershipButtons();
+          });
+        });
 
-      if (cartCountSpan) cartCountSpan.textContent = cart.length; 
-      if (floatingCountSpan) floatingCountSpan.textContent = cart.length; 
-
-      // Only attempt init if the drawer is open and buttons aren't there
-      if (cart.length > 0 && document.getElementById('cartDrawer').classList.contains('open')) {
-        initPayPalButtons();
+        // If drawer is open, ensure PayPal button is there (won't re‑render if already done)
+        if (document.getElementById('cartDrawer').classList.contains('open')) {
+          initPayPalButtons();
+        }
       }
+
+      // Update badges
+      if (cartCountSpan) cartCountSpan.textContent = cart.length;
+      if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
 
+    // Override the global updateCartDisplay with our own (no call to original)
     window.updateCartDisplay = function() {
-      // Logic synced with store.html's observer-like behavior
       updateMembershipButtons();
       manualRenderCart();
     };
@@ -394,41 +395,66 @@
 
       const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
       const tierTitles = {
-        1: 'Bronze — Archive Access', 2: 'Copper — Monthly Custom',
-        3: 'Silver — Monthly Custom', 4: 'Gold — Large Custom', 5: 'Platinum — Priority Large Custom'
+        1: 'Bronze — Archive Access',
+        2: 'Copper — Monthly Custom (~20 img)',
+        3: 'Silver — Monthly Custom (~40 img)',
+        4: 'Gold — Large Custom (~80 img)',
+        5: 'Platinum — Priority Large Custom'
       };
 
       let cart = getCurrentCart();
       const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
 
       if (alreadyInCart) {
-        window.addOrToggleCart?.({ id: `membership-${tierNumber}` });
+        // Remove
+        if (typeof window.addOrToggleCart === 'function') {
+          window.addOrToggleCart({ id: `membership-${tierNumber}` });
+        }
         showSnackbar('Removed from cart', false);
       } else {
         const membershipItems = cart.filter(item => item.type === 'membership');
         const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-        
+
         if (highestTier !== null && tierNumber < highestTier) {
           showSnackbar('❌ Only the highest tier can be added.', true);
           return;
         }
 
-        // Remove lower tiers to keep logic clean
-        membershipItems.forEach(item => window.addOrToggleCart?.({id: item.id}));
-        
-        window.addOrToggleCart?.({
-          id: `membership-${tierNumber}`,
-          title: tierTitles[tierNumber] + ' (30 days)',
-          price: tierPrices[tierNumber],
-          type: 'membership',
-          tier: tierNumber,
-          discordId: discordId
+        // Remove any existing lower tiers first
+        membershipItems.forEach(item => {
+          if (typeof window.addOrToggleCart === 'function') {
+            window.addOrToggleCart({ id: item.id });
+          }
         });
+
+        // Add new tier
+        if (typeof window.addOrToggleCart === 'function') {
+          window.addOrToggleCart({
+            id: `membership-${tierNumber}`,
+            title: tierTitles[tierNumber] + ' (30 days)',
+            price: tierPrices[tierNumber],
+            type: 'membership',
+            tier: tierNumber,
+            discordId: discordId
+          });
+        }
         showSnackbar('Added to cart', false);
       }
+
       window.updateCartDisplay();
     };
     // ===== END: Main Purchase Handler =====
+
+    // ===== START: Recurring Handler =====
+    window.handleRecurring = async function(tierNumber) {
+      const discordId = validateDiscordId();
+      if (!discordId) return;
+      const PLAN_IDS = { 1: 'P-BRONZE_PLAN_ID', 2: 'P-COPPER_PLAN_ID', 3: 'P-SILVER_PLAN_ID', 4: 'P-GOLD_PLAN_ID', 5: 'P-PLATINUM_PLAN_ID' };
+      const planId = PLAN_IDS[tierNumber];
+      if (!planId) { showSnackbar('❌ Plan not configured for this tier', true); return; }
+      alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
+    };
+    // ===== END: Recurring Handler =====
 
     // ===== START: Page Setup =====
     window.addEventListener('load', function() {
@@ -450,7 +476,7 @@
         document.getElementById('cartDrawer').classList.remove('open');
       });
 
-      // Outside click listener
+      // Outside click closes drawer
       document.addEventListener('click', (e) => {
         const drawer = document.getElementById('cartDrawer');
         const isBtn = e.target.closest('#cartBtn') || e.target.closest('#floatingCartBtn');
@@ -463,11 +489,6 @@
       manualRenderCart();
     });
     // ===== END: Page Setup =====
-  </script>
-</body>
-</html>
-      manualRenderCart();
-    });
   </script>
 </body>
 </html>
