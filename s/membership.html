@@ -4,239 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
+  <!-- External CSS (now separate) -->
+  <link rel="stylesheet" href="https://velutinx.github.io/s/css/membercss.css">
   <!-- Header CSS (global nav) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <!-- PayPal SDK – regular orders, no subscription -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
-
-  <!-- INLINE STYLES (temporary until external CSS works) -->
-  <style>
-    /* === membercss.css – copied inline for immediate functionality === */
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
-    @media (min-width: 600px) { .container { padding: 0 24px; } }
-    main { padding: 40px 0; }
-    .membership-title {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    .membership-description {
-      color: var(--text);
-      text-align: center;
-      margin-bottom: 32px;
-      font-size: 1.2rem;
-    }
-    .carousel-container { position: relative; margin: 40px 0; }
-    .carousel-scroll {
-      display: flex;
-      overflow-x: auto;
-      gap: 2rem;
-      padding: 20px 0;
-      scroll-behavior: smooth;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .carousel-scroll::-webkit-scrollbar { display: none; }
-    .tier-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2rem;
-      width: 300px;
-      max-width: 100%;
-      flex-shrink: 0;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s;
-    }
-    .tier-card:hover { transform: translateY(-4px); }
-    .tier-card h3 {
-      font-size: 1.8rem;
-      margin: 0 0 0.5rem;
-      color: var(--text);
-    }
-    .tier-price {
-      font-size: 2.2rem;
-      font-weight: bold;
-      color: var(--accent);
-      margin: 0.5rem 0 1rem;
-    }
-    .tier-price span {
-      font-size: 1rem;
-      font-weight: normal;
-      color: var(--text-light);
-    }
-    .tier-perks {
-      list-style: none;
-      padding: 0;
-      margin: 1.5rem 0;
-      flex: 1;
-    }
-    .tier-perks li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 1rem;
-      line-height: 1.4;
-    }
-    .tier-perks li:last-child { border-bottom: none; }
-    .tier-perks li::before {
-      content: "✓";
-      color: var(--success);
-      font-weight: bold;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 1.5rem;
-    }
-    .tier-btn {
-      flex: 1;
-      padding: 10px 0;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      color: white;
-      text-align: center;
-    }
-    .btn-single { background: #3b82f6; }
-    .btn-single:hover { background: #2563eb; }
-    .btn-recurring { background: #10b981; }
-    .btn-recurring:hover { background: #059669; }
-    .btn-remove { background: #ef4444 !important; }
-    .btn-remove:hover { background: #dc2626 !important; }
-    .carousel-arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      font-size: 1.8rem;
-      font-weight: 400;
-      color: var(--text);
-      transition: all 0.2s;
-      line-height: 1;
-    }
-    .carousel-arrow:hover {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    .arrow-left { left: -20px; }
-    .arrow-right { right: -20px; }
-    @media (max-width: 700px) {
-      .arrow-left { left: -10px; }
-      .arrow-right { right: -10px; }
-    }
-    .discord-section {
-      max-width: 600px;
-      margin: 0 auto 40px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .discord-input label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .discord-input input {
-      width: 100%;
-      padding: 14px;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-    .discord-input input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    .discord-hint {
-      font-size: 0.9rem;
-      color: var(--text-light);
-      margin-top: 8px;
-    }
-    .discord-help-link {
-      color: var(--accent);
-      cursor: pointer;
-      text-decoration: underline;
-      font-weight: 500;
-      margin-top: 12px;
-      display: inline-block;
-    }
-    .discord-help-content {
-      display: none;
-      margin-top: 16px;
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    .discord-help-content.show { display: block; }
-    .discord-help-content p { margin-bottom: 12px; }
-    .discord-help-content img {
-      max-width: 100%;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    .note-box {
-      background: rgba(170,158,118,0.1);
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      margin: 24px 0 0;
-      border-radius: 8px;
-      font-size: 0.95rem;
-    }
-    #statusMessage {
-      text-align: center;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 16px 0;
-      display: none;
-    }
-    #statusMessage.success {
-      background: rgba(34,197,94,0.2);
-      color: var(--success);
-      border: 1px solid var(--success);
-      display: block;
-    }
-    #statusMessage.error {
-      background: rgba(239,68,68,0.2);
-      color: #ef4444;
-      border: 1px solid #ef4444;
-      display: block;
-    }
-    #snackbar.error { background: #ef4444; }
-  </style>
 </head>
-
-  
 <body>
+  <!-- ===== START: Header / Navigation (keep as is) ===== -->
   <div class="lang-swipe" id="langSwipe"></div>
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
@@ -304,7 +81,9 @@
     </svg>
     <span id="snackText">Success</span>
   </div>
+  <!-- ===== END: Header / Navigation ===== -->
 
+  <!-- ===== START: Main Content ===== -->
   <main class="container">
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
@@ -433,12 +212,14 @@
 
     <div id="statusMessage"></div>
   </main>
+  <!-- ===== END: Main Content ===== -->
 
+  <!-- Scripts -->
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
   <script>
-    // ----- Carousel scroll -----
+    // ===== START: Utility Functions =====
     window.scrollCarousel = function(direction) {
       const container = document.getElementById('tierCarousel');
       if (!container) return;
@@ -446,7 +227,7 @@
       container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
-    // ----- Discord help dropdown -----
+    // Discord help dropdown
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('discordHelpToggle');
       const content = document.getElementById('discordHelpContent');
@@ -457,18 +238,17 @@
         });
       }
     });
+    // ===== END: Utility Functions =====
 
-    // ----- Helper: get current cart -----
+    // ===== START: Cart Helpers =====
     function getCurrentCart() {
       return (typeof window.getCart === 'function') ? window.getCart() : (window.cart || []);
     }
 
-    // ----- Helper: check if a tier is in cart -----
     function isMembershipInCart(tierNumber) {
       return getCurrentCart().some(item => item.id === `membership-${tierNumber}`);
     }
 
-    // ----- Update membership buttons based on cart -----
     function updateMembershipButtons() {
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
@@ -482,39 +262,7 @@
       }
     }
 
-    // ----- Snackbar with error icon -----
-    function showSnackbar(message, isError = false) {
-      const snackbar = document.getElementById('snackbar');
-      const snackText = document.getElementById('snackText');
-      const svg = snackbar.querySelector('svg');
-      snackText.textContent = message;
-      snackbar.classList.remove('error');
-      if (isError) {
-        snackbar.classList.add('error');
-        if (svg) svg.innerHTML = '<path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2"/>';
-      } else {
-        if (svg) svg.innerHTML = '<path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2"/>';
-      }
-      snackbar.classList.add('show');
-      setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
-    }
-
-    // ----- Validate Discord ID -----
-    function validateDiscordId() {
-      const discordInput = document.getElementById('discordId');
-      const id = discordInput.value.trim();
-      if (!id) {
-        showSnackbar('❌ Please enter your Discord ID', true);
-        return null;
-      }
-      if (!/^\d{17,19}$/.test(id)) {
-        showSnackbar('❌ Invalid Discord ID format (should be 17‑19 numbers)', true);
-        return null;
-      }
-      return id;
-    }
-
-    // ----- MANUAL CART RENDER (fallback) -----
+    // Manual cart render (fallback)
     function manualRenderCart() {
       const cart = getCurrentCart();
       const cartItemsContainer = document.getElementById('cartItems');
@@ -563,7 +311,50 @@
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
 
-    // ----- Main purchase handler (single) -----
+    // Override updateCartDisplay to also refresh membership buttons and manual render
+    const originalUpdateCartDisplay = window.updateCartDisplay;
+    window.updateCartDisplay = function() {
+      if (originalUpdateCartDisplay) originalUpdateCartDisplay();
+      updateMembershipButtons();
+      manualRenderCart();
+    };
+    // ===== END: Cart Helpers =====
+
+    // ===== START: Snackbar =====
+    function showSnackbar(message, isError = false) {
+      const snackbar = document.getElementById('snackbar');
+      const snackText = document.getElementById('snackText');
+      const svg = snackbar.querySelector('svg');
+      snackText.textContent = message;
+      snackbar.classList.remove('error');
+      if (isError) {
+        snackbar.classList.add('error');
+        if (svg) svg.innerHTML = '<path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2"/>';
+      } else {
+        if (svg) svg.innerHTML = '<path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2"/>';
+      }
+      snackbar.classList.add('show');
+      setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
+    }
+    // ===== END: Snackbar =====
+
+    // ===== START: Discord Validation =====
+    function validateDiscordId() {
+      const discordInput = document.getElementById('discordId');
+      const id = discordInput.value.trim();
+      if (!id) {
+        showSnackbar('❌ Please enter your Discord ID', true);
+        return null;
+      }
+      if (!/^\d{17,19}$/.test(id)) {
+        showSnackbar('❌ Invalid Discord ID format (should be 17‑19 numbers)', true);
+        return null;
+      }
+      return id;
+    }
+    // ===== END: Discord Validation =====
+
+    // ===== START: Main Purchase Handler =====
     window.handleSinglePurchase = async function(tierNumber) {
       console.log('handleSinglePurchase called for tier', tierNumber);
       const discordId = validateDiscordId();
@@ -620,13 +411,14 @@
       
       // Force UI update using both original and manual methods
       if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
-      manualRenderCart();  // <-- ensures the drawer updates even if the original fails
+      manualRenderCart();  // ensures the drawer updates
       
       updateMembershipButtons();
       console.log('Cart now:', cart);
     };
+    // ===== END: Main Purchase Handler =====
 
-    // ----- Recurring handler (placeholder) -----
+    // ===== START: Recurring Handler (placeholder) =====
     window.handleRecurring = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
@@ -635,16 +427,9 @@
       if (!planId) { showSnackbar('❌ Plan not configured for this tier', true); return; }
       alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
     };
+    // ===== END: Recurring Handler =====
 
-    // ----- Override updateCartDisplay to also refresh membership buttons -----
-    const originalUpdateCartDisplay = window.updateCartDisplay;
-    window.updateCartDisplay = function() {
-      if (originalUpdateCartDisplay) originalUpdateCartDisplay();
-      updateMembershipButtons();
-      manualRenderCart(); // extra safety
-    };
-
-    // ----- Safely initialize PayPal buttons -----
+    // ===== START: PayPal Safety =====
     const originalInitPayPalButtons = window.initPayPalButtons;
     window.initPayPalButtons = function() {
       const container = document.querySelector('#paypal-button-container');
@@ -655,8 +440,9 @@
       }
       if (originalInitPayPalButtons) originalInitPayPalButtons();
     };
+    // ===== END: PayPal Safety =====
 
-    // ----- Page setup -----
+    // ===== START: Page Setup =====
     window.addEventListener('load', function() {
       // Theme toggle
       document.getElementById('themeBtn').onclick = function() {
@@ -684,6 +470,7 @@
       updateMembershipButtons();
       manualRenderCart(); // initial render
     });
+    // ===== END: Page Setup =====
   </script>
 </body>
 </html>
