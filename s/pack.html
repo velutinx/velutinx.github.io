@@ -300,12 +300,11 @@
     });
   </script>
 
-  <!-- PayPal button integration – same as store.html -->
+<!-- PayPal button integration with order storage -->
 <script>
 let paypalButtonsRendered = false;
 
 function initPayPalButtons() {
-
   if (paypalButtonsRendered) return;
 
   const drawer = document.getElementById("cartDrawer");
@@ -318,16 +317,12 @@ function initPayPalButtons() {
   container.innerHTML = "";
 
   paypal.Buttons({
-
     createOrder: (data, actions) => {
-
       const cart = window.getCart ? window.getCart() : [];
       const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
-
       if (parseFloat(total) <= 0) {
         return Promise.reject("Cart empty");
       }
-
       return actions.order.create({
         purchase_units: [{
           amount: {
@@ -336,52 +331,67 @@ function initPayPalButtons() {
           }
         }]
       });
-
     },
 
     onApprove: async (data, actions) => {
+      try {
+        // 1. Capture the PayPal order
+        const details = await actions.order.capture();
 
-      const details = await actions.order.capture();
-      window.location.href = `/s/success.html?orderID=${details.id}`;
+        // 2. Get cart data (each item should include a downloadUrl)
+        const cart = window.getCart ? window.getCart() : [];
+        const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
 
+        // 3. Send order to your Cloudflare Worker (which saves to Supabase)
+        const storeResponse = await fetch('/api/store-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderID: details.id,
+            items: cart,                // must contain downloadUrl or link per item
+            payerEmail: details.payer.email_address,
+            amount: total,
+          }),
+        });
+
+        if (!storeResponse.ok) {
+          console.error('Failed to store order', await storeResponse.text());
+          // You could show a non‑blocking warning here
+        }
+
+        // 4. Redirect to success page
+        window.location.href = `/s/success.html?orderID=${details.id}`;
+      } catch (error) {
+        console.error('PayPal capture or storage error:', error);
+        alert('Payment succeeded but there was a problem finalizing your order. Please contact support.');
+      }
     },
 
     onError: () => {
       alert("PayPal error. Please try again.");
     }
-
   }).render("#paypal-button-container");
 
   paypalButtonsRendered = true;
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
-
-  /* PAYPAL INIT WHEN CART OPENS */
   const openDrawer = () => {
-
     const drawer = document.getElementById("cartDrawer");
     if (!drawer) return;
-
     drawer.classList.add("open");
-
     setTimeout(initPayPalButtons, 500);
   };
 
   document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
   document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
-
   document.getElementById("cartClose")?.addEventListener("click", () => {
     document.getElementById("cartDrawer")?.classList.remove("open");
   });
 
-
-  /* CLICK OUTSIDE CLOSE */
+  // Close drawer when clicking outside
   document.addEventListener("click", (e) => {
-
     const drawer = document.getElementById("cartDrawer");
-
     if (
       drawer?.classList.contains("open") &&
       !drawer.contains(e.target) &&
@@ -390,33 +400,20 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       drawer.classList.remove("open");
     }
-
   });
 
-
-  /* CART STATE WATCHER (this is the key fix) */
-
+  // Cart state watcher (updates button text when cart changes)
   let lastCart = JSON.stringify(window.getCart ? window.getCart() : []);
-
   setInterval(() => {
-
     const cart = window.getCart ? window.getCart() : [];
     const current = JSON.stringify(cart);
-
     if (current !== lastCart) {
-
       lastCart = current;
-
       if (window.updateButton) {
-        try {
-          window.updateButton();
-        } catch(e){}
+        try { window.updateButton(); } catch(e){}
       }
-
     }
-
   }, 200);
-
 });
 </script>
 
