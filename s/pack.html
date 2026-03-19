@@ -177,8 +177,14 @@
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
     let currentLang = localStorage.getItem("language") || "en";
     const params = new URLSearchParams(window.location.search);
-    const packId = params.get("id") || "001";
-    const pack = packsData.find(p => p.id === packId);
+const packId = pack.id.padStart(3, '0'); // ensures "1" -> "001"
+const pack = packsData.find(p => p.id === packId);
+const imageCount = 4; // You can also store this per pack if counts vary
+const images = Array.from({ length: imageCount }, (_, i) => 
+    `https://www.velutinx.com/i/pack${packId}-${i+1}.jpg`
+);
+
+    
 
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
