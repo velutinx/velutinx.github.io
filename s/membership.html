@@ -4,16 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
-  <!-- External CSS (now separate) -->
+  <!-- External CSS (ensure this file exists!) -->
   <link rel="stylesheet" href="https://velutinx.github.io/s/css/membercss.css">
   <!-- Header CSS (global nav) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
-  <!-- PayPal SDK – regular orders, no subscription -->
+  <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 </head>
 <body>
-  <!-- ===== START: Header / Navigation (keep as is) ===== -->
+  <!-- ===== START: Header / Navigation ===== -->
   <div class="lang-swipe" id="langSwipe"></div>
   <nav class="top-nav">
     <div class="logo">VELUTINX</div>
@@ -227,7 +227,6 @@
       container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
-    // Discord help dropdown
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('discordHelpToggle');
       const content = document.getElementById('discordHelpContent');
@@ -262,7 +261,6 @@
       }
     }
 
-    // Manual cart render (fallback)
     function manualRenderCart() {
       const cart = getCurrentCart();
       const cartItemsContainer = document.getElementById('cartItems');
@@ -293,7 +291,6 @@
         cartItemsContainer.innerHTML = html;
         cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
 
-        // Attach remove event listeners
         document.querySelectorAll('.remove-item').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
@@ -306,12 +303,10 @@
         });
       }
 
-      // Update badges
       if (cartCountSpan) cartCountSpan.textContent = cart.length;
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
 
-    // Override updateCartDisplay to also refresh membership buttons and manual render
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
@@ -372,26 +367,21 @@
         5: 'Platinum — Priority Large Custom'
       };
 
-      // Get current cart
       let cart = getCurrentCart();
       const membershipItems = cart.filter(item => item.type === 'membership');
       const existingTiers = membershipItems.map(item => item.tier);
       const highestTier = existingTiers.length ? Math.max(...existingTiers) : null;
       const alreadyInCart = existingTiers.includes(tierNumber);
 
-      // If already in cart, just remove it
       if (alreadyInCart) {
         cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
         showSnackbar('Removed from cart', false);
       } else {
-        // Not in cart: check if trying to add a lower tier when higher exists
         if (highestTier !== null && tierNumber < highestTier) {
           showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
           return;
         } else {
-          // Remove any existing membership(s) first (lower tiers)
-          cart = cart.filter(item => item.type !== 'membership'); // remove all memberships
-          // Add the new tier
+          cart = cart.filter(item => item.type !== 'membership');
           const newItem = {
             id: `membership-${tierNumber}`,
             title: tierTitles[tierNumber] + ' (30 days)',
@@ -405,20 +395,18 @@
         }
       }
 
-      // Update cart in all possible ways
       if (Array.isArray(window.cart)) window.cart = cart;
       if (typeof window.setCart === 'function') window.setCart(cart);
       
-      // Force UI update using both original and manual methods
       if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
-      manualRenderCart();  // ensures the drawer updates
+      manualRenderCart();
       
       updateMembershipButtons();
       console.log('Cart now:', cart);
     };
     // ===== END: Main Purchase Handler =====
 
-    // ===== START: Recurring Handler (placeholder) =====
+    // ===== START: Recurring Handler =====
     window.handleRecurring = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
@@ -444,14 +432,12 @@
 
     // ===== START: Page Setup =====
     window.addEventListener('load', function() {
-      // Theme toggle
       document.getElementById('themeBtn').onclick = function() {
         document.body.classList.toggle('dark');
         localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       };
       if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 
-      // Cart drawer open/close
       const cartBtn = document.getElementById('cartBtn');
       const floatingCartBtn = document.getElementById('floatingCartBtn');
       const cartClose = document.getElementById('cartClose');
@@ -459,7 +445,7 @@
 
       function openCartDrawer() {
         cartDrawer.classList.add('open');
-        manualRenderCart(); // render immediately when opened
+        manualRenderCart();
         setTimeout(() => { if (typeof window.initPayPalButtons === 'function') window.initPayPalButtons(); }, 500);
       }
 
@@ -468,7 +454,7 @@
       if (cartClose) cartClose.addEventListener('click', () => cartDrawer.classList.remove('open'));
 
       updateMembershipButtons();
-      manualRenderCart(); // initial render
+      manualRenderCart();
     });
     // ===== END: Page Setup =====
   </script>
