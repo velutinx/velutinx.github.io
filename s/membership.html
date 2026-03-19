@@ -4,13 +4,46 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
-  <!-- External CSS (ensure this file exists!) -->
+  <!-- External CSS (now on your main domain) -->
   <link rel="stylesheet" href="https://velutinx.com/s/css/membercss.css">
   <!-- Header CSS (global nav) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
+
+  <!-- Additional inline styles for animation and wider section -->
+  <style>
+    /* Make Discord section wider – same as carousel width */
+    .discord-section {
+      max-width: 900px;  /* increased from 600px */
+      margin: 0 auto 40px;
+    }
+
+    /* Smooth slide animation for help content */
+    .discord-help-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out, opacity 0.3s ease;
+      opacity: 0;
+      margin-top: 0;
+      padding: 0 16px;  /* keep padding inside animation */
+    }
+    .discord-help-content.show {
+      max-height: 400px;  /* large enough for content */
+      opacity: 1;
+      margin-top: 16px;
+      padding: 16px;      /* restore padding when visible */
+    }
+
+    /* Ensure error snackbar is clearly red */
+    #snackbar.error {
+      background: #ef4444 !important;
+    }
+    #snackbar.error svg {
+      stroke: white;
+    }
+  </style>
 </head>
 <body>
   <!-- ===== START: Header / Navigation ===== -->
@@ -88,7 +121,7 @@
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
 
-    <!-- Discord ID input + help dropdown -->
+    <!-- Discord ID input + help dropdown (wider, with animation) -->
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
@@ -227,6 +260,7 @@
       container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
+    // Discord help dropdown with smooth slide
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('discordHelpToggle');
       const content = document.getElementById('discordHelpContent');
@@ -315,7 +349,7 @@
     };
     // ===== END: Cart Helpers =====
 
-    // ===== START: Snackbar =====
+    // ===== START: Snackbar (fixed error styling) =====
     function showSnackbar(message, isError = false) {
       const snackbar = document.getElementById('snackbar');
       const snackText = document.getElementById('snackText');
@@ -349,94 +383,85 @@
     }
     // ===== END: Discord Validation =====
 
-    // ===== START: Main Purchase Handler =====
-// ===== START: Main Purchase Handler (fixed) =====
-window.handleSinglePurchase = async function(tierNumber) {
-  console.log('handleSinglePurchase called for tier', tierNumber);
-  const discordId = validateDiscordId();
-  if (!discordId) return;
+    // ===== START: Main Purchase Handler (fixed cart sync) =====
+    window.handleSinglePurchase = async function(tierNumber) {
+      console.log('handleSinglePurchase called for tier', tierNumber);
+      const discordId = validateDiscordId();
+      if (!discordId) return;
 
-  const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
-  const price = tierPrices[tierNumber];
-  if (!price) { showSnackbar('Invalid tier', true); return; }
+      const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
+      const price = tierPrices[tierNumber];
+      if (!price) { showSnackbar('Invalid tier', true); return; }
 
-  const tierTitles = {
-    1: 'Bronze — Archive Access',
-    2: 'Copper — Monthly Custom (~20 img)',
-    3: 'Silver — Monthly Custom (~40 img)',
-    4: 'Gold — Large Custom (~80 img)',
-    5: 'Platinum — Priority Large Custom'
-  };
+      const tierTitles = {
+        1: 'Bronze — Archive Access',
+        2: 'Copper — Monthly Custom (~20 img)',
+        3: 'Silver — Monthly Custom (~40 img)',
+        4: 'Gold — Large Custom (~80 img)',
+        5: 'Platinum — Priority Large Custom'
+      };
 
-  // Get current cart (using the site's method if available)
-  let cart = getCurrentCart();
-  const membershipItems = cart.filter(item => item.type === 'membership');
-  const existingTiers = membershipItems.map(item => item.tier);
-  const highestTier = existingTiers.length ? Math.max(...existingTiers) : null;
-  const alreadyInCart = existingTiers.includes(tierNumber);
+      // Get current cart
+      let cart = getCurrentCart();
+      const membershipItems = cart.filter(item => item.type === 'membership');
+      const existingTiers = membershipItems.map(item => item.tier);
+      const highestTier = existingTiers.length ? Math.max(...existingTiers) : null;
+      const alreadyInCart = existingTiers.includes(tierNumber);
 
-  // If already in cart, remove it
-  if (alreadyInCart) {
-    // Use native remove if available
-    if (typeof window.addOrToggleCart === 'function') {
-      window.addOrToggleCart({ id: `membership-${tierNumber}` }); // remove
-    } else {
-      // Fallback manual removal
-      cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
-      if (Array.isArray(window.cart)) window.cart = cart;
-      if (typeof window.setCart === 'function') window.setCart(cart);
-    }
-    showSnackbar('Removed from cart', false);
-  } else {
-    // Not in cart: check if trying to add a lower tier when higher exists
-    if (highestTier !== null && tierNumber < highestTier) {
-      showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
-      return;
-    } else {
-      // Remove any existing membership(s) first (all lower tiers)
-      // We'll do this by removing all memberships, then adding the new one.
-      // But using addOrToggleCart, we need to remove each existing tier individually.
-      if (typeof window.addOrToggleCart === 'function') {
-        // Remove all existing memberships
-        for (const item of membershipItems) {
-          window.addOrToggleCart({ id: item.id }); // remove each
+      if (alreadyInCart) {
+        // Remove this membership
+        if (typeof window.addOrToggleCart === 'function') {
+          window.addOrToggleCart({ id: `membership-${tierNumber}` });
+        } else {
+          cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
+          if (Array.isArray(window.cart)) window.cart = cart;
+          if (typeof window.setCart === 'function') window.setCart(cart);
         }
-        // Add the new one
-        const newItem = {
-          id: `membership-${tierNumber}`,
-          title: tierTitles[tierNumber] + ' (30 days)',
-          price: price,
-          type: 'membership',
-          tier: tierNumber,
-          discordId: discordId
-        };
-        window.addOrToggleCart(newItem);
+        showSnackbar('Removed from cart', false);
       } else {
-        // Fallback manual: remove all memberships, then add new
-        cart = cart.filter(item => item.type !== 'membership');
-        const newItem = {
-          id: `membership-${tierNumber}`,
-          title: tierTitles[tierNumber] + ' (30 days)',
-          price: price,
-          type: 'membership',
-          tier: tierNumber,
-          discordId: discordId
-        };
-        cart.push(newItem);
-        if (Array.isArray(window.cart)) window.cart = cart;
-        if (typeof window.setCart === 'function') window.setCart(cart);
+        if (highestTier !== null && tierNumber < highestTier) {
+          showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
+          return;
+        } else {
+          // Remove all existing memberships first (using native toggle)
+          if (typeof window.addOrToggleCart === 'function') {
+            for (const item of membershipItems) {
+              window.addOrToggleCart({ id: item.id });
+            }
+            const newItem = {
+              id: `membership-${tierNumber}`,
+              title: tierTitles[tierNumber] + ' (30 days)',
+              price: price,
+              type: 'membership',
+              tier: tierNumber,
+              discordId: discordId
+            };
+            window.addOrToggleCart(newItem);
+          } else {
+            // Fallback manual
+            cart = cart.filter(item => item.type !== 'membership');
+            const newItem = {
+              id: `membership-${tierNumber}`,
+              title: tierTitles[tierNumber] + ' (30 days)',
+              price: price,
+              type: 'membership',
+              tier: tierNumber,
+              discordId: discordId
+            };
+            cart.push(newItem);
+            if (Array.isArray(window.cart)) window.cart = cart;
+            if (typeof window.setCart === 'function') window.setCart(cart);
+          }
+          showSnackbar('Added to cart', false);
+        }
       }
-      showSnackbar('Added to cart', false);
-    }
-  }
 
-  // Force UI updates
-  if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
-  manualRenderCart();
-  updateMembershipButtons();
-  console.log('Cart now:', getCurrentCart());
-};
-// ===== END: Main Purchase Handler =====
+      // Force UI update
+      if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
+      manualRenderCart();
+      updateMembershipButtons();
+      console.log('Cart now:', getCurrentCart());
+    };
     // ===== END: Main Purchase Handler =====
 
     // ===== START: Recurring Handler =====
