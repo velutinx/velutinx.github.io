@@ -1,7 +1,4 @@
-/* === membercss.css - Styles for Membership Page === */
-/* Extracted from membership.html to slim down the main file. */
-
-/* Root variables & base container styles */
+/* ===== membercss.css – Membership Page Styles ===== */
 .container {
   max-width: 1200px;
   margin: 0 auto;
