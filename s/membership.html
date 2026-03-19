@@ -4,61 +4,13 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
-  <!-- External CSS -->
+  <!-- External CSS (now contains all styles) -->
   <link rel="stylesheet" href="https://velutinx.com/s/css/membercss.css">
-  <!-- Header CSS -->
+  <!-- Header CSS (global nav) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <!-- PayPal SDK – replace with your actual client ID -->
   <!-- <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD" data-sdk-integration-source="button-factory"></script> -->
-
-  <style>
-    /* Make Discord section wider – 1100px */
-    .discord-section {
-      max-width: 1100px;
-      margin: 0 auto 40px;
-    }
-
-    /* Fix hint text color */
-    .discord-hint {
-      color: #000000 !important;
-    }
-    body.dark .discord-hint {
-      color: #ffffff !important;
-    }
-
-    /* Simple toggle (no animation) */
-    .discord-help-content {
-      display: none;
-      margin-top: 16px;
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    .discord-help-content.show {
-      display: block;
-    }
-
-    /* Style the help link */
-    .discord-help-link {
-      color: #000000 !important;
-      font-weight: bold;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-    body.dark .discord-help-link {
-      color: #ffffff !important;
-    }
-
-    /* Snackbar error */
-    #snackbar.error {
-      background: #ef4444 !important;
-    }
-    #snackbar.error svg {
-      stroke: white;
-    }
-  </style>
 </head>
 <body>
   <!-- ===== START: Header / Navigation ===== -->
@@ -342,17 +294,17 @@
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
 
-    // Event delegation for cart remove buttons
+    // Event delegation for cart remove buttons (like store.html)
     document.getElementById('cartItems')?.addEventListener('click', function(e) {
       const removeBtn = e.target.closest('.remove-item');
       if (!removeBtn) return;
       const id = removeBtn.dataset.id;
       let currentCart = getCurrentCart();
       let newCart = currentCart.filter(item => item.id !== id);
-      // Update cart
+      // Update cart in all possible ways
       if (Array.isArray(window.cart)) window.cart = newCart;
       if (typeof window.setCart === 'function') window.setCart(newCart);
-      // Update UI
+      // Trigger UI updates
       manualRenderCart();
       updateMembershipButtons();
       if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
