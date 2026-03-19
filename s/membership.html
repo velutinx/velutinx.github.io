@@ -262,10 +262,14 @@
       }
     }
 
-    function initPayPalButtons() {
+function initPayPalButtons() {
       const container = document.getElementById("paypal-button-container");
       const drawer = document.getElementById("cartDrawer");
-      if (!drawer || !drawer.classList.contains("open") || !container || paypalButtonsRendered) return;
+      
+      // If the drawer isn't open or container is missing, stop.
+      if (!drawer || !drawer.classList.contains("open") || !container) return;
+      // CRITICAL: If buttons are already rendered, DO NOT render them again (prevents flickering)
+      if (paypalButtonsRendered) return;
       if (typeof paypal === 'undefined') return;
 
       container.innerHTML = '';
@@ -284,6 +288,7 @@
         },
         onError: (err) => { console.error("PayPal Error", err); }
       }).render("#paypal-button-container");
+      
       paypalButtonsRendered = true;
     }
 
@@ -299,9 +304,10 @@
       if (cart.length === 0) { 
         cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Your cart is empty</p>'; 
         cartTotalSpan.textContent = 'US$0.00'; 
-        paypalButtonsRendered = false;
+        // Only clear PayPal if the cart is truly empty
         const ppContainer = document.getElementById("paypal-button-container");
         if(ppContainer) ppContainer.innerHTML = '';
+        paypalButtonsRendered = false;
       } else { 
         let html = ''; 
         let total = 0; 
@@ -321,7 +327,6 @@
         cartItemsContainer.innerHTML = html; 
         cartTotalSpan.textContent = `US$${total.toFixed(2)}`; 
 
-        // Attach click handlers with stopPropagation to keep menu open
         cartItemsContainer.querySelectorAll('.remove-item').forEach(btn => { 
           btn.addEventListener('click', (e) => { 
             e.stopPropagation(); 
@@ -339,8 +344,9 @@
       if (cartCountSpan) cartCountSpan.textContent = cart.length; 
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length; 
 
-      if (cart.length > 0 && document.getElementById('cartDrawer').classList.contains('open')) {
-        setTimeout(initPayPalButtons, 100);
+      // If buttons aren't there yet, try to init them
+      if (cart.length > 0 && !paypalButtonsRendered) {
+        initPayPalButtons();
       }
     }
 
