@@ -1,4 +1,4 @@
-/* ===== membercss.css – Membership Page Styles ===== */
+/* === membercss.css – Membership Page Styles === */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -38,11 +38,11 @@ main {
   gap: 2rem;
   padding: 20px 0;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .carousel-scroll::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .tier-card {
@@ -105,7 +105,6 @@ main {
   flex-shrink: 0;
 }
 
-/* Two‑button layout */
 .button-row {
   display: flex;
   gap: 10px;
@@ -124,18 +123,17 @@ main {
   text-align: center;
 }
 .btn-single {
-  background: #3b82f6; /* blue */
+  background: #3b82f6;
 }
 .btn-single:hover {
   background: #2563eb;
 }
 .btn-recurring {
-  background: #10b981; /* green */
+  background: #10b981;
 }
 .btn-recurring:hover {
   background: #059669;
 }
-/* Remove from cart button */
 .btn-remove {
   background: #ef4444 !important;
 }
@@ -143,7 +141,6 @@ main {
   background: #dc2626 !important;
 }
 
-/* Carousel arrows */
 .carousel-arrow {
   position: absolute;
   top: 50%;
@@ -181,7 +178,6 @@ main {
   .arrow-right { right: -10px; }
 }
 
-/* Discord section */
 .discord-section {
   max-width: 600px;
   margin: 0 auto 40px;
@@ -215,7 +211,6 @@ main {
   color: var(--text-light);
   margin-top: 8px;
 }
-/* Clickable help link */
 .discord-help-link {
   color: var(--accent);
   cursor: pointer;
@@ -273,7 +268,6 @@ main {
   display: block;
 }
 
-/* Snackbar error variant */
 #snackbar.error {
   background: #ef4444;
 }
