@@ -12,12 +12,20 @@
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
-  <!-- Additional inline styles for wider section, smooth animation, and black bold link -->
+  <!-- Additional inline styles -->
   <style>
-    /* Make Discord section wider – now 1000px */
+    /* Make Discord section wider – now 1100px */
     .discord-section {
-      max-width: 1000px;  /* increased from 900px */
+      max-width: 1100px;  /* increased from 1000px */
       margin: 0 auto 40px;
+    }
+
+    /* Fix hint text color (black in light mode, white in dark) */
+    .discord-hint {
+      color: #000000 !important;
+    }
+    body.dark .discord-hint {
+      color: #ffffff !important;
     }
 
     /* Smooth slide animation for help content */
@@ -26,27 +34,26 @@
       overflow: hidden;
       transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out, opacity 0.3s ease;
       opacity: 0;
-      padding: 0 16px;  /* only horizontal padding when hidden */
+      padding: 0 16px;
       margin-top: 0;
-      background: var(--bg); /* ensure background matches */
+      background: var(--bg);
     }
     .discord-help-content.show {
-      max-height: 400px;  /* large enough for content */
+      max-height: 400px;
       opacity: 1;
-      padding: 16px;      /* restore full padding when visible */
+      padding: 16px;
       margin-top: 16px;
     }
 
     /* Style the help link: black and bold */
     .discord-help-link {
-      color: #000000 !important;  /* force black */
+      color: #000000 !important;
       font-weight: bold;
       text-decoration: underline;
       cursor: pointer;
     }
-    /* Dark mode override if needed – keep it readable */
     body.dark .discord-help-link {
-      color: #ffffff !important;  /* white in dark mode */
+      color: #ffffff !important;
     }
 
     /* Ensure error snackbar is clearly red */
@@ -134,7 +141,7 @@
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
 
-    <!-- Discord ID input + help dropdown (wider, with smooth animation) -->
+    <!-- Discord ID input + help dropdown (wider, with animation) -->
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
@@ -338,10 +345,12 @@
         cartItemsContainer.innerHTML = html;
         cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
 
+        // Attach remove listeners using current cart
         document.querySelectorAll('.remove-item').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
-            let newCart = cart.filter(item => item.id !== id);
+            let currentCart = getCurrentCart();
+            let newCart = currentCart.filter(item => item.id !== id);
             if (Array.isArray(window.cart)) window.cart = newCart;
             if (typeof window.setCart === 'function') window.setCart(newCart);
             manualRenderCart();
@@ -362,7 +371,7 @@
     };
     // ===== END: Cart Helpers =====
 
-    // ===== START: Snackbar (fixed error styling) =====
+    // ===== START: Snackbar =====
     function showSnackbar(message, isError = false) {
       const snackbar = document.getElementById('snackbar');
       const snackText = document.getElementById('snackText');
@@ -396,7 +405,7 @@
     }
     // ===== END: Discord Validation =====
 
-    // ===== START: Main Purchase Handler (fixed cart sync) =====
+    // ===== START: Main Purchase Handler =====
     window.handleSinglePurchase = async function(tierNumber) {
       console.log('handleSinglePurchase called for tier', tierNumber);
       const discordId = validateDiscordId();
@@ -414,7 +423,6 @@
         5: 'Platinum — Priority Large Custom'
       };
 
-      // Get current cart
       let cart = getCurrentCart();
       const membershipItems = cart.filter(item => item.type === 'membership');
       const existingTiers = membershipItems.map(item => item.tier);
@@ -422,7 +430,6 @@
       const alreadyInCart = existingTiers.includes(tierNumber);
 
       if (alreadyInCart) {
-        // Remove this membership
         if (typeof window.addOrToggleCart === 'function') {
           window.addOrToggleCart({ id: `membership-${tierNumber}` });
         } else {
@@ -436,7 +443,6 @@
           showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
           return;
         } else {
-          // Remove all existing memberships first (using native toggle)
           if (typeof window.addOrToggleCart === 'function') {
             for (const item of membershipItems) {
               window.addOrToggleCart({ id: item.id });
@@ -451,7 +457,6 @@
             };
             window.addOrToggleCart(newItem);
           } else {
-            // Fallback manual
             cart = cart.filter(item => item.type !== 'membership');
             const newItem = {
               id: `membership-${tierNumber}`,
@@ -469,7 +474,6 @@
         }
       }
 
-      // Force UI update
       if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
       manualRenderCart();
       updateMembershipButtons();
