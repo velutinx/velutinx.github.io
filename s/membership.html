@@ -12,11 +12,11 @@
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
-  <!-- Additional inline styles for animation and wider section -->
+  <!-- Additional inline styles for wider section, smooth animation, and black bold link -->
   <style>
-    /* Make Discord section wider – same as carousel width */
+    /* Make Discord section wider – now 1000px */
     .discord-section {
-      max-width: 900px;  /* increased from 600px */
+      max-width: 1000px;  /* increased from 900px */
       margin: 0 auto 40px;
     }
 
@@ -24,16 +24,29 @@
     .discord-help-content {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.4s ease-out, opacity 0.3s ease;
+      transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out, opacity 0.3s ease;
       opacity: 0;
+      padding: 0 16px;  /* only horizontal padding when hidden */
       margin-top: 0;
-      padding: 0 16px;  /* keep padding inside animation */
+      background: var(--bg); /* ensure background matches */
     }
     .discord-help-content.show {
       max-height: 400px;  /* large enough for content */
       opacity: 1;
+      padding: 16px;      /* restore full padding when visible */
       margin-top: 16px;
-      padding: 16px;      /* restore padding when visible */
+    }
+
+    /* Style the help link: black and bold */
+    .discord-help-link {
+      color: #000000 !important;  /* force black */
+      font-weight: bold;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    /* Dark mode override if needed – keep it readable */
+    body.dark .discord-help-link {
+      color: #ffffff !important;  /* white in dark mode */
     }
 
     /* Ensure error snackbar is clearly red */
@@ -121,7 +134,7 @@
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
 
-    <!-- Discord ID input + help dropdown (wider, with animation) -->
+    <!-- Discord ID input + help dropdown (wider, with smooth animation) -->
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
