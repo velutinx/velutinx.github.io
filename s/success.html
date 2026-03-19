@@ -171,7 +171,8 @@ async function fetchWithRetry(orderId, retries = 3) {
     let lastError;
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
-            const res = await fetch(`/get-download?orderID=${orderId}`);
+            // 🔁 Changed to /api/get-download
+            const res = await fetch(`/api/get-download?orderID=${orderId}`);
             if (!res.ok) {
                 // If 404 and we have retries left, wait and retry
                 if (res.status === 404 && attempt < retries) {
