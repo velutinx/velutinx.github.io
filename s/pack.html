@@ -342,7 +342,7 @@ function initPayPalButtons() {
     onApprove: async (data, actions) => {
 
       const details = await actions.order.capture();
-      window.location.href = `/success.html?orderID=${details.id}`;
+      window.location.href = `/s/success.html?orderID=${details.id}`;
 
     },
 
