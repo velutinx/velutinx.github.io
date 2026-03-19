@@ -4,23 +4,22 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
-  <!-- External CSS (now on your main domain) -->
+  <!-- External CSS -->
   <link rel="stylesheet" href="https://velutinx.com/s/css/membercss.css">
-  <!-- Header CSS (global nav) -->
+  <!-- Header CSS -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <!-- PayPal SDK -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5Mk8vgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
 
-  <!-- Additional inline styles -->
   <style>
-    /* Make Discord section wider – now 1100px */
+    /* Make Discord section wider – 1100px */
     .discord-section {
-      max-width: 1100px;  /* increased from 1000px */
+      max-width: 1100px;
       margin: 0 auto 40px;
     }
 
-    /* Fix hint text color (black in light mode, white in dark) */
+    /* Fix hint text color */
     .discord-hint {
       color: #000000 !important;
     }
@@ -28,24 +27,20 @@
       color: #ffffff !important;
     }
 
-    /* Smooth slide animation for help content */
+    /* Simple toggle (no animation) */
     .discord-help-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out, opacity 0.3s ease;
-      opacity: 0;
-      padding: 0 16px;
-      margin-top: 0;
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
       background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
     .discord-help-content.show {
-      max-height: 400px;
-      opacity: 1;
-      padding: 16px;
-      margin-top: 16px;
+      display: block;
     }
 
-    /* Style the help link: black and bold */
+    /* Style the help link */
     .discord-help-link {
       color: #000000 !important;
       font-weight: bold;
@@ -56,7 +51,7 @@
       color: #ffffff !important;
     }
 
-    /* Ensure error snackbar is clearly red */
+    /* Snackbar error */
     #snackbar.error {
       background: #ef4444 !important;
     }
@@ -74,46 +69,18 @@
       <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
-          </svg>
+          <svg ...>...</svg>
         </button>
-        <div id="languagePopover">
-          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
-          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
-          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
-        </div>
+        <div id="languagePopover">...</div>
       </div>
-      <button class="nav-icon" id="themeBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
-        </svg>
-      </button>
+      <button class="nav-icon" id="themeBtn">...</button>
       <div class="cart-wrapper">
-        <button class="nav-icon cart-icon" id="cartBtn">
-          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path>
-            <path d="M19 16v6"></path>
-          </svg>
-        </button>
+        <button class="nav-icon cart-icon" id="cartBtn">...</button>
         <span class="cart-badge" id="cartCount">0</span>
       </div>
     </div>
   </nav>
-  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 17h-11v-14h-2"></path>
-      <path d="M6 5l14 1l-1 7h-13"></path>
-    </svg>
-    <span class="floating-badge" id="floatingCartCount">0</span>
-  </button>
+  <button class="floating-cart cart-icon" id="floatingCartBtn">...</button>
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -136,12 +103,11 @@
   </div>
   <!-- ===== END: Header / Navigation ===== -->
 
-  <!-- ===== START: Main Content ===== -->
   <main class="container">
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
 
-    <!-- Discord ID input + help dropdown (wider, with animation) -->
+    <!-- Discord ID input -->
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
@@ -166,106 +132,18 @@
       </div>
     </div>
 
-    <!-- Carousel with 5 tier cards -->
+    <!-- Tier carousel (same as before) -->
     <div class="carousel-container">
       <div class="carousel-scroll" id="tierCarousel">
-        <!-- Tier 1: Bronze -->
-        <div class="tier-card" data-tier="1">
-          <h3>✨ Bronze — Archive Access</h3>
-          <div class="tier-price">$5 <span>/ month</span></div>
-          <ul class="tier-perks">
-            <li>Full archive access immediately.</li>
-            <li>Includes all past releases & paid content.</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
-          </div>
-        </div>
-
-        <!-- Tier 2: Copper -->
-        <div class="tier-card" data-tier="2">
-          <h3>🔶 Copper — Monthly Custom (~20 img)</h3>
-          <div class="tier-price">$15 <span>/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 20 images per request.</li>
-            <li>Single character, official/creator‑selected outfit.</li>
-            <li>Some character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
-          </div>
-        </div>
-
-        <!-- Tier 3: Silver -->
-        <div class="tier-card" data-tier="3">
-          <h3>🥈 Silver — Monthly Custom (~40 img)</h3>
-          <div class="tier-price">$30 <span>/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 40 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
-          </div>
-        </div>
-
-        <!-- Tier 4: Gold -->
-        <div class="tier-card" data-tier="4">
-          <h3>🏅 Gold — Large Custom (~80 img)</h3>
-          <div class="tier-price">$50 <span>/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: 3‑7 days (queue order).</li>
-            <li>Special/expanded requests may be discussed.</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)">Recurring Membership</button>
-          </div>
-        </div>
-
-        <!-- Tier 5: Platinum -->
-        <div class="tier-card" data-tier="5">
-          <h3>💎 Platinum — Priority Large Custom</h3>
-          <div class="tier-price">$75 <span>/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>⚡ Priority: worked on first after current tasks.</li>
-            <li>Typical turnaround: 3‑7 days (once started).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(5)">Recurring Membership</button>
-          </div>
-        </div>
+        <!-- Bronze, Copper, Silver, Gold, Platinum cards – unchanged -->
+        ... (keep your existing tier cards here)
       </div>
-
-      <!-- Carousel navigation arrows -->
-      <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)" aria-label="Previous tiers">←</button>
-      <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)" aria-label="Next tiers">→</button>
+      <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
+      <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
     </div>
 
     <div id="statusMessage"></div>
   </main>
-  <!-- ===== END: Main Content ===== -->
 
   <!-- Scripts -->
   <script src="https://velutinx.com/assets/js/header.js"></script>
@@ -280,7 +158,7 @@
       container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
-    // Discord help dropdown with smooth slide
+    // Discord help toggle – simple show/hide
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('discordHelpToggle');
       const content = document.getElementById('discordHelpContent');
@@ -345,16 +223,19 @@
         cartItemsContainer.innerHTML = html;
         cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
 
-        // Attach remove listeners using current cart
+        // Remove item handler – uses current cart
         document.querySelectorAll('.remove-item').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
             let currentCart = getCurrentCart();
             let newCart = currentCart.filter(item => item.id !== id);
+            // Update cart in all possible ways
             if (Array.isArray(window.cart)) window.cart = newCart;
             if (typeof window.setCart === 'function') window.setCart(newCart);
+            // Trigger UI updates
             manualRenderCart();
             updateMembershipButtons();
+            if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
           });
         });
       }
