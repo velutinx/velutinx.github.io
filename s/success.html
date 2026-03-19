@@ -166,12 +166,35 @@ const section = document.getElementById("download-section");
 const noticeText = document.getElementById("notice-text");
 const supportNote = document.getElementById("support-note");
 
+// Retry fetch function – tries up to 3 times with 1s delay
+async function fetchWithRetry(orderId, retries = 3) {
+    let lastError;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const res = await fetch(`/get-download?orderID=${orderId}`);
+            if (!res.ok) {
+                // If 404 and we have retries left, wait and retry
+                if (res.status === 404 && attempt < retries) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                throw new Error(`Server responded with status ${res.status}`);
+            }
+            return await res.json();
+        } catch (err) {
+            lastError = err;
+            if (attempt === retries) throw lastError;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+    throw lastError;
+}
+
 if (!orderId) {
     section.innerHTML = `<p class="error-text">No order information found. Something went wrong with the payment process.</p>`;
 } else {
     // Display order ID
-// Fixed line:
-document.getElementById("order-id").textContent = `#${orderId}`;
+    document.getElementById("order-id").textContent = `#${orderId}`;
     
     if (type === 'membership') {
         // Membership purchase – show activation message
@@ -184,12 +207,8 @@ document.getElementById("order-id").textContent = `#${orderId}`;
         noticeText.innerHTML = '<strong>Notice:</strong> Your membership is active for 30 days. The Discord role will be added automatically.';
         supportNote.innerHTML = `Your Discord ID was linked to this purchase. If you need help, provide this Order Number: <strong>${orderId}</strong>.`;
     } else {
-        // Regular pack purchase – fetch download links
-        fetch(`/get-download?orderID=${orderId}`)
-            .then(res => {
-                if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
-                return res.json();
-            })
+        // Regular pack purchase – fetch download links with retry
+        fetchWithRetry(orderId, 3)
             .then(data => {
                 if (data.items && data.items.length > 0) {
                     let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
