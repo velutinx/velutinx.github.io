@@ -4,310 +4,13 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VELUTINX — Membership</title>
+  <!-- External CSS (slim version) -->
+  <link rel="stylesheet" href="https://velutinx.github.io/s/css/membercss.css">
+  <!-- Header CSS (global nav) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
-  <!-- PayPal SDK – same as pack.html (regular orders, no subscription) -->
+  <!-- PayPal SDK – regular orders, no subscription -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
-
-  <style>
-    /* Keep all existing styles – unchanged, plus new carousel and dropdown styles */
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
-    @media (min-width: 600px) { .container { padding: 0 24px; } }
-    main { padding: 40px 0; }
-    
-    .membership-title {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    
-    .membership-description {
-      color: var(--text);
-      text-align: center;
-      margin-bottom: 32px;
-      font-size: 1.2rem;
-    }
-    
-    /* Carousel layout for tier cards */
-    .carousel-container {
-      position: relative;
-      margin: 40px 0;
-    }
-    
-    .carousel-scroll {
-      display: flex;
-      overflow-x: auto;
-      gap: 2rem;
-      padding: 20px 0;
-      scroll-behavior: smooth;
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* IE/Edge */
-    }
-    
-    .carousel-scroll::-webkit-scrollbar {
-      display: none; /* Chrome/Safari */
-    }
-    
-    .tier-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2rem;
-      width: 300px;
-      max-width: 100%;
-      flex-shrink: 0;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s;
-    }
-    
-    .tier-card:hover {
-      transform: translateY(-4px);
-    }
-    
-    .tier-card h3 {
-      font-size: 1.8rem;
-      margin: 0 0 0.5rem;
-      color: var(--text);
-    }
-    
-    .tier-price {
-      font-size: 2.2rem;
-      font-weight: bold;
-      color: var(--accent);
-      margin: 0.5rem 0 1rem;
-    }
-    
-    .tier-price span {
-      font-size: 1rem;
-      font-weight: normal;
-      color: var(--text-light);
-    }
-    
-    .tier-perks {
-      list-style: none;
-      padding: 0;
-      margin: 1.5rem 0;
-      flex: 1;
-    }
-    
-    .tier-perks li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 1rem;
-      line-height: 1.4;
-    }
-    
-    .tier-perks li:last-child {
-      border-bottom: none;
-    }
-    
-    .tier-perks li::before {
-      content: "✓";
-      color: var(--success);
-      font-weight: bold;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-    
-    /* Two‑button layout */
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 1.5rem;
-    }
-    
-    .tier-btn {
-      flex: 1;
-      padding: 10px 0;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      color: white;
-      text-align: center;
-    }
-    
-    .btn-single {
-      background: #3b82f6; /* blue */
-    }
-    .btn-single:hover {
-      background: #2563eb;
-    }
-    
-    .btn-recurring {
-      background: #10b981; /* green */
-    }
-    .btn-recurring:hover {
-      background: #059669;
-    }
-    
-    /* Remove from cart button */
-    .btn-remove {
-      background: #ef4444 !important;
-    }
-    .btn-remove:hover {
-      background: #dc2626 !important;
-    }
-    
-    /* Carousel arrows */
-    .carousel-arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      font-size: 1.8rem;
-      font-weight: 400;
-      color: var(--text);
-      transition: all 0.2s;
-      line-height: 1;
-    }
-    
-    .carousel-arrow:hover {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    
-    .arrow-left {
-      left: -20px;
-    }
-    
-    .arrow-right {
-      right: -20px;
-    }
-    
-    @media (max-width: 700px) {
-      .arrow-left { left: -10px; }
-      .arrow-right { right: -10px; }
-    }
-    
-    /* Discord section */
-    .discord-section {
-      max-width: 600px;
-      margin: 0 auto 40px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    
-    .discord-input label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    
-    .discord-input input {
-      width: 100%;
-      padding: 14px;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-    
-    .discord-input input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    
-    .discord-hint {
-      font-size: 0.9rem;
-      color: var(--text-light);
-      margin-top: 8px;
-    }
-    
-    /* Clickable help link */
-    .discord-help-link {
-      color: var(--accent);
-      cursor: pointer;
-      text-decoration: underline;
-      font-weight: 500;
-      margin-top: 12px;
-      display: inline-block;
-    }
-    
-    .discord-help-content {
-      display: none;
-      margin-top: 16px;
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    
-    .discord-help-content.show {
-      display: block;
-    }
-    
-    .discord-help-content p {
-      margin-bottom: 12px;
-    }
-    
-    .discord-help-content img {
-      max-width: 100%;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    
-    .note-box {
-      background: rgba(170,158,118,0.1);
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      margin: 24px 0 0;
-      border-radius: 8px;
-      font-size: 0.95rem;
-    }
-    
-    #statusMessage {
-      text-align: center;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 16px 0;
-      display: none;
-    }
-    
-    #statusMessage.success {
-      background: rgba(34,197,94,0.2);
-      color: var(--success);
-      border: 1px solid var(--success);
-      display: block;
-    }
-    
-    #statusMessage.error {
-      background: rgba(239,68,68,0.2);
-      color: #ef4444;
-      border: 1px solid #ef4444;
-      display: block;
-    }
-    
-    /* Snackbar error variant */
-    #snackbar.error {
-      background: #ef4444;
-    }
-  </style>
 </head>
 <body>
   <div class="lang-swipe" id="langSwipe"></div>
@@ -382,7 +85,7 @@
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
 
-    <!-- Shared Discord ID input + help dropdown -->
+    <!-- Discord ID input + help dropdown -->
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
@@ -504,7 +207,6 @@
       <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)" aria-label="Next tiers">→</button>
     </div>
 
-    <!-- Status message (kept for backward compatibility, but we'll use snackbar for errors) -->
     <div id="statusMessage"></div>
   </main>
 
@@ -512,15 +214,15 @@
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
   <script>
-    // ----- Carousel scroll function -----
+    // ----- Carousel scroll -----
     window.scrollCarousel = function(direction) {
       const container = document.getElementById('tierCarousel');
       if (!container) return;
-      const scrollAmount = 320; // approximate card width + gap
+      const scrollAmount = 320;
       container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
-    // ----- Discord help dropdown toggle -----
+    // ----- Discord help dropdown -----
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('discordHelpToggle');
       const content = document.getElementById('discordHelpContent');
@@ -532,7 +234,7 @@
       }
     });
 
-    // ----- Helper: get current cart (works with shop-shared.js) -----
+    // ----- Helper: get current cart -----
     function getCurrentCart() {
       return (typeof window.getCart === 'function') ? window.getCart() : (window.cart || []);
     }
@@ -565,13 +267,9 @@
       snackbar.classList.remove('error');
       if (isError) {
         snackbar.classList.add('error');
-        if (svg) {
-          svg.innerHTML = '<path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2"/>'; // X icon
-        }
+        if (svg) svg.innerHTML = '<path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2"/>';
       } else {
-        if (svg) {
-          svg.innerHTML = '<path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2"/>'; // checkmark
-        }
+        if (svg) svg.innerHTML = '<path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2"/>';
       }
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
@@ -590,6 +288,55 @@
         return null;
       }
       return id;
+    }
+
+    // ----- MANUAL CART RENDER (fallback) -----
+    function manualRenderCart() {
+      const cart = getCurrentCart();
+      const cartItemsContainer = document.getElementById('cartItems');
+      const cartTotalSpan = document.getElementById('cartTotal');
+      const cartCountSpan = document.getElementById('cartCount');
+      const floatingCountSpan = document.getElementById('floatingCartCount');
+
+      if (!cartItemsContainer) return;
+
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8;">Your cart is empty</p>';
+        cartTotalSpan.textContent = 'US$0.00';
+      } else {
+        let html = '';
+        let total = 0;
+        cart.forEach(item => {
+          total += item.price || 0;
+          html += `
+            <div class="cart-item">
+              <div style="flex:1;">
+                <div style="font-weight:600;">${item.title || 'Item'}</div>
+                <div style="color:var(--accent);">US$${(item.price || 0).toFixed(2)}</div>
+              </div>
+              <button class="remove-item" data-id="${item.id}" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>
+            </div>
+          `;
+        });
+        cartItemsContainer.innerHTML = html;
+        cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
+
+        // Attach remove event listeners
+        document.querySelectorAll('.remove-item').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            let newCart = cart.filter(item => item.id !== id);
+            if (Array.isArray(window.cart)) window.cart = newCart;
+            if (typeof window.setCart === 'function') window.setCart(newCart);
+            manualRenderCart();
+            updateMembershipButtons();
+          });
+        });
+      }
+
+      // Update badges
+      if (cartCountSpan) cartCountSpan.textContent = cart.length;
+      if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
 
     // ----- Main purchase handler (single) -----
@@ -620,40 +367,38 @@
       // If already in cart, just remove it
       if (alreadyInCart) {
         cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
-        // Update cart
-        if (Array.isArray(window.cart)) window.cart = cart;
-        if (typeof window.setCart === 'function') window.setCart(cart);
-        if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
         showSnackbar('Removed from cart', false);
-        return;
+      } else {
+        // Not in cart: check if trying to add a lower tier when higher exists
+        if (highestTier !== null && tierNumber < highestTier) {
+          showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
+          return;
+        } else {
+          // Remove any existing membership(s) first (lower tiers)
+          cart = cart.filter(item => item.type !== 'membership'); // remove all memberships
+          // Add the new tier
+          const newItem = {
+            id: `membership-${tierNumber}`,
+            title: tierTitles[tierNumber] + ' (30 days)',
+            price: price,
+            type: 'membership',
+            tier: tierNumber,
+            discordId: discordId
+          };
+          cart.push(newItem);
+          showSnackbar('Added to cart', false);
+        }
       }
 
-      // Not in cart: check if trying to add a lower tier when higher exists
-      if (highestTier !== null && tierNumber < highestTier) {
-        showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
-        return;
-      }
-
-      // Allowed: remove any existing membership(s) first (lower tiers)
-      cart = cart.filter(item => item.type !== 'membership'); // remove all memberships
-
-      // Now add the new tier
-      const newItem = {
-        id: `membership-${tierNumber}`,
-        title: tierTitles[tierNumber] + ' (30 days)',
-        price: price,
-        type: 'membership',
-        tier: tierNumber,
-        discordId: discordId
-      };
-      cart.push(newItem);
-
-      // Update cart
+      // Update cart in all possible ways
       if (Array.isArray(window.cart)) window.cart = cart;
       if (typeof window.setCart === 'function') window.setCart(cart);
+      
+      // Force UI update using both original and manual methods
       if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
-
-      showSnackbar('Added to cart', false);
+      manualRenderCart();  // <-- ensures the drawer updates even if the original fails
+      
+      updateMembershipButtons();
       console.log('Cart now:', cart);
     };
 
@@ -661,38 +406,27 @@
     window.handleRecurring = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
-
-      const PLAN_IDS = {
-        1: 'P-BRONZE_PLAN_ID',
-        2: 'P-COPPER_PLAN_ID',
-        3: 'P-SILVER_PLAN_ID',
-        4: 'P-GOLD_PLAN_ID',
-        5: 'P-PLATINUM_PLAN_ID'
-      };
+      const PLAN_IDS = { 1: 'P-BRONZE_PLAN_ID', 2: 'P-COPPER_PLAN_ID', 3: 'P-SILVER_PLAN_ID', 4: 'P-GOLD_PLAN_ID', 5: 'P-PLATINUM_PLAN_ID' };
       const planId = PLAN_IDS[tierNumber];
-      if (!planId) {
-        showSnackbar('❌ Plan not configured for this tier', true);
-        return;
-      }
+      if (!planId) { showSnackbar('❌ Plan not configured for this tier', true); return; }
       alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
     };
 
-    // ----- Override updateCartDisplay to refresh membership buttons -----
+    // ----- Override updateCartDisplay to also refresh membership buttons -----
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
+      manualRenderCart(); // extra safety
     };
 
-    // ----- Safely initialize PayPal buttons only when cart drawer is open and container exists -----
+    // ----- Safely initialize PayPal buttons -----
     const originalInitPayPalButtons = window.initPayPalButtons;
     window.initPayPalButtons = function() {
       const container = document.querySelector('#paypal-button-container');
       if (!container || !document.body.contains(container)) {
         console.warn('PayPal container not ready, deferring initialization');
-        setTimeout(() => {
-          if (originalInitPayPalButtons) originalInitPayPalButtons();
-        }, 300);
+        setTimeout(() => { if (originalInitPayPalButtons) originalInitPayPalButtons(); }, 300);
         return;
       }
       if (originalInitPayPalButtons) originalInitPayPalButtons();
@@ -705,11 +439,9 @@
         document.body.classList.toggle('dark');
         localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       };
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark');
-      }
+      if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 
-      // Cart drawer open/close with PayPal safety
+      // Cart drawer open/close
       const cartBtn = document.getElementById('cartBtn');
       const floatingCartBtn = document.getElementById('floatingCartBtn');
       const cartClose = document.getElementById('cartClose');
@@ -717,9 +449,8 @@
 
       function openCartDrawer() {
         cartDrawer.classList.add('open');
-        setTimeout(() => {
-          if (typeof window.initPayPalButtons === 'function') window.initPayPalButtons();
-        }, 500);
+        manualRenderCart(); // render immediately when opened
+        setTimeout(() => { if (typeof window.initPayPalButtons === 'function') window.initPayPalButtons(); }, 500);
       }
 
       if (cartBtn) cartBtn.addEventListener('click', openCartDrawer);
@@ -727,6 +458,7 @@
       if (cartClose) cartClose.addEventListener('click', () => cartDrawer.classList.remove('open'));
 
       updateMembershipButtons();
+      manualRenderCart(); // initial render
     });
   </script>
 </body>
