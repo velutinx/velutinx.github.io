@@ -262,17 +262,17 @@
       }
     }
 
-function initPayPalButtons() {
-      const container = document.getElementById("paypal-button-container");
-      const drawer = document.getElementById("cartDrawer");
-      
-      // If the drawer isn't open or container is missing, stop.
-      if (!drawer || !drawer.classList.contains("open") || !container) return;
-      // CRITICAL: If buttons are already rendered, DO NOT render them again (prevents flickering)
+    function initPayPalButtons() {
+      // Logic synced with store.html
       if (paypalButtonsRendered) return;
-      if (typeof paypal === 'undefined') return;
+      const drawer = document.getElementById("cartDrawer");
+      const container = document.getElementById("paypal-button-container");
+      
+      if (!drawer || !drawer.classList.contains("open")) return;
+      if (!container || typeof paypal === 'undefined') return;
 
-      container.innerHTML = '';
+      container.innerHTML = ''; // Clear only once before rendering
+
       paypal.Buttons({
         createOrder: (data, actions) => {
           const cart = getCurrentCart();
@@ -286,9 +286,11 @@ function initPayPalButtons() {
           const details = await actions.order.capture();
           window.location.href = `/success.html?orderID=${details.id}`;
         },
-        onError: (err) => { console.error("PayPal Error", err); }
+        onError: (err) => {
+          console.error("PayPal Error", err);
+        }
       }).render("#paypal-button-container");
-      
+
       paypalButtonsRendered = true;
     }
 
@@ -304,10 +306,10 @@ function initPayPalButtons() {
       if (cart.length === 0) { 
         cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Your cart is empty</p>'; 
         cartTotalSpan.textContent = 'US$0.00'; 
-        // Only clear PayPal if the cart is truly empty
+        // Reset PayPal state if empty
         const ppContainer = document.getElementById("paypal-button-container");
-        if(ppContainer) ppContainer.innerHTML = '';
-        paypalButtonsRendered = false;
+        if (ppContainer) ppContainer.innerHTML = '';
+        paypalButtonsRendered = false; 
       } else { 
         let html = ''; 
         let total = 0; 
@@ -329,13 +331,14 @@ function initPayPalButtons() {
 
         cartItemsContainer.querySelectorAll('.remove-item').forEach(btn => { 
           btn.addEventListener('click', (e) => { 
-            e.stopPropagation(); 
+            e.stopPropagation(); // Prevents drawer from closing
             const id = e.currentTarget.dataset.id; 
             if (typeof window.removeFromCart === 'function') {
               window.removeFromCart(id);
             } else {
               window.addOrToggleCart?.({ id: id });
             }
+            // Trigger display update without destroying the PayPal buttons
             window.updateCartDisplay(); 
           }); 
         }); 
@@ -344,15 +347,14 @@ function initPayPalButtons() {
       if (cartCountSpan) cartCountSpan.textContent = cart.length; 
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length; 
 
-      // If buttons aren't there yet, try to init them
-      if (cart.length > 0 && !paypalButtonsRendered) {
+      // Only attempt init if the drawer is open and buttons aren't there
+      if (cart.length > 0 && document.getElementById('cartDrawer').classList.contains('open')) {
         initPayPalButtons();
       }
     }
 
-    const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
-      if (originalUpdateCartDisplay) originalUpdateCartDisplay();
+      // Logic synced with store.html's observer-like behavior
       updateMembershipButtons();
       manualRenderCart();
     };
@@ -362,15 +364,8 @@ function initPayPalButtons() {
     function showSnackbar(message, isError = false) {
       const snackbar = document.getElementById('snackbar');
       const snackText = document.getElementById('snackText');
-      const svg = snackbar.querySelector('svg');
       snackText.textContent = message;
-      snackbar.classList.remove('error');
-      if (isError) {
-        snackbar.classList.add('error');
-        if (svg) svg.innerHTML = '<path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2"/>';
-      } else {
-        if (svg) svg.innerHTML = '<path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2"/>';
-      }
+      snackbar.classList.toggle('error', isError);
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
     }
@@ -385,7 +380,7 @@ function initPayPalButtons() {
         return null;
       }
       if (!/^\d{17,19}$/.test(id)) {
-        showSnackbar('❌ Invalid Discord ID format (should be 17‑19 numbers)', true);
+        showSnackbar('❌ Invalid Discord ID format', true);
         return null;
       }
       return id;
@@ -398,82 +393,69 @@ function initPayPalButtons() {
       if (!discordId) return;
 
       const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
-      const price = tierPrices[tierNumber];
       const tierTitles = {
-        1: 'Bronze — Archive Access',
-        2: 'Copper — Monthly Custom (~20 img)',
-        3: 'Silver — Monthly Custom (~40 img)',
-        4: 'Gold — Large Custom (~80 img)',
-        5: 'Platinum — Priority Large Custom'
+        1: 'Bronze — Archive Access', 2: 'Copper — Monthly Custom',
+        3: 'Silver — Monthly Custom', 4: 'Gold — Large Custom', 5: 'Platinum — Priority Large Custom'
       };
 
       let cart = getCurrentCart();
-      const membershipItems = cart.filter(item => item.type === 'membership');
-      const alreadyInCart = membershipItems.some(item => item.tier === tierNumber);
+      const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
 
       if (alreadyInCart) {
         window.addOrToggleCart?.({ id: `membership-${tierNumber}` });
         showSnackbar('Removed from cart', false);
       } else {
+        const membershipItems = cart.filter(item => item.type === 'membership');
         const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
+        
         if (highestTier !== null && tierNumber < highestTier) {
           showSnackbar('❌ Only the highest tier can be added.', true);
           return;
         }
-        // Remove existing lower tiers first
+
+        // Remove lower tiers to keep logic clean
         membershipItems.forEach(item => window.addOrToggleCart?.({id: item.id}));
         
-        const newItem = {
+        window.addOrToggleCart?.({
           id: `membership-${tierNumber}`,
           title: tierTitles[tierNumber] + ' (30 days)',
-          price: price,
+          price: tierPrices[tierNumber],
           type: 'membership',
           tier: tierNumber,
           discordId: discordId
-        };
-        window.addOrToggleCart?.(newItem);
+        });
         showSnackbar('Added to cart', false);
       }
-
       window.updateCartDisplay();
     };
     // ===== END: Main Purchase Handler =====
 
-    // ===== START: Recurring Handler =====
-    window.handleRecurring = async function(tierNumber) {
-      const discordId = validateDiscordId();
-      if (!discordId) return;
-      alert(`Recurring subscription for Tier ${tierNumber} would start.`);
-    };
-    // ===== END: Recurring Handler =====
-
     // ===== START: Page Setup =====
     window.addEventListener('load', function() {
-      document.getElementById('themeBtn').onclick = function() {
+      document.getElementById('themeBtn').onclick = () => {
         document.body.classList.toggle('dark');
         localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       };
       if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 
-      const cartBtn = document.getElementById('cartBtn');
-      const floatingCartBtn = document.getElementById('floatingCartBtn');
-      const cartClose = document.getElementById('cartClose');
-      const cartDrawer = document.getElementById('cartDrawer');
-
-      function openCartDrawer() {
-        cartDrawer.classList.add('open');
+      const openDrawer = () => {
+        document.getElementById('cartDrawer').classList.add('open');
         manualRenderCart();
-      }
+        setTimeout(initPayPalButtons, 400);
+      };
 
-      if (cartBtn) cartBtn.addEventListener('click', openCartDrawer);
-      if (floatingCartBtn) floatingCartBtn.addEventListener('click', openCartDrawer);
-      if (cartClose) cartClose.addEventListener('click', () => cartDrawer.classList.remove('open'));
+      document.getElementById('cartBtn')?.addEventListener('click', openDrawer);
+      document.getElementById('floatingCartBtn')?.addEventListener('click', openDrawer);
+      document.getElementById('cartClose')?.addEventListener('click', () => {
+        document.getElementById('cartDrawer').classList.remove('open');
+      });
 
-      // Close when clicking outside
+      // Outside click listener
       document.addEventListener('click', (e) => {
-        const isCartBtn = e.target.closest('#cartBtn') || e.target.closest('#floatingCartBtn');
-        if (cartDrawer.classList.contains('open') && !cartDrawer.contains(e.target) && !isCartBtn) {
-          cartDrawer.classList.remove('open');
+        const drawer = document.getElementById('cartDrawer');
+        const isBtn = e.target.closest('#cartBtn') || e.target.closest('#floatingCartBtn');
+        if (drawer.classList.contains('open') && !drawer.contains(e.target) && !isBtn) {
+          drawer.classList.remove('open');
         }
       });
 
