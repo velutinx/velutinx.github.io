@@ -9,8 +9,8 @@
   <!-- Header CSS -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
-  <!-- PayPal SDK -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5Mk8vgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
+  <!-- PayPal SDK – replace with your actual client ID -->
+  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD" data-sdk-integration-source="button-factory"></script>
 
   <style>
     /* Make Discord section wider – 1100px */
@@ -69,18 +69,46 @@
       <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg ...>...</svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
+          </svg>
         </button>
-        <div id="languagePopover">...</div>
+        <div id="languagePopover">
+          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
+          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
+          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
+          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
+        </div>
       </div>
-      <button class="nav-icon" id="themeBtn">...</button>
+      <button class="nav-icon" id="themeBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+        </svg>
+      </button>
       <div class="cart-wrapper">
-        <button class="nav-icon cart-icon" id="cartBtn">...</button>
+        <button class="nav-icon cart-icon" id="cartBtn">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+            <path d="M17 17h-11v-14h-2"></path>
+            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+            <path d="M16 19h6"></path>
+            <path d="M19 16v6"></path>
+          </svg>
+        </button>
         <span class="cart-badge" id="cartCount">0</span>
       </div>
     </div>
   </nav>
-  <button class="floating-cart cart-icon" id="floatingCartBtn">...</button>
+  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+      <path d="M17 17h-11v-14h-2"></path>
+      <path d="M6 5l14 1l-1 7h-13"></path>
+    </svg>
+    <span class="floating-badge" id="floatingCartCount">0</span>
+  </button>
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
