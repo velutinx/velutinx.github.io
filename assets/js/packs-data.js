@@ -1,13 +1,15 @@
 // assets/js/packs-data.js
 export default [
-  { id: "010", title: "[Pack 010] Nitocris - Fate/Grand Order", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 116, images: ["https://www.velutinx.com/i/pack010-1.jpg", "https://www.velutinx.com/i/pack010-2.jpg", "https://www.velutinx.com/i/pack010-3.jpg", "https://www.velutinx.com/i/pack010-4.jpg"] },
-  { id: "009", title: "[Pack 009] Gwen Stacy - Spider-Man", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 46, images: ["https://www.velutinx.com/i/pack009-1.jpg", "https://www.velutinx.com/i/pack009-2.jpg", "https://www.velutinx.com/i/pack009-3.jpg", "https://www.velutinx.com/i/pack009-4.jpg"] },
-  { id: "008", title: "[Pack 008] Akeno Himejima - High School DxD", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 86, images: ["https://www.velutinx.com/i/pack008-1.jpg", "https://www.velutinx.com/i/pack008-2.jpg", "https://www.velutinx.com/i/pack008-3.jpg", "https://www.velutinx.com/i/pack008-4.jpg"] },
-  { id: "007", title: "[Pack 007] Narberal Gamma - Overlord", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 54, images: ["https://www.velutinx.com/i/pack007-1.jpg", "https://www.velutinx.com/i/pack007-2.jpg", "https://www.velutinx.com/i/pack007-3.jpg", "https://www.velutinx.com/i/pack007-4.jpg"] },
-  { id: "006", title: "[Pack 006] Rem - Re:Zero", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 62, images: ["https://www.velutinx.com/i/pack006-1.jpg", "https://www.velutinx.com/i/pack006-2.jpg", "https://www.velutinx.com/i/pack006-3.jpg", "https://www.velutinx.com/i/pack006-4.jpg"] },
-  { id: "005", title: "[Pack 005] MaoMao - Apothecary Diaries", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 150, images: ["https://www.velutinx.com/i/pack005-1.jpg", "https://www.velutinx.com/i/pack005-2.jpg", "https://www.velutinx.com/i/pack005-3.jpg", "https://www.velutinx.com/i/pack005-4.jpg"] },
-  { id: "004", title: "[Pack 004] Nico Robin - One Piece", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 222, images: ["https://www.velutinx.com/i/pack004-1.jpg", "https://www.velutinx.com/i/pack004-2.jpg", "https://www.velutinx.com/i/pack004-3.jpg", "https://www.velutinx.com/i/pack004-4.jpg"] },
-  { id: "003", title: "[Pack 003] Alexis Rhodes - Yu-Gi-Oh", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 231, images: ["https://www.velutinx.com/i/pack003-1.jpg", "https://www.velutinx.com/i/pack003-2.jpg", "https://www.velutinx.com/i/pack003-3.jpg", "https://www.velutinx.com/i/pack003-4.jpg"] },
-  { id: "002", title: "[Pack 002] Astolfo - Fate/Grand Order", category: 2, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 154, images: ["https://www.velutinx.com/i/pack002-1.jpg", "https://www.velutinx.com/i/pack002-2.jpg", "https://www.velutinx.com/i/pack002-3.jpg", "https://www.velutinx.com/i/pack002-4.jpg"] },
-  { id: "001", title: "[Pack 001] Tsunade - Naruto", category: 1, price: "PRICE_MID", oldPrice: "", saveText: "", illustrationCount: 85, images: ["https://www.velutinx.com/i/pack001-1.jpg", "https://www.velutinx.com/i/pack001-2.jpg", "https://www.velutinx.com/i/pack001-3.jpg", "https://www.velutinx.com/i/pack001-4.jpg"] }
+  { id: "001", title: "[Pack 001] Tsunade - Naruto", category: 1, price: "PRICE_MID", illustrationCount: 85 },
+  { id: "002", title: "[Pack 002] Astolfo - Fate/Grand Order", category: 2, price: "PRICE_MID", illustrationCount: 154 },
+  { id: "003", title: "[Pack 003] Alexis Rhodes - Yu-Gi-Oh", category: 1, price: "PRICE_MID", illustrationCount: 231 },
+  { id: "004", title: "[Pack 004] Nico Robin - One Piece", category: 1, price: "PRICE_MID", illustrationCount: 222 },
+  { id: "005", title: "[Pack 005] MaoMao - Apothecary Diaries", category: 1, price: "PRICE_MID", illustrationCount: 150 },
+  { id: "006", title: "[Pack 006] Rem - Re:Zero", category: 1, price: "PRICE_MID", illustrationCount: 62 },
+  { id: "007", title: "[Pack 007] Narberal Gamma - Overlord", category: 1, price: "PRICE_MID", illustrationCount: 54 },
+  { id: "008", title: "[Pack 008] Akeno Himejima - High School DxD", category: 1, price: "PRICE_MID", illustrationCount: 86 },
+  { id: "009", title: "[Pack 009] Gwen Stacy - Spider-Man", category: 1, price: "PRICE_MID", illustrationCount: 46 },
+  { id: "010", title: "[Pack 010] Nitocris - Fate/Grand Order", category: 1, price: "PRICE_MID", illustrationCount: 116 },
+  // Add all your packs up to 181...
+  { id: "181", title: "[Pack 181] Character Name - Series", category: 1, price: "PRICE_MID", illustrationCount: 50 },
 ];
