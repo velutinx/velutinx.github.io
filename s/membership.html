@@ -532,62 +532,17 @@
       }
     });
 
-    // ----- Helper: get the current cart array (works with shop-shared.js) -----
+    // ----- Helper: get current cart (works with shop-shared.js) -----
     function getCurrentCart() {
-      // Try window.cart first (most direct)
-      if (Array.isArray(window.cart)) {
-        return window.cart;
-      }
-      // Fallback to window.getCart() if available
-      if (typeof window.getCart === 'function') {
-        return window.getCart();
-      }
-      // Last resort: return empty array and warn
-      console.warn('Cart not found, initializing empty cart');
-      window.cart = [];
-      return window.cart;
+      return (typeof window.getCart === 'function') ? window.getCart() : (window.cart || []);
     }
 
-    // ----- Helper: save cart and trigger UI update -----
-    function updateCartAndUI(newCart) {
-      // Update the cart reference
-      if (Array.isArray(window.cart)) {
-        window.cart = newCart;
-      }
-      // If there's a setter function, use it
-      if (typeof window.setCart === 'function') {
-        window.setCart(newCart);
-      }
-      // Trigger display update
-      if (typeof window.updateCartDisplay === 'function') {
-        window.updateCartDisplay();
-      } else {
-        // If no update function, at least update membership buttons
-        updateMembershipButtons();
-        // Also try to update the cart count badge manually?
-        const cartCount = document.getElementById('cartCount');
-        if (cartCount) {
-          cartCount.textContent = newCart.length;
-        }
-      }
-    }
-
-    // ----- Helper: check if a membership tier is in the cart -----
+    // ----- Helper: check if a tier is in cart -----
     function isMembershipInCart(tierNumber) {
-      const cart = getCurrentCart();
-      return cart.some(item => item.id === `membership-${tierNumber}`);
+      return getCurrentCart().some(item => item.id === `membership-${tierNumber}`);
     }
 
-    // ----- Get current highest membership tier from cart (or null) -----
-    function getHighestMembershipTier() {
-      const cart = getCurrentCart();
-      const membershipItems = cart.filter(item => item.type === 'membership');
-      if (membershipItems.length === 0) return null;
-      const tiers = membershipItems.map(item => item.tier);
-      return Math.max(...tiers);
-    }
-
-    // ----- Update all membership buttons based on cart state -----
+    // ----- Update membership buttons based on cart -----
     function updateMembershipButtons() {
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
@@ -601,18 +556,28 @@
       }
     }
 
-    // ----- Show a snackbar message (green for success, red for error) -----
+    // ----- Snackbar with error icon -----
     function showSnackbar(message, isError = false) {
       const snackbar = document.getElementById('snackbar');
       const snackText = document.getElementById('snackText');
+      const svg = snackbar.querySelector('svg');
       snackText.textContent = message;
       snackbar.classList.remove('error');
-      if (isError) snackbar.classList.add('error');
+      if (isError) {
+        snackbar.classList.add('error');
+        if (svg) {
+          svg.innerHTML = '<path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2"/>'; // X icon
+        }
+      } else {
+        if (svg) {
+          svg.innerHTML = '<path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2"/>'; // checkmark
+        }
+      }
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
     }
 
-    // ----- Validate Discord ID and return it, or show error snackbar -----
+    // ----- Validate Discord ID -----
     function validateDiscordId() {
       const discordInput = document.getElementById('discordId');
       const id = discordInput.value.trim();
@@ -627,54 +592,52 @@
       return id;
     }
 
-    // ----- Single purchase handler: enforces only one membership (highest tier) -----
-window.handleSinglePurchase = async function(tierNumber) {
-  console.log('handleSinglePurchase called for tier', tierNumber);
-  const discordId = validateDiscordId();
-  if (!discordId) return;
+    // ----- Main purchase handler (single) -----
+    window.handleSinglePurchase = async function(tierNumber) {
+      console.log('handleSinglePurchase called for tier', tierNumber);
+      const discordId = validateDiscordId();
+      if (!discordId) return;
 
-  const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
-  const price = tierPrices[tierNumber];
-  if (!price) {
-    showSnackbar('Invalid tier', true);
-    return;
-  }
+      const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
+      const price = tierPrices[tierNumber];
+      if (!price) { showSnackbar('Invalid tier', true); return; }
 
-  const tierTitles = {
-    1: 'Bronze — Archive Access',
-    2: 'Copper — Monthly Custom (~20 img)',
-    3: 'Silver — Monthly Custom (~40 img)',
-    4: 'Gold — Large Custom (~80 img)',
-    5: 'Platinum — Priority Large Custom'
-  };
+      const tierTitles = {
+        1: 'Bronze — Archive Access',
+        2: 'Copper — Monthly Custom (~20 img)',
+        3: 'Silver — Monthly Custom (~40 img)',
+        4: 'Gold — Large Custom (~80 img)',
+        5: 'Platinum — Priority Large Custom'
+      };
 
-  // Get current cart (handle both window.cart and getCart())
-  let cart = [];
-  if (Array.isArray(window.cart)) {
-    cart = window.cart;
-  } else if (typeof window.getCart === 'function') {
-    cart = window.getCart();
-  } else {
-    console.warn('No cart found, initializing empty');
-    window.cart = [];
-    cart = window.cart;
-  }
+      // Get current cart
+      let cart = getCurrentCart();
+      const membershipItems = cart.filter(item => item.type === 'membership');
+      const existingTiers = membershipItems.map(item => item.tier);
+      const highestTier = existingTiers.length ? Math.max(...existingTiers) : null;
+      const alreadyInCart = existingTiers.includes(tierNumber);
 
-  const nonMembershipItems = cart.filter(item => item.type !== 'membership');
-  const existingMembershipItems = cart.filter(item => item.type === 'membership');
-  const highestExistingTier = existingMembershipItems.length ? Math.max(...existingMembershipItems.map(i => i.tier)) : null;
-  const alreadyInCart = existingMembershipItems.some(item => item.tier === tierNumber);
+      // If already in cart, just remove it
+      if (alreadyInCart) {
+        cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
+        // Update cart
+        if (Array.isArray(window.cart)) window.cart = cart;
+        if (typeof window.setCart === 'function') window.setCart(cart);
+        if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
+        showSnackbar('Removed from cart', false);
+        return;
+      }
 
-  // Decision logic
-  if (alreadyInCart) {
-    // Remove this tier
-    cart = nonMembershipItems;
-    showSnackbar('Removed from cart', false);
-  } else {
-    if (highestExistingTier !== null && tierNumber < highestExistingTier) {
-      showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
-      return;
-    } else {
+      // Not in cart: check if trying to add a lower tier when higher exists
+      if (highestTier !== null && tierNumber < highestTier) {
+        showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
+        return;
+      }
+
+      // Allowed: remove any existing membership(s) first (lower tiers)
+      cart = cart.filter(item => item.type !== 'membership'); // remove all memberships
+
+      // Now add the new tier
       const newItem = {
         id: `membership-${tierNumber}`,
         title: tierTitles[tierNumber] + ' (30 days)',
@@ -683,55 +646,22 @@ window.handleSinglePurchase = async function(tierNumber) {
         tier: tierNumber,
         discordId: discordId
       };
-      cart = [...nonMembershipItems, newItem];
+      cart.push(newItem);
+
+      // Update cart
+      if (Array.isArray(window.cart)) window.cart = cart;
+      if (typeof window.setCart === 'function') window.setCart(cart);
+      if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
+
       showSnackbar('Added to cart', false);
-    }
-  }
+      console.log('Cart now:', cart);
+    };
 
-  // Update the cart using the method the site expects
-  if (Array.isArray(window.cart)) {
-    window.cart = cart;
-  }
-  if (typeof window.setCart === 'function') {
-    window.setCart(cart);
-  }
-
-  // Force UI update
-  if (typeof window.updateCartDisplay === 'function') {
-    window.updateCartDisplay();
-  } else {
-    // Manual fallback: update badge and buttons
-    const cartCount = document.getElementById('cartCount');
-    if (cartCount) cartCount.textContent = cart.length;
-    updateMembershipButtons();
-  }
-
-  // Also try to use the original toggle function as a backup (if it exists)
-  if (typeof window.addOrToggleCart === 'function' && !alreadyInCart && highestExistingTier === null) {
-    // This ensures any side effects (like localStorage) are also triggered
-    window.addOrToggleCart({
-      id: `membership-${tierNumber}`,
-      title: tierTitles[tierNumber] + ' (30 days)',
-      price: price,
-      type: 'membership',
-      tier: tierNumber,
-      discordId: discordId
-    });
-  }
-
-  // Final button update
-  updateMembershipButtons();
-
-  // Debug: log cart contents
-  console.log('Cart now:', cart);
-};
-
-    // ----- Recurring handler (placeholder, will be replaced with PayPal subscriptions) -----
+    // ----- Recurring handler (placeholder) -----
     window.handleRecurring = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
 
-      // Placeholder plan IDs – replace with actual PayPal plan IDs later
       const PLAN_IDS = {
         1: 'P-BRONZE_PLAN_ID',
         2: 'P-COPPER_PLAN_ID',
@@ -747,11 +677,25 @@ window.handleSinglePurchase = async function(tierNumber) {
       alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
     };
 
-    // ----- Override updateCartDisplay to also refresh membership buttons -----
+    // ----- Override updateCartDisplay to refresh membership buttons -----
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
+    };
+
+    // ----- Safely initialize PayPal buttons only when cart drawer is open and container exists -----
+    const originalInitPayPalButtons = window.initPayPalButtons;
+    window.initPayPalButtons = function() {
+      const container = document.querySelector('#paypal-button-container');
+      if (!container || !document.body.contains(container)) {
+        console.warn('PayPal container not ready, deferring initialization');
+        setTimeout(() => {
+          if (originalInitPayPalButtons) originalInitPayPalButtons();
+        }, 300);
+        return;
+      }
+      if (originalInitPayPalButtons) originalInitPayPalButtons();
     };
 
     // ----- Page setup -----
@@ -765,31 +709,23 @@ window.handleSinglePurchase = async function(tierNumber) {
         document.body.classList.add('dark');
       }
 
-      // Cart drawer open/close
+      // Cart drawer open/close with PayPal safety
       const cartBtn = document.getElementById('cartBtn');
       const floatingCartBtn = document.getElementById('floatingCartBtn');
       const cartClose = document.getElementById('cartClose');
       const cartDrawer = document.getElementById('cartDrawer');
 
-      if (cartBtn) {
-        cartBtn.addEventListener('click', () => {
-          cartDrawer.classList.add('open');
-          if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
-        });
-      }
-      if (floatingCartBtn) {
-        floatingCartBtn.addEventListener('click', () => {
-          cartDrawer.classList.add('open');
-          if (typeof initPayPalButtons === 'function') setTimeout(initPayPalButtons, 500);
-        });
-      }
-      if (cartClose) {
-        cartClose.addEventListener('click', () => {
-          cartDrawer.classList.remove('open');
-        });
+      function openCartDrawer() {
+        cartDrawer.classList.add('open');
+        setTimeout(() => {
+          if (typeof window.initPayPalButtons === 'function') window.initPayPalButtons();
+        }, 500);
       }
 
-      // Initial button state
+      if (cartBtn) cartBtn.addEventListener('click', openCartDrawer);
+      if (floatingCartBtn) floatingCartBtn.addEventListener('click', openCartDrawer);
+      if (cartClose) cartClose.addEventListener('click', () => cartDrawer.classList.remove('open'));
+
       updateMembershipButtons();
     });
   </script>
