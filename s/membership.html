@@ -350,60 +350,93 @@
     // ===== END: Discord Validation =====
 
     // ===== START: Main Purchase Handler =====
-    window.handleSinglePurchase = async function(tierNumber) {
-      console.log('handleSinglePurchase called for tier', tierNumber);
-      const discordId = validateDiscordId();
-      if (!discordId) return;
+// ===== START: Main Purchase Handler (fixed) =====
+window.handleSinglePurchase = async function(tierNumber) {
+  console.log('handleSinglePurchase called for tier', tierNumber);
+  const discordId = validateDiscordId();
+  if (!discordId) return;
 
-      const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
-      const price = tierPrices[tierNumber];
-      if (!price) { showSnackbar('Invalid tier', true); return; }
+  const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
+  const price = tierPrices[tierNumber];
+  if (!price) { showSnackbar('Invalid tier', true); return; }
 
-      const tierTitles = {
-        1: 'Bronze — Archive Access',
-        2: 'Copper — Monthly Custom (~20 img)',
-        3: 'Silver — Monthly Custom (~40 img)',
-        4: 'Gold — Large Custom (~80 img)',
-        5: 'Platinum — Priority Large Custom'
-      };
+  const tierTitles = {
+    1: 'Bronze — Archive Access',
+    2: 'Copper — Monthly Custom (~20 img)',
+    3: 'Silver — Monthly Custom (~40 img)',
+    4: 'Gold — Large Custom (~80 img)',
+    5: 'Platinum — Priority Large Custom'
+  };
 
-      let cart = getCurrentCart();
-      const membershipItems = cart.filter(item => item.type === 'membership');
-      const existingTiers = membershipItems.map(item => item.tier);
-      const highestTier = existingTiers.length ? Math.max(...existingTiers) : null;
-      const alreadyInCart = existingTiers.includes(tierNumber);
+  // Get current cart (using the site's method if available)
+  let cart = getCurrentCart();
+  const membershipItems = cart.filter(item => item.type === 'membership');
+  const existingTiers = membershipItems.map(item => item.tier);
+  const highestTier = existingTiers.length ? Math.max(...existingTiers) : null;
+  const alreadyInCart = existingTiers.includes(tierNumber);
 
-      if (alreadyInCart) {
-        cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
-        showSnackbar('Removed from cart', false);
-      } else {
-        if (highestTier !== null && tierNumber < highestTier) {
-          showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
-          return;
-        } else {
-          cart = cart.filter(item => item.type !== 'membership');
-          const newItem = {
-            id: `membership-${tierNumber}`,
-            title: tierTitles[tierNumber] + ' (30 days)',
-            price: price,
-            type: 'membership',
-            tier: tierNumber,
-            discordId: discordId
-          };
-          cart.push(newItem);
-          showSnackbar('Added to cart', false);
-        }
-      }
-
+  // If already in cart, remove it
+  if (alreadyInCart) {
+    // Use native remove if available
+    if (typeof window.addOrToggleCart === 'function') {
+      window.addOrToggleCart({ id: `membership-${tierNumber}` }); // remove
+    } else {
+      // Fallback manual removal
+      cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
       if (Array.isArray(window.cart)) window.cart = cart;
       if (typeof window.setCart === 'function') window.setCart(cart);
-      
-      if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
-      manualRenderCart();
-      
-      updateMembershipButtons();
-      console.log('Cart now:', cart);
-    };
+    }
+    showSnackbar('Removed from cart', false);
+  } else {
+    // Not in cart: check if trying to add a lower tier when higher exists
+    if (highestTier !== null && tierNumber < highestTier) {
+      showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
+      return;
+    } else {
+      // Remove any existing membership(s) first (all lower tiers)
+      // We'll do this by removing all memberships, then adding the new one.
+      // But using addOrToggleCart, we need to remove each existing tier individually.
+      if (typeof window.addOrToggleCart === 'function') {
+        // Remove all existing memberships
+        for (const item of membershipItems) {
+          window.addOrToggleCart({ id: item.id }); // remove each
+        }
+        // Add the new one
+        const newItem = {
+          id: `membership-${tierNumber}`,
+          title: tierTitles[tierNumber] + ' (30 days)',
+          price: price,
+          type: 'membership',
+          tier: tierNumber,
+          discordId: discordId
+        };
+        window.addOrToggleCart(newItem);
+      } else {
+        // Fallback manual: remove all memberships, then add new
+        cart = cart.filter(item => item.type !== 'membership');
+        const newItem = {
+          id: `membership-${tierNumber}`,
+          title: tierTitles[tierNumber] + ' (30 days)',
+          price: price,
+          type: 'membership',
+          tier: tierNumber,
+          discordId: discordId
+        };
+        cart.push(newItem);
+        if (Array.isArray(window.cart)) window.cart = cart;
+        if (typeof window.setCart === 'function') window.setCart(cart);
+      }
+      showSnackbar('Added to cart', false);
+    }
+  }
+
+  // Force UI updates
+  if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
+  manualRenderCart();
+  updateMembershipButtons();
+  console.log('Cart now:', getCurrentCart());
+};
+// ===== END: Main Purchase Handler =====
     // ===== END: Main Purchase Handler =====
 
     // ===== START: Recurring Handler =====
