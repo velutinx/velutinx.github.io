@@ -238,7 +238,7 @@
     });
     // ===== END: Utility Functions =====
 
-    // ===== START: Cart Helpers (standalone, no shop-shared interference) =====
+    // ===== START: Cart Helpers =====
     let paypalButtonsRendered = false;
 
     function getCurrentCart() {
@@ -268,9 +268,12 @@
       const container = document.getElementById("paypal-button-container");
       if (!drawer || !drawer.classList.contains("open")) return;
       if (!container) return;
-      if (typeof paypal === 'undefined') return;
+      if (typeof paypal === 'undefined') {
+        console.warn("PayPal SDK not loaded");
+        return;
+      }
 
-      container.innerHTML = ''; // clear once before first render
+      container.innerHTML = ''; // clear before render
 
       paypal.Buttons({
         createOrder: (data, actions) => {
@@ -282,11 +285,37 @@
           });
         },
         onApprove: async (data, actions) => {
+          // First capture the order with PayPal
           const details = await actions.order.capture();
-          window.location.href = `/success.html?orderID=${details.id}`;
+          
+          // Now send the membership details to your server
+          const cart = getCurrentCart();
+          const membershipItem = cart.find(item => item.type === 'membership');
+          if (!membershipItem) {
+            alert("No membership in cart");
+            return;
+          }
+
+          const response = await fetch('/api/capture-membership-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: details.id,
+              tier: membershipItem.tier,
+              discordId: membershipItem.discordId
+            })
+          });
+
+          if (response.ok) {
+            window.location.href = `/success.html?orderID=${details.id}&type=membership`;
+          } else {
+            const error = await response.json();
+            alert("Failed to record membership: " + error.message);
+          }
         },
         onError: (err) => {
           console.error("PayPal Error", err);
+          alert("There was a problem with PayPal. Please try again.");
         }
       }).render("#paypal-button-container");
 
@@ -333,28 +362,24 @@
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = e.currentTarget.dataset.id;
-            // Use addOrToggleCart with just the ID to remove
             if (typeof window.addOrToggleCart === 'function') {
               window.addOrToggleCart({ id: id });
             }
-            // Update UI without touching PayPal flag (unless cart becomes empty)
             manualRenderCart();
             updateMembershipButtons();
           });
         });
 
-        // If drawer is open, ensure PayPal button is there (won't re‑render if already done)
+        // If drawer is open, ensure PayPal button is there
         if (document.getElementById('cartDrawer').classList.contains('open')) {
           initPayPalButtons();
         }
       }
 
-      // Update badges
       if (cartCountSpan) cartCountSpan.textContent = cart.length;
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
 
-    // Override the global updateCartDisplay with our own (no call to original)
     window.updateCartDisplay = function() {
       updateMembershipButtons();
       manualRenderCart();
@@ -406,7 +431,6 @@
       const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
 
       if (alreadyInCart) {
-        // Remove
         if (typeof window.addOrToggleCart === 'function') {
           window.addOrToggleCart({ id: `membership-${tierNumber}` });
         }
@@ -420,7 +444,7 @@
           return;
         }
 
-        // Remove any existing lower tiers first
+        // Remove any existing lower tiers
         membershipItems.forEach(item => {
           if (typeof window.addOrToggleCart === 'function') {
             window.addOrToggleCart({ id: item.id });
@@ -476,7 +500,6 @@
         document.getElementById('cartDrawer').classList.remove('open');
       });
 
-      // Outside click closes drawer
       document.addEventListener('click', (e) => {
         const drawer = document.getElementById('cartDrawer');
         const isBtn = e.target.closest('#cartBtn') || e.target.closest('#floatingCartBtn');
