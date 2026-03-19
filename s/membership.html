@@ -13,6 +13,7 @@
   <!-- <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD" data-sdk-integration-source="button-factory"></script> -->
 </head>
 <body>
+
   <!-- ===== START: Header / Navigation ===== -->
   <div class="lang-swipe" id="langSwipe"></div>
   <nav class="top-nav">
@@ -82,18 +83,16 @@
     <span id="snackText">Success</span>
   </div>
   <!-- ===== END: Header / Navigation ===== -->
-
   <main class="container">
     <h1 class="membership-title">✨ Choose Your Membership</h1>
     <p class="membership-description">Support my work and unlock exclusive perks</p>
-
     <!-- Discord ID input -->
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId">Your Discord ID <span style="color:#ef4444;">*</span></label>
         <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
         <div class="discord-hint">
-          How to find your Discord ID: 
+          How to find your Discord ID:
           <span class="discord-help-link" id="discordHelpToggle">Where do I find my Discord ID? (click)</span>
         </div>
       </div>
@@ -111,7 +110,6 @@
         </div>
       </div>
     </div>
-
     <!-- Carousel with 5 tier cards -->
     <div class="carousel-container">
       <div class="carousel-scroll" id="tierCarousel">
@@ -128,7 +126,6 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
           </div>
         </div>
-
         <!-- Tier 2: Copper -->
         <div class="tier-card" data-tier="2">
           <h3>🔶 Copper — Monthly Custom (~20 img)</h3>
@@ -146,7 +143,6 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
           </div>
         </div>
-
         <!-- Tier 3: Silver -->
         <div class="tier-card" data-tier="3">
           <h3>🥈 Silver — Monthly Custom (~40 img)</h3>
@@ -164,7 +160,6 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
           </div>
         </div>
-
         <!-- Tier 4: Gold -->
         <div class="tier-card" data-tier="4">
           <h3>🏅 Gold — Large Custom (~80 img)</h3>
@@ -183,7 +178,6 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(4)">Recurring Membership</button>
           </div>
         </div>
-
         <!-- Tier 5: Platinum -->
         <div class="tier-card" data-tier="5">
           <h3>💎 Platinum — Priority Large Custom</h3>
@@ -203,18 +197,15 @@
           </div>
         </div>
       </div>
-
       <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
       <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
     </div>
-
     <div id="statusMessage"></div>
   </main>
 
   <!-- Scripts -->
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
-
   <script>
     // ===== START: Utility Functions =====
     window.scrollCarousel = function(direction) {
@@ -224,7 +215,7 @@
       container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     };
 
-    // Discord help toggle – simple show/hide
+    // Discord help toggle
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('discordHelpToggle');
       const content = document.getElementById('discordHelpContent');
@@ -235,9 +226,8 @@
         });
       }
     });
-    // ===== END: Utility Functions =====
 
-    // ===== START: Cart Helpers =====
+    // ===== START: Cart Helpers (copied + fixed from store.html) =====
     function getCurrentCart() {
       return (typeof window.getCart === 'function') ? window.getCart() : (window.cart || []);
     }
@@ -250,7 +240,7 @@
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
-        const btn = card.querySelector('.btn-single, .btn-remove');
+        const btn = card.querySelector('.btn-single');
         if (!btn) continue;
         const inCart = isMembershipInCart(tier);
         btn.textContent = inCart ? 'Remove from Cart' : 'Single Purchase';
@@ -287,36 +277,39 @@
           `;
         });
         cartItemsContainer.innerHTML = html;
-        cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
 
-        // Attach click handlers to each remove button (like store.html)
-        document.querySelectorAll('.remove-item').forEach(btn => {
+        // === ROBUST REMOVE LOGIC (copied from store.html) ===
+        cartItemsContainer.querySelectorAll('.remove-item').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
             let currentCart = getCurrentCart();
             let newCart = currentCart.filter(item => item.id !== id);
-            // Update cart in all possible ways
+
+            // Update shared cart (exactly like store.html)
             if (Array.isArray(window.cart)) window.cart = newCart;
             if (typeof window.setCart === 'function') window.setCart(newCart);
-            // Trigger UI updates
-            manualRenderCart(); // re-render after removal
+
+            // Re-render everything
+            manualRenderCart();
             updateMembershipButtons();
             if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
           });
         });
+
+        cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
       }
 
       if (cartCountSpan) cartCountSpan.textContent = cart.length;
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
 
+    // Override updateCartDisplay to keep membership page in sync (copied from store.html)
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
       manualRenderCart();
     };
-    // ===== END: Cart Helpers =====
 
     // ===== START: Snackbar =====
     function showSnackbar(message, isError = false) {
@@ -334,7 +327,6 @@
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
     }
-    // ===== END: Snackbar =====
 
     // ===== START: Discord Validation =====
     function validateDiscordId() {
@@ -350,18 +342,14 @@
       }
       return id;
     }
-    // ===== END: Discord Validation =====
 
-    // ===== START: Main Purchase Handler =====
+    // ===== START: Purchase Handlers =====
     window.handleSinglePurchase = async function(tierNumber) {
-      console.log('handleSinglePurchase called for tier', tierNumber);
       const discordId = validateDiscordId();
       if (!discordId) return;
 
       const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
       const price = tierPrices[tierNumber];
-      if (!price) { showSnackbar('Invalid tier', true); return; }
-
       const tierTitles = {
         1: 'Bronze — Archive Access',
         2: 'Copper — Monthly Custom (~20 img)',
@@ -372,9 +360,7 @@
 
       let cart = getCurrentCart();
       const membershipItems = cart.filter(item => item.type === 'membership');
-      const existingTiers = membershipItems.map(item => item.tier);
-      const highestTier = existingTiers.length ? Math.max(...existingTiers) : null;
-      const alreadyInCart = existingTiers.includes(tierNumber);
+      const alreadyInCart = membershipItems.some(item => item.tier === tierNumber);
 
       if (alreadyInCart) {
         if (typeof window.addOrToggleCart === 'function') {
@@ -386,49 +372,39 @@
         }
         showSnackbar('Removed from cart', false);
       } else {
-        if (highestTier !== null && tierNumber < highestTier) {
-          showSnackbar('❌ Only the highest tier can be added. Please remove the higher tier first.', true);
-          return;
+        if (typeof window.addOrToggleCart === 'function') {
+          membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
+          const newItem = {
+            id: `membership-${tierNumber}`,
+            title: tierTitles[tierNumber] + ' (30 days)',
+            price: price,
+            type: 'membership',
+            tier: tierNumber,
+            discordId: discordId
+          };
+          window.addOrToggleCart(newItem);
         } else {
-          if (typeof window.addOrToggleCart === 'function') {
-            for (const item of membershipItems) {
-              window.addOrToggleCart({ id: item.id });
-            }
-            const newItem = {
-              id: `membership-${tierNumber}`,
-              title: tierTitles[tierNumber] + ' (30 days)',
-              price: price,
-              type: 'membership',
-              tier: tierNumber,
-              discordId: discordId
-            };
-            window.addOrToggleCart(newItem);
-          } else {
-            cart = cart.filter(item => item.type !== 'membership');
-            const newItem = {
-              id: `membership-${tierNumber}`,
-              title: tierTitles[tierNumber] + ' (30 days)',
-              price: price,
-              type: 'membership',
-              tier: tierNumber,
-              discordId: discordId
-            };
-            cart.push(newItem);
-            if (Array.isArray(window.cart)) window.cart = cart;
-            if (typeof window.setCart === 'function') window.setCart(cart);
-          }
-          showSnackbar('Added to cart', false);
+          cart = cart.filter(item => item.type !== 'membership');
+          const newItem = {
+            id: `membership-${tierNumber}`,
+            title: tierTitles[tierNumber] + ' (30 days)',
+            price: price,
+            type: 'membership',
+            tier: tierNumber,
+            discordId: discordId
+          };
+          cart.push(newItem);
+          if (Array.isArray(window.cart)) window.cart = cart;
+          if (typeof window.setCart === 'function') window.setCart(cart);
         }
+        showSnackbar('Added to cart', false);
       }
 
       if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
       manualRenderCart();
       updateMembershipButtons();
-      console.log('Cart now:', getCurrentCart());
     };
-    // ===== END: Main Purchase Handler =====
 
-    // ===== START: Recurring Handler =====
     window.handleRecurring = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
@@ -437,22 +413,8 @@
       if (!planId) { showSnackbar('❌ Plan not configured for this tier', true); return; }
       alert(`Recurring subscription for Tier ${tierNumber} (plan ID: ${planId}) would start.`);
     };
-    // ===== END: Recurring Handler =====
 
-    // ===== START: PayPal Safety (commented out) =====
-    // const originalInitPayPalButtons = window.initPayPalButtons;
-    // window.initPayPalButtons = function() {
-    //   const container = document.querySelector('#paypal-button-container');
-    //   if (!container || !document.body.contains(container)) {
-    //     console.warn('PayPal container not ready, deferring initialization');
-    //     setTimeout(() => { if (originalInitPayPalButtons) originalInitPayPalButtons(); }, 300);
-    //     return;
-    //   }
-    //   if (originalInitPayPalButtons) originalInitPayPalButtons();
-    // };
-    // ===== END: PayPal Safety =====
-
-    // ===== START: Page Setup =====
+    // ===== START: Page Setup (with fixed cart open/close) =====
     window.addEventListener('load', function() {
       document.getElementById('themeBtn').onclick = function() {
         document.body.classList.toggle('dark');
@@ -468,7 +430,6 @@
       function openCartDrawer() {
         cartDrawer.classList.add('open');
         manualRenderCart();
-        // PayPal init removed because SDK is not loaded
       }
 
       if (cartBtn) cartBtn.addEventListener('click', openCartDrawer);
@@ -478,7 +439,6 @@
       updateMembershipButtons();
       manualRenderCart();
     });
-    // ===== END: Page Setup =====
   </script>
 </body>
 </html>
