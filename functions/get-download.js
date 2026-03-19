@@ -1,38 +1,38 @@
 export async function onRequest(context) {
     const { searchParams } = new URL(context.request.url);
-    const token = searchParams.get('token');
+    const orderId = searchParams.get('orderID'); // Use 'orderID' to match your frontend
 
-    if (!token) {
-        return new Response(JSON.stringify({ error: "Missing token" }), { 
-            status: 400,
-            headers: { "Content-Type": "application/json" }
-        });
+    if (!orderId) {
+        return jsonResponse({ error: "Missing orderID" }, 400);
     }
 
     const supabaseUrl = context.env.SUPABASE_URL;
-    const supabaseKey = context.env.SUPABASE_ANON_KEY;
+    const supabaseKey = context.env.SUPABASE_SERVICE_KEY; // Use SERVICE_KEY, not anon!
 
     try {
-        // 1. Query Supabase for the order by token
-        const response = await fetch(`${supabaseUrl}/rest/v1/success?paypal_token=eq.${token}&select=cart,id`, {
-            headers: { 
-                'apikey': supabaseKey, 
-                'Authorization': `Bearer ${supabaseKey}` 
+        // 1. Query Supabase for the order by paypal_token
+        const response = await fetch(`${supabaseUrl}/rest/v1/successs?paypal_token=eq.${orderId}&select=cart`, {
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json',
             }
         });
+
+        if (!response.ok) {
+            throw new Error(`Supabase query failed: ${response.status}`);
+        }
 
         const data = await response.json();
         const order = data[0];
 
         if (!order) {
-            return new Response(JSON.stringify({ error: "Order not found" }), { 
-                status: 404,
-                headers: { "Content-Type": "application/json" }
-            });
+            return jsonResponse({ error: "Order not found" }, 404);
         }
 
-        // 2. Protected Link Vault
+        // 2. The vault with all your Mega links (unchanged)
         const vault = {
+
     "PACK001": "https://mega.nz/file/TA82HZoR#9xNyTpRStKfPIY0rslomQ6qhceMnMC8VLeECRsAOoSM",
     "PACK002": "https://mega.nz/file/mAsjASQY#8qLr3Yz2dK51AO0aVnQoAwIVoGGU9UVOyucR0oif898",
     "PACK003": "https://mega.nz/file/DNUVDZCQ#KHmy2DGHQQuja6szJTh4JJWQWRfOYaPUXifGNO_EytI",
@@ -216,36 +216,41 @@ export async function onRequest(context) {
     "PACK182": "https://mega.nz/file/CE1iSRTB#4yqH7RbHFXcF-ncwDS9JecHxI6_xpuYzrBrPpIzWS-4"
         };
 
-        // 3. Process the cart string (e.g., "PACK175, PACK176")
-        const rawItems = order.cart.split(',');
-        const results = rawItems.map(item => {
-            let id = item.trim().toUpperCase();
-            
-            // Normalize ID to match Vault keys
-            if (!id.startsWith('PACK')) {
-                id = 'PACK' + id;
-            }
+        // 3. Parse the cart – it's already JSON, stored as { id, title, ... }
+        const cartItems = order.cart || [];
+
+        // 4. Map each item to the format your success page expects
+        const items = cartItems.map(item => {
+            // Normalize ID to match vault keys (e.g., "001" -> "PACK001")
+            const packId = item.id.padStart(3, '0'); // ensures "1" becomes "001"
+            const vaultKey = `PACK${packId}`;
+            const link = vault[vaultKey] || null;
 
             return {
-                title: id,
-                link: vault[id] || null
+                title: item.title || `Pack ${packId}`,
+                link: link,
             };
-        }).filter(item => item.link !== null);
+        }).filter(item => item.link !== null); // Only return items with valid links
 
-        return new Response(JSON.stringify({
-            order_number: order.id,
-            items: results
-        }), {
-            headers: { 
-                "Content-Type": "application/json", 
-                "Access-Control-Allow-Origin": "*" 
-            }
-        });
+        if (items.length === 0) {
+            return jsonResponse({ error: "No downloadable items found in order" }, 404);
+        }
+
+        return jsonResponse({ items: items });
 
     } catch (err) {
-        return new Response(JSON.stringify({ error: "Database connection failed" }), { 
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-        });
+        console.error('Get download error:', err);
+        return jsonResponse({ error: "Failed to retrieve order" }, 500);
     }
+}
+
+// Helper for consistent JSON responses
+function jsonResponse(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*", // Or restrict to your domain
+        },
+    });
 }
