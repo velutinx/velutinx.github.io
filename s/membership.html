@@ -132,12 +132,98 @@
       </div>
     </div>
 
-    <!-- Tier carousel (same as before) -->
+    <!-- Carousel with 5 tier cards -->
     <div class="carousel-container">
       <div class="carousel-scroll" id="tierCarousel">
-        <!-- Bronze, Copper, Silver, Gold, Platinum cards – unchanged -->
-        ... (keep your existing tier cards here)
+        <!-- Tier 1: Bronze -->
+        <div class="tier-card" data-tier="1">
+          <h3>✨ Bronze — Archive Access</h3>
+          <div class="tier-price">$5 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Full archive access immediately.</li>
+            <li>Includes all past releases & paid content.</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 2: Copper -->
+        <div class="tier-card" data-tier="2">
+          <h3>🔶 Copper — Monthly Custom (~20 img)</h3>
+          <div class="tier-price">$15 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) custom image request per billing cycle.</li>
+            <li>Approx. 20 images per request.</li>
+            <li>Single character, official/creator‑selected outfit.</li>
+            <li>Some character customization allowed.</li>
+            <li>Typical turnaround: ~1 day (queue order).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 3: Silver -->
+        <div class="tier-card" data-tier="3">
+          <h3>🥈 Silver — Monthly Custom (~40 img)</h3>
+          <div class="tier-price">$30 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) custom image request per billing cycle.</li>
+            <li>Approx. 40 images per request.</li>
+            <li>Single character, custom outfit allowed.</li>
+            <li>Character customization allowed.</li>
+            <li>Typical turnaround: ~1 day (queue order).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 4: Gold -->
+        <div class="tier-card" data-tier="4">
+          <h3>🏅 Gold — Large Custom (~80 img)</h3>
+          <div class="tier-price">$50 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) large custom image request per billing cycle.</li>
+            <li>Approx. 80 images per request.</li>
+            <li>Single character, custom outfit allowed.</li>
+            <li>Character customization allowed.</li>
+            <li>Typical turnaround: 3‑7 days (queue order).</li>
+            <li>Special/expanded requests may be discussed.</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)">Recurring Membership</button>
+          </div>
+        </div>
+
+        <!-- Tier 5: Platinum -->
+        <div class="tier-card" data-tier="5">
+          <h3>💎 Platinum — Priority Large Custom</h3>
+          <div class="tier-price">$75 <span>/ month</span></div>
+          <ul class="tier-perks">
+            <li>Everything in Bronze, plus:</li>
+            <li>One (1) large custom image request per billing cycle.</li>
+            <li>Approx. 80 images per request.</li>
+            <li>Single character, custom outfit allowed.</li>
+            <li>Character customization allowed.</li>
+            <li>⚡ Priority: worked on first after current tasks.</li>
+            <li>Typical turnaround: 3‑7 days (once started).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)">Single Purchase</button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(5)">Recurring Membership</button>
+          </div>
+        </div>
       </div>
+
       <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
       <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
     </div>
