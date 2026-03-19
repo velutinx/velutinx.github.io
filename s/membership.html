@@ -260,56 +260,70 @@
       }
     }
 
-    function manualRenderCart() {
-      const cart = getCurrentCart();
-      const cartItemsContainer = document.getElementById('cartItems');
-      const cartTotalSpan = document.getElementById('cartTotal');
-      const cartCountSpan = document.getElementById('cartCount');
-      const floatingCountSpan = document.getElementById('floatingCartCount');
+function manualRenderCart() { 
+  const cart = getCurrentCart(); 
+  const cartItemsContainer = document.getElementById('cartItems'); 
+  const cartTotalSpan = document.getElementById('cartTotal'); 
+  const cartCountSpan = document.getElementById('cartCount'); 
+  const floatingCountSpan = document.getElementById('floatingCartCount'); 
 
-      if (!cartItemsContainer) return;
+  if (!cartItemsContainer) return; 
 
-      if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8;">Your cart is empty</p>';
-        cartTotalSpan.textContent = 'US$0.00';
-      } else {
-        let html = '';
-        let total = 0;
-        cart.forEach(item => {
-          total += item.price || 0;
-          html += `
-            <div class="cart-item">
-              <div style="flex:1;">
-                <div style="font-weight:600;">${item.title || 'Item'}</div>
-                <div style="color:var(--accent);">US$${(item.price || 0).toFixed(2)}</div>
-              </div>
-              <button class="remove-item" data-id="${item.id}" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>
-            </div>
-          `;
-        });
-        cartItemsContainer.innerHTML = html;
-        cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
+  if (cart.length === 0) { 
+    cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8;">Your cart is empty</p>'; 
+    cartTotalSpan.textContent = 'US$0.00'; 
+  } else { 
+    let html = ''; 
+    let total = 0; 
+    cart.forEach(item => { 
+      total += item.price || 0; 
+      html += ` 
+        <div class="cart-item"> 
+          <div style="flex:1;"> 
+            <div style="font-weight:600;">${item.title || 'Item'}</div> 
+            <div style="color:var(--accent);">US$${(item.price || 0).toFixed(2)}</div> 
+          </div> 
+          <button class="remove-item" data-id="${item.id}" 
+            style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button> 
+        </div> 
+      `; 
+    }); 
+    cartItemsContainer.innerHTML = html; 
+    cartTotalSpan.textContent = `US$${total.toFixed(2)}`; 
 
-        // Attach click handlers to each remove button (like store.html)
-        document.querySelectorAll('.remove-item').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.dataset.id;
-            let currentCart = getCurrentCart();
-            let newCart = currentCart.filter(item => item.id !== id);
-            // Update cart in all possible ways
-            if (Array.isArray(window.cart)) window.cart = newCart;
-            if (typeof window.setCart === 'function') window.setCart(newCart);
-            // Trigger UI updates
-            manualRenderCart(); // re-render after removal
-            updateMembershipButtons();
-            if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
-          });
-        });
-      }
+    // Attach click handlers to each remove button
+    document.querySelectorAll('.remove-item').forEach(btn => { 
+      btn.addEventListener('click', (e) => { 
+        const id = e.currentTarget.dataset.id; 
+        
+        // 1. Use the shared functions from shop-shared.js to properly update global state
+        if (typeof window.removeFromCart === 'function') {
+          window.removeFromCart(id);
+        } else if (typeof window.addOrToggleCart === 'function') {
+          // addOrToggleCart removes an item if it's already in the cart
+          window.addOrToggleCart({ id: id });
+        } else {
+          // Fallback if the shared script hasn't loaded properly
+          let currentCart = getCurrentCart(); 
+          let newCart = currentCart.filter(item => item.id !== id); 
+          if (Array.isArray(window.cart)) window.cart = newCart; 
+          if (typeof window.setCart === 'function') window.setCart(newCart); 
+        }
 
-      if (cartCountSpan) cartCountSpan.textContent = cart.length;
-      if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
-    }
+        // 2. Trigger the global UI updates
+        if (typeof window.updateCartDisplay === 'function') {
+          window.updateCartDisplay();
+        } else {
+          manualRenderCart(); 
+          updateMembershipButtons(); 
+        }
+      }); 
+    }); 
+  } 
+
+  if (cartCountSpan) cartCountSpan.textContent = cart.length; 
+  if (floatingCountSpan) floatingCountSpan.textContent = cart.length; 
+}
 
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
