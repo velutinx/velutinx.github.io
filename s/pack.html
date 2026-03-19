@@ -173,19 +173,31 @@
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js?v=20250310"></script>
 
-  <script type="module">
-    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
-    let currentLang = localStorage.getItem("language") || "en";
-    const params = new URLSearchParams(window.location.search);
-const packId = pack.id.padStart(3, '0'); // ensures "1" -> "001"
-const pack = packsData.find(p => p.id === packId);
-const imageCount = 4; // You can also store this per pack if counts vary
-const images = Array.from({ length: imageCount }, (_, i) => 
-    `https://www.velutinx.com/i/pack${packId}-${i+1}.jpg`
-);
+<script type="module">
+  import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
-    
+  let currentLang = localStorage.getItem("language") || "en";
+  const params = new URLSearchParams(window.location.search);
+  const packIdFromUrl = params.get("id") || "001"; // e.g., "001"
 
+  // Find the pack by its id (string comparison)
+  const pack = packsData.find(p => p.id === packIdFromUrl);
+
+  // If pack not found, handle gracefully
+  if (!pack) {
+    document.getElementById("title").textContent = "Pack not found";
+    // Optionally hide other sections
+  } else {
+    // Generate preview images dynamically (4 images per pack)
+    const paddedId = pack.id.padStart(3, '0'); // "1" -> "001"
+    pack.images = Array.from({ length: 4 }, (_, i) => 
+      `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
+    );
+
+    // Fill in the page content
+    document.getElementById("title").textContent = pack.title || "Untitled Pack";
+
+    // --- Category display ---
     window.updateCategoryDisplay = function() {
       const catInfo = document.getElementById("categoryInfo");
       if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
@@ -216,6 +228,7 @@ const images = Array.from({ length: imageCount }, (_, i) =>
       catInfo.style.display = "flex";
     };
 
+    // --- Price display ---
     window.updatePriceDisplay = function() {
       if (!pack) return;
       const priceNum = window.getPriceForPack?.(pack) ?? 0;
@@ -243,6 +256,7 @@ const images = Array.from({ length: imageCount }, (_, i) =>
       document.getElementById("priceSection").innerHTML = priceHTML;
     };
 
+    // --- Add to Cart button ---
     window.updateButton = function() {
       if (!pack) return;
       const t = window.translations?.[currentLang] || window.translations?.en || {};
@@ -255,6 +269,7 @@ const images = Array.from({ length: imageCount }, (_, i) =>
       };
     };
 
+    // --- Contents section ---
     window.updateContents = function() {
       if (!pack) return;
       const t = window.translations?.[currentLang] || window.translations?.en || {};
@@ -263,48 +278,50 @@ const images = Array.from({ length: imageCount }, (_, i) =>
         .replace("{count}", pack.illustrationCount || "X");
     };
 
-    if (!pack) {
-      document.getElementById("title").textContent = "Pack not found";
-    } else {
-      document.getElementById("title").textContent = pack.title || "Untitled Pack";
-      window.updateCategoryDisplay?.();
+    // Call all updaters
+    window.updateCategoryDisplay?.();
+    window.updatePriceDisplay?.();
+    window.updateButton?.();
+    window.updateContents?.();
+
+    // Build the gallery carousel using pack.images (now dynamically generated)
+    document.getElementById("gallery").innerHTML = `
+      <div class="carousel">
+        <div class="slides" id="slides">
+          ${pack.images?.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'"></div>`).join('') || '<p>No images available</p>'}
+        </div>
+        <button class="arrow prev" onclick="prevSlide()">❮</button>
+        <button class="arrow next" onclick="nextSlide()">❯</button>
+      </div>
+      <div class="thumbnails">
+        ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
+      </div>
+    `;
+
+    // Carousel logic
+    let current = 0;
+    const total = pack.images?.length || 0;
+    window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
+    window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
+    window.goToSlide = (i) => { current = i; updateCarousel(); };
+    function updateCarousel() {
+      document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
+      document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === current));
+    }
+  }
+
+  // Language switcher
+  document.querySelectorAll(".lang-item").forEach(item => {
+    item.onclick = () => {
+      currentLang = item.dataset.lang;
+      window.setLanguage?.(currentLang);
       window.updatePriceDisplay?.();
       window.updateButton?.();
       window.updateContents?.();
-      document.getElementById("gallery").innerHTML = `
-        <div class="carousel">
-          <div class="slides" id="slides">
-            ${pack.images?.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'"></div>`).join('') || '<p>No images available</p>'}
-          </div>
-          <button class="arrow prev" onclick="prevSlide()">❮</button>
-          <button class="arrow next" onclick="nextSlide()">❯</button>
-        </div>
-        <div class="thumbnails">
-          ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
-        </div>
-      `;
-      let current = 0;
-      const total = pack.images?.length || 0;
-      window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
-      window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
-      window.goToSlide = (i) => { current = i; updateCarousel(); };
-      function updateCarousel() {
-        document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
-        document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === current));
-      }
-    }
-
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.onclick = () => {
-        currentLang = item.dataset.lang;
-        window.setLanguage?.(currentLang);
-        window.updatePriceDisplay?.();
-        window.updateButton?.();
-        window.updateContents?.();
-        window.updateCategoryDisplay?.();
-      };
-    });
-  </script>
+      window.updateCategoryDisplay?.();
+    };
+  });
+</script>
 
 <!-- PayPal button integration with order storage -->
 <script>
