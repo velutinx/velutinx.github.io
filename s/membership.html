@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <!-- PayPal SDK – replace with your actual client ID -->
-  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD" data-sdk-integration-source="button-factory"></script>
+  <!-- <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD" data-sdk-integration-source="button-factory"></script> -->
 
   <style>
     /* Make Discord section wider – 1100px */
@@ -336,27 +336,27 @@
         });
         cartItemsContainer.innerHTML = html;
         cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
-
-        // Remove item handler – uses current cart
-        document.querySelectorAll('.remove-item').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.dataset.id;
-            let currentCart = getCurrentCart();
-            let newCart = currentCart.filter(item => item.id !== id);
-            // Update cart in all possible ways
-            if (Array.isArray(window.cart)) window.cart = newCart;
-            if (typeof window.setCart === 'function') window.setCart(newCart);
-            // Trigger UI updates
-            manualRenderCart();
-            updateMembershipButtons();
-            if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
-          });
-        });
       }
 
       if (cartCountSpan) cartCountSpan.textContent = cart.length;
       if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
     }
+
+    // Event delegation for cart remove buttons
+    document.getElementById('cartItems')?.addEventListener('click', function(e) {
+      const removeBtn = e.target.closest('.remove-item');
+      if (!removeBtn) return;
+      const id = removeBtn.dataset.id;
+      let currentCart = getCurrentCart();
+      let newCart = currentCart.filter(item => item.id !== id);
+      // Update cart
+      if (Array.isArray(window.cart)) window.cart = newCart;
+      if (typeof window.setCart === 'function') window.setCart(newCart);
+      // Update UI
+      manualRenderCart();
+      updateMembershipButtons();
+      if (typeof window.updateCartDisplay === 'function') window.updateCartDisplay();
+    });
 
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
@@ -487,17 +487,17 @@
     };
     // ===== END: Recurring Handler =====
 
-    // ===== START: PayPal Safety =====
-    const originalInitPayPalButtons = window.initPayPalButtons;
-    window.initPayPalButtons = function() {
-      const container = document.querySelector('#paypal-button-container');
-      if (!container || !document.body.contains(container)) {
-        console.warn('PayPal container not ready, deferring initialization');
-        setTimeout(() => { if (originalInitPayPalButtons) originalInitPayPalButtons(); }, 300);
-        return;
-      }
-      if (originalInitPayPalButtons) originalInitPayPalButtons();
-    };
+    // ===== START: PayPal Safety (commented out) =====
+    // const originalInitPayPalButtons = window.initPayPalButtons;
+    // window.initPayPalButtons = function() {
+    //   const container = document.querySelector('#paypal-button-container');
+    //   if (!container || !document.body.contains(container)) {
+    //     console.warn('PayPal container not ready, deferring initialization');
+    //     setTimeout(() => { if (originalInitPayPalButtons) originalInitPayPalButtons(); }, 300);
+    //     return;
+    //   }
+    //   if (originalInitPayPalButtons) originalInitPayPalButtons();
+    // };
     // ===== END: PayPal Safety =====
 
     // ===== START: Page Setup =====
@@ -516,7 +516,7 @@
       function openCartDrawer() {
         cartDrawer.classList.add('open');
         manualRenderCart();
-        setTimeout(() => { if (typeof window.initPayPalButtons === 'function') window.initPayPalButtons(); }, 500);
+        // PayPal init removed because SDK is not loaded
       }
 
       if (cartBtn) cartBtn.addEventListener('click', openCartDrawer);
