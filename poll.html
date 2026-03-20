@@ -25,6 +25,20 @@
     .poll-page .floating-cart {
       display: none !important;
     }
+    /* Ensure Discord link wobbles on hover (same as index) */
+    .icon-link img {
+      transition: transform 0.25s ease;
+    }
+    .icon-link:hover img {
+      animation: blobWobble 1.6s ease-in-out infinite;
+    }
+    @keyframes blobWobble {
+      0% { transform: scale(1.15) rotate(0deg); }
+      25% { transform: scale(1.15) rotate(-4deg); }
+      50% { transform: scale(1.15) rotate(4deg); }
+      75% { transform: scale(1.15) rotate(-3deg); }
+      100% { transform: scale(1.15) rotate(0deg); }
+    }
   </style>
 </head>
 <body class="poll-page">
@@ -167,10 +181,18 @@
 
     async function fetchLeaderboard() {
       try {
-        const winRes = await sb.from('poll_winners').select('option_id').eq('poll_id', POLL_ID);
-        const winnerIds = new Set(winRes.data?.map(w => Number(w.option_id)) || []);
+        // Get winners from poll_winners (where selected_at is not null)
+        const { data: winners, error: winError } = await sb
+          .from('poll_winners')
+          .select('option_id')
+          .eq('poll_id', POLL_ID)
+          .not('selected_at', 'is', null);
 
-        const { data: rows, error } = await sb.from('final_votes')
+        const winnerIds = new Set(winners?.map(w => Number(w.option_id)) || []);
+
+        // Get leaderboard data from final_votes
+        const { data: rows, error } = await sb
+          .from('final_votes')
           .select('option_id, character_name, score')
           .eq('poll_id', POLL_ID)
           .order('score', { ascending: false });
@@ -186,6 +208,7 @@
           </div>`;
         }).join('') || "No votes yet";
 
+        // Update card labels and winner overlay
         document.querySelectorAll(".card").forEach(card => {
           const id = Number(card.dataset.id);
           const row = rows.find(r => Number(r.option_id) === id);
@@ -207,8 +230,12 @@
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      sb.channel('grid-refresh').on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults).subscribe();
-      sb.channel('board-refresh').on('postgres_changes', { event: '*', schema: 'public', table: 'poll_result' }, fetchLeaderboard).subscribe();
+      // Subscribe to real-time updates for both tables
+      sb.channel('poll-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'final_votes' }, fetchLeaderboard)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_winners' }, fetchLeaderboard)
+        .subscribe();
     }
 
     // Visual helpers
