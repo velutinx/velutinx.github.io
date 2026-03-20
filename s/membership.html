@@ -244,7 +244,7 @@
     });
     // ===== END: Utility Functions =====
 
-    // ===== START: Membership Cart Helpers =====
+    // ===== START: Membership Button Update =====
     function updateMembershipButtons() {
       const cart = window.getCart ? window.getCart() : [];
       for (let tier = 1; tier <= 5; tier++) {
@@ -259,13 +259,13 @@
       }
     }
 
-    // Override shared updateCartDisplay to also update membership buttons
+    // Ensure buttons update whenever cart changes (override shared updateCartDisplay)
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
     };
-    // ===== END: Membership Cart Helpers =====
+    // ===== END: Membership Button Update =====
 
     // ===== START: Snackbar =====
     function showSnackbar(message, isError = false) {
@@ -327,7 +327,7 @@
           return;
         }
 
-        // Remove any existing lower tiers (already handled by above check, but ensure)
+        // Remove any existing lower tiers (automatically handled by above check, but ensure)
         membershipItems.forEach(item => {
           if (window.addOrToggleCart) {
             window.addOrToggleCart({ id: item.id });
@@ -347,6 +347,9 @@
         }
         showSnackbar('Added to cart', false);
       }
+
+      // Force immediate button update (in case override doesn't trigger)
+      updateMembershipButtons();
     };
     // ===== END: Main Purchase Handler =====
 
