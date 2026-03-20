@@ -110,6 +110,46 @@
       }
     }
 
+    function addOrToggleCart(pack) {
+      let cart = getCart();
+      const index = cart.findIndex(item => item.id === pack.id);
+      if (index !== -1) {
+        cart.splice(index, 1);
+      } else {
+        cart.push({
+          id: pack.id,
+          title: pack.title,
+          image: pack.image || (pack.images && pack.images[0]) || "",
+          price: pack.price,   // numeric price (USD base)
+          quantity: 1
+        });
+      }
+      saveCart(cart);
+      updateCartDisplay();
+      showSnackbar();
+    }
+
+    function updateAllPrices() {
+      document.querySelectorAll(".price").forEach(el => {
+        const base = parseFloat(el.dataset.price);
+        if (!isNaN(base)) {
+          el.innerHTML = formatPrice(base);
+        }
+      });
+    }
+
+    // Expose global functions for the store page
+    window.getCart = getCart;
+    window.saveCart = saveCart;
+    window.updateCartDisplay = updateCartDisplay;
+    window.addOrToggleCart = addOrToggleCart;
+    window.formatPrice = formatPrice;
+    window.updateAllPrices = updateAllPrices;
+    window.getPriceForPack = function(pack) {
+      return pack.price; // assume price is already set
+    };
+
+    // --- Cart drawer controls ---
     function openCart() {
       cartDrawer.classList.add('open');
       cartOverlay.classList.add('active');
@@ -140,7 +180,7 @@
       });
     }
 
-    // Sidebar toggle
+    // --- Sidebar toggle ---
     function openSidebar() {
       sidebar.classList.add('open');
       sidebarOverlay.classList.add('active');
@@ -157,7 +197,7 @@
       sidebarOverlay.addEventListener('click', closeSidebar);
     }
 
-    // Theme toggle
+    // --- Theme toggle ---
     if (themeBtn) {
       themeBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
@@ -168,12 +208,10 @@
       }
     }
 
-    // Store button redirect (store page)
+    // --- Store button redirect ---
     if (storeBtn) storeBtn.addEventListener('click', () => window.location.href = '/store');
 
-    // REMOVED: logo redirect – logo now does nothing (no click handler)
-
-    // Language popover
+    // --- Language popover ---
     if (langBtn && langPopover) {
       langBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -186,14 +224,14 @@
       });
     }
 
-    // Apply header translations using global translations object
+    // --- Apply header translations ---
     function applyHeaderTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       const t = window.translations?.header?.[lang];
       if (!t) return;
       if (storeBtn) storeBtn.textContent = t.storeBtn;
       const menuHome = document.getElementById('menuHome');
-      const menuCommissions = document.getElementById('menuCommissions');   // plural
+      const menuCommissions = document.getElementById('menuCommissions');
       const menuArtwork = document.getElementById('menuArtwork');
       const menuPoll = document.getElementById('menuPoll');
       const menuStore = document.getElementById('menuStore');
@@ -212,18 +250,18 @@
       if (snackText) snackText.textContent = t.snackText;
     }
 
-    // Listen for language changes and update currency & translations
+    // --- Language change handler ---
     document.addEventListener('languageChanged', () => {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      // Update currentCurrency
       currentCurrency = lang === 'en' ? 'USD' :
                        lang === 'ja' ? 'JPY' :
                        lang === 'zh' ? 'CNY' : 'MXN';
       applyHeaderTranslations();
       updateCartDisplay();
+      updateAllPrices();   // update product prices on the store page
     });
 
-    // Language item clicks – use global setLanguage
+    // --- Language item clicks ---
     document.querySelectorAll('.lang-item').forEach(item => {
       item.addEventListener('click', () => {
         const newLang = item.dataset.lang;
@@ -232,9 +270,11 @@
       });
     });
 
-    // Initial setup
+    // --- Initial setup ---
     applyHeaderTranslations();
     updateCartDisplay();
+    updateAllPrices(); // initial price formatting
+
   } catch (err) {
     console.error('Failed to load header:', err);
   }
