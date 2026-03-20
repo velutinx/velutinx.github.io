@@ -411,6 +411,21 @@
     document.head.appendChild(loader);
   }
 
+/* ==================== GLOBAL PRICE UPDATE ==================== */
+window.updateAllPrices = function() {
+  // Update prices in product grid
+  document.querySelectorAll('.price[data-price]').forEach(el => {
+    const priceValue = parseFloat(el.dataset.price);
+    if (!isNaN(priceValue)) {
+      el.textContent = window.formatPrice(priceValue);
+    }
+  });
+  // Update cart total and item prices (cart display already updates via updateCartDisplay)
+  // but we can force cart update to reflect new currency
+  window.updateCartDisplay?.();
+};
+
+  
   /* ==================== GLOBAL EXPORTS ==================== */
 
   window.translations = translations;
