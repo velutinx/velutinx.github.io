@@ -9,63 +9,6 @@ const translations = {
     zh: { artworkIntro: "你好！这些只是我作品的一小部分样本——我在免费Discord上分享更多！ — Temporal Images" },
     es: { artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images" }
   },
-
-contact: {
-  en: {
-    contactTitle: "CONTACT",
-    contactDesc: "Use this form if you'd like to contact me via email!",
-    labelName: "NAME",
-    labelEmail: "EMAIL",
-    labelMessage: "MESSAGE",
-    namePlaceholder: "Name",
-    emailPlaceholder: "Email",
-    messagePlaceholder: "Message",
-    sendBtn: "SEND",
-    errorText: "Please fill out all fields correctly ♡",
-    successText: "Message sent successfully! You will hear back soon! ♡♡"
-  },
-  ja: {
-    contactTitle: "お問い合わせ",
-    contactDesc: "メールで連絡したい場合はこちらのフォームをご利用ください。",
-    labelName: "お名前",
-    labelEmail: "メールアドレス",
-    labelMessage: "メッセージ",
-    namePlaceholder: "お名前",
-    emailPlaceholder: "メールアドレス",
-    messagePlaceholder: "メッセージ",
-    sendBtn: "送信",
-    errorText: "すべての項目を正しく入力してください ♡",
-    successText: "送信されました！近日中にご連絡します ♡♡"
-  },
-  zh: {
-    contactTitle: "联系",
-    contactDesc: "如果您想通过电子邮件联系我，请使用此表单！",
-    labelName: "姓名",
-    labelEmail: "电子邮件",
-    labelMessage: "消息",
-    namePlaceholder: "姓名",
-    emailPlaceholder: "电子邮件",
-    messagePlaceholder: "消息",
-    sendBtn: "发送",
-    errorText: "请正确填写所有字段 ♡",
-    successText: "消息已发送！您很快会收到回复！ ♡♡"
-  },
-  es: {
-    contactTitle: "CONTACTO",
-    contactDesc: "¡Use este formulario si desea contactarme por correo electrónico!",
-    labelName: "NOMBRE",
-    labelEmail: "CORREO ELECTRÓNICO",
-    labelMessage: "MENSAJE",
-    namePlaceholder: "Nombre",
-    emailPlaceholder: "Correo electrónico",
-    messagePlaceholder: "Mensaje",
-    sendBtn: "ENVIAR",
-    errorText: "Por favor complete todos los campos correctamente ♡",
-    successText: "¡Mensaje enviado con éxito! ¡Pronto tendrá noticias mías! ♡♡"
-  }
-}
-
-  
   commissions: {
     en: {
       comTitle: "COMMISSIONS",
@@ -86,6 +29,60 @@ contact: {
       comTitle: "COMISIONES",
       comInfo: "La información de comisiones se agregará aquí pronto.",
       comList: `✦ Precios<br>✦ Ejemplos<br>✦ Términos de Servicio<br>✦ Estado de la Cola<br><br>(Contenido provisional — próximamente ♡)`
+    }
+  },
+  contact: {
+    en: {
+      contactTitle: "CONTACT",
+      contactDesc: "Use this form if you'd like to contact me via email!",
+      labelName: "NAME",
+      labelEmail: "EMAIL",
+      labelMessage: "MESSAGE",
+      namePlaceholder: "Name",
+      emailPlaceholder: "Email",
+      messagePlaceholder: "Message",
+      sendBtn: "SEND",
+      errorText: "Please fill out all fields correctly ♡",
+      successText: "Message sent successfully! You will hear back soon! ♡♡"
+    },
+    ja: {
+      contactTitle: "お問い合わせ",
+      contactDesc: "メールで連絡したい場合はこちらのフォームをご利用ください。",
+      labelName: "お名前",
+      labelEmail: "メールアドレス",
+      labelMessage: "メッセージ",
+      namePlaceholder: "お名前",
+      emailPlaceholder: "メールアドレス",
+      messagePlaceholder: "メッセージ",
+      sendBtn: "送信",
+      errorText: "すべての項目を正しく入力してください ♡",
+      successText: "送信されました！近日中にご連絡します ♡♡"
+    },
+    zh: {
+      contactTitle: "联系",
+      contactDesc: "如果您想通过电子邮件联系我，请使用此表单！",
+      labelName: "姓名",
+      labelEmail: "电子邮件",
+      labelMessage: "消息",
+      namePlaceholder: "姓名",
+      emailPlaceholder: "电子邮件",
+      messagePlaceholder: "消息",
+      sendBtn: "发送",
+      errorText: "请正确填写所有字段 ♡",
+      successText: "消息已发送！您很快会收到回复！ ♡♡"
+    },
+    es: {
+      contactTitle: "CONTACTO",
+      contactDesc: "¡Use este formulario si desea contactarme por correo electrónico!",
+      labelName: "NOMBRE",
+      labelEmail: "CORREO ELECTRÓNICO",
+      labelMessage: "MENSAJE",
+      namePlaceholder: "Nombre",
+      emailPlaceholder: "Correo electrónico",
+      messagePlaceholder: "Mensaje",
+      sendBtn: "ENVIAR",
+      errorText: "Por favor complete todos los campos correctamente ♡",
+      successText: "¡Mensaje enviado con éxito! ¡Pronto tendrá noticias mías! ♡♡"
     }
   },
   header: {
@@ -178,8 +175,26 @@ function applyTranslations(pageKey) {
     if (infoEl) infoEl.textContent = pageTranslations.comInfo || '';
     const listEl = document.getElementById('comList');
     if (listEl) listEl.innerHTML = pageTranslations.comList?.trim() || '';
+  } else if (pageKey === 'contact') {
+    const titleEl = document.getElementById('contactTitle');
+    if (titleEl) titleEl.textContent = pageTranslations.contactTitle || '';
+    const descEl = document.getElementById('contactDesc');
+    if (descEl) descEl.textContent = pageTranslations.contactDesc || '';
+    const labelName = document.getElementById('labelName');
+    if (labelName) labelName.textContent = pageTranslations.labelName || '';
+    const labelEmail = document.getElementById('labelEmail');
+    if (labelEmail) labelEmail.textContent = pageTranslations.labelEmail || '';
+    const labelMessage = document.getElementById('labelMessage');
+    if (labelMessage) labelMessage.textContent = pageTranslations.labelMessage || '';
+    const nameInput = document.getElementById('name');
+    if (nameInput) nameInput.placeholder = pageTranslations.namePlaceholder || '';
+    const emailInput = document.getElementById('email');
+    if (emailInput) emailInput.placeholder = pageTranslations.emailPlaceholder || '';
+    const messageInput = document.getElementById('message');
+    if (messageInput) messageInput.placeholder = pageTranslations.messagePlaceholder || '';
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.textContent = pageTranslations.sendBtn || '';
   }
-  // other pages can be added later
 }
 
 // Expose globally
