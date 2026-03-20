@@ -194,28 +194,27 @@
     }
 
     /* ==================== SIDEBAR ==================== */
-    .sidebar-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--overlay);
-  content: "";
-  position: absolute;
+.sidebar-overlay {
+  position: fixed;
   inset: 0;
+  background: var(--overlay);
   backdrop-filter: blur(4px);
-      z-index: 1090;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0s linear 0.3s;
-    }
+  z-index: 1090;
 
-    .sidebar-overlay.active {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.3s ease, visibility 0s linear 0s;
-    }
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+
 
     .sidebar {
       position: fixed;
