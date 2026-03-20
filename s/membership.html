@@ -18,10 +18,9 @@
       <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <!-- NEW: dropdown SVG icon (resized to 21x21) -->
-          <svg width="21" height="21" viewBox="-6.5 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <title>dropdown</title>
-            <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/>
+          <!-- Original globe icon (restored) -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
           </svg>
         </button>
         <div id="languagePopover">
@@ -93,7 +92,14 @@
         <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
         <div class="discord-hint">
           How to find your Discord ID: 
-          <span class="discord-help-link" id="discordHelpToggle">Where do I find my Discord ID? (click)</span>
+          <span class="discord-help-link" id="discordHelpToggle">
+            Where do I find my Discord ID? (click)
+            <!-- Dropdown SVG added here (resized to 16x16) -->
+            <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-left: 4px;">
+              <title>dropdown</title>
+              <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/>
+            </svg>
+          </span>
         </div>
       </div>
       <div class="discord-help-content" id="discordHelpContent">
@@ -319,7 +325,7 @@
           return;
         }
 
-        // Remove any existing lower tiers (already done by above check, but ensure)
+        // Remove any existing lower tiers (already handled by above check, but ensure)
         membershipItems.forEach(item => {
           if (window.addOrToggleCart) {
             window.addOrToggleCart({ id: item.id });
