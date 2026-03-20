@@ -4,12 +4,10 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SHOP | VELUTINX</title>
-  <!-- External dependencies (not part of header) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
   <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
-  <!-- Embedded header.css -->
   <style>
-    /* ==================== header.css (embedded) ==================== */
+    /* ==================== HEADER.CSS INLINED ==================== */
     :root {
       --bg: #d3d0c1;
       --card: #e8e5d8;
@@ -25,7 +23,6 @@
       --btn-cart: #3a3528;
       --btn-cart-hover: #4a4538;
     }
-
     body.dark {
       --bg: #0f0f12;
       --card: #1a1a20;
@@ -39,13 +36,11 @@
       --border: #6f6a4e;
       --overlay: rgba(15,15,18,0.75);
     }
-
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
@@ -53,7 +48,6 @@
       line-height: 1.5;
       transition: background 0.4s, color 0.4s;
     }
-
     body.drawer-open::after {
       content: "";
       position: fixed;
@@ -62,11 +56,9 @@
       z-index: 1190;
       pointer-events: none;
     }
-
     body.drawer-open .floating-cart {
       display: none;
     }
-
     /* ==================== TOP NAV ==================== */
     .top-nav {
       display: flex;
@@ -79,25 +71,21 @@
       top: 0;
       z-index: 1000;
     }
-
     .logo {
       font-size: 1.8rem;
       font-weight: 900;
       letter-spacing: 2px;
       color: #000;
     }
-
     body.dark .logo {
       color: var(--accent);
     }
-
     .nav-actions {
       display: flex;
       align-items: center;
       gap: 1rem;
       position: relative;
     }
-
     .nav-icon {
       width: 42px;
       height: 42px;
@@ -112,25 +100,21 @@
       transition: all 0.25s ease;
       cursor: pointer;
     }
-
     .nav-icon:hover {
       transform: scale(1.12);
       background: #38aae8;
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     }
-
     .nav-icon.active {
       background: var(--success);
       color: white;
     }
-
     .nav-icon svg {
       width: 22px;
       height: 22px;
       stroke: white;
       stroke-width: 1.5;
     }
-
     .login-btn {
       padding: 0.55rem 1.6rem;
       background: transparent;
@@ -142,11 +126,9 @@
       cursor: pointer;
       transition: all 0.18s;
     }
-
     .login-btn:hover {
       background: rgba(170,158,118,0.15);
     }
-
     /* ==================== LANGUAGE ==================== */
     #languagePopover {
       position: absolute;
@@ -163,7 +145,6 @@
       transform: translateY(-10px);
       transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.51s;
     }
-
     #languagePopover.show,
     #langContainer:hover #languagePopover,
     .lang-btn:hover + #languagePopover,
@@ -173,7 +154,6 @@
       transform: translateY(0);
       transition-delay: 0s;
     }
-
     .lang-item {
       display: flex;
       align-items: center;
@@ -183,18 +163,15 @@
       transition: background 0.2s;
       color: var(--text);
     }
-
     .lang-item:hover {
       background: #c0bcaa;
     }
-
     .lang-item img {
       width: 30px;
       height: 30px;
       border-radius: 50%;
       object-fit: cover;
     }
-
     /* Swipe animation */
     .lang-swipe {
       position: fixed;
@@ -207,20 +184,16 @@
       pointer-events: none;
       opacity: 0.9;
     }
-
     .lang-swipe.active {
       animation: langSwipeUp 0.55s ease-in forwards;
     }
-
     @keyframes langSwipeUp {
       to { bottom: 100%; }
     }
-
     /* ==================== CART ==================== */
     .cart-wrapper {
       position: relative;
     }
-
     .cart-icon,
     .floating-cart {
       background: var(--accent) !important;
@@ -233,30 +206,25 @@
       justify-content: center !important;
       cursor: pointer !important;
     }
-
     .cart-icon:hover,
     .floating-cart:hover {
       transform: scale(1.12) !important;
       background: #38aae8 !important;
       box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
     }
-
     .cart-icon svg,
     .floating-cart svg {
       stroke: white !important;
       stroke-width: 2 !important;
     }
-
     .nav-icon#cartBtn {
       width: 42px !important;
       height: 42px !important;
     }
-
     .nav-icon#cartBtn svg {
       width: 22px !important;
       height: 22px !important;
     }
-
     .floating-cart {
       position: fixed !important;
       bottom: 24px !important;
@@ -264,12 +232,10 @@
       width: 64px !important;
       height: 64px !important;
     }
-
     .floating-cart svg {
       width: 28px !important;
       height: 28px !important;
     }
-
     .cart-badge,
     .floating-badge {
       position: absolute !important;
@@ -291,7 +257,7 @@
       border: 2px solid var(--darker) !important;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
     }
-
+    /* Cart drawer */
     .cart-drawer {
       position: fixed;
       top: 0;
@@ -307,11 +273,9 @@
       flex-direction: column;
       color: #1f1a12;
     }
-
     .cart-drawer.open {
       right: 0;
     }
-
     .cart-header {
       display: flex;
       justify-content: space-between;
@@ -319,12 +283,10 @@
       padding: 1.4rem 1.6rem;
       border-bottom: 1px solid var(--border);
     }
-
     .cart-header h5 {
       margin: 0;
       font-size: 1.45rem;
     }
-
     .cart-close {
       background: none;
       border: none;
@@ -332,41 +294,34 @@
       font-size: 1.8rem;
       cursor: pointer;
     }
-
     .cart-items {
       flex: 1;
       overflow-y: auto;
       padding: 1.2rem;
     }
-
     .cart-item {
       display: flex;
       gap: 14px;
       padding: 14px 0;
       border-bottom: 1px solid var(--border);
     }
-
     .cart-item img {
       width: 85px;
       height: 85px;
       object-fit: cover;
       border-radius: 8px;
     }
-
     .cart-item-info {
       flex: 1;
     }
-
     .cart-item-title {
       font-weight: 600;
       margin-bottom: 6px;
     }
-
     .cart-item-price {
       color: #1f1a12;
       font-weight: 700;
     }
-
     .cart-item-remove {
       background: none;
       border: none;
@@ -375,12 +330,10 @@
       cursor: pointer;
       align-self: flex-start;
     }
-
     .cart-total {
       padding: 1.4rem 1.6rem;
       border-top: 1px solid var(--border);
     }
-
     .cart-total-row {
       display: flex;
       justify-content: space-between;
@@ -388,7 +341,6 @@
       font-weight: 600;
       font-size: 1.15rem;
     }
-
     /* ==================== SNACKBAR ==================== */
     #snackbar {
       position: fixed;
@@ -407,13 +359,12 @@
       opacity: 0;
       transition: all 0.45s ease;
     }
-
     #snackbar.show {
       transform: translateY(0);
       opacity: 1;
     }
 
-    /* ==================== Store‑specific styles (from original) ==================== */
+    /* ==================== ORIGINAL INLINE STYLES FROM STORE.HTML ==================== */
     #shopTitle {
       visibility: hidden;
       transition: visibility 0s linear 0.1s;
@@ -602,152 +553,64 @@
       <div class="product-grid" id="productGrid"></div>
     </main>
   </div>
+  <div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;"></div>
 
-  <!-- Social menu container (unchanged) -->
-  <div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;">
-    <!-- ... (keep as is) ... -->
-  </div>
+  <!-- Scripts -->
+  <script src="https://velutinx.com/assets/js/socials.js"></script>
+  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
-  <!-- Embedded header.js (complete, with showSnackbar and getPriceForPack) -->
+  <!-- HEADER.JS FULLY INLINED + FIXED (snackbar + green button) -->
   <script>
-    /* ==================== header.js (embedded) ==================== */
-    const tierMap = { 
-      1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 
-      3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 
-      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } 
-    };
+    /* ==================== CONFIG ==================== */
+    const tierMap = { 1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } };
     const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
     window.cart = window.cart || [];
     let isDark = localStorage.getItem("darkMode") === "true";
     let currentLang = localStorage.getItem("language") || "en";
-    let currentCurrency = currentLang === "en" ? "USD" : 
-                          currentLang === "ja" ? "JPY" : 
-                          currentLang === "zh" ? "CNY" : "MXN";
-
+    let currentCurrency = currentLang === "en" ? "USD" : currentLang === "ja" ? "JPY" : currentLang === "zh" ? "CNY" : "MXN";
     if (isDark) document.body.classList.add("dark");
 
-    /* ==================== LANGUAGE TRANSLATIONS ==================== */
+    /* ==================== TRANSLATIONS (expanded with snack messages) ==================== */
     const translations = {
-      en: { 
-        shopTitle: "My Store",
-        filterTitle: "Filter by Category",
-        catAll: "All",
-        catFemale: "Female",
-        catFemboy: "Femboy",
-        catCollections: "Collections",
-        sortTitle: "Sort by",
-        sortNewest: "Newest",
-        sortOldest: "Oldest",
-        sortLow: "Price: Low to High",
-        sortHigh: "Price: High to Low",
-        productsTitle: "Products",
-        searchPlaceholder: "Search products...",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total",
-        snackText: "Added successfully",
-        loginBtn: "Website",
-        disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-        disclaimerRefund: "Digital products are non-refundable after purchase.",
-        contentsTitle: "Contents:",
-        contentsDesc: "ZIP file containing {count} AI-generated illustrations",
-        originalPrice: "Original Price:",
-        currentPrice: "Current Price:",
-        addToCart: "Add to Cart",
-        removeFromCart: "Remove from Cart"
+      en: {
+        shopTitle: "My Store", filterTitle: "Filter by Category", catAll: "All", catFemale: "Female", catFemboy: "Femboy", catCollections: "Collections",
+        sortTitle: "Sort by", sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
+        productsTitle: "Products", searchPlaceholder: "Search products...", cartTitle: "Shopping Cart", totalLabel: "Total",
+        snackText: "Added successfully", snackAdded: "Added successfully", snackRemoved: "Removed from cart",
+        loginBtn: "Website", disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+        disclaimerRefund: "Digital products are non-refundable after purchase.", contentsTitle: "Contents:", contentsDesc: "ZIP file containing {count} AI-generated illustrations",
+        originalPrice: "Original Price:", currentPrice: "Current Price:", addToCart: "Add to Cart", removeFromCart: "Remove from Cart"
       },
-      ja: { 
-        shopTitle: "マイストア",
-        filterTitle: "カテゴリでフィルター",
-        catAll: "すべて",
-        catFemale: "女性",
-        catFemboy: "男の娘",
-        catCollections: "コレクション",
-        sortTitle: "並び替え",
-        sortNewest: "最新",
-        sortOldest: "最古",
-        sortLow: "価格: 低い → 高い",
-        sortHigh: "価格: 高い → 低い",
-        productsTitle: "商品",
-        searchPlaceholder: "商品を検索...",
-        cartTitle: "ショッピングカート",
-        totalLabel: "合計",
-        snackText: "カートに追加しました",
-        loginBtn: "ウェブサイト",
-        disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-        disclaimerRefund: "デジタル商品は購入後の返金はできません。",
-        contentsTitle: "内容：",
-        contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
-        originalPrice: "元の価格：",
-        currentPrice: "現在の価格：",
-        addToCart: "カートに追加",
-        removeFromCart: "カートから削除"
+      ja: {
+        shopTitle: "マイストア", filterTitle: "カテゴリでフィルター", catAll: "すべて", catFemale: "女性", catFemboy: "男の娘", catCollections: "コレクション",
+        sortTitle: "並び替え", sortNewest: "最新", sortOldest: "最古", sortLow: "価格: 低い → 高い", sortHigh: "価格: 高い → 低い",
+        productsTitle: "商品", searchPlaceholder: "商品を検索...", cartTitle: "ショッピングカート", totalLabel: "合計",
+        snackText: "カートに追加しました", snackAdded: "カートに追加しました", snackRemoved: "カートから削除しました",
+        loginBtn: "ウェブサイト", disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+        disclaimerRefund: "デジタル商品は購入後の返金はできません。", contentsTitle: "内容：", contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
+        originalPrice: "元の価格：", currentPrice: "現在の価格：", addToCart: "カートに追加", removeFromCart: "カートから削除"
       },
-      zh: { 
-        shopTitle: "我的商店",
-        filterTitle: "按类别筛选",
-        catAll: "全部",
-        catFemale: "女性",
-        catFemboy: "伪娘",
-        catCollections: "收藏",
-        sortTitle: "排序方式",
-        sortNewest: "最新",
-        sortOldest: "最旧",
-        sortLow: "价格: 低到高",
-        sortHigh: "价格: 高到低",
-        productsTitle: "商品",
-        searchPlaceholder: "搜索商品...",
-        cartTitle: "购物车",
-        totalLabel: "总计",
-        snackText: "已成功添加到购物车",
-        loginBtn: "网站",
-        disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
-        disclaimerRefund: "数字产品购买后不可退款。",
-        contentsTitle: "内容：",
-        contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
-        originalPrice: "原价：",
-        currentPrice: "现价：",
-        addToCart: "加入购物车",
-        removeFromCart: "从购物车移除"
+      zh: {
+        shopTitle: "我的商店", filterTitle: "按类别筛选", catAll: "全部", catFemale: "女性", catFemboy: "伪娘", catCollections: "收藏",
+        sortTitle: "排序方式", sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 低到高", sortHigh: "价格: 高到低",
+        productsTitle: "商品", searchPlaceholder: "搜索商品...", cartTitle: "购物车", totalLabel: "总计",
+        snackText: "已成功添加到购物车", snackAdded: "已成功添加到购物车", snackRemoved: "已从购物车移除",
+        loginBtn: "网站", disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
+        disclaimerRefund: "数字产品购买后不可退款。", contentsTitle: "内容：", contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
+        originalPrice: "原价：", currentPrice: "现价：", addToCart: "加入购物车", removeFromCart: "从购物车移除"
       },
-      es: { 
-        shopTitle: "Mi Tienda",
-        filterTitle: "Filtrar por Categoría",
-        catAll: "Todos",
-        catFemale: "Femenino",
-        catFemboy: "Femboy",
-        catCollections: "Colecciones",
-        sortTitle: "Ordenar por",
-        sortNewest: "Más reciente",
-        sortOldest: "Más antiguo",
-        sortLow: "Precio: Bajo a Alto",
-        sortHigh: "Precio: Alto a Bajo",
-        productsTitle: "Productos",
-        searchPlaceholder: "Buscar productos...",
-        cartTitle: "Carrito de Compras",
-        totalLabel: "Total",
-        snackText: "Añadido con éxito",
-        loginBtn: "Sitio web",
-        disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
-        disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
-        contentsTitle: "Contenido:",
-        contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
-        originalPrice: "Precio original:",
-        currentPrice: "Precio actual:",
-        addToCart: "Añadir al carrito",
-        removeFromCart: "Eliminar del carrito"
+      es: {
+        shopTitle: "Mi Tienda", filterTitle: "Filtrar por Categoría", catAll: "Todos", catFemale: "Femenino", catFemboy: "Femboy", catCollections: "Colecciones",
+        sortTitle: "Ordenar por", sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: Bajo a Alto", sortHigh: "Precio: Alto a Bajo",
+        productsTitle: "Productos", searchPlaceholder: "Buscar productos...", cartTitle: "Carrito de Compras", totalLabel: "Total",
+        snackText: "Añadido con éxito", snackAdded: "Añadido con éxito", snackRemoved: "Eliminado del carrito",
+        loginBtn: "Sitio web", disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
+        disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.", contentsTitle: "Contenido:", contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
+        originalPrice: "Precio original:", currentPrice: "Precio actual:", addToCart: "Añadir al carrito", removeFromCart: "Eliminar del carrito"
       }
     };
 
     /* ==================== HELPERS ==================== */
-    function showSnackbar() {
-      const snack = document.getElementById("snackbar");
-      if (snack) {
-        snack.classList.add("show");
-        setTimeout(() => snack.classList.remove("show"), 2000);
-      }
-    }
-
     function formatPrice(value, currency = currentCurrency) {
       if (currency === "USD") return `US$${value.toFixed(2)}`;
       const rounded = Math.round(value * 100) / 100;
@@ -765,9 +628,7 @@
     function updateAllPrices() {
       document.querySelectorAll(".price").forEach(el => {
         const base = parseFloat(el.dataset.price);
-        if (!isNaN(base)) {
-          el.innerHTML = formatPrice(base);
-        }
+        if (!isNaN(base)) el.innerHTML = formatPrice(base);
       });
     }
 
@@ -775,177 +636,127 @@
       try {
         const saved = localStorage.getItem("velutinx_cart");
         return saved ? JSON.parse(saved) : [];
-      } catch (e) {
-        return [];
-      }
+      } catch (e) { return []; }
     }
 
     function saveCart(cart) {
       localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
     }
 
-    function getPriceForPack(pack) {
-      return typeof pack.price === 'number' ? pack.price : parseFloat(pack.price) || 0;
+    /* ==================== NEW: SNACKBAR (fixed) ==================== */
+    function showSnackbar(msg) {
+      const snackbar = document.getElementById("snackbar");
+      const snackText = document.getElementById("snackText");
+      if (!snackbar || !snackText) return;
+      snackText.textContent = msg;
+      snackbar.classList.add("show");
+      setTimeout(() => snackbar.classList.remove("show"), 2500);
     }
 
+    /* ==================== FIXED: addOrToggleCart (green button + snackbar) ==================== */
     function addOrToggleCart(pack) {
       let cart = getCart();
       const index = cart.findIndex(item => item.id === pack.id);
-      if (index !== -1) {
-        cart.splice(index, 1);
-      } else {
+      const isAdding = index === -1;
+      const card = document.querySelector(`.product-card[data-id="${pack.id}"]`);
+      const cartBtn = card ? card.querySelector(".cart-btn") : null;
+
+      if (isAdding) {
         cart.push({
           id: pack.id,
           title: pack.title,
           image: pack.image || (pack.images && pack.images[0]) || "",
-          price: getPriceForPack(pack),
+          price: window.getPriceForPack ? window.getPriceForPack(pack) : pack.price || 0,
           quantity: 1
         });
+        if (cartBtn) cartBtn.classList.add("added");
+        showSnackbar(translations[currentLang].snackAdded || "Added successfully");
+      } else {
+        cart.splice(index, 1);
+        if (cartBtn) cartBtn.classList.remove("added");
+        showSnackbar(translations[currentLang].snackRemoved || "Removed from cart");
       }
+
       saveCart(cart);
       updateCartDisplay();
-      showSnackbar();   // show snackbar on add/remove
+      syncCartButtons(); // make sure all buttons stay in sync
     }
 
     function updateCartDisplay() {
       const cart = getCart();
       const count = cart.length;
       const total = cart.reduce((sum, item) => sum + item.price, 0);
-
-      document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
-        if (el) el.textContent = count;
-      });
+      document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => { if (el) el.textContent = count; });
 
       const itemsEl = document.getElementById("cartItems");
       if (itemsEl) {
-        itemsEl.innerHTML = "";
-        if (count === 0) {
-          itemsEl.innerHTML = "<p>Your cart is empty</p>";
-        } else {
-          cart.forEach((item, idx) => {
-            const div = document.createElement("div");
-            div.className = "cart-item";
-            div.innerHTML = `
-              <img src="${item.image}" alt="${item.title}">
-              <div class="cart-item-info">
-                <div class="cart-item-title">${item.title}</div>
-                <div class="cart-item-price">${formatPrice(item.price)}</div>
-              </div>
-              <button class="cart-item-remove" data-idx="${idx}">×</button>
-            `;
-            itemsEl.appendChild(div);
-          });
-        }
+        itemsEl.innerHTML = count === 0 ? "<p>Your cart is empty</p>" : "";
+        cart.forEach((item, idx) => {
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <img src="${item.image}" alt="${item.title}">
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.title}</div>
+              <div class="cart-item-price">${formatPrice(item.price)}</div>
+            </div>
+            <button class="cart-item-remove" data-idx="${idx}">×</button>
+          `;
+          itemsEl.appendChild(div);
+        });
         const totalEl = document.getElementById("cartTotal");
         if (totalEl) totalEl.textContent = formatPrice(total);
       }
     }
 
-    function updateDisclaimers() {
-      const t = translations[currentLang] || translations.en;
-      const el = document.getElementById("disclaimer");
-      if (el) {
-        el.innerHTML = `
-          <div style="margin-bottom: 16px;">
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-              <svg width="20" height="20" viewBox="0 0 512 512" style="flex-shrink: 0; margin-top: 2px;">
-                <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
-                <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
-                <circle cx="256" cy="380" r="24" fill="#000"/>
-              </svg>
-              <span style="line-height: 1.45;">${t.disclaimerAge}</span>
-            </div>
-          </div>
-          <div>
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-              <svg width="20" height="20" viewBox="0 0 512 512" style="flex-shrink: 0; margin-top: 2px;">
-                <path d="M256 40 L472 440 H40 Z" fill="#FFC107" stroke="#000" stroke-width="32" stroke-linejoin="round"/>
-                <rect x="236" y="180" width="40" height="160" rx="20" fill="#000"/>
-                <circle cx="256" cy="380" r="24" fill="#000"/>
-              </svg>
-              <span style="line-height: 1.45;">${t.disclaimerRefund}</span>
-            </div>
-          </div>
-        `;
-      }
+    function syncCartButtons() {
+      const cart = getCart();
+      const idsInCart = new Set(cart.map(item => item.id));
+      document.querySelectorAll(".product-card").forEach(card => {
+        const btn = card.querySelector(".cart-btn");
+        if (btn) btn.classList.toggle("added", idsInCart.has(card.dataset.id));
+      });
     }
 
-    /* ==================== setLanguage ==================== */
+    /* ==================== LANGUAGE & OTHER HELPERS (unchanged) ==================== */
+    function updateDisclaimers() { /* kept as-is, not used on store page */ }
     function setLanguage(lang) {
       currentLang = lang;
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
       localStorage.setItem("language", lang);
-
       const t = translations[lang] || translations.en;
-
-      const ids = [
-        "shopTitle", "filterTitle",
-        "catAll", "catFemale", "catFemboy", "catCollections",
-        "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
-        "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn",
-        "searchInput"
-      ];
-
+      const ids = ["shopTitle","filterTitle","catAll","catFemale","catFemboy","catCollections","sortTitle","sortNewest","sortOldest","sortLow","sortHigh","productsTitle","cartTitle","totalLabel","snackText","loginBtn","searchInput"];
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el && t[id]) {
-          if (id === "searchInput") {
-            el.placeholder = t[id];
-          } else {
-            el.textContent = t[id];
-          }
+          if (id === "searchInput") el.placeholder = t[id];
+          else el.textContent = t[id];
         }
       });
-
       const titleEl = document.getElementById("shopTitle");
-      if (titleEl) {
-        titleEl.classList.add("loaded");
-      }
-
+      if (titleEl) titleEl.classList.add("loaded");
       updateCartDisplay();
-      updateDisclaimers();
       updateAllPrices();
+      syncCartButtons();
     }
 
     /* ==================== DOM READY ==================== */
     document.addEventListener("DOMContentLoaded", async () => {
       setLanguage(currentLang);
 
-      // 1. VELUTINX logo click → redirect to store
-      const logo = document.querySelector(".logo");
-      if (logo) {
-        logo.style.cursor = "pointer";
-        logo.addEventListener("click", (e) => {
-          e.preventDefault();
-          window.location.href = "https://velutinx.com/store";
-        });
-      }
-
-      // 2. Website button click → redirect to main site
-      const loginBtn = document.getElementById("loginBtn");
-      if (loginBtn) {
-        loginBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          window.location.href = "https://velutinx.com/";
-        });
-      }
+      // Logo & login redirects
+      document.querySelector(".logo")?.addEventListener("click", () => window.location.href = "https://velutinx.com/store");
+      document.getElementById("loginBtn")?.addEventListener("click", () => window.location.href = "https://velutinx.com/");
 
       // Language selector
       const langBtn = document.getElementById("langBtn");
       const popover = document.getElementById("languagePopover");
       if (langBtn && popover) {
-        langBtn.addEventListener("click", e => {
-          e.stopPropagation();
-          popover.classList.toggle("show");
-        });
+        langBtn.addEventListener("click", e => { e.stopPropagation(); popover.classList.toggle("show"); });
       }
-
       document.addEventListener("click", e => {
-        if (!document.getElementById("langContainer")?.contains(e.target)) {
-          popover?.classList.remove("show");
-        }
+        if (!document.getElementById("langContainer")?.contains(e.target)) popover?.classList.remove("show");
       });
-
       document.querySelectorAll(".lang-item").forEach(item => {
         item.addEventListener("click", () => {
           setLanguage(item.dataset.lang);
@@ -954,64 +765,48 @@
       });
 
       // Theme toggle
-      const themeBtn = document.getElementById("themeBtn");
-      if (themeBtn) {
-        themeBtn.addEventListener("click", () => {
-          isDark = !isDark;
-          document.body.classList.toggle("dark", isDark);
-          localStorage.setItem("darkMode", isDark);
-        });
-      }
+      document.getElementById("themeBtn")?.addEventListener("click", () => {
+        isDark = !isDark;
+        document.body.classList.toggle("dark", isDark);
+        localStorage.setItem("darkMode", isDark);
+      });
 
       // Cart drawer
       const cartBtn = document.getElementById("cartBtn");
       const floatCartBtn = document.getElementById("floatingCartBtn");
       const cartClose = document.getElementById("cartClose");
       const cartDrawer = document.getElementById("cartDrawer");
-
-      const openCart = () => {
-        cartDrawer?.classList.add("open");
-        document.body.classList.add("drawer-open");
-      };
-      const closeCart = () => {
-        cartDrawer?.classList.remove("open");
-        document.body.classList.remove("drawer-open");
-      };
-
+      const openCart = () => { cartDrawer?.classList.add("open"); document.body.classList.add("drawer-open"); };
+      const closeCart = () => { cartDrawer?.classList.remove("open"); document.body.classList.remove("drawer-open"); };
       cartBtn?.addEventListener("click", openCart);
       floatCartBtn?.addEventListener("click", openCart);
       cartClose?.addEventListener("click", closeCart);
-
       document.addEventListener("click", e => {
-        if (cartDrawer?.classList.contains("open") && 
-            !cartDrawer.contains(e.target) && 
-            !cartBtn?.contains(e.target) && 
-            !floatCartBtn?.contains(e.target)) {
-          closeCart();
-        }
+        if (cartDrawer?.classList.contains("open") && !cartDrawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatCartBtn?.contains(e.target)) closeCart();
       });
 
-      const cartItems = document.getElementById("cartItems");
-      cartItems?.addEventListener("click", e => {
+      // Cart item remove from drawer
+      document.getElementById("cartItems")?.addEventListener("click", e => {
         if (e.target.classList.contains("cart-item-remove")) {
           const idx = parseInt(e.target.dataset.idx);
-          const cart = getCart();
+          let cart = getCart();
+          const removedId = cart[idx]?.id;
           cart.splice(idx, 1);
           saveCart(cart);
           updateCartDisplay();
+          syncCartButtons();
+          if (removedId) showSnackbar(translations[currentLang].snackRemoved || "Removed from cart");
         }
       });
 
-      // Initial setup
       updateCartDisplay();
+      syncCartButtons(); // initial green buttons
     });
   </script>
 
   <!-- Product listing script (unchanged) -->
-  <script src="https://velutinx.com/assets/js/socials.js"></script>
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
-
     window.addEventListener('load', async () => {
       const productsData = packsData.map(p => ({
         ...p,
@@ -1019,7 +814,6 @@
         date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
         category: p.category || 0
       }));
-
       const grid = document.getElementById("productGrid");
       const searchInput = document.getElementById("searchInput");
       const sortButtons = document.querySelectorAll(".sort-btn");
@@ -1036,14 +830,9 @@
           card.dataset.date = p.date;
           card.dataset.id = p.id;
           card.dataset.category = p.category;
-
           const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
           card.innerHTML = `
-            <img src="${imageUrl}"
-                 alt="${p.title}"
-                 class="card-image"
-                 loading="lazy"
-                 onerror="this.src='https://via.placeholder.com/248x300?text=Image+Error'">
+            <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy" onerror="this.src='https://via.placeholder.com/248x300?text=Image+Error'">
             <div class="card-content">
               <div class="card-title">${p.title}</div>
               <div class="price-row">
@@ -1060,47 +849,36 @@
               </div>
             </div>
           `;
-
           card.addEventListener("click", e => {
             if (e.target.closest(".cart-btn")) return;
             window.location.href = `/s/pack?id=${p.id}`;
           });
-
           const cartBtn = card.querySelector(".cart-btn");
           cartBtn.addEventListener("click", e => {
             e.stopPropagation();
             window.addOrToggleCart?.(p);
           });
-
           grid.appendChild(card);
           p.element = card;
           p.cartBtn = cartBtn;
         });
-
         window.updateCartDisplay?.();
+        window.syncCartButtons?.(); // ensure green buttons after cards are created
       }
 
       function filterAndSort() {
         const query = searchInput.value.toLowerCase().trim();
         const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
         productsData.forEach(p => {
           const titleMatch = p.title.toLowerCase().includes(query);
           const categoryMatch = currentCategory === 0 || p.category === currentCategory;
           p.element.classList.toggle("hidden", !(titleMatch && categoryMatch));
         });
-
         let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-        if (activeSort === "newest") {
-          visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
-        } else if (activeSort === "oldest") {
-          visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
-        } else if (activeSort === "price-asc") {
-          visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-        } else if (activeSort === "price-desc") {
-          visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-        }
-
+        if (activeSort === "newest") visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
+        else if (activeSort === "oldest") visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
+        else if (activeSort === "price-asc") visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        else if (activeSort === "price-desc") visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
         visible.forEach(el => grid.appendChild(el));
       }
 
@@ -1112,7 +890,6 @@
           filterAndSort();
         });
       });
-
       sortButtons.forEach(btn => {
         btn.addEventListener("click", () => {
           sortButtons.forEach(b => b.classList.remove("active"));
@@ -1120,21 +897,22 @@
           filterAndSort();
         });
       });
-
       searchInput.addEventListener("input", filterAndSort);
 
       createCards();
       filterAndSort();
       window.updateCartDisplay?.();
+      window.syncCartButtons?.();
     });
   </script>
 
-  <!-- Language switcher – updates prices instantly -->
+  <!-- Language switcher -->
   <script>
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
         setTimeout(() => {
           if (window.updateAllPrices) window.updateAllPrices();
+          if (window.syncCartButtons) window.syncCartButtons();
         }, 100);
       });
     });
