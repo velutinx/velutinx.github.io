@@ -128,5 +128,20 @@
         window.applyTranslations('artwork');
       });
     }
+
+    
+// Add commission box sparkles if element exists
+(function initCommissionSparkles() {
+  const commissionBox = document.getElementById('commissionBox');
+  if (commissionBox) {
+    setInterval(() => {
+      const star = document.createElement('div');
+      star.className = 'box-star';
+      star.textContent = '✦';
+      star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
+      star.style.top = '0px';
+      commissionBox.appendChild(star);
+      setTimeout(() => star.remove(), 6000);
+    }, 700);
   }
 })();
