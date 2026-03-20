@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SHOP | VELUTINX</title>
 
-  <!-- Shared header CSS -->
-  <link rel="stylesheet" href="/assets/css/mainheader.css">
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://www.velutinx.com" crossorigin>
 
-  <!-- Additional external assets -->
+  <!-- Material Symbols -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
 
-  <!-- Store‑specific styles (unchanged) -->
+  <!-- Main header + cart + theme + language styles -->
+  <link rel="stylesheet" href="https://velutinx.com/assets/css/mainheader.css">
+
+  <!-- Store-specific overrides / additions (you can keep or merge later) -->
   <style>
     :root {
       --bg: #d3d0c1;
@@ -44,155 +46,340 @@
       --overlay: rgba(15,15,18,0.75);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      transition: background 0.4s, color 0.4s;
+      min-height: 100vh;
     }
 
+    /* Remove overlay when drawer is open (handled by mainheader.css now) */
     body.drawer-open::after {
-      content: ""; position: fixed; inset: 0; background: var(--overlay); z-index: 1190; pointer-events: none;
+      display: none;
     }
 
-    body.drawer-open .floating-cart { display: none; }
-
-    /* Override header background to match page flat background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
+    .shop-container {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 2.8rem 2.5rem 1.2rem;
     }
 
-    /* Store layout (unchanged) */
-    #shopTitle {
-      visibility: hidden;
-      transition: visibility 0s linear 0.1s;
-    }
-    #shopTitle.loaded {
-      visibility: visible;
+    .shop-title {
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #000;
+      margin: 0;
     }
 
-    .material-symbols-outlined {
-      font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      font-size: 20px; line-height: 1; vertical-align: middle; margin-right: 8px; color: inherit;
+    body.dark .shop-title {
+      color: var(--accent);
     }
 
-    .category-list li, .sort-btn { display: flex; align-items: center; }
+    .main-container {
+      display: flex;
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 0 2.5rem 3rem;
+      gap: 2.5rem;
+    }
 
-    .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
-    .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
-    .shop-left { display: flex; align-items: center; gap: 1.2rem; }
-    .shop-title { font-size: 2.3rem; font-weight: 800; color: #000; margin: 0; }
-    body.dark .shop-title { color: var(--accent); }
+    .sidebar {
+      width: 268px;
+      flex-shrink: 0;
+    }
 
-    .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
-    .sidebar { width: 268px; flex-shrink: 0; }
-    .products-section { flex: 1; }
-    .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text); padding-left: 0.5rem; }
+    .products-section {
+      flex: 1;
+    }
 
-    .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); padding: 0; }
-    .category-list li { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.9rem; color: var(--text); cursor: pointer; transition: 0.2s; }
-    .category-list li:hover { background: #c0bcaa; }
-    .category-list li.active { background: var(--accent); color: #1f1a12; font-weight: 600; }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.9rem;
+      color: var(--text);
+      padding-left: 0.5rem;
+    }
 
-    .sort-options { margin-top: 2rem; }
-    .sort-btn { width: 100%; padding: 1rem 1.25rem; background: var(--card); border: 1px solid var(--border); text-align: left; margin-bottom: 0.5rem; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.9rem; color: var(--text); }
-    .sort-btn.active { background: var(--accent); color: #1f1a12; }
-    .sort-btn:hover:not(.active) { background: #c0bcaa; }
+    .category-list {
+      list-style: none;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      padding: 0;
+    }
 
-    .products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem; }
-    .products-header h2 { font-size: 1.65rem; font-weight: 700; color: var(--text); }
+    .category-list li {
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-    .search-bar-wrapper { width: 340px; max-width: 100%; }
-    .input-base { position: relative; display: flex; align-items: center; background: var(--card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); padding-left: 12px; transition: border-color 0.2s; }
-    .input-base:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(170,158,118,0.2); }
-    .input-element { flex: 1; padding: 12px; background: transparent; border: none; outline: none; color: var(--text); font-size: 0.95rem; }
+    .category-list li:hover {
+      background: #c0bcaa;
+    }
 
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
-    .product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); cursor: pointer; position: relative; }
-    .product-card.hidden { display: none; }
-    .product-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
-    .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; display: block; }
-    .card-content { padding: 1.2rem; }
-    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
-    .price-row { display: flex; justify-content: space-between; align-items: center; }
-    .price { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-    .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-    .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
-    .cart-btn.added { background: #22c55e; }
+    .category-list li.active {
+      background: var(--accent);
+      color: #1f1a12;
+      font-weight: 600;
+    }
+
+    .sort-options {
+      margin-top: 2rem;
+    }
+
+    .sort-btn {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      text-align: left;
+      margin-bottom: 0.5rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      color: var(--text);
+    }
+
+    .sort-btn.active {
+      background: var(--accent);
+      color: #1f1a12;
+    }
+
+    .sort-btn:hover:not(.active) {
+      background: #c0bcaa;
+    }
+
+    .products-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.8rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .products-header h2 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .search-bar-wrapper {
+      width: 340px;
+      max-width: 100%;
+    }
+
+    .input-base {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--card);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      padding-left: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .input-base:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(170,158,118,0.2);
+    }
+
+    .input-element {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+      gap: 1.8rem;
+    }
+
+    .product-card {
+      background: var(--card);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.25s;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .product-card.hidden {
+      display: none;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.2);
+    }
+
+    .card-image {
+      width: 100%;
+      aspect-ratio: 3 / 3.7;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-content {
+      padding: 1.2rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .price {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .cart-btn {
+      width: 44px;
+      height: 44px;
+      background: var(--btn-cart);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cart-btn:hover {
+      background: var(--btn-cart-hover);
+      transform: scale(1.08);
+    }
+
+    .cart-btn.added {
+      background: #22c55e;
+    }
+
+    @media (max-width: 960px) {
+      .main-container {
+        flex-direction: column;
+        padding: 0 1.5rem 2rem;
+      }
+      .sidebar {
+        width: 100%;
+      }
+      .search-bar-wrapper {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
+  <!-- Language swipe animation element (if still used) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
-  <div id="page">
-    <!-- Header will be injected here -->
-    <div id="navContainer"></div>
-    <div class="divider"></div>
-
-    <header class="shop-header">
-      <div class="shop-container">
-        <div class="shop-left">
-          <h1 class="shop-title" id="shopTitle">Loading...</h1>
-        </div>
-      </div>
-    </header>
-
-    <div class="main-container">
-      <aside class="sidebar">
-        <div class="section-title" id="filterTitle">Filter by Category</div>
-        <ul class="category-list">
-          <li class="active" data-cat="0"><span class="material-symbols-outlined">done_all</span><span id="catAll">All Products</span></li>
-          <li data-cat="1"><span class="material-symbols-outlined">female</span><span id="catFemale">Female Models</span></li>
-          <li data-cat="2"><span class="material-symbols-outlined">male</span><span id="catFemboy">Femboy Models</span></li>
-          <li data-cat="3"><span class="material-symbols-outlined">collections_bookmark</span><span id="catCollections">Full Collections</span></li>
-        </ul>
-
-        <div class="sort-options">
-          <div class="section-title" id="sortTitle">Sort by</div>
-          <button class="sort-btn active" data-sort="newest"><span class="material-symbols-outlined">clock_arrow_up</span><span id="sortNewest">Newest</span></button>
-          <button class="sort-btn" data-sort="oldest"><span class="material-symbols-outlined">clock_arrow_down</span><span id="sortOldest">Oldest</span></button>
-          <button class="sort-btn" data-sort="price-asc"><span class="material-symbols-outlined">stat_3</span><span id="sortLow">Price: Low to High</span></button>
-          <button class="sort-btn" data-sort="price-desc"><span class="material-symbols-outlined">stat_minus_3</span><span id="sortHigh">Price: High to Low</span></button>
-        </div>
-      </aside>
-
-      <main class="products-section">
-        <div class="products-header">
-          <h2 id="productsTitle">Latest Content</h2>
-          <div class="search-bar-wrapper">
-            <div class="input-base">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
-                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-              </svg>
-              <input type="search" id="searchInput" class="input-element" />
-            </div>
-          </div>
-        </div>
-        <div class="product-grid" id="productGrid"></div>
-      </main>
+  <!-- ==================== CART DRAWER & SNACKBAR ==================== -->
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h5 id="cartTitle">Shopping Cart</h5>
+      <button class="cart-close" id="cartClose">×</button>
     </div>
-
-    <div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;"></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <div class="cart-total-row">
+        <span id="totalLabel">Total</span>
+        <span id="cartTotal">US$0.00</span>
+      </div>
+      <div id="paypal-button-container"></div>
+    </div>
   </div>
 
-  <!-- Scripts (order matters) -->
-  <script src="/assets/js/translt.js"></script>
-  <script src="/assets/js/mainheader.js"></script>
-  <script src="/assets/js/format.js"></script>
-  <script src="/assets/js/tab-title-animation.js"></script>
-  <script src="https://velutinx.com/assets/js/socials.js"></script>
+  <div id="snackbar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="M20 6L9 17l-5-5"></path>
+    </svg>
+    <span id="snackText">Added successfully</span>
+  </div>
 
-  <!-- Product grid logic (uses global functions from mainheader.js) -->
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <div class="shop-container">
+    <h1 class="shop-title" id="shopTitle">Loading...</h1>
+  </div>
+
+  <div class="main-container">
+    <aside class="sidebar">
+      <div class="section-title" id="filterTitle">Filter by Category</div>
+      <ul class="category-list">
+        <li class="active" data-cat="0"><span class="material-symbols-outlined">done_all</span><span id="catAll">All Products</span></li>
+        <li data-cat="1"><span class="material-symbols-outlined">female</span><span id="catFemale">Female Models</span></li>
+        <li data-cat="2"><span class="material-symbols-outlined">male</span><span id="catFemboy">Femboy Models</span></li>
+        <li data-cat="3"><span class="material-symbols-outlined">collections_bookmark</span><span id="catCollections">Full Collections</span></li>
+      </ul>
+
+      <div class="sort-options">
+        <div class="section-title" id="sortTitle">Sort by</div>
+        <button class="sort-btn active" data-sort="newest"><span class="material-symbols-outlined">clock_arrow_up</span><span id="sortNewest">Newest</span></button>
+        <button class="sort-btn" data-sort="oldest"><span class="material-symbols-outlined">clock_arrow_down</span><span id="sortOldest">Oldest</span></button>
+        <button class="sort-btn" data-sort="price-asc"><span class="material-symbols-outlined">stat_3</span><span id="sortLow">Price: Low to High</span></button>
+        <button class="sort-btn" data-sort="price-desc"><span class="material-symbols-outlined">stat_minus_3</span><span id="sortHigh">Price: High to Low</span></button>
+      </div>
+    </aside>
+
+    <main class="products-section">
+      <div class="products-header">
+        <h2 id="productsTitle">Latest Content</h2>
+        <div class="search-bar-wrapper">
+          <div class="input-base">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
+              <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+              <path d="M21 21l-6 -6"></path>
+            </svg>
+            <input type="search" id="searchInput" class="input-element" placeholder="Search products..."/>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-grid" id="productGrid"></div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
+
+  <!-- Cart / language / theme logic from main header -->
+  <script src="https://velutinx.com/assets/js/mainheader.js" type="module" defer></script>
+
+  <!-- Product grid population logic -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
-    function initStore() {
+    window.addEventListener('load', () => {
       const productsData = packsData.map(p => ({
         ...p,
         price: window.getPriceForPack?.(p) ?? 0,
@@ -218,8 +405,16 @@
           card.dataset.category = p.category;
 
           const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
+
           card.innerHTML = `
-            <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://via.placeholder.com/248x300/2d2d2d/aaaaaa?text=Pack+${p.id}'">
+            <img
+              src="${imageUrl}"
+              alt="${p.title}"
+              class="card-image"
+              loading="lazy"
+              decoding="async"
+              onerror="this.onerror=null; this.src='https://via.placeholder.com/248x300/2d2d2d/aaaaaa?text=Pack+${p.id}'"
+            >
             <div class="card-content">
               <div class="card-title">${p.title}</div>
               <div class="price-row">
@@ -259,12 +454,15 @@
       function filterAndSort() {
         const query = searchInput.value.toLowerCase().trim();
         const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
         productsData.forEach(p => {
           const titleMatch = p.title.toLowerCase().includes(query);
           const catMatch = currentCategory === 0 || p.category === currentCategory;
           p.element.classList.toggle("hidden", !(titleMatch && catMatch));
         });
+
         let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+
         if (activeSort === "newest") {
           visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
         } else if (activeSort === "oldest") {
@@ -274,6 +472,7 @@
         } else if (activeSort === "price-desc") {
           visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
         }
+
         visible.forEach(el => grid.appendChild(el));
       }
 
@@ -298,27 +497,11 @@
 
       createCards();
       filterAndSort();
-      window.updateCartDisplay?.();
-      window.syncCartButtons?.();
-    }
 
-    // Wait for header to be ready
-    if (window.addOrToggleCart) {
-      initStore();
-    } else {
-      window.addEventListener('headerReady', initStore);
-    }
-  </script>
-
-  <!-- Language price refresh (uses global functions) -->
-  <script>
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        setTimeout(() => {
-          window.updateAllPrices?.();
-          window.syncCartButtons?.();
-        }, 100);
-      });
+      // Initial price update after mainheader.js loads formatPrice
+      setTimeout(() => {
+        if (window.updateAllPrices) window.updateAllPrices();
+      }, 800);
     });
   </script>
 
