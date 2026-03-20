@@ -10,7 +10,7 @@
 
   <style>
     :root {
-      --bg: #d4d0c1;
+      --bg: #f5f1df;
       --divider: #aa9e76;
       --text: #111;
       --bg-dark: #0f0f12;
@@ -18,77 +18,16 @@
       --text-dark: #e6e3d8;
     }
 
-    .background-wrapper {
-      position: fixed;
-      inset: 0;
-      z-index: -10;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .background-gradient {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(132deg, #734128 0%, #C7A07A 25%, #E2CEB1 50%, #FDFCE8 75%, #391E10 100%);
-      background-size: 300% 300%;
-      animation: gradientFlow 28s ease infinite;
-    }
-    @keyframes gradientFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    .wave-overlay {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      opacity: 0.10;
-      mix-blend-mode: overlay;
-      animation: slowDrift 140s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes slowDrift {
-      0%   { transform: translate3d(0,0,0) scale(1.015); }
-      50%  { transform: translate3d(4%,6%,0) scale(1.045); }
-      100% { transform: translate3d(0,0,0) scale(1.015); }
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: rgba(253,252,232,0.28);
-      z-index: -9;
-      pointer-events: none;
-      backdrop-filter: blur(1.5px);
-    }
-
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
       color: var(--text);
-      background: transparent;
+      background: var(--bg);
       overflow-x: hidden;
     }
     body.dark {
       color: var(--text-dark);
-    }
-    body.dark .background-gradient {
-      background: linear-gradient(135deg, #00030f 0%, #000814 20%, #0a1125 40%, #001220 60%, #0b142b 80%, #00030f 100%);
-      background-size: 400% 400%;
-      animation: darkNebulaFlow 55s ease infinite;
-    }
-    @keyframes darkNebulaFlow {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    body.dark::before {
-      background: rgba(15,15,18,0.45);
-    }
-    body.dark .wave-overlay {
-      opacity: 0.14;
-      mix-blend-mode: soft-light;
+      background: var(--bg-dark);
     }
 
     .poll-section {
@@ -434,11 +373,6 @@
 
 <div class="lang-swipe" id="langSwipe"></div>
 
-<div class="background-wrapper">
-  <div class="background-gradient"></div>
-  <div class="wave-overlay"></div>
-</div>
-
 <div id="langContainer">
   <button class="lang-btn">🌐</button>
   <div id="languagePopover">
@@ -560,7 +494,7 @@ async function castVote(id) {
   }
 }
 
-// Grid results (this part already works for you)
+// Grid results (already working for you)
 async function fetchGridResults() {
   const { data, error } = await sb.from('website_voting')
     .select('option_id')
@@ -582,14 +516,12 @@ async function fetchGridResults() {
   });
 }
 
-// RESTORED ORIGINAL LEADERBOARD LOGIC (this is what worked in your first version)
+// Leaderboard using your original working tables
 async function fetchLeaderboard() {
   try {
-    // Get winners
     const winRes = await sb.from('poll_winners').select('option_id').eq('poll_id', POLL_ID);
     const winnerIds = new Set(winRes.data?.map(w => Number(w.option_id)) || []);
 
-    // Get actual scores + names
     const { data: rows, error } = await sb.from('final_votes')
       .select('option_id, character_name, score')
       .eq('poll_id', POLL_ID)
@@ -597,12 +529,6 @@ async function fetchLeaderboard() {
 
     if (error) throw error;
 
-    if (!rows || rows.length === 0) {
-      resultsBox.innerHTML = "No votes yet";
-      return;
-    }
-
-    // Build leaderboard
     resultsBox.innerHTML = rows.map(r => {
       const id = Number(r.option_id);
       const isWinner = winnerIds.has(id);
@@ -610,15 +536,12 @@ async function fetchLeaderboard() {
         <span>${r.character_name || `Option ${id}`}</span>
         <span>${Number(r.score || 0).toFixed(1)}</span>
       </div>`;
-    }).join('');
+    }).join('') || "No votes yet";
 
-    // Update card labels + winner overlay
     document.querySelectorAll(".card").forEach(card => {
       const id = Number(card.dataset.id);
       const row = rows.find(r => Number(r.option_id) === id);
-      if (row?.character_name) {
-        card.querySelector(".label").textContent = row.character_name;
-      }
+      if (row?.character_name) card.querySelector(".label").textContent = row.character_name;
       card.classList.toggle("winner", winnerIds.has(id));
     });
   } catch (err) {
@@ -663,7 +586,6 @@ async function init() {
   const saved = localStorage.getItem('voted_id') || getVoteCookie();
   if (saved) updateCardStyles(Number(saved));
 
-  // Realtime
   sb.channel('grid-refresh')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
     .subscribe();
