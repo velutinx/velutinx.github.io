@@ -453,135 +453,6 @@
     }
     #snackbar.show { transform: translateY(0); opacity: 1; }
 
-    /* ==================== ANIMATED BACKGROUND (NO BLUR ON BODY::BEFORE) ==================== */
-    .background-wrapper {
-      position: fixed;
-      inset: 0;
-      z-index: -10;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .background-gradient {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        132deg,
-        #734128 0%,
-        #C7A07A 25%,
-        #E2CEB1 50%,
-        #FDFCE8 75%,
-        #391E10 100%
-      );
-      background-size: 300% 300%;
-      animation: gradientFlow 28s ease infinite;
-    }
-
-    @keyframes gradientFlow {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .wave-overlay {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      opacity: 0.10;
-      mix-blend-mode: overlay;
-      animation: slowDrift 140s linear infinite;
-      pointer-events: none;
-    }
-
-    @keyframes slowDrift {
-      0%   { transform: translate3d(0, 0, 0) scale(1.015); }
-      50%  { transform: translate3d(4%, 6%, 0) scale(1.045); }
-      100% { transform: translate3d(0, 0, 0) scale(1.015); }
-    }
-
-    /* REMOVED backdrop-filter from body::before to fix cart blur */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: rgba(253, 252, 232, 0.28);
-      z-index: -9;
-      pointer-events: none;
-      /* backdrop-filter: blur(1.5px);   ← REMOVED */
-    }
-
-    #page,
-    .hero,
-    .commission-wrap,
-    .artwork-wrap,
-    .contact-wrap {
-      position: relative;
-      z-index: 1;
-      background: transparent;
-    }
-
-    body.dark .background-gradient {
-      background: linear-gradient(
-        135deg,
-        #00030f 0%,
-        #000814 20%,
-        #0a1125 40%,
-        #001220 60%,
-        #0b142b 80%,
-        #00030f 100%
-      );
-      background-size: 400% 400%;
-      animation: darkNebulaFlow 55s ease infinite;
-    }
-
-    @keyframes darkNebulaFlow {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    body.dark::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 3, 15, 0.65);
-      z-index: -9;
-      pointer-events: none;
-      /* backdrop-filter: blur(1px);   ← REMOVED */
-    }
-
-    body.dark .background-gradient::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: 
-        radial-gradient(#111111 1px, transparent 1px),
-        radial-gradient(#0f1e38 1px, transparent 1px),
-        radial-gradient(#14253f 1px, transparent 1px);
-      background-size: 70px 70px, 90px 90px, 120px 120px;
-      background-position: 0 0, 35px 35px, 80px 80px;
-      opacity: 0.06;
-      animation: starTwinkle 35s ease-in-out infinite;
-      mix-blend-mode: screen;
-      pointer-events: none;
-    }
-
-    @keyframes starTwinkle {
-      0%, 100% { opacity: 0.07; transform: scale(1); }
-      50%      { opacity: 0.14; transform: scale(1.03); }
-    }
-
-    body.dark .wave-overlay {
-      opacity: 0.14;
-      mix-blend-mode: soft-light;
-    }
-
-    body.dark::before {
-      background: rgba(15, 15, 18, 0.45);
-    }
-
     /* ==================== PAGE CONTENT ==================== */
     .divider {
       width: 80%;
@@ -651,17 +522,44 @@
       cursor: zoom-out;
       transition: all 0.22s cubic-bezier(.2,.8,.2,1);
     }
+
+    /* ==================== STAR EFFECTS ==================== */
+    /* Cursor sparkles */
+    .star {
+      position: fixed;
+      pointer-events: none;
+      color: var(--divider, #aa9e76);
+      font-size: 14px;
+      animation: driftFall 2s ease-out forwards;
+      z-index: 9999;
+    }
+    @keyframes driftFall {
+      to {
+        opacity: 0;
+        transform: translate(calc(-20px + 40px * var(--drift)), 90px) scale(0.4);
+      }
+    }
+
+    /* Falling stars (full page) */
+    .falling-star {
+      position: fixed;
+      pointer-events: none;
+      color: var(--divider, #aa9e76);
+      font-size: 18px;
+      z-index: 3;
+      animation: fallDown 6s linear forwards;
+    }
+    @keyframes fallDown {
+      from { opacity: 0; transform: translateY(-10vh); }
+      10% { opacity: 1; }
+      to { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
+    }
   </style>
 </head>
 <body>
 
   <!-- Swipe animation layer -->
   <div class="lang-swipe" id="langSwipe"></div>
-
-  <div class="background-wrapper">
-    <div class="background-gradient"></div>
-    <div class="wave-overlay"></div>
-  </div>
 
   <div id="page">
     <div id="navContainer"></div>
@@ -1082,10 +980,39 @@
   </script>
 
   <script>
-    // ==================== Page-specific logic ====================
+    // ==================== Page-specific logic (stars and gallery) ====================
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
+
+    // Cursor sparkles
+    let lastStarTime = 0;
+    document.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastStarTime < 45) return;
+      lastStarTime = now;
+
+      const star = document.createElement("div");
+      star.className = "star";
+      star.textContent = "✦";
+      star.style.setProperty("--drift", Math.random());
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 2000);
+    });
+
+    // Full-page falling sparkles
+    setInterval(() => {
+      const star = document.createElement("div");
+      star.className = "falling-star";
+      star.textContent = "✦";
+      star.style.left = Math.random() * 100 + "vw";
+      star.style.top = "-10vh";
+      star.style.setProperty("--drift", Math.random() * 2 - 1);
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 8000);
+    }, 400);
 
     // Gallery loading – only images 1 to 12 exist
     const MAX_IMAGES = 12;
