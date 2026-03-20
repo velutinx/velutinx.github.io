@@ -25,6 +25,13 @@
     .poll-page .floating-cart {
       display: none !important;
     }
+    /* Discord logo wobble (same as index) */
+    .icon-link img {
+      transition: transform 0.25s ease;
+    }
+    .icon-link:hover img {
+      animation: blobWobble 1.6s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="poll-page">
