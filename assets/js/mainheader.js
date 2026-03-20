@@ -1,3 +1,4 @@
+// mainheader.js – corrected to avoid redeclaring currentLanguage
 (async function() {
   const navContainer = document.getElementById('navContainer');
   if (!navContainer) return;
@@ -33,7 +34,7 @@
       document.body.appendChild(cartOverlay);
     }
 
-    // --- Helper functions ---
+    // --- Helper functions (unchanged) ---
     function showSnackbar() {
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show'), 2000);
@@ -52,7 +53,6 @@
     }
 
     function formatPrice(value) {
-      // Simple fallback formatting – you can expand later
       return `US$${value.toFixed(2)}`;
     }
 
@@ -87,7 +87,6 @@
       }
     }
 
-    // Cart open/close with overlay
     function openCart() {
       cartDrawer.classList.add('open');
       cartOverlay.classList.add('active');
@@ -106,7 +105,6 @@
       cartOverlay.addEventListener('click', closeCart);
     }
 
-    // Remove items from cart
     if (cartItemsEl) {
       cartItemsEl.addEventListener('click', (e) => {
         if (e.target.classList.contains('cart-item-remove')) {
@@ -142,13 +140,11 @@
         document.body.classList.toggle('dark');
         localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       });
-      // Initialise dark mode from localStorage
       if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark');
       }
     }
 
-    // Logo and store button redirects
     if (logo) logo.addEventListener('click', () => window.location.href = '/');
     if (storeBtn) storeBtn.addEventListener('click', () => window.location.href = '/store');
 
@@ -194,6 +190,14 @@
     document.addEventListener('languageChanged', () => {
       applyHeaderTranslations();
       updateCartDisplay();
+    });
+
+    document.querySelectorAll('.lang-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const newLang = item.dataset.lang;
+        if (window.setLanguage) window.setLanguage(newLang);
+        langPopover?.classList.remove('show');
+      });
     });
 
     applyHeaderTranslations();
