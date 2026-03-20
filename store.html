@@ -8,9 +8,7 @@
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
   <!-- NEW: social menu styles -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
-  <!-- PayPal SDK -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
-  
+  <!-- PayPal SDK is now loaded dynamically by shop-shared.js – no direct include needed -->
 
   <style>
     /* Prevent flash of old title */
@@ -252,7 +250,6 @@
             <svg xmlns="https://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
               <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
             </svg>
-            <!-- Placeholder will be set by JS – no hardcoded value -->
             <input type="search" id="searchInput" class="input-element" />
           </div>
         </div>
@@ -261,55 +258,48 @@
     </main>
   </div>
 
-
   <!-- NEW: positioned container for the social menu -->
-<div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;">
-  <div class="menu">
-    <input type="checkbox" id="check-social" class="checkbox">
-    <label for="check-social" class="label_checkbox">
-      <svg class="icon_plus" viewBox="0 0 24 24">
-        <path d="M12 3v18M3 12h18" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-      </svg>
-      <svg class="icon_close" viewBox="0 0 24 24">
-        <path d="M5 5L19 19M19 5L5 19" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-      </svg>
-    </label>
-
-    <!-- Twitter -->
-    <a href="https://x.com/VelutinxSFW" target="_blank" class="menu_link twitter">
-      <img src="https://www.velutinx.com/images/LogoTwitter.png" class="menu_icon" alt="Twitter">
-    </a>
-    <!-- Bluesky -->
-    <a href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank" class="menu_link bluesky">
-      <img src="https://www.velutinx.com/images/LogoBluesky.png" class="menu_icon" alt="Bluesky">
-    </a>
-    <!-- Pixiv -->
-    <a href="https://www.pixiv.net/en/users/117116845" target="_blank" class="menu_link pixiv">
-      <img src="https://www.velutinx.com/images/LogoPixiv.png" class="menu_icon" alt="Pixiv">
-    </a>
-    <!-- Ko‑fi -->
-    <a href="https://ko-fi.com/velutinxstudio" target="_blank" class="menu_link kofi">
-      <img src="https://www.velutinx.com/images/LogoKoFi.png" class="menu_icon" alt="Ko‑fi">
-    </a>
-    <!-- Instagram -->
-    <a href="https://www.instagram.com/velutinxx/" target="_blank" class="menu_link instagram">
-      <img src="https://www.velutinx.com/images/LogoInstagram.png" class="menu_icon" alt="Instagram">
-    </a>
-    <!-- SubscribeStar -->
-    <a href="https://subscribestar.adult/velutinx" target="_blank" class="menu_link substar">
-      <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" class="menu_icon" alt="SubscribeStar">
-    </a>
+  <div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;">
+    <div class="menu">
+      <input type="checkbox" id="check-social" class="checkbox">
+      <label for="check-social" class="label_checkbox">
+        <svg class="icon_plus" viewBox="0 0 24 24">
+          <path d="M12 3v18M3 12h18" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <svg class="icon_close" viewBox="0 0 24 24">
+          <path d="M5 5L19 19M19 5L5 19" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </label>
+      <a href="https://x.com/VelutinxSFW" target="_blank" class="menu_link twitter">
+        <img src="https://www.velutinx.com/images/LogoTwitter.png" class="menu_icon" alt="Twitter">
+      </a>
+      <a href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank" class="menu_link bluesky">
+        <img src="https://www.velutinx.com/images/LogoBluesky.png" class="menu_icon" alt="Bluesky">
+      </a>
+      <a href="https://www.pixiv.net/en/users/117116845" target="_blank" class="menu_link pixiv">
+        <img src="https://www.velutinx.com/images/LogoPixiv.png" class="menu_icon" alt="Pixiv">
+      </a>
+      <a href="https://ko-fi.com/velutinxstudio" target="_blank" class="menu_link kofi">
+        <img src="https://www.velutinx.com/images/LogoKoFi.png" class="menu_icon" alt="Ko‑fi">
+      </a>
+      <a href="https://www.instagram.com/velutinxx/" target="_blank" class="menu_link instagram">
+        <img src="https://www.velutinx.com/images/LogoInstagram.png" class="menu_icon" alt="Instagram">
+      </a>
+      <a href="https://subscribestar.adult/velutinx" target="_blank" class="menu_link substar">
+        <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" class="menu_icon" alt="SubscribeStar">
+      </a>
+    </div>
   </div>
-</div>
 
   <!-- NEW: social menu script (optional) -->
   <script src="https://velutinx.com/assets/js/socials.js"></script>
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
-  <!-- Product listing script -->
+  <!-- Product listing script (simplified cart handling) -->
   <script type="module">
-import packsData from 'https://velutinx.com/assets/js/packs-data.js';
+    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
+
     window.addEventListener('load', async () => {
       const productsData = packsData.map(p => ({
         ...p,
@@ -317,11 +307,13 @@ import packsData from 'https://velutinx.com/assets/js/packs-data.js';
         date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
         category: p.category || 0
       }));
+
       const grid = document.getElementById("productGrid");
       const searchInput = document.getElementById("searchInput");
       const sortButtons = document.querySelectorAll(".sort-btn");
       const categoryItems = document.querySelectorAll(".category-list li");
       let currentCategory = 0;
+
       function createCards() {
         grid.innerHTML = "";
         productsData.forEach(p => {
@@ -333,11 +325,11 @@ import packsData from 'https://velutinx.com/assets/js/packs-data.js';
           card.dataset.id = p.id;
           card.dataset.category = p.category;
           card.innerHTML = `
-  <img src="https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg"
-       alt="${p.title}"
-       class="card-image"
-       loading="lazy"
-       onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+${p.id}+';">
+            <img src="https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg"
+                 alt="${p.title}"
+                 class="card-image"
+                 loading="lazy"
+                 onerror="this.src='https://via.placeholder.com/248x300?text=Pack+'+${p.id}+';">
             <div class="card-content">
               <div class="card-title">${p.title}</div>
               <div class="price-row">
@@ -354,43 +346,39 @@ import packsData from 'https://velutinx.com/assets/js/packs-data.js';
               </div>
             </div>
           `;
+
+          // Navigate to pack page on card click (unless button clicked)
           card.addEventListener("click", e => {
             if (e.target.closest(".cart-btn")) return;
             window.location.href = `/s/pack?id=${p.id}`;
           });
-          grid.appendChild(card);
-          p.element = card;
-          p.cartBtn = card.querySelector(".cart-btn");
-          const isInCart = window.getCart?.().some(item => item.id === p.id) ?? false;
-          if (isInCart) {
-            p.cartBtn.classList.add("added");
-            p.cartBtn.innerHTML = `<svg xmlns="https://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-          }
-          p.cartBtn.addEventListener("click", e => {
+
+          // Cart button click – now only calls the shared function
+          const cartBtn = card.querySelector(".cart-btn");
+          cartBtn.addEventListener("click", e => {
             e.stopPropagation();
             window.addOrToggleCart?.(p);
-            const nowInCart = window.getCart?.().some(item => item.id === p.id) ?? false;
-            p.cartBtn.classList.toggle("added", nowInCart);
-            if (nowInCart) {
-              p.cartBtn.innerHTML = `<svg xmlns="https://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M11.5 17h-5.5v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path><path d="M15 19l2 2l4 -4"></path></svg>`;
-              document.getElementById("snackbar")?.classList.add("show");
-              setTimeout(() => document.getElementById("snackbar")?.classList.remove("show"), 2400);
-            } else {
-              p.cartBtn.innerHTML = `<svg xmlns="https://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>`;
-            }
-            window.updateCartDisplay?.();
           });
+
+          grid.appendChild(card);
+          p.element = card;
+          p.cartBtn = cartBtn;
         });
-        window.updateAllPrices?.();
+
+        // Sync initial button states with cart
+        window.updateCartDisplay?.();
       }
+
       function filterAndSort() {
         const query = searchInput.value.toLowerCase().trim();
         const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
         productsData.forEach(p => {
           const titleMatch = p.title.toLowerCase().includes(query);
           const categoryMatch = currentCategory === 0 || p.category === currentCategory;
           p.element.classList.toggle("hidden", !(titleMatch && categoryMatch));
         });
+
         let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
         if (activeSort === "newest") {
           visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
@@ -401,8 +389,10 @@ import packsData from 'https://velutinx.com/assets/js/packs-data.js';
         } else if (activeSort === "price-desc") {
           visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
         }
+
         visible.forEach(el => grid.appendChild(el));
       }
+
       categoryItems.forEach((item, index) => {
         item.addEventListener("click", () => {
           categoryItems.forEach(i => i.classList.remove("active"));
@@ -411,6 +401,7 @@ import packsData from 'https://velutinx.com/assets/js/packs-data.js';
           filterAndSort();
         });
       });
+
       sortButtons.forEach(btn => {
         btn.addEventListener("click", () => {
           sortButtons.forEach(b => b.classList.remove("active"));
@@ -418,81 +409,15 @@ import packsData from 'https://velutinx.com/assets/js/packs-data.js';
           filterAndSort();
         });
       });
+
       searchInput.addEventListener("input", filterAndSort);
+
       createCards();
       filterAndSort();
       window.updateCartDisplay?.();
     });
   </script>
 
-  <!-- PayPal integration -->
-  <script>
-    let paypalButtonsRendered = false;
-
-    function initPayPalButtons() {
-      if (paypalButtonsRendered) return;
-      const drawer = document.getElementById("cartDrawer");
-      const container = document.getElementById("paypal-button-container");
-      if (!drawer || !drawer.classList.contains("open")) return;
-      if (!container) return;
-      if (typeof paypal === 'undefined') return;
-
-      container.innerHTML = '';
-
-      paypal.Buttons({
-        createOrder: (data, actions) => {
-          const cart = window.getCart ? window.getCart() : [];
-          const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
-          if (parseFloat(total) <= 0) return Promise.reject("Cart is empty");
-          return actions.order.create({
-            purchase_units: [{ amount: { currency_code: "USD", value: total } }]
-          });
-        },
-        onApprove: async (data, actions) => {
-          const details = await actions.order.capture();
-          window.location.href = `/success.html?orderID=${details.id}`;
-        },
-        onError: (err) => {
-          alert("There was a problem with PayPal. Please try again.");
-        }
-      }).render("#paypal-button-container");
-
-      paypalButtonsRendered = true;
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const originalUpdate = window.updateCartDisplay || function() {};
-      window.updateCartDisplay = function() {
-        originalUpdate();
-        const drawer = document.getElementById("cartDrawer");
-        if (drawer && drawer.classList.contains("open")) {
-          setTimeout(initPayPalButtons, 400);
-        }
-      };
-
-      const openDrawer = () => {
-        const drawer = document.getElementById("cartDrawer");
-        drawer?.classList.add("open");
-        setTimeout(initPayPalButtons, 600);
-      };
-
-      document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
-      document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
-
-      document.getElementById("cartClose")?.addEventListener("click", () => {
-        document.getElementById("cartDrawer")?.classList.remove("open");
-      });
-
-      document.addEventListener("click", (e) => {
-        const drawer = document.getElementById("cartDrawer");
-        if (drawer?.classList.contains("open") &&
-            !drawer.contains(e.target) &&
-            !document.getElementById("cartBtn")?.contains(e.target) &&
-            !document.getElementById("floatingCartBtn")?.contains(e.target)) {
-          drawer.classList.remove("open");
-        }
-      });
-    });
-  </script>
+  <!-- The standalone PayPal script block has been removed – now handled by shop-shared.js -->
 </body>
 </html>
