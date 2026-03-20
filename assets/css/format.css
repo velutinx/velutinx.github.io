@@ -6,7 +6,9 @@
   margin: 22px auto;
   border-radius: 4px;
 }
-body.dark .divider { background: var(--divider-dark, #6f6a4e); }
+body.dark .divider {
+  background: var(--divider-dark, #6f6a4e);
+}
 
 .artwork-wrap {
   max-width: 1800px;
