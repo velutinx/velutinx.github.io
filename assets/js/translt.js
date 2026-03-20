@@ -137,7 +137,7 @@ const translations = {
     ja: {
       storeBtn: "ストア",
       menuHome: "ホーム",
-      menuCommissions: "依頼",
+      menuCommissions: "コミッション",
       menuArtwork: "作品",
       menuPoll: "投票",
       menuStore: "ストア",
