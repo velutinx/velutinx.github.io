@@ -3,15 +3,14 @@
 <head>
   <meta charset="utf-8">
   <title>VELUTINX — Artwork</title>
-  <!-- Header styles (must come before page styles to allow overrides) -->
+  <!-- Header CSS -->
   <link rel="stylesheet" href="/assets/css/mainheader.css">
   <style>
     /* ====================================================
-       Original styles.css – ONLY the non‑conflicting parts
-       (background, gallery, zoom, sparkles, commissions, contact, poll)
+       Page-specific styles (background, gallery, zoom, etc.)
        ==================================================== */
     :root {
-      --bg: #d4d0c1;
+      --bg-page: #d4d0c1;
       --divider: #aa9e76;
       --text: #111;
 
@@ -20,9 +19,6 @@
       --text-dark: #e6e3d8;
     }
 
-    /* ====================================================
-       Shared Animated Background (cream palette + wave)
-       ==================================================== */
     .background-wrapper {
       position: fixed;
       inset: 0;
@@ -90,7 +86,6 @@
       background: transparent;
     }
 
-    /* Dark mode: much darker base gradient + slow flow */
     body.dark .background-gradient {
       background: linear-gradient(
         135deg,
@@ -151,9 +146,6 @@
       background: rgba(15, 15, 18, 0.45);
     }
 
-    /* =========================================================
-       Global Reset & Body
-       ========================================================= */
     * { box-sizing: border-box; }
 
     body {
@@ -170,7 +162,6 @@
       color: var(--text-dark);
     }
 
-    /* Page load animation */
     #page {
       opacity: 0;
       transform: translateY(60px);
@@ -181,7 +172,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Dividers */
     .divider {
       width: 80%;
       height: 6px;
@@ -191,163 +181,6 @@
     }
     body.dark .divider { background: var(--divider-dark); }
 
-    /* Hero Section */
-    .hero {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 40px 24px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      align-items: center;
-    }
-
-    .hero-image {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .hero-image img {
-      width: 320px;
-      border-radius: 16px;
-      z-index: 1;
-    }
-
-    .social-star {
-      position: absolute;
-      color: var(--divider);
-      font-size: 18px;
-      pointer-events: none;
-      animation: socialStarFall 6s linear forwards;
-      z-index: 2;
-    }
-    @keyframes socialStarFall {
-      from { opacity: 0; transform: translateY(-20px); }
-      10% { opacity: 1; }
-      to { opacity: 0; transform: translateY(300px); }
-    }
-
-    .hero-text { text-align: center; }
-    .hero-name { font-size: 42px; font-weight: 800; letter-spacing: 4px; }
-    .hero-sub { font-size: 14px; letter-spacing: 1px; margin: 10px 0; }
-
-    /* Discord Button */
-    .discord-link img {
-      width: 220px;
-      cursor: pointer;
-    }
-    .discord-link img:hover {
-      animation: blobWobble 1.6s ease-in-out infinite;
-    }
-
-    /* Cursor Sparkles */
-    .star {
-      position: fixed;
-      pointer-events: none;
-      color: var(--divider);
-      font-size: 14px;
-      animation: driftFall 2s ease-out forwards;
-      z-index: 9999;
-    }
-    @keyframes driftFall {
-      to {
-        opacity: 0;
-        transform: translate(calc(-20px + 40px * var(--drift)), 90px) scale(0.4);
-      }
-    }
-
-    /* Commission Section */
-    .commission-wrap {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 60px 24px 80px;
-      position: relative;
-    }
-
-    .commission-box {
-      background: transparent;
-      border: 2px solid var(--divider);
-      border-radius: 16px;
-      padding: 40px 36px;
-      min-height: 360px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s ease;
-      text-align: center;
-    }
-
-    .commission-box::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(238, 234, 224, 0.18);
-      border-radius: 14px;
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    body.dark .commission-box {
-      border-color: var(--divider-dark);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    }
-
-    body.dark .commission-box::before {
-      background: rgba(22, 22, 27, 0.25);
-    }
-
-    .commission-box:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 48px rgba(0,0,0,0.35);
-      backdrop-filter: blur(16px);
-    }
-
-    .commission-box h2,
-    .commission-box p,
-    .commission-box .placeholder {
-      position: relative;
-      z-index: 2;
-    }
-
-    .commission-box h2 {
-      font-size: 18px;
-      letter-spacing: 2px;
-      margin-bottom: 16px;
-    }
-
-    .commission-box p {
-      font-size: 14px;
-      line-height: 1.6;
-      letter-spacing: 1px;
-      opacity: 0.9;
-    }
-
-    .placeholder {
-      margin-top: 40px;
-      font-style: italic;
-      opacity: 0.7;
-    }
-
-    /* Box-specific falling sparkles */
-    .box-star {
-      position: absolute;
-      color: var(--divider);
-      font-size: 18px;
-      pointer-events: none;
-      animation: boxStarFall 6s linear forwards;
-      z-index: 1;
-    }
-
-    @keyframes boxStarFall {
-      from { opacity: 0; transform: translateY(-20px); }
-      10% { opacity: 1; }
-      to { opacity: 0; transform: translateY(420px); }
-    }
-
-    /* Artwork Gallery */
     .artwork-wrap {
       max-width: 1800px;
       margin: 0 auto;
@@ -384,7 +217,6 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     }
 
-    /* Zoom overlay */
     .zoom-overlay {
       position: fixed;
       inset: 0;
@@ -409,7 +241,21 @@
       transition: all 0.22s cubic-bezier(.2,.8,.2,1);
     }
 
-    /* Full-screen falling sparkles */
+    .star {
+      position: fixed;
+      pointer-events: none;
+      color: var(--divider);
+      font-size: 14px;
+      animation: driftFall 2s ease-out forwards;
+      z-index: 9999;
+    }
+    @keyframes driftFall {
+      to {
+        opacity: 0;
+        transform: translate(calc(-20px + 40px * var(--drift)), 90px) scale(0.4);
+      }
+    }
+
     .falling-star {
       position: fixed;
       pointer-events: none;
@@ -418,261 +264,16 @@
       z-index: 3;
       animation: fallDown 6s linear forwards;
     }
-
     @keyframes fallDown {
       from { opacity: 0; transform: translateY(-10vh); }
       10% { opacity: 1; }
       to { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
     }
-
-    /* Contact Page Layout */
-    .contact-wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px 60px;
-      display: grid;
-      grid-template-columns: 70% 30%;
-      gap: 40px;
-      background: transparent;
-    }
-
-    .contact-left {
-      background: transparent;
-      border: 2px solid var(--divider);
-      border-radius: 14px;
-      padding: 32px;
-      box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .contact-left::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(238, 234, 224, 0.18);
-      border-radius: 12px;
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    body.dark .contact-left {
-      border-color: var(--divider-dark);
-      box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
-    }
-
-    body.dark .contact-left::before {
-      background: rgba(22, 22, 27, 0.25);
-    }
-
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid var(--divider);
-      border-radius: 6px;
-      background: transparent;
-      font-size: 13px;
-      transition: 0.2s ease;
-      color: var(--text);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    body.dark .form-group input,
-    body.dark .form-group textarea {
-      background: transparent;
-      color: var(--text-dark);
-      border-color: var(--divider-dark);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-    }
-
-    .send-btn {
-      margin-top: 10px;
-      padding: 10px 26px;
-      border: none;
-      border-radius: 999px;
-      background: var(--divider);
-      font-weight: 700;
-      letter-spacing: 2px;
-      cursor: pointer;
-      z-index: 2;
-    }
-
-    body.dark .send-btn {
-      background: var(--divider-dark);
-      color: var(--text-dark);
-    }
-
-    .contact-right {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      position: relative;
-    }
-
-    .social-btn {
-      width: 62.5%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border: 2px solid var(--divider);
-      border-radius: 10px;
-      background: transparent;
-      text-decoration: none;
-      color: #000;
-      transition: transform 0.2s ease;
-      cursor: pointer;
-      box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      position: relative;
-    }
-
-    .social-btn::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(238, 234, 224, 0.15);
-      border-radius: 8px;
-      z-index: -1;
-    }
-
-    body.dark .social-btn {
-      background: transparent;
-      border-color: var(--divider-dark);
-      color: var(--text-dark);
-      box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
-    }
-
-    body.dark .social-btn::before {
-      background: rgba(22, 22, 27, 0.2);
-    }
-
-    .social-btn:hover {
-      transform: scale(1.2);
-      animation: blobWobble 1.6s ease-in-out infinite;
-    }
-
-    .social-btn img {
-      width: 22px;
-      height: 22px;
-    }
-
-    @media (max-width: 900px) {
-      .contact-wrap {
-        grid-template-columns: 1fr;
-      }
-      .social-btn {
-        width: 100%;
-      }
-    }
-
-    .popup {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #eeeae0;
-      border: 3px solid var(--divider);
-      padding: 14px 18px;
-      border-radius: 10px;
-      font-size: 13px;
-      letter-spacing: 1px;
-      font-weight: 700;
-      box-shadow: 6px 6px 0 rgba(0,0,0,0.4);
-      z-index: 99999;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-
-    body.dark .popup {
-      background: #16161b;
-      border-color: var(--divider-dark);
-      color: var(--text-dark);
-    }
-
-    .input-error {
-      border-color: var(--error) !important;
-      animation: shake 0.35s;
-    }
-
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      50% { transform: translateX(4px); }
-      75% { transform: translateX(-4px); }
-      100% { transform: translateX(0); }
-    }
-
-    .leaderboard-entry {
-      transition: filter 0.5s ease, transform 0.4s ease;
-      padding: 3px 0;
-      font-family: inherit;
-    }
-
-    .leaderboard-entry.spoiled {
-      filter: blur(5px);
-      user-select: none;
-      cursor: default;
-    }
-
-    .leaderboard-entry.spoiled:hover {
-      filter: blur(0) brightness(1.08);
-      transform: scale(1.015);
-      transition: filter 0.9s ease-out, transform 0.5s ease;
-    }
-
-    .card,
-    .big-card,
-    #leaderboard {
-      background: transparent;
-      border: 2px solid var(--divider);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before,
-    .big-card::before,
-    #leaderboard::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(238, 234, 224, 0.18);
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    body.dark .card,
-    body.dark .big-card,
-    body.dark #leaderboard {
-      border-color: var(--divider-dark);
-    }
-
-    body.dark .card::before,
-    body.dark .big-card::before,
-    body.dark #leaderboard::before {
-      background: rgba(22, 22, 27, 0.25);
-    }
-
-    /* Animation keyframes used by social buttons */
-    @keyframes blobWobble {
-      0% { transform: scale(1.15) rotate(0deg); }
-      25% { transform: scale(1.15) rotate(-4deg); }
-      50% { transform: scale(1.15) rotate(4deg); }
-      75% { transform: scale(1.15) rotate(-3deg); }
-      100% { transform: scale(1.15) rotate(0deg); }
-    }
   </style>
 </head>
 <body>
 
-  <!-- Swipe animation layer (still used by language change) -->
+  <!-- Swipe animation layer (used by language change) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div class="background-wrapper">
@@ -680,7 +281,6 @@
     <div class="wave-overlay"></div>
   </div>
 
-  <!-- Page wrapper -->
   <div id="page">
     <!-- Header will be injected here by mainheader.js -->
     <div id="navContainer"></div>
@@ -696,17 +296,15 @@
     <div class="divider"></div>
   </div>
 
-  <!-- Zoom overlay -->
   <div class="zoom-overlay" id="zoomOverlay"></div>
 
-  <!-- External scripts (translations must be loaded first) -->
+  <!-- Scripts -->
   <script src="/assets/js/translations.js"></script>
   <script src="/assets/js/mainheader.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // ==================== Original inline script from artwork.html (minus conflicts) ====================
-    // Apply dark mode (the header will also apply it, but this ensures initial state)
+    // Apply dark mode from localStorage (header also does this)
     if (localStorage.getItem("darkMode") === "true") {
       document.body.classList.add("dark");
     }
@@ -821,7 +419,7 @@
       }, 230);
     };
 
-    // Apply artwork translations on load and after language changes
+    // Apply artwork translations
     function applyArtworkTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       const t = window.translations?.artwork?.[lang];
@@ -834,6 +432,5 @@
     applyArtworkTranslations();
     document.addEventListener('languageChanged', applyArtworkTranslations);
   </script>
-
 </body>
 </html>
