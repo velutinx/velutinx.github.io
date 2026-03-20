@@ -34,7 +34,7 @@
       document.body.appendChild(cartOverlay);
     }
 
-    // --- Helper functions (unchanged) ---
+    // --- Helper functions ---
     function showSnackbar() {
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show'), 2000);
