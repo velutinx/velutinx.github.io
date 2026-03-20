@@ -7,15 +7,6 @@
   <!-- Header CSS -->
   <link rel="stylesheet" href="/assets/css/mainheader.css">
   <!-- Page‑specific CSS -->
-  <link rel="stylesheet" href="/assets/css/format.css"><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VELUTINX — Artwork</title>
-  <!-- Header CSS -->
-  <link rel="stylesheet" href="/assets/css/mainheader.css">
-  <!-- Page‑specific CSS -->
   <link rel="stylesheet" href="/assets/css/format.css">
 </head>
 <body>
@@ -45,72 +36,20 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Wait for translations to be loaded, then apply
-    function waitForTranslations() {
+    // Wait for translations to be ready
+    (function waitForTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('artwork');
-        // Also ensure header updates (mainheader.js will already have run, but we can force)
+        // Also force header update (though mainheader.js will already have run)
         if (typeof window.updateHeaderTranslations === 'function') {
           window.updateHeaderTranslations();
         }
       } else {
-        console.warn('Translations not ready, retrying...');
         setTimeout(waitForTranslations, 200);
       }
-    }
-    waitForTranslations();
+    })();
 
-    // Ensure dark mode from localStorage
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark');
-    }
-  </script>
-</body>
-</html>
-</head>
-<body>
-
-  <div class="lang-swipe" id="langSwipe"></div>
-
-  <div id="page">
-    <div id="navContainer"></div>
-    <div class="divider"></div>
-
-    <section class="artwork-wrap">
-      <div class="artwork-intro" id="artworkIntro">
-        Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images
-      </div>
-      <div class="gallery" id="gallery"></div>
-    </section>
-
-    <div class="divider"></div>
-  </div>
-
-  <div class="zoom-overlay" id="zoomOverlay"></div>
-
-  <!-- Scripts: translt.js must be first -->
-  <script src="/assets/js/translt.js"></script>
-  <script src="/assets/js/mainheader.js"></script>
-  <script src="/assets/js/format.js"></script>
-  <script src="/assets/js/tab-title-animation.js"></script>
-
-  <script>
-    // Wait for translations to be loaded, then apply
-    function waitForTranslations() {
-      if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('artwork');
-        // Also ensure header updates (mainheader.js will already have run, but we can force)
-        if (typeof window.updateHeaderTranslations === 'function') {
-          window.updateHeaderTranslations();
-        }
-      } else {
-        console.warn('Translations not ready, retrying...');
-        setTimeout(waitForTranslations, 200);
-      }
-    }
-    waitForTranslations();
-
-    // Ensure dark mode from localStorage
+    // Apply dark mode from localStorage
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
