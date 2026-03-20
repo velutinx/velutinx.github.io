@@ -152,159 +152,126 @@
     return `${symbol}${converted}`;
   }
 
-/* ==================== CART MANAGEMENT ==================== */
+  /* ==================== CART MANAGEMENT ==================== */
 
-function getCart() {
-  try {
-    const saved = localStorage.getItem("velutinx_cart");
-    return saved ? JSON.parse(saved) : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveCart(cart) {
-  localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
-}
-
-function addOrToggleCart(pack) {
-  let cart = getCart();
-  const index = cart.findIndex(item => item.id === pack.id);
-  let message = "";
-  let isSuccess = true;
-
-  if (index !== -1) {
-    cart.splice(index, 1);
-    message = translations[currentLang]?.removeFromCart || "Removed from cart";
-    isSuccess = false;
-  } else {
-    // Generate thumbnail URL from pack ID (zero-padded to 3 digits)
-    const paddedId = pack.id.padStart(3, '0');
-    const imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
-
-    const newItem = {
-      id: pack.id,
-      title: pack.title,
-      image: imageUrl,                     // ✅ dynamic thumbnail
-      price: getPriceForPack(pack),
-      quantity: 1
-    };
-    // Copy any extra fields if present (type, tier, discordId, etc.)
-    if (pack.type) newItem.type = pack.type;
-    if (pack.tier) newItem.tier = pack.tier;
-    if (pack.discordId) newItem.discordId = pack.discordId;
-
-    cart.push(newItem);
-    message = translations[currentLang]?.snackText || "Added successfully";
-    isSuccess = true;
+  function getCart() {
+    try {
+      const saved = localStorage.getItem("velutinx_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
   }
 
-  saveCart(cart);
-  updateCartDisplay();
-  showSnackbar(message, isSuccess);
+  function saveCart(cart) {
+    localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
+  }
 
-  if (window.updateAllCartButtons) window.updateAllCartButtons();
-}
-  
-function updateCartDisplay() {
+  function addOrToggleCart(pack) {
+    let cart = getCart();
+    const index = cart.findIndex(item => item.id === pack.id);
+    let message = "";
+    let isSuccess = true;
 
-  const drawer = document.getElementById("cartDrawer");
-  const wasOpen = drawer?.classList.contains("open");
-
-  const cart = getCart();
-  const count = cart.length;
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
-
-  /* update cart counters */
-  document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
-    if (el) el.textContent = count;
-  });
-
-  const itemsEl = document.getElementById("cartItems");
-
-  if (itemsEl) {
-
-    itemsEl.innerHTML = "";
-
-    if (count === 0) {
-
-      itemsEl.innerHTML = "<p>Your cart is empty</p>";
-
+    if (index !== -1) {
+      cart.splice(index, 1);
+      message = translations[currentLang]?.removeFromCart || "Removed from cart";
+      isSuccess = false;
     } else {
+      // Generate thumbnail URL from pack ID (zero-padded to 3 digits)
+      const paddedId = pack.id.padStart(3, '0');
+      const imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
 
-      cart.forEach((item, idx) => {
+      const newItem = {
+        id: pack.id,
+        title: pack.title,
+        image: imageUrl,
+        price: getPriceForPack(pack),
+        quantity: 1
+      };
+      if (pack.type) newItem.type = pack.type;
+      if (pack.tier) newItem.tier = pack.tier;
+      if (pack.discordId) newItem.discordId = pack.discordId;
 
-        const div = document.createElement("div");
-        div.className = "cart-item";
-
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
-          </div>
-          <button class="cart-item-remove" data-index="${idx}">×</button>
-        `;
-
-        itemsEl.appendChild(div);
-
-      });
-
+      cart.push(newItem);
+      message = translations[currentLang]?.snackText || "Added successfully";
+      isSuccess = true;
     }
 
-    const totalEl = document.getElementById("cartTotal");
-    if (totalEl) totalEl.textContent = formatPrice(total);
+    saveCart(cart);
+    updateCartDisplay();
+    showSnackbar(message, isSuccess);
+
+    if (window.updateAllCartButtons) window.updateAllCartButtons();
   }
 
-  /* attach remove handlers (prevents drawer closing) */
-  document.querySelectorAll(".cart-item-remove").forEach(btn => {
+  function updateCartDisplay() {
+    const drawer = document.getElementById("cartDrawer");
+    const wasOpen = drawer?.classList.contains("open");
 
-    btn.addEventListener("click", function(e) {
+    const cart = getCart();
+    const count = cart.length;
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
 
-      e.stopPropagation();
-      e.preventDefault();
-
-      const idx = parseInt(this.dataset.index);
-
-      let cart = getCart();
-      cart.splice(idx, 1);
-
-      saveCart(cart);
-
-      updateCartDisplay();
-
+    document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
+      if (el) el.textContent = count;
     });
 
-  });
+    const itemsEl = document.getElementById("cartItems");
+    if (itemsEl) {
+      itemsEl.innerHTML = "";
+      if (count === 0) {
+        itemsEl.innerHTML = "<p>Your cart is empty</p>";
+      } else {
+        cart.forEach((item, idx) => {
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <img src="${item.image}" alt="${item.title}">
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.title}</div>
+              <div class="cart-item-price">${formatPrice(item.price)}</div>
+            </div>
+            <button class="cart-item-remove" data-index="${idx}">×</button>
+          `;
+          itemsEl.appendChild(div);
+        });
+      }
+      const totalEl = document.getElementById("cartTotal");
+      if (totalEl) totalEl.textContent = formatPrice(total);
+    }
 
-  /* sync product buttons */
-  document.querySelectorAll(".product-card").forEach(card => {
+    // Remove handlers
+    document.querySelectorAll(".cart-item-remove").forEach(btn => {
+      btn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        const idx = parseInt(this.dataset.index);
+        let cart = getCart();
+        cart.splice(idx, 1);
+        saveCart(cart);
+        updateCartDisplay();
+      });
+    });
 
-    const id = card.dataset.id;
-    const btn = card.querySelector(".cart-btn");
+    // Sync product buttons
+    document.querySelectorAll(".product-card").forEach(card => {
+      const id = card.dataset.id;
+      const btn = card.querySelector(".cart-btn");
+      if (!btn) return;
+      const inCart = cart.some(item => item.id == id);
+      btn.classList.toggle("added", inCart);
+    });
 
-    if (!btn) return;
+    if (wasOpen) drawer?.classList.add("open");
 
-    const inCart = cart.some(item => item.id == id);
-    btn.classList.toggle("added", inCart);
-
-  });
-
-  /* restore drawer state */
-  if (wasOpen) drawer?.classList.add("open");
-
-  /* refresh PayPal buttons */
-  if (window.initPayPalButtons) {
-
-    setTimeout(() => {
-      window.initPayPalButtons();
-    }, 50);
-
+    // Refresh PayPal buttons when cart changes
+    if (window.initPayPalButtons) {
+      setTimeout(() => {
+        window.initPayPalButtons();
+      }, 50);
+    }
   }
-
-}
-
-
 
   /* ==================== SNACKBAR ==================== */
 
@@ -322,134 +289,127 @@ function updateCartDisplay() {
     }, 2400);
   }
 
-// ==================== PAYPAL ====================
+  /* ==================== PAYPAL ==================== */
 
-let paypalButtonsRendered = false; // flag to prevent double rendering
+  let paypalButtonsRendered = false;
 
-function initPayPalButtons() {
-  const container = document.getElementById("paypal-button-container");
-  const drawer = document.getElementById("cartDrawer");
+  function initPayPalButtons() {
+    const container = document.getElementById("paypal-button-container");
+    const drawer = document.getElementById("cartDrawer");
 
-  // Only render if the drawer is open and container exists
-  if (!container || !drawer || !drawer.classList.contains("open")) {
-    return;
-  }
-
-  if (paypalButtonsRendered) {
-    // If already rendered, just ensure it's visible (don't re-render)
-    return;
-  }
-
-  if (typeof paypal === 'undefined') {
-    console.warn('PayPal SDK not loaded yet');
-    return;
-  }
-
-  container.innerHTML = '';
-
-  paypal.Buttons({
-    createOrder: (data, actions) => {
-      const cart = getCart();
-      const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-      if (parseFloat(total) <= 0) {
-        return Promise.reject('Cart is empty');
-      }
-      return actions.order.create({
-        purchase_units: [{
-          amount: { currency_code: "USD", value: total }
-        }]
-      });
-    },
-
-onApprove: async (data, actions) => {
-      try {
-        const cart = getCart();
-        const membershipItems = cart.filter(item => item.type === 'membership');
-
-        if (membershipItems.length > 0) {
-          // 1. MEMBERSHIP ROUTE
-          const item = membershipItems[0]; 
-          
-          if (!item.discordId || !item.tier) {
-            console.error('Membership item missing discordId or tier', item);
-            alert('Missing Discord ID. Please remove the membership from your cart and add it again.');
-            return;
-          }
-
-          // CRITICAL: Capture the order first so 'details' exists and money is taken
-          const details = await actions.order.capture();
-
-          // Send to Railway backend (d.velutinx.com)
-          const response = await fetch('https://d.velutinx.com/api/capture-membership-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              orderId: details.id, 
-              tier: item.tier,
-              discordId: item.discordId
-            })
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Backend Error:', errorData);
-            throw new Error(errorData.error || 'Backend verification failed');
-          }
-
-          // Success redirect
-          window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
-
-        } else {
-          // 2. REGULAR PACK ROUTE
-          const details = await actions.order.capture();
-          window.location.href = `/s/success.html?orderID=${details.id}`;
-        }
-      } catch (err) {
-        console.error('PayPal capture error:', err);
-        alert('Payment was successful, but we had trouble updating your roles. Please contact support with your Order ID!');
-      }
-    },
-
-    onError: (err) => {
-      console.error('PayPal error:', err);
-      alert('PayPal encountered an error. Please try again.');
+    if (!container || !drawer || !drawer.classList.contains("open")) return;
+    if (paypalButtonsRendered) return;
+    if (typeof paypal === 'undefined') {
+      console.warn('PayPal SDK not loaded yet');
+      return;
     }
 
-  }).render("#paypal-button-container").then(() => {
-    paypalButtonsRendered = true;
-  });
-}
+    container.innerHTML = '';
 
-// Modified loadAndInitPayPal – ensure we don't reset the flag when reopening the drawer
-function loadAndInitPayPal() {
-  if (window.paypalLoaded) {
-    // If already loaded, just try to init (it will check the drawer state)
-    initPayPalButtons();
-    return;
+    paypal.Buttons({
+      createOrder: (data, actions) => {
+        const cart = getCart();
+        const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+        if (parseFloat(total) <= 0) return Promise.reject('Cart is empty');
+        return actions.order.create({
+          purchase_units: [{
+            amount: { currency_code: "USD", value: total }
+          }]
+        });
+      },
+
+      onApprove: async (data, actions) => {
+        try {
+          const cart = getCart();
+          const membershipItems = cart.filter(item => item.type === 'membership');
+
+          if (membershipItems.length > 0) {
+            // ----- MEMBERSHIP ROUTE -----
+            const item = membershipItems[0];
+            if (!item.discordId || !item.tier) {
+              console.error('Membership item missing discordId or tier', item);
+              alert('Missing Discord ID. Please remove the membership from your cart and add it again.');
+              return;
+            }
+            const details = await actions.order.capture();
+            const response = await fetch('https://d.velutinx.com/api/capture-membership-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: details.id,
+                tier: item.tier,
+                discordId: item.discordId
+              })
+            });
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.error || 'Backend verification failed');
+            }
+            window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
+          } else {
+            // ----- REGULAR PACK ROUTE (with storage) -----
+            const details = await actions.order.capture();
+            const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
+
+            const storeResponse = await fetch('/api/store-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderID: details.id,
+                items: cart,
+                payerEmail: details.payer.email_address,
+                amount: total,
+              }),
+            });
+
+            if (!storeResponse.ok) {
+              console.error('Failed to store order', await storeResponse.text());
+            }
+
+            window.location.href = `/s/success.html?orderID=${details.id}`;
+          }
+        } catch (err) {
+          console.error('PayPal capture error:', err);
+          alert('Payment was successful, but we had trouble finalizing your order. Please contact support with your Order ID!');
+        }
+      },
+
+      onError: (err) => {
+        console.error('PayPal error:', err);
+        alert('PayPal encountered an error. Please try again.');
+      }
+
+    }).render("#paypal-button-container").then(() => {
+      paypalButtonsRendered = true;
+    });
   }
 
-  window.paypalLoaded = true;
+  function loadAndInitPayPal() {
+    if (window.paypalLoaded) {
+      initPayPalButtons();
+      return;
+    }
 
-  const loader = document.createElement('script');
-  loader.src = "/functions/paypal-sdk";
-  loader.async = true;
+    window.paypalLoaded = true;
 
-  loader.onload = () => {
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (typeof window.paypal !== 'undefined') {
-        clearInterval(interval);
-        initPayPalButtons();
-      } else if (attempts > 50) {
-        clearInterval(interval);
-        console.error('PayPal SDK failed to load');
-      }
-    }, 200);
-  };
-
-  document.head.appendChild(loader);
-}
+    const loader = document.createElement('script');
+    loader.src = "https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD";
+    loader.async = true;
+    loader.onload = () => {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (typeof window.paypal !== 'undefined') {
+          clearInterval(interval);
+          initPayPalButtons();
+        } else if (attempts > 50) {
+          clearInterval(interval);
+          console.error('PayPal SDK failed to load');
+        }
+      }, 200);
+    };
+    document.head.appendChild(loader);
+  }
 
   /* ==================== GLOBAL EXPORTS ==================== */
 
@@ -460,6 +420,7 @@ function loadAndInitPayPal() {
   window.addOrToggleCart = addOrToggleCart;
   window.updateCartDisplay = updateCartDisplay;
   window.initPayPalButtons = initPayPalButtons;
+  window.loadAndInitPayPal = loadAndInitPayPal;
 
   window.removeItem = (idx) => {
     let cart = getCart();
@@ -468,19 +429,54 @@ function loadAndInitPayPal() {
     updateCartDisplay();
   };
 
-document.addEventListener("DOMContentLoaded", () => {
-  updateCartDisplay();
+  /* ==================== DOM INITIALIZATION ==================== */
 
-  const cartBtn = document.getElementById("cartBtn");
-  cartBtn?.addEventListener("click", () => {
-    const drawer = document.getElementById("cartDrawer");
-    drawer?.classList.toggle("open");
-    // Reset flag when drawer is closed so it can be re‑rendered on next open
-    if (!drawer?.classList.contains("open")) {
-      paypalButtonsRendered = false;
-    }
-    loadAndInitPayPal();
+  document.addEventListener("DOMContentLoaded", () => {
+    updateCartDisplay();
+
+    // ---- Drawer open/close ----
+    const openDrawer = () => {
+      const drawer = document.getElementById("cartDrawer");
+      if (!drawer) return;
+      drawer.classList.add("open");
+      loadAndInitPayPal();
+    };
+
+    const closeDrawer = () => {
+      const drawer = document.getElementById("cartDrawer");
+      if (!drawer) return;
+      drawer.classList.remove("open");
+      paypalButtonsRendered = false; // allow re-render next time
+    };
+
+    document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
+    document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
+    document.getElementById("cartClose")?.addEventListener("click", closeDrawer);
+
+    // Close when clicking outside
+    document.addEventListener("click", (e) => {
+      const drawer = document.getElementById("cartDrawer");
+      if (!drawer?.classList.contains("open")) return;
+      if (
+        !drawer.contains(e.target) &&
+        !document.getElementById("cartBtn")?.contains(e.target) &&
+        !document.getElementById("floatingCartBtn")?.contains(e.target)
+      ) {
+        closeDrawer();
+      }
+    });
+
+    // Cart state watcher (updates "Add to Cart" buttons globally)
+    let lastCart = JSON.stringify(getCart());
+    setInterval(() => {
+      const current = JSON.stringify(getCart());
+      if (current !== lastCart) {
+        lastCart = current;
+        if (window.updateButton) {
+          try { window.updateButton(); } catch(e){}
+        }
+      }
+    }, 200);
   });
-});
 
 })();
