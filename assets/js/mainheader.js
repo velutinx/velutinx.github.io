@@ -200,6 +200,28 @@
       });
     });
 
+// ==================== PRICE FORMATTING (store) ====================
+const tierMap = { 
+  1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 
+  3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 
+  10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } 
+};
+const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+
+function formatPrice(value, currency = currentCurrency) {
+  if (currency === "USD") return `US$${value.toFixed(2)}`;
+  const rounded = Math.round(value * 100) / 100;
+  if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+    const converted = tierMap[rounded][currency];
+    const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+    return `${symbol}${converted}`;
+  }
+  let converted = value * (approxRates[currency] || 1);
+  converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
+  const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+  return `${symbol}${converted}`;
+}
+    
     applyHeaderTranslations();
     updateCartDisplay();
   } catch (err) {
