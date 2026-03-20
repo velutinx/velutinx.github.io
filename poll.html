@@ -25,7 +25,7 @@
     .poll-page .floating-cart {
       display: none !important;
     }
-    /* Ensure Discord link wobbles on hover (same as index) */
+    /* Discord link wobble (same as index) */
     .icon-link img {
       transition: transform 0.25s ease;
     }
@@ -86,7 +86,7 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Supabase and fingerprint code (unchanged from original)
+    // ==================== SUPABASE & POLL LOGIC ====================
     const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
     const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
     const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
@@ -96,16 +96,14 @@
     const grid = document.getElementById("grid");
     const resultsBox = document.getElementById("results");
 
-    // Fingerprint agent (lazy-loaded)
-    let fpPromise = null;
+    let fpPromise = null; // fingerprint agent
 
     // Cookie helpers
     function setVoteCookie(optionId) {
       const d = new Date();
-      d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+      d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
       document.cookie = `votedPoll=${optionId}; expires=${d.toUTCString()}; path=/`;
     }
-
     function getVoteCookie() {
       const name = 'votedPoll=';
       const decodedCookie = decodeURIComponent(document.cookie);
@@ -118,14 +116,14 @@
       return null;
     }
 
-    // Initialize FingerprintJS
+    // Fingerprint
     async function initFingerprint() {
       const fp = await FingerprintJS.load();
       const result = await fp.get();
       return result.visitorId;
     }
 
-    // Init UI
+    // Create grid cards
     for (let i = 1; i <= TOTAL_CARDS; i++) {
       const card = document.createElement("div");
       card.className = "card";
@@ -139,6 +137,7 @@
       grid.appendChild(card);
     }
 
+    // Cast vote
     async function castVote(id) {
       try {
         let visitorId;
@@ -158,12 +157,13 @@
 
         localStorage.setItem('voted_id', id);
         setVoteCookie(id);
-
         updateCardStyles(id);
+        // fetchGridResults will be triggered by real-time subscription, but we also call it immediately
         fetchGridResults();
       } catch (err) { console.error("Vote failed", err); }
     }
 
+    // Grid percentages (from website_voting)
     async function fetchGridResults() {
       const { data, error } = await sb.from('website_voting').select('option_id').eq('poll_id', POLL_ID);
       if (error) return;
@@ -179,18 +179,18 @@
       });
     }
 
+    // Leaderboard (from final_votes + poll_winners)
     async function fetchLeaderboard() {
       try {
-        // Get winners from poll_winners (where selected_at is not null)
+        // Get winners (entries with selected_at not null)
         const { data: winners, error: winError } = await sb
           .from('poll_winners')
           .select('option_id')
           .eq('poll_id', POLL_ID)
           .not('selected_at', 'is', null);
-
         const winnerIds = new Set(winners?.map(w => Number(w.option_id)) || []);
 
-        // Get leaderboard data from final_votes
+        // Get scores from final_votes
         const { data: rows, error } = await sb
           .from('final_votes')
           .select('option_id, character_name, score')
@@ -199,6 +199,7 @@
 
         if (error) throw error;
 
+        // Update leaderboard display
         resultsBox.innerHTML = rows.map(r => {
           const id = Number(r.option_id);
           const isWinner = winnerIds.has(id);
@@ -208,7 +209,7 @@
           </div>`;
         }).join('') || "No votes yet";
 
-        // Update card labels and winner overlay
+        // Update card labels and winner overlays
         document.querySelectorAll(".card").forEach(card => {
           const id = Number(card.dataset.id);
           const row = rows.find(r => Number(r.option_id) === id);
@@ -230,15 +231,15 @@
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      // Subscribe to real-time updates for both tables
-      sb.channel('poll-realtime')
+      // Real-time subscriptions
+      sb.channel('poll-updates')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'final_votes' }, fetchLeaderboard)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_winners' }, fetchLeaderboard)
         .subscribe();
     }
 
-    // Visual helpers
+    // Visual helpers (big cards)
     let rotateIndex = 1;
     function showSelected(id) {
       const left = document.getElementById("leftBig");
@@ -261,7 +262,7 @@
     setInterval(rotate, 3500);
     rotate(); showSelected(1); init();
 
-    // Dark mode from localStorage (header already does it, but safe)
+    // Dark mode from localStorage (header already does this, but ensure)
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
