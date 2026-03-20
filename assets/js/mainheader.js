@@ -52,7 +52,7 @@
     }
 
     function formatPrice(value) {
-      // Simple fallback formatting (you can expand later)
+      // Simple fallback formatting – you can expand later
       return `US$${value.toFixed(2)}`;
     }
 
