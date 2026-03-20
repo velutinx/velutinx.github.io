@@ -91,13 +91,11 @@
     function openCart() {
       cartDrawer.classList.add('open');
       cartOverlay.classList.add('active');
-      blurLayer.classList.add('active'); // ✅ ADD
       document.body.classList.add('drawer-open');
     }
     function closeCart() {
       cartDrawer.classList.remove('open');
       cartOverlay.classList.remove('active');
-      blurLayer.classList.remove('active'); // ✅ ADD
       document.body.classList.remove('drawer-open');
     }
 
@@ -125,13 +123,11 @@
     function openSidebar() {
       sidebar.classList.add('open');
       sidebarOverlay.classList.add('active');
-      blurLayer.classList.add('active'); // ✅ ADD
       document.body.style.overflow = 'hidden';
     }
     function closeSidebar() {
       sidebar.classList.remove('open');
       sidebarOverlay.classList.remove('active');
-      blurLayer.classList.remove('active'); // ✅ ADD
       document.body.style.overflow = '';
     }
     if (menuToggle && sidebarMenuToggle && sidebarOverlay) {
