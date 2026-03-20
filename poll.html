@@ -2,22 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>VELUTINX — Poll</title>
+  <title>VELUTINX — Poll (standalone)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
-  <!-- Header CSS -->
-  <link rel="stylesheet" href="/assets/css/mainheader.css">
   <!-- Supabase & fingerprint -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
   <style>
-    /* Override header background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    /* Hide store button and cart icons */
+    body {
+      background: #d4d0c1;
+      font-family: system-ui, sans-serif;
+      padding: 20px;
+    }
+    /* Hide store button and cart icons (not present) */
     .poll-page .store-btn,
     .poll-page .cart-wrapper,
     .poll-page .floating-cart {
@@ -211,6 +213,7 @@
     }
     .icon-link img { width: 180px; transition: transform 0.25s ease; }
     .icon-link img:hover { transform: scale(1.1); }
+
     @media (max-width: 1200px) {
       .big-card { display: none; }
       .grid { grid-template-columns: repeat(4, 1fr); }
@@ -221,12 +224,9 @@
     }
   </style>
 </head>
-<body class="poll-page">
-
-  <div class="lang-swipe" id="langSwipe"></div>
+<body>
 
   <div id="page">
-    <div id="navContainer"></div>
     <div class="divider"></div>
 
     <section class="poll-section">
@@ -258,12 +258,6 @@
 
     <div class="divider"></div>
   </div>
-
-  <!-- Scripts -->
-  <script src="/assets/js/translt.js"></script>
-  <script src="/assets/js/mainheader.js"></script>
-  <script src="/assets/js/format.js"></script>
-  <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
     // ==================== SUPABASE & POLL LOGIC ====================
@@ -336,7 +330,7 @@
         localStorage.setItem('voted_id', id);
         setVoteCookie(id);
         updateCardStyles(id);
-        fetchGridResults(); // immediate refresh
+        fetchGridResults();
       } catch (err) { console.error("Vote failed", err); }
     }
 
@@ -364,6 +358,7 @@
           .eq('poll_id', POLL_ID)
           .not('selected_at', 'is', null);
         const winnerIds = new Set(winners?.map(w => Number(w.option_id)) || []);
+        console.log('Winners:', [...winnerIds]); // Debug log
 
         // Get scores from final_votes
         const { data: rows, error } = await sb
@@ -405,7 +400,7 @@
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      // Real-time subscriptions (separate channels to ensure they work)
+      // Real-time subscriptions
       sb.channel('grid-updates')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
         .subscribe();
@@ -442,14 +437,6 @@
     // Dark mode from localStorage
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
-    }
-
-    // Apply poll translations
-    if (typeof window.applyTranslations === 'function') {
-      window.applyTranslations('poll');
-      document.addEventListener('languageChanged', () => {
-        window.applyTranslations('poll');
-      });
     }
   </script>
 </body>
