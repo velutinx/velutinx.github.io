@@ -365,7 +365,12 @@ const translations = {
   },
 };
 
-  // ==================== PRICE & CURRENCY ====================
+  /* ==================== HELPER: GET CURRENT LANGUAGE ==================== */
+  function getCurrentLang() {
+    return localStorage.getItem("language") || "en";
+  }
+
+  /* ==================== PRICE & CURRENCY ==================== */
   const tierMap = {
     1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
     3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
@@ -374,10 +379,8 @@ const translations = {
 
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-  let currentLang = localStorage.getItem("language") || "en";
-
   function getCurrentCurrency() {
-    const lang = localStorage.getItem("language") || "en";
+    const lang = getCurrentLang();
     return lang === "en" ? "USD" :
            lang === "ja" ? "JPY" :
            lang === "zh" ? "CNY" : "MXN";
@@ -429,10 +432,11 @@ const translations = {
     const index = cart.findIndex(item => item.id === pack.id);
     let message = "";
     let isSuccess = true;
+    const lang = getCurrentLang();
 
     if (index !== -1) {
       cart.splice(index, 1);
-      message = translations[currentLang]?.removeFromCart || "Removed from cart";
+      message = translations[lang]?.removeFromCart || "Removed from cart";
       isSuccess = false;
     } else {
       const paddedId = pack.id.padStart(3, '0');
@@ -450,7 +454,7 @@ const translations = {
       if (pack.discordId) newItem.discordId = pack.discordId;
 
       cart.push(newItem);
-      message = translations[currentLang]?.snackText || "Added successfully";
+      message = translations[lang]?.snackText || "Added successfully";
       isSuccess = true;
     }
 
