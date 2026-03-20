@@ -324,7 +324,7 @@
     window.addEventListener('load', async () => {
       const productsData = packsData.map(p => ({
         ...p,
-        price: p.price,   // price is already numeric (USD base)
+        price: typeof p.price === 'number' ? p.price : parseFloat(p.price) || 0,
         date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
         category: p.category || 0
       }));
@@ -378,8 +378,11 @@
           const cartBtn = card.querySelector(".cart-btn");
           cartBtn.addEventListener("click", e => {
             e.stopPropagation();
-            if (window.addOrToggleCart) window.addOrToggleCart(p);
-            else console.warn("addOrToggleCart not defined");
+            if (window.addOrToggleCart) {
+              window.addOrToggleCart(p);
+            } else {
+              console.warn("addOrToggleCart not defined");
+            }
           });
 
           grid.appendChild(card);
