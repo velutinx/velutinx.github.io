@@ -1,3 +1,4 @@
+// translations.js – now at assets/js/translt.js
 const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
 const DEFAULT_LANG = 'en';
 
@@ -88,6 +89,36 @@ const translations = {
       sendBtn: "ENVIAR",
       errorText: "Por favor complete todos los campos correctamente ♡",
       successText: "¡Mensaje enviado con éxito! ¡Pronto tendrá noticias mías! ♡♡"
+    }
+  },
+  poll: {
+    en: {
+      pollTitle: "Vote for Your Favorite Character",
+      pollSubtitle: "Click once — you can change your vote anytime",
+      leaderboardTitle: "Leaderboard",
+      leaderboardTooltip: "Website + Discord votes",
+      discordDisclaimer: "Join discord for an extra vote!!"
+    },
+    ja: {
+      pollTitle: "お気に入りのキャラクターに投票",
+      pollSubtitle: "一度クリック — いつでも投票を変更できます",
+      leaderboardTitle: "リーダーボード",
+      leaderboardTooltip: "ウェブサイト + Discord 投票",
+      discordDisclaimer: "追加投票のためにDiscordに参加!!"
+    },
+    zh: {
+      pollTitle: "为你最喜欢的角色投票",
+      pollSubtitle: "点击一次 — 随时可以更改投票",
+      leaderboardTitle: "排行榜",
+      leaderboardTooltip: "网站 + Discord 投票",
+      discordDisclaimer: "加入Discord获得额外一票!!"
+    },
+    es: {
+      pollTitle: "Vota por tu personaje favorito",
+      pollSubtitle: "Haz clic una vez — puedes cambiar tu voto cuando quieras",
+      leaderboardTitle: "Tabla de clasificación",
+      leaderboardTooltip: "Votos del sitio web + Discord",
+      discordDisclaimer: "¡Únete al Discord para un voto extra!!"
     }
   },
   header: {
@@ -205,6 +236,17 @@ function applyTranslations(pageKey) {
     if (messageInput) messageInput.placeholder = pageTranslations.messagePlaceholder || '';
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) sendBtn.textContent = pageTranslations.sendBtn || '';
+  } else if (pageKey === 'poll') {
+    const titleEl = document.querySelector('.poll-title');
+    if (titleEl) titleEl.textContent = pageTranslations.pollTitle || '';
+    const subtitleEl = document.querySelector('.poll-subtitle');
+    if (subtitleEl) subtitleEl.textContent = pageTranslations.pollSubtitle || '';
+    const leaderboardTitleEl = document.querySelector('#leaderboard h3');
+    if (leaderboardTitleEl) leaderboardTitleEl.textContent = pageTranslations.leaderboardTitle || '';
+    const tooltipEl = document.querySelector('#leaderboard .tooltip');
+    if (tooltipEl) tooltipEl.textContent = pageTranslations.leaderboardTooltip || '';
+    const disclaimerEl = document.querySelector('.discord-disclaimer');
+    if (disclaimerEl) disclaimerEl.textContent = pageTranslations.discordDisclaimer || '';
   }
 }
 
