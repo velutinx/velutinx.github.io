@@ -585,21 +585,23 @@ async function fetchGridResults() {
 // FIXED LEADERBOARD: now uses final_results + selected_at for winners
 async function fetchLeaderboard() {
   try {
+    // Try 'final_results' — change to 'poll_result' if that's the actual table name
     const { data: rows, error } = await sb.from('final_results')
       .select('option_id, character_name, score, selected_at')
       .eq('poll_id', POLL_ID)
       .order('score', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Query error:", error);
+      // Optional fallback: try poll_result if you suspect name mismatch
+      // const fallback = await sb.from('poll_result')... then use fallback data
+      throw error;
+    }
 
-    // Winners = rows where selected_at IS NOT NULL
     const winnerIds = new Set(
-      rows
-        .filter(r => r.selected_at !== null && r.selected_at !== '')
-        .map(r => Number(r.option_id))
+      rows.filter(r => r.selected_at !== null && r.selected_at !== '').map(r => Number(r.option_id))
     );
 
-    // Populate leaderboard (winners get spoiled/blurred style)
     resultsBox.innerHTML = rows.map(r => {
       const id = Number(r.option_id);
       const isWinner = winnerIds.has(id);
@@ -609,17 +611,15 @@ async function fetchLeaderboard() {
       </div>`;
     }).join('') || "No votes yet";
 
-    // Sync names + apply .winner class (cross overlay) to cards
     document.querySelectorAll(".card").forEach(card => {
       const id = Number(card.dataset.id);
       const row = rows.find(r => Number(r.option_id) === id);
-      if (row?.character_name) {
-        card.querySelector(".label").textContent = row.character_name;
-      }
+      if (row?.character_name) card.querySelector(".label").textContent = row.character_name;
       card.classList.toggle("winner", winnerIds.has(id));
     });
   } catch (err) {
     console.error("Leaderboard error:", err);
+    resultsBox.innerHTML = "Error loading leaderboard – check console";
   }
 }
 
