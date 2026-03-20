@@ -178,20 +178,21 @@ function addOrToggleCart(pack) {
     message = translations[currentLang]?.removeFromCart || "Removed from cart";
     isSuccess = false;
   } else {
-    // Start with all properties from the original pack
+    // Generate thumbnail URL from pack ID
+    const paddedId = pack.id.padStart(3, '0'); // e.g., "1" -> "001"
+    const imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
+
     const newItem = {
       id: pack.id,
       title: pack.title,
-      image: pack.image || (pack.images && pack.images[0]) || "",
+      image: imageUrl,                     // dynamic thumbnail
       price: getPriceForPack(pack),
       quantity: 1
     };
-    // Copy over any extra fields (like type, tier, discordId) that might exist
+    // Copy any extra fields if present (type, tier, discordId, etc.)
     if (pack.type) newItem.type = pack.type;
     if (pack.tier) newItem.tier = pack.tier;
     if (pack.discordId) newItem.discordId = pack.discordId;
-    // Add any other custom fields you might need in the future
-    // (e.g., pack.description, pack.customData, etc.)
 
     cart.push(newItem);
     message = translations[currentLang]?.snackText || "Added successfully";
@@ -204,7 +205,7 @@ function addOrToggleCart(pack) {
 
   if (window.updateAllCartButtons) window.updateAllCartButtons();
 }
-
+  
 function updateCartDisplay() {
 
   const drawer = document.getElementById("cartDrawer");
