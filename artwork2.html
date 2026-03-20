@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Artwork</title>
   <style>
-    /* ==================== HEADER + SIDEBAR STYLES ==================== */
+    /* ==================== THEME VARIABLES ==================== */
     :root {
       --bg: #d3d0c1;
       --card: #e8e5d8;
@@ -50,17 +50,22 @@
       transition: background 0.4s, color 0.4s;
     }
 
-    /* ==================== TOP NAV ==================== */
+    /* ==================== TOP NAV (transparent background) ==================== */
     .top-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0.9rem 2.5rem;
-      background: var(--darker);
-      border-bottom: 1px solid var(--border);
+      background: transparent;               /* ← transparent to show background */
+      border-bottom: 1px solid rgba(170,158,118,0.5); /* semi‑transparent border */
       position: sticky;
       top: 0;
       z-index: 1000;
+      backdrop-filter: blur(8px);            /* glass effect for readability */
+    }
+
+    body.dark .top-nav {
+      border-bottom-color: rgba(111,106,78,0.5);
     }
 
     .nav-left {
@@ -312,7 +317,7 @@
       text-align: center;
     }
 
-    /* ==================== CART & DRAWER ==================== */
+    /* ==================== CART & DRAWER (fixed blur) ==================== */
     .cart-wrapper {
       position: relative;
     }
@@ -368,7 +373,7 @@
       right: -400px;
       width: 400px;
       height: 100%;
-      background: var(--accent);
+      background: var(--accent);           /* solid opaque background */
       border-left: 1px solid var(--border);
       box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
       z-index: 1200;
@@ -376,6 +381,8 @@
       display: flex;
       flex-direction: column;
       color: #1f1a12;
+      /* ensure no blur from any inherited filter */
+      backdrop-filter: none;
     }
 
     .cart-drawer.open {
@@ -402,7 +409,7 @@
     .cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
     .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
 
-    /* Cart overlay – fixes the blur issue */
+    /* Dedicated overlay for cart – appears behind the drawer */
     .cart-overlay {
       position: fixed;
       top: 0;
@@ -423,14 +430,9 @@
       transition: opacity 0.3s ease, visibility 0s linear 0s;
     }
 
-    /* Remove the old body pseudo-element that caused blur */
+    /* Ensure no old blur pseudo-element remains */
     body.drawer-open::after {
       display: none;
-    }
-
-    /* Cart drawer stays above overlay */
-    .cart-drawer {
-      z-index: 1200;
     }
 
     /* Snackbar */
@@ -681,7 +683,7 @@
 </head>
 <body>
 
-  <!-- Swipe animation layer (used by language change) -->
+  <!-- Swipe animation layer -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div class="background-wrapper">
@@ -690,7 +692,6 @@
   </div>
 
   <div id="page">
-    <!-- Header will be injected here by mainheader.js -->
     <div id="navContainer"></div>
     <div class="divider"></div>
 
@@ -712,16 +713,12 @@
     const DEFAULT_LANG = 'en';
 
     const translations = {
-      index: { /* not used here */ },
-      commissions: { /* not used here */ },
       artwork: {
         en: { artworkIntro: "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images" },
         ja: { artworkIntro: "こんにちは！こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ — Temporal Images" },
         zh: { artworkIntro: "你好！这些只是我作品的一小部分样本——我在免费Discord上分享更多！ — Temporal Images" },
         es: { artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images" }
       },
-      contact: { /* not used here */ },
-      poll: { /* not used here */ },
       header: {
         en: {
           storeBtn: "Store",
@@ -775,21 +772,9 @@
     };
 
     let currentLanguage = localStorage.getItem('language') || DEFAULT_LANG;
-    // Validate stored language
     if (!SUPPORTED_LANGUAGES.includes(currentLanguage)) {
       currentLanguage = DEFAULT_LANG;
       localStorage.setItem('language', DEFAULT_LANG);
-    }
-
-    function applyTranslations(pageKey = 'index') {
-      const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
-      if (!pageTranslations) return;
-
-      if (pageKey === 'artwork') {
-        const introEl = document.getElementById('artworkIntro');
-        if (introEl) introEl.textContent = pageTranslations.artworkIntro || '';
-      }
-      // other pages not used here
     }
 
     function setLanguage(lang) {
@@ -798,7 +783,6 @@
       window.currentLanguage = lang;
       localStorage.setItem('language', lang);
 
-      // Trigger swipe animation
       const swipe = document.getElementById('langSwipe');
       if (swipe) {
         swipe.classList.remove('active');
@@ -806,20 +790,18 @@
         swipe.classList.add('active');
       }
 
-      // Notify pages
       document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
     }
 
-    window.applyTranslations = applyTranslations;
     window.setLanguage = setLanguage;
     window.translations = translations;
+    window.currentLanguage = currentLanguage;
 
     // ==================== mainheader.js (embedded, with fixes) ====================
     (async function() {
       const navContainer = document.getElementById('navContainer');
       if (!navContainer) return;
 
-      // Inline the header HTML directly to avoid a fetch (for standalone)
       const headerHTML = `
         <nav class="top-nav">
           <div class="nav-left">
@@ -948,7 +930,7 @@
       const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
       const snackbar = document.getElementById('snackbar');
 
-      // Create cart overlay if not exists
+      // Create cart overlay
       let cartOverlay = document.getElementById('cartOverlay');
       if (!cartOverlay) {
         cartOverlay = document.createElement('div');
@@ -957,7 +939,7 @@
         document.body.appendChild(cartOverlay);
       }
 
-      // --- Helper functions ---
+      // Cart functions
       function showSnackbar() {
         snackbar.classList.add('show');
         setTimeout(() => snackbar.classList.remove('show'), 2000);
@@ -1010,12 +992,12 @@
         }
       }
 
-      // Cart open/close with overlay
       function openCart() {
         cartDrawer.classList.add('open');
         cartOverlay.classList.add('active');
         document.body.classList.add('drawer-open');
       }
+
       function closeCart() {
         cartDrawer.classList.remove('open');
         cartOverlay.classList.remove('active');
@@ -1029,7 +1011,6 @@
         cartOverlay.addEventListener('click', closeCart);
       }
 
-      // Remove items from cart
       if (cartItemsEl) {
         cartItemsEl.addEventListener('click', (e) => {
           if (e.target.classList.contains('cart-item-remove')) {
@@ -1065,17 +1046,14 @@
           document.body.classList.toggle('dark');
           localStorage.setItem('darkMode', document.body.classList.contains('dark'));
         });
-        // Initialise dark mode from localStorage
         if (localStorage.getItem('darkMode') === 'true') {
           document.body.classList.add('dark');
         }
       }
 
-      // Logo and store button redirects
       if (logo) logo.addEventListener('click', () => window.location.href = '/');
       if (storeBtn) storeBtn.addEventListener('click', () => window.location.href = '/store');
 
-      // Language popover
       if (langBtn && langPopover) {
         langBtn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1088,7 +1066,6 @@
         });
       }
 
-      // Apply header translations using global setLanguage (which also updates page)
       function applyHeaderTranslations() {
         const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
         const t = window.translations?.header?.[lang];
@@ -1114,22 +1091,15 @@
         if (snackText) snackText.textContent = t.snackText;
       }
 
-      // Listen for language changes from the global setLanguage
       document.addEventListener('languageChanged', () => {
         applyHeaderTranslations();
         updateCartDisplay();
-        // Also re-apply artwork translation (handled by page's own listener)
       });
 
-      // Attach language item click handlers (use global setLanguage)
       document.querySelectorAll('.lang-item').forEach(item => {
         item.addEventListener('click', () => {
           const newLang = item.dataset.lang;
-          if (window.setLanguage) {
-            window.setLanguage(newLang);
-          } else {
-            console.warn('setLanguage not available');
-          }
+          if (window.setLanguage) window.setLanguage(newLang);
           langPopover?.classList.remove('show');
         });
       });
@@ -1140,8 +1110,7 @@
   </script>
 
   <script>
-    // ==================== Page-specific logic (gallery, zoom, sparkles) ====================
-    // Apply dark mode (already done by header, but ensure consistency)
+    // ==================== Page-specific logic ====================
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
@@ -1163,7 +1132,6 @@
       setTimeout(() => star.remove(), 2000);
     });
 
-    // Full-page falling sparkles
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "falling-star";
@@ -1175,24 +1143,22 @@
       setTimeout(() => star.remove(), 8000);
     }, 400);
 
-    // Gallery loading – only images 1 to 12 (since only 12 exist)
-    const MAX_IMAGES = 12;  // FIXED: only 12 images exist
+    // Gallery – only images 1 to 12 exist
+    const MAX_IMAGES = 12;
     const BASE = "https://www.velutinx.com/images/artwork/";
-
     const gallery = document.getElementById("gallery");
     for (let i = 1; i <= MAX_IMAGES; i++) {
       const img = document.createElement("img");
       img.src = BASE + i + ".jpg";
       img.alt = `Artwork sample ${i}`;
-      img.onerror = () => img.remove(); // remove if 404
+      img.onerror = () => img.remove();
       img.loading = "lazy";
       gallery.appendChild(img);
     }
 
-    // Zoom functionality
+    // Zoom
     let activeClone = null;
     let originRect = null;
-
     document.addEventListener("click", (e) => {
       const img = e.target.closest(".gallery img");
       if (!img) return;
@@ -1256,7 +1222,7 @@
       }, 230);
     };
 
-    // Apply artwork translations on load and after language changes
+    // Apply artwork translations
     function applyArtworkTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       const t = window.translations?.artwork?.[lang];
