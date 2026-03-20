@@ -13,7 +13,7 @@
   <!-- Shared page styles (includes dividers, etc.) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Store‑specific styles (from original, minus header styles) */
+    /* Prevent flash of old title */
     #shopTitle {
       visibility: hidden;
       transition: visibility 0s linear 0.1s;
@@ -315,24 +315,16 @@
   <script src="/assets/js/mainheader.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
-
-  <!-- Store-specific scripts -->
   <script src="/assets/js/socials.js"></script>
+
+  <!-- Product listing script (uses global functions from mainheader.js) -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
     window.addEventListener('load', async () => {
-      // Ensure getPriceForPack is defined (if not already in shop-shared)
-      if (typeof window.getPriceForPack !== 'function') {
-        window.getPriceForPack = (pack) => {
-          // Fallback: use the pack's price or a default
-          return pack.price || 0;
-        };
-      }
-
       const productsData = packsData.map(p => ({
         ...p,
-        price: window.getPriceForPack?.(p) ?? 0,
+        price: p.price,   // price is already numeric (USD base)
         date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
         category: p.category || 0
       }));
@@ -386,12 +378,8 @@
           const cartBtn = card.querySelector(".cart-btn");
           cartBtn.addEventListener("click", e => {
             e.stopPropagation();
-            // Use the header's addOrToggleCart function
-            if (window.addOrToggleCart) {
-              window.addOrToggleCart(p);
-            } else {
-              console.warn("addOrToggleCart not defined");
-            }
+            if (window.addOrToggleCart) window.addOrToggleCart(p);
+            else console.warn("addOrToggleCart not defined");
           });
 
           grid.appendChild(card);
@@ -399,7 +387,6 @@
           p.cartBtn = cartBtn;
         });
 
-        // Update all prices using the header's function
         if (window.updateAllPrices) window.updateAllPrices();
         if (window.updateCartDisplay) window.updateCartDisplay();
       }
