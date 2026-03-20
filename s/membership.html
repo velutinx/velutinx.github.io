@@ -9,9 +9,7 @@
   <!-- Header CSS (global nav) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
-  <!-- PayPal SDK -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
-  
+  <!-- PayPal SDK is now loaded dynamically by shop-shared.js – no direct include needed -->
 </head>
 <body>
   <!-- ===== START: Header / Navigation ===== -->
@@ -238,153 +236,29 @@
     });
     // ===== END: Utility Functions =====
 
-    // ===== START: Cart Helpers =====
-    let paypalButtonsRendered = false;
-
-    function getCurrentCart() {
-      return (typeof window.getCart === 'function') ? window.getCart() : (window.cart || []);
-    }
-
-    function isMembershipInCart(tierNumber) {
-      return getCurrentCart().some(item => item.id === `membership-${tierNumber}`);
-    }
-
+    // ===== START: Membership Cart Helpers =====
+    // Update button text based on cart state
     function updateMembershipButtons() {
+      const cart = window.getCart ? window.getCart() : [];
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
         const btn = card.querySelector('.btn-single, .btn-remove');
         if (!btn) continue;
-        const inCart = isMembershipInCart(tier);
+        const inCart = cart.some(item => item.id === `membership-${tier}`);
         btn.textContent = inCart ? 'Remove from Cart' : 'Single Purchase';
         btn.classList.toggle('btn-single', !inCart);
         btn.classList.toggle('btn-remove', inCart);
       }
     }
 
-    function initPayPalButtons() {
-      if (paypalButtonsRendered) return;
-      const drawer = document.getElementById("cartDrawer");
-      const container = document.getElementById("paypal-button-container");
-      if (!drawer || !drawer.classList.contains("open")) return;
-      if (!container) return;
-      if (typeof paypal === 'undefined') {
-        console.warn("PayPal SDK not loaded");
-        return;
-      }
-
-      container.innerHTML = ''; // clear before render
-
-      paypal.Buttons({
-        createOrder: (data, actions) => {
-          const cart = getCurrentCart();
-          const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
-          if (parseFloat(total) <= 0) return Promise.reject("Cart is empty");
-          return actions.order.create({
-            purchase_units: [{ amount: { currency_code: "USD", value: total } }]
-          });
-        },
-        onApprove: async (data, actions) => {
-          // First capture the order with PayPal
-          const details = await actions.order.capture();
-          
-          // Now send the membership details to your server
-          const cart = getCurrentCart();
-          const membershipItem = cart.find(item => item.type === 'membership');
-          if (!membershipItem) {
-            alert("No membership in cart");
-            return;
-          }
-
-          const response = await fetch('/api/capture-membership-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              orderId: details.id,
-              tier: membershipItem.tier,
-              discordId: membershipItem.discordId
-            })
-          });
-
-          if (response.ok) {
-            window.location.href = `/success.html?orderID=${details.id}&type=membership`;
-          } else {
-            const error = await response.json();
-            alert("Failed to record membership: " + error.message);
-          }
-        },
-        onError: (err) => {
-          console.error("PayPal Error", err);
-          alert("There was a problem with PayPal. Please try again.");
-        }
-      }).render("#paypal-button-container");
-
-      paypalButtonsRendered = true;
-    }
-
-    function manualRenderCart() {
-      const cart = getCurrentCart();
-      const cartItemsContainer = document.getElementById('cartItems');
-      const cartTotalSpan = document.getElementById('cartTotal');
-      const cartCountSpan = document.getElementById('cartCount');
-      const floatingCountSpan = document.getElementById('floatingCartCount');
-
-      if (!cartItemsContainer) return;
-
-      if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Your cart is empty</p>';
-        cartTotalSpan.textContent = 'US$0.00';
-        // Clear PayPal button and allow re‑initialization later
-        const ppContainer = document.getElementById("paypal-button-container");
-        if (ppContainer) ppContainer.innerHTML = '';
-        paypalButtonsRendered = false;
-      } else {
-        let html = '';
-        let total = 0;
-        cart.forEach(item => {
-          total += item.price || 0;
-          html += `
-            <div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border);">
-              <div style="flex:1;">
-                <div style="font-weight:600;">${item.title || 'Item'}</div>
-                <div style="color:var(--accent);">US$${(item.price || 0).toFixed(2)}</div>
-              </div>
-              <button class="remove-item" data-id="${item.id}"
-                style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">✕</button>
-            </div>
-          `;
-        });
-        cartItemsContainer.innerHTML = html;
-        cartTotalSpan.textContent = `US$${total.toFixed(2)}`;
-
-        // Attach remove listeners
-        cartItemsContainer.querySelectorAll('.remove-item').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const id = e.currentTarget.dataset.id;
-            if (typeof window.addOrToggleCart === 'function') {
-              window.addOrToggleCart({ id: id });
-            }
-            manualRenderCart();
-            updateMembershipButtons();
-          });
-        });
-
-        // If drawer is open, ensure PayPal button is there
-        if (document.getElementById('cartDrawer').classList.contains('open')) {
-          initPayPalButtons();
-        }
-      }
-
-      if (cartCountSpan) cartCountSpan.textContent = cart.length;
-      if (floatingCountSpan) floatingCountSpan.textContent = cart.length;
-    }
-
+    // Override the shared updateCartDisplay to also update membership buttons
+    const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
+      if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
-      manualRenderCart();
     };
-    // ===== END: Cart Helpers =====
+    // ===== END: Membership Cart Helpers =====
 
     // ===== START: Snackbar =====
     function showSnackbar(message, isError = false) {
@@ -427,15 +301,17 @@
         5: 'Platinum — Priority Large Custom'
       };
 
-      let cart = getCurrentCart();
+      let cart = window.getCart ? window.getCart() : [];
       const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
 
       if (alreadyInCart) {
-        if (typeof window.addOrToggleCart === 'function') {
+        // Remove from cart
+        if (window.addOrToggleCart) {
           window.addOrToggleCart({ id: `membership-${tierNumber}` });
         }
         showSnackbar('Removed from cart', false);
       } else {
+        // Check if only higher tiers can be added
         const membershipItems = cart.filter(item => item.type === 'membership');
         const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
 
@@ -446,13 +322,13 @@
 
         // Remove any existing lower tiers
         membershipItems.forEach(item => {
-          if (typeof window.addOrToggleCart === 'function') {
+          if (window.addOrToggleCart) {
             window.addOrToggleCart({ id: item.id });
           }
         });
 
         // Add new tier
-        if (typeof window.addOrToggleCart === 'function') {
+        if (window.addOrToggleCart) {
           window.addOrToggleCart({
             id: `membership-${tierNumber}`,
             title: tierTitles[tierNumber] + ' (30 days)',
@@ -465,7 +341,7 @@
         showSnackbar('Added to cart', false);
       }
 
-      window.updateCartDisplay();
+      // The cart display updates automatically via shared updateCartDisplay
     };
     // ===== END: Main Purchase Handler =====
 
@@ -480,36 +356,30 @@
     };
     // ===== END: Recurring Handler =====
 
+    // ===== START: Language Switcher for Prices =====
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        setTimeout(() => {
+          if (window.updateAllPrices) window.updateAllPrices();
+        }, 100);
+      });
+    });
+    // ===== END: Language Switcher for Prices =====
+
     // ===== START: Page Setup =====
     window.addEventListener('load', function() {
+      // Theme toggle (from header.js already handles this, but keep for safety)
       document.getElementById('themeBtn').onclick = () => {
         document.body.classList.toggle('dark');
         localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       };
       if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 
-      const openDrawer = () => {
-        document.getElementById('cartDrawer').classList.add('open');
-        manualRenderCart();
-        setTimeout(initPayPalButtons, 400);
-      };
-
-      document.getElementById('cartBtn')?.addEventListener('click', openDrawer);
-      document.getElementById('floatingCartBtn')?.addEventListener('click', openDrawer);
-      document.getElementById('cartClose')?.addEventListener('click', () => {
-        document.getElementById('cartDrawer').classList.remove('open');
-      });
-
-      document.addEventListener('click', (e) => {
-        const drawer = document.getElementById('cartDrawer');
-        const isBtn = e.target.closest('#cartBtn') || e.target.closest('#floatingCartBtn');
-        if (drawer.classList.contains('open') && !drawer.contains(e.target) && !isBtn) {
-          drawer.classList.remove('open');
-        }
-      });
-
+      // Initial button sync
       updateMembershipButtons();
-      manualRenderCart();
+
+      // Ensure cart display is up to date
+      if (window.updateCartDisplay) window.updateCartDisplay();
     });
     // ===== END: Page Setup =====
   </script>
