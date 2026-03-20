@@ -120,11 +120,18 @@
       const card = document.querySelector(`.product-card[data-id="${pack.id}"]`);
       const btn = card?.querySelector('.cart-btn');
 
+      // Generate image URL from pack.id if not provided
+      let imageUrl = pack.image || (pack.images?.[0] ?? '');
+      if (!imageUrl) {
+        const paddedId = String(pack.id).padStart(3, '0');
+        imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
+      }
+
       if (isAdding) {
         cart.push({
           id: pack.id,
           title: pack.title,
-          image: pack.image || (pack.images?.[0] ?? ''),
+          image: imageUrl,
           price: getPriceForPack(pack),
           quantity: 1
         });
@@ -134,7 +141,6 @@
       } else {
         cart.splice(index, 1);
         btn?.classList.remove('added');
-        const t = window.translations?.header?.[currentLang] || { snackText: 'Removed from cart' };
         showSnackbar('Removed from cart', true);
       }
 
@@ -192,7 +198,6 @@
             saveCart();
             updateCartDisplay();
             syncCartButtons();
-            const t = window.translations?.header?.[currentLang] || { snackText: 'Removed from cart' };
             showSnackbar('Removed from cart', true);
           }
         }
@@ -302,10 +307,22 @@
     window.updateCartDisplay = updateCartDisplay;
     window.getPriceForPack = getPriceForPack;
 
+    // --- Apply store translations if the page is the store ---
+    if (document.getElementById('shopTitle')) {
+      // The store page is loaded – apply its translations
+      if (typeof window.applyTranslations === 'function') {
+        window.applyTranslations('store');
+      }
+    }
+
     // --- Initial setup ---
     applyHeaderTranslations();
     updateCartDisplay();
     syncCartButtons(); // for any existing cart buttons (if store page already loaded)
+
+    // --- Notify that header and cart logic are ready ---
+    window.dispatchEvent(new CustomEvent('headerReady'));
+
   } catch (err) {
     console.error('Failed to load header:', err);
   }
