@@ -48,7 +48,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0.9rem 2.5rem;
-  background: var(--darker);
+  background: var(--bg);           /* match page background exactly */
+  backdrop-filter: none;           /* remove blur */
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
