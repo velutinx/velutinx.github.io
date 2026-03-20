@@ -161,7 +161,6 @@
         }
       });
     }
-
     // Apply header translations using global translations object
     function applyHeaderTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
@@ -169,7 +168,7 @@
       if (!t) return;
       if (storeBtn) storeBtn.textContent = t.storeBtn;
       const menuHome = document.getElementById('menuHome');
-      const menuCommission = document.getElementById('menuCommission');
+      const menuCommissions = document.getElementById('menuCommissions');   // FIXED: plural
       const menuArtwork = document.getElementById('menuArtwork');
       const menuPoll = document.getElementById('menuPoll');
       const menuStore = document.getElementById('menuStore');
@@ -178,7 +177,7 @@
       const totalLabel = document.getElementById('totalLabel');
       const snackText = document.getElementById('snackText');
       if (menuHome) menuHome.textContent = t.menuHome;
-      if (menuCommission) menuCommission.textContent = t.menuCommission;
+      if (menuCommissions) menuCommissions.textContent = t.menuCommissions;
       if (menuArtwork) menuArtwork.textContent = t.menuArtwork;
       if (menuPoll) menuPoll.textContent = t.menuPoll;
       if (menuStore) menuStore.textContent = t.menuStore;
