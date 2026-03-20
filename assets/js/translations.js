@@ -279,6 +279,12 @@ function setLanguage(lang) {
   if (!SUPPORTED_LANGUAGES.includes(lang)) lang = DEFAULT_LANG;
 
   currentLanguage = lang;
+  window.currentLanguage = lang;  // <-- add this line
+  localStorage.setItem('language', lang);
+
+}
+
+  currentLanguage = lang;
   localStorage.setItem('language', lang);
 
   // Trigger swipe animation (if element exists on current page)
