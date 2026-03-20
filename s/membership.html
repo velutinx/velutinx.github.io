@@ -257,7 +257,6 @@
         btn.classList.toggle('btn-single', !inCart);
         btn.classList.toggle('btn-remove', inCart);
       }
-      console.log('Membership buttons updated'); // debug
     }
 
     // Override shared updateCartDisplay to also update membership buttons
@@ -270,10 +269,7 @@
 
     // ===== START: Translation Update =====
     function updateMembershipText() {
-      // Read language directly from localStorage (no dependency on window.currentLang)
-      const lang = localStorage.getItem("language") || "en";
-      const t = window.translations?.[lang] || window.translations?.en || {};
-
+      const t = window.translations?.[window.currentLang] || window.translations?.en || {};
       document.getElementById('membershipTitle').textContent = t.membershipTitle || '✨ Choose Your Membership';
       document.getElementById('membershipDescription').textContent = t.membershipDescription || 'Support my work and unlock exclusive perks';
       document.getElementById('discordIdLabel').innerHTML = (t.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>';
@@ -286,7 +282,7 @@
       document.getElementById('noteBox').innerHTML = (t.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
         '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t.joinDiscord || '→ Join Discord Server ←') + '</a></div>';
 
-      // Tier titles
+      // Tier titles and perks (simplified – you can expand as needed)
       const tierTitles = [
         t.tierBronze || '✨ Bronze — Archive Access',
         t.tierCopper || '🔶 Copper — Monthly Custom (~20 img)',
@@ -297,10 +293,10 @@
       for (let i = 1; i <= 5; i++) {
         const titleEl = document.getElementById(`tier${i}Title`);
         if (titleEl) titleEl.textContent = tierTitles[i-1];
-        // Perks not translated for simplicity, but you could extend later
+        // Update perks if you have translations; for now keep as is
       }
 
-      // Update static button labels (these are separate from the dynamic "Single Purchase"/"Remove" text)
+      // Update button texts (but these will be overwritten by button update function)
       document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t.btnSingle || 'Single Purchase');
       document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t.btnRecurring || 'Recurring Membership');
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
