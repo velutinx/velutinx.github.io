@@ -2,66 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Contact</title>
-  <link rel="stylesheet" href="/assets/css/styles.css">
-  <link rel="stylesheet" href="/assets/css/socials.css"> <!-- new social menu styles -->
+  <!-- Header CSS -->
+  <link rel="stylesheet" href="/assets/css/mainheader.css">
+  <!-- Shared page styles (includes contact form styles) -->
+  <link rel="stylesheet" href="/assets/css/format.css">
+  <!-- Social menu styles (circular menu) -->
+  <link rel="stylesheet" href="/assets/css/socials.css">
+  <style>
+    /* Override header background to match page flat background */
+    .top-nav {
+      background: var(--bg) !important;
+      backdrop-filter: none !important;
+      border-bottom: 1px solid var(--border);
+    }
+    /* Hide store button and both cart icons on this page */
+    .contact-page .store-btn,
+    .contact-page .cart-wrapper,
+    .contact-page .floating-cart {
+      display: none !important;
+    }
+    /* Ensure the circular menu doesn't overflow on small screens */
+    @media (max-width: 768px) {
+      .contact-right .menu {
+        transform: scale(0.8) translate(150px, 150px);
+      }
+    }
+  </style>
 </head>
-<body>
+<body class="contact-page">
 
-  <!-- Swipe animation layer -->
   <div class="lang-swipe" id="langSwipe"></div>
 
-  <div class="background-wrapper">
-    <div class="background-gradient"></div>
-    <div class="wave-overlay"></div>
-  </div>
-
-  <!-- Language selector: globe button + popover -->
-  <div id="langContainer">
-    <button class="lang-btn" title="Select Language">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 5h7"></path>
-        <path d="M7 4c0 4.846 0 7 .5 8"></path>
-        <path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path>
-        <path d="M12 20l4 -9l4 9"></path>
-        <path d="M19.1 18h-6.2"></path>
-      </svg>
-    </button>
-
-    <div id="languagePopover">
-      <div class="lang-item" data-lang="en">
-        <img src="https://flagcdn.com/w40/us.png" alt="English" />
-        <p>English</p>
-      </div>
-      <div class="lang-item" data-lang="ja">
-        <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />
-        <p>日本語</p>
-      </div>
-      <div class="lang-item" data-lang="zh">
-        <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />
-        <p>简体中文</p>
-      </div>
-      <div class="lang-item" data-lang="es">
-        <img src="https://flagcdn.com/w40/mx.png" alt="Spanish" />
-        <p>Español</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Theme toggle -->
-  <div class="theme-toggle" id="themeToggle">
-    <div class="theme-knob"></div>
-  </div>
-
-  <!-- Page wrapper -->
   <div id="page">
-
-    <!-- Navigation -->
     <div id="navContainer"></div>
-
     <div class="divider"></div>
 
-    <!-- Contact form & social menu -->
     <section class="contact-wrap">
       <div class="contact-left">
         <h2 id="contactTitle">CONTACT</h2>
@@ -89,41 +66,32 @@
       </div>
 
       <div class="contact-right" id="socialArea">
-        <!-- Circular social menu with 200px SE shift -->
-<div class="menu" style="transform: translate(200px, 200px);">
-  <input type="checkbox" id="check" class="checkbox">
+        <!-- Circular social menu – same as original -->
+        <div class="menu" style="transform: translate(200px, 200px);">
+          <input type="checkbox" id="check" class="checkbox">
           <label for="check" class="label_checkbox">
-            <!-- PLUS -->
             <svg class="icon_plus" viewBox="0 0 24 24">
               <path d="M12 3v18M3 12h18" stroke="#333" stroke-width="4" stroke-linecap="round"/>
             </svg>
-            <!-- X -->
             <svg class="icon_close" viewBox="0 0 24 24">
               <path d="M5 5L19 19M19 5L5 19" stroke="#333" stroke-width="4" stroke-linecap="round"/>
             </svg>
           </label>
-
-          <!-- Twitter -->
           <a href="https://x.com/VelutinxSFW" target="_blank" class="menu_link twitter">
             <img src="https://www.velutinx.com/images/LogoTwitter.png" class="menu_icon" alt="Twitter">
           </a>
-          <!-- Bluesky -->
           <a href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank" class="menu_link bluesky">
             <img src="https://www.velutinx.com/images/LogoBluesky.png" class="menu_icon" alt="Bluesky">
           </a>
-          <!-- Pixiv -->
           <a href="https://www.pixiv.net/en/users/117116845" target="_blank" class="menu_link pixiv">
             <img src="https://www.velutinx.com/images/LogoPixiv.png" class="menu_icon" alt="Pixiv">
           </a>
-          <!-- Ko‑fi -->
           <a href="https://ko-fi.com/velutinxstudio" target="_blank" class="menu_link kofi">
             <img src="https://www.velutinx.com/images/LogoKoFi.png" class="menu_icon" alt="Ko‑fi">
           </a>
-          <!-- Instagram -->
           <a href="https://www.instagram.com/velutinxx/" target="_blank" class="menu_link instagram">
             <img src="https://www.velutinx.com/images/LogoInstagram.png" class="menu_icon" alt="Instagram">
           </a>
-          <!-- SubscribeStar -->
           <a href="https://subscribestar.adult/velutinx" target="_blank" class="menu_link substar">
             <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" class="menu_icon" alt="SubscribeStar">
           </a>
@@ -132,55 +100,27 @@
     </section>
 
     <div class="divider"></div>
-
   </div>
 
   <!-- Scripts -->
-  <script src="/assets/js/navigation.js"></script>
-  <script src="/assets/js/translations.js"></script>
-  <script src="/assets/js/socials"></script> <!-- new contact‑specific JS -->
+  <script src="/assets/js/translt.js"></script>
+  <script src="/assets/js/mainheader.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/socials.js"></script> <!-- handles the circular menu animation -->
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Dark mode and theme toggle remain here because they are global
-    if (localStorage.getItem("darkMode") === "true") {
-      document.body.classList.add("dark");
+    // Apply translations for contact page
+    if (typeof window.applyTranslations === 'function') {
+      window.applyTranslations('contact');
+      document.addEventListener('languageChanged', () => {
+        window.applyTranslations('contact');
+      });
     }
 
-    document.getElementById("themeToggle").onclick = () => {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-    };
-
-    // Cursor sparkles (global effect)
-    let lastStarTime = 0;
-    document.addEventListener("mousemove", (e) => {
-      const now = Date.now();
-      if (now - lastStarTime < 45) return;
-      lastStarTime = now;
-
-      const star = document.createElement("div");
-      star.className = "star";
-      star.textContent = "✦";
-      star.style.setProperty("--drift", Math.random());
-      star.style.left = `${e.clientX}px`;
-      star.style.top = `${e.clientY}px`;
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 2000);
-    });
-
-    // Social area falling stars
-    const socialArea = document.getElementById("socialArea");
-    if (socialArea) {
-      setInterval(() => {
-        const star = document.createElement("div");
-        star.className = "social-star";
-        star.textContent = "✦";
-        star.style.left = Math.random() * socialArea.clientWidth + "px";
-        star.style.top = "0px";
-        socialArea.appendChild(star);
-        setTimeout(() => star.remove(), 6000);
-      }, 700);
+    // Dark mode from localStorage (already set by header, but safe)
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
     }
   </script>
 </body>
