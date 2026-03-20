@@ -1,205 +1,202 @@
 (function () {
   "use strict";
 
-/* ==================== TRANSLATIONS ==================== */
-const translations = {
-  en: {
-    // Store / general
-    shopTitle: "My Store",
-    filterTitle: "Filter by Category",
-    catAll: "All",
-    catFemale: "Female",
-    catFemboy: "Femboy",
-    catCollections: "Collections",
-    sortTitle: "Sort by",
-    sortNewest: "Newest",
-    sortOldest: "Oldest",
-    sortLow: "Price: Low to High",
-    sortHigh: "Price: High to Low",
-    productsTitle: "Products",
-    searchPlaceholder: "Search",
-    cartTitle: "Shopping Cart",
-    totalLabel: "Total",
-    snackText: "Added successfully",
-    loginBtn: "Website",
-    disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-    disclaimerRefund: "Digital products are non-refundable after purchase.",
-    contentsTitle: "Contents:",
-    contentsDesc: "ZIP file containing {count} AI-generated illustrations",
-    originalPrice: "Original Price:",
-    currentPrice: "Current Price:",
-    addToCart: "Add to Cart",
-    removeFromCart: "Remove from Cart",
+  /* ==================== TRANSLATIONS ==================== */
+  const translations = {
+    en: {
+      shopTitle: "My Store",
+      filterTitle: "Filter by Category",
+      catAll: "All",
+      catFemale: "Female",
+      catFemboy: "Femboy",
+      catCollections: "Collections",
+      sortTitle: "Sort by",
+      sortNewest: "Newest",
+      sortOldest: "Oldest",
+      sortLow: "Price: Low to High",
+      sortHigh: "Price: High to Low",
+      productsTitle: "Products",
+      searchPlaceholder: "Search",
+      cartTitle: "Shopping Cart",
+      totalLabel: "Total",
+      snackText: "Added successfully",
+      loginBtn: "Website",
+      disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+      disclaimerRefund: "Digital products are non-refundable after purchase.",
+      contentsTitle: "Contents:",
+      contentsDesc: "ZIP file containing {count} AI-generated illustrations",
+      originalPrice: "Original Price:",
+      currentPrice: "Current Price:",
+      addToCart: "Add to Cart",
+      removeFromCart: "Remove from Cart",
 
-    // Membership page
-    membershipTitle: "✨ Choose Your Membership",
-    membershipDescription: "Support my work and unlock exclusive perks",
-    discordIdLabel: "Your Discord ID",
-    discordHint: "How to find your Discord ID:",
-    discordHelpLink: "Where do I find my Discord ID? (click)",
-    discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
-    discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
-    discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
-    discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
-    noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
-    joinDiscord: "→ Join Discord Server ←",
-    tierBronze: "✨ Bronze — Archive Access",
-    tierCopper: "🔶 Copper — Monthly Custom (~20 img)",
-    tierSilver: "🥈 Silver — Monthly Custom (~40 img)",
-    tierGold: "🏅 Gold — Large Custom (~80 img)",
-    tierPlatinum: "💎 Platinum — Priority Large Custom",
-    perMonth: "/ month",
-    btnSingle: "Single Purchase",
-    btnRecurring: "Recurring Membership",
-  },
+      // Membership page
+      membershipTitle: "✨ Choose Your Membership",
+      membershipDescription: "Support my work and unlock exclusive perks",
+      discordIdLabel: "Your Discord ID",
+      discordHint: "How to find your Discord ID:",
+      discordHelpLink: "Where do I find my Discord ID? (click)",
+      discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
+      discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
+      discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
+      discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
+      noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
+      joinDiscord: "→ Join Discord Server ←",
+      tierBronze: "✨ Bronze — Archive Access",
+      tierCopper: "🔶 Copper — Monthly Custom (~20 img)",
+      tierSilver: "🥈 Silver — Monthly Custom (~40 img)",
+      tierGold: "🏅 Gold — Large Custom (~80 img)",
+      tierPlatinum: "💎 Platinum — Priority Large Custom",
+      perMonth: "/ month",
+      btnSingle: "Single Purchase",
+      btnRecurring: "Recurring Membership",
+    },
 
-  ja: {
-    shopTitle: "マイストア",
-    filterTitle: "カテゴリでフィルター",
-    catAll: "すべて",
-    catFemale: "女性",
-    catFemboy: "男の娘",
-    catCollections: "コレクション",
-    sortTitle: "並び替え",
-    sortNewest: "最新",
-    sortOldest: "最古",
-    sortLow: "価格: 低い → 高い",
-    sortHigh: "価格: 高い → 低い",
-    productsTitle: "商品",
-    searchPlaceholder: "検索",
-    cartTitle: "ショッピングカート",
-    totalLabel: "合計",
-    snackText: "カートに追加しました",
-    loginBtn: "ウェブサイト",
-    disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-    disclaimerRefund: "デジタル商品は購入後の返金はできません。",
-    contentsTitle: "内容：",
-    contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
-    originalPrice: "元の価格：",
-    currentPrice: "現在の価格：",
-    addToCart: "カートに追加",
-    removeFromCart: "カートから削除",
+    ja: {
+      shopTitle: "マイストア",
+      filterTitle: "カテゴリでフィルター",
+      catAll: "すべて",
+      catFemale: "女性",
+      catFemboy: "男の娘",
+      catCollections: "コレクション",
+      sortTitle: "並び替え",
+      sortNewest: "最新",
+      sortOldest: "最古",
+      sortLow: "価格: 低い → 高い",
+      sortHigh: "価格: 高い → 低い",
+      productsTitle: "商品",
+      searchPlaceholder: "検索",
+      cartTitle: "ショッピングカート",
+      totalLabel: "合計",
+      snackText: "カートに追加しました",
+      loginBtn: "ウェブサイト",
+      disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+      disclaimerRefund: "デジタル商品は購入後の返金はできません。",
+      contentsTitle: "内容：",
+      contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
+      originalPrice: "元の価格：",
+      currentPrice: "現在の価格：",
+      addToCart: "カートに追加",
+      removeFromCart: "カートから削除",
 
-    // Membership page (placeholders – replace with real translations later)
-    membershipTitle: "✨ Choose Your Membership",
-    membershipDescription: "Support my work and unlock exclusive perks",
-    discordIdLabel: "Your Discord ID",
-    discordHint: "How to find your Discord ID:",
-    discordHelpLink: "Where do I find my Discord ID? (click)",
-    discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
-    discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
-    discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
-    discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
-    noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
-    joinDiscord: "→ Join Discord Server ←",
-    tierBronze: "✨ Bronze — Archive Access",
-    tierCopper: "🔶 Copper — Monthly Custom (~20 img)",
-    tierSilver: "🥈 Silver — Monthly Custom (~40 img)",
-    tierGold: "🏅 Gold — Large Custom (~80 img)",
-    tierPlatinum: "💎 Platinum — Priority Large Custom",
-    perMonth: "/ month",
-    btnSingle: "Single Purchase",
-    btnRecurring: "Recurring Membership",
-  },
+      // Membership (placeholders – replace with actual translations)
+      membershipTitle: "✨ メンバーシップを選ぶ",
+      membershipDescription: "私の活動を支援し、特典をアンロック",
+      discordIdLabel: "Discord ID",
+      discordHint: "Discord IDの見つけ方:",
+      discordHelpLink: "Discord IDはどこで見つけられますか？ (クリック)",
+      discordHelpStep1: "<strong>手順1:</strong> Discordを開き、<strong>ユーザー設定</strong>（歯車アイコン）へ。",
+      discordHelpStep2: "<strong>手順2:</strong> <strong>アプリ設定</strong>の<strong>高度な設定</strong>で<strong>開発者モード</strong>を有効に。",
+      discordHelpStep3: "<strong>手順3:</strong> 自分のユーザー名を右クリックし、<strong>IDをコピー</strong>。",
+      discordHelpStep4: "<strong>手順4:</strong> その番号をここに貼り付け。",
+      noteBox: "<strong>📌 重要:</strong> 支払い完了後、対応するロールが自動的に付与されます。事前にDiscordサーバーに参加してください！",
+      joinDiscord: "→ Discordサーバーに参加 ←",
+      tierBronze: "✨ ブロンズ — アーカイブアクセス",
+      tierCopper: "🔶 カッパー — 月次カスタム (~20枚)",
+      tierSilver: "🥈 シルバー — 月次カスタム (~40枚)",
+      tierGold: "🏅 ゴールド — 大規模カスタム (~80枚)",
+      tierPlatinum: "💎 プラチナ — 優先大規模カスタム",
+      perMonth: "/月",
+      btnSingle: "単発購入",
+      btnRecurring: "定期購読",
+    },
 
-  zh: {
-    shopTitle: "我的商店",
-    filterTitle: "按类别筛选",
-    catAll: "全部",
-    catFemale: "女性",
-    catFemboy: "伪娘",
-    catCollections: "收藏",
-    sortTitle: "排序方式",
-    sortNewest: "最新",
-    sortOldest: "最旧",
-    sortLow: "价格: 低到高",
-    sortHigh: "价格: 高到低",
-    productsTitle: "商品",
-    searchPlaceholder: "搜索",
-    cartTitle: "购物车",
-    totalLabel: "总计",
-    snackText: "已成功添加到购物车",
-    loginBtn: "网站",
-    disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
-    disclaimerRefund: "数字产品购买后不可退款。",
-    contentsTitle: "内容：",
-    contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
-    originalPrice: "原价：",
-    currentPrice: "现价：",
-    addToCart: "加入购物车",
-    removeFromCart: "从购物车移除",
+    zh: {
+      shopTitle: "我的商店",
+      filterTitle: "按类别筛选",
+      catAll: "全部",
+      catFemale: "女性",
+      catFemboy: "伪娘",
+      catCollections: "收藏",
+      sortTitle: "排序方式",
+      sortNewest: "最新",
+      sortOldest: "最旧",
+      sortLow: "价格: 低到高",
+      sortHigh: "价格: 高到低",
+      productsTitle: "商品",
+      searchPlaceholder: "搜索",
+      cartTitle: "购物车",
+      totalLabel: "总计",
+      snackText: "已成功添加到购物车",
+      loginBtn: "网站",
+      disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
+      disclaimerRefund: "数字产品购买后不可退款。",
+      contentsTitle: "内容：",
+      contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
+      originalPrice: "原价：",
+      currentPrice: "现价：",
+      addToCart: "加入购物车",
+      removeFromCart: "从购物车移除",
 
-    // Membership page (placeholders)
-    membershipTitle: "✨ Choose Your Membership",
-    membershipDescription: "Support my work and unlock exclusive perks",
-    discordIdLabel: "Your Discord ID",
-    discordHint: "How to find your Discord ID:",
-    discordHelpLink: "Where do I find my Discord ID? (click)",
-    discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
-    discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
-    discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
-    discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
-    noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
-    joinDiscord: "→ Join Discord Server ←",
-    tierBronze: "✨ Bronze — Archive Access",
-    tierCopper: "🔶 Copper — Monthly Custom (~20 img)",
-    tierSilver: "🥈 Silver — Monthly Custom (~40 img)",
-    tierGold: "🏅 Gold — Large Custom (~80 img)",
-    tierPlatinum: "💎 Platinum — Priority Large Custom",
-    perMonth: "/ month",
-    btnSingle: "Single Purchase",
-    btnRecurring: "Recurring Membership",
-  },
+      membershipTitle: "✨ 选择会员资格",
+      membershipDescription: "支持我的工作并解锁专属特权",
+      discordIdLabel: "你的 Discord ID",
+      discordHint: "如何找到你的 Discord ID:",
+      discordHelpLink: "我在哪里可以找到我的 Discord ID？(点击)",
+      discordHelpStep1: "<strong>步骤1:</strong> 打开 Discord，进入<strong>用户设置</strong>（齿轮图标）。",
+      discordHelpStep2: "<strong>步骤2:</strong> 在<strong>应用设置</strong>中，选择<strong>高级</strong>并启用<strong>开发者模式</strong>。",
+      discordHelpStep3: "<strong>步骤3:</strong> 右键点击你的用户名，选择<strong>复制ID</strong>。",
+      discordHelpStep4: "<strong>步骤4:</strong> 将号码粘贴在这里。",
+      noteBox: "<strong>📌 重要:</strong> 支付成功后，你将自动获得 Discord 服务器中的对应角色。请确保已加入服务器！",
+      joinDiscord: "→ 加入 Discord 服务器 ←",
+      tierBronze: "✨ 青铜 — 档案访问",
+      tierCopper: "🔶 铜 — 每月定制 (~20张)",
+      tierSilver: "🥈 银 — 每月定制 (~40张)",
+      tierGold: "🏅 金 — 大型定制 (~80张)",
+      tierPlatinum: "💎 铂金 — 优先大型定制",
+      perMonth: "/月",
+      btnSingle: "单次购买",
+      btnRecurring: "定期订阅",
+    },
 
-  es: {
-    shopTitle: "Mi Tienda",
-    filterTitle: "Filtrar por Categoría",
-    catAll: "Todos",
-    catFemale: "Femenino",
-    catFemboy: "Femboy",
-    catCollections: "Colecciones",
-    sortTitle: "Ordenar por",
-    sortNewest: "Más reciente",
-    sortOldest: "Más antiguo",
-    sortLow: "Precio: Bajo a Alto",
-    sortHigh: "Precio: Alto a Bajo",
-    productsTitle: "Productos",
-    searchPlaceholder: "Buscar",
-    cartTitle: "Carrito de Compras",
-    totalLabel: "Total",
-    snackText: "Añadido con éxito",
-    loginBtn: "Sitio web",
-    disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
-    disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
-    contentsTitle: "Contenido:",
-    contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
-    originalPrice: "Precio original:",
-    currentPrice: "Precio actual:",
-    addToCart: "Añadir al carrito",
-    removeFromCart: "Eliminar del carrito",
+    es: {
+      shopTitle: "Mi Tienda",
+      filterTitle: "Filtrar por Categoría",
+      catAll: "Todos",
+      catFemale: "Femenino",
+      catFemboy: "Femboy",
+      catCollections: "Colecciones",
+      sortTitle: "Ordenar por",
+      sortNewest: "Más reciente",
+      sortOldest: "Más antiguo",
+      sortLow: "Precio: Bajo a Alto",
+      sortHigh: "Precio: Alto a Bajo",
+      productsTitle: "Productos",
+      searchPlaceholder: "Buscar",
+      cartTitle: "Carrito de Compras",
+      totalLabel: "Total",
+      snackText: "Añadido con éxito",
+      loginBtn: "Sitio web",
+      disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
+      disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
+      contentsTitle: "Contenido:",
+      contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
+      originalPrice: "Precio original:",
+      currentPrice: "Precio actual:",
+      addToCart: "Añadir al carrito",
+      removeFromCart: "Eliminar del carrito",
 
-    // Membership page (placeholders)
-    membershipTitle: "✨ Choose Your Membership",
-    membershipDescription: "Support my work and unlock exclusive perks",
-    discordIdLabel: "Your Discord ID",
-    discordHint: "How to find your Discord ID:",
-    discordHelpLink: "Where do I find my Discord ID? (click)",
-    discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
-    discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
-    discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
-    discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
-    noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
-    joinDiscord: "→ Join Discord Server ←",
-    tierBronze: "✨ Bronze — Archive Access",
-    tierCopper: "🔶 Copper — Monthly Custom (~20 img)",
-    tierSilver: "🥈 Silver — Monthly Custom (~40 img)",
-    tierGold: "🏅 Gold — Large Custom (~80 img)",
-    tierPlatinum: "💎 Platinum — Priority Large Custom",
-    perMonth: "/ month",
-    btnSingle: "Single Purchase",
-    btnRecurring: "Recurring Membership",
-  }
-};  };
+      membershipTitle: "✨ Elige tu Membresía",
+      membershipDescription: "Apoya mi trabajo y desbloquea beneficios exclusivos",
+      discordIdLabel: "Tu ID de Discord",
+      discordHint: "Cómo encontrar tu ID de Discord:",
+      discordHelpLink: "¿Dónde encuentro mi ID de Discord? (clic)",
+      discordHelpStep1: "<strong>Paso 1:</strong> Abre Discord y ve a <strong>Ajustes de Usuario</strong> (icono de engranaje).",
+      discordHelpStep2: "<strong>Paso 2:</strong> En <strong>Ajustes de la App</strong>, selecciona <strong>Avanzado</strong> y activa <strong>Modo Desarrollador</strong>.",
+      discordHelpStep3: "<strong>Paso 3:</strong> Haz clic derecho en tu nombre de usuario y selecciona <strong>Copiar ID</strong>.",
+      discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.",
+      noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
+      joinDiscord: "→ Unirse al Servidor de Discord ←",
+      tierBronze: "✨ Bronce — Acceso al Archivo",
+      tierCopper: "🔶 Cobre — Personalización Mensual (~20 img)",
+      tierSilver: "🥈 Plata — Personalización Mensual (~40 img)",
+      tierGold: "🏅 Oro — Personalización Grande (~80 img)",
+      tierPlatinum: "💎 Platino — Personalización Grande Prioritaria",
+      perMonth: "/ mes",
+      btnSingle: "Compra Única",
+      btnRecurring: "Membresía Recurrente",
+    }
+  };
 
   /* ==================== PRICE & CURRENCY ==================== */
   const tierMap = {
@@ -212,7 +209,6 @@ const translations = {
 
   let currentLang = localStorage.getItem("language") || "en";
 
-  // Helper to get the current currency based on stored language
   function getCurrentCurrency() {
     const lang = localStorage.getItem("language") || "en";
     return lang === "en" ? "USD" :
@@ -232,9 +228,7 @@ const translations = {
   }
 
   function formatPrice(value, currency) {
-    // If currency not provided, use current from language
     if (currency === undefined) currency = getCurrentCurrency();
-
     if (currency === "USD") return `US$${value.toFixed(2)}`;
     const rounded = Math.round(value * 100) / 100;
     if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
@@ -274,17 +268,16 @@ const translations = {
       message = translations[currentLang]?.removeFromCart || "Removed from cart";
       isSuccess = false;
     } else {
-      // Generate thumbnail URL from pack ID (zero-padded to 3 digits)
       const paddedId = pack.id.padStart(3, '0');
       const imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
 
-const newItem = {
-  id: pack.id,
-  title: pack.title,
-  image: imageUrl,
-  price: pack.price !== undefined ? pack.price : getPriceForPack(pack),  // ← use explicit price if available
-  quantity: 1
-};
+      const newItem = {
+        id: pack.id,
+        title: pack.title,
+        image: imageUrl,
+        price: pack.price !== undefined ? pack.price : getPriceForPack(pack),
+        quantity: 1
+      };
       if (pack.type) newItem.type = pack.type;
       if (pack.tier) newItem.tier = pack.tier;
       if (pack.discordId) newItem.discordId = pack.discordId;
@@ -361,7 +354,7 @@ const newItem = {
 
     if (wasOpen) drawer?.classList.add("open");
 
-    // Refresh PayPal buttons when cart changes
+    // Refresh PayPal buttons
     if (window.initPayPalButtons) {
       setTimeout(() => {
         window.initPayPalButtons();
@@ -420,7 +413,6 @@ const newItem = {
           const membershipItems = cart.filter(item => item.type === 'membership');
 
           if (membershipItems.length > 0) {
-            // ----- MEMBERSHIP ROUTE -----
             const item = membershipItems[0];
             if (!item.discordId || !item.tier) {
               console.error('Membership item missing discordId or tier', item);
@@ -443,7 +435,6 @@ const newItem = {
             }
             window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
           } else {
-            // ----- REGULAR PACK ROUTE (with storage) -----
             const details = await actions.order.capture();
             const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
 
@@ -509,14 +500,12 @@ const newItem = {
 
   /* ==================== GLOBAL PRICE UPDATE ==================== */
   window.updateAllPrices = function() {
-    // Update prices in product grid
     document.querySelectorAll('.price[data-price]').forEach(el => {
       const priceValue = parseFloat(el.dataset.price);
       if (!isNaN(priceValue)) {
         el.textContent = window.formatPrice(priceValue);
       }
     });
-    // Update cart total and item prices
     window.updateCartDisplay?.();
   };
 
@@ -543,7 +532,6 @@ const newItem = {
   document.addEventListener("DOMContentLoaded", () => {
     updateCartDisplay();
 
-    // ---- Drawer open/close ----
     const openDrawer = () => {
       const drawer = document.getElementById("cartDrawer");
       if (!drawer) return;
@@ -555,14 +543,13 @@ const newItem = {
       const drawer = document.getElementById("cartDrawer");
       if (!drawer) return;
       drawer.classList.remove("open");
-      paypalButtonsRendered = false; // allow re-render next time
+      paypalButtonsRendered = false;
     };
 
     document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
     document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
     document.getElementById("cartClose")?.addEventListener("click", closeDrawer);
 
-    // Close when clicking outside
     document.addEventListener("click", (e) => {
       const drawer = document.getElementById("cartDrawer");
       if (!drawer?.classList.contains("open")) return;
@@ -575,7 +562,6 @@ const newItem = {
       }
     });
 
-    // Cart state watcher (updates "Add to Cart" buttons globally)
     let lastCart = JSON.stringify(getCart());
     setInterval(() => {
       const current = JSON.stringify(getCart());
