@@ -6,16 +6,14 @@
   <title>VELUTINX — Artwork</title>
   <!-- Header CSS -->
   <link rel="stylesheet" href="/assets/css/mainheader.css">
-  <!-- Page‑specific CSS (now in assets/css) -->
+  <!-- Page‑specific CSS -->
   <link rel="stylesheet" href="/assets/css/format.css">
 </head>
 <body>
 
-  <!-- Swipe animation layer (used by language change) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div id="page">
-    <!-- Header will be injected here by mainheader.js -->
     <div id="navContainer"></div>
     <div class="divider"></div>
 
@@ -31,34 +29,32 @@
 
   <div class="zoom-overlay" id="zoomOverlay"></div>
 
-  <!-- Scripts – order matters -->
+  <!-- Scripts: translt.js must be first -->
   <script src="/assets/js/translt.js"></script>
   <script src="/assets/js/mainheader.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
-  <!-- Small safety to ensure translations apply even if format.js runs before translt.js -->
   <script>
-    (function() {
-      // Apply dark mode if stored (already done by mainheader.js, but safe)
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark');
-      }
-
-      // If applyTranslations isn't defined yet, wait a moment
-      if (typeof applyTranslations === 'undefined') {
-        console.warn('applyTranslations not defined yet – retrying in 100ms');
-        setTimeout(function() {
-          if (typeof applyTranslations !== 'undefined') {
-            applyTranslations('artwork');
-          } else {
-            console.error('applyTranslations still missing – check translt.js');
-          }
-        }, 100);
+    // Wait for translations to be loaded, then apply
+    function waitForTranslations() {
+      if (typeof window.applyTranslations === 'function') {
+        window.applyTranslations('artwork');
+        // Also ensure header updates (mainheader.js will already have run, but we can force)
+        if (typeof window.updateHeaderTranslations === 'function') {
+          window.updateHeaderTranslations();
+        }
       } else {
-        applyTranslations('artwork');
+        console.warn('Translations not ready, retrying...');
+        setTimeout(waitForTranslations, 200);
       }
-    })();
+    }
+    waitForTranslations();
+
+    // Ensure dark mode from localStorage
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+    }
   </script>
 </body>
 </html>
