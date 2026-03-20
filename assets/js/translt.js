@@ -121,102 +121,100 @@ const translations = {
       discordDisclaimer: "¡Únete al Discord para un voto extra!!"
     }
   },
-
   store: {
-  en: {
-    shopTitle: "My Store",
-    filterTitle: "Filter by Category",
-    catAll: "All",
-    catFemale: "Female",
-    catFemboy: "Femboy",
-    catCollections: "Collections",
-    sortTitle: "Sort by",
-    sortNewest: "Newest",
-    sortOldest: "Oldest",
-    sortLow: "Price: Low to High",
-    sortHigh: "Price: High to Low",
-    productsTitle: "Products",
-    searchPlaceholder: "Search products...",
-    disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-    disclaimerRefund: "Digital products are non-refundable after purchase.",
-    contentsTitle: "Contents:",
-    contentsDesc: "ZIP file containing {count} AI-generated illustrations",
-    originalPrice: "Original Price:",
-    currentPrice: "Current Price:",
-    addToCart: "Add to Cart",
-    removeFromCart: "Remove from Cart"
+    en: {
+      shopTitle: "My Store",
+      filterTitle: "Filter by Category",
+      catAll: "All",
+      catFemale: "Female",
+      catFemboy: "Femboy",
+      catCollections: "Collections",
+      sortTitle: "Sort by",
+      sortNewest: "Newest",
+      sortOldest: "Oldest",
+      sortLow: "Price: Low to High",
+      sortHigh: "Price: High to Low",
+      productsTitle: "Products",
+      searchPlaceholder: "Search products...",
+      disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+      disclaimerRefund: "Digital products are non-refundable after purchase.",
+      contentsTitle: "Contents:",
+      contentsDesc: "ZIP file containing {count} AI-generated illustrations",
+      originalPrice: "Original Price:",
+      currentPrice: "Current Price:",
+      addToCart: "Add to Cart",
+      removeFromCart: "Remove from Cart"
+    },
+    ja: {
+      shopTitle: "マイストア",
+      filterTitle: "カテゴリでフィルター",
+      catAll: "すべて",
+      catFemale: "女性",
+      catFemboy: "男の娘",
+      catCollections: "コレクション",
+      sortTitle: "並び替え",
+      sortNewest: "最新",
+      sortOldest: "最古",
+      sortLow: "価格: 低い → 高い",
+      sortHigh: "価格: 高い → 低い",
+      productsTitle: "商品",
+      searchPlaceholder: "商品を検索...",
+      disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+      disclaimerRefund: "デジタル商品は購入後の返金はできません。",
+      contentsTitle: "内容：",
+      contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
+      originalPrice: "元の価格：",
+      currentPrice: "現在の価格：",
+      addToCart: "カートに追加",
+      removeFromCart: "カートから削除"
+    },
+    zh: {
+      shopTitle: "我的商店",
+      filterTitle: "按类别筛选",
+      catAll: "全部",
+      catFemale: "女性",
+      catFemboy: "伪娘",
+      catCollections: "收藏",
+      sortTitle: "排序方式",
+      sortNewest: "最新",
+      sortOldest: "最旧",
+      sortLow: "价格: 低到高",
+      sortHigh: "价格: 高到低",
+      productsTitle: "商品",
+      searchPlaceholder: "搜索商品...",
+      disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
+      disclaimerRefund: "数字产品购买后不可退款。",
+      contentsTitle: "内容：",
+      contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
+      originalPrice: "原价：",
+      currentPrice: "现价：",
+      addToCart: "加入购物车",
+      removeFromCart: "从购物车移除"
+    },
+    es: {
+      shopTitle: "Mi Tienda",
+      filterTitle: "Filtrar por Categoría",
+      catAll: "Todos",
+      catFemale: "Femenino",
+      catFemboy: "Femboy",
+      catCollections: "Colecciones",
+      sortTitle: "Ordenar por",
+      sortNewest: "Más reciente",
+      sortOldest: "Más antiguo",
+      sortLow: "Precio: Bajo a Alto",
+      sortHigh: "Precio: Alto a Bajo",
+      productsTitle: "Productos",
+      searchPlaceholder: "Buscar productos...",
+      disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
+      disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
+      contentsTitle: "Contenido:",
+      contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
+      originalPrice: "Precio original:",
+      currentPrice: "Precio actual:",
+      addToCart: "Añadir al carrito",
+      removeFromCart: "Eliminar del carrito"
+    }
   },
-  ja: {
-    shopTitle: "マイストア",
-    filterTitle: "カテゴリでフィルター",
-    catAll: "すべて",
-    catFemale: "女性",
-    catFemboy: "男の娘",
-    catCollections: "コレクション",
-    sortTitle: "並び替え",
-    sortNewest: "最新",
-    sortOldest: "最古",
-    sortLow: "価格: 低い → 高い",
-    sortHigh: "価格: 高い → 低い",
-    productsTitle: "商品",
-    searchPlaceholder: "商品を検索...",
-    disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-    disclaimerRefund: "デジタル商品は購入後の返金はできません。",
-    contentsTitle: "内容：",
-    contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
-    originalPrice: "元の価格：",
-    currentPrice: "現在の価格：",
-    addToCart: "カートに追加",
-    removeFromCart: "カートから削除"
-  },
-  zh: {
-    shopTitle: "我的商店",
-    filterTitle: "按类别筛选",
-    catAll: "全部",
-    catFemale: "女性",
-    catFemboy: "伪娘",
-    catCollections: "收藏",
-    sortTitle: "排序方式",
-    sortNewest: "最新",
-    sortOldest: "最旧",
-    sortLow: "价格: 低到高",
-    sortHigh: "价格: 高到低",
-    productsTitle: "商品",
-    searchPlaceholder: "搜索商品...",
-    disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
-    disclaimerRefund: "数字产品购买后不可退款。",
-    contentsTitle: "内容：",
-    contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
-    originalPrice: "原价：",
-    currentPrice: "现价：",
-    addToCart: "加入购物车",
-    removeFromCart: "从购物车移除"
-  },
-  es: {
-    shopTitle: "Mi Tienda",
-    filterTitle: "Filtrar por Categoría",
-    catAll: "Todos",
-    catFemale: "Femenino",
-    catFemboy: "Femboy",
-    catCollections: "Colecciones",
-    sortTitle: "Ordenar por",
-    sortNewest: "Más reciente",
-    sortOldest: "Más antiguo",
-    sortLow: "Precio: Bajo a Alto",
-    sortHigh: "Precio: Alto a Bajo",
-    productsTitle: "Productos",
-    searchPlaceholder: "Buscar productos...",
-    disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
-    disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
-    contentsTitle: "Contenido:",
-    contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
-    originalPrice: "Precio original:",
-    currentPrice: "Precio actual:",
-    addToCart: "Añadir al carrito",
-    removeFromCart: "Eliminar del carrito"
-  }
-}
-    
   header: {
     en: {
       storeBtn: "Store",
@@ -295,41 +293,11 @@ function applyTranslations(pageKey) {
   const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
   if (!pageTranslations) return;
 
-} else if (pageKey === 'store') {
-  const shopTitle = document.getElementById('shopTitle');
-  if (shopTitle) shopTitle.textContent = pageTranslations.shopTitle;
-  const filterTitle = document.getElementById('filterTitle');
-  if (filterTitle) filterTitle.textContent = pageTranslations.filterTitle;
-  const catAll = document.getElementById('catAll');
-  if (catAll) catAll.textContent = pageTranslations.catAll;
-  const catFemale = document.getElementById('catFemale');
-  if (catFemale) catFemale.textContent = pageTranslations.catFemale;
-  const catFemboy = document.getElementById('catFemboy');
-  if (catFemboy) catFemboy.textContent = pageTranslations.catFemboy;
-  const catCollections = document.getElementById('catCollections');
-  if (catCollections) catCollections.textContent = pageTranslations.catCollections;
-  const sortTitle = document.getElementById('sortTitle');
-  if (sortTitle) sortTitle.textContent = pageTranslations.sortTitle;
-  const sortNewest = document.getElementById('sortNewest');
-  if (sortNewest) sortNewest.textContent = pageTranslations.sortNewest;
-  const sortOldest = document.getElementById('sortOldest');
-  if (sortOldest) sortOldest.textContent = pageTranslations.sortOldest;
-  const sortLow = document.getElementById('sortLow');
-  if (sortLow) sortLow.textContent = pageTranslations.sortLow;
-  const sortHigh = document.getElementById('sortHigh');
-  if (sortHigh) sortHigh.textContent = pageTranslations.sortHigh;
-  const productsTitle = document.getElementById('productsTitle');
-  if (productsTitle) productsTitle.textContent = pageTranslations.productsTitle;
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput) searchInput.placeholder = pageTranslations.searchPlaceholder;
-}
-  
   if (pageKey === 'index') {
     const heroSubEl = document.getElementById('heroSub');
     if (heroSubEl && pageTranslations.heroSub) {
       heroSubEl.textContent = pageTranslations.heroSub;
     }
-    // The second hero-sub (with flags) is left static
   } else if (pageKey === 'artwork') {
     const introEl = document.getElementById('artworkIntro');
     if (introEl && pageTranslations.artworkIntro) {
@@ -372,6 +340,33 @@ function applyTranslations(pageKey) {
     if (tooltipEl) tooltipEl.textContent = pageTranslations.leaderboardTooltip || '';
     const disclaimerEl = document.querySelector('.discord-disclaimer');
     if (disclaimerEl) disclaimerEl.textContent = pageTranslations.discordDisclaimer || '';
+  } else if (pageKey === 'store') {
+    const shopTitle = document.getElementById('shopTitle');
+    if (shopTitle) shopTitle.textContent = pageTranslations.shopTitle;
+    const filterTitle = document.getElementById('filterTitle');
+    if (filterTitle) filterTitle.textContent = pageTranslations.filterTitle;
+    const catAll = document.getElementById('catAll');
+    if (catAll) catAll.textContent = pageTranslations.catAll;
+    const catFemale = document.getElementById('catFemale');
+    if (catFemale) catFemale.textContent = pageTranslations.catFemale;
+    const catFemboy = document.getElementById('catFemboy');
+    if (catFemboy) catFemboy.textContent = pageTranslations.catFemboy;
+    const catCollections = document.getElementById('catCollections');
+    if (catCollections) catCollections.textContent = pageTranslations.catCollections;
+    const sortTitle = document.getElementById('sortTitle');
+    if (sortTitle) sortTitle.textContent = pageTranslations.sortTitle;
+    const sortNewest = document.getElementById('sortNewest');
+    if (sortNewest) sortNewest.textContent = pageTranslations.sortNewest;
+    const sortOldest = document.getElementById('sortOldest');
+    if (sortOldest) sortOldest.textContent = pageTranslations.sortOldest;
+    const sortLow = document.getElementById('sortLow');
+    if (sortLow) sortLow.textContent = pageTranslations.sortLow;
+    const sortHigh = document.getElementById('sortHigh');
+    if (sortHigh) sortHigh.textContent = pageTranslations.sortHigh;
+    const productsTitle = document.getElementById('productsTitle');
+    if (productsTitle) productsTitle.textContent = pageTranslations.productsTitle;
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.placeholder = pageTranslations.searchPlaceholder;
   }
 }
 
