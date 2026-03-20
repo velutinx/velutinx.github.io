@@ -9,11 +9,29 @@
   <style>
     /* Ensure price text is visible in light mode */
     .tier-price {
-      color: var(--text); /* uses theme variable */
+      color: var(--text);
       font-weight: bold;
     }
     /* Debug: optional, can be removed later */
     .debug { display: none; }
+
+    /* Style for the SVG star to fit inline */
+    .tier-star {
+      width: 32px;
+      height: 32px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .tier-star svg {
+      width: 100%;
+      height: 100%;
+    }
+    .tier-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -121,10 +139,22 @@
 
     <div class="carousel-container">
       <div class="carousel-scroll" id="tierCarousel">
-        <!-- Tier 1 -->
+        <!-- Tier 1: Bronze -->
         <div class="tier-card" data-tier="1">
           <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <h3 class="tier-title" id="tier1Title">✨ Bronze — Archive Access</h3>
+          <div class="tier-header">
+            <span class="tier-star">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <g transform-origin="100 100">
+                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e">
+                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                  </path>
+                </g>
+              </svg>
+            </span>
+            <h3 class="tier-title" id="tier1Title">BRONZE</h3>
+          </div>
           <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier1Perks">
             <li>Full archive access immediately.</li>
@@ -135,10 +165,23 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(1)"><span class="btn-recurring-text">Recurring Membership</span></button>
           </div>
         </div>
-        <!-- Tier 2 -->
+
+        <!-- Tier 2: Copper -->
         <div class="tier-card" data-tier="2">
           <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <h3 class="tier-title" id="tier2Title">🔶 Copper — Monthly Custom (~20 img)</h3>
+          <div class="tier-header">
+            <span class="tier-star">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <g transform-origin="100 100">
+                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333">
+                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                  </path>
+                </g>
+              </svg>
+            </span>
+            <h3 class="tier-title" id="tier2Title">COPPER</h3>
+          </div>
           <div class="tier-price" data-price-usd="15"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier2Perks">
             <li>Everything in Bronze, plus:</li>
@@ -153,10 +196,23 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(2)"><span class="btn-recurring-text">Recurring Membership</span></button>
           </div>
         </div>
-        <!-- Tier 3 -->
+
+        <!-- Tier 3: Silver -->
         <div class="tier-card" data-tier="3">
           <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <h3 class="tier-title" id="tier3Title">🥈 Silver — Monthly Custom (~40 img)</h3>
+          <div class="tier-header">
+            <span class="tier-star">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <g transform-origin="100 100">
+                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0">
+                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                  </path>
+                </g>
+              </svg>
+            </span>
+            <h3 class="tier-title" id="tier3Title">SILVER</h3>
+          </div>
           <div class="tier-price" data-price-usd="30"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier3Perks">
             <li>Everything in Bronze, plus:</li>
@@ -171,10 +227,23 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(3)"><span class="btn-recurring-text">Recurring Membership</span></button>
           </div>
         </div>
-        <!-- Tier 4 -->
+
+        <!-- Tier 4: Gold -->
         <div class="tier-card" data-tier="4">
           <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <h3 class="tier-title" id="tier4Title">🏅 Gold — Large Custom (~80 img)</h3>
+          <div class="tier-header">
+            <span class="tier-star">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <g transform-origin="100 100">
+                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700">
+                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                  </path>
+                </g>
+              </svg>
+            </span>
+            <h3 class="tier-title" id="tier4Title">GOLD</h3>
+          </div>
           <div class="tier-price" data-price-usd="50"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier4Perks">
             <li>Everything in Bronze, plus:</li>
@@ -190,10 +259,23 @@
             <button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Recurring Membership</span></button>
           </div>
         </div>
-        <!-- Tier 5 -->
+
+        <!-- Tier 5: Platinum -->
         <div class="tier-card" data-tier="5">
           <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <h3 class="tier-title" id="tier5Title">💎 Platinum — Priority Large Custom</h3>
+          <div class="tier-header">
+            <span class="tier-star">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <g transform-origin="100 100">
+                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2">
+                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
+                  </path>
+                </g>
+              </svg>
+            </span>
+            <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
+          </div>
           <div class="tier-price" data-price-usd="75"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier5Perks">
             <li>Everything in Bronze, plus:</li>
@@ -309,7 +391,8 @@
       ];
       for (let i = 1; i <= 5; i++) {
         const titleEl = document.getElementById(`tier${i}Title`);
-        if (titleEl) titleEl.textContent = tierTitles[i-1];
+        // We're using static titles now, so no need to update from translations.
+        // But if you want translated tier names, you would set them here.
       }
 
       document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t.btnSingle || 'Single Purchase');
@@ -351,11 +434,11 @@
 
       const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
       const tierTitles = {
-        1: 'Bronze — Archive Access',
-        2: 'Copper — Monthly Custom (~20 img)',
-        3: 'Silver — Monthly Custom (~40 img)',
-        4: 'Gold — Large Custom (~80 img)',
-        5: 'Platinum — Priority Large Custom'
+        1: 'BRONZE',
+        2: 'COPPER',
+        3: 'SILVER',
+        4: 'GOLD',
+        5: 'PLATINUM'
       };
 
       let cart = window.getCart ? window.getCart() : [];
