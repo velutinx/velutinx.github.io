@@ -1,9 +1,6 @@
 (function () {
   "use strict";
 
-(function () {
-  "use strict";
-
   /* ==================== TRANSLATIONS ==================== */
   const translations = {
     en: {
@@ -18,7 +15,8 @@
       sortNewest: "Newest",
       sortOldest: "Oldest",
       sortLow: "Price: Low to High",
-      sortHigh: "Price: High to Low",      productsTitle: "Products",
+      sortHigh: "Price: High to Low",
+      productsTitle: "Products",
       searchPlaceholder: "Search",
       cartTitle: "Shopping Cart",
       totalLabel: "Total",
@@ -370,7 +368,7 @@
     },
   };
 
-  /* ==================== PRICE & CURRENCY ==================== */
+  // ==================== PRICE & CURRENCY ====================
   const tierMap = {
     1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
     3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
