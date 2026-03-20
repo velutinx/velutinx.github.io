@@ -6,8 +6,7 @@
   <title>Velutinx Pack</title>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
-  <!-- PayPal SDK – direct include (same as store.html) -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD" data-sdk-integration-source="button-factory"></script>
+  <!-- PayPal SDK is now loaded dynamically by shop-shared.js – no direct include needed -->
 
   <style>
     .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
@@ -173,274 +172,143 @@
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js?v=20250310"></script>
 
-<script type="module">
-  import packsData from 'https://velutinx.com/assets/js/packs-data.js';
+  <!-- Page‑specific pack loader -->
+  <script type="module">
+    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
-  let currentLang = localStorage.getItem("language") || "en";
-  const params = new URLSearchParams(window.location.search);
-  const packIdFromUrl = params.get("id") || "001"; // e.g., "001"
+    let currentLang = localStorage.getItem("language") || "en";
+    const params = new URLSearchParams(window.location.search);
+    const packIdFromUrl = params.get("id") || "001";
+    const pack = packsData.find(p => p.id === packIdFromUrl);
 
-  // Find the pack by its id (string comparison)
-  const pack = packsData.find(p => p.id === packIdFromUrl);
+    if (!pack) {
+      document.getElementById("title").textContent = "Pack not found";
+    } else {
+      const paddedId = pack.id.padStart(3, '0');
+      pack.images = Array.from({ length: 4 }, (_, i) => 
+        `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
+      );
 
-  // If pack not found, handle gracefully
-  if (!pack) {
-    document.getElementById("title").textContent = "Pack not found";
-    // Optionally hide other sections
-  } else {
-    // Generate preview images dynamically (4 images per pack)
-    const paddedId = pack.id.padStart(3, '0'); // "1" -> "001"
-    pack.images = Array.from({ length: 4 }, (_, i) => 
-      `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
-    );
+      document.getElementById("title").textContent = pack.title || "Untitled Pack";
 
-    // Fill in the page content
-    document.getElementById("title").textContent = pack.title || "Untitled Pack";
-
-    // --- Category display ---
-    window.updateCategoryDisplay = function() {
-      const catInfo = document.getElementById("categoryInfo");
-      if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
-        catInfo.style.display = "none";
-        return;
-      }
-      const t = window.translations?.[currentLang] || window.translations?.en || {};
-      let iconSVG = "";
-      let textClass = "";
-      let text = t.catFemale || "Female";
-      if (pack.category === 1) {
-        iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="7" r="4"/>
-          <line x1="12" y1="11" x2="12" y2="21"/>
-          <line x1="8" y1="17" x2="16" y2="17"/>
-        </svg>`;
-        textClass = "female";
-      } else if (pack.category === 2) {
-        iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="9" cy="15" r="5"/>
-          <line x1="12.5" y1="11.5" x2="20" y2="4"/>
-          <polyline points="16,4 20,4 20,8"/>
-        </svg>`;
-        textClass = "femboy";
-        text = t.catFemboy || "Femboy";
-      }
-      catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text.toUpperCase()}</span>`;
-      catInfo.style.display = "flex";
-    };
-
-    // --- Price display ---
-    window.updatePriceDisplay = function() {
-      if (!pack) return;
-      const priceNum = window.getPriceForPack?.(pack) ?? 0;
-      const t = window.translations?.[currentLang] || window.translations?.en || {};
-      let priceHTML = `
-        <div>
-          <span class="price-label">${t.currentPrice || "Current Price"}:</span>
-          <span style="color: var(--gray); margin: 0 8px;">│</span>
-          <span class="current-price">${window.formatPrice?.(priceNum) || `US$${priceNum.toFixed(2)}`}</span>
-        </div>
-      `;
-      if (pack.oldPrice && pack.oldPrice.trim() !== "") {
-        priceHTML = `
-          <div>
-            <span class="price-label">${t.originalPrice || "Original Price"}:</span>
-            <span style="color: var(--gray); margin: 0 8px;">│</span>
-            <span class="old-price">${pack.oldPrice}</span>
-          </div>
-          ${priceHTML}
-        `;
-      }
-      if (pack.saveText) {
-        priceHTML += `<div class="save">${pack.saveText}</div>`;
-      }
-      document.getElementById("priceSection").innerHTML = priceHTML;
-    };
-
-    // --- Add to Cart button ---
-    window.updateButton = function() {
-      if (!pack) return;
-      const t = window.translations?.[currentLang] || window.translations?.en || {};
-      const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-      const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
-      document.getElementById("buttons").innerHTML = `<button class="btn btn-cart" id="addCartBtn">${btnText}</button>`;
-      document.getElementById("addCartBtn").onclick = () => {
-        window.addOrToggleCart?.(pack);
-        window.updateButton?.();
+      window.updateCategoryDisplay = function() {
+        const catInfo = document.getElementById("categoryInfo");
+        if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
+          catInfo.style.display = "none";
+          return;
+        }
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
+        let iconSVG = "";
+        let textClass = "";
+        let text = t.catFemale || "Female";
+        if (pack.category === 1) {
+          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="7" r="4"/>
+            <line x1="12" y1="11" x2="12" y2="21"/>
+            <line x1="8" y1="17" x2="16" y2="17"/>
+          </svg>`;
+          textClass = "female";
+        } else if (pack.category === 2) {
+          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="15" r="5"/>
+            <line x1="12.5" y1="11.5" x2="20" y2="4"/>
+            <polyline points="16,4 20,4 20,8"/>
+          </svg>`;
+          textClass = "femboy";
+          text = t.catFemboy || "Femboy";
+        }
+        catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text.toUpperCase()}</span>`;
+        catInfo.style.display = "flex";
       };
-    };
 
-    // --- Contents section ---
-    window.updateContents = function() {
-      if (!pack) return;
-      const t = window.translations?.[currentLang] || window.translations?.en || {};
-      document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
-      document.getElementById("illustrationCount").textContent = (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations")
-        .replace("{count}", pack.illustrationCount || "X");
-    };
+      window.updatePriceDisplay = function() {
+        if (!pack) return;
+        const priceNum = window.getPriceForPack?.(pack) ?? 0;
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
+        let priceHTML = `
+          <div>
+            <span class="price-label">${t.currentPrice || "Current Price"}:</span>
+            <span style="color: var(--gray); margin: 0 8px;">│</span>
+            <span class="current-price">${window.formatPrice?.(priceNum) || `US$${priceNum.toFixed(2)}`}</span>
+          </div>
+        `;
+        if (pack.oldPrice && pack.oldPrice.trim() !== "") {
+          priceHTML = `
+            <div>
+              <span class="price-label">${t.originalPrice || "Original Price"}:</span>
+              <span style="color: var(--gray); margin: 0 8px;">│</span>
+              <span class="old-price">${pack.oldPrice}</span>
+            </div>
+            ${priceHTML}
+          `;
+        }
+        if (pack.saveText) {
+          priceHTML += `<div class="save">${pack.saveText}</div>`;
+        }
+        document.getElementById("priceSection").innerHTML = priceHTML;
+      };
 
-    // Call all updaters
-    window.updateCategoryDisplay?.();
-    window.updatePriceDisplay?.();
-    window.updateButton?.();
-    window.updateContents?.();
+      window.updateButton = function() {
+        if (!pack) return;
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
+        const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
+        const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
+        document.getElementById("buttons").innerHTML = `<button class="btn btn-cart" id="addCartBtn">${btnText}</button>`;
+        document.getElementById("addCartBtn").onclick = () => {
+          window.addOrToggleCart?.(pack);
+          window.updateButton?.();
+        };
+      };
 
-    // Build the gallery carousel using pack.images (now dynamically generated)
-    document.getElementById("gallery").innerHTML = `
-      <div class="carousel">
-        <div class="slides" id="slides">
-          ${pack.images?.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'"></div>`).join('') || '<p>No images available</p>'}
-        </div>
-        <button class="arrow prev" onclick="prevSlide()">❮</button>
-        <button class="arrow next" onclick="nextSlide()">❯</button>
-      </div>
-      <div class="thumbnails">
-        ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
-      </div>
-    `;
+      window.updateContents = function() {
+        if (!pack) return;
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
+        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
+        document.getElementById("illustrationCount").textContent = (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations")
+          .replace("{count}", pack.illustrationCount || "X");
+      };
 
-    // Carousel logic
-    let current = 0;
-    const total = pack.images?.length || 0;
-    window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
-    window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
-    window.goToSlide = (i) => { current = i; updateCarousel(); };
-    function updateCarousel() {
-      document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
-      document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === current));
-    }
-  }
-
-  // Language switcher
-  document.querySelectorAll(".lang-item").forEach(item => {
-    item.onclick = () => {
-      currentLang = item.dataset.lang;
-      window.setLanguage?.(currentLang);
+      window.updateCategoryDisplay?.();
       window.updatePriceDisplay?.();
       window.updateButton?.();
       window.updateContents?.();
-      window.updateCategoryDisplay?.();
-    };
-  });
-</script>
 
-<!-- PayPal button integration with order storage -->
-<script>
-let paypalButtonsRendered = false;
+      document.getElementById("gallery").innerHTML = `
+        <div class="carousel">
+          <div class="slides" id="slides">
+            ${pack.images?.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'"></div>`).join('') || '<p>No images available</p>'}
+          </div>
+          <button class="arrow prev" onclick="prevSlide()">❮</button>
+          <button class="arrow next" onclick="nextSlide()">❯</button>
+        </div>
+        <div class="thumbnails">
+          ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
+        </div>
+      `;
 
-function initPayPalButtons() {
-  if (paypalButtonsRendered) return;
-
-  const drawer = document.getElementById("cartDrawer");
-  const container = document.getElementById("paypal-button-container");
-
-  if (!drawer || !drawer.classList.contains("open")) return;
-  if (!container) return;
-  if (typeof paypal === "undefined") return;
-
-  container.innerHTML = "";
-
-  paypal.Buttons({
-    createOrder: (data, actions) => {
-      const cart = window.getCart ? window.getCart() : [];
-      const total = cart.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
-      if (parseFloat(total) <= 0) {
-        return Promise.reject("Cart empty");
-      }
-      return actions.order.create({
-        purchase_units: [{
-          amount: {
-            currency_code: "USD",
-            value: total
-          }
-        }]
-      });
-    },
-
-    onApprove: async (data, actions) => {
-      try {
-        // 1. Capture the PayPal order
-        const details = await actions.order.capture();
-
-        // 2. Get cart data (each item should include a downloadUrl)
-        const cart = window.getCart ? window.getCart() : [];
-        const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
-
-        // 3. Send order to your Cloudflare Worker (which saves to Supabase)
-        const storeResponse = await fetch('/api/store-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderID: details.id,
-            items: cart,                // must contain downloadUrl or link per item
-            payerEmail: details.payer.email_address,
-            amount: total,
-          }),
-        });
-
-        if (!storeResponse.ok) {
-          console.error('Failed to store order', await storeResponse.text());
-          // You could show a non‑blocking warning here
-        }
-
-        // 4. Redirect to success page
-        window.location.href = `/s/success.html?orderID=${details.id}`;
-      } catch (error) {
-        console.error('PayPal capture or storage error:', error);
-        alert('Payment succeeded but there was a problem finalizing your order. Please contact support.');
-      }
-    },
-
-    onError: () => {
-      alert("PayPal error. Please try again.");
-    }
-  }).render("#paypal-button-container");
-
-  paypalButtonsRendered = true;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const openDrawer = () => {
-    const drawer = document.getElementById("cartDrawer");
-    if (!drawer) return;
-    drawer.classList.add("open");
-    setTimeout(initPayPalButtons, 500);
-  };
-
-  document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
-  document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
-  document.getElementById("cartClose")?.addEventListener("click", () => {
-    document.getElementById("cartDrawer")?.classList.remove("open");
-  });
-
-  // Close drawer when clicking outside
-  document.addEventListener("click", (e) => {
-    const drawer = document.getElementById("cartDrawer");
-    if (
-      drawer?.classList.contains("open") &&
-      !drawer.contains(e.target) &&
-      !document.getElementById("cartBtn")?.contains(e.target) &&
-      !document.getElementById("floatingCartBtn")?.contains(e.target)
-    ) {
-      drawer.classList.remove("open");
-    }
-  });
-
-  // Cart state watcher (updates button text when cart changes)
-  let lastCart = JSON.stringify(window.getCart ? window.getCart() : []);
-  setInterval(() => {
-    const cart = window.getCart ? window.getCart() : [];
-    const current = JSON.stringify(cart);
-    if (current !== lastCart) {
-      lastCart = current;
-      if (window.updateButton) {
-        try { window.updateButton(); } catch(e){}
+      let current = 0;
+      const total = pack.images?.length || 0;
+      window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
+      window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
+      window.goToSlide = (i) => { current = i; updateCarousel(); };
+      function updateCarousel() {
+        document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
+        document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === current));
       }
     }
-  }, 200);
-});
-</script>
 
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.onclick = () => {
+        currentLang = item.dataset.lang;
+        window.setLanguage?.(currentLang);
+        window.updatePriceDisplay?.();
+        window.updateButton?.();
+        window.updateContents?.();
+        window.updateCategoryDisplay?.();
+      };
+    });
+  </script>
 
-
+  <!-- The standalone PayPal script block has been removed – now handled by shop-shared.js -->
 </body>
 </html>
