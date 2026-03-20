@@ -190,13 +190,13 @@
       const paddedId = pack.id.padStart(3, '0');
       const imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
 
-      const newItem = {
-        id: pack.id,
-        title: pack.title,
-        image: imageUrl,
-        price: getPriceForPack(pack),
-        quantity: 1
-      };
+const newItem = {
+  id: pack.id,
+  title: pack.title,
+  image: imageUrl,
+  price: pack.price !== undefined ? pack.price : getPriceForPack(pack),  // ← use explicit price if available
+  quantity: 1
+};
       if (pack.type) newItem.type = pack.type;
       if (pack.tier) newItem.tier = pack.tier;
       if (pack.discordId) newItem.discordId = pack.discordId;
