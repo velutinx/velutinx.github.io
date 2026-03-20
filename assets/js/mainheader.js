@@ -1,4 +1,3 @@
-// mainheader.js – corrected to avoid redeclaring currentLanguage
 (async function() {
   const navContainer = document.getElementById('navContainer');
   if (!navContainer) return;
@@ -145,8 +144,10 @@
       }
     }
 
-    if (logo) logo.addEventListener('click', () => window.location.href = '/');
+    // Store button redirect (store page)
     if (storeBtn) storeBtn.addEventListener('click', () => window.location.href = '/store');
+
+    // REMOVED: logo redirect – logo now does nothing (no click handler)
 
     // Language popover
     if (langBtn && langPopover) {
