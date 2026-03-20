@@ -560,7 +560,7 @@ async function castVote(id) {
   }
 }
 
-// Grid results (website votes only)
+// Grid results (this part already works for you)
 async function fetchGridResults() {
   const { data, error } = await sb.from('website_voting')
     .select('option_id')
@@ -582,24 +582,27 @@ async function fetchGridResults() {
   });
 }
 
-// FIXED: Now uses poll_result (the table Supabase actually has) + selected_at for winners
+// RESTORED ORIGINAL LEADERBOARD LOGIC (this is what worked in your first version)
 async function fetchLeaderboard() {
   try {
-    const { data: rows, error } = await sb.from('poll_result')
-      .select('option_id, character_name, score, selected_at')
+    // Get winners
+    const winRes = await sb.from('poll_winners').select('option_id').eq('poll_id', POLL_ID);
+    const winnerIds = new Set(winRes.data?.map(w => Number(w.option_id)) || []);
+
+    // Get actual scores + names
+    const { data: rows, error } = await sb.from('final_votes')
+      .select('option_id, character_name, score')
       .eq('poll_id', POLL_ID)
       .order('score', { ascending: false });
 
     if (error) throw error;
 
-    // Winners = rows where selected_at IS NOT NULL
-    const winnerIds = new Set(
-      rows
-        .filter(r => r.selected_at !== null && r.selected_at !== '')
-        .map(r => Number(r.option_id))
-    );
+    if (!rows || rows.length === 0) {
+      resultsBox.innerHTML = "No votes yet";
+      return;
+    }
 
-    // Populate leaderboard
+    // Build leaderboard
     resultsBox.innerHTML = rows.map(r => {
       const id = Number(r.option_id);
       const isWinner = winnerIds.has(id);
@@ -607,9 +610,9 @@ async function fetchLeaderboard() {
         <span>${r.character_name || `Option ${id}`}</span>
         <span>${Number(r.score || 0).toFixed(1)}</span>
       </div>`;
-    }).join('') || "No votes yet";
+    }).join('');
 
-    // Sync names + winner cross overlay
+    // Update card labels + winner overlay
     document.querySelectorAll(".card").forEach(card => {
       const id = Number(card.dataset.id);
       const row = rows.find(r => Number(r.option_id) === id);
@@ -660,7 +663,7 @@ async function init() {
   const saved = localStorage.getItem('voted_id') || getVoteCookie();
   if (saved) updateCardStyles(Number(saved));
 
-  // Realtime listeners
+  // Realtime
   sb.channel('grid-refresh')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
     .subscribe();
@@ -683,7 +686,7 @@ document.getElementById("themeToggle").onclick = () => {
   localStorage.setItem("darkMode", document.body.classList.contains("dark"));
 };
 
-// Embedded translations
+// Translations
 const translations = {
   poll: {
     en: { pollTitle: "Vote for Your Favorite Character", pollSubtitle: "Click once — you can change your vote anytime", leaderboardTitle: "Leaderboard", leaderboardTooltip: "Website + Discord votes", discordDisclaimer: "Join discord for an extra vote!!" },
