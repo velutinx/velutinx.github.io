@@ -29,7 +29,6 @@ body.dark {
   --overlay: rgba(15,15,18,0.75);
 }
 
-/* ==================== GLOBAL RESETS (compatible with existing page styles) ==================== */
 * {
   margin: 0;
   padding: 0;
@@ -380,7 +379,6 @@ body.dark .sidebar-header .logo {
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
-
 .cart-overlay.active {
   opacity: 1;
   visibility: visible;
