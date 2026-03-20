@@ -608,7 +608,7 @@
     <!-- ... (keep as is) ... -->
   </div>
 
-  <!-- Embedded header.js -->
+  <!-- Embedded header.js + added missing getPriceForPack -->
   <script>
     /* ==================== header.js (embedded) ==================== */
     const tierMap = { 
@@ -774,6 +774,12 @@
 
     function saveCart(cart) {
       localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
+    }
+
+    // Added missing getPriceForPack function (returns the pack's price as a number)
+    function getPriceForPack(pack) {
+      // Use pack.price if present, otherwise fallback to 0
+      return typeof pack.price === 'number' ? pack.price : parseFloat(pack.price) || 0;
     }
 
     function addOrToggleCart(pack) {
@@ -992,7 +998,7 @@
     });
   </script>
 
-  <!-- Product listing script (unchanged, uses global functions) -->
+  <!-- Product listing script (unchanged) -->
   <script src="https://velutinx.com/assets/js/socials.js"></script>
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
