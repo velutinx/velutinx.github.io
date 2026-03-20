@@ -297,16 +297,21 @@
       }
     }
 
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.onclick = () => {
-        currentLang = item.dataset.lang;
-        window.setLanguage?.(currentLang);
-        window.updatePriceDisplay?.();
-        window.updateButton?.();
-        window.updateContents?.();
-        window.updateCategoryDisplay?.();
-      };
-    });
+document.querySelectorAll(".lang-item").forEach(item => {
+  item.onclick = () => {
+    const newLang = item.dataset.lang;
+    // Update localStorage
+    localStorage.setItem("language", newLang);
+    // Update page-specific content
+    currentLang = newLang;
+    window.updatePriceDisplay?.();
+    window.updateButton?.();
+    window.updateContents?.();
+    window.updateCategoryDisplay?.();
+    // Also update any global UI (like prices) via shop-shared.js
+    if (window.updateAllPrices) window.updateAllPrices();
+  };
+});
   </script>
 
   <!-- The standalone PayPal script block has been removed – now handled by shop-shared.js -->
