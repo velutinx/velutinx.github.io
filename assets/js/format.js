@@ -1,14 +1,7 @@
-// format.js – common page behaviour (stars, gallery, zoom)
+// format.js – common page behaviour (stars, gallery, zoom, commissions sparkles, contact form)
 (function() {
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
   function init() {
-    // Cursor sparkles
+    // Cursor sparkles (global)
     let lastStarTime = 0;
     document.addEventListener("mousemove", (e) => {
       const now = Date.now();
@@ -37,11 +30,11 @@
       setTimeout(() => star.remove(), 8000);
     }, 400);
 
-    // Gallery loading – only images 1 to 12 exist (adjust MAX_IMAGES as needed)
-    const MAX_IMAGES = 12;
-    const BASE = "https://www.velutinx.com/images/artwork/";
+    // Gallery loading (if exists)
     const gallery = document.getElementById("gallery");
     if (gallery) {
+      const MAX_IMAGES = 12;
+      const BASE = "https://www.velutinx.com/images/artwork/";
       for (let i = 1; i <= MAX_IMAGES; i++) {
         const img = document.createElement("img");
         img.src = BASE + i + ".jpg";
@@ -52,7 +45,7 @@
       }
     }
 
-    // Zoom functionality
+    // Zoom functionality (if gallery exists)
     let activeClone = null;
     let originRect = null;
     document.addEventListener("click", (e) => {
@@ -121,79 +114,73 @@
       };
     }
 
-    // Apply artwork translations (if translations are loaded)
-    if (window.applyTranslations) {
-      window.applyTranslations('artwork');
-      document.addEventListener('languageChanged', () => {
-        window.applyTranslations('artwork');
-      });
+    // Commission box sparkles (if exists)
+    const commissionBox = document.getElementById("commissionBox");
+    if (commissionBox) {
+      setInterval(() => {
+        const star = document.createElement("div");
+        star.className = "box-star";
+        star.textContent = "✦";
+        star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
+        star.style.top = "0px";
+        commissionBox.appendChild(star);
+        setTimeout(() => star.remove(), 6000);
+      }, 700);
     }
 
-    
-// Add commission box sparkles if element exists
-(function initCommissionSparkles() {
-  const commissionBox = document.getElementById('commissionBox');
-  if (commissionBox) {
-    setInterval(() => {
-      const star = document.createElement('div');
-      star.className = 'box-star';
-      star.textContent = '✦';
-      star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
-      star.style.top = '0px';
-      commissionBox.appendChild(star);
-      setTimeout(() => star.remove(), 6000);
-    }, 700);
-  }
-}
-
-// Contact form handling and sparkles
-(function initContact() {
-  const contactForm = document.getElementById('contactForm');
-  if (!contactForm) return;
-
-  // Social area falling stars (moved from inline script)
-  const socialArea = document.getElementById('socialArea');
-  if (socialArea) {
-    setInterval(() => {
-      const star = document.createElement('div');
-      star.className = 'social-star';
-      star.textContent = '✦';
-      star.style.left = Math.random() * socialArea.clientWidth + 'px';
-      star.style.top = '0px';
-      socialArea.appendChild(star);
-      setTimeout(() => star.remove(), 6000);
-    }, 700);
-  }
-
-  // Form submission (using Formspree)
-  contactForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const message = document.getElementById('message').value.trim();
-
-    if (!name || !email || !message) {
-      alert(window.translations?.contact?.[window.currentLanguage]?.errorText || 'Please fill out all fields correctly ♡');
-      return;
-    }
-
-    const formData = new FormData(contactForm);
-    try {
-      const response = await fetch(contactForm.action, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' }
-      });
-      if (response.ok) {
-        const successMsg = window.translations?.contact?.[window.currentLanguage]?.successText || 'Message sent successfully! You will hear back soon! ♡♡';
-        alert(successMsg);
-        contactForm.reset();
-      } else {
-        throw new Error('Formspree error');
+    // Contact form handling and social area sparkles (if exists)
+    const contactForm = document.getElementById("contactForm");
+    if (contactForm) {
+      const socialArea = document.getElementById("socialArea");
+      if (socialArea) {
+        setInterval(() => {
+          const star = document.createElement("div");
+          star.className = "social-star";
+          star.textContent = "✦";
+          star.style.left = Math.random() * socialArea.clientWidth + "px";
+          star.style.top = "0px";
+          socialArea.appendChild(star);
+          setTimeout(() => star.remove(), 6000);
+        }, 700);
       }
-    } catch (err) {
-      alert('There was a problem sending your message. Please try again later.');
+
+      contactForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const message = document.getElementById("message").value.trim();
+
+        if (!name || !email || !message) {
+          const errMsg = window.translations?.contact?.[window.currentLanguage]?.errorText || "Please fill out all fields correctly ♡";
+          alert(errMsg);
+          return;
+        }
+
+        const formData = new FormData(contactForm);
+        try {
+          const response = await fetch(contactForm.action, {
+            method: "POST",
+            body: formData,
+            headers: { Accept: "application/json" }
+          });
+          if (response.ok) {
+            const successMsg = window.translations?.contact?.[window.currentLanguage]?.successText || "Message sent successfully! You will hear back soon! ♡♡";
+            alert(successMsg);
+            contactForm.reset();
+          } else {
+            throw new Error("Formspree error");
+          }
+        } catch (err) {
+          alert("There was a problem sending your message. Please try again later.");
+        }
+      });
     }
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
