@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- Swipe animation layer (kept for language change effect) -->
+  <!-- Swipe animation layer (used by language change) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div class="background-wrapper">
@@ -16,7 +16,6 @@
     <div class="wave-overlay"></div>
   </div>
 
-  <!-- Page wrapper -->
   <div id="page">
     <div id="navContainer"></div>
     <div class="divider"></div>
@@ -31,7 +30,6 @@
     <div class="divider"></div>
   </div>
 
-  <!-- Zoom overlay -->
   <div class="zoom-overlay" id="zoomOverlay"></div>
 
   <!-- Scripts -->
@@ -40,9 +38,9 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply dark mode from localStorage (mainheader.js also does this, but keep for initial page)
-    if (localStorage.getItem("darkMode") === "true") {
-      document.body.classList.add("dark");
+    // Apply dark mode from localStorage (mainheader.js already does this, but keep for initial state)
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
     }
 
     // Cursor sparkles (unchanged)
@@ -77,7 +75,6 @@
     // Gallery loading
     const MAX_IMAGES = 45;
     const BASE = "https://www.velutinx.com/images/artwork/";
-
     const gallery = document.getElementById("gallery");
     for (let i = 1; i <= MAX_IMAGES; i++) {
       const img = document.createElement("img");
@@ -153,17 +150,10 @@
       }, 230);
     };
 
-    // Language switch – rely on translations.js
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        setLanguage(item.dataset.lang);
-      });
-    });
-
     // Apply artwork translations on load and after language changes
     function applyArtworkTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = translations?.artwork?.[lang];
+      const t = window.translations?.artwork?.[lang];
       if (t && t.artworkIntro) {
         const introEl = document.getElementById('artworkIntro');
         if (introEl) introEl.textContent = t.artworkIntro;
