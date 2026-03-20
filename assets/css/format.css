@@ -70,6 +70,97 @@ body.dark .divider {
   transition: all 0.22s cubic-bezier(.2,.8,.2,1);
 }
 
+/* ==================== COMMISSION PAGE STYLES ==================== */
+.commission-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+  position: relative;
+}
+
+.commission-box {
+  background: transparent;
+  border: 2px solid var(--divider, #aa9e76);
+  border-radius: 16px;
+  padding: 40px 36px;
+  min-height: 360px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  text-align: center;
+}
+
+.commission-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(238, 234, 224, 0.18);
+  border-radius: 14px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.dark .commission-box {
+  border-color: var(--divider-dark, #6f6a4e);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+body.dark .commission-box::before {
+  background: rgba(22, 22, 27, 0.25);
+}
+
+.commission-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  backdrop-filter: blur(16px);
+}
+
+.commission-box h2,
+.commission-box p,
+.commission-box .placeholder {
+  position: relative;
+  z-index: 2;
+}
+
+.commission-box h2 {
+  font-size: 18px;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+
+.commission-box p {
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.placeholder {
+  margin-top: 40px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Box‑specific falling sparkles */
+.box-star {
+  position: absolute;
+  color: var(--divider, #aa9e76);
+  font-size: 18px;
+  pointer-events: none;
+  animation: boxStarFall 6s linear forwards;
+  z-index: 1;
+}
+
+@keyframes boxStarFall {
+  from { opacity: 0; transform: translateY(-20px); }
+  10% { opacity: 1; }
+  to { opacity: 0; transform: translateY(420px); }
+}
+
+
 /* ==================== STAR EFFECTS ==================== */
 .star {
   position: fixed;
