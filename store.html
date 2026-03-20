@@ -3,7 +3,226 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SHOP | VELUTINX</title><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SHOP | VELUTINX</title>
+  <!-- Header CSS -->
+  <link rel="stylesheet" href="/assets/css/mainheader.css">
+  <!-- Shared page styles (includes store styles) -->
+  <link rel="stylesheet" href="/assets/css/format.css">
+  <!-- Additional external assets -->
+  <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
+  <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
+  <style>
+    /* Override header background to match page flat background */
+    .top-nav {
+      background: var(--bg) !important;
+      backdrop-filter: none !important;
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lang-swipe" id="langSwipe"></div>
+
+  <div id="page">
+    <div id="navContainer"></div>
+    <div class="divider"></div>
+
+    <header class="shop-header">
+      <div class="shop-container">
+        <div class="shop-left">
+          <h1 class="shop-title" id="shopTitle">Loading...</h1>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-container">
+      <aside class="sidebar">
+        <div class="section-title" id="filterTitle">Filter by Category</div>
+        <ul class="category-list">
+          <li class="active" data-cat="0"><span class="material-symbols-outlined">done_all</span><span id="catAll">All Products</span></li>
+          <li data-cat="1"><span class="material-symbols-outlined">female</span><span id="catFemale">Female Models</span></li>
+          <li data-cat="2"><span class="material-symbols-outlined">male</span><span id="catFemboy">Femboy Models</span></li>
+          <li data-cat="3"><span class="material-symbols-outlined">collections_bookmark</span><span id="catCollections">Full Collections</span></li>
+        </ul>
+
+        <div class="sort-options">
+          <div class="section-title" id="sortTitle">Sort by</div>
+          <button class="sort-btn active" data-sort="newest"><span class="material-symbols-outlined">clock_arrow_up</span><span id="sortNewest">Newest</span></button>
+          <button class="sort-btn" data-sort="oldest"><span class="material-symbols-outlined">clock_arrow_down</span><span id="sortOldest">Oldest</span></button>
+          <button class="sort-btn" data-sort="price-asc"><span class="material-symbols-outlined">stat_3</span><span id="sortLow">Price: Low to High</span></button>
+          <button class="sort-btn" data-sort="price-desc"><span class="material-symbols-outlined">stat_minus_3</span><span id="sortHigh">Price: High to Low</span></button>
+        </div>
+      </aside>
+
+      <main class="products-section">
+        <div class="products-header">
+          <h2 id="productsTitle">Latest Content</h2>
+          <div class="search-bar-wrapper">
+            <div class="input-base">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
+                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+              </svg>
+              <input type="search" id="searchInput" class="input-element" />
+            </div>
+          </div>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+      </main>
+    </div>
+
+    <div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/translt.js"></script>
+  <script src="/assets/js/mainheader.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/tab-title-animation.js"></script>
+  <script src="https://velutinx.com/assets/js/socials.js"></script>
+  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
+
+  <!-- Product grid logic – waits for headerReady -->
+  <script type="module">
+    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
+
+    function initStore() {
+      const productsData = packsData.map(p => ({
+        ...p,
+        price: window.getPriceForPack?.(p) ?? 0,
+        date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
+        category: p.category || 0
+      }));
+
+      const grid = document.getElementById("productGrid");
+      const searchInput = document.getElementById("searchInput");
+      const sortButtons = document.querySelectorAll(".sort-btn");
+      const categoryItems = document.querySelectorAll(".category-list li");
+      let currentCategory = 0;
+
+      function createCards() {
+        grid.innerHTML = "";
+        productsData.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.dataset.title = p.title.toLowerCase();
+          card.dataset.price = p.price;
+          card.dataset.date = p.date;
+          card.dataset.id = p.id;
+          card.dataset.category = p.category;
+
+          const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
+          card.innerHTML = `
+            <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='https://via.placeholder.com/248x300/2d2d2d/aaaaaa?text=Pack+${p.id}'">
+            <div class="card-content">
+              <div class="card-title">${p.title}</div>
+              <div class="price-row">
+                <div class="price" data-price="${p.price}"></div>
+                <button class="cart-btn" title="Add to Cart">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                    <path d="M12.5 17h-6.5v-14h-2"></path>
+                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                    <path d="M16 19h6"></path>
+                    <path d="M19 16v6"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
+
+          card.addEventListener("click", e => {
+            if (e.target.closest(".cart-btn")) return;
+            window.location.href = `/s/pack?id=${p.id}`;
+          });
+
+          const cartBtn = card.querySelector(".cart-btn");
+          cartBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            window.addOrToggleCart(p);
+          });
+
+          grid.appendChild(card);
+          p.element = card;
+        });
+
+        window.updateCartDisplay?.();
+        window.syncCartButtons?.();
+      }
+
+      function filterAndSort() {
+        const query = searchInput.value.toLowerCase().trim();
+        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+        productsData.forEach(p => {
+          const titleMatch = p.title.toLowerCase().includes(query);
+          const catMatch = currentCategory === 0 || p.category === currentCategory;
+          p.element.classList.toggle("hidden", !(titleMatch && catMatch));
+        });
+        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+        if (activeSort === "newest") {
+          visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
+        } else if (activeSort === "oldest") {
+          visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
+        } else if (activeSort === "price-asc") {
+          visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        } else if (activeSort === "price-desc") {
+          visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+        }
+        visible.forEach(el => grid.appendChild(el));
+      }
+
+      categoryItems.forEach((item, index) => {
+        item.addEventListener("click", () => {
+          categoryItems.forEach(i => i.classList.remove("active"));
+          item.classList.add("active");
+          currentCategory = index;
+          filterAndSort();
+        });
+      });
+
+      sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          sortButtons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          filterAndSort();
+        });
+      });
+
+      searchInput.addEventListener("input", filterAndSort);
+
+      createCards();
+      filterAndSort();
+      window.updateCartDisplay?.();
+      window.syncCartButtons?.();
+    }
+
+    // Wait for header to be ready
+    if (window.addOrToggleCart) {
+      // Already defined (if header loaded synchronously)
+      initStore();
+    } else {
+      window.addEventListener('headerReady', initStore);
+    }
+  </script>
+
+  <!-- Language price refresh -->
+  <script>
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        setTimeout(() => {
+          window.updateAllPrices?.();
+          window.syncCartButtons?.();
+        }, 100);
+      });
+    });
+  </script>
+</body>
+</html>
   <!-- Header CSS -->
   <link rel="stylesheet" href="/assets/css/mainheader.css">
   <!-- Shared page styles (includes store styles) -->
