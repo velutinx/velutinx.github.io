@@ -285,15 +285,6 @@ body.dark .sidebar-header .logo {
 }
 
 /* ==================== CART & DRAWER ==================== */
-body.drawer-open::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  backdrop-filter: blur(4px);
-  z-index: 1190;
-  pointer-events: none;
-}
 .cart-wrapper {
   position: relative;
 }
