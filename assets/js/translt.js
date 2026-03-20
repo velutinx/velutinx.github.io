@@ -9,6 +9,63 @@ const translations = {
     zh: { artworkIntro: "你好！这些只是我作品的一小部分样本——我在免费Discord上分享更多！ — Temporal Images" },
     es: { artworkIntro: "¡Hola! Estas son solo algunas pequeñas muestras de mi arte — ¡comparto mucho más en mi Discord gratuito! — Temporal Images" }
   },
+
+contact: {
+  en: {
+    contactTitle: "CONTACT",
+    contactDesc: "Use this form if you'd like to contact me via email!",
+    labelName: "NAME",
+    labelEmail: "EMAIL",
+    labelMessage: "MESSAGE",
+    namePlaceholder: "Name",
+    emailPlaceholder: "Email",
+    messagePlaceholder: "Message",
+    sendBtn: "SEND",
+    errorText: "Please fill out all fields correctly ♡",
+    successText: "Message sent successfully! You will hear back soon! ♡♡"
+  },
+  ja: {
+    contactTitle: "お問い合わせ",
+    contactDesc: "メールで連絡したい場合はこちらのフォームをご利用ください。",
+    labelName: "お名前",
+    labelEmail: "メールアドレス",
+    labelMessage: "メッセージ",
+    namePlaceholder: "お名前",
+    emailPlaceholder: "メールアドレス",
+    messagePlaceholder: "メッセージ",
+    sendBtn: "送信",
+    errorText: "すべての項目を正しく入力してください ♡",
+    successText: "送信されました！近日中にご連絡します ♡♡"
+  },
+  zh: {
+    contactTitle: "联系",
+    contactDesc: "如果您想通过电子邮件联系我，请使用此表单！",
+    labelName: "姓名",
+    labelEmail: "电子邮件",
+    labelMessage: "消息",
+    namePlaceholder: "姓名",
+    emailPlaceholder: "电子邮件",
+    messagePlaceholder: "消息",
+    sendBtn: "发送",
+    errorText: "请正确填写所有字段 ♡",
+    successText: "消息已发送！您很快会收到回复！ ♡♡"
+  },
+  es: {
+    contactTitle: "CONTACTO",
+    contactDesc: "¡Use este formulario si desea contactarme por correo electrónico!",
+    labelName: "NOMBRE",
+    labelEmail: "CORREO ELECTRÓNICO",
+    labelMessage: "MENSAJE",
+    namePlaceholder: "Nombre",
+    emailPlaceholder: "Correo electrónico",
+    messagePlaceholder: "Mensaje",
+    sendBtn: "ENVIAR",
+    errorText: "Por favor complete todos los campos correctamente ♡",
+    successText: "¡Mensaje enviado con éxito! ¡Pronto tendrá noticias mías! ♡♡"
+  }
+}
+
+  
   commissions: {
     en: {
       comTitle: "COMMISSIONS",
