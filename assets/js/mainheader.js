@@ -33,6 +33,20 @@
       document.body.appendChild(cartOverlay);
     }
 
+    // --- Price formatting constants (store) ---
+    const tierMap = { 
+      1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 
+      3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 
+      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } 
+    };
+    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+
+    // Current currency – initialise from stored language
+    let currentLang = localStorage.getItem('language') || 'en';
+    let currentCurrency = currentLang === 'en' ? 'USD' :
+                         currentLang === 'ja' ? 'JPY' :
+                         currentLang === 'zh' ? 'CNY' : 'MXN';
+
     // --- Helper functions ---
     function showSnackbar() {
       snackbar.classList.add('show');
@@ -51,8 +65,18 @@
       localStorage.setItem('velutinx_cart', JSON.stringify(cart));
     }
 
-    function formatPrice(value) {
-      return `US$${value.toFixed(2)}`;
+    function formatPrice(value, currency = currentCurrency) {
+      if (currency === "USD") return `US$${value.toFixed(2)}`;
+      const rounded = Math.round(value * 100) / 100;
+      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+        const converted = tierMap[rounded][currency];
+        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+        return `${symbol}${converted}`;
+      }
+      let converted = value * (approxRates[currency] || 1);
+      converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
+      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+      return `${symbol}${converted}`;
     }
 
     function updateCartDisplay() {
@@ -161,6 +185,7 @@
         }
       });
     }
+
     // Apply header translations using global translations object
     function applyHeaderTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
@@ -168,7 +193,7 @@
       if (!t) return;
       if (storeBtn) storeBtn.textContent = t.storeBtn;
       const menuHome = document.getElementById('menuHome');
-      const menuCommissions = document.getElementById('menuCommissions');   // FIXED: plural
+      const menuCommissions = document.getElementById('menuCommissions');   // plural
       const menuArtwork = document.getElementById('menuArtwork');
       const menuPoll = document.getElementById('menuPoll');
       const menuStore = document.getElementById('menuStore');
@@ -187,11 +212,18 @@
       if (snackText) snackText.textContent = t.snackText;
     }
 
+    // Listen for language changes and update currency & translations
     document.addEventListener('languageChanged', () => {
+      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      // Update currentCurrency
+      currentCurrency = lang === 'en' ? 'USD' :
+                       lang === 'ja' ? 'JPY' :
+                       lang === 'zh' ? 'CNY' : 'MXN';
       applyHeaderTranslations();
       updateCartDisplay();
     });
 
+    // Language item clicks – use global setLanguage
     document.querySelectorAll('.lang-item').forEach(item => {
       item.addEventListener('click', () => {
         const newLang = item.dataset.lang;
@@ -200,28 +232,7 @@
       });
     });
 
-// ==================== PRICE FORMATTING (store) ====================
-const tierMap = { 
-  1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 
-  3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 
-  10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } 
-};
-const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
-function formatPrice(value, currency = currentCurrency) {
-  if (currency === "USD") return `US$${value.toFixed(2)}`;
-  const rounded = Math.round(value * 100) / 100;
-  if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-    const converted = tierMap[rounded][currency];
-    const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-    return `${symbol}${converted}`;
-  }
-  let converted = value * (approxRates[currency] || 1);
-  converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-  const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-  return `${symbol}${converted}`;
-}
-    
+    // Initial setup
     applyHeaderTranslations();
     updateCartDisplay();
   } catch (err) {
