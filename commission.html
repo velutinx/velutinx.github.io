@@ -6,113 +6,25 @@
   <title>VELUTINX — Commissions</title>
   <!-- Header CSS -->
   <link rel="stylesheet" href="/assets/css/mainheader.css">
-  <!-- Page‑specific CSS (commission box styles) -->
+  <!-- Shared page styles (gallery, commission box, stars, etc.) -->
+  <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* ==================== COMMISSION PAGE STYLES ==================== */
-    .divider {
-      width: 80%;
-      height: 6px;
-      background: var(--divider, #aa9e76);
-      margin: 22px auto;
-      border-radius: 4px;
+    /* Override header background to match page flat background */
+    .top-nav {
+      background: var(--bg) !important;
+      backdrop-filter: none !important;
+      border-bottom: 1px solid var(--border);
     }
-    body.dark .divider {
-      background: var(--divider-dark, #6f6a4e);
-    }
-
-    .commission-wrap {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 60px 24px 80px;
-      position: relative;
-    }
-
-    .commission-box {
-      background: transparent;
-      border: 2px solid var(--divider, #aa9e76);
-      border-radius: 16px;
-      padding: 40px 36px;
-      min-height: 360px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s ease;
-      text-align: center;
-    }
-
-    .commission-box::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(238, 234, 224, 0.18);
-      border-radius: 14px;
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    body.dark .commission-box {
-      border-color: var(--divider-dark, #6f6a4e);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    }
-
-    body.dark .commission-box::before {
-      background: rgba(22, 22, 27, 0.25);
-    }
-
-    .commission-box:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 48px rgba(0,0,0,0.35);
-      backdrop-filter: blur(16px);
-    }
-
-    .commission-box h2,
-    .commission-box p,
-    .commission-box .placeholder {
-      position: relative;
-      z-index: 2;
-    }
-
-    .commission-box h2 {
-      font-size: 18px;
-      letter-spacing: 2px;
-      margin-bottom: 16px;
-    }
-
-    .commission-box p {
-      font-size: 14px;
-      line-height: 1.6;
-      letter-spacing: 1px;
-      opacity: 0.9;
-    }
-
-    .placeholder {
-      margin-top: 40px;
-      font-style: italic;
-      opacity: 0.7;
-    }
-
-    /* Box‑specific falling sparkles */
-    .box-star {
-      position: absolute;
-      color: var(--divider, #aa9e76);
-      font-size: 18px;
-      pointer-events: none;
-      animation: boxStarFall 6s linear forwards;
-      z-index: 1;
-    }
-
-    @keyframes boxStarFall {
-      from { opacity: 0; transform: translateY(-20px); }
-      10% { opacity: 1; }
-      to { opacity: 0; transform: translateY(420px); }
+    /* Hide store button and both cart icons on this page */
+    .commissions-page .store-btn,
+    .commissions-page .cart-wrapper,
+    .commissions-page .floating-cart {
+      display: none !important;
     }
   </style>
 </head>
-<body>
+<body class="commissions-page">
 
-  <!-- Swipe animation layer (used by language change) -->
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div id="page">
@@ -139,39 +51,22 @@
   <!-- Scripts: translt.js must be first -->
   <script src="/assets/js/translt.js"></script>
   <script src="/assets/js/mainheader.js"></script>
+  <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // ==================== Page‑specific logic ====================
-    // Apply dark mode from localStorage (header already does, but safe)
+    // Apply translations for commissions page
+    if (typeof window.applyTranslations === 'function') {
+      window.applyTranslations('commissions');
+      document.addEventListener('languageChanged', () => {
+        window.applyTranslations('commissions');
+      });
+    }
+
+    // Ensure dark mode from localStorage
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
-
-    // Box‑specific falling sparkles (original commission box effect)
-    const commissionBox = document.getElementById("commissionBox");
-    if (commissionBox) {
-      setInterval(() => {
-        const star = document.createElement("div");
-        star.className = "box-star";
-        star.textContent = "✦";
-        star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
-        star.style.top = "0px";
-        commissionBox.appendChild(star);
-        setTimeout(() => star.remove(), 6000);
-      }, 700);
-    }
-
-    // Apply translations for commissions page
-    function applyCommissionsTranslations() {
-      if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('commissions');
-      }
-    }
-
-    applyCommissionsTranslations();
-    document.addEventListener('languageChanged', applyCommissionsTranslations);
   </script>
-
 </body>
 </html>
