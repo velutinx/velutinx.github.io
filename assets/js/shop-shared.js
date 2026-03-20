@@ -313,7 +313,7 @@ const translations = {
     discordHelpStep3: "<strong>Paso 3:</strong> Haz clic derecho en tu nombre de usuario y selecciona <strong>Copiar ID</strong>.",
     discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.",
     noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
-    joinDiscord: "→ Unirse al Servidor de Discord ←",
+    joinDiscord: "→ Unirse al Servicio de Discord ←",
 
     tierBronze: "Bronce",
     tierCopper: "Cobre",
@@ -398,15 +398,18 @@ const translations = {
   }
 
   function formatPrice(value, currency) {
+    // Ensure value is a number
+    const num = Number(value);
+    if (isNaN(num)) return "?";
     if (currency === undefined) currency = getCurrentCurrency();
-    if (currency === "USD") return `US$${value.toFixed(2)}`;
-    const rounded = Math.round(value * 100) / 100;
+    if (currency === "USD") return `US$${num.toFixed(2)}`;
+    const rounded = Math.round(num * 100) / 100;
     if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
       const converted = tierMap[rounded][currency];
       const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
       return `${symbol}${converted}`;
     }
-    let converted = value * (approxRates[currency] || 1);
+    let converted = num * (approxRates[currency] || 1);
     converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
     const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
     return `${symbol}${converted}`;
@@ -446,7 +449,7 @@ const translations = {
         id: pack.id,
         title: pack.title,
         image: imageUrl,
-        price: pack.price !== undefined ? pack.price : getPriceForPack(pack),
+        price: pack.price !== undefined ? Number(pack.price) : getPriceForPack(pack),
         quantity: 1
       };
       if (pack.type) newItem.type = pack.type;
@@ -471,7 +474,7 @@ const translations = {
 
     const cart = getCart();
     const count = cart.length;
-    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
 
     document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
       if (el) el.textContent = count;
@@ -569,7 +572,7 @@ const translations = {
     paypal.Buttons({
       createOrder: (data, actions) => {
         const cart = getCart();
-        const total = cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+        const total = cart.reduce((sum, item) => sum + Number(item.price), 0).toFixed(2);
         if (parseFloat(total) <= 0) return Promise.reject('Cart is empty');
         return actions.order.create({
           purchase_units: [{
@@ -607,7 +610,7 @@ const translations = {
             window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
           } else {
             const details = await actions.order.capture();
-            const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
+            const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
 
             const storeResponse = await fetch('/api/store-order', {
               method: 'POST',
