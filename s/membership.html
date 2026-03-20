@@ -85,7 +85,7 @@
         <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
         <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
         <div class="discord-hint" id="discordHint">
-          How to find your Discord ID: 
+          <span id="discordHintText">How to find your Discord ID:</span>
           <span class="discord-help-link" id="discordHelpToggle">
             <span id="discordHelpText">Where do I find my Discord ID? (click)</span>
             <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-left: 4px;">
@@ -114,8 +114,9 @@
       <div class="carousel-scroll" id="tierCarousel">
         <!-- Tier 1 -->
         <div class="tier-card" data-tier="1">
+          <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <h3 class="tier-title" id="tier1Title">✨ Bronze — Archive Access</h3>
-          <div class="tier-price">$5 <span class="per-month">/ month</span></div>
+          <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier1Perks">
             <li>Full archive access immediately.</li>
             <li>Includes all past releases & paid content.</li>
@@ -127,8 +128,9 @@
         </div>
         <!-- Tier 2 -->
         <div class="tier-card" data-tier="2">
+          <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <h3 class="tier-title" id="tier2Title">🔶 Copper — Monthly Custom (~20 img)</h3>
-          <div class="tier-price">$15 <span class="per-month">/ month</span></div>
+          <div class="tier-price" data-price-usd="15"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier2Perks">
             <li>Everything in Bronze, plus:</li>
             <li>One (1) custom image request per billing cycle.</li>
@@ -144,8 +146,9 @@
         </div>
         <!-- Tier 3 -->
         <div class="tier-card" data-tier="3">
+          <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <h3 class="tier-title" id="tier3Title">🥈 Silver — Monthly Custom (~40 img)</h3>
-          <div class="tier-price">$30 <span class="per-month">/ month</span></div>
+          <div class="tier-price" data-price-usd="30"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier3Perks">
             <li>Everything in Bronze, plus:</li>
             <li>One (1) custom image request per billing cycle.</li>
@@ -161,8 +164,9 @@
         </div>
         <!-- Tier 4 -->
         <div class="tier-card" data-tier="4">
+          <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <h3 class="tier-title" id="tier4Title">🏅 Gold — Large Custom (~80 img)</h3>
-          <div class="tier-price">$50 <span class="per-month">/ month</span></div>
+          <div class="tier-price" data-price-usd="50"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier4Perks">
             <li>Everything in Bronze, plus:</li>
             <li>One (1) large custom image request per billing cycle.</li>
@@ -179,8 +183,9 @@
         </div>
         <!-- Tier 5 -->
         <div class="tier-card" data-tier="5">
+          <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <h3 class="tier-title" id="tier5Title">💎 Platinum — Priority Large Custom</h3>
-          <div class="tier-price">$75 <span class="per-month">/ month</span></div>
+          <div class="tier-price" data-price-usd="75"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier5Perks">
             <li>Everything in Bronze, plus:</li>
             <li>One (1) large custom image request per billing cycle.</li>
@@ -205,11 +210,13 @@
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
   <script>
+    // Carousel scroll
     window.scrollCarousel = function(direction) {
       const container = document.getElementById('tierCarousel');
       if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
     };
 
+    // Discord help toggle
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('discordHelpToggle');
       const content = document.getElementById('discordHelpContent');
@@ -221,6 +228,7 @@
       }
     });
 
+    // Update membership button text based on cart
     function updateMembershipButtons() {
       const cart = window.getCart ? window.getCart() : [];
       for (let tier = 1; tier <= 5; tier++) {
@@ -235,12 +243,27 @@
       }
     }
 
+    // Override shared updateCartDisplay to also update membership buttons
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
     };
 
+    // Update membership prices based on current currency
+    function updateMembershipPrices() {
+      document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+        const usd = parseFloat(el.dataset.priceUsd);
+        if (!isNaN(usd) && window.formatPrice) {
+          const priceSpan = el.querySelector('.price-value');
+          if (priceSpan) {
+            priceSpan.textContent = window.formatPrice(usd);
+          }
+        }
+      });
+    }
+
+    // Update all membership text from translations
     function updateMembershipText() {
       const lang = localStorage.getItem("language") || "en";
       const t = window.translations?.[lang] || window.translations?.en || {};
@@ -257,7 +280,7 @@
       setText('membershipTitle', '✨ Choose Your Membership');
       setText('membershipDescription', 'Support my work and unlock exclusive perks');
       setHTML('discordIdLabel', (t.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
-      setHTML('discordHint', (t.discordHint || 'How to find your Discord ID:') + ' ');
+      setText('discordHintText', t.discordHint || 'How to find your Discord ID:');
       setText('discordHelpText', t.discordHelpLink || 'Where do I find my Discord ID? (click)');
       setHTML('discordHelpStep1', t.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
       setHTML('discordHelpStep2', t.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
@@ -283,6 +306,7 @@
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
     }
 
+    // Snackbar
     function showSnackbar(message, isError = false) {
       const snackbar = document.getElementById('snackbar');
       const snackText = document.getElementById('snackText');
@@ -293,6 +317,7 @@
       setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
     }
 
+    // Discord ID validation
     function validateDiscordId() {
       const discordInput = document.getElementById('discordId');
       if (!discordInput) return null;
@@ -308,6 +333,7 @@
       return id;
     }
 
+    // Main purchase handler
     window.handleSinglePurchase = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
@@ -355,6 +381,7 @@
       updateMembershipButtons();
     };
 
+    // Recurring handler (placeholder)
     window.handleRecurring = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
@@ -364,15 +391,18 @@
       alert(`Recurring subscription for Tier ${tierNumber} would start.`);
     };
 
+    // Language switcher
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
         setTimeout(() => {
           updateMembershipText();
+          updateMembershipPrices();
           if (window.updateAllPrices) window.updateAllPrices();
         }, 100);
       });
     });
 
+    // Page setup
     window.addEventListener('load', function() {
       const themeBtn = document.getElementById('themeBtn');
       if (themeBtn) {
@@ -385,6 +415,7 @@
 
       updateMembershipButtons();
       updateMembershipText();
+      updateMembershipPrices(); // initial price formatting
       if (window.updateCartDisplay) window.updateCartDisplay();
     });
   </script>
