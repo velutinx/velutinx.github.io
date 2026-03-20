@@ -178,14 +178,14 @@ function addOrToggleCart(pack) {
     message = translations[currentLang]?.removeFromCart || "Removed from cart";
     isSuccess = false;
   } else {
-    // Generate thumbnail URL from pack ID
-    const paddedId = pack.id.padStart(3, '0'); // e.g., "1" -> "001"
+    // Generate thumbnail URL from pack ID (zero-padded to 3 digits)
+    const paddedId = pack.id.padStart(3, '0');
     const imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
 
     const newItem = {
       id: pack.id,
       title: pack.title,
-      image: imageUrl,                     // dynamic thumbnail
+      image: imageUrl,                     // ✅ dynamic thumbnail
       price: getPriceForPack(pack),
       quantity: 1
     };
