@@ -300,30 +300,28 @@
       return window.translations?.[lang] || window.translations?.en || {};
     }
 
-    // Update membership button text based on cart (using translations)
-    function updateMembershipButtons() {
-      console.log('updateMembershipButtons called');
-      const t = getT();
-      const cart = window.getCart ? window.getCart() : [];
-      for (let tier = 1; tier <= 5; tier++) {
-        const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-        if (!card) continue;
-        const btn = card.querySelector('.btn-single, .btn-remove');
-        if (!btn) continue;
-        const inCart = cart.some(item => item.id === `membership-${tier}`);
-        btn.textContent = inCart ? (t.removeFromCart || 'Remove from Cart') : (t.btnSingle || 'Single Purchase');
-        btn.classList.toggle('btn-single', !inCart);
-        btn.classList.toggle('btn-remove', inCart);
-      }
-    }
+// Update membership button text based on cart (using translations)
+function updateMembershipButtons() {
+  const t = getT();
+  const cart = window.getCart ? window.getCart() : [];
+  for (let tier = 1; tier <= 5; tier++) {
+    const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+    if (!card) continue;
+    const btn = card.querySelector('.btn-single, .btn-remove');
+    if (!btn) continue;
+    const inCart = cart.some(item => item.id === `membership-${tier}`);
+    btn.textContent = inCart ? (t.removeFromCart || 'Remove from Cart') : (t.btnSingle || 'Single Purchase');
+    btn.classList.toggle('btn-single', !inCart);
+    btn.classList.toggle('btn-remove', inCart);
+  }
+}
 
-    // Override shared updateCartDisplay to also update membership buttons
-    const originalUpdateCartDisplay = window.updateCartDisplay;
-    window.updateCartDisplay = function() {
-      console.log('updateCartDisplay wrapper called');
-      if (originalUpdateCartDisplay) originalUpdateCartDisplay();
-      updateMembershipButtons();
-    };
+// Override shared updateCartDisplay to also update membership buttons
+const originalUpdateCartDisplay = window.updateCartDisplay;
+window.updateCartDisplay = function() {
+  if (originalUpdateCartDisplay) originalUpdateCartDisplay();
+  updateMembershipButtons();
+};
 
     // Update membership prices based on current currency
     function updateMembershipPrices() {
