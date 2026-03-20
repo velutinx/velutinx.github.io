@@ -165,7 +165,7 @@
       });
     }
 
-    // Apply header translations
+    // Apply header translations using global translations object
     function applyHeaderTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       const t = window.translations?.header?.[lang];
