@@ -1,4 +1,3 @@
-// Load header HTML into navContainer and initialise all header components
 (async function() {
   const navContainer = document.getElementById('navContainer');
   if (!navContainer) return;
@@ -8,7 +7,7 @@
     const html = await response.text();
     navContainer.innerHTML = html;
 
-    // --- Header elements ---
+    // --- DOM elements after injection ---
     const logo = document.querySelector('.logo');
     const storeBtn = document.getElementById('storeBtn');
     const langBtn = document.getElementById('langBtn');
@@ -25,13 +24,21 @@
     const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
     const snackbar = document.getElementById('snackbar');
 
+    // Create cart overlay if not exists
+    let cartOverlay = document.getElementById('cartOverlay');
+    if (!cartOverlay) {
+      cartOverlay = document.createElement('div');
+      cartOverlay.id = 'cartOverlay';
+      cartOverlay.className = 'cart-overlay';
+      document.body.appendChild(cartOverlay);
+    }
+
     // --- Helper functions ---
     function showSnackbar() {
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show'), 2000);
     }
 
-    // Cart functions (from localStorage)
     function getCart() {
       try {
         return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
@@ -39,9 +46,16 @@
         return [];
       }
     }
+
     function saveCart(cart) {
       localStorage.setItem('velutinx_cart', JSON.stringify(cart));
     }
+
+    function formatPrice(value) {
+      // Simple fallback formatting (you can expand later)
+      return `US$${value.toFixed(2)}`;
+    }
+
     function updateCartDisplay() {
       const cart = getCart();
       const count = cart.length;
@@ -61,7 +75,7 @@
               <img src="${item.image}" alt="${item.title}">
               <div class="cart-item-info">
                 <div class="cart-item-title">${item.title}</div>
-                <div class="cart-item-price">${window.formatPrice ? window.formatPrice(item.price) : item.price}</div>
+                <div class="cart-item-price">${formatPrice(item.price)}</div>
               </div>
               <button class="cart-item-remove" data-idx="${idx}">×</button>
             `;
@@ -69,41 +83,30 @@
           });
         }
         const totalEl = document.getElementById('cartTotal');
-        if (totalEl) totalEl.textContent = window.formatPrice ? window.formatPrice(total) : `US$${total.toFixed(2)}`;
+        if (totalEl) totalEl.textContent = formatPrice(total);
       }
     }
-    function addToCart(item) {
-      const cart = getCart();
-      const exists = cart.find(i => i.id === item.id);
-      if (exists) return; // optional: show error or update quantity
-      cart.push(item);
-      saveCart(cart);
-      updateCartDisplay();
-      showSnackbar();
-    }
 
-    // Open/close cart
+    // Cart open/close with overlay
     function openCart() {
       cartDrawer.classList.add('open');
+      cartOverlay.classList.add('active');
       document.body.classList.add('drawer-open');
     }
     function closeCart() {
       cartDrawer.classList.remove('open');
+      cartOverlay.classList.remove('active');
       document.body.classList.remove('drawer-open');
     }
+
     if (cartBtn && floatCartBtn && cartClose && cartDrawer) {
       cartBtn.addEventListener('click', openCart);
       floatCartBtn.addEventListener('click', openCart);
       cartClose.addEventListener('click', closeCart);
-      document.addEventListener('click', (e) => {
-        if (cartDrawer.classList.contains('open') &&
-            !cartDrawer.contains(e.target) &&
-            !cartBtn.contains(e.target) &&
-            !floatCartBtn.contains(e.target)) {
-          closeCart();
-        }
-      });
+      cartOverlay.addEventListener('click', closeCart);
     }
+
+    // Remove items from cart
     if (cartItemsEl) {
       cartItemsEl.addEventListener('click', (e) => {
         if (e.target.classList.contains('cart-item-remove')) {
@@ -139,6 +142,10 @@
         document.body.classList.toggle('dark');
         localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       });
+      // Initialise dark mode from localStorage
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark');
+      }
     }
 
     // Logo and store button redirects
@@ -158,7 +165,7 @@
       });
     }
 
-    // Apply current language to header texts
+    // Apply header translations
     function applyHeaderTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       const t = window.translations?.header?.[lang];
@@ -184,13 +191,11 @@
       if (snackText) snackText.textContent = t.snackText;
     }
 
-    // Listen for language changes (dispatched by translations.js)
     document.addEventListener('languageChanged', () => {
       applyHeaderTranslations();
-      updateCartDisplay(); // re‑format prices if needed
+      updateCartDisplay();
     });
 
-    // Initial translations
     applyHeaderTranslations();
     updateCartDisplay();
   } catch (err) {
