@@ -259,7 +259,25 @@ body.dark .send-btn {
   /* other styles are from socials.css */
 }
 
+/* ==================== SOCIAL AREA FALLING STARS (contact page) ==================== */
+.contact-right {
+  position: relative;  /* already present, but ensure it's there */
+}
 
+.social-star {
+  position: absolute;
+  color: var(--divider, #aa9e76);
+  font-size: 18px;
+  pointer-events: none;
+  animation: socialStarFall 6s linear forwards;
+  z-index: 1;
+}
+
+@keyframes socialStarFall {
+  from { opacity: 0; transform: translateY(-20px); }
+  10% { opacity: 1; }
+  to { opacity: 0; transform: translateY(300px); }
+}
 
 /* ==================== STAR EFFECTS ==================== */
 .star {
