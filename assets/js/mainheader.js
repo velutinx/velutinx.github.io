@@ -1,9 +1,13 @@
 (async function() {
   const navContainer = document.getElementById('navContainer');
-  if (!navContainer) return;
+  if (!navContainer) {
+    console.error('navContainer not found – header cannot be loaded');
+    return;
+  }
 
   try {
     const response = await fetch('/assets/includes/header.html');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const html = await response.text();
     navContainer.innerHTML = html;
 
@@ -66,14 +70,18 @@
     }
 
     function formatPrice(value, currency = currentCurrency) {
-      if (currency === "USD") return `US$${value.toFixed(2)}`;
-      const rounded = Math.round(value * 100) / 100;
+      // Ensure value is a number
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return '0.00';
+
+      if (currency === "USD") return `US$${numValue.toFixed(2)}`;
+      const rounded = Math.round(numValue * 100) / 100;
       if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
         const converted = tierMap[rounded][currency];
         const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
         return `${symbol}${converted}`;
       }
-      let converted = value * (approxRates[currency] || 1);
+      let converted = numValue * (approxRates[currency] || 1);
       converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
       const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
       return `${symbol}${converted}`;
@@ -82,7 +90,7 @@
     function updateCartDisplay() {
       const cart = getCart();
       const count = cart.length;
-      const total = cart.reduce((s, i) => s + i.price, 0);
+      const total = cart.reduce((s, i) => s + (parseFloat(i.price) || 0), 0);
       document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
         if (el) el.textContent = count;
       });
@@ -113,6 +121,11 @@
     function addOrToggleCart(pack) {
       let cart = getCart();
       const index = cart.findIndex(item => item.id === pack.id);
+      const price = parseFloat(pack.price);
+      if (isNaN(price)) {
+        console.warn('Invalid price for pack', pack);
+        return;
+      }
       if (index !== -1) {
         cart.splice(index, 1);
       } else {
@@ -120,7 +133,7 @@
           id: pack.id,
           title: pack.title,
           image: pack.image || (pack.images && pack.images[0]) || "",
-          price: pack.price,   // numeric price (USD base)
+          price: price,   // store as number
           quantity: 1
         });
       }
@@ -146,7 +159,7 @@
     window.formatPrice = formatPrice;
     window.updateAllPrices = updateAllPrices;
     window.getPriceForPack = function(pack) {
-      return pack.price; // assume price is already set
+      return parseFloat(pack.price) || 0;
     };
 
     // --- Cart drawer controls ---
