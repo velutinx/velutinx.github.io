@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test: Gallery Only</title>
+  <title>VELUTINX — Artwork</title>
   <style>
     /* ==================== THEME VARIABLES ==================== */
     :root {
@@ -453,6 +453,135 @@
     }
     #snackbar.show { transform: translateY(0); opacity: 1; }
 
+    /* ==================== ANIMATED BACKGROUND (NO BLUR ON BODY::BEFORE) ==================== */
+    .background-wrapper {
+      position: fixed;
+      inset: 0;
+      z-index: -10;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .background-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        132deg,
+        #734128 0%,
+        #C7A07A 25%,
+        #E2CEB1 50%,
+        #FDFCE8 75%,
+        #391E10 100%
+      );
+      background-size: 300% 300%;
+      animation: gradientFlow 28s ease infinite;
+    }
+
+    @keyframes gradientFlow {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .wave-overlay {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.10;
+      mix-blend-mode: overlay;
+      animation: slowDrift 140s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes slowDrift {
+      0%   { transform: translate3d(0, 0, 0) scale(1.015); }
+      50%  { transform: translate3d(4%, 6%, 0) scale(1.045); }
+      100% { transform: translate3d(0, 0, 0) scale(1.015); }
+    }
+
+    /* REMOVED backdrop-filter from body::before to fix cart blur */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(253, 252, 232, 0.28);
+      z-index: -9;
+      pointer-events: none;
+      /* backdrop-filter: blur(1.5px);   ← REMOVED */
+    }
+
+    #page,
+    .hero,
+    .commission-wrap,
+    .artwork-wrap,
+    .contact-wrap {
+      position: relative;
+      z-index: 1;
+      background: transparent;
+    }
+
+    body.dark .background-gradient {
+      background: linear-gradient(
+        135deg,
+        #00030f 0%,
+        #000814 20%,
+        #0a1125 40%,
+        #001220 60%,
+        #0b142b 80%,
+        #00030f 100%
+      );
+      background-size: 400% 400%;
+      animation: darkNebulaFlow 55s ease infinite;
+    }
+
+    @keyframes darkNebulaFlow {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    body.dark::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 3, 15, 0.65);
+      z-index: -9;
+      pointer-events: none;
+      /* backdrop-filter: blur(1px);   ← REMOVED */
+    }
+
+    body.dark .background-gradient::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(#111111 1px, transparent 1px),
+        radial-gradient(#0f1e38 1px, transparent 1px),
+        radial-gradient(#14253f 1px, transparent 1px);
+      background-size: 70px 70px, 90px 90px, 120px 120px;
+      background-position: 0 0, 35px 35px, 80px 80px;
+      opacity: 0.06;
+      animation: starTwinkle 35s ease-in-out infinite;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    @keyframes starTwinkle {
+      0%, 100% { opacity: 0.07; transform: scale(1); }
+      50%      { opacity: 0.14; transform: scale(1.03); }
+    }
+
+    body.dark .wave-overlay {
+      opacity: 0.14;
+      mix-blend-mode: soft-light;
+    }
+
+    body.dark::before {
+      background: rgba(15, 15, 18, 0.45);
+    }
+
     /* ==================== PAGE CONTENT ==================== */
     .divider {
       width: 80%;
@@ -525,6 +654,14 @@
   </style>
 </head>
 <body>
+
+  <!-- Swipe animation layer -->
+  <div class="lang-swipe" id="langSwipe"></div>
+
+  <div class="background-wrapper">
+    <div class="background-gradient"></div>
+    <div class="wave-overlay"></div>
+  </div>
 
   <div id="page">
     <div id="navContainer"></div>
@@ -705,27 +842,27 @@
           </div>
           <div class="sidebar-menu">
             <div class="menu-section">
-              <a href="#" class="menu-item" data-menu="home">
+              <a href="https://velutinx.com/" class="menu-item" data-menu="home">
                 <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
                 <span id="menuHome">HOME</span>
               </a>
-              <a href="#" class="menu-item" data-menu="commissions">
+              <a href="https://velutinx.com/commissions" class="menu-item" data-menu="commissions">
                 <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg>
                 <span id="menuCommissions">COMMISSIONS</span>
               </a>
-              <a href="#" class="menu-item" data-menu="artwork">
+              <a href="https://velutinx.com/artwork" class="menu-item" data-menu="artwork">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg>
                 <span id="menuArtwork">ARTWORK</span>
               </a>
-              <a href="#" class="menu-item" data-menu="poll">
+              <a href="https://velutinx.com/poll" class="menu-item" data-menu="poll">
                 <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg>
                 <span id="menuPoll">POLL</span>
               </a>
-              <a href="#" class="menu-item" data-menu="store">
+              <a href="https://velutinx.com/store" class="menu-item" data-menu="store">
                 <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg>
                 <span id="menuStore">STORE</span>
               </a>
-              <a href="#" class="menu-item" data-menu="contact">
+              <a href="https://velutinx.com/contact" class="menu-item" data-menu="contact">
                 <svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg>
                 <span id="menuContact">CONTACT</span>
               </a>
