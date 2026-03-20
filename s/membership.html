@@ -6,6 +6,15 @@
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="https://velutinx.com/s/css/membercss.css">
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+  <style>
+    /* Ensure price text is visible in light mode */
+    .tier-price {
+      color: var(--text); /* uses theme variable */
+      font-weight: bold;
+    }
+    /* Debug: optional, can be removed later */
+    .debug { display: none; }
+  </style>
 </head>
 <body>
   <div class="lang-swipe" id="langSwipe"></div>
@@ -230,6 +239,7 @@
 
     // Update membership button text based on cart
     function updateMembershipButtons() {
+      console.log('updateMembershipButtons called'); // debug
       const cart = window.getCart ? window.getCart() : [];
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
@@ -246,6 +256,7 @@
     // Override shared updateCartDisplay to also update membership buttons
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
+      console.log('updateCartDisplay wrapper called'); // debug
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
     };
