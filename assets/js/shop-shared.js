@@ -1,9 +1,13 @@
 (function () {
   "use strict";
 
+(function () {
+  "use strict";
+
   /* ==================== TRANSLATIONS ==================== */
   const translations = {
     en: {
+      // Store / general (keep existing)
       shopTitle: "My Store",
       filterTitle: "Filter by Category",
       catAll: "All",
@@ -14,8 +18,7 @@
       sortNewest: "Newest",
       sortOldest: "Oldest",
       sortLow: "Price: Low to High",
-      sortHigh: "Price: High to Low",
-      productsTitle: "Products",
+      sortHigh: "Price: High to Low",      productsTitle: "Products",
       searchPlaceholder: "Search",
       cartTitle: "Shopping Cart",
       totalLabel: "Total",
@@ -42,17 +45,59 @@
       discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
       noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
       joinDiscord: "→ Join Discord Server ←",
-      tierBronze: "✨ Bronze — Archive Access",
-      tierCopper: "🔶 Copper — Monthly Custom (~20 img)",
-      tierSilver: "🥈 Silver — Monthly Custom (~40 img)",
-      tierGold: "🏅 Gold — Large Custom (~80 img)",
-      tierPlatinum: "💎 Platinum — Priority Large Custom",
+      
+      // Simplified tier titles (just the name)
+      tierBronze: "Bronze",
+      tierCopper: "Copper",
+      tierSilver: "Silver",
+      tierGold: "Gold",
+      tierPlatinum: "Platinum",
+      
       perMonth: "/ month",
       btnSingle: "Single Purchase",
       btnRecurring: "Recurring Membership",
+
+      // Perk lines (keep these keys exactly as in HTML)
+      perk1_1: "Full archive access immediately.",
+      perk1_2: "Includes all past releases & paid content.",
+      perk2_1: "Everything in Bronze, plus:",
+      perk2_2: "One (1) custom image request per billing cycle.",
+      perk2_3: "Approx. 20 images per request.",
+      perk2_4: "Single character, official/creator‑selected outfit.",
+      perk2_5: "Some character customization allowed.",
+      perk2_6: "Typical turnaround: ~1 day (queue order).",
+      perk3_1: "Everything in Bronze, plus:",
+      perk3_2: "One (1) custom image request per billing cycle.",
+      perk3_3: "Approx. 40 images per request.",
+      perk3_4: "Single character, custom outfit allowed.",
+      perk3_5: "Character customization allowed.",
+      perk3_6: "Typical turnaround: ~1 day (queue order).",
+      perk4_1: "Everything in Bronze, plus:",
+      perk4_2: "One (1) large custom image request per billing cycle.",
+      perk4_3: "Approx. 80 images per request.",
+      perk4_4: "Single character, custom outfit allowed.",
+      perk4_5: "Character customization allowed.",
+      perk4_6: "Typical turnaround: 3‑7 days (queue order).",
+      perk4_7: "Special/expanded requests may be discussed.",
+      perk5_1: "Everything in Bronze, plus:",
+      perk5_2: "One (1) large custom image request per billing cycle.",
+      perk5_3: "Approx. 80 images per request.",
+      perk5_4: "Single character, custom outfit allowed.",
+      perk5_5: "Character customization allowed.",
+      perk5_6: "⚡ Priority: worked on first after current tasks.",
+      perk5_7: "Typical turnaround: 3‑7 days (once started).",
+
+      // Snackbar messages (keys used in showSnackbar)
+      errorDiscordMissing: "❌ Please enter your Discord ID",
+      errorDiscordInvalid: "❌ Invalid Discord ID format",
+      errorOnlyHighest: "❌ Only the highest tier can be added.",
+      removedFromCart: "Removed from cart",
+      addedToCart: "Added to cart",
+      errorPlanNotConfigured: "❌ Plan not configured for this tier",
     },
 
     ja: {
+      // Store / general (keep existing)
       shopTitle: "マイストア",
       filterTitle: "カテゴリでフィルター",
       catAll: "すべて",
@@ -79,7 +124,7 @@
       addToCart: "カートに追加",
       removeFromCart: "カートから削除",
 
-      // Membership (placeholders – replace with actual translations)
+      // Membership page (with placeholders where needed)
       membershipTitle: "✨ メンバーシップを選ぶ",
       membershipDescription: "私の活動を支援し、特典をアンロック",
       discordIdLabel: "Discord ID",
@@ -91,17 +136,59 @@
       discordHelpStep4: "<strong>手順4:</strong> その番号をここに貼り付け。",
       noteBox: "<strong>📌 重要:</strong> 支払い完了後、対応するロールが自動的に付与されます。事前にDiscordサーバーに参加してください！",
       joinDiscord: "→ Discordサーバーに参加 ←",
-      tierBronze: "✨ ブロンズ — アーカイブアクセス",
-      tierCopper: "🔶 カッパー — 月次カスタム (~20枚)",
-      tierSilver: "🥈 シルバー — 月次カスタム (~40枚)",
-      tierGold: "🏅 ゴールド — 大規模カスタム (~80枚)",
-      tierPlatinum: "💎 プラチナ — 優先大規模カスタム",
+
+      // Simplified tier titles (just the name – using existing translations)
+      tierBronze: "ブロンズ",
+      tierCopper: "カッパー",
+      tierSilver: "シルバー",
+      tierGold: "ゴールド",
+      tierPlatinum: "プラチナ",
+
       perMonth: "/月",
       btnSingle: "単発購入",
       btnRecurring: "定期購読",
+
+      // Perk lines (placeholders – replace with actual Japanese)
+      perk1_1: "Full archive access immediately.",
+      perk1_2: "Includes all past releases & paid content.",
+      perk2_1: "Everything in Bronze, plus:",
+      perk2_2: "One (1) custom image request per billing cycle.",
+      perk2_3: "Approx. 20 images per request.",
+      perk2_4: "Single character, official/creator‑selected outfit.",
+      perk2_5: "Some character customization allowed.",
+      perk2_6: "Typical turnaround: ~1 day (queue order).",
+      perk3_1: "Everything in Bronze, plus:",
+      perk3_2: "One (1) custom image request per billing cycle.",
+      perk3_3: "Approx. 40 images per request.",
+      perk3_4: "Single character, custom outfit allowed.",
+      perk3_5: "Character customization allowed.",
+      perk3_6: "Typical turnaround: ~1 day (queue order).",
+      perk4_1: "Everything in Bronze, plus:",
+      perk4_2: "One (1) large custom image request per billing cycle.",
+      perk4_3: "Approx. 80 images per request.",
+      perk4_4: "Single character, custom outfit allowed.",
+      perk4_5: "Character customization allowed.",
+      perk4_6: "Typical turnaround: 3‑7 days (queue order).",
+      perk4_7: "Special/expanded requests may be discussed.",
+      perk5_1: "Everything in Bronze, plus:",
+      perk5_2: "One (1) large custom image request per billing cycle.",
+      perk5_3: "Approx. 80 images per request.",
+      perk5_4: "Single character, custom outfit allowed.",
+      perk5_5: "Character customization allowed.",
+      perk5_6: "⚡ Priority: worked on first after current tasks.",
+      perk5_7: "Typical turnaround: 3‑7 days (once started).",
+
+      // Snackbar messages (placeholders)
+      errorDiscordMissing: "❌ Please enter your Discord ID",
+      errorDiscordInvalid: "❌ Invalid Discord ID format",
+      errorOnlyHighest: "❌ Only the highest tier can be added.",
+      removedFromCart: "Removed from cart",
+      addedToCart: "Added to cart",
+      errorPlanNotConfigured: "❌ Plan not configured for this tier",
     },
 
     zh: {
+      // Store / general (keep existing)
       shopTitle: "我的商店",
       filterTitle: "按类别筛选",
       catAll: "全部",
@@ -128,6 +215,7 @@
       addToCart: "加入购物车",
       removeFromCart: "从购物车移除",
 
+      // Membership page
       membershipTitle: "✨ 选择会员资格",
       membershipDescription: "支持我的工作并解锁专属特权",
       discordIdLabel: "你的 Discord ID",
@@ -139,17 +227,59 @@
       discordHelpStep4: "<strong>步骤4:</strong> 将号码粘贴在这里。",
       noteBox: "<strong>📌 重要:</strong> 支付成功后，你将自动获得 Discord 服务器中的对应角色。请确保已加入服务器！",
       joinDiscord: "→ 加入 Discord 服务器 ←",
-      tierBronze: "✨ 青铜 — 档案访问",
-      tierCopper: "🔶 铜 — 每月定制 (~20张)",
-      tierSilver: "🥈 银 — 每月定制 (~40张)",
-      tierGold: "🏅 金 — 大型定制 (~80张)",
-      tierPlatinum: "💎 铂金 — 优先大型定制",
+
+      // Simplified tier titles
+      tierBronze: "青铜",
+      tierCopper: "铜",
+      tierSilver: "银",
+      tierGold: "金",
+      tierPlatinum: "铂金",
+
       perMonth: "/月",
       btnSingle: "单次购买",
       btnRecurring: "定期订阅",
+
+      // Perk lines (placeholders)
+      perk1_1: "Full archive access immediately.",
+      perk1_2: "Includes all past releases & paid content.",
+      perk2_1: "Everything in Bronze, plus:",
+      perk2_2: "One (1) custom image request per billing cycle.",
+      perk2_3: "Approx. 20 images per request.",
+      perk2_4: "Single character, official/creator‑selected outfit.",
+      perk2_5: "Some character customization allowed.",
+      perk2_6: "Typical turnaround: ~1 day (queue order).",
+      perk3_1: "Everything in Bronze, plus:",
+      perk3_2: "One (1) custom image request per billing cycle.",
+      perk3_3: "Approx. 40 images per request.",
+      perk3_4: "Single character, custom outfit allowed.",
+      perk3_5: "Character customization allowed.",
+      perk3_6: "Typical turnaround: ~1 day (queue order).",
+      perk4_1: "Everything in Bronze, plus:",
+      perk4_2: "One (1) large custom image request per billing cycle.",
+      perk4_3: "Approx. 80 images per request.",
+      perk4_4: "Single character, custom outfit allowed.",
+      perk4_5: "Character customization allowed.",
+      perk4_6: "Typical turnaround: 3‑7 days (queue order).",
+      perk4_7: "Special/expanded requests may be discussed.",
+      perk5_1: "Everything in Bronze, plus:",
+      perk5_2: "One (1) large custom image request per billing cycle.",
+      perk5_3: "Approx. 80 images per request.",
+      perk5_4: "Single character, custom outfit allowed.",
+      perk5_5: "Character customization allowed.",
+      perk5_6: "⚡ Priority: worked on first after current tasks.",
+      perk5_7: "Typical turnaround: 3‑7 days (once started).",
+
+      // Snackbar messages (placeholders)
+      errorDiscordMissing: "❌ Please enter your Discord ID",
+      errorDiscordInvalid: "❌ Invalid Discord ID format",
+      errorOnlyHighest: "❌ Only the highest tier can be added.",
+      removedFromCart: "Removed from cart",
+      addedToCart: "Added to cart",
+      errorPlanNotConfigured: "❌ Plan not configured for this tier",
     },
 
     es: {
+      // Store / general (keep existing)
       shopTitle: "Mi Tienda",
       filterTitle: "Filtrar por Categoría",
       catAll: "Todos",
@@ -176,6 +306,7 @@
       addToCart: "Añadir al carrito",
       removeFromCart: "Eliminar del carrito",
 
+      // Membership page
       membershipTitle: "✨ Elige tu Membresía",
       membershipDescription: "Apoya mi trabajo y desbloquea beneficios exclusivos",
       discordIdLabel: "Tu ID de Discord",
@@ -187,15 +318,56 @@
       discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.",
       noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
       joinDiscord: "→ Unirse al Servidor de Discord ←",
-      tierBronze: "✨ Bronce — Acceso al Archivo",
-      tierCopper: "🔶 Cobre — Personalización Mensual (~20 img)",
-      tierSilver: "🥈 Plata — Personalización Mensual (~40 img)",
-      tierGold: "🏅 Oro — Personalización Grande (~80 img)",
-      tierPlatinum: "💎 Platino — Personalización Grande Prioritaria",
+
+      // Simplified tier titles
+      tierBronze: "Bronce",
+      tierCopper: "Cobre",
+      tierSilver: "Plata",
+      tierGold: "Oro",
+      tierPlatinum: "Platino",
+
       perMonth: "/ mes",
       btnSingle: "Compra Única",
       btnRecurring: "Membresía Recurrente",
-    }
+
+      // Perk lines (placeholders)
+      perk1_1: "Full archive access immediately.",
+      perk1_2: "Includes all past releases & paid content.",
+      perk2_1: "Everything in Bronze, plus:",
+      perk2_2: "One (1) custom image request per billing cycle.",
+      perk2_3: "Approx. 20 images per request.",
+      perk2_4: "Single character, official/creator‑selected outfit.",
+      perk2_5: "Some character customization allowed.",
+      perk2_6: "Typical turnaround: ~1 day (queue order).",
+      perk3_1: "Everything in Bronze, plus:",
+      perk3_2: "One (1) custom image request per billing cycle.",
+      perk3_3: "Approx. 40 images per request.",
+      perk3_4: "Single character, custom outfit allowed.",
+      perk3_5: "Character customization allowed.",
+      perk3_6: "Typical turnaround: ~1 day (queue order).",
+      perk4_1: "Everything in Bronze, plus:",
+      perk4_2: "One (1) large custom image request per billing cycle.",
+      perk4_3: "Approx. 80 images per request.",
+      perk4_4: "Single character, custom outfit allowed.",
+      perk4_5: "Character customization allowed.",
+      perk4_6: "Typical turnaround: 3‑7 days (queue order).",
+      perk4_7: "Special/expanded requests may be discussed.",
+      perk5_1: "Everything in Bronze, plus:",
+      perk5_2: "One (1) large custom image request per billing cycle.",
+      perk5_3: "Approx. 80 images per request.",
+      perk5_4: "Single character, custom outfit allowed.",
+      perk5_5: "Character customization allowed.",
+      perk5_6: "⚡ Priority: worked on first after current tasks.",
+      perk5_7: "Typical turnaround: 3‑7 days (once started).",
+
+      // Snackbar messages (placeholders)
+      errorDiscordMissing: "❌ Please enter your Discord ID",
+      errorDiscordInvalid: "❌ Invalid Discord ID format",
+      errorOnlyHighest: "❌ Only the highest tier can be added.",
+      removedFromCart: "Removed from cart",
+      addedToCart: "Added to cart",
+      errorPlanNotConfigured: "❌ Plan not configured for this tier",
+    },
   };
 
   /* ==================== PRICE & CURRENCY ==================== */
