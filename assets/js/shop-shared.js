@@ -123,9 +123,14 @@
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
   let currentLang = localStorage.getItem("language") || "en";
-  let currentCurrency = currentLang === "en" ? "USD" :
-                        currentLang === "ja" ? "JPY" :
-                        currentLang === "zh" ? "CNY" : "MXN";
+
+  // Helper to get the current currency based on stored language
+  function getCurrentCurrency() {
+    const lang = localStorage.getItem("language") || "en";
+    return lang === "en" ? "USD" :
+           lang === "ja" ? "JPY" :
+           lang === "zh" ? "CNY" : "MXN";
+  }
 
   let prices = { low: 1.5, med: 3.0, high: 10.0 };
 
@@ -138,7 +143,10 @@
     }
   }
 
-  function formatPrice(value, currency = currentCurrency) {
+  function formatPrice(value, currency) {
+    // If currency not provided, use current from language
+    if (currency === undefined) currency = getCurrentCurrency();
+
     if (currency === "USD") return `US$${value.toFixed(2)}`;
     const rounded = Math.round(value * 100) / 100;
     if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
@@ -411,21 +419,19 @@
     document.head.appendChild(loader);
   }
 
-/* ==================== GLOBAL PRICE UPDATE ==================== */
-window.updateAllPrices = function() {
-  // Update prices in product grid
-  document.querySelectorAll('.price[data-price]').forEach(el => {
-    const priceValue = parseFloat(el.dataset.price);
-    if (!isNaN(priceValue)) {
-      el.textContent = window.formatPrice(priceValue);
-    }
-  });
-  // Update cart total and item prices (cart display already updates via updateCartDisplay)
-  // but we can force cart update to reflect new currency
-  window.updateCartDisplay?.();
-};
+  /* ==================== GLOBAL PRICE UPDATE ==================== */
+  window.updateAllPrices = function() {
+    // Update prices in product grid
+    document.querySelectorAll('.price[data-price]').forEach(el => {
+      const priceValue = parseFloat(el.dataset.price);
+      if (!isNaN(priceValue)) {
+        el.textContent = window.formatPrice(priceValue);
+      }
+    });
+    // Update cart total and item prices
+    window.updateCartDisplay?.();
+  };
 
-  
   /* ==================== GLOBAL EXPORTS ==================== */
 
   window.translations = translations;
