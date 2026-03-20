@@ -160,6 +160,106 @@ body.dark .commission-box::before {
   to { opacity: 0; transform: translateY(420px); }
 }
 
+/* ==================== CONTACT PAGE STYLES ==================== */
+.contact-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  display: grid;
+  grid-template-columns: 70% 30%;
+  gap: 40px;
+  background: transparent;
+}
+
+/* Form side – transparent glass */
+.contact-left {
+  background: transparent;
+  border: 2px solid var(--divider, #aa9e76);
+  border-radius: 14px;
+  padding: 32px;
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-left::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(238, 234, 224, 0.18);
+  border-radius: 12px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.dark .contact-left {
+  border-color: var(--divider-dark, #6f6a4e);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
+}
+
+body.dark .contact-left::before {
+  background: rgba(22, 22, 27, 0.25);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--divider, #aa9e76);
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  transition: 0.2s ease;
+  color: var(--text);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+body.dark .form-group input,
+body.dark .form-group textarea {
+  background: transparent;
+  color: var(--text-dark);
+  border-color: var(--divider-dark);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.send-btn {
+  margin-top: 10px;
+  padding: 10px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--divider, #aa9e76);
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  z-index: 2;
+  color: inherit;
+}
+
+body.dark .send-btn {
+  background: var(--divider-dark, #6f6a4e);
+  color: var(--text-dark);
+}
+
+/* Social column – this is for the social buttons area (non‑circular menu) */
+.contact-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+}
+
+/* The circular social menu (from socials.css) is separate and will be placed inside .contact-right.
+   We keep its own styles, but we may need to ensure it doesn't overflow.
+   The following ensures the menu container respects its parent width. */
+.contact-right .menu {
+  transform: translate(200px, 200px); /* as original */
+  /* other styles are from socials.css */
+}
+
+
 
 /* ==================== STAR EFFECTS ==================== */
 .star {
