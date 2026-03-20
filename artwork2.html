@@ -6,7 +6,7 @@
   <title>VELUTINX — Artwork</title>
   <!-- Header CSS -->
   <link rel="stylesheet" href="/assets/css/mainheader.css">
-  <!-- Page‑specific CSS -->
+  <!-- Page‑specific CSS (now in assets/css) -->
   <link rel="stylesheet" href="/assets/css/format.css">
 </head>
 <body>
@@ -31,17 +31,34 @@
 
   <div class="zoom-overlay" id="zoomOverlay"></div>
 
-  <!-- Scripts -->
+  <!-- Scripts – order matters -->
   <script src="/assets/js/translt.js"></script>
   <script src="/assets/js/mainheader.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
-  <!-- Ensure dark mode from localStorage (mainheader.js also does this, but safe) -->
+  <!-- Small safety to ensure translations apply even if format.js runs before translt.js -->
   <script>
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark');
-    }
+    (function() {
+      // Apply dark mode if stored (already done by mainheader.js, but safe)
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark');
+      }
+
+      // If applyTranslations isn't defined yet, wait a moment
+      if (typeof applyTranslations === 'undefined') {
+        console.warn('applyTranslations not defined yet – retrying in 100ms');
+        setTimeout(function() {
+          if (typeof applyTranslations !== 'undefined') {
+            applyTranslations('artwork');
+          } else {
+            console.error('applyTranslations still missing – check translt.js');
+          }
+        }, 100);
+      } else {
+        applyTranslations('artwork');
+      }
+    })();
   </script>
 </body>
 </html>
