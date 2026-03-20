@@ -8,8 +8,22 @@
   <link rel="stylesheet" href="/assets/css/mainheader.css">
   <!-- Page‑specific CSS -->
   <link rel="stylesheet" href="/assets/css/format.css">
+  <style>
+    /* Override header background to match page flat background */
+    .top-nav {
+      background: var(--bg) !important;
+      backdrop-filter: none !important;
+      border-bottom: 1px solid var(--border);
+    }
+    /* Hide Store button and both cart icons on artwork page */
+    .artwork-page .store-btn,
+    .artwork-page .cart-wrapper,
+    .artwork-page .floating-cart {
+      display: none !important;
+    }
+  </style>
 </head>
-<body>
+<body class="artwork-page">
 
   <div class="lang-swipe" id="langSwipe"></div>
 
@@ -40,10 +54,6 @@
     (function waitForTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('artwork');
-        // Also force header update (though mainheader.js will already have run)
-        if (typeof window.updateHeaderTranslations === 'function') {
-          window.updateHeaderTranslations();
-        }
       } else {
         setTimeout(waitForTranslations, 200);
       }
