@@ -1,236 +1,186 @@
-/* ==================== STORE PAGE STYLES ==================== */
-#shopTitle {
-  visibility: hidden;
-  transition: visibility 0s linear 0.1s;
-}
-#shopTitle.loaded {
-  visibility: visible;
-}
+// format.js – common page behaviour (stars, gallery, zoom, commissions sparkles, contact form)
+(function() {
+  function init() {
+    // Cursor sparkles (global)
+    let lastStarTime = 0;
+    document.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastStarTime < 45) return;
+      lastStarTime = now;
 
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  font-size: 20px;
-  line-height: 1;
-  vertical-align: middle;
-  margin-right: 8px;
-  color: inherit;
-}
+      const star = document.createElement("div");
+      star.className = "star";
+      star.textContent = "✦";
+      star.style.setProperty("--drift", Math.random());
+      star.style.left = `${e.clientX}px`;
+      star.style.top = `${e.clientY}px`;
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 2000);
+    });
 
-.category-list li, .sort-btn {
-  display: flex;
-  align-items: center;
-}
+    // Full-page falling sparkles
+    setInterval(() => {
+      const star = document.createElement("div");
+      star.className = "falling-star";
+      star.textContent = "✦";
+      star.style.left = Math.random() * 100 + "vw";
+      star.style.top = "-10vh";
+      star.style.setProperty("--drift", Math.random() * 2 - 1);
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 8000);
+    }, 400);
 
-.shop-header {
-  padding: 2.2rem 2.8rem 1.6rem;
-  background: var(--bg);
-}
-.shop-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1400px;
-  margin: 0 auto;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-.shop-left {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
-.shop-title {
-  font-size: 2.3rem;
-  font-weight: 800;
-  color: #000;
-  margin: 0;
-}
-body.dark .shop-title {
-  color: var(--accent);
-}
+    // Gallery loading (if exists)
+    const gallery = document.getElementById("gallery");
+    if (gallery) {
+      const MAX_IMAGES = 12;
+      const BASE = "https://www.velutinx.com/images/artwork/";
+      for (let i = 1; i <= MAX_IMAGES; i++) {
+        const img = document.createElement("img");
+        img.src = BASE + i + ".jpg";
+        img.alt = `Artwork sample ${i}`;
+        img.onerror = () => img.remove();
+        img.loading = "lazy";
+        gallery.appendChild(img);
+      }
+    }
 
-.main-container {
-  display: flex;
-  max-width: 1480px;
-  margin: 0 auto;
-  padding: 1.5rem 2.5rem;
-  gap: 2.5rem;
-}
-.sidebar {
-  width: 268px;
-  flex-shrink: 0;
-}
-.products-section {
-  flex: 1;
-}
-.section-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin-bottom: 0.9rem;
-  color: var(--text);
-  padding-left: 0.5rem;
-}
+    // Zoom functionality (if gallery exists)
+    let activeClone = null;
+    let originRect = null;
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest(".gallery img");
+      if (!img) return;
 
-.category-list {
-  list-style: none;
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  padding: 0;
-}
-.category-list li {
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  color: var(--text);
-  cursor: pointer;
-  transition: 0.2s;
-}
-.category-list li:hover {
-  background: #c0bcaa;
-}
-.category-list li.active {
-  background: var(--accent);
-  color: #1f1a12;
-  font-weight: 600;
-}
+      originRect = img.getBoundingClientRect();
+      const scrollY = window.scrollY;
 
-.sort-options {
-  margin-top: 2rem;
-}
-.sort-btn {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  text-align: left;
-  margin-bottom: 0.5rem;
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  color: var(--text);
-}
-.sort-btn.active {
-  background: var(--accent);
-  color: #1f1a12;
-}
-.sort-btn:hover:not(.active) {
-  background: #c0bcaa;
-}
+      const clone = img.cloneNode();
+      clone.className = "zoom-image";
 
-.products-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.8rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-.products-header h2 {
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: var(--text);
-}
+      clone.style.top = originRect.top + scrollY + "px";
+      clone.style.left = originRect.left + "px";
+      clone.style.width = originRect.width + "px";
+      clone.style.height = originRect.height + "px";
 
-.search-bar-wrapper {
-  width: 340px;
-  max-width: 100%;
-}
-.input-base {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: var(--card);
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  padding-left: 12px;
-  transition: border-color 0.2s;
-}
-.input-base:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(170,158,118,0.2);
-}
-.input-element {
-  flex: 1;
-  padding: 12px;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text);
-  font-size: 0.95rem;
-}
+      document.body.appendChild(clone);
+      activeClone = clone;
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
-  gap: 1.8rem;
-}
-.product-card {
-  background: var(--card);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: all 0.25s;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  position: relative;
-}
-.product-card.hidden {
-  display: none;
-}
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 32px rgba(0,0,0,0.2);
-}
-.card-image {
-  width: 100%;
-  aspect-ratio: 3 / 3.7;
-  object-fit: cover;
-  display: block;
-}
-.card-content {
-  padding: 1.2rem;
-}
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text);
-}
-.price-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.price {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-.cart-btn {
-  width: 44px;
-  height: 44px;
-  background: var(--btn-cart);
-  border: none;
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.cart-btn:hover {
-  background: var(--btn-cart-hover);
-  transform: scale(1.08);
-}
-.cart-btn.added {
-  background: #22c55e;
-}
+      clone.getBoundingClientRect();
+      document.getElementById("zoomOverlay").classList.add("active");
+      document.body.classList.add("zoom-active");
+
+      requestAnimationFrame(() => {
+        const vw = window.innerWidth * 0.9;
+        const vh = window.innerHeight * 0.9;
+        const imgRatio = originRect.width / originRect.height;
+        const viewRatio = vw / vh;
+
+        let w, h;
+        if (imgRatio > viewRatio) {
+          w = vw;
+          h = vw / imgRatio;
+        } else {
+          h = vh;
+          w = vh * imgRatio;
+        }
+
+        clone.style.left = (window.innerWidth - w) / 2 + "px";
+        clone.style.top = (window.innerHeight - h) / 2 + scrollY + "px";
+        clone.style.width = w + "px";
+        clone.style.height = h + "px";
+      });
+    });
+
+    const zoomOverlay = document.getElementById("zoomOverlay");
+    if (zoomOverlay) {
+      zoomOverlay.onclick = () => {
+        if (!activeClone) return;
+
+        const scrollY = window.scrollY;
+        activeClone.style.left = originRect.left + "px";
+        activeClone.style.top = originRect.top + scrollY + "px";
+        activeClone.style.width = originRect.width + "px";
+        activeClone.style.height = originRect.height + "px";
+
+        zoomOverlay.classList.remove("active");
+        document.body.classList.remove("zoom-active");
+
+        setTimeout(() => {
+          activeClone.remove();
+          activeClone = null;
+          originRect = null;
+        }, 230);
+      };
+    }
+
+    // Commission box sparkles (if exists)
+    const commissionBox = document.getElementById("commissionBox");
+    if (commissionBox) {
+      setInterval(() => {
+        const star = document.createElement("div");
+        star.className = "box-star";
+        star.textContent = "✦";
+        star.style.left = `${Math.random() * commissionBox.clientWidth}px`;
+        star.style.top = "0px";
+        commissionBox.appendChild(star);
+        setTimeout(() => star.remove(), 6000);
+      }, 700);
+    }
+
+    // Contact form handling and social area sparkles (if exists)
+    const contactForm = document.getElementById("contactForm");
+    if (contactForm) {
+      const socialArea = document.getElementById("socialArea");
+      if (socialArea) {
+        setInterval(() => {
+          const star = document.createElement("div");
+          star.className = "social-star";
+          star.textContent = "✦";
+          star.style.left = Math.random() * socialArea.clientWidth + "px";
+          star.style.top = "0px";
+          socialArea.appendChild(star);
+          setTimeout(() => star.remove(), 6000);
+        }, 700);
+      }
+
+      contactForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const message = document.getElementById("message").value.trim();
+
+        if (!name || !email || !message) {
+          const errMsg = window.translations?.contact?.[window.currentLanguage]?.errorText || "Please fill out all fields correctly ♡";
+          alert(errMsg);
+          return;
+        }
+
+        const formData = new FormData(contactForm);
+        try {
+          const response = await fetch(contactForm.action, {
+            method: "POST",
+            body: formData,
+            headers: { Accept: "application/json" }
+          });
+          if (response.ok) {
+            const successMsg = window.translations?.contact?.[window.currentLanguage]?.successText || "Message sent successfully! You will hear back soon! ♡♡";
+            alert(successMsg);
+            contactForm.reset();
+          } else {
+            throw new Error("Formspree error");
+          }
+        } catch (err) {
+          alert("There was a problem sending your message. Please try again later.");
+        }
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
