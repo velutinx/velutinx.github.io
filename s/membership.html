@@ -11,17 +11,29 @@
     .tier-price {
       color: var(--text);
       font-weight: bold;
+      font-size: 1.8rem; /* match title size */
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    .price-value {
+      font-size: inherit;
+      font-weight: inherit;
+    }
+    .per-month {
+      font-size: 1rem;
+      font-weight: normal;
+      color: var(--text-light);
     }
     /* Debug: optional, can be removed later */
     .debug { display: none; }
 
     /* Style for the SVG star to fit inline */
     .tier-star {
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
       display: inline-block;
       vertical-align: middle;
-      margin-right: 8px;
+      margin-right: 10px;
     }
     .tier-star svg {
       width: 100%;
@@ -30,7 +42,12 @@
     .tier-header {
       display: flex;
       align-items: center;
+      justify-content: center;
       margin-bottom: 10px;
+    }
+    .tier-title {
+      font-size: 1.8rem;
+      margin: 0;
     }
   </style>
 </head>
@@ -157,8 +174,8 @@
           </div>
           <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier1Perks">
-            <li>Full archive access immediately.</li>
-            <li>Includes all past releases & paid content.</li>
+            <li id="perk1_1">Full archive access immediately.</li>
+            <li id="perk1_2">Includes all past releases & paid content.</li>
           </ul>
           <div class="button-row">
             <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)"><span class="btn-single-text">Single Purchase</span></button>
@@ -184,12 +201,12 @@
           </div>
           <div class="tier-price" data-price-usd="15"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier2Perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 20 images per request.</li>
-            <li>Single character, official/creator‑selected outfit.</li>
-            <li>Some character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
+            <li id="perk2_1">Everything in Bronze, plus:</li>
+            <li id="perk2_2">One (1) custom image request per billing cycle.</li>
+            <li id="perk2_3">Approx. 20 images per request.</li>
+            <li id="perk2_4">Single character, official/creator‑selected outfit.</li>
+            <li id="perk2_5">Some character customization allowed.</li>
+            <li id="perk2_6">Typical turnaround: ~1 day (queue order).</li>
           </ul>
           <div class="button-row">
             <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)"><span class="btn-single-text">Single Purchase</span></button>
@@ -215,12 +232,12 @@
           </div>
           <div class="tier-price" data-price-usd="30"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier3Perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 40 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
+            <li id="perk3_1">Everything in Bronze, plus:</li>
+            <li id="perk3_2">One (1) custom image request per billing cycle.</li>
+            <li id="perk3_3">Approx. 40 images per request.</li>
+            <li id="perk3_4">Single character, custom outfit allowed.</li>
+            <li id="perk3_5">Character customization allowed.</li>
+            <li id="perk3_6">Typical turnaround: ~1 day (queue order).</li>
           </ul>
           <div class="button-row">
             <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)"><span class="btn-single-text">Single Purchase</span></button>
@@ -246,17 +263,18 @@
           </div>
           <div class="tier-price" data-price-usd="50"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier4Perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: 3‑7 days (queue order).</li>
-            <li>Special/expanded requests may be discussed.</li>
+            <li id="perk4_1">Everything in Bronze, plus:</li>
+            <li id="perk4_2">One (1) large custom image request per billing cycle.</li>
+            <li id="perk4_3">Approx. 80 images per request.</li>
+            <li id="perk4_4">Single character, custom outfit allowed.</li>
+            <li id="perk4_5">Character customization allowed.</li>
+            <li id="perk4_6">Typical turnaround: 3‑7 days (queue order).</li>
+            <li id="perk4_7">Special/expanded requests may be discussed.</li>
           </ul>
           <div class="button-row">
             <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)"><span class="btn-single-text">Single Purchase</span></button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Recurring Membership</span></button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Re
+curring Membership</span></button>
           </div>
         </div>
 
@@ -278,13 +296,13 @@
           </div>
           <div class="tier-price" data-price-usd="75"><span class="price-value"></span> <span class="per-month">/ month</span></div>
           <ul class="tier-perks" id="tier5Perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>⚡ Priority: worked on first after current tasks.</li>
-            <li>Typical turnaround: 3‑7 days (once started).</li>
+            <li id="perk5_1">Everything in Bronze, plus:</li>
+            <li id="perk5_2">One (1) large custom image request per billing cycle.</li>
+            <li id="perk5_3">Approx. 80 images per request.</li>
+            <li id="perk5_4">Single character, custom outfit allowed.</li>
+            <li id="perk5_5">Character customization allowed.</li>
+            <li id="perk5_6">⚡ Priority: worked on first after current tasks.</li>
+            <li id="perk5_7">Typical turnaround: 3‑7 days (once started).</li>
           </ul>
           <div class="button-row">
             <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)"><span class="btn-single-text">Single Purchase</span></button>
@@ -321,7 +339,7 @@
 
     // Update membership button text based on cart
     function updateMembershipButtons() {
-      console.log('updateMembershipButtons called'); // debug
+      console.log('updateMembershipButtons called');
       const cart = window.getCart ? window.getCart() : [];
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
@@ -338,7 +356,7 @@
     // Override shared updateCartDisplay to also update membership buttons
     const originalUpdateCartDisplay = window.updateCartDisplay;
     window.updateCartDisplay = function() {
-      console.log('updateCartDisplay wrapper called'); // debug
+      console.log('updateCartDisplay wrapper called');
       if (originalUpdateCartDisplay) originalUpdateCartDisplay();
       updateMembershipButtons();
     };
@@ -382,46 +400,78 @@
       setHTML('noteBox', (t.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
         '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
 
-      const tierTitles = [
-        t.tierBronze || '✨ Bronze — Archive Access',
-        t.tierCopper || '🔶 Copper — Monthly Custom (~20 img)',
-        t.tierSilver || '🥈 Silver — Monthly Custom (~40 img)',
-        t.tierGold || '🏅 Gold — Large Custom (~80 img)',
-        t.tierPlatinum || '💎 Platinum — Priority Large Custom'
-      ];
-      for (let i = 1; i <= 5; i++) {
-        const titleEl = document.getElementById(`tier${i}Title`);
-        // We're using static titles now, so no need to update from translations.
-        // But if you want translated tier names, you would set them here.
-      }
+      // Update perk descriptions using IDs
+      // Tier 1
+      setText('perk1_1', 'Full archive access immediately.');
+      setText('perk1_2', 'Includes all past releases & paid content.');
+      // Tier 2
+      setText('perk2_1', 'Everything in Bronze, plus:');
+      setText('perk2_2', 'One (1) custom image request per billing cycle.');
+      setText('perk2_3', 'Approx. 20 images per request.');
+      setText('perk2_4', 'Single character, official/creator‑selected outfit.');
+      setText('perk2_5', 'Some character customization allowed.');
+      setText('perk2_6', 'Typical turnaround: ~1 day (queue order).');
+      // Tier 3
+      setText('perk3_1', 'Everything in Bronze, plus:');
+      setText('perk3_2', 'One (1) custom image request per billing cycle.');
+      setText('perk3_3', 'Approx. 40 images per request.');
+      setText('perk3_4', 'Single character, custom outfit allowed.');
+      setText('perk3_5', 'Character customization allowed.');
+      setText('perk3_6', 'Typical turnaround: ~1 day (queue order).');
+      // Tier 4
+      setText('perk4_1', 'Everything in Bronze, plus:');
+      setText('perk4_2', 'One (1) large custom image request per billing cycle.');
+      setText('perk4_3', 'Approx. 80 images per request.');
+      setText('perk4_4', 'Single character, custom outfit allowed.');
+      setText('perk4_5', 'Character customization allowed.');
+      setText('perk4_6', 'Typical turnaround: 3‑7 days (queue order).');
+      setText('perk4_7', 'Special/expanded requests may be discussed.');
+      // Tier 5
+      setText('perk5_1', 'Everything in Bronze, plus:');
+      setText('perk5_2', 'One (1) large custom image request per billing cycle.');
+      setText('perk5_3', 'Approx. 80 images per request.');
+      setText('perk5_4', 'Single character, custom outfit allowed.');
+      setText('perk5_5', 'Character customization allowed.');
+      setText('perk5_6', '⚡ Priority: worked on first after current tasks.');
+      setText('perk5_7', 'Typical turnaround: 3‑7 days (once started).');
 
+      // Button labels
       document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t.btnSingle || 'Single Purchase');
       document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t.btnRecurring || 'Recurring Membership');
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
     }
 
-    // Snackbar
-    function showSnackbar(message, isError = false) {
+    // Snackbar with translated messages
+    function showSnackbar(messageKey, isError = false, ...args) {
       const snackbar = document.getElementById('snackbar');
       const snackText = document.getElementById('snackText');
       if (!snackbar || !snackText) return;
+
+      const lang = localStorage.getItem("language") || "en";
+      const t = window.translations?.[lang] || window.translations?.en || {};
+      let message = t[messageKey] || messageKey; // fallback to key if not found
+      // Simple placeholder replacement if needed
+      if (args.length) {
+        message = message.replace(/{(\d+)}/g, (match, index) => args[index] || match);
+      }
+
       snackText.textContent = message;
       snackbar.classList.toggle('error', isError);
       snackbar.classList.add('show');
       setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
     }
 
-    // Discord ID validation
+    // Discord ID validation with translated messages
     function validateDiscordId() {
       const discordInput = document.getElementById('discordId');
       if (!discordInput) return null;
       const id = discordInput.value.trim();
       if (!id) {
-        showSnackbar('❌ Please enter your Discord ID', true);
+        showSnackbar('errorDiscordMissing', true);
         return null;
       }
       if (!/^\d{17,19}$/.test(id)) {
-        showSnackbar('❌ Invalid Discord ID format', true);
+        showSnackbar('errorDiscordInvalid', true);
         return null;
       }
       return id;
@@ -446,13 +496,13 @@
 
       if (alreadyInCart) {
         if (window.addOrToggleCart) window.addOrToggleCart({ id: `membership-${tierNumber}` });
-        showSnackbar('Removed from cart', false);
+        showSnackbar('removedFromCart', false);
       } else {
         const membershipItems = cart.filter(item => item.type === 'membership');
         const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
 
         if (highestTier !== null && tierNumber < highestTier) {
-          showSnackbar('❌ Only the highest tier can be added.', true);
+          showSnackbar('errorOnlyHighest', true);
           return;
         }
 
@@ -470,7 +520,7 @@
             discordId: discordId
           });
         }
-        showSnackbar('Added to cart', false);
+        showSnackbar('addedToCart', false);
       }
       updateMembershipButtons();
     };
@@ -481,7 +531,7 @@
       if (!discordId) return;
       const PLAN_IDS = { 1: 'P-BRONZE_PLAN_ID', 2: 'P-COPPER_PLAN_ID', 3: 'P-SILVER_PLAN_ID', 4: 'P-GOLD_PLAN_ID', 5: 'P-PLATINUM_PLAN_ID' };
       const planId = PLAN_IDS[tierNumber];
-      if (!planId) { showSnackbar('❌ Plan not configured for this tier', true); return; }
+      if (!planId) { showSnackbar('errorPlanNotConfigured', true); return; }
       alert(`Recurring subscription for Tier ${tierNumber} would start.`);
     };
 
