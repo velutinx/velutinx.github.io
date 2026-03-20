@@ -295,6 +295,35 @@ function applyTranslations(pageKey) {
   const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
   if (!pageTranslations) return;
 
+} else if (pageKey === 'store') {
+  const shopTitle = document.getElementById('shopTitle');
+  if (shopTitle) shopTitle.textContent = pageTranslations.shopTitle;
+  const filterTitle = document.getElementById('filterTitle');
+  if (filterTitle) filterTitle.textContent = pageTranslations.filterTitle;
+  const catAll = document.getElementById('catAll');
+  if (catAll) catAll.textContent = pageTranslations.catAll;
+  const catFemale = document.getElementById('catFemale');
+  if (catFemale) catFemale.textContent = pageTranslations.catFemale;
+  const catFemboy = document.getElementById('catFemboy');
+  if (catFemboy) catFemboy.textContent = pageTranslations.catFemboy;
+  const catCollections = document.getElementById('catCollections');
+  if (catCollections) catCollections.textContent = pageTranslations.catCollections;
+  const sortTitle = document.getElementById('sortTitle');
+  if (sortTitle) sortTitle.textContent = pageTranslations.sortTitle;
+  const sortNewest = document.getElementById('sortNewest');
+  if (sortNewest) sortNewest.textContent = pageTranslations.sortNewest;
+  const sortOldest = document.getElementById('sortOldest');
+  if (sortOldest) sortOldest.textContent = pageTranslations.sortOldest;
+  const sortLow = document.getElementById('sortLow');
+  if (sortLow) sortLow.textContent = pageTranslations.sortLow;
+  const sortHigh = document.getElementById('sortHigh');
+  if (sortHigh) sortHigh.textContent = pageTranslations.sortHigh;
+  const productsTitle = document.getElementById('productsTitle');
+  if (productsTitle) productsTitle.textContent = pageTranslations.productsTitle;
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.placeholder = pageTranslations.searchPlaceholder;
+}
+  
   if (pageKey === 'index') {
     const heroSubEl = document.getElementById('heroSub');
     if (heroSubEl && pageTranslations.heroSub) {
