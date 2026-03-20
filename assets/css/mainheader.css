@@ -85,7 +85,6 @@ body {
   font-weight: 900;
   letter-spacing: 2px;
   color: #000;
-  cursor: pointer;
 }
 body.dark .logo {
   color: var(--accent);
