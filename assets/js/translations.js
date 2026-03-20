@@ -160,8 +160,10 @@ function setLanguage(lang) {
   document.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
+// Make functions and translations globally accessible
 window.applyTranslations = applyTranslations;
 window.setLanguage = setLanguage;
+window.translations = translations;
 
 document.addEventListener('DOMContentLoaded', () => {
   // pages will call applyTranslations('their-key') manually
