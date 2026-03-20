@@ -1,8 +1,13 @@
-// translations.js – now at assets/js/translt.js
 const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
 const DEFAULT_LANG = 'en';
 
 const translations = {
+  index: {
+    en: { heroSub: "♡ Freelance Illustrator ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!" },
+    ja: { heroSub: "♡ フリーランスイラストレーター ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = OK!" },
+    zh: { heroSub: "♡ 自由插画师 ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = 可以！" },
+    es: { heroSub: "♡ Ilustradora Freelance ♡", heroSubExtra: "🇺🇸 / 🇯🇵 / 🇪🇸 = ¡OK!" }
+  },
   artwork: {
     en: { artworkIntro: "Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images" },
     ja: { artworkIntro: "こんにちは！こちらは作品サンプルの一部です。無料Discordではさらに多く公開しています！ — Temporal Images" },
@@ -163,7 +168,13 @@ function applyTranslations(pageKey) {
   const pageTranslations = translations[pageKey]?.[currentLanguage] || translations[pageKey]?.[DEFAULT_LANG];
   if (!pageTranslations) return;
 
-  if (pageKey === 'artwork') {
+  if (pageKey === 'index') {
+    const heroSubEl = document.getElementById('heroSub');
+    if (heroSubEl && pageTranslations.heroSub) {
+      heroSubEl.textContent = pageTranslations.heroSub;
+    }
+    // The second hero-sub (with flags) is left static
+  } else if (pageKey === 'artwork') {
     const introEl = document.getElementById('artworkIntro');
     if (introEl && pageTranslations.artworkIntro) {
       introEl.textContent = pageTranslations.artworkIntro;
