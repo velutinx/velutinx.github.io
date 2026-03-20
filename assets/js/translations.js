@@ -207,6 +207,59 @@ function applyTranslations(pageKey = 'index') {
     if (sendBtn) sendBtn.textContent = pageTranslations.sendBtn || '';
   }
 
+// Add this to the translations object
+header: {
+  en: {
+    storeBtn: "Store",
+    menuHome: "HOME",
+    menuCommissions: "COMMISSIONS",
+    menuArtwork: "ARTWORK",
+    menuPoll: "POLL",
+    menuStore: "STORE",
+    menuContact: "CONTACT",
+    cartTitle: "Shopping Cart",
+    totalLabel: "Total",
+    snackText: "Added successfully"
+  },
+  ja: {
+    storeBtn: "ストア",
+    menuHome: "ホーム",
+    menuCommissions: "依頼",
+    menuArtwork: "作品",
+    menuPoll: "投票",
+    menuStore: "ストア",
+    menuContact: "お問い合わせ",
+    cartTitle: "ショッピングカート",
+    totalLabel: "合計",
+    snackText: "カートに追加しました"
+  },
+  zh: {
+    storeBtn: "商店",
+    menuHome: "主页",
+    menuCommissions: "委托",
+    menuArtwork: "作品",
+    menuPoll: "投票",
+    menuStore: "商店",
+    menuContact: "联系",
+    cartTitle: "购物车",
+    totalLabel: "总计",
+    snackText: "已成功添加到购物车"
+  },
+  es: {
+    storeBtn: "Tienda",
+    menuHome: "INICIO",
+    menuCommissions: "COMISIONES",
+    menuArtwork: "OBRAS",
+    menuPoll: "ENCUESTA",
+    menuStore: "TIENDA",
+    menuContact: "CONTACTO",
+    cartTitle: "Carrito de Compras",
+    totalLabel: "Total",
+    snackText: "Añadido con éxito"
+  }
+}
+
+  
   // Poll page
   if (pageKey === 'poll') {
     const titleEl = document.querySelector('.poll-title');
