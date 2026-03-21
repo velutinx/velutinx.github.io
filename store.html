@@ -8,8 +8,6 @@
   <link rel="preconnect" href="https://www.velutinx.com" crossorigin>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
   <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
-
-  <!-- Combined header + cart + dropdown menu styles -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <style>
@@ -441,7 +439,7 @@
 
         window.updateCartDisplay?.();
         window.updateAllPrices?.();
-        updateSearchPlaceholder();  // Ensure placeholder updates on load
+        updateUIForLanguage(); // Initial UI update
       }
 
       function filterAndSort() {
@@ -493,56 +491,255 @@
     });
   </script>
 
-  <!-- Language switcher + dynamic search placeholder -->
-<script>
-// Helper to get current translations (same as in membership.html)
-function getT() {
-  const lang = localStorage.getItem("language") || "en";
-  return window.translations?.[lang] || window.translations?.en || {};
-}
+  <!-- Local translations + dynamic UI update -->
+  <script>
+    const localTranslations = {
+      en: {
+        filterTitle: "Filter by Category",
+        catAll: "All Products",
+        catFemale: "Female Models",
+        catFemboy: "Femboy Models",
+        catCollections: "Full Collections",
+        sortTitle: "Sort by",
+        sortNewest: "Newest",
+        sortOldest: "Oldest",
+        sortLow: "Price: Low to High",
+        sortHigh: "Price: High to Low",
+        productsTitle: "Latest Content",
+        searchPlaceholder: "Search products...",
+        cartTitle: "Shopping Cart",
+        totalLabel: "Total",
+        snackText: "Added successfully"
+      },
+      ja: {
+        filterTitle: "カテゴリでフィルター",
+        catAll: "すべての商品",
+        catFemale: "女性モデル",
+        catFemboy: "男の娘モデル",
+        catCollections: "フルコレクション",
+        sortTitle: "並び替え",
+        sortNewest: "最新",
+        sortOldest: "最古",
+        sortLow: "価格: 低い → 高い",
+        sortHigh: "価格: 高い → 低い",
+        productsTitle: "最新コンテンツ",
+        searchPlaceholder: "商品を検索...",
+        cartTitle: "ショッピングカート",
+        totalLabel: "合計",
+        snackText: "カートに追加しました"
+      },
+      zh: {
+        filterTitle: "按类别筛选",
+        catAll: "所有商品",
+        catFemale: "女性模型",
+        catFemboy: "伪娘模型",
+        catCollections: "完整收藏",
+        sortTitle: "排序方式",
+        sortNewest: "最新",
+        sortOldest: "最旧",
+        sortLow: "价格: 低到高",
+        sortHigh: "价格: 高到低",
+        productsTitle: "最新内容",
+        searchPlaceholder: "搜索商品...",
+        cartTitle: "购物车",
+        totalLabel: "总计",
+        snackText: "已成功添加到购物车"
+      },
+      es: {
+        filterTitle: "Filtrar por Categoría",
+        catAll: "Todos los Productos",
+        catFemale: "Modelos Femeninos",
+        catFemboy: "Modelos Femboy",
+        catCollections: "Colecciones Completas",
+        sortTitle: "Ordenar por",
+        sortNewest: "Más reciente",
+        sortOldest: "Más antiguo",
+        sortLow: "Precio: Bajo a Alto",
+        sortHigh: "Precio: Alto a Bajo",
+        productsTitle: "Contenido más reciente",
+        searchPlaceholder: "Buscar productos...",
+        cartTitle: "Carrito de Compras",
+        totalLabel: "Total",
+        snackText: "Añadido con éxito"
+      }
+    };
 
-// Update search placeholder
-function updateSearchPlaceholder() {
-  const t = getT();
-  const searchInput = document.getElementById("searchInput");
-  if (searchInput) {
-    searchInput.placeholder = t.searchPlaceholder || "Search products...";
-  }
-}
+    // Update all UI text based on current language
+    function updateUIForLanguage() {
+      const lang = localStorage.getItem("language") || "en";
+      const t = localTranslations[lang] || localTranslations.en;
 
-// Update category labels (All, Female, Femboy, Collections)
-function updateCategoryLabels() {
-  const t = getT();
-  
-  const catAllEl = document.getElementById("catAll");
-  if (catAllEl) catAllEl.textContent = t.catAll || "All Products";
+      // Category labels
+      document.getElementById("filterTitle").textContent = t.filterTitle;
+      document.getElementById("catAll").textContent = t.catAll;
+      document.getElementById("catFemale").textContent = t.catFemale;
+      document.getElementById("catFemboy").textContent = t.catFemboy;
+      document.getElementById("catCollections").textContent = t.catCollections;
 
-  const catFemaleEl = document.getElementById("catFemale");
-  if (catFemaleEl) catFemaleEl.textContent = t.catFemale || "Female Models";
+      // Sort section
+      document.getElementById("sortTitle").textContent = t.sortTitle;
+      document.querySelector('[data-sort="newest"] span:last-child').textContent = t.sortNewest;
+      document.querySelector('[data-sort="oldest"] span:last-child').textContent = t.sortOldest;
+      document.querySelector('[data-sort="price-asc"] span:last-child').textContent = t.sortLow;
+      document.querySelector('[data-sort="price-desc"] span:last-child').textContent = t.sortHigh;
 
-  const catFemboyEl = document.getElementById("catFemboy");
-  if (catFemboyEl) catFemboyEl.textContent = t.catFemboy || "Femboy Models";
+      // Products title
+      document.getElementById("productsTitle").textContent = t.productsTitle;
 
-  const catCollectionsEl = document.getElementById("catCollections");
-  if (catCollectionsEl) catCollectionsEl.textContent = t.catCollections || "Full Collections";
-}
+      // Search placeholder
+      const searchInput = document.getElementById("searchInput");
+      if (searchInput) searchInput.placeholder = t.searchPlaceholder;
 
-// Run updates on page load
-window.addEventListener('load', () => {
-  updateSearchPlaceholder();
-  updateCategoryLabels();
-});
+      // Cart title (in drawer)
+      const cartTitleEl = document.getElementById("cartTitle");
+      if (cartTitleEl) cartTitleEl.textContent = t.cartTitle;
 
-// Update everything when language changes
-document.querySelectorAll(".lang-item").forEach(item => {
-  item.addEventListener("click", () => {
-    setTimeout(() => {
-      if (window.updateAllPrices) window.updateAllPrices();
-      updateSearchPlaceholder();
-      updateCategoryLabels();  // This fixes the category labels
-    }, 100);
-  });
-});
-</script>
+      // Total label
+      const totalLabelEl = document.getElementById("totalLabel");
+      if (totalLabelEl) totalLabelEl.textContent = t.totalLabel;
+
+      // Snackbar default text
+      const snackTextEl = document.getElementById("snackText");
+      if (snackTextEl) snackTextEl.textContent = t.snackText;
+    }
+
+    // Run on page load
+    window.addEventListener('load', () => {
+      updateUIForLanguage();
+    });
+
+    // Update on language change
+    document.querySelectorAll(".lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        setTimeout(() => {
+          if (window.updateAllPrices) window.updateAllPrices();
+          updateUIForLanguage();
+        }, 100);
+      });
+    });
+  </script>
+
+  <!-- Product listing script -->
+  <script type="module">
+    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
+
+    window.addEventListener('load', async () => {
+      const productsData = packsData.map(p => ({
+        ...p,
+        price: window.getPriceForPack?.(p) ?? 0,
+        date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
+        category: p.category || 0
+      }));
+
+      const grid = document.getElementById("productGrid");
+      const searchInput = document.getElementById("searchInput");
+      const sortButtons = document.querySelectorAll(".sort-btn");
+      const categoryItems = document.querySelectorAll(".category-list li");
+      let currentCategory = 0;
+
+      function createCards() {
+        grid.innerHTML = "";
+        productsData.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.dataset.title = p.title.toLowerCase();
+          card.dataset.price = p.price;
+          card.dataset.date = p.date;
+          card.dataset.id = p.id;
+          card.dataset.category = p.category;
+
+          const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
+          card.innerHTML = `
+            <img src="${imageUrl}"
+                 alt="${p.title}"
+                 class="card-image"
+                 loading="lazy"
+                 onerror="this.src='https://via.placeholder.com/248x300?text=Image+Error'">
+            <div class="card-content">
+              <div class="card-title">${p.title}</div>
+              <div class="price-row">
+                <div class="price" data-price="${p.price}"></div>
+                <button class="cart-btn" title="Add to Cart">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                    <path d="M12.5 17h-6.5v-14h-2"></path>
+                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+                    <path d="M16 19h6"></path>
+                    <path d="M19 16v6"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
+
+          card.addEventListener("click", e => {
+            if (e.target.closest(".cart-btn")) return;
+            window.location.href = `/s/pack?id=${p.id}`;
+          });
+
+          const cartBtn = card.querySelector(".cart-btn");
+          cartBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            window.addOrToggleCart?.(p);
+          });
+
+          grid.appendChild(card);
+          p.element = card;
+          p.cartBtn = cartBtn;
+        });
+
+        window.updateCartDisplay?.();
+        window.updateAllPrices?.();
+        updateUIForLanguage(); // Ensure initial update
+      }
+
+      function filterAndSort() {
+        const query = searchInput.value.toLowerCase().trim();
+        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+        productsData.forEach(p => {
+          const titleMatch = p.title.toLowerCase().includes(query);
+          const categoryMatch = currentCategory === 0 || p.category === currentCategory;
+          p.element.classList.toggle("hidden", !(titleMatch && categoryMatch));
+        });
+
+        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+        if (activeSort === "newest") {
+          visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
+        } else if (activeSort === "oldest") {
+          visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
+        } else if (activeSort === "price-asc") {
+          visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+        } else if (activeSort === "price-desc") {
+          visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+        }
+
+        visible.forEach(el => grid.appendChild(el));
+      }
+
+      categoryItems.forEach((item, index) => {
+        item.addEventListener("click", () => {
+          categoryItems.forEach(i => i.classList.remove("active"));
+          item.classList.add("active");
+          currentCategory = index === 0 ? 0 : index;
+          filterAndSort();
+        });
+      });
+
+      sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          sortButtons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          filterAndSort();
+        });
+      });
+
+      searchInput.addEventListener("input", filterAndSort);
+
+      createCards();
+      filterAndSort();
+      window.updateCartDisplay?.();
+    });
+  </script>
 </body>
 </html>
