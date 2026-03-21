@@ -790,51 +790,111 @@ window.removeItem = (idx) => {
     updateCartDisplay();
   };
 
-  /* ==================== DOM INITIALIZATION ==================== */
+/* ==================== DOM INITIALIZATION ==================== */
 
-  document.addEventListener("DOMContentLoaded", () => {
-    updateCartDisplay();
+document.addEventListener("DOMContentLoaded", () => {
+  // ←←← AUTO-INJECT SIDEBAR (works on every page that loads header.js)
+  injectSidebar();
 
-    const openDrawer = () => {
-      const drawer = document.getElementById("cartDrawer");
-      if (!drawer) return;
-      drawer.classList.add("open");
-      loadAndInitPayPal();
-    };
+  updateCartDisplay();
 
-    const closeDrawer = () => {
-      const drawer = document.getElementById("cartDrawer");
-      if (!drawer) return;
-      drawer.classList.remove("open");
-      paypalButtonsRendered = false;
-    };
+  const openDrawer = () => {
+    const drawer = document.getElementById("cartDrawer");
+    if (!drawer) return;
+    drawer.classList.add("open");
+    loadAndInitPayPal();
+  };
 
-    document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
-    document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
-    document.getElementById("cartClose")?.addEventListener("click", closeDrawer);
+  const closeDrawer = () => {
+    const drawer = document.getElementById("cartDrawer");
+    if (!drawer) return;
+    drawer.classList.remove("open");
+    paypalButtonsRendered = false;
+  };
 
-    document.addEventListener("click", (e) => {
-      const drawer = document.getElementById("cartDrawer");
-      if (!drawer?.classList.contains("open")) return;
-      if (
-        !drawer.contains(e.target) &&
-        !document.getElementById("cartBtn")?.contains(e.target) &&
-        !document.getElementById("floatingCartBtn")?.contains(e.target)
-      ) {
-        closeDrawer();
-      }
-    });
+  document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
+  document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
+  document.getElementById("cartClose")?.addEventListener("click", closeDrawer);
 
-    let lastCart = JSON.stringify(getCart());
-    setInterval(() => {
-      const current = JSON.stringify(getCart());
-      if (current !== lastCart) {
-        lastCart = current;
-        if (window.updateButton) {
-          try { window.updateButton(); } catch(e){}
-        }
-      }
-    }, 200);
+  document.addEventListener("click", (e) => {
+    const drawer = document.getElementById("cartDrawer");
+    if (!drawer?.classList.contains("open")) return;
+    if (
+      !drawer.contains(e.target) &&
+      !document.getElementById("cartBtn")?.contains(e.target) &&
+      !document.getElementById("floatingCartBtn")?.contains(e.target)
+    ) {
+      closeDrawer();
+    }
   });
 
-})();
+  let lastCart = JSON.stringify(getCart());
+  setInterval(() => {
+    const current = JSON.stringify(getCart());
+    if (current !== lastCart) {
+      lastCart = current;
+      if (window.updateButton) {
+        try { window.updateButton(); } catch(e){}
+      }
+    }
+  }, 200);
+
+  // Sidebar toggle (already works on store.html, now also on pack.html)
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
+
+  menuToggle?.addEventListener('click', () => {
+    sidebar?.classList.add('open');
+    sidebarOverlay?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  });
+
+  sidebarMenuToggle?.addEventListener('click', () => {
+    sidebar?.classList.remove('open');
+    sidebarOverlay?.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+
+  sidebarOverlay?.addEventListener('click', () => {
+    sidebar?.classList.remove('open');
+    sidebarOverlay?.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+});
+
+// ==================== AUTO-INJECT SIDEBAR FUNCTION ====================
+function injectSidebar() {
+  if (document.getElementById("sidebar")) return; // prevent double injection
+
+  const sidebarHTML = `
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Menu -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <div class="logo">VELUTINX</div>
+      </div>
+      <div class="sidebar-menu">
+        <a href="https://velutinx.com/" class="menu-item" data-menu="home"><svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg><span id="menuHome">HOME</span></a>
+        <a href="https://velutinx.com/commission" class="menu-item" data-menu="commissions"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg><span id="menuCommissions">COMMISSIONS</span></a>
+        <a href="https://velutinx.com/artwork" class="menu-item" data-menu="artwork"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg><span id="menuArtwork">ARTWORK</span></a>
+        <a href="https://velutinx.com/poll" class="menu-item" data-menu="poll"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg><span id="menuPoll">POLL</span></a>
+        <a href="https://velutinx.com/store" class="menu-item" data-menu="store"><svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg><span id="menuStore">STORE</span></a>
+        <a href="https://velutinx.com/contact" class="menu-item" data-menu="contact"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg><span id="menuContact">CONTACT</span></a>
+      </div>
+      <div class="sidebar-footer">
+        <p>© VELUTINX</p>
+      </div>
+    </aside>
+  `;
+
+  document.body.insertAdjacentHTML("beforeend", sidebarHTML);
+}
