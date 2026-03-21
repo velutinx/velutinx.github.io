@@ -7,6 +7,7 @@
 
   <link rel="preconnect" href="https://www.velutinx.com" crossorigin>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
+  <!-- Shared header CSS -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <style>
@@ -234,73 +235,77 @@
 
   <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- Header will be injected here by header.js -->
-  <div id="navContainer"></div>
+  <div id="page">
+    <!-- Header will be injected here by header.js -->
+    <div id="navContainer"></div>
+    <div class="divider"></div>
 
-  <header class="shop-header">
-    <div class="shop-container">
-      <div class="shop-left">
-        <h1 class="shop-title" id="shopTitle">Loading...</h1>
-      </div>
-    </div>
-  </header>
-
-  <div class="main-container">
-    <aside class="store-filter-sidebar">
-      <div class="section-title" id="filterTitle">Filter by Category</div>
-      <ul class="category-list">
-        <li class="active" data-cat="0">
-          <span class="material-symbols-outlined">done_all</span>
-          <span id="catAll">All Products</span>
-        </li>
-        <li data-cat="1">
-          <span class="material-symbols-outlined">female</span>
-          <span id="catFemale">Female Models</span>
-        </li>
-        <li data-cat="2">
-          <span class="material-symbols-outlined">male</span>
-          <span id="catFemboy">Femboy Models</span>
-        </li>
-        <li data-cat="3">
-          <span class="material-symbols-outlined">collections_bookmark</span>
-          <span id="catCollections">Full Collections</span>
-        </li>
-      </ul>
-      <div class="sort-options">
-        <div class="section-title" id="sortTitle">Sort by</div>
-        <button class="sort-btn active" data-sort="newest">
-          <span class="material-symbols-outlined">clock_arrow_up</span>
-          <span id="sortNewest">Newest</span>
-        </button>
-        <button class="sort-btn" data-sort="oldest">
-          <span class="material-symbols-outlined">clock_arrow_down</span>
-          <span id="sortOldest">Oldest</span>
-        </button>
-        <button class="sort-btn" data-sort="price-asc">
-          <span class="material-symbols-outlined">stat_3</span>
-          <span id="sortLow">Price: Low to High</span>
-        </button>
-        <button class="sort-btn" data-sort="price-desc">
-          <span class="material-symbols-outlined">stat_minus_3</span>
-          <span id="sortHigh">Price: High to Low</span>
-        </button>
-      </div>
-    </aside>
-
-    <main class="products-section">
-      <div class="products-header">
-        <h2 id="productsTitle">Latest Content</h2>
-        <div class="search-bar-wrapper">
-          <div class="input-base">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
-              <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-            </svg>
-            <input type="search" id="searchInput" class="input-element" placeholder="" />
-          </div>
+    <header class="shop-header">
+      <div class="shop-container">
+        <div class="shop-left">
+          <h1 class="shop-title" id="shopTitle">Loading...</h1>
         </div>
       </div>
-      <div class="product-grid" id="productGrid"></div>
-    </main>
+    </header>
+
+    <div class="main-container">
+      <aside class="store-filter-sidebar">
+        <div class="section-title" id="filterTitle">Filter by Category</div>
+        <ul class="category-list">
+          <li class="active" data-cat="0">
+            <span class="material-symbols-outlined">done_all</span>
+            <span id="catAll">All Products</span>
+          </li>
+          <li data-cat="1">
+            <span class="material-symbols-outlined">female</span>
+            <span id="catFemale">Female Models</span>
+          </li>
+          <li data-cat="2">
+            <span class="material-symbols-outlined">male</span>
+            <span id="catFemboy">Femboy Models</span>
+          </li>
+          <li data-cat="3">
+            <span class="material-symbols-outlined">collections_bookmark</span>
+            <span id="catCollections">Full Collections</span>
+          </li>
+        </ul>
+        <div class="sort-options">
+          <div class="section-title" id="sortTitle">Sort by</div>
+          <button class="sort-btn active" data-sort="newest">
+            <span class="material-symbols-outlined">clock_arrow_up</span>
+            <span id="sortNewest">Newest</span>
+          </button>
+          <button class="sort-btn" data-sort="oldest">
+            <span class="material-symbols-outlined">clock_arrow_down</span>
+            <span id="sortOldest">Oldest</span>
+          </button>
+          <button class="sort-btn" data-sort="price-asc">
+            <span class="material-symbols-outlined">stat_3</span>
+            <span id="sortLow">Price: Low to High</span>
+          </button>
+          <button class="sort-btn" data-sort="price-desc">
+            <span class="material-symbols-outlined">stat_minus_3</span>
+            <span id="sortHigh">Price: High to Low</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="products-section">
+        <div class="products-header">
+          <h2 id="productsTitle">Latest Content</h2>
+          <div class="search-bar-wrapper">
+            <div class="input-base">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
+                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+              </svg>
+              <input type="search" id="searchInput" class="input-element" placeholder="" />
+            </div>
+          </div>
+        </div>
+
+        <div class="product-grid" id="productGrid"></div>
+      </main>
+    </div>
   </div>
 
   <!-- Scripts -->
@@ -313,12 +318,6 @@
   <!-- Product listing script -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
-
-    function applyStoreTranslations() {
-      if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('store');
-      }
-    }
 
     window.addEventListener('load', async () => {
       const productsData = packsData.map(p => ({
@@ -387,7 +386,6 @@
 
         window.updateCartDisplay?.();
         window.updateAllPrices?.();
-        applyStoreTranslations();
       }
 
       function filterAndSort() {
@@ -437,18 +435,27 @@
       filterAndSort();
       window.updateCartDisplay?.();
     });
-
-    // Listen for language changes and update store UI
-    document.addEventListener('languageChanged', () => {
-      applyStoreTranslations();
-      window.updateAllPrices?.();
-      window.syncCartButtons?.();
-    });
   </script>
 
-  <!-- Ensure translations are applied on load -->
+  <!-- Apply sidebar translations and store UI updates -->
   <script>
-    applyStoreTranslations();
+    // Apply sidebar translations (menu items)
+    function applySidebarTranslations() {
+      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      const t = window.translations?.header?.[lang];
+      if (!t) return;
+      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && t[id]) el.textContent = t[id];
+      });
+    }
+    applySidebarTranslations();
+
+    // Re-apply when language changes (header.js already does this for store UI, but we also need sidebar)
+    document.addEventListener('languageChanged', () => {
+      applySidebarTranslations();
+    });
   </script>
 </body>
 </html>
