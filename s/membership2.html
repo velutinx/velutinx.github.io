@@ -383,9 +383,9 @@
   <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Membership‑specific JavaScript (simple approach like pack.html) -->
+  <!-- Membership‑specific JavaScript (direct localStorage, no recursion) -->
   <script>
-    // ========== MEMBERSHIP TRANSLATIONS ==========
+    // ========== MEMBERSHIP TRANSLATIONS (full) ==========
     const membershipTranslations = {
       en: {
         membershipTitle: "Choose Your Membership",
@@ -679,8 +679,23 @@
       });
     }
 
+    // ----- Direct cart manipulation (no recursion) -----
+    function getCart() {
+      try {
+        return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
+      } catch { return []; }
+    }
+
+    function saveCart(cart) {
+      localStorage.setItem('velutinx_cart', JSON.stringify(cart));
+      // Force update of the cart UI in shared.js by dispatching a storage event
+      window.dispatchEvent(new StorageEvent('storage', { key: 'velutinx_cart', newValue: JSON.stringify(cart) }));
+      // Also manually update the membership buttons immediately
+      updateMembershipButtons();
+    }
+
     function updateMembershipButtons() {
-      const cart = window.getCart ? window.getCart() : [];
+      const cart = getCart();
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
@@ -731,12 +746,13 @@
       const tierPrices = {1:5,2:15,3:30,4:50,5:75};
       const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
 
-      let cart = window.getCart ? window.getCart() : [];
+      let cart = getCart();
       const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
 
       if (alreadyInCart) {
         // Remove the existing membership
-        window.addOrToggleCart({ id: `membership-${tierNumber}` });
+        cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
+        saveCart(cart);
         showSnackbar(getText('removedFromCart', 'Removed from cart'), false);
         updateMembershipButtons();
         return;
@@ -753,13 +769,11 @@
 
       // If adding a higher tier, remove all existing memberships first
       if (highestTier !== null && tierNumber > highestTier) {
-        for (const item of membershipItems) {
-          window.addOrToggleCart({ id: item.id });
-        }
+        cart = cart.filter(item => item.type !== 'membership');
       }
 
       // Add the new membership
-      window.addOrToggleCart({
+      cart.push({
         id: `membership-${tierNumber}`,
         title: tierTitles[tierNumber] + ' (30 days)',
         price: tierPrices[tierNumber],
@@ -769,6 +783,7 @@
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
 
+      saveCart(cart);
       showSnackbar(getText('addedToCart', 'Added to cart'), false);
       updateMembershipButtons();
     };
@@ -790,6 +805,7 @@
       if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
     };
 
+    // Initialise after shared header is ready
     function initMembership() {
       if (membershipInitialised) return;
       membershipInitialised = true;
@@ -806,7 +822,14 @@
         updateMembershipButtons();
       });
 
-      // Poll for cart changes (like pack.html)
+      // Listen for storage events (cart changes from other tabs or our own save)
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'velutinx_cart') {
+          updateMembershipButtons();
+        }
+      });
+
+      // Poll for cart changes (to catch updates from the shared.js cart)
       let lastCart = localStorage.getItem('velutinx_cart');
       setInterval(() => {
         const newCart = localStorage.getItem('velutinx_cart');
