@@ -688,9 +688,9 @@
 
     function saveCart(cart) {
       localStorage.setItem('velutinx_cart', JSON.stringify(cart));
-      // Force update of the cart UI in shared.js by dispatching a storage event
+      // Dispatch storage event to notify other tabs and our poller
       window.dispatchEvent(new StorageEvent('storage', { key: 'velutinx_cart', newValue: JSON.stringify(cart) }));
-      // Also manually update the membership buttons immediately
+      // Immediately update membership buttons
       updateMembershipButtons();
     }
 
@@ -754,7 +754,6 @@
         cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
         saveCart(cart);
         showSnackbar(getText('removedFromCart', 'Removed from cart'), false);
-        updateMembershipButtons();
         return;
       }
 
@@ -785,7 +784,6 @@
 
       saveCart(cart);
       showSnackbar(getText('addedToCart', 'Added to cart'), false);
-      updateMembershipButtons();
     };
 
     window.handleRecurring = async function(tierNumber) {
