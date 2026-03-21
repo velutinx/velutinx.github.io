@@ -333,128 +333,85 @@
     });
   </script>
 
-  <script type="module">
-    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
+<script type="module">
+  // Import the source of truth
+  import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
-    let productsData = [];
-    const grid = document.getElementById("productGrid");
-    const searchInput = document.getElementById("searchInput");
-    const sortButtons = document.querySelectorAll(".sort-btn");
-    const categoryItems = document.querySelectorAll(".category-list li");
-    let currentCategory = 0;
+  let productsData = [];
+  const grid = document.getElementById("productGrid");
+  const searchInput = document.getElementById("searchInput");
 
-    // Define tier price mapping locally to ensure calculation works before header.js defines its tierMap
-    const priceMap = { "PRICE_LOW": 1.5, "PRICE_MID": 3.0, "PRICE_HIGH": 10.0 };
-
-    window.createCards = function() {
-      if (!grid) return;
-      grid.innerHTML = "";
-      
-      productsData = packsData.map(p => ({
-        ...p,
-        priceKey: p.price,
-        numericPrice: typeof p.price === 'number' ? p.price : (priceMap[p.price] || 0),
-        category: p.category || 0
-      }));
-
-      productsData.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "product-card";
-        card.dataset.id = p.id;
-        card.dataset.category = p.category;
-        card.dataset.price = p.numericPrice;
-
-        const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
-        card.innerHTML = `
-          <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy" onerror="this.src='https://via.placeholder.com/248x300?text=Error'">
-          <div class="card-content">
-            <div class="card-title">${p.title}</div>
-            <div class="price-row">
-              <div class="price">${window.formatPrice ? window.formatPrice(p.numericPrice) : 'US$' + p.numericPrice.toFixed(2)}</div>
-              <button class="cart-btn" title="Add to Cart">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        `;
-
-        card.addEventListener("click", e => {
-          if (!e.target.closest(".cart-btn")) window.location.href = `/s/pack?id=${p.id}`;
-        });
-
-        card.querySelector(".cart-btn").addEventListener("click", e => {
-          e.stopPropagation();
-          // Fallback if cart logic hasn't loaded
-          if (window.cart) {
-            const item = { id: p.id, title: p.title, price: p.numericPrice, image: imageUrl };
-            window.cart.push(item);
-            if (window.saveCart) window.saveCart();
-            if (window.updateCartDisplay) window.updateCartDisplay();
-            if (window.showSnackbar) window.showSnackbar('Added to cart');
-          }
-        });
-
-        grid.appendChild(card);
-        p.element = card;
-      });
-      filterAndSort();
-    };
-
-    function filterAndSort() {
-      const query = searchInput.value.toLowerCase().trim();
-      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
-      productsData.forEach(p => {
-        if (!p.element) return;
-        const titleMatch = p.title.toLowerCase().includes(query);
-        const catMatch = currentCategory === 0 || p.category === currentCategory;
-        p.element.classList.toggle("hidden", !(titleMatch && catMatch));
-      });
-
-      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-      visible.sort((a, b) => {
-        if (activeSort === "newest") return parseInt(b.dataset.id) - parseInt(a.dataset.id);
-        if (activeSort === "oldest") return parseInt(a.dataset.id) - parseInt(b.dataset.id);
-        if (activeSort === "price-asc") return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
-        if (activeSort === "price-desc") return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
-        return 0;
-      });
-      visible.forEach(el => grid.appendChild(el));
-    }
-
-    categoryItems.forEach((item, idx) => {
-      item.addEventListener("click", () => {
-        categoryItems.forEach(i => i.classList.remove("active"));
-        item.classList.add("active");
-        currentCategory = idx;
-        filterAndSort();
-      });
-    });
-
-    sortButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        sortButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        filterAndSort();
-      });
-    });
-
-    searchInput.addEventListener("input", filterAndSort);
-
-    // Initial load handling
-    if (document.readyState === 'complete') {
-      window.createCards();
-    } else {
-      window.addEventListener('load', window.createCards);
-    }
+  window.createCards = function() {
+    if (!grid) return;
+    grid.innerHTML = "";
     
-    // Refresh prices if header.js finishes loading after grid
-    window.addEventListener('headerReady', () => {
-        if (window.updateAllPrices) window.updateAllPrices();
-        else window.createCards();
+    // Map the imported data without looking at any HTML-defined prices
+    productsData = packsData.map(p => ({
+      ...p,
+      // We rely on the global getPriceForPack from header.js to interpret the price string
+      numericPrice: window.getPriceForPack ? window.getPriceForPack(p) : 0,
+      category: p.category || 0
+    }));
+
+    productsData.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+      card.dataset.id = p.id;
+      
+      // We do NOT store price in dataset to prevent easy DOM manipulation
+      const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
+      
+      card.innerHTML = `
+        <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy">
+        <div class="card-content">
+          <div class="card-title">${p.title}</div>
+          <div class="price-row">
+            <div class="price" data-id="${p.id}">
+              ${window.formatPrice ? window.formatPrice(p.price) : "---"}
+            </div>
+            <button class="cart-btn" title="Add to Cart">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path>
+                <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Event Listeners
+      card.addEventListener("click", e => {
+        if (!e.target.closest(".cart-btn")) window.location.href = `/s/pack?id=${p.id}`;
+      });
+
+      card.querySelector(".cart-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        // Pass the raw pack object. The cart logic will re-verify the price from the key.
+        if (window.addOrToggleCart) {
+          window.addOrToggleCart(p);
+        } else {
+          // Fallback if header.js isn't fully ready
+          window.cart.push({ ...p, price: window.getPriceForPack(p) });
+          window.updateCartDisplay?.();
+        }
+      });
+
+      grid.appendChild(card);
+      p.element = card;
     });
-  </script>
+    
+    if (window.filterAndSort) window.filterAndSort();
+  };
+
+  // Listen for the header being ready to ensure price formatting functions exist
+  window.addEventListener('headerReady', () => {
+    window.createCards();
+  });
+
+  // If header is already loaded by the time this runs
+  if (window.formatPrice) {
+    window.createCards();
+  }
+</script>
 </body>
 </html>
