@@ -292,12 +292,6 @@ function setLanguage(lang) {
 document.addEventListener("DOMContentLoaded", () => {
   setLanguage(currentLang);
 
-  // Logo → store
-  document.querySelector(".logo")?.addEventListener("click", e => {
-    e.preventDefault();
-    window.location.href = "https://velutinx.com/store";
-  });
-
   // Website button
   document.getElementById("loginBtn")?.addEventListener("click", e => {
     e.preventDefault();
