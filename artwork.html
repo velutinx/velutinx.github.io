@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Artwork</title>
-  <!-- Header CSS -->
+  <!-- Shared header CSS -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
   <!-- Page‑specific CSS -->
   <link rel="stylesheet" href="/assets/css/format.css">
@@ -27,88 +27,9 @@
 
   <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- Header HTML (same as store.html, but without cart drawer and snackbar) -->
-  <nav class="top-nav">
-    <div class="nav-left">
-      <button id="menuToggle" class="nav-icon" title="Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <div class="logo" id="logo">VELUTINX</div>
-    </div>
-
-    <div class="nav-actions">
-      <button class="login-btn" id="loginBtn">Website</button>
-      <div id="langContainer">
-        <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
-          </svg>
-        </button>
-        <div id="languagePopover">
-          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English</p></div>
-          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語</p></div>
-          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español</p></div>
-        </div>
-      </div>
-      <button class="nav-icon" id="themeBtn" title="Night Mode">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
-        </svg>
-      </button>
-      <!-- No cart wrapper here -->
-    </div>
-  </nav>
-
-  <!-- Sidebar Overlay -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <!-- Sidebar Menu (with IDs for translation) -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <div class="logo">VELUTINX</div>
-    </div>
-    <div class="sidebar-menu">
-      <a href="https://velutinx.com/" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
-        <span id="menuHome">HOME</span>
-      </a>
-      <a href="https://velutinx.com/commission" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg>
-        <span id="menuCommissions">COMMISSIONS</span>
-      </a>
-      <a href="https://velutinx.com/artwork" class="menu-item">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg>
-        <span id="menuArtwork">ARTWORK</span>
-      </a>
-      <a href="https://velutinx.com/poll" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg>
-        <span id="menuPoll">POLL</span>
-      </a>
-      <a href="https://velutinx.com/store" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg>
-        <span id="menuStore">STORE</span>
-      </a>
-      <a href="https://velutinx.com/contact" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg>
-        <span id="menuContact">CONTACT</span>
-      </a>
-    </div>
-    <div class="sidebar-footer">
-      <p>© VELUTINX</p>
-    </div>
-  </aside>
-
-  <!-- No cart drawer, no snackbar -->
-
   <div id="page">
+    <!-- Header will be injected here by header.js -->
+    <div id="navContainer"></div>
     <div class="divider"></div>
 
     <section class="artwork-wrap">
@@ -130,35 +51,25 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Function to apply sidebar translations using the global header translations
-    function applySidebarTranslations() {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = window.translations?.header?.[lang];
-      if (!t) return;
-      
-      const menuHome = document.getElementById('menuHome');
-      const menuCommissions = document.getElementById('menuCommissions');
-      const menuArtwork = document.getElementById('menuArtwork');
-      const menuPoll = document.getElementById('menuPoll');
-      const menuStore = document.getElementById('menuStore');
-      const menuContact = document.getElementById('menuContact');
-      
-      if (menuHome) menuHome.textContent = t.menuHome;
-      if (menuCommissions) menuCommissions.textContent = t.menuCommissions;
-      if (menuArtwork) menuArtwork.textContent = t.menuArtwork;
-      if (menuPoll) menuPoll.textContent = t.menuPoll;
-      if (menuStore) menuStore.textContent = t.menuStore;
-      if (menuContact) menuContact.textContent = t.menuContact;
-    }
-
     // Apply artwork translations on load
     if (typeof window.applyTranslations === 'function') {
       window.applyTranslations('artwork');
     }
-    // Apply sidebar translations on load
+
+    // Apply sidebar translations (menu items)
+    function applySidebarTranslations() {
+      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      const t = window.translations?.header?.[lang];
+      if (!t) return;
+      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && t[id]) el.textContent = t[id];
+      });
+    }
     applySidebarTranslations();
 
-    // Re-apply translations when language changes
+    // Re-apply when language changes
     document.addEventListener('languageChanged', () => {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('artwork');
@@ -166,7 +77,7 @@
       applySidebarTranslations();
     });
 
-    // Apply dark mode from localStorage (header.js also does this, but safe)
+    // Dark mode from localStorage (safe)
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
