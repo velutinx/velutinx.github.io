@@ -3,11 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>VELUTINX — Poll</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>VELUTINX — Poll</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <!-- Shared header CSS -->
@@ -24,7 +19,7 @@
       backdrop-filter: none !important;
       border-bottom: 1px solid var(--border);
     }
-    /* Hide Website button, cart wrapper, and floating cart on this page */
+    /* Hide Website button, cart wrapper, and floating cart on poll page */
     .poll-page .login-btn,
     .poll-page .cart-wrapper,
     .poll-page .floating-cart {
@@ -85,187 +80,6 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // ==================== SUPABASE & POLL LOGIC ====================
-    const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
-    const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
-
-    const POLL_ID = "character_poll_new";
-    const TOTAL_CARDS = 12;
-    const grid = document.getElementById("grid");
-    const resultsBox = document.getElementById("results");
-
-    let fpPromise = null;
-
-    // Cookie helpers
-    function setVoteCookie(optionId) {
-      const d = new Date();
-      d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
-      document.cookie = `votedPoll=${optionId}; expires=${d.toUTCString()}; path=/`;
-    }
-    function getVoteCookie() {
-      const name = 'votedPoll=';
-      const decodedCookie = decodeURIComponent(document.cookie);
-      const ca = decodedCookie.split(';');
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
-      }
-      return null;
-    }
-
-    async function initFingerprint() {
-      const fp = await FingerprintJS.load();
-      const result = await fp.get();
-      return result.visitorId;
-    }
-
-    // Create grid cards
-    for (let i = 1; i <= TOTAL_CARDS; i++) {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.dataset.id = i;
-      card.innerHTML = `
-        <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
-        <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
-        <div class="label">Loading...</div>
-      `;
-      card.onclick = () => { showSelected(i); castVote(i); };
-      grid.appendChild(card);
-    }
-
-    async function castVote(id) {
-      try {
-        let visitorId;
-        try {
-          visitorId = await fpPromise;
-        } catch (e) {
-          console.warn('Fingerprint failed, using IP fallback', e);
-          const ipRes = await fetch('https://api.ipify.org?format=json');
-          const { ip } = await ipRes.json();
-          visitorId = ip;
-        }
-
-        await sb.from('website_voting').upsert(
-          { voter_id: visitorId, option_id: id, poll_id: POLL_ID },
-          { onConflict: 'voter_id' }
-        );
-
-        localStorage.setItem('voted_id', id);
-        setVoteCookie(id);
-        updateCardStyles(id);
-        fetchGridResults();
-      } catch (err) { console.error("Vote failed", err); }
-    }
-
-    async function fetchGridResults() {
-      const { data, error } = await sb.from('website_voting').select('option_id').eq('poll_id', POLL_ID);
-      if (error) return;
-      const counts = {};
-      for (let i = 1; i <= TOTAL_CARDS; i++) counts[i] = 0;
-      data.forEach(v => { if (counts[v.option_id] !== undefined) counts[v.option_id]++; });
-      const total = data.length || 1;
-      document.querySelectorAll(".card").forEach(card => {
-        const id = Number(card.dataset.id);
-        const percent = Math.round((counts[id] / total) * 100);
-        card.querySelector(".progress-fill").style.width = percent + "%";
-        card.querySelector(".progress-text").textContent = percent + "%";
-      });
-    }
-
-    async function fetchLeaderboard() {
-      try {
-        // Get all rows from final_votes (scores + winner flag)
-        const { data: rows, error } = await sb
-          .from('final_votes')
-          .select('option_id, character_name, score, selected_at')
-          .eq('poll_id', POLL_ID)
-          .order('score', { ascending: false });
-
-        if (error) throw error;
-
-        // Determine winners: those with selected_at not null
-        const winnerIds = new Set();
-        rows.forEach(row => {
-          if (row.selected_at && row.selected_at !== null) {
-            winnerIds.add(Number(row.option_id));
-          }
-        });
-
-        // Build leaderboard HTML
-        resultsBox.innerHTML = rows.map(row => {
-          const id = Number(row.option_id);
-          const isWinner = winnerIds.has(id);
-          return `<div class="leaderboard-entry ${isWinner ? 'spoiled' : ''}">
-            <span>${row.character_name || `Option ${id}`}</span>
-            <span>${Number(row.score || 0).toFixed(1)}</span>
-          </div>`;
-        }).join('') || "No votes yet";
-
-        // Update card labels and winner overlay
-        document.querySelectorAll(".card").forEach(card => {
-          const id = Number(card.dataset.id);
-          const row = rows.find(r => Number(r.option_id) === id);
-          if (row?.character_name) card.querySelector(".label").textContent = row.character_name;
-          card.classList.toggle("winner", winnerIds.has(id));
-        });
-      } catch (err) {
-        console.error("Leaderboard error:", err);
-        resultsBox.innerHTML = '<div>Error loading leaderboard</div>';
-      }
-    }
-
-    function updateCardStyles(votedId) {
-      document.querySelectorAll('.card').forEach(c => {
-        c.classList.toggle('active-vote', Number(c.dataset.id) === votedId);
-      });
-    }
-
-    async function init() {
-      fpPromise = initFingerprint().catch(() => null);
-      await Promise.all([fetchGridResults(), fetchLeaderboard()]);
-      const saved = localStorage.getItem('voted_id') || getVoteCookie();
-      if (saved) updateCardStyles(Number(saved));
-
-      // Real-time subscriptions – on final_votes and website_voting
-      sb.channel('grid-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
-        .subscribe();
-
-      sb.channel('leaderboard-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'final_votes' }, fetchLeaderboard)
-        .subscribe();
-    }
-
-    // Visual helpers
-    let rotateIndex = 1;
-    function showSelected(id) {
-      const left = document.getElementById("leftBig");
-      left.classList.remove("show");
-      setTimeout(() => {
-        document.getElementById("leftImg").src = `https://www.velutinx.com/images/poll/${id}.jpg`;
-        left.classList.add("show");
-      }, 150);
-    }
-    function rotate() {
-      const right = document.getElementById("rightBig");
-      right.classList.remove("show");
-      setTimeout(() => {
-        document.getElementById("rightImg").src = `https://www.velutinx.com/images/poll/${rotateIndex}.jpg`;
-        right.classList.add("show");
-        rotateIndex = (rotateIndex % TOTAL_CARDS) + 1;
-      }, 150);
-    }
-
-    setInterval(rotate, 3500);
-    rotate(); showSelected(1); init();
-
-    // Apply poll translations
-    if (typeof window.applyTranslations === 'function') {
-      window.applyTranslations('poll');
-    }
-
     // Apply sidebar translations (menu items)
     function applySidebarTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
@@ -281,94 +95,9 @@
 
     // Re-apply when language changes
     document.addEventListener('languageChanged', () => {
-      if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('poll');
-      }
       applySidebarTranslations();
     });
 
-    // Dark mode from localStorage
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark');
-    }
-  </script>
-</body>
-</html>
-  <link rel="icon" href="data:,">
-  <!-- Header CSS -->
-  <link rel="stylesheet" href="/assets/css/mainheader.css">
-  <!-- Shared page styles (includes poll styles, star effects) -->
-  <link rel="stylesheet" href="/assets/css/format.css">
-  <!-- Supabase & fingerprint -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
-  <style>
-    /* Override header background to match page flat background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
-    }
-    /* Hide store button and both cart icons on this page */
-    .poll-page .store-btn,
-    .poll-page .cart-wrapper,
-    .poll-page .floating-cart {
-      display: none !important;
-    }
-    /* Discord logo wobble (same as index) */
-    .icon-link img {
-      transition: transform 0.25s ease;
-    }
-    .icon-link:hover img {
-      animation: blobWobble 1.6s ease-in-out infinite;
-    }
-  </style>
-</head>
-<body class="poll-page">
-
-  <div class="lang-swipe" id="langSwipe"></div>
-
-  <div id="page">
-    <div id="navContainer"></div>
-    <div class="divider"></div>
-
-    <section class="poll-section">
-      <h1 class="poll-title">Vote for Your Favorite Character</h1>
-      <p class="poll-subtitle">Click once — you can change your vote anytime</p>
-
-      <div class="poll-page">
-        <div class="big-card" id="leftBig"><img id="leftImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
-        <div class="big-card" id="rightBig"><img id="rightImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
-
-        <div class="center">
-          <div class="grid" id="grid"></div>
-          <div class="bottom">
-            <div id="leaderboard">
-              <h3>Leaderboard</h3>
-              <div class="tooltip">Website + Discord votes</div>
-              <div id="results">Loading…</div>
-            </div>
-            <div class="icon-wrapper">
-              <a class="icon-link" href="https://discord.gg/XF363uYfSh" target="_blank">
-                <img src="https://www.velutinx.com/images/LogoDiscord.png" alt="Discord">
-              </a>
-              <div class="discord-disclaimer">Join discord for an extra vote!!</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="divider"></div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="/assets/js/translt.js"></script>
-  <script src="/assets/js/mainheader.js"></script>
-  <script src="/assets/js/format.js"></script>
-  <script src="/assets/js/tab-title-animation.js"></script>
-
-  <script>
     // ==================== SUPABASE & POLL LOGIC ====================
     const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
     const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
@@ -545,7 +274,7 @@
     setInterval(rotate, 3500);
     rotate(); showSelected(1); init();
 
-    // Dark mode from localStorage (header already does, but safe)
+    // Dark mode from localStorage (already set by header, but safe)
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
