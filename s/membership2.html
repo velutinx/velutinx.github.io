@@ -895,31 +895,31 @@ window.scrollCarousel = function(direction) {
     }
 };
 
-// ───────────────────────────────────────────────
-// Initialization & event listeners
-// ───────────────────────────────────────────────
+    // ───────────────────────────────────────────────
+    // Initialization & event listeners
+    // ───────────────────────────────────────────────
 
-updateMembershipText();
-updateMembershipPrices();
-updateMembershipButtons();
-
-// Language change
-document.addEventListener('languageChanged', function(e) {
-    currentLang = e.detail.language;
     updateMembershipText();
     updateMembershipPrices();
     updateMembershipButtons();
-});
 
-// Cart change polling (cross-tab / async updates)
-let lastCart = localStorage.getItem('velutinx_cart');
-setInterval(() => {
-    const newCart = localStorage.getItem('velutinx_cart');
-    if (newCart !== lastCart) {
-        lastCart = newCart;
+    // Language change
+    document.addEventListener('languageChanged', function(e) {
+        currentLang = e.detail.language;
+        updateMembershipText();
+        updateMembershipPrices();
         updateMembershipButtons();
-    }
-}, 400);
+    });
+
+    // Cart change polling (cross-tab / async updates)
+    let lastCart = localStorage.getItem('velutinx_cart');
+    setInterval(() => {
+        const newCart = localStorage.getItem('velutinx_cart');
+        if (newCart !== lastCart) {
+            lastCart = newCart;
+            updateMembershipButtons();
+        }
+    }, 400);
       
 
       
