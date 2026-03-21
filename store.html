@@ -294,48 +294,49 @@
 
   <script src="https://6eb61101.velutinx.pages.dev/assets/js/header.js"></script>
  
- <script type="module">
+<script type="module">
   import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
   let productsData = [];
   const grid = document.getElementById("productGrid");
-  const searchInput = document.getElementById("searchInput");
 
-  // MAIN RENDER FUNCTION
-  window.createCards = function() {
-    if (!grid) return;
-    
-    // Check if data actually exists
-    if (!packsData || packsData.length === 0) {
-      console.error("Store: packs-data.js is empty or failed to load.");
+  async function bootStore() {
+    // Wait for header.js to define the formatting tools
+    if (!window.formatPrice || !packsData) {
+      setTimeout(bootStore, 100); 
       return;
     }
 
-    grid.innerHTML = "";
-    productsData = packsData.map(p => ({ 
-      ...p, 
+    productsData = packsData.map(p => ({
+      ...p,
       category: p.category || 0,
-      price: typeof p.price === 'number' ? p.price : parseFloat(p.price) || 0
+      price: typeof p.price === 'number' ? p.price : parseFloat(p.price) || 1.5
     }));
+
+    renderGrid();
+    
+    // Force translation immediately after render
+    if (window.applyTranslations) window.applyTranslations('store');
+  }
+
+  function renderGrid() {
+    if (!grid) return;
+    grid.innerHTML = "";
 
     productsData.forEach(p => {
       const card = document.createElement("div");
       card.className = "product-card";
       card.dataset.id = p.id;
       
-      const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
-      
-      // FIX: Use window.formatPrice (from header.js) or a hard fallback
-      const basePrice = p.price > 0 ? p.price : 1.5; // Fallback to 1.5 if price is 0
-      const displayPrice = window.formatPrice ? window.formatPrice(basePrice) : `US$${basePrice.toFixed(2)}`;
+      const displayPrice = window.formatPrice(p.price);
 
       card.innerHTML = `
-        <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy">
+        <img src="https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg" class="card-image">
         <div class="card-content">
           <div class="card-title">${p.title}</div>
           <div class="price-row">
-            <div class="price" data-price="${basePrice}">${displayPrice}</div>
-            <button class="cart-btn" title="Add to Cart">
+            <div class="price" data-price="${p.price}">${displayPrice}</div>
+            <button class="cart-btn">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path>
                 <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path>
@@ -345,81 +346,28 @@
         </div>
       `;
 
-      card.addEventListener("click", e => { 
-        if (!e.target.closest(".cart-btn")) window.location.href = `/s/pack?id=${p.id}`; 
-      });
-
-      const btn = card.querySelector(".cart-btn");
-      btn.addEventListener("click", e => {
+      card.querySelector(".cart-btn").onclick = (e) => {
         e.stopPropagation();
-        if (window.addOrToggleCart) window.addOrToggleCart(p);
-      });
+        window.addOrToggleCart(p);
+      };
+      
+      card.onclick = (e) => {
+        if (!e.target.closest('.cart-btn')) window.location.href = `/s/pack?id=${p.id}`;
+      };
 
       grid.appendChild(card);
-      p.element = card;
     });
-    
-    filterAndSort();
     if (window.syncCartButtons) window.syncCartButtons();
-  };
-
-  function filterAndSort() {
-    const query = (searchInput?.value || "").toLowerCase().trim();
-    const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-    const activeCat = parseInt(document.querySelector(".category-list li.active")?.dataset.cat || "0");
-
-    productsData.forEach(p => {
-      if (!p.element) return;
-      const titleMatch = p.title.toLowerCase().includes(query);
-      const catMatch = activeCat === 0 || p.category === activeCat;
-      p.element.classList.toggle("hidden", !(titleMatch && catMatch));
-    });
-
-    let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-    visible.sort((a, b) => {
-      const pA = productsData.find(p => String(p.id) === String(a.dataset.id));
-      const pB = productsData.find(p => String(p.id) === String(b.dataset.id));
-      if (!pA || !pB) return 0;
-      if (activeSort === "newest") return pB.id - pA.id;
-      if (activeSort === "oldest") return pA.id - pB.id;
-      return activeSort === "price-asc" ? pA.price - pB.price : pB.price - pA.price;
-    });
-    visible.forEach(el => grid.appendChild(el));
   }
 
-  // EVENT LISTENERS
-  document.querySelectorAll(".category-list li").forEach(item => {
-    item.addEventListener("click", () => {
-      document.querySelectorAll(".category-list li").forEach(i => i.classList.remove("active"));
-      item.classList.add("active");
-      filterAndSort();
-    });
+  // Listen for language changes to update the store titles and prices
+  document.addEventListener('languageChanged', () => {
+    if (window.applyTranslations) window.applyTranslations('store');
+    renderGrid(); 
   });
 
-  document.querySelectorAll(".sort-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      filterAndSort();
-    });
-  });
-
-  if(searchInput) searchInput.addEventListener("input", filterAndSort);
-
-  // TRANSLATION & READY HANDLERS
-  function runUpdate() {
-    if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('store');
-    }
-    window.createCards();
-  }
-
-  window.addEventListener('headerReady', runUpdate);
-  document.addEventListener('languageChanged', runUpdate);
-
-  // Initial trigger
-  if (document.readyState === 'complete') runUpdate();
-  else window.addEventListener('load', runUpdate);
+  // Start the boot sequence
+  bootStore();
 </script>
 </body>
 </html>
