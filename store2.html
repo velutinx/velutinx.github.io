@@ -6,7 +6,8 @@
   <title>VELUTINX Store</title>
   <!-- Shared CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Your page-specific styles (product grid, filters) go here -->
+
+  <!-- Your store-specific styles (product grid, filters, etc.) -->
   <style>
     .main-container {
       display: flex;
@@ -15,7 +16,7 @@
       padding: 1.5rem 2rem;
       gap: 2rem;
     }
-    /* ... your product grid styles ... */
+    /* ... your existing product grid styles ... */
   </style>
 </head>
 <body>
@@ -23,19 +24,19 @@
   <!-- This placeholder will be replaced with the header -->
   <div id="header-placeholder"></div>
 
-  <!-- Your page content (product grid, filters) goes here -->
+  <!-- Your store content (product grid, filters) goes here -->
   <div class="main-container">
-    <!-- ... your store content ... -->
+    <!-- ... your store HTML ... -->
   </div>
 
   <!-- Shared JavaScript (includes header injection) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Your page-specific JavaScript -->
+  <!-- Your store-specific JavaScript -->
   <script>
     // Wait for the header to be ready before initialising store
     document.addEventListener('headerReady', function() {
-      // Now you can use window.addOrToggleCart, window.syncCartButtons, etc.
+      // Now you can safely use window.addOrToggleCart, window.syncCartButtons, etc.
       console.log('Header ready, initialising store...');
       // Your product loading and filtering code here
     });
