@@ -363,18 +363,28 @@ async function syncPricesFromWorker() {
   try {
     const response = await fetch('https://secure-checkout.velutinx.workers.dev/api/get-prices');
     const securePrices = await response.json();
+/* Inside shop-shared.js */
 
-    // Now, update your local "prices" object used for UI display only
-    // This allows formatPrice() to work without hardcoding numbers
-    window.prices = {
-      low: securePrices.PRICE_LOW,
-      med: securePrices.PRICE_MID,
-      high: securePrices.PRICE_HIGH,
-      premium: securePrices.PRICE_PREMIUM,
-      deluxe: securePrices.PRICE_DELUXE,
-      collection: securePrices.PRICE_COLLECTION,
-      ultimate: securePrices.PRICE_ULTIMATE
-    };
+// Start with empty values so we don't accidentally show old/wrong prices
+window.prices = { low: 0, med: 0, high: 0, premium: 0, deluxe: 0, collection: 0, ultimate: 0 };
+
+function getPriceForPack(pack) {
+  // pack.price is the STRING from your data (e.g., "PRICE_MID")
+  const key = pack.price || "PRICE_MID";
+  
+  // Map the PRICE_KEYS to our local window.prices keys
+  const map = {
+    "PRICE_LOW": window.prices.low,
+    "PRICE_MID": window.prices.med,
+    "PRICE_HIGH": window.prices.high,
+    "PRICE_PREMIUM": window.prices.premium,
+    "PRICE_DELUXE": window.prices.deluxe,
+    "PRICE_COLLECTION": window.prices.collection,
+    "PRICE_ULTIMATE": window.prices.ultimate
+  };
+  
+  return map[key] || 0;
+}
 
     // Re-run the display update so the "MXN$0" changes to the real price
     if (window.updateCartDisplay) window.updateCartDisplay();
