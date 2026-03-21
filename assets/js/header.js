@@ -377,6 +377,151 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+/* ==================== ADDITION: SIDEBAR MENU (dropdown) ==================== */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-toggle {
+  width: 42px;
+  height: 42px;
+  background: var(--accent);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.menu-toggle:hover {
+  transform: scale(1.08);
+  background: #38aae8;
+}
+
+/* Sidebar overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+  z-index: 1090;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0s linear 0s;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100%;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  z-index: 1100;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 30px rgba(0, 0, 0, 0.5);
+}
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-menu-toggle {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+  color: var(--text);
+}
+.sidebar-menu-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header .logo {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--text);
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+body.dark .sidebar-header .logo {
+  color: var(--accent);
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0.8rem 1.8rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.2s;
+  font-size: 1rem;
+}
+.menu-item:hover {
+  background: var(--darker);
+}
+.menu-item svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1rem 1.5rem;
+}
+
+.sidebar-footer {
+  padding: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--gray);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+
+  
   // Initial setup
   updateCartDisplay();
 });
