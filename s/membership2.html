@@ -383,9 +383,9 @@
   <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Membership‑specific JavaScript (direct localStorage, no recursion) -->
+  <!-- Membership‑specific JavaScript -->
   <script>
-    // ========== MEMBERSHIP TRANSLATIONS (full) ==========
+    // ========== MEMBERSHIP TRANSLATIONS ==========
     const membershipTranslations = {
       en: {
         membershipTitle: "Choose Your Membership",
@@ -679,23 +679,8 @@
       });
     }
 
-    // ----- Direct cart manipulation (no recursion) -----
-    function getCart() {
-      try {
-        return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
-      } catch { return []; }
-    }
-
-    function saveCart(cart) {
-      localStorage.setItem('velutinx_cart', JSON.stringify(cart));
-      // Dispatch storage event to notify other tabs and our poller
-      window.dispatchEvent(new StorageEvent('storage', { key: 'velutinx_cart', newValue: JSON.stringify(cart) }));
-      // Immediately update membership buttons
-      updateMembershipButtons();
-    }
-
     function updateMembershipButtons() {
-      const cart = getCart();
+      const cart = window.getCart ? window.getCart() : [];
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
@@ -714,31 +699,22 @@
       if (!input) return null;
       const id = input.value.trim();
       if (!id) {
-        showSnackbar(getText('errorDiscordMissing', 'Please enter your Discord ID'), true);
+        // Use shared snackbar or our own
+        const msg = getText('errorDiscordMissing', 'Please enter your Discord ID');
+        if (window.showSnackbar) window.showSnackbar(msg, true);
+        else alert(msg);
         return null;
       }
       if (!/^\d{17,19}$/.test(id)) {
-        showSnackbar(getText('errorDiscordInvalid', 'Invalid Discord ID format'), true);
+        const msg = getText('errorDiscordInvalid', 'Invalid Discord ID format');
+        if (window.showSnackbar) window.showSnackbar(msg, true);
+        else alert(msg);
         return null;
       }
       return id;
     }
 
-    function showSnackbar(msg, isError = false) {
-      if (window.showSnackbar) {
-        window.showSnackbar(msg, isError);
-      } else {
-        const sb = document.getElementById('snackbar');
-        const text = document.getElementById('snackText');
-        if (sb && text) {
-          sb.style.background = isError ? '#ef4444' : '#22c55e';
-          text.textContent = msg;
-          sb.classList.add('show');
-          setTimeout(() => sb.classList.remove('show'), 2000);
-        }
-      }
-    }
-
+    // Main purchase handler – uses shared addOrToggleCart
     window.handleSinglePurchase = async function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
@@ -746,33 +722,7 @@
       const tierPrices = {1:5,2:15,3:30,4:50,5:75};
       const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
 
-      let cart = getCart();
-      const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
-
-      if (alreadyInCart) {
-        // Remove the existing membership
-        cart = cart.filter(item => item.id !== `membership-${tierNumber}`);
-        saveCart(cart);
-        showSnackbar(getText('removedFromCart', 'Removed from cart'), false);
-        return;
-      }
-
-      // Check for existing membership items
-      const membershipItems = cart.filter(item => item.type === 'membership');
-      const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-
-      if (highestTier !== null && tierNumber < highestTier) {
-        showSnackbar(getText('errorOnlyHighest', 'Only the highest tier can be added.'), true);
-        return;
-      }
-
-      // If adding a higher tier, remove all existing memberships first
-      if (highestTier !== null && tierNumber > highestTier) {
-        cart = cart.filter(item => item.type !== 'membership');
-      }
-
-      // Add the new membership
-      cart.push({
+      const product = {
         id: `membership-${tierNumber}`,
         title: tierTitles[tierNumber] + ' (30 days)',
         price: tierPrices[tierNumber],
@@ -780,10 +730,38 @@
         tier: tierNumber,
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-      });
+      };
 
-      saveCart(cart);
-      showSnackbar(getText('addedToCart', 'Added to cart'), false);
+      // Check if already in cart
+      const cart = window.getCart ? window.getCart() : [];
+      const alreadyInCart = cart.some(item => item.id === product.id);
+
+      if (alreadyInCart) {
+        // Remove it
+        window.addOrToggleCart(product);
+        return;
+      }
+
+      // Check for existing memberships
+      const membershipItems = cart.filter(item => item.type === 'membership');
+      const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
+
+      if (highestTier !== null && tierNumber < highestTier) {
+        const msg = getText('errorOnlyHighest', 'Only the highest tier can be added.');
+        if (window.showSnackbar) window.showSnackbar(msg, true);
+        else alert(msg);
+        return;
+      }
+
+      // If adding a higher tier, remove all existing memberships first
+      if (highestTier !== null && tierNumber > highestTier) {
+        for (const item of membershipItems) {
+          window.addOrToggleCart(item);
+        }
+      }
+
+      // Now add the new membership
+      window.addOrToggleCart(product);
     };
 
     window.handleRecurring = async function(tierNumber) {
@@ -792,7 +770,9 @@
       const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
       const planId = PLAN_IDS[tierNumber];
       if (!planId) {
-        showSnackbar(getText('errorPlanNotConfigured', 'Plan not configured for this tier'), true);
+        const msg = getText('errorPlanNotConfigured', 'Plan not configured for this tier');
+        if (window.showSnackbar) window.showSnackbar(msg, true);
+        else alert(msg);
         return;
       }
       alert(`Recurring subscription for Tier ${tierNumber} would start.`);
@@ -820,14 +800,7 @@
         updateMembershipButtons();
       });
 
-      // Listen for storage events (cart changes from other tabs or our own save)
-      window.addEventListener('storage', function(e) {
-        if (e.key === 'velutinx_cart') {
-          updateMembershipButtons();
-        }
-      });
-
-      // Poll for cart changes (to catch updates from the shared.js cart)
+      // Poll for cart changes (to catch updates from shared cart)
       let lastCart = localStorage.getItem('velutinx_cart');
       setInterval(() => {
         const newCart = localStorage.getItem('velutinx_cart');
