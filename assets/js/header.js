@@ -23,175 +23,146 @@ const prices = {
   high: 10.00   // future / collections (not used yet)
 };
 
-/* ==================== LANGUAGE TRANSLATIONS ==================== */
-// Only define translations if they aren't already loaded (e.g., by translt.js)
-if (typeof window.translations === 'undefined') {
-  window.translations = {
-    en: { 
-      shopTitle: "My Store",
-      filterTitle: "Filter by Category",
-      catAll: "All Products",
-      catFemale: "Female Models",
-      catFemboy: "Femboy Models",
-      catCollections: "Full Collections",
-      sortTitle: "Sort by",
-      sortNewest: "Newest",
-      sortOldest: "Oldest",
-      sortLow: "Price: Low to High",
-      sortHigh: "Price: High to Low",
-      productsTitle: "Latest Content",
-      searchPlaceholder: "Search products...",
-      cartTitle: "Shopping Cart",
-      totalLabel: "Total",
-      snackText: "Added successfully",
-      loginBtn: "Website",
-      disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-      disclaimerRefund: "Digital products are non-refundable after purchase.",
-      contentsTitle: "Contents:",
-      contentsDesc: "ZIP file containing {count} AI-generated illustrations",
-      originalPrice: "Original Price:",
-      currentPrice: "Current Price:",
-      addToCart: "Add to Cart",
-      removeFromCart: "Remove from Cart"
-    },
-    ja: { 
-      shopTitle: "マイストア",
-      filterTitle: "カテゴリでフィルター",
-      catAll: "すべての商品",
-      catFemale: "女性モデル",
-      catFemboy: "男の娘モデル",
-      catCollections: "フルコレクション",
-      sortTitle: "並び替え",
-      sortNewest: "最新",
-      sortOldest: "最古",
-      sortLow: "価格：安い順",
-      sortHigh: "価格：高い順",
-      productsTitle: "最新コンテンツ",
-      searchPlaceholder: "商品を検索...",
-      cartTitle: "ショッピングカート",
-      totalLabel: "合計",
-      snackText: "カートに追加しました",
-      loginBtn: "ウェブサイト",
-      disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-      disclaimerRefund: "デジタル商品は購入後の返金はできません。",
-      contentsTitle: "内容：",
-      contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
-      originalPrice: "元の価格：",
-      currentPrice: "現在の価格：",
-      addToCart: "カートに追加",
-      removeFromCart: "カートから削除"
-    },
-    zh: {
-      shopTitle: "我的商店",
-      filterTitle: "按分类筛选",
-      catAll: "全部商品",
-      catFemale: "女性模型",
-      catFemboy: "伪娘模型",
-      catCollections: "完整合集",
-      sortTitle: "排序方式",
-      sortNewest: "最新上架",
-      sortOldest: "最早上架",
-      sortLow: "价格：低到高",
-      sortHigh: "价格：高到低",
-      productsTitle: "最新内容",
-      searchPlaceholder: "搜索商品…",
-      cartTitle: "购物车",
-      totalLabel: "总计",
-      snackText: "已成功加入购物车",
-      loginBtn: "网站",
-      disclaimerAge: "免责声明：所有描绘角色均设定为18岁以上。此为虚构且双方同意的创作内容。",
-      disclaimerRefund: "数字产品一经购买概不退款。",
-      contentsTitle: "内容包含：",
-      contentsDesc: "包含 {count} 张AI生成插画的ZIP文件",
-      originalPrice: "原价：",
-      currentPrice: "现价：",
-      addToCart: "加入购物车",
-      removeFromCart: "移出购物车"
-    },
-    es: {
-      shopTitle: "Mi Tienda",
-      filterTitle: "Filtrar por categoría",
-      catAll: "Todos los productos",
-      catFemale: "Modelos femeninas",
-      catFemboy: "Modelos femboy",
-      catCollections: "Colecciones completas",
-      sortTitle: "Ordenar por",
-      sortNewest: "Más recientes",
-      sortOldest: "Más antiguos",
-      sortLow: "Precio: de menor a mayor",
-      sortHigh: "Precio: de mayor a menor",
-      productsTitle: "Contenido más reciente",
-      searchPlaceholder: "Buscar productos...",
-      cartTitle: "Carrito de compras",
-      totalLabel: "Total",
-      snackText: "Añadido correctamente",
-      loginBtn: "Sitio web",
-      disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados tienen 18 años o más. Se trata de una representación ficticia y consensuada.",
-      disclaimerRefund: "Los productos digitales no son reembolsables una vez comprados.",
-      contentsTitle: "Contenido:",
-      contentsDesc: "Archivo ZIP con {count} ilustraciones generadas por IA",
-      originalPrice: "Precio original:",
-      currentPrice: "Precio actual:",
-      addToCart: "Añadir al carrito",
-      removeFromCart: "Eliminar del carrito"
-    }
-  };
-}
+/* ==================== STORE TRANSLATIONS (only used if store elements exist) ==================== */
+const storeTranslations = {
+  en: { 
+    shopTitle: "My Store",
+    filterTitle: "Filter by Category",
+    catAll: "All Products",
+    catFemale: "Female Models",
+    catFemboy: "Femboy Models",
+    catCollections: "Full Collections",
+    sortTitle: "Sort by",
+    sortNewest: "Newest",
+    sortOldest: "Oldest",
+    sortLow: "Price: Low to High",
+    sortHigh: "Price: High to Low",
+    productsTitle: "Latest Content",
+    searchPlaceholder: "Search products...",
+    cartTitle: "Shopping Cart",
+    totalLabel: "Total",
+    snackText: "Added successfully",
+    loginBtn: "Website",
+    disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+    disclaimerRefund: "Digital products are non-refundable after purchase.",
+    contentsTitle: "Contents:",
+    contentsDesc: "ZIP file containing {count} AI-generated illustrations",
+    originalPrice: "Original Price:",
+    currentPrice: "Current Price:",
+    addToCart: "Add to Cart",
+    removeFromCart: "Remove from Cart"
+  },
+  ja: { 
+    shopTitle: "マイストア",
+    filterTitle: "カテゴリでフィルター",
+    catAll: "すべての商品",
+    catFemale: "女性モデル",
+    catFemboy: "男の娘モデル",
+    catCollections: "フルコレクション",
+    sortTitle: "並び替え",
+    sortNewest: "最新",
+    sortOldest: "最古",
+    sortLow: "価格：安い順",
+    sortHigh: "価格：高い順",
+    productsTitle: "最新コンテンツ",
+    searchPlaceholder: "商品を検索...",
+    cartTitle: "ショッピングカート",
+    totalLabel: "合計",
+    snackText: "カートに追加しました",
+    loginBtn: "ウェブサイト",
+    disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+    disclaimerRefund: "デジタル商品は購入後の返金はできません。",
+    contentsTitle: "内容：",
+    contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
+    originalPrice: "元の価格：",
+    currentPrice: "現在の価格：",
+    addToCart: "カートに追加",
+    removeFromCart: "カートから削除"
+  },
+  zh: {
+    shopTitle: "我的商店",
+    filterTitle: "按分类筛选",
+    catAll: "全部商品",
+    catFemale: "女性模型",
+    catFemboy: "伪娘模型",
+    catCollections: "完整合集",
+    sortTitle: "排序方式",
+    sortNewest: "最新上架",
+    sortOldest: "最早上架",
+    sortLow: "价格：低到高",
+    sortHigh: "价格：高到低",
+    productsTitle: "最新内容",
+    searchPlaceholder: "搜索商品…",
+    cartTitle: "购物车",
+    totalLabel: "总计",
+    snackText: "已成功加入购物车",
+    loginBtn: "网站",
+    disclaimerAge: "免责声明：所有描绘角色均设定为18岁以上。此为虚构且双方同意的创作内容。",
+    disclaimerRefund: "数字产品一经购买概不退款。",
+    contentsTitle: "内容包含：",
+    contentsDesc: "包含 {count} 张AI生成插画的ZIP文件",
+    originalPrice: "原价：",
+    currentPrice: "现价：",
+    addToCart: "加入购物车",
+    removeFromCart: "移出购物车"
+  },
+  es: {
+    shopTitle: "Mi Tienda",
+    filterTitle: "Filtrar por categoría",
+    catAll: "Todos los productos",
+    catFemale: "Modelos femeninas",
+    catFemboy: "Modelos femboy",
+    catCollections: "Colecciones completas",
+    sortTitle: "Ordenar por",
+    sortNewest: "Más recientes",
+    sortOldest: "Más antiguos",
+    sortLow: "Precio: de menor a mayor",
+    sortHigh: "Precio: de mayor a menor",
+    productsTitle: "Contenido más reciente",
+    searchPlaceholder: "Buscar productos...",
+    cartTitle: "Carrito de compras",
+    totalLabel: "Total",
+    snackText: "Añadido correctamente",
+    loginBtn: "Sitio web",
+    disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados tienen 18 años o más. Se trata de una representación ficticia y consensuada.",
+    disclaimerRefund: "Los productos digitales no son reembolsables una vez comprados.",
+    contentsTitle: "Contenido:",
+    contentsDesc: "Archivo ZIP con {count} ilustraciones generadas por IA",
+    originalPrice: "Precio original:",
+    currentPrice: "Precio actual:",
+    addToCart: "Añadir al carrito",
+    removeFromCart: "Eliminar del carrito"
+  }
+};
 
 /* ==================== PRICE & FORMAT HELPERS ==================== */
 function getPriceForPack(pack) {
-  // 1. If pack.price is already a number → use it directly
-  if (typeof pack.price === 'number') {
-    return pack.price;
-  }
-
-  // 2. Handle string codes from packs-data.js
+  if (typeof pack.price === 'number') return pack.price;
   const code = String(pack.price || "").toUpperCase().trim();
-
-  if (code === "PRICE_LOW" || code === "LOW") {
-    return prices.low;  // 1.50
-  }
-  if (code === "PRICE_MID" || code === "PRICE_MED" || code === "MID" || code === "MED") {
-    return prices.mid;  // 3.00
-  }
-  if (code === "PRICE_HIGH" || code === "HIGH") {
-    return prices.high; // 10.00
-  }
-
-  // 3. Category-based fallback (your requested rule)
-  if (pack.category === 1) return prices.low;   // 1.50
-  if (pack.category === 2) return prices.mid;   // 3.00
-
-  // 4. Ultimate fallback → medium price + warning
-  console.warn(`Unknown price/category for pack ${pack.id || 'unknown'} — using mid price (3.00)`);
+  if (code === "PRICE_LOW" || code === "LOW") return prices.low;
+  if (code === "PRICE_MID" || code === "PRICE_MED" || code === "MID" || code === "MED") return prices.mid;
+  if (code === "PRICE_HIGH" || code === "HIGH") return prices.high;
+  if (pack.category === 1) return prices.low;
+  if (pack.category === 2) return prices.mid;
   return prices.mid;
 }
 
 function formatPrice(value, currency = currentCurrency) {
   const num = Number(value);
-  if (isNaN(num) || num <= 0) {
-    return currency === "USD" ? "US$0.00" : "—";
-  }
-
-  if (currency === "USD") {
-    return `US$${num.toFixed(2)}`;
-  }
-
+  if (isNaN(num) || num <= 0) return currency === "USD" ? "US$0.00" : "—";
+  if (currency === "USD") return `US$${num.toFixed(2)}`;
   const rounded = Math.round(num * 100) / 100;
   if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
     const converted = tierMap[rounded][currency];
     const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
     return `${symbol}${converted}`;
   }
-
-  // Approximate conversion fallback
   let converted = num * (approxRates[currency] || 1);
   converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
   const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
   return `${symbol}${converted}`;
 }
 
-/* ==================== HELPERS ==================== */
 function updateAllPrices() {
   document.querySelectorAll(".price[data-price]").forEach(el => {
     const base = parseFloat(el.dataset.price);
@@ -202,7 +173,6 @@ function updateAllPrices() {
     }
   });
 
-  // Update cart total display if open
   const totalEl = document.getElementById("cartTotal");
   if (totalEl) {
     const cart = getCart();
@@ -261,7 +231,7 @@ function updateCartDisplay() {
   const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
 
   document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => {
-    el.textContent = count;
+    if (el) el.textContent = count;
   });
 
   const itemsEl = document.getElementById("cartItems");
@@ -313,8 +283,8 @@ function setLanguage(lang) {
   currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
   localStorage.setItem("language", lang);
 
-  const t = window.translations[lang] || window.translations.en;
-
+  // Update store UI only if store elements exist
+  const t = storeTranslations[lang] || storeTranslations.en;
   const elements = {
     shopTitle: t.shopTitle,
     filterTitle: t.filterTitle,
@@ -342,10 +312,20 @@ function setLanguage(lang) {
     }
   });
 
-  document.getElementById("shopTitle")?.classList.add("loaded");
+  // Update search input placeholder separately if it exists
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput && t.searchPlaceholder) {
+    searchInput.placeholder = t.searchPlaceholder;
+  }
 
-  updateCartDisplay();
-  updateAllPrices();
+  const shopTitleEl = document.getElementById("shopTitle");
+  if (shopTitleEl) shopTitleEl.classList.add("loaded");
+
+  // Update cart and prices only if cart elements exist
+  if (document.getElementById("cartCount")) {
+    updateCartDisplay();
+    updateAllPrices();
+  }
 }
 
 /* ==================== DOM READY ==================== */
@@ -353,24 +333,29 @@ document.addEventListener("DOMContentLoaded", () => {
   setLanguage(currentLang);
 
   // Website button
-  document.getElementById("loginBtn")?.addEventListener("click", e => {
-    e.preventDefault();
-    window.location.href = "https://velutinx.com/";
-  });
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn) {
+    loginBtn.addEventListener("click", e => {
+      e.preventDefault();
+      window.location.href = "https://velutinx.com/";
+    });
+  }
 
   // Language popover
   const langBtn = document.getElementById("langBtn");
   const popover = document.getElementById("languagePopover");
-  langBtn?.addEventListener("click", e => {
-    e.stopPropagation();
-    popover?.classList.toggle("show");
-  });
+  if (langBtn && popover) {
+    langBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      popover.classList.toggle("show");
+    });
 
-  document.addEventListener("click", e => {
-    if (!document.getElementById("langContainer")?.contains(e.target)) {
-      popover?.classList.remove("show");
-    }
-  });
+    document.addEventListener("click", e => {
+      if (!document.getElementById("langContainer")?.contains(e.target)) {
+        popover.classList.remove("show");
+      }
+    });
+  }
 
   document.querySelectorAll(".lang-item").forEach(item => {
     item.addEventListener("click", () => {
@@ -380,53 +365,56 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Theme toggle
-  document.getElementById("themeBtn")?.addEventListener("click", () => {
-    isDark = !isDark;
-    document.body.classList.toggle("dark", isDark);
-    localStorage.setItem("darkMode", isDark);
-  });
+  const themeBtn = document.getElementById("themeBtn");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      isDark = !isDark;
+      document.body.classList.toggle("dark", isDark);
+      localStorage.setItem("darkMode", isDark);
+    });
+  }
 
-  // Cart drawer
+  // Cart drawer (only if cart elements exist)
   const cartBtn = document.getElementById("cartBtn");
   const floatCartBtn = document.getElementById("floatingCartBtn");
   const cartClose = document.getElementById("cartClose");
   const cartDrawer = document.getElementById("cartDrawer");
 
-  const openCart = () => { cartDrawer?.classList.add("open");    document.body.classList.add("drawer-open");   
-                          loadAndInitPayPal?.();   // ← ADD THIS LINE
-};
-  
-  const closeCart = () => { cartDrawer?.classList.remove("open"); document.body.classList.remove("drawer-open"); };
+  if (cartBtn && floatCartBtn && cartClose && cartDrawer) {
+    const openCart = () => { cartDrawer.classList.add("open"); document.body.classList.add("drawer-open"); };
+    const closeCart = () => { cartDrawer.classList.remove("open"); document.body.classList.remove("drawer-open"); };
 
-  cartBtn?.addEventListener("click", openCart);
-  floatCartBtn?.addEventListener("click", openCart);
-  cartClose?.addEventListener("click", closeCart);
+    cartBtn.addEventListener("click", openCart);
+    floatCartBtn.addEventListener("click", openCart);
+    cartClose.addEventListener("click", closeCart);
 
-  // Prevent closing when clicking inside drawer or remove button
-  document.addEventListener("click", e => {
-    if (!cartDrawer?.classList.contains("open")) return;
-    if (cartDrawer.contains(e.target) || 
-        cartBtn?.contains(e.target) || 
-        floatCartBtn?.contains(e.target) ||
-        e.target.closest(".cart-item-remove")) {
-      return;
+    document.addEventListener("click", e => {
+      if (cartDrawer.classList.contains("open") &&
+          !cartDrawer.contains(e.target) &&
+          !cartBtn.contains(e.target) &&
+          !floatCartBtn.contains(e.target)) {
+        closeCart();
+      }
+    });
+
+    // Remove item from cart
+    const cartItems = document.getElementById("cartItems");
+    if (cartItems) {
+      cartItems.addEventListener("click", e => {
+        if (e.target.classList.contains("cart-item-remove")) {
+          e.stopPropagation();
+          e.preventDefault();
+          const idx = parseInt(e.target.dataset.idx);
+          if (!isNaN(idx) && idx >= 0 && idx < window.cart.length) {
+            window.cart.splice(idx, 1);
+            saveCart(window.cart);
+            updateCartDisplay();
+            updateAllPrices();
+          }
+        }
+      });
     }
-    closeCart();
-  });
-
-  // Remove item from cart
-  document.getElementById("cartItems")?.addEventListener("click", e => {
-    if (e.target.classList.contains("cart-item-remove")) {
-      e.stopPropagation();
-      e.preventDefault();
-      const idx = parseInt(e.target.dataset.idx);
-      let cart = getCart();
-      cart.splice(idx, 1);
-      saveCart(cart);
-      updateCartDisplay();
-      updateAllPrices();
-    }
-  });
+  }
 
   // Sidebar toggle
   const sidebar = document.getElementById('sidebar');
@@ -434,26 +422,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const menuToggle = document.getElementById('menuToggle');
   const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
 
-  menuToggle?.addEventListener('click', () => {
-    sidebar?.classList.add('open');
-    sidebarOverlay?.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  });
+  if (menuToggle && sidebar && sidebarOverlay && sidebarMenuToggle) {
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
 
-  sidebarMenuToggle?.addEventListener('click', () => {
-    sidebar?.classList.remove('open');
-    sidebarOverlay?.classList.remove('active');
-    document.body.style.overflow = '';
-  });
+    sidebarMenuToggle.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    });
 
-  sidebarOverlay?.addEventListener('click', () => {
-    sidebar?.classList.remove('open');
-    sidebarOverlay?.classList.remove('active');
-    document.body.style.overflow = '';
-  });
+    sidebarOverlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+  }
 
-  updateCartDisplay();
-  updateAllPrices();
+  // Initial cart & price update if cart exists
+  if (document.getElementById("cartCount")) {
+    updateCartDisplay();
+    updateAllPrices();
+  }
 });
 
 // Expose globals
