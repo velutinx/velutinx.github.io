@@ -163,9 +163,6 @@ function saveCart(cart) {
   localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
 }
 
-function getPriceForPack(pack) {
-  return typeof pack.price === 'number' ? pack.price : parseFloat(pack.price) || 0;
-}
 
 function addOrToggleCart(pack) {
   let cart = getCart();
