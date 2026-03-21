@@ -338,7 +338,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const cartClose = document.getElementById("cartClose");
   const cartDrawer = document.getElementById("cartDrawer");
 
-  const openCart  = () => { cartDrawer?.classList.add("open");   document.body.classList.add("drawer-open");   };
+  const openCart = () => { cartDrawer?.classList.add("open");    document.body.classList.add("drawer-open");   
+                          loadAndInitPayPal?.();   // ← ADD THIS LINE
+};
+  
   const closeCart = () => { cartDrawer?.classList.remove("open"); document.body.classList.remove("drawer-open"); };
 
   cartBtn?.addEventListener("click", openCart);
