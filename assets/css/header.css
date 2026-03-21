@@ -6,7 +6,7 @@
   --text-light: #e8e5d8;
   --accent: #aa9e76;
   --success: #22c55e;
-  --red-discount: #a64a5c; /* kept for other uses, but we override badge below */
+  --red-discount: #a64a5c;
   --gray: #8a7b6f;
   --border: #aa9e76;
   --overlay: rgba(170,158,118,0.25);
@@ -204,7 +204,7 @@ body.dark .logo {
   to { bottom: 100%; }
 }
 
-/* ==================== ADDITION: SIDEBAR MENU (dropdown) ==================== */
+/* ==================== SIDEBAR MENU (dropdown) ==================== */
 .nav-left {
   display: flex;
   align-items: center;
@@ -224,6 +224,7 @@ body.dark .logo {
   cursor: pointer;
   transition: all 0.25s ease;
 }
+
 .menu-toggle:hover {
   transform: scale(1.08);
   background: #38aae8;
@@ -243,6 +244,7 @@ body.dark .logo {
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
+
 .sidebar-overlay.active {
   opacity: 1;
   visibility: visible;
@@ -265,6 +267,7 @@ body.dark .logo {
   flex-direction: column;
   box-shadow: 2px 0 30px rgba(0, 0, 0, 0.5);
 }
+
 .sidebar.open {
   transform: translateX(0);
 }
@@ -290,6 +293,7 @@ body.dark .logo {
   transition: background 0.2s;
   color: var(--text);
 }
+
 .sidebar-menu-toggle:hover {
   background: rgba(0, 0, 0, 0.1);
 }
@@ -303,6 +307,7 @@ body.dark .logo {
   padding: 0;
   margin: 0;
 }
+
 body.dark .sidebar-header .logo {
   color: var(--accent);
 }
@@ -322,21 +327,17 @@ body.dark .sidebar-header .logo {
   transition: background 0.2s;
   font-size: 1rem;
 }
+
 .menu-item:hover {
   background: var(--darker);
 }
+
 .menu-item svg {
   width: 22px;
   height: 22px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
-}
-
-.menu-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 1rem 1.5rem;
 }
 
 .sidebar-footer {
@@ -347,13 +348,12 @@ body.dark .sidebar-header .logo {
   text-align: center;
 }
 
-
 /* ==================== CART ==================== */
 .cart-wrapper {
   position: relative;
 }
 
-/* Shared cart styling (applied to both nav and floating) */
+/* Shared cart styling (nav + floating) */
 .cart-icon,
 .floating-cart {
   background: var(--accent) !important;
@@ -405,14 +405,14 @@ body.dark .sidebar-header .logo {
   height: 28px !important;
 }
 
-/* Badge – brighter red + perfect centering */
+/* Badge */
 .cart-badge,
 .floating-badge {
   position: absolute !important;
   top: 0 !important;
   right: 0 !important;
-  transform: translate(50%, -50%) !important; /* perfect center alignment */
-  background: #ef4444 !important; /* brighter red */
+  transform: translate(50%, -50%) !important;
+  background: #ef4444 !important;
   color: white !important;
   font-size: 0.75rem !important;
   font-weight: bold !important;
@@ -558,4 +558,37 @@ body.dark .sidebar-header .logo {
 
 #snackbar svg {
   min-width: 20px;
+}
+
+/* ==================== SHARED CART BUTTON (used on product cards) ==================== */
+.cart-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--btn-cart);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cart-btn:hover {
+  background: var(--btn-cart-hover);
+  transform: scale(1.08);
+}
+
+.cart-btn.added {
+  background: #22c55e;
+}
+
+/* Optional: small visual feedback */
+.cart-btn svg {
+  transition: transform 0.2s;
+}
+
+.cart-btn.added svg {
+  transform: scale(1.15);
 }
