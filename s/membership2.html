@@ -10,60 +10,228 @@
 
   <!-- Membership‑specific styles -->
   <style>
-    /* (same as before, but ensure no conflicts) */
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
-    .membership-title { font-size: 2.5rem; font-weight: 800; color: var(--text); margin-bottom: 16px; text-align: center; }
-    .membership-description { color: var(--text); text-align: center; margin-bottom: 32px; font-size: 1.2rem; }
-    .carousel-container { position: relative; margin: 40px 0; }
-    .carousel-scroll { display: flex; overflow-x: auto; gap: 2rem; padding: 20px 0; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; }
+    .membership-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .membership-description {
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 1.2rem;
+    }
+    .carousel-container {
+      position: relative;
+      margin: 40px 0;
+    }
+    .carousel-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 2rem;
+      padding: 20px 0;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
     .carousel-scroll::-webkit-scrollbar { display: none; }
-    .tier-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; width: 300px; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; transition: transform 0.2s; }
+    .tier-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2rem;
+      width: 300px;
+      max-width: 100%;
+      flex-shrink: 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s;
+    }
     .tier-card:hover { transform: translateY(-4px); }
     .tier-card h3 { font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--text); }
-    .tier-price { color: #ef4444; font-weight: 800; font-size: 2rem; text-align: center; margin: 0.5rem 0; }
+    .tier-price {
+      color: #ef4444;
+      font-weight: 800;
+      font-size: 2rem;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
     .price-value { font-size: inherit; font-weight: inherit; }
     .per-month { font-size: 1rem; font-weight: normal; color: var(--text-light); }
-    .tier-perks { list-style: none; padding: 0; margin: 1.5rem 0; flex: 1; }
-    .tier-perks li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); font-size: 1rem; line-height: 1.4; }
+    .tier-perks {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+      flex: 1;
+    }
+    .tier-perks li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 1rem;
+      line-height: 1.4;
+    }
     .tier-perks li:last-child { border-bottom: none; }
-    .tier-perks li::before { content: "✓"; color: var(--success); font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
-    .tier-header { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-    .tier-star { width: 40px; height: 40px; margin-right: 10px; }
+    .tier-perks li::before {
+      content: "✓";
+      color: var(--success);
+      font-weight: bold;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .tier-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .tier-star {
+      width: 40px;
+      height: 40px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
     .tier-star svg { width: 100%; height: 100%; }
     .tier-title { font-size: 1.8rem; margin: 0; }
-    .button-row { display: flex; gap: 10px; margin-top: 1.5rem; }
-    .tier-btn { flex: 1; padding: 10px 0; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; text-align: center; }
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.5rem;
+    }
+    .tier-btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      color: white;
+      text-align: center;
+    }
     .btn-single { background: #3b82f6; }
     .btn-single:hover { background: #2563eb; }
     .btn-recurring { background: #10b981; }
     .btn-recurring:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
-    .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: var(--card); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 1.8rem; font-weight: 400; color: var(--text); transition: all 0.2s; line-height: 1; }
-    .carousel-arrow:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--text);
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    .carousel-arrow:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
     .arrow-left { left: -20px; }
     .arrow-right { right: -20px; }
-    @media (max-width: 700px) { .arrow-left { left: -10px; } .arrow-right { right: -10px; } }
-    .discord-section { max-width: 1100px; margin: 0 auto 40px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
-    .discord-input label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
-    .discord-input input { width: 100%; padding: 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
-    .discord-input input:focus { outline: none; border-color: var(--accent); }
-    .discord-hint { font-size: 0.9rem; color: #000 !important; margin-top: 8px; }
-    body.dark .discord-hint { color: #fff !important; }
-    .discord-help-link { color: #000 !important; font-weight: bold !important; text-decoration: underline; cursor: pointer; margin-top: 12px; display: inline-block; }
-    body.dark .discord-help-link { color: #fff !important; }
-    .discord-help-content { display: none; margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+    @media (max-width: 700px) {
+      .arrow-left { left: -10px; }
+      .arrow-right { right: -10px; }
+    }
+    .discord-section {
+      max-width: 1100px;
+      margin: 0 auto 40px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .discord-input label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .discord-input input {
+      width: 100%;
+      padding: 14px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    .discord-input input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .discord-hint {
+      font-size: 0.9rem;
+      color: #000000 !important;
+      margin-top: 8px;
+    }
+    body.dark .discord-hint { color: #ffffff !important; }
+    .discord-help-link {
+      color: #000000 !important;
+      font-weight: bold !important;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 12px;
+      display: inline-block;
+    }
+    body.dark .discord-help-link { color: #ffffff !important; }
+    .discord-help-content {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
     .discord-help-content.show { display: block; }
     .discord-help-content p { margin-bottom: 12px; }
-    .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
-    .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
+    .discord-help-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .note-box {
+      background: rgba(170,158,118,0.1);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      margin: 24px 0 0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Shared header placeholder -->
+  <!-- Shared header will be injected here -->
   <div id="header-placeholder"></div>
 
   <!-- Membership content -->
@@ -79,7 +247,10 @@
           <span id="discordHintText">How to find your Discord ID:</span>
           <span class="discord-help-link" id="discordHelpToggle">
             <span id="discordHelpText">Where do I find my Discord ID? (click)</span>
-            <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-left: 4px;"><path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/></svg>
+            <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-left: 4px;">
+              <title>dropdown</title>
+              <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/>
+            </svg>
           </span>
         </div>
       </div>
@@ -92,7 +263,9 @@
       </div>
       <div class="note-box" id="noteBox">
         <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
-        <div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a></div>
+        <div style="margin-top:12px;">
+          <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
+        </div>
       </div>
     </div>
 
@@ -100,9 +273,9 @@
       <div class="carousel-scroll" id="tierCarousel">
         <!-- Tier 1: Bronze -->
         <div class="tier-card" data-tier="1">
-          <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
+          <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
             <h3 class="tier-title" id="tier1Title">BRONZE</h3>
           </div>
           <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
@@ -111,41 +284,95 @@
             <li id="perk1_2">Includes all past releases & paid content.</li>
           </ul>
           <div class="button-row">
-            <button class="tier-btn btn-single" data-tier="1"><span class="btn-single-text">Single Purchase</span></button>
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)"><span class="btn-single-text">Single Purchase</span></button>
             <button class="tier-btn btn-recurring" onclick="handleRecurring(1)"><span class="btn-recurring-text">Recurring Membership</span></button>
           </div>
         </div>
         <!-- Tier 2: Copper -->
         <div class="tier-card" data-tier="2">
-          <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header"><span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span><h3 class="tier-title" id="tier2Title">COPPER</h3></div>
+          <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
+          <div class="tier-header">
+            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+            <h3 class="tier-title" id="tier2Title">COPPER</h3>
+          </div>
           <div class="tier-price" data-price-usd="15"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier2Perks"><li id="perk2_1">Everything in Bronze, plus:</li><li id="perk2_2">One (1) custom image request per billing cycle.</li><li id="perk2_3">Approx. 20 images per request.</li><li id="perk2_4">Single character, official/creator‑selected outfit.</li><li id="perk2_5">Some character customization allowed.</li><li id="perk2_6">Typical turnaround: ~1 day (queue order).</li></ul>
-          <div class="button-row"><button class="tier-btn btn-single" data-tier="2"><span class="btn-single-text">Single Purchase</span></button><button class="tier-btn btn-recurring" onclick="handleRecurring(2)"><span class="btn-recurring-text">Recurring Membership</span></button></div>
+          <ul class="tier-perks" id="tier2Perks">
+            <li id="perk2_1">Everything in Bronze, plus:</li>
+            <li id="perk2_2">One (1) custom image request per billing cycle.</li>
+            <li id="perk2_3">Approx. 20 images per request.</li>
+            <li id="perk2_4">Single character, official/creator‑selected outfit.</li>
+            <li id="perk2_5">Some character customization allowed.</li>
+            <li id="perk2_6">Typical turnaround: ~1 day (queue order).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)"><span class="btn-single-text">Single Purchase</span></button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(2)"><span class="btn-recurring-text">Recurring Membership</span></button>
+          </div>
         </div>
         <!-- Tier 3: Silver -->
         <div class="tier-card" data-tier="3">
-          <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header"><span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span><h3 class="tier-title" id="tier3Title">SILVER</h3></div>
+          <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
+          <div class="tier-header">
+            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+            <h3 class="tier-title" id="tier3Title">SILVER</h3>
+          </div>
           <div class="tier-price" data-price-usd="30"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier3Perks"><li id="perk3_1">Everything in Bronze, plus:</li><li id="perk3_2">One (1) custom image request per billing cycle.</li><li id="perk3_3">Approx. 40 images per request.</li><li id="perk3_4">Single character, custom outfit allowed.</li><li id="perk3_5">Character customization allowed.</li><li id="perk3_6">Typical turnaround: ~1 day (queue order).</li></ul>
-          <div class="button-row"><button class="tier-btn btn-single" data-tier="3"><span class="btn-single-text">Single Purchase</span></button><button class="tier-btn btn-recurring" onclick="handleRecurring(3)"><span class="btn-recurring-text">Recurring Membership</span></button></div>
+          <ul class="tier-perks" id="tier3Perks">
+            <li id="perk3_1">Everything in Bronze, plus:</li>
+            <li id="perk3_2">One (1) custom image request per billing cycle.</li>
+            <li id="perk3_3">Approx. 40 images per request.</li>
+            <li id="perk3_4">Single character, custom outfit allowed.</li>
+            <li id="perk3_5">Character customization allowed.</li>
+            <li id="perk3_6">Typical turnaround: ~1 day (queue order).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)"><span class="btn-single-text">Single Purchase</span></button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(3)"><span class="btn-recurring-text">Recurring Membership</span></button>
+          </div>
         </div>
         <!-- Tier 4: Gold -->
         <div class="tier-card" data-tier="4">
-          <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header"><span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span><h3 class="tier-title" id="tier4Title">GOLD</h3></div>
+          <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
+          <div class="tier-header">
+            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+            <h3 class="tier-title" id="tier4Title">GOLD</h3>
+          </div>
           <div class="tier-price" data-price-usd="50"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier4Perks"><li id="perk4_1">Everything in Bronze, plus:</li><li id="perk4_2">One (1) large custom image request per billing cycle.</li><li id="perk4_3">Approx. 80 images per request.</li><li id="perk4_4">Single character, custom outfit allowed.</li><li id="perk4_5">Character customization allowed.</li><li id="perk4_6">Typical turnaround: 3‑7 days (queue order).</li><li id="perk4_7">Special/expanded requests may be discussed.</li></ul>
-          <div class="button-row"><button class="tier-btn btn-single" data-tier="4"><span class="btn-single-text">Single Purchase</span></button><button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Recurring Membership</span></button></div>
+          <ul class="tier-perks" id="tier4Perks">
+            <li id="perk4_1">Everything in Bronze, plus:</li>
+            <li id="perk4_2">One (1) large custom image request per billing cycle.</li>
+            <li id="perk4_3">Approx. 80 images per request.</li>
+            <li id="perk4_4">Single character, custom outfit allowed.</li>
+            <li id="perk4_5">Character customization allowed.</li>
+            <li id="perk4_6">Typical turnaround: 3‑7 days (queue order).</li>
+            <li id="perk4_7">Special/expanded requests may be discussed.</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)"><span class="btn-single-text">Single Purchase</span></button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Recurring Membership</span></button>
+          </div>
         </div>
         <!-- Tier 5: Platinum -->
         <div class="tier-card" data-tier="5">
-          <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header"><span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span><h3 class="tier-title" id="tier5Title">PLATINUM</h3></div>
+          <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
+          <div class="tier-header">
+            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+            <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
+          </div>
           <div class="tier-price" data-price-usd="75"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier5Perks"><li id="perk5_1">Everything in Bronze, plus:</li><li id="perk5_2">One (1) large custom image request per billing cycle.</li><li id="perk5_3">Approx. 80 images per request.</li><li id="perk5_4">Single character, custom outfit allowed.</li><li id="perk5_5">Character customization allowed.</li><li id="perk5_6">⚡ Priority: worked on first after current tasks.</li><li id="perk5_7">Typical turnaround: 3‑7 days (once started).</li></ul>
-          <div class="button-row"><button class="tier-btn btn-single" data-tier="5"><span class="btn-single-text">Single Purchase</span></button><button class="tier-btn btn-recurring" onclick="handleRecurring(5)"><span class="btn-recurring-text">Recurring Membership</span></button></div>
+          <ul class="tier-perks" id="tier5Perks">
+            <li id="perk5_1">Everything in Bronze, plus:</li>
+            <li id="perk5_2">One (1) large custom image request per billing cycle.</li>
+            <li id="perk5_3">Approx. 80 images per request.</li>
+            <li id="perk5_4">Single character, custom outfit allowed.</li>
+            <li id="perk5_5">Character customization allowed.</li>
+            <li id="perk5_6">⚡ Priority: worked on first after current tasks.</li>
+            <li id="perk5_7">Typical turnaround: 3‑7 days (once started).</li>
+          </ul>
+          <div class="button-row">
+            <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)"><span class="btn-single-text">Single Purchase</span></button>
+            <button class="tier-btn btn-recurring" onclick="handleRecurring(5)"><span class="btn-recurring-text">Recurring Membership</span></button>
+          </div>
         </div>
       </div>
       <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
@@ -153,192 +380,461 @@
     </div>
   </main>
 
-  <!-- Shared JS -->
+  <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Membership-specific JS -->
+  <!-- Membership‑specific JavaScript (full translations, logic, and button control) -->
   <script>
-    (function() {
-      // Wait for shared header and cart functions to be ready
-      function init() {
-        if (!window.getCart || !window.addOrToggleCart) {
-          console.log('Waiting for shared cart...');
-          setTimeout(init, 200);
-          return;
-        }
+    // ========== MEMBERSHIP TRANSLATIONS (full) ==========
+    const membershipTranslations = {
+      en: {
+        membershipTitle: "Choose Your Membership",
+        membershipDescription: "Support my work and unlock exclusive perks",
+        discordIdLabel: "Your Discord ID",
+        discordHint: "How to find your Discord ID:",
+        discordHelpLink: "Where do I find my Discord ID? (click)",
+        discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
+        discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
+        discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
+        discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
+        noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
+        joinDiscord: "→ Join Discord Server ←",
+        tierBronze: "Bronze",
+        tierCopper: "Copper",
+        tierSilver: "Silver",
+        tierGold: "Gold",
+        tierPlatinum: "Platinum",
+        perMonth: "/ month",
+        btnSingle: "Single Purchase",
+        btnRecurring: "Recurring Membership",
+        perk1_1: "Full archive access immediately.",
+        perk1_2: "Includes all past releases & paid content.",
+        perk2_1: "Everything in Bronze, plus:",
+        perk2_2: "One (1) custom image request per billing cycle.",
+        perk2_3: "Approx. 20 images per request.",
+        perk2_4: "Single character, official/creator‑selected outfit.",
+        perk2_5: "Some character customization allowed.",
+        perk2_6: "Typical turnaround: ~1 day (queue order).",
+        perk3_1: "Everything in Bronze, plus:",
+        perk3_2: "One (1) custom image request per billing cycle.",
+        perk3_3: "Approx. 40 images per request.",
+        perk3_4: "Single character, custom outfit allowed.",
+        perk3_5: "Character customization allowed.",
+        perk3_6: "Typical turnaround: ~1 day (queue order).",
+        perk4_1: "Everything in Bronze, plus:",
+        perk4_2: "One (1) large custom image request per billing cycle.",
+        perk4_3: "Approx. 80 images per request.",
+        perk4_4: "Single character, custom outfit allowed.",
+        perk4_5: "Character customization allowed.",
+        perk4_6: "Typical turnaround: 3‑7 days (queue order).",
+        perk4_7: "Special/expanded requests may be discussed.",
+        perk5_1: "Everything in Bronze, plus:",
+        perk5_2: "One (1) large custom image request per billing cycle.",
+        perk5_3: "Approx. 80 images per request.",
+        perk5_4: "Single character, custom outfit allowed.",
+        perk5_5: "Character customization allowed.",
+        perk5_6: "⚡ Priority: worked on first after current tasks.",
+        perk5_7: "Typical turnaround: 3‑7 days (once started).",
+        errorDiscordMissing: "Please enter your Discord ID",
+        errorDiscordInvalid: "Invalid Discord ID format",
+        errorOnlyHighest: "Only the highest tier can be added.",
+        removedFromCart: "Removed from cart",
+        addedToCart: "Added to cart",
+        errorPlanNotConfigured: "Plan not configured for this tier",
+        removeFromCart: "Remove from Cart",
+        addToCart: "Add to Cart",
+      },
+      ja: {
+        membershipTitle: "メンバーシップを選ぶ",
+        membershipDescription: "私の活動を支援し、特典をアンロック",
+        discordIdLabel: "Discord ID",
+        discordHint: "Discord IDの見つけ方:",
+        discordHelpLink: "Discord IDはどこで見つけられますか？ (クリック)",
+        discordHelpStep1: "<strong>手順1:</strong> Discordを開き、<strong>ユーザー設定</strong>（歯車アイコン）へ。",
+        discordHelpStep2: "<strong>手順2:</strong> <strong>アプリ設定</strong>の<strong>高度な設定</strong>で<strong>開発者モード</strong>を有効に。",
+        discordHelpStep3: "<strong>手順3:</strong> 自分のユーザー名を右クリックし、<strong>IDをコピー</strong>。",
+        discordHelpStep4: "<strong>手順4:</strong> その番号をここに貼り付け。",
+        noteBox: "<strong>📌 重要:</strong> 支払い完了後、対応するロールが自動的に付与されます。事前にDiscordサーバーに参加してください！",
+        joinDiscord: "→ Discordサーバーに参加 ←",
+        tierBronze: "ブロンズ",
+        tierCopper: "カッパー",
+        tierSilver: "シルバー",
+        tierGold: "ゴールド",
+        tierPlatinum: "プラチナ",
+        perMonth: "/月",
+        btnSingle: "単発購入",
+        btnRecurring: "定期購読",
+        perk1_1: "アーカイブへの即時フルアクセス。",
+        perk1_2: "過去の全リリースと有料コンテンツを含む。",
+        perk2_1: "ブロンズの全特典に加えて：",
+        perk2_2: "各請求サイクルに1回のカスタム画像リクエスト。",
+        perk2_3: "1リクエストあたり約20枚。",
+        perk2_4: "単一キャラクター、公式/クリエイター選択の衣装。",
+        perk2_5: "一部キャラクターカスタマイズ可能。",
+        perk2_6: "標準納期：〜1日（キュー順）。",
+        perk3_1: "ブロンズの全特典に加えて：",
+        perk3_2: "各請求サイクルに1回のカスタム画像リクエスト。",
+        perk3_3: "1リクエストあたり約40枚。",
+        perk3_4: "単一キャラクター、カスタム衣装可能。",
+        perk3_5: "キャラクターカスタマイズ可能。",
+        perk3_6: "標準納期：〜1日（キュー順）。",
+        perk4_1: "ブロンズの全特典に加えて：",
+        perk4_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。",
+        perk4_3: "1リクエストあたり約80枚。",
+        perk4_4: "単一キャラクター、カスタム衣装可能。",
+        perk4_5: "キャラクターカスタマイズ可能。",
+        perk4_6: "標準納期：3〜7日（キュー順）。",
+        perk4_7: "特別/拡張リクエストは相談可能。",
+        perk5_1: "ブロンズの全特典に加えて：",
+        perk5_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。",
+        perk5_3: "1リクエストあたり約80枚。",
+        perk5_4: "単一キャラクター、カスタム衣装可能。",
+        perk5_5: "キャラクターカスタマイズ可能。",
+        perk5_6: "⚡ 優先対応：現在のタスク完了後に最初に着手。",
+        perk5_7: "標準納期：3〜7日（着手後）。",
+        errorDiscordMissing: "Discord IDを入力してください",
+        errorDiscordInvalid: "Discord IDの形式が無効です",
+        errorOnlyHighest: "最上位ティアのみ追加できます。",
+        removedFromCart: "カートから削除しました",
+        addedToCart: "カートに追加しました",
+        errorPlanNotConfigured: "このティアのプランは設定されていません",
+        removeFromCart: "カートから削除",
+        addToCart: "カートに追加",
+      },
+      zh: {
+        membershipTitle: "选择会员资格",
+        membershipDescription: "支持我的工作并解锁专属特权",
+        discordIdLabel: "你的 Discord ID",
+        discordHint: "如何找到你的 Discord ID:",
+        discordHelpLink: "我在哪里可以找到我的 Discord ID？(点击)",
+        discordHelpStep1: "<strong>步骤1:</strong> 打开 Discord，进入<strong>用户设置</strong>（齿轮图标）。",
+        discordHelpStep2: "<strong>步骤2:</strong> 在<strong>应用设置</strong>中，选择<strong>高级</strong>并启用<strong>开发者模式</strong>。",
+        discordHelpStep3: "<strong>步骤3:</strong> 右键点击你的用户名，选择<strong>复制ID</strong>。",
+        discordHelpStep4: "<strong>步骤4:</strong> 将号码粘贴在这里。",
+        noteBox: "<strong>📌 重要:</strong> 支付成功后，你将自动获得 Discord 服务器中的对应角色。请确保已加入服务器！",
+        joinDiscord: "→ 加入 Discord 服务器 ←",
+        tierBronze: "青铜",
+        tierCopper: "铜",
+        tierSilver: "银",
+        tierGold: "金",
+        tierPlatinum: "铂金",
+        perMonth: "/月",
+        btnSingle: "单次购买",
+        btnRecurring: "定期订阅",
+        perk1_1: "立即获得完整存档访问权限。",
+        perk1_2: "包含所有过往发布及付费内容。",
+        perk2_1: "包含青铜所有权益，外加：",
+        perk2_2: "每个计费周期可提交1次定制图像请求。",
+        perk2_3: "每次请求约20张图像。",
+        perk2_4: "单一角色，官方/创作者选定服装。",
+        perk2_5: "允许一定程度的角色自定义。",
+        perk2_6: "通常交付时间：~1天（按队列顺序）。",
+        perk3_1: "包含青铜所有权益，外加：",
+        perk3_2: "每个计费周期可提交1次定制图像请求。",
+        perk3_3: "每次请求约40张图像。",
+        perk3_4: "单一角色，允许自定义服装。",
+        perk3_5: "允许角色自定义。",
+        perk3_6: "通常交付时间：~1天（按队列顺序）。",
+        perk4_1: "包含青铜所有权益，外加：",
+        perk4_2: "每个计费周期可提交1次大型定制图像请求。",
+        perk4_3: "每次请求约80张图像。",
+        perk4_4: "单一角色，允许自定义服装。",
+        perk4_5: "允许角色自定义。",
+        perk4_6: "通常交付时间：3-7天（按队列顺序）。",
+        perk4_7: "特殊/扩展请求可商议。",
+        perk5_1: "包含青铜所有权益，外加：",
+        perk5_2: "每个计费周期可提交1次大型定制图像请求。",
+        perk5_3: "每次请求约80张图像。",
+        perk5_4: "单一角色，允许自定义服装。",
+        perk5_5: "允许角色自定义。",
+        perk5_6: "⚡ 优先处理：当前任务完成后最先处理。",
+        perk5_7: "通常交付时间：3-7天（开始后）。",
+        errorDiscordMissing: "请输入你的 Discord ID",
+        errorDiscordInvalid: "Discord ID 格式无效",
+        errorOnlyHighest: "只能添加最高等级的会员资格。",
+        removedFromCart: "已从购物车移除",
+        addedToCart: "已加入购物车",
+        errorPlanNotConfigured: "该等级尚未配置订阅方案",
+        removeFromCart: "从购物车移除",
+        addToCart: "加入购物车",
+      },
+      es: {
+        membershipTitle: "Elige tu Membresía",
+        membershipDescription: "Apoya mi trabajo y desbloquea beneficios exclusivos",
+        discordIdLabel: "Tu ID de Discord",
+        discordHint: "Cómo encontrar tu ID de Discord:",
+        discordHelpLink: "¿Dónde encuentro mi ID de Discord? (clic)",
+        discordHelpStep1: "<strong>Paso 1:</strong> Abre Discord y ve a <strong>Ajustes de Usuario</strong> (icono de engranaje).",
+        discordHelpStep2: "<strong>Paso 2:</strong> En <strong>Ajustes de la App</strong>, selecciona <strong>Avanzado</strong> y activa <strong>Modo Desarrollador</strong>.",
+        discordHelpStep3: "<strong>Paso 3:</strong> Haz clic derecho en tu nombre de usuario y selecciona <strong>Copiar ID</strong>.",
+        discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.",
+        noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
+        joinDiscord: "→ Unirse al Servicio de Discord ←",
+        tierBronze: "Bronce",
+        tierCopper: "Cobre",
+        tierSilver: "Plata",
+        tierGold: "Oro",
+        tierPlatinum: "Platino",
+        perMonth: "/ mes",
+        btnSingle: "Compra Única",
+        btnRecurring: "Membresía Recurrente",
+        perk1_1: "Acceso inmediato al archivo completo.",
+        perk1_2: "Incluye todos los lanzamientos anteriores y contenido de pago.",
+        perk2_1: "Todo lo de Bronce, más:",
+        perk2_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.",
+        perk2_3: "Aprox. 20 imágenes por solicitud.",
+        perk2_4: "Personaje único, atuendo seleccionado por el oficial/creador.",
+        perk2_5: "Se permite cierta personalización del personaje.",
+        perk2_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
+        perk3_1: "Todo lo de Bronce, más:",
+        perk3_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.",
+        perk3_3: "Aprox. 40 imágenes por solicitud.",
+        perk3_4: "Personaje único, se permite atuendo personalizado.",
+        perk3_5: "Se permite personalización del personaje.",
+        perk3_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
+        perk4_1: "Todo lo de Bronce, más:",
+        perk4_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.",
+        perk4_3: "Aprox. 80 imágenes por solicitud.",
+        perk4_4: "Personaje único, se permite atuendo personalizado.",
+        perk4_5: "Se permite personalización del personaje.",
+        perk4_6: "Tiempo de entrega típico: 3-7 días (orden de cola).",
+        perk4_7: "Solicitudes especiales/ampliadas pueden ser discutidas.",
+        perk5_1: "Todo lo de Bronce, más:",
+        perk5_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.",
+        perk5_3: "Aprox. 80 imágenes por solicitud.",
+        perk5_4: "Personaje único, se permite atuendo personalizado.",
+        perk5_5: "Se permite personalización del personaje.",
+        perk5_6: "⚡ Prioridad: se trabaja primero después de las tareas actuales.",
+        perk5_7: "Tiempo de entrega típico: 3-7 días (una vez iniciado).",
+        errorDiscordMissing: "Por favor ingresa tu ID de Discord",
+        errorDiscordInvalid: "Formato de ID de Discord inválido",
+        errorOnlyHighest: "Solo se puede agregar el nivel más alto.",
+        removedFromCart: "Eliminado del carrito",
+        addedToCart: "Añadido al carrito",
+        errorPlanNotConfigured: "Plan no configurado para este nivel",
+        removeFromCart: "Eliminar del carrito",
+        addToCart: "Añadir al carrito",
+      }
+    };
 
-        // Translations for membership page (same as before)
-        const membershipTranslations = {
-          en: { membershipTitle: "Choose Your Membership", membershipDescription: "Support my work and unlock exclusive perks", discordIdLabel: "Your Discord ID", discordHint: "How to find your Discord ID:", discordHelpLink: "Where do I find my Discord ID? (click)", discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).", discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.", discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.", discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.", noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!", joinDiscord: "→ Join Discord Server ←", tierBronze: "Bronze", tierCopper: "Copper", tierSilver: "Silver", tierGold: "Gold", tierPlatinum: "Platinum", perMonth: "/ month", btnSingle: "Single Purchase", btnRecurring: "Recurring Membership", perk1_1: "Full archive access immediately.", perk1_2: "Includes all past releases & paid content.", perk2_1: "Everything in Bronze, plus:", perk2_2: "One (1) custom image request per billing cycle.", perk2_3: "Approx. 20 images per request.", perk2_4: "Single character, official/creator‑selected outfit.", perk2_5: "Some character customization allowed.", perk2_6: "Typical turnaround: ~1 day (queue order).", perk3_1: "Everything in Bronze, plus:", perk3_2: "One (1) custom image request per billing cycle.", perk3_3: "Approx. 40 images per request.", perk3_4: "Single character, custom outfit allowed.", perk3_5: "Character customization allowed.", perk3_6: "Typical turnaround: ~1 day (queue order).", perk4_1: "Everything in Bronze, plus:", perk4_2: "One (1) large custom image request per billing cycle.", perk4_3: "Approx. 80 images per request.", perk4_4: "Single character, custom outfit allowed.", perk4_5: "Character customization allowed.", perk4_6: "Typical turnaround: 3‑7 days (queue order).", perk4_7: "Special/expanded requests may be discussed.", perk5_1: "Everything in Bronze, plus:", perk5_2: "One (1) large custom image request per billing cycle.", perk5_3: "Approx. 80 images per request.", perk5_4: "Single character, custom outfit allowed.", perk5_5: "Character customization allowed.", perk5_6: "⚡ Priority: worked on first after current tasks.", perk5_7: "Typical turnaround: 3‑7 days (once started).", errorDiscordMissing: "Please enter your Discord ID", errorDiscordInvalid: "Invalid Discord ID format", errorOnlyHighest: "Only the highest tier can be added.", removeFromCart: "Remove from Cart", addToCart: "Add to Cart", },
-          ja: { membershipTitle: "メンバーシップを選ぶ", membershipDescription: "私の活動を支援し、特典をアンロック", discordIdLabel: "Discord ID", discordHint: "Discord IDの見つけ方:", discordHelpLink: "Discord IDはどこで見つけられますか？ (クリック)", discordHelpStep1: "<strong>手順1:</strong> Discordを開き、<strong>ユーザー設定</strong>（歯車アイコン）へ。", discordHelpStep2: "<strong>手順2:</strong> <strong>アプリ設定</strong>の<strong>高度な設定</strong>で<strong>開発者モード</strong>を有効に。", discordHelpStep3: "<strong>手順3:</strong> 自分のユーザー名を右クリックし、<strong>IDをコピー</strong>。", discordHelpStep4: "<strong>手順4:</strong> その番号をここに貼り付け。", noteBox: "<strong>📌 重要:</strong> 支払い完了後、対応するロールが自動的に付与されます。事前にDiscordサーバーに参加してください！", joinDiscord: "→ Discordサーバーに参加 ←", tierBronze: "ブロンズ", tierCopper: "カッパー", tierSilver: "シルバー", tierGold: "ゴールド", tierPlatinum: "プラチナ", perMonth: "/月", btnSingle: "単発購入", btnRecurring: "定期購読", perk1_1: "アーカイブへの即時フルアクセス。", perk1_2: "過去の全リリースと有料コンテンツを含む。", perk2_1: "ブロンズの全特典に加えて：", perk2_2: "各請求サイクルに1回のカスタム画像リクエスト。", perk2_3: "1リクエストあたり約20枚。", perk2_4: "単一キャラクター、公式/クリエイター選択の衣装。", perk2_5: "一部キャラクターカスタマイズ可能。", perk2_6: "標準納期：〜1日（キュー順）。", perk3_1: "ブロンズの全特典に加えて：", perk3_2: "各請求サイクルに1回のカスタム画像リクエスト。", perk3_3: "1リクエストあたり約40枚。", perk3_4: "単一キャラクター、カスタム衣装可能。", perk3_5: "キャラクターカスタマイズ可能。", perk3_6: "標準納期：〜1日（キュー順）。", perk4_1: "ブロンズの全特典に加えて：", perk4_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。", perk4_3: "1リクエストあたり約80枚。", perk4_4: "単一キャラクター、カスタム衣装可能。", perk4_5: "キャラクターカスタマイズ可能。", perk4_6: "標準納期：3〜7日（キュー順）。", perk4_7: "特別/拡張リクエストは相談可能。", perk5_1: "ブロンズの全特典に加えて：", perk5_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。", perk5_3: "1リクエストあたり約80枚。", perk5_4: "単一キャラクター、カスタム衣装可能。", perk5_5: "キャラクターカスタマイズ可能。", perk5_6: "⚡ 優先対応：現在のタスク完了後に最初に着手。", perk5_7: "標準納期：3〜7日（着手後）。", errorDiscordMissing: "Discord IDを入力してください", errorDiscordInvalid: "Discord IDの形式が無効です", errorOnlyHighest: "最上位ティアのみ追加できます。", removeFromCart: "カートから削除", addToCart: "カートに追加", },
-          zh: { membershipTitle: "选择会员资格", membershipDescription: "支持我的工作并解锁专属特权", discordIdLabel: "你的 Discord ID", discordHint: "如何找到你的 Discord ID:", discordHelpLink: "我在哪里可以找到我的 Discord ID？(点击)", discordHelpStep1: "<strong>步骤1:</strong> 打开 Discord，进入<strong>用户设置</strong>（齿轮图标）。", discordHelpStep2: "<strong>步骤2:</strong> 在<strong>应用设置</strong>中，选择<strong>高级</strong>并启用<strong>开发者模式</strong>。", discordHelpStep3: "<strong>步骤3:</strong> 右键点击你的用户名，选择<strong>复制ID</strong>。", discordHelpStep4: "<strong>步骤4:</strong> 将号码粘贴在这里。", noteBox: "<strong>📌 重要:</strong> 支付成功后，你将自动获得 Discord 服务器中的对应角色。请确保已加入服务器！", joinDiscord: "→ 加入 Discord 服务器 ←", tierBronze: "青铜", tierCopper: "铜", tierSilver: "银", tierGold: "金", tierPlatinum: "铂金", perMonth: "/月", btnSingle: "单次购买", btnRecurring: "定期订阅", perk1_1: "立即获得完整存档访问权限。", perk1_2: "包含所有过往发布及付费内容。", perk2_1: "包含青铜所有权益，外加：", perk2_2: "每个计费周期可提交1次定制图像请求。", perk2_3: "每次请求约20张图像。", perk2_4: "单一角色，官方/创作者选定服装。", perk2_5: "允许一定程度的角色自定义。", perk2_6: "通常交付时间：~1天（按队列顺序）。", perk3_1: "包含青铜所有权益，外加：", perk3_2: "每个计费周期可提交1次定制图像请求。", perk3_3: "每次请求约40张图像。", perk3_4: "单一角色，允许自定义服装。", perk3_5: "允许角色自定义。", perk3_6: "通常交付时间：~1天（按队列顺序）。", perk4_1: "包含青铜所有权益，外加：", perk4_2: "每个计费周期可提交1次大型定制图像请求。", perk4_3: "每次请求约80张图像。", perk4_4: "单一角色，允许自定义服装。", perk4_5: "允许角色自定义。", perk4_6: "通常交付时间：3-7天（按队列顺序）。", perk4_7: "特殊/扩展请求可商议。", perk5_1: "包含青铜所有权益，外加：", perk5_2: "每个计费周期可提交1次大型定制图像请求。", perk5_3: "每次请求约80张图像。", perk5_4: "单一角色，允许自定义服装。", perk5_5: "允许角色自定义。", perk5_6: "⚡ 优先处理：当前任务完成后最先处理。", perk5_7: "通常交付时间：3-7天（开始后）。", errorDiscordMissing: "请输入你的 Discord ID", errorDiscordInvalid: "Discord ID 格式无效", errorOnlyHighest: "只能添加最高等级的会员资格。", removeFromCart: "从购物车移除", addToCart: "加入购物车", },
-          es: { membershipTitle: "Elige tu Membresía", membershipDescription: "Apoya mi trabajo y desbloquea beneficios exclusivos", discordIdLabel: "Tu ID de Discord", discordHint: "Cómo encontrar tu ID de Discord:", discordHelpLink: "¿Dónde encuentro mi ID de Discord? (clic)", discordHelpStep1: "<strong>Paso 1:</strong> Abre Discord y ve a <strong>Ajustes de Usuario</strong> (icono de engranaje).", discordHelpStep2: "<strong>Paso 2:</strong> En <strong>Ajustes de la App</strong>, selecciona <strong>Avanzado</strong> y activa <strong>Modo Desarrollador</strong>.", discordHelpStep3: "<strong>Paso 3:</strong> Haz clic derecho en tu nombre de usuario y selecciona <strong>Copiar ID</strong>.", discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.", noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!", joinDiscord: "→ Unirse al Servicio de Discord ←", tierBronze: "Bronce", tierCopper: "Cobre", tierSilver: "Plata", tierGold: "Oro", tierPlatinum: "Platino", perMonth: "/ mes", btnSingle: "Compra Única", btnRecurring: "Membresía Recurrente", perk1_1: "Acceso inmediato al archivo completo.", perk1_2: "Incluye todos los lanzamientos anteriores y contenido de pago.", perk2_1: "Todo lo de Bronce, más:", perk2_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.", perk2_3: "Aprox. 20 imágenes por solicitud.", perk2_4: "Personaje único, atuendo seleccionado por el oficial/creador.", perk2_5: "Se permite cierta personalización del personaje.", perk2_6: "Tiempo de entrega típico: ~1 día (orden de cola).", perk3_1: "Todo lo de Bronce, más:", perk3_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.", perk3_3: "Aprox. 40 imágenes por solicitud.", perk3_4: "Personaje único, se permite atuendo personalizado.", perk3_5: "Se permite personalización del personaje.", perk3_6: "Tiempo de entrega típico: ~1 día (orden de cola).", perk4_1: "Todo lo de Bronce, más:", perk4_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.", perk4_3: "Aprox. 80 imágenes por solicitud.", perk4_4: "Personaje único, se permite atuendo personalizado.", perk4_5: "Se permite personalización del personaje.", perk4_6: "Tiempo de entrega típico: 3-7 días (orden de cola).", perk4_7: "Solicitudes especiales/ampliadas pueden ser discutidas.", perk5_1: "Todo lo de Bronce, más:", perk5_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.", perk5_3: "Aprox. 80 imágenes por solicitud.", perk5_4: "Personaje único, se permite atuendo personalizado.", perk5_5: "Se permite personalización del personaje.", perk5_6: "⚡ Prioridad: se trabaja primero después de las tareas actuales.", perk5_7: "Tiempo de entrega típico: 3-7 días (una vez iniciado).", errorDiscordMissing: "Por favor ingresa tu ID de Discord", errorDiscordInvalid: "Formato de ID de Discord inválido", errorOnlyHighest: "Solo se puede agregar el nivel más alto.", removeFromCart: "Eliminar del carrito", addToCart: "Añadir al carrito", }
-        };
+    let membershipInitialised = false;
+    let currentLang = localStorage.getItem('language') || 'en';
 
-        let currentLang = localStorage.getItem('language') || 'en';
-        function getText(key, fallback) {
-          const langData = membershipTranslations[currentLang] || membershipTranslations.en;
-          return langData[key] !== undefined ? langData[key] : fallback;
-        }
+    function getText(key, fallback) {
+      const langData = membershipTranslations[currentLang] || membershipTranslations.en;
+      return langData[key] !== undefined ? langData[key] : fallback;
+    }
 
-        function updateText() {
-          document.getElementById('membershipTitle').textContent = getText('membershipTitle', 'Choose Your Membership');
-          document.getElementById('membershipDescription').textContent = getText('membershipDescription', 'Support my work and unlock exclusive perks');
-          document.getElementById('discordIdLabel').innerHTML = getText('discordIdLabel', 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>';
-          document.getElementById('discordHintText').textContent = getText('discordHint', 'How to find your Discord ID:');
-          document.getElementById('discordHelpText').textContent = getText('discordHelpLink', 'Where do I find my Discord ID? (click)');
-          document.getElementById('discordHelpStep1').innerHTML = getText('discordHelpStep1', '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-          document.getElementById('discordHelpStep2').innerHTML = getText('discordHelpStep2', '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-          document.getElementById('discordHelpStep3').innerHTML = getText('discordHelpStep3', '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-          document.getElementById('discordHelpStep4').innerHTML = getText('discordHelpStep4', '<strong>Step 4:</strong> Paste that number here.');
-          document.getElementById('noteBox').innerHTML = getText('noteBox', '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') + '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + getText('joinDiscord', '→ Join Discord Server ←') + '</a></div>';
-          for (let i = 1; i <= 5; i++) {
-            const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
-            document.getElementById(`tier${i}Title`).textContent = getText(key, '');
-          }
-          const perkIds = ['perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6','perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6','perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7','perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'];
-          perkIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = getText(id, ''); });
-          document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = getText('btnSingle', 'Single Purchase'));
-          document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = getText('btnRecurring', 'Recurring Membership'));
-          document.querySelectorAll('.per-month').forEach(el => el.textContent = getText('perMonth', '/ month'));
-        }
+    function updateAllMembershipText() {
+      const setText = (id, key) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = getText(key, '');
+      };
+      const setHTML = (id, key) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = getText(key, '');
+      };
+      setText('membershipTitle', 'membershipTitle');
+      setText('membershipDescription', 'membershipDescription');
+      setHTML('discordIdLabel', 'discordIdLabel');
+      setText('discordHintText', 'discordHint');
+      setText('discordHelpText', 'discordHelpLink');
+      setHTML('discordHelpStep1', 'discordHelpStep1');
+      setHTML('discordHelpStep2', 'discordHelpStep2');
+      setHTML('discordHelpStep3', 'discordHelpStep3');
+      setHTML('discordHelpStep4', 'discordHelpStep4');
+      setHTML('noteBox', 'noteBox');
+      const joinLink = document.getElementById('joinDiscordLink');
+      if (joinLink) joinLink.textContent = getText('joinDiscord', '→ Join Discord Server ←');
 
-        function updatePrices() {
-          document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-            const usd = parseFloat(el.dataset.priceUsd);
-            if (!isNaN(usd) && window.formatPrice) {
-              const priceSpan = el.querySelector('.price-value');
-              if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
-            }
-          });
-        }
-
-        function updateButtons() {
-          const cart = window.getCart();
-          for (let tier = 1; tier <= 5; tier++) {
-            const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-            if (!card) continue;
-            const inCart = cart.some(item => item.id === `membership-${tier}`);
-            const btn = card.querySelector('.btn-single');
-            if (btn) {
-              btn.textContent = inCart ? getText('removeFromCart', 'Remove from Cart') : getText('btnSingle', 'Single Purchase');
-              btn.classList.toggle('btn-single', !inCart);
-              btn.classList.toggle('btn-remove', inCart);
-              // Update data attribute to match button's tier (already set)
-            }
-          }
-        }
-
-        function validateDiscordId() {
-          const input = document.getElementById('discordId');
-          const id = input.value.trim();
-          if (!id) { showSnackbar(getText('errorDiscordMissing', 'Please enter your Discord ID'), true); return null; }
-          if (!/^\d{17,19}$/.test(id)) { showSnackbar(getText('errorDiscordInvalid', 'Invalid Discord ID format'), true); return null; }
-          return id;
-        }
-
-        function showSnackbar(msg, isError) {
-          if (window.showSnackbar) window.showSnackbar(msg, isError);
-          else alert(msg);
-        }
-
-        window.handleSinglePurchase = function(tierNumber) {
-          const discordId = validateDiscordId();
-          if (!discordId) return;
-
-          const tierPrices = {1:5,2:15,3:30,4:50,5:75};
-          const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
-
-          let cart = window.getCart();
-          const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
-
-          if (alreadyInCart) {
-            window.addOrToggleCart({ id: `membership-${tierNumber}` });
-            showSnackbar(getText('removedFromCart', 'Removed from cart'), false);
-            updateButtons();
-            return;
-          }
-
-          const membershipItems = cart.filter(item => item.type === 'membership');
-          const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-
-          if (highestTier !== null && tierNumber < highestTier) {
-            showSnackbar(getText('errorOnlyHighest', 'Only the highest tier can be added.'), true);
-            return;
-          }
-
-          // Remove all existing memberships if adding higher tier
-          if (highestTier !== null && tierNumber > highestTier) {
-            membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
-          }
-
-          window.addOrToggleCart({
-            id: `membership-${tierNumber}`,
-            title: tierTitles[tierNumber] + ' (30 days)',
-            price: tierPrices[tierNumber],
-            type: 'membership',
-            tier: tierNumber,
-            discordId: discordId,
-            image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-          });
-          showSnackbar(getText('addedToCart', 'Added to cart'), false);
-          updateButtons();
-        };
-
-        window.handleRecurring = function(tierNumber) {
-          const discordId = validateDiscordId();
-          if (!discordId) return;
-          alert(`Recurring subscription for Tier ${tierNumber} would start.`);
-        };
-
-        window.scrollCarousel = function(direction) {
-          const container = document.getElementById('tierCarousel');
-          if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
-        };
-
-        // Set up button click handlers
-        document.querySelectorAll('.btn-single').forEach(btn => {
-          const tier = parseInt(btn.parentElement.parentElement.getAttribute('data-tier'));
-          btn.onclick = (e) => { e.preventDefault(); window.handleSinglePurchase(tier); };
-        });
-
-        // Language change
-        document.addEventListener('languageChanged', (e) => {
-          currentLang = e.detail.language;
-          updateText();
-          updatePrices();
-          updateButtons();
-        });
-
-        // Cart changes (storage event from other tabs)
-        window.addEventListener('storage', (e) => {
-          if (e.key === 'velutinx_cart') updateButtons();
-        });
-
-        // Also update buttons after any local cart operation (our own addOrToggleCart will cause a storage event? Not always, so we also update after each purchase)
-        // But we already update inside handleSinglePurchase. For other changes like removing from cart drawer, we need to listen to cart updates.
-        // We'll also poll once every 2 seconds as a fallback (but no recursion)
-        setInterval(() => updateButtons(), 2000);
-
-        // Initial update
-        updateText();
-        updatePrices();
-        updateButtons();
+      for (let i = 1; i <= 5; i++) {
+        const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
+        const el = document.getElementById(`tier${i}Title`);
+        if (el) el.textContent = getText(key, '');
       }
 
-      // Start once DOM is ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else {
-        init();
-      }
-
-      // Discord help toggle
-      document.getElementById('discordHelpToggle')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        document.getElementById('discordHelpContent')?.classList.toggle('show');
+      const perkIds = [
+        'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
+        'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
+        'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
+        'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
+      ];
+      perkIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = getText(id, '');
       });
-    })();
+
+      document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = getText('btnSingle', 'Single Purchase'));
+      document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = getText('btnRecurring', 'Recurring Membership'));
+      document.querySelectorAll('.per-month').forEach(el => el.textContent = getText('perMonth', '/ month'));
+    }
+
+    function updateMembershipPrices() {
+      document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+        const usd = parseFloat(el.dataset.priceUsd);
+        if (!isNaN(usd) && window.formatPrice) {
+          const priceSpan = el.querySelector('.price-value');
+          if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
+        }
+      });
+    }
+
+    function updateMembershipButtons() {
+      const cart = window.getCart ? window.getCart() : [];
+      for (let tier = 1; tier <= 5; tier++) {
+        const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+        if (!card) continue;
+        const inCart = cart.some(item => item.id === `membership-${tier}`);
+        const btn = card.querySelector('.btn-single, .btn-remove');
+        if (btn) {
+          btn.textContent = inCart ? getText('removeFromCart', 'Remove from Cart') : getText('btnSingle', 'Single Purchase');
+          btn.classList.toggle('btn-single', !inCart);
+          btn.classList.toggle('btn-remove', inCart);
+        }
+      }
+    }
+
+    function validateDiscordId() {
+      const input = document.getElementById('discordId');
+      if (!input) return null;
+      const id = input.value.trim();
+      if (!id) {
+        showSnackbar(getText('errorDiscordMissing', 'Please enter your Discord ID'), true);
+        return null;
+      }
+      if (!/^\d{17,19}$/.test(id)) {
+        showSnackbar(getText('errorDiscordInvalid', 'Invalid Discord ID format'), true);
+        return null;
+      }
+      return id;
+    }
+
+    function showSnackbar(msg, isError = false) {
+      if (window.showSnackbar) {
+        window.showSnackbar(msg, isError);
+      } else {
+        const sb = document.getElementById('snackbar');
+        const text = document.getElementById('snackText');
+        if (sb && text) {
+          sb.style.background = isError ? '#ef4444' : '#22c55e';
+          text.textContent = msg;
+          sb.classList.add('show');
+          setTimeout(() => sb.classList.remove('show'), 2000);
+        }
+      }
+    }
+
+    window.handleSinglePurchase = async function(tierNumber) {
+      const discordId = validateDiscordId();
+      if (!discordId) return;
+
+      const tierPrices = {1:5,2:15,3:30,4:50,5:75};
+      const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
+
+      let cart = window.getCart ? window.getCart() : [];
+      const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
+
+      if (alreadyInCart) {
+        // Remove the existing membership
+        window.addOrToggleCart({ id: `membership-${tierNumber}` });
+        showSnackbar(getText('removedFromCart', 'Removed from cart'), false);
+        updateMembershipButtons();
+        return;
+      }
+
+      // Check for existing membership items
+      const membershipItems = cart.filter(item => item.type === 'membership');
+      const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
+
+      if (highestTier !== null && tierNumber < highestTier) {
+        showSnackbar(getText('errorOnlyHighest', 'Only the highest tier can be added.'), true);
+        return;
+      }
+
+      // If adding a higher tier, remove all existing memberships first
+      if (highestTier !== null && tierNumber > highestTier) {
+        for (const item of membershipItems) {
+          window.addOrToggleCart({ id: item.id });
+        }
+      }
+
+      // Add the new membership
+      window.addOrToggleCart({
+        id: `membership-${tierNumber}`,
+        title: tierTitles[tierNumber] + ' (30 days)',
+        price: tierPrices[tierNumber],
+        type: 'membership',
+        tier: tierNumber,
+        discordId: discordId,
+        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+      });
+
+      showSnackbar(getText('addedToCart', 'Added to cart'), false);
+      updateMembershipButtons();
+    };
+
+    window.handleRecurring = async function(tierNumber) {
+      const discordId = validateDiscordId();
+      if (!discordId) return;
+      const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
+      const planId = PLAN_IDS[tierNumber];
+      if (!planId) {
+        showSnackbar(getText('errorPlanNotConfigured', 'Plan not configured for this tier'), true);
+        return;
+      }
+      alert(`Recurring subscription for Tier ${tierNumber} would start.`);
+    };
+
+    window.scrollCarousel = function(direction) {
+      const container = document.getElementById('tierCarousel');
+      if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
+    };
+
+    // Initialise after shared header is ready
+    function initMembership() {
+      if (membershipInitialised) return;
+      membershipInitialised = true;
+
+      updateAllMembershipText();
+      updateMembershipPrices();
+      updateMembershipButtons();
+
+      // Listen for language changes
+      document.addEventListener('languageChanged', function(e) {
+        currentLang = e.detail.language;
+        updateAllMembershipText();
+        updateMembershipPrices();
+        updateMembershipButtons();
+      });
+
+      // Listen for storage events (cart changes from other tabs)
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'velutinx_cart') {
+          updateMembershipButtons();
+        }
+      });
+    }
+
+    document.addEventListener('headerReady', initMembership);
+    if (document.readyState === 'complete' && window.addOrToggleCart) {
+      initMembership();
+    } else {
+      window.addEventListener('load', () => {
+        if (window.addOrToggleCart) initMembership();
+      });
+    }
+
+    // Discord help toggle
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggle = document.getElementById('discordHelpToggle');
+      const content = document.getElementById('discordHelpContent');
+      if (toggle && content) {
+        toggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          content.classList.toggle('show');
+        });
+      }
+    });
   </script>
 </body>
 </html>
