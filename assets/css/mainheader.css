@@ -116,7 +116,7 @@ body.dark .logo {
   background: rgba(170,158,118,0.15);
 }
 
-/* ==================== BUTTONS & ICONS ==================== */
+/* ==================== ICON BUTTONS ==================== */
 .nav-icon,
 .theme-toggle {
   width: 42px;
@@ -191,51 +191,52 @@ body.dark .logo {
 
 .cart-icon,
 .floating-cart {
-  background: var(--accent) !important;
-  border-radius: 9999px !important;
-  border: none !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
-  transition: all 0.25s ease !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
+  background: var(--accent);
+  border-radius: 9999px;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .cart-icon:hover,
 .floating-cart:hover {
-  transform: scale(1.12) !important;
-  background: #38aae8 !important;
+  transform: scale(1.12);
+  background: #38aae8;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 
 .floating-cart {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  width: 64px !important;
-  height: 64px !important;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 64px;
+  height: 64px;
 }
 
 .cart-badge,
 .floating-badge {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  transform: translate(50%, -50%) !important;
-  background: #ef4444 !important;
-  color: white !important;
-  font-size: 0.75rem !important;
-  font-weight: bold !important;
-  min-width: 22px !important;
-  height: 22px !important;
-  line-height: 22px !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 6px !important;
-  border: 2px solid var(--darker) !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  background: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  min-width: 22px;
+  height: 22px;
+  line-height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border: 2px solid var(--darker);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
 .cart-drawer {
@@ -333,13 +334,10 @@ body.dark .logo {
   font-size: 1.15rem;
 }
 
-/* Cart overlay (replaces old body pseudo-element) */
+/* Cart overlay */
 .cart-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: var(--overlay);
   backdrop-filter: blur(4px);
   z-index: 1195;
@@ -377,7 +375,7 @@ body.dark .logo {
   opacity: 1;
 }
 
-/* Optional extras you had (kept if needed) */
+/* Optional card overlays (kept if used elsewhere) */
 .card.winner::after {
   content: "";
   position: absolute;
