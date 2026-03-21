@@ -1,4 +1,4 @@
-// top.js – Shared header with inline HTML (no external fetch)
+// top.js – Shared header with your original header HTML
 (function() {
   // --- Translation dictionary (same as before) ---
   const translations = {
@@ -53,7 +53,7 @@
     return `${sym}${converted}`;
   };
 
-  // Cart SVG icons (add / remove)
+  // Cart SVG icons (add / remove) – these are used on product cards
   const addSvg = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/>
@@ -195,76 +195,125 @@
     if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
   }
 
-  // ----- Inline header HTML (complete) -----
+  // ----- YOUR ORIGINAL HEADER HTML (from header.html) -----
   const headerHTML = `
+<!-- Top Navigation -->
 <nav class="top-nav">
   <div class="nav-left">
     <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
     </button>
     <div class="logo">VELUTINX</div>
   </div>
   <div class="nav-actions">
     <a href="https://velutinx.com/index-" class="login-btn" id="loginBtn">Website</a>
-    <div id="langContainer" style="position:relative">
-      <button class="nav-icon" id="langBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path></svg>
+    <div id="langContainer">
+      <button class="nav-icon lang-btn" id="langBtn" title="Language">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
+        </svg>
       </button>
       <div id="languagePopover">
-        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="en">English</div>
-        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="ja">日本語</div>
-        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="zh">简体中文</div>
-        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="es">Español</div>
+        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English</p></div>
+        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語</p></div>
+        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文</p></div>
+        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español</p></div>
       </div>
     </div>
-    <button class="nav-icon" id="themeBtn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path></svg>
+    <button class="nav-icon" id="themeBtn" title="Night Mode">
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+      </svg>
     </button>
-    <div class="cart-wrapper" style="position:relative">
-      <button class="nav-icon" id="cartBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>
+    <div class="cart-wrapper">
+      <button class="nav-icon cart-icon" id="cartBtn" title="Cart">
+        <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 17h-11v-14h-2"></path>
+          <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+          <path d="M16 19h6"></path>
+          <path d="M19 16v6"></path>
+        </svg>
       </button>
       <span class="cart-badge" id="cartCount">0</span>
     </div>
   </div>
 </nav>
 
-<button class="floating-cart" id="floatingCartBtn">
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path></svg>
+<!-- Floating Cart Button -->
+<button class="floating-cart cart-icon" id="floatingCartBtn">
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+    <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+    <path d="M17 17h-11v-14h-2"></path>
+    <path d="M6 5l14 1l-1 7h-13"></path>
+  </svg>
   <span class="floating-badge" id="floatingCartCount">0</span>
 </button>
 
+<!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar Menu -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <button class="menu-toggle" id="sidebarMenuToggle" style="background:transparent; color:var(--text);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
     </button>
     <div class="logo">VELUTINX</div>
   </div>
   <div class="sidebar-menu">
-    <a href="https://velutinx.com/index-" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/></svg><span id="menuHome">HOME</span></a>
-    <a href="https://velutinx.com/commission" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span id="menuCommissions">COMMISSIONS</span></a>
-    <a href="https://velutinx.com/artwork" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2"/></svg><span id="menuArtwork">ARTWORK</span></a>
-    <a href="https://velutinx.com/poll" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M16 4v16"/></svg><span id="menuPoll">POLL</span></a>
-    <a href="https://velutinx.com/store" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/><circle cx="12" cy="15" r="2"/></svg><span id="menuStore">STORE</span></a>
-    <a href="https://velutinx.com/contact" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H4z"/><path d="M22 6L12 13L2 6"/></svg><span id="menuContact">CONTACT</span></a>
+    <div class="menu-section">
+      <a href="https://velutinx.com/index-" class="menu-item" data-menu="home">
+        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
+        <span id="menuHome">HOME</span>
+      </a>
+      <a href="https://velutinx.com/commission" class="menu-item" data-menu="commissions">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg>
+        <span id="menuCommissions">COMMISSIONS</span>
+      </a>
+      <a href="https://velutinx.com/artwork" class="menu-item" data-menu="artwork">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg>
+        <span id="menuArtwork">ARTWORK</span>
+      </a>
+      <a href="https://velutinx.com/poll" class="menu-item" data-menu="poll">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg>
+        <span id="menuPoll">POLL</span>
+      </a>
+      <a href="https://velutinx.com/store" class="menu-item" data-menu="store">
+        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg>
+        <span id="menuStore">STORE</span>
+      </a>
+      <a href="https://velutinx.com/contact" class="menu-item" data-menu="contact">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg>
+        <span id="menuContact">CONTACT</span>
+      </a>
+    </div>
+    <div class="menu-divider"></div>
   </div>
-  <div class="sidebar-footer">© VELUTINX</div>
+  <div class="sidebar-footer">
+    <p>© VELUTINX</p>
+  </div>
 </aside>
 
-<div class="cart-overlay" id="cartOverlay"></div>
+<!-- Cart Drawer -->
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
   <div class="cart-items" id="cartItems"></div>
-  <div class="cart-total"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div>
+  <div class="cart-total"><div class="cart-total-row"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div></div>
   <button class="demo-checkout-btn" id="demoCheckoutBtn">Proceed to checkout (DEMO)</button>
 </div>
 
-<div id="snackbar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span id="snackText">Added successfully</span></div>
+<!-- Snackbar -->
+<div id="snackbar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><path d="M20 6L9 17l-5-5"/></svg><span id="snackText">Added successfully</span></div>
 `;
 
-  // Inject the header into the placeholder
+  // Inject header into the placeholder
   function injectHeader() {
     const placeholder = document.getElementById('header-placeholder');
     if (!placeholder) {
@@ -272,14 +321,16 @@
       return;
     }
     placeholder.innerHTML = headerHTML;
-    // Now that the header DOM is in place, initialize all components
+    // Initialize all interactive components
     applyHeaderTranslations();
     updateCartUI();
     setupEventListeners();
+    // Dispatch event for store pages to know header is ready
+    document.dispatchEvent(new CustomEvent('headerReady'));
   }
 
   function setupEventListeners() {
-    // Sidebar
+    // Sidebar toggle
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -307,18 +358,18 @@
     const cartClose = document.getElementById('cartClose');
     const openCart = () => {
       cartDrawer.classList.add('open');
-      cartOverlay.classList.add('active');
+      if (cartOverlay) cartOverlay.classList.add('active');
       document.body.classList.add('drawer-open');
     };
     const closeCart = () => {
       cartDrawer.classList.remove('open');
-      cartOverlay.classList.remove('active');
+      if (cartOverlay) cartOverlay.classList.remove('active');
       document.body.classList.remove('drawer-open');
     };
     cartBtn?.addEventListener('click', openCart);
     floatCartBtn?.addEventListener('click', openCart);
     cartClose?.addEventListener('click', closeCart);
-    cartOverlay?.addEventListener('click', closeCart);
+    if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
 
     // Language popover
     const langBtn = document.getElementById('langBtn');
