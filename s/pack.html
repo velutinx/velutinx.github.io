@@ -1,31 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Velutinx Pack</title>
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>VELUTINX | Pack Details</title>
 
+  <!-- Shared CSS (header, sidebar, cart, snackbar) -->
+  <link rel="stylesheet" href="/assets/css/shared.css">
+
+  <!-- Pack‑specific styles (carousel, etc.) -->
   <style>
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
-    @media (min-width: 600px) { .container { padding: 0 24px; } }
-    main { padding: 40px 0; }
-    .product { display: grid; gap: 40px; }
-    @media (min-width: 992px) { .product { grid-template-columns: 1fr 2fr; } }
-    .gallery-card, .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-    .carousel { position: relative; overflow: hidden; }
-    .slides { display: flex; transition: transform 0.5s ease-in-out; width: 100%; }
-    .slide { flex: 0 0 100%; width: 100%; }
-    .slide img { width: 100%; height: auto; display: block; }
-    .arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 10; }
-    .arrow:hover { background: rgba(0,0,0,0.6); }
-    .arrow.prev { left: 16px; }
-    .arrow.next { right: 16px; }
-    .thumbnails { display: flex; gap: 12px; justify-content: center; padding: 16px; background: rgba(0,0,0,0.03); border-top: 1px solid var(--border); flex-wrap: wrap; }
-    .thumb { width: 90px; height: 120px; object-fit: cover; border-radius: 6px; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; opacity: 0.8; }
-    .thumb.active, .thumb:hover { border-color: #5D87FF; opacity: 1; transform: scale(1.04); }
-    .info { padding: 28px; }
-    h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    @media (min-width: 600px) {
+      .container {
+        padding: 0 24px;
+      }
+    }
+    main {
+      padding: 40px 0;
+    }
+    .product {
+      display: grid;
+      gap: 40px;
+    }
+    @media (min-width: 992px) {
+      .product {
+        grid-template-columns: 1fr 2fr;
+      }
+    }
+    .gallery-card, .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .carousel {
+      position: relative;
+      overflow: hidden;
+    }
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      width: 100%;
+    }
+    .slide {
+      flex: 0 0 100%;
+      width: 100%;
+    }
+    .slide img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.4);
+      color: white;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .arrow:hover {
+      background: rgba(0,0,0,0.6);
+    }
+    .arrow.prev {
+      left: 16px;
+    }
+    .arrow.next {
+      right: 16px;
+    }
+    .thumbnails {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0,0,0,0.03);
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .thumb {
+      width: 90px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: 0.8;
+    }
+    .thumb.active, .thumb:hover {
+      border-color: #5D87FF;
+      opacity: 1;
+      transform: scale(1.04);
+    }
+    .info {
+      padding: 28px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
     .category-info {
       font-size: 1rem;
       font-weight: bold;
@@ -35,150 +121,113 @@
       align-items: center;
       gap: 8px;
     }
-    .female { color: #ec4899; }
-    .femboy { color: #3b82f6; }
-    .category-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; }
-    .contents-section { margin: 20px 0 8px 0; text-align: left; }
-    .contents-title { font-weight: bold; font-size: 1.4rem; color: var(--text); margin-bottom: 8px; }
-    .contents-list { list-style-type: disc; padding-left: 24px; margin: 0; }
-    .contents-list li { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
-    .price-section { margin: 28px 0; padding: 20px; background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25); }
-    .price-label { color: var(--text); font-size: 0.95rem; }
-    .old-price { text-decoration: line-through; color: var(--text-light); margin-left: 12px; }
-    .current-price { color: var(--red-discount); font-size: 2.2rem; font-weight: bold; }
-    .save { color: #13DEB9; font-weight: bold; margin-top: 8px; display: inline-block; }
-    .buttons { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
-    .btn { flex: 1; min-width: 160px; padding: 14px 24px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
-    .btn-cart { background: #49BEFF; color: white; }
-    .btn-cart.remove-mode { background: #ef4444; }   /* red when removing */
-    .btn-cart:hover { filter: brightness(0.9); }
-    .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
+    .female {
+      color: #ec4899;
+    }
+    .femboy {
+      color: #3b82f6;
+    }
+    .category-icon {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+    .contents-section {
+      margin: 20px 0 8px 0;
+      text-align: left;
+    }
+    .contents-title {
+      font-weight: bold;
+      font-size: 1.4rem;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .contents-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .contents-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .bullet-svg {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+    }
+    .divider {
+      border-top: 1px solid var(--border);
+      margin: 16px 0 16px 0;
+    }
+    .price-section {
+      margin: 28px 0;
+      padding: 20px;
+      background: rgba(250,137,107,0.08);
+      border-radius: 12px;
+      border: 1px solid rgba(250,137,107,0.25);
+    }
+    .price-label {
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .old-price {
+      text-decoration: line-through;
+      color: var(--text-light);
+      margin-left: 12px;
+    }
+    .current-price {
+      color: var(--red-discount);
+      font-size: 2.2rem;
+      font-weight: bold;
+    }
+    .save {
+      color: #13DEB9;
+      font-weight: bold;
+      margin-top: 8px;
+      display: inline-block;
+    }
+    .buttons {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 160px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-cart {
+      background: #49BEFF;
+      color: white;
+    }
+    .btn-cart.remove-mode {
+      background: #ef4444;
+    }
+    .btn-cart:hover {
+      filter: brightness(0.9);
+    }
   </style>
 </head>
 <body>
-  <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- ==================== HEADER HTML ==================== -->
-  <nav class="top-nav">
-    <div class="nav-left">
-      <button id="menuToggle" class="nav-icon" title="Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <div class="logo">VELUTINX</div>
-    </div>
-    <div class="nav-actions">
-      <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
-      <div id="langContainer">
-        <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
-          </svg>
-        </button>
-        <div id="languagePopover">
-          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
-          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
-          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
-        </div>
-      </div>
-      <button class="nav-icon" id="themeBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
-        </svg>
-      </button>
-      <div class="cart-wrapper">
-        <button class="nav-icon cart-icon" id="cartBtn">
-          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path>
-            <path d="M19 16v6"></path>
-          </svg>
-        </button>
-        <span class="cart-badge" id="cartCount">0</span>
-      </div>
-    </div>
-  </nav>
+  <!-- Shared header will be injected here -->
+  <div id="header-placeholder"></div>
 
-  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 17h-11v-14h-2"></path>
-      <path d="M6 5l14 1l-1 7h-13"></path>
-    </svg>
-    <span class="floating-badge" id="floatingCartCount">0</span>
-  </button>
-
-  <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header">
-      <h5 id="cartTitle">Shopping Cart</h5>
-      <button class="cart-close" id="cartClose">×</button>
-    </div>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total">
-      <div class="cart-total-row">
-        <span id="totalLabel">Total</span>
-        <span id="cartTotal">US$0.00</span>
-      </div>
-      <div id="paypal-button-container"></div>
-    </div>
-  </div>
-
-  <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="M20 6L9 17l-5-5"></path>
-    </svg>
-    <span id="snackText">Added successfully</span>
-  </div>
-
-  <!-- Sidebar overlay and menu -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <div class="logo">VELUTINX</div>
-    </div>
-    <div class="sidebar-menu">
-      <a href="https://velutinx.com/" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
-        <span id="menuHome">HOME</span>
-      </a>
-      <a href="https://velutinx.com/commission" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg>
-        <span id="menuCommissions">COMMISSIONS</span>
-      </a>
-      <a href="https://velutinx.com/artwork" class="menu-item">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg>
-        <span id="menuArtwork">ARTWORK</span>
-      </a>
-      <a href="https://velutinx.com/poll" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg>
-        <span id="menuPoll">POLL</span>
-      </a>
-      <a href="https://velutinx.com/store" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg>
-        <span id="menuStore">STORE</span>
-      </a>
-      <a href="https://velutinx.com/contact" class="menu-item">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg>
-        <span id="menuContact">CONTACT</span>
-      </a>
-    </div>
-    <div class="sidebar-footer">
-      <p>© VELUTINX</p>
-    </div>
-  </aside>
-
-  <!-- Page content -->
+  <!-- Pack‑specific content -->
   <main class="container">
     <div class="product">
       <div class="gallery-card" id="gallery"><p>Loading pack...</p></div>
@@ -190,548 +239,250 @@
           <div class="buttons" id="buttons"></div>
           <div class="contents-section" id="contentsSection">
             <div class="contents-title" id="contentsTitle">Contents:</div>
-            <ul class="contents-list"><li id="illustrationCount"></li></ul>
+            <ul class="contents-list" id="contentsList"></ul>
           </div>
-          <div class="disclaimer" id="disclaimer"></div>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- ==================== EMBEDDED HEADER.JS (FULL, WITH TRANSLATIONS) ==================== -->
-  <script>
-    // ---- CONFIG ----
-    const tierMap = { 
-      1.5: { JPY: 250,   CNY: 10.5, MXN: 25   },
-      3.0: { JPY: 500,   CNY: 21.0, MXN: 50   },
-      10.0: { JPY: 1500, CNY: 69.0, MXN: 175  }
-    };
-    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+  <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
+  <script src="/assets/js/shared.js"></script>
 
-    window.cart = window.cart || [];
-    let isDark = localStorage.getItem("darkMode") === "true";
-    let currentLang = localStorage.getItem("language") || "en";
-    let currentCurrency = currentLang === "en" ? "USD" : 
-                          currentLang === "ja" ? "JPY" : 
-                          currentLang === "zh" ? "CNY" : "MXN";
+  <!-- Pack‑specific JavaScript -->
+  <script type="module">
+    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
-    if (isDark) document.body.classList.add("dark");
-
-    // ---- REAL BASE PRICES (USD) ----
-    const prices = {
-      low:  1.50,
-      mid:  3.00,
-      high: 10.00
-    };
-
-    // ---- FULL TRANSLATIONS OBJECT (from header.js) ----
-    const translations = {
-      en: { 
-        shopTitle: "My Store",
-        filterTitle: "Filter by Category",
-        catAll: "All Products",
+    // ========== PACK TRANSLATIONS (embedded) ==========
+    const packTranslations = {
+      en: {
         catFemale: "Female",
         catFemboy: "Femboy",
-        catCollections: "Full Collections",
-        sortTitle: "Sort by",
-        sortNewest: "Newest",
-        sortOldest: "Oldest",
-        sortLow: "Price: Low to High",
-        sortHigh: "Price: High to Low",
-        productsTitle: "Latest Content",
-        searchPlaceholder: "Search products...",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total",
-        snackText: "Added successfully",
-        loginBtn: "Website",
-        disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-        disclaimerRefund: "Digital products are non-refundable after purchase.",
+        currentPrice: "Current Price",
         contentsTitle: "Contents:",
         contentsDesc: "ZIP file containing {count} AI-generated illustrations",
-        originalPrice: "Original Price:",
-        currentPrice: "Current Price:",
+        disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+        disclaimerRefund: "Digital products are non-refundable after purchase.",
         addToCart: "Add to Cart",
         removeFromCart: "Remove from Cart"
       },
-      ja: { 
-        shopTitle: "マイストア",
-        filterTitle: "カテゴリでフィルター",
-        catAll: "すべての商品",
-        catFemale: "女性モデル",
-        catFemboy: "男の娘モデル",
-        catCollections: "フルコレクション",
-        sortTitle: "並び替え",
-        sortNewest: "最新",
-        sortOldest: "最古",
-        sortLow: "価格：安い順",
-        sortHigh: "価格：高い順",
-        productsTitle: "最新コンテンツ",
-        searchPlaceholder: "商品を検索...",
-        cartTitle: "ショッピングカート",
-        totalLabel: "合計",
-        snackText: "カートに追加しました",
-        loginBtn: "ウェブサイト",
-        disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-        disclaimerRefund: "デジタル商品は購入後の返金はできません。",
+      ja: {
+        catFemale: "婦人",
+        catFemboy: "男の娘",
+        currentPrice: "現在の価格",
         contentsTitle: "内容：",
         contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
-        originalPrice: "元の価格：",
-        currentPrice: "現在の価格：",
+        disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+        disclaimerRefund: "デジタル商品は購入後の返金はできません。",
         addToCart: "カートに追加",
         removeFromCart: "カートから削除"
       },
       zh: {
-        shopTitle: "我的商店",
-        filterTitle: "按分类筛选",
-        catAll: "全部商品",
         catFemale: "女性模型",
         catFemboy: "伪娘模型",
-        catCollections: "完整合集",
-        sortTitle: "排序方式",
-        sortNewest: "最新上架",
-        sortOldest: "最早上架",
-        sortLow: "价格：低到高",
-        sortHigh: "价格：高到低",
-        productsTitle: "最新内容",
-        searchPlaceholder: "搜索商品…",
-        cartTitle: "购物车",
-        totalLabel: "总计",
-        snackText: "已成功加入购物车",
-        loginBtn: "网站",
-        disclaimerAge: "免责声明：所有描绘角色均设定为18岁以上。此为虚构且双方同意的创作内容。",
-        disclaimerRefund: "数字产品一经购买概不退款。",
-        contentsTitle: "内容包含：",
-        contentsDesc: "包含 {count} 张AI生成插画的ZIP文件",
-        originalPrice: "原价：",
-        currentPrice: "现价：",
+        currentPrice: "现价",
+        contentsTitle: "内容：",
+        contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
+        disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
+        disclaimerRefund: "数字产品购买后不可退款。",
         addToCart: "加入购物车",
-        removeFromCart: "移出购物车"
+        removeFromCart: "从购物车移除"
       },
       es: {
-        shopTitle: "Mi Tienda",
-        filterTitle: "Filtrar por categoría",
-        catAll: "Todos los productos",
-        catFemale: "Mujer",
+        catFemale: "Femeninos",
         catFemboy: "Femboy",
-        catCollections: "Colecciones completas",
-        sortTitle: "Ordenar por",
-        sortNewest: "Más recientes",
-        sortOldest: "Más antiguos",
-        sortLow: "Precio: de menor a mayor",
-        sortHigh: "Precio: de mayor a menor",
-        productsTitle: "Contenido más reciente",
-        searchPlaceholder: "Buscar productos...",
-        cartTitle: "Carrito de compras",
-        totalLabel: "Total",
-        snackText: "Añadido correctamente",
-        loginBtn: "Sitio web",
-        disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados tienen 18 años o más. Se trata de una representación ficticia y consensuada.",
-        disclaimerRefund: "Los productos digitales no son reembolsables una vez comprados.",
+        currentPrice: "Precio actual",
         contentsTitle: "Contenido:",
-        contentsDesc: "Archivo ZIP con {count} ilustraciones generadas por IA",
-        originalPrice: "Precio original:",
-        currentPrice: "Precio actual:",
+        contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
+        disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
+        disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
         addToCart: "Añadir al carrito",
         removeFromCart: "Eliminar del carrito"
       }
     };
 
-    // ---- PRICE & CART HELPERS (from header.js) ----
-    function getPriceForPack(pack) {
+    let currentPack = null;
+    let currentLang = localStorage.getItem('language') || 'en';
+
+    // Animated exclamation SVG bullet
+    const bulletSVG = `<svg class="bullet-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><filter id="glowBullet"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <g filter="url(#glowBullet)"><polygon points="50,10 90,85 10,85" fill="#ffcc00" stroke="#333" stroke-width="4"><animateTransform attributeName="transform" type="rotate" values="-1 50 50; 1 50 50; -1 50 50" dur="2s" repeatCount="indefinite"/></polygon></g>
+      <rect x="47" y="35" width="6" height="25" rx="2" fill="#333"><animate attributeName="height" values="25;28;25" dur="1.2s" repeatCount="indefinite"/></rect>
+      <circle cx="50" cy="70" r="4" fill="#333"><animate attributeName="r" values="4;5;4" dur="1.2s" repeatCount="indefinite"/></circle>
+    </svg>`;
+
+    // Helper: get numeric price from pack (PRICE_MID = 3.0)
+    function getPriceValue(pack) {
       if (typeof pack.price === 'number') return pack.price;
-      const code = String(pack.price || "").toUpperCase().trim();
-      if (code === "PRICE_LOW" || code === "LOW") return prices.low;
-      if (code === "PRICE_MID" || code === "PRICE_MED" || code === "MID" || code === "MED") return prices.mid;
-      if (code === "PRICE_HIGH" || code === "HIGH") return prices.high;
-      if (pack.category === 1) return prices.low;
-      if (pack.category === 2) return prices.mid;
-      return prices.mid;
+      const code = String(pack.price || '').toUpperCase();
+      if (code.includes('LOW')) return 1.5;
+      if (code.includes('MID')) return 3.0;
+      if (code.includes('HIGH')) return 10.0;
+      return 3.0;
     }
 
-    function formatPrice(value, currency = currentCurrency) {
-      const num = Number(value);
-      if (isNaN(num) || num <= 0) return currency === "USD" ? "US$0.00" : "—";
-      if (currency === "USD") return `US$${num.toFixed(2)}`;
-      const rounded = Math.round(num * 100) / 100;
-      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-        const converted = tierMap[rounded][currency];
-        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-        return `${symbol}${converted}`;
+    // Helper: get a pack translation with fallback
+    function getPackText(key, fallback) {
+      const t = packTranslations[currentLang] || packTranslations.en;
+      return t[key] !== undefined ? t[key] : fallback;
+    }
+
+    function updateCategoryDisplay() {
+      const catInfo = document.getElementById('categoryInfo');
+      if (!catInfo || !currentPack) return;
+      const category = currentPack.category;
+      if (category === 3 || category === undefined) {
+        catInfo.style.display = 'none';
+        return;
       }
-      let converted = num * (approxRates[currency] || 1);
-      converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-      return `${symbol}${converted}`;
-    }
 
-    function updateAllPrices() {
-      document.querySelectorAll(".price[data-price]").forEach(el => {
-        const base = parseFloat(el.dataset.price);
-        if (!isNaN(base)) el.textContent = formatPrice(base);
-      });
-      const totalEl = document.getElementById("cartTotal");
-      if (totalEl) {
-        const cart = getCart();
-        const total = cart.reduce((s, i) => s + (i.price || 0), 0);
-        totalEl.textContent = formatPrice(total);
+      let iconSVG = '';
+      let textClass = '';
+      let text = '';
+      if (category === 1) {
+        iconSVG = `<svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="7" r="4"/><line x1="12" y1="11" x2="12" y2="21"/><line x1="8" y1="17" x2="16" y2="17"/></svg>`;
+        textClass = 'female';
+        text = getPackText('catFemale', 'Female');
+      } else if (category === 2) {
+        iconSVG = `<svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="15" r="5"/><line x1="12.5" y1="11.5" x2="20" y2="4"/><polyline points="16,4 20,4 20,8"/></svg>`;
+        textClass = 'femboy';
+        text = getPackText('catFemboy', 'Femboy');
       }
+      catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text.toUpperCase()}</span>`;
+      catInfo.style.display = 'flex';
     }
 
-    function getCart() {
-      try {
-        const saved = localStorage.getItem("velutinx_cart");
-        return saved ? JSON.parse(saved) : [];
-      } catch { return []; }
-    }
-    function saveCart(cart) { localStorage.setItem("velutinx_cart", JSON.stringify(cart || [])); }
-
-    function showSnackbar(msg, isRemove = false) {
-      const sb = document.getElementById("snackbar");
-      const text = document.getElementById("snackText");
-      const icon = sb?.querySelector("svg");
-      if (!sb || !text || !icon) return;
-      sb.style.background = isRemove ? "#ef4444" : "var(--success)";
-      sb.style.color = "white";
-      icon.innerHTML = isRemove
-        ? `<path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
-        : `<path d="M20 6L9 17l-5-5"></path>`;
-      text.textContent = msg;
-      sb.classList.add("show");
-      setTimeout(() => sb.classList.remove("show"), 2800);
+    function updatePriceDisplay() {
+      const priceSection = document.getElementById('priceSection');
+      if (!priceSection || !currentPack) return;
+      const priceNum = getPriceValue(currentPack);
+      const priceFormatted = window.formatPrice ? window.formatPrice(priceNum) : `US$${priceNum.toFixed(2)}`;
+      const currentPriceLabel = getPackText('currentPrice', 'Current Price');
+      let html = `<div><span class="price-label">${currentPriceLabel}:</span><span style="color: var(--gray); margin: 0 8px;">│</span><span class="current-price">${priceFormatted}</span></div>`;
+      if (currentPack.oldPrice) {
+        const originalLabel = getPackText('originalPrice', 'Original Price');
+        html = `<div><span class="price-label">${originalLabel}:</span><span style="color: var(--gray); margin: 0 8px;">│</span><span class="old-price">${currentPack.oldPrice}</span></div>${html}`;
+      }
+      if (currentPack.saveText) html += `<div class="save">${currentPack.saveText}</div>`;
+      priceSection.innerHTML = html;
     }
 
-    function addOrToggleCart(pack) {
-      let cart = getCart();
-      const index = cart.findIndex(item => item.id === pack.id);
-      const isAdding = index === -1;
-      const card = document.querySelector(`.product-card[data-id="${pack.id}"]`);
-      const btn = card?.querySelector(".cart-btn");
-      let imageUrl = pack.image || `https://www.velutinx.com/i/pack${String(pack.id).padStart(3, '0')}-1.jpg`;
-      if (isAdding) {
-        cart.push({ id: pack.id, title: pack.title, image: imageUrl, price: getPriceForPack(pack), quantity: 1 });
-        btn?.classList.add("added");
-        showSnackbar("Added to cart", false);
+    function updateCartButton() {
+      const container = document.getElementById('buttons');
+      if (!container || !currentPack) return;
+      let isInCart = false;
+      if (window.getCart) {
+        isInCart = window.getCart().some(item => item.id === currentPack.id);
       } else {
-        cart.splice(index, 1);
-        btn?.classList.remove("added");
-        showSnackbar("Removed from cart", true);
+        const cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
+        isInCart = cart.some(item => item.id === currentPack.id);
       }
-      saveCart(cart);
-      updateCartDisplay();
-      updateAllPrices();
-      // Notify product page to update button (if pack.html is loaded)
-      if (window.updateButton) window.updateButton();
+      const btnText = isInCart ? getPackText('removeFromCart', 'Remove from Cart') : getPackText('addToCart', 'Add to Cart');
+      container.innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
+      document.getElementById('addCartBtn').onclick = () => {
+        window.addOrToggleCart(currentPack);
+        setTimeout(() => updateCartButton(), 30);
+      };
     }
 
-    function updateCartDisplay() {
-      const cart = getCart();
-      const count = cart.length;
-      const total = cart.reduce((s, i) => s + (i.price || 0), 0);
-      document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => { el.textContent = count; });
-      const itemsEl = document.getElementById("cartItems");
-      if (itemsEl) {
-        itemsEl.innerHTML = count === 0 ? "<p style='text-align:center; color:var(--gray); padding:2rem 0;'>Your cart is empty</p>" : "";
-        cart.forEach((item, idx) => {
-          const div = document.createElement("div");
-          div.className = "cart-item";
-          div.innerHTML = `
-            <img src="${item.image}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/85?text=?'">
-            <div class="cart-item-info">
-              <div class="cart-item-title">${item.title}</div>
-              <div class="cart-item-price">${formatPrice(item.price)}</div>
-            </div>
-            <button class="cart-item-remove" data-idx="${idx}">×</button>
-          `;
-          itemsEl.appendChild(div);
-        });
-        document.getElementById("cartTotal").textContent = formatPrice(total);
-      }
-    }
+    function updateContents() {
+      const contentsTitle = document.getElementById('contentsTitle');
+      const contentsList = document.getElementById('contentsList');
+      if (!contentsTitle || !contentsList || !currentPack) return;
 
-    // ---- LANGUAGE SETTER ----
-    function setLanguage(lang) {
-      currentLang = lang;
-      currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
-      localStorage.setItem("language", lang);
-      const t = translations[lang] || translations.en;
+      contentsTitle.textContent = getPackText('contentsTitle', 'Contents:');
+      const countText = getPackText('contentsDesc', 'ZIP file containing {count} AI-generated illustrations')
+        .replace('{count}', currentPack.illustrationCount || '?');
+      const ageText = getPackText('disclaimerAge', '');
+      const refundText = getPackText('disclaimerRefund', '');
 
-      // Update header texts (ids from original header)
-      const ids = ["shopTitle", "filterTitle", "catAll", "catFemale", "catFemboy", "catCollections",
-                   "sortTitle", "sortNewest", "sortOldest", "sortLow", "sortHigh",
-                   "productsTitle", "cartTitle", "totalLabel", "snackText", "loginBtn", "searchInput"];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) {
-          if (id === "searchInput") el.placeholder = t[id];
-          else el.textContent = t[id];
-        }
-      });
-      // Also update sidebar menu texts (if needed)
-      const menuHome = document.getElementById("menuHome");
-      const menuCommissions = document.getElementById("menuCommissions");
-      const menuArtwork = document.getElementById("menuArtwork");
-      const menuPoll = document.getElementById("menuPoll");
-      const menuStore = document.getElementById("menuStore");
-      const menuContact = document.getElementById("menuContact");
-      if (menuHome) menuHome.textContent = t.menuHome || "HOME";
-      if (menuCommissions) menuCommissions.textContent = t.menuCommissions || "COMMISSIONS";
-      if (menuArtwork) menuArtwork.textContent = t.menuArtwork || "ARTWORK";
-      if (menuPoll) menuPoll.textContent = t.menuPoll || "POLL";
-      if (menuStore) menuStore.textContent = t.menuStore || "STORE";
-      if (menuContact) menuContact.textContent = t.menuContact || "CONTACT";
-
-      document.getElementById("shopTitle")?.classList.add("loaded");
-      updateCartDisplay();
-      updateAllPrices();
-      // Re-run pack-specific display updates
-      if (window.updateCategoryDisplay) window.updateCategoryDisplay();
-      if (window.updatePriceDisplay) window.updatePriceDisplay();
-      if (window.updateButton) window.updateButton();
-      if (window.updateContents) window.updateContents();
-    }
-
-    // ---- DOM READY INIT (header + sidebar) ----
-    document.addEventListener("DOMContentLoaded", () => {
-      setLanguage(currentLang);
-
-      // Website button
-      document.getElementById("loginBtn")?.addEventListener("click", e => {
-        e.preventDefault();
-        window.location.href = "https://velutinx.com/";
-      });
-
-      // Language popover
-      const langBtn = document.getElementById("langBtn");
-      const popover = document.getElementById("languagePopover");
-      langBtn?.addEventListener("click", e => {
-        e.stopPropagation();
-        popover?.classList.toggle("show");
-      });
-      document.addEventListener("click", e => {
-        if (!document.getElementById("langContainer")?.contains(e.target)) {
-          popover?.classList.remove("show");
-        }
-      });
-      document.querySelectorAll(".lang-item").forEach(item => {
-        item.addEventListener("click", () => {
-          setLanguage(item.dataset.lang);
-          popover?.classList.remove("show");
-        });
-      });
-
-      // Theme toggle
-      document.getElementById("themeBtn")?.addEventListener("click", () => {
-        isDark = !isDark;
-        document.body.classList.toggle("dark", isDark);
-        localStorage.setItem("darkMode", isDark);
-      });
-
-      // Cart drawer
-      const cartBtn = document.getElementById("cartBtn");
-      const floatCartBtn = document.getElementById("floatingCartBtn");
-      const cartClose = document.getElementById("cartClose");
-      const cartDrawer = document.getElementById("cartDrawer");
-      const openCart = () => { cartDrawer?.classList.add("open"); document.body.classList.add("drawer-open"); };
-      const closeCart = () => { cartDrawer?.classList.remove("open"); document.body.classList.remove("drawer-open"); };
-      cartBtn?.addEventListener("click", openCart);
-      floatCartBtn?.addEventListener("click", openCart);
-      cartClose?.addEventListener("click", closeCart);
-      document.addEventListener("click", e => {
-        if (cartDrawer?.classList.contains("open") && !cartDrawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatCartBtn?.contains(e.target)) closeCart();
-      });
-      document.getElementById("cartItems")?.addEventListener("click", e => {
-        if (e.target.classList.contains("cart-item-remove")) {
-          e.stopPropagation();
-          const idx = parseInt(e.target.dataset.idx);
-          let cart = getCart();
-          cart.splice(idx, 1);
-          saveCart(cart);
-          updateCartDisplay();
-          updateAllPrices();
-          // Update product page button if it exists
-          if (window.updateButton) window.updateButton();
-        }
-      });
-
-      // Sidebar toggle
-      const sidebar = document.getElementById('sidebar');
-      const sidebarOverlay = document.getElementById('sidebarOverlay');
-      const menuToggle = document.getElementById('menuToggle');
-      const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
-      if (menuToggle && sidebar && sidebarOverlay && sidebarMenuToggle) {
-        const openSidebar = () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
-        const closeSidebar = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); document.body.style.overflow = ''; };
-        menuToggle.addEventListener('click', openSidebar);
-        sidebarMenuToggle.addEventListener('click', closeSidebar);
-        sidebarOverlay.addEventListener('click', closeSidebar);
-      }
-
-      updateCartDisplay();
-      updateAllPrices();
-    });
-
-    // Expose globals so pack script can use them
-    window.getPriceForPack = getPriceForPack;
-    window.addOrToggleCart = addOrToggleCart;
-    window.updateCartDisplay = updateCartDisplay;
-    window.updateAllPrices = updateAllPrices;
-    window.formatPrice = formatPrice;
-    window.getCart = getCart;
-    window.saveCart = saveCart;
-    window.translations = translations;
-    window.currentLang = currentLang;
-  </script>
-
-  <!-- ==================== PACK-SPECIFIC SCRIPT ==================== -->
-  <script src="https://velutinx.com/assets/js/shop-shared.js?v=20250310"></script>
-  <script type="module">
-    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
-
-    let currentLang = localStorage.getItem("language") || "en";
-    const params = new URLSearchParams(window.location.search);
-    const packIdFromUrl = params.get("id") || "001";
-    const pack = packsData.find(p => p.id === packIdFromUrl);
-
-    if (!pack) {
-      document.getElementById("title").textContent = "Pack not found";
-    } else {
-      const paddedId = pack.id.padStart(3, '0');
-      pack.images = Array.from({ length: 4 }, (_, i) => 
-        `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
-      );
-
-      document.getElementById("title").textContent = pack.title || "Untitled Pack";
-
-      window.updateCategoryDisplay = function() {
-        const catInfo = document.getElementById("categoryInfo");
-        if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
-          catInfo.style.display = "none";
-          return;
-        }
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
-        let iconSVG = "";
-        let textClass = "";
-        let text = t.catFemale || "Female";
-        if (pack.category === 1) {
-          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="7" r="4"/>
-            <line x1="12" y1="11" x2="12" y2="21"/>
-            <line x1="8" y1="17" x2="16" y2="17"/>
-          </svg>`;
-          textClass = "female";
-        } else if (pack.category === 2) {
-          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="9" cy="15" r="5"/>
-            <line x1="12.5" y1="11.5" x2="20" y2="4"/>
-            <polyline points="16,4 20,4 20,8"/>
-          </svg>`;
-          textClass = "femboy";
-          text = t.catFemboy || "Femboy";
-        }
-        catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text.toUpperCase()}</span>`;
-        catInfo.style.display = "flex";
-      };
-
-      window.updatePriceDisplay = function() {
-        if (!pack) return;
-        const priceNum = window.getPriceForPack?.(pack) ?? 0;
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
-        let priceHTML = `
-          <div>
-            <span class="price-label">${t.currentPrice || "Current Price"}:</span>
-            <span style="color: var(--gray); margin: 0 8px;">│</span>
-            <span class="current-price">${window.formatPrice?.(priceNum) || `US$${priceNum.toFixed(2)}`}</span>
-          </div>
-        `;
-        if (pack.oldPrice && pack.oldPrice.trim() !== "") {
-          priceHTML = `
-            <div>
-              <span class="price-label">${t.originalPrice || "Original Price"}:</span>
-              <span style="color: var(--gray); margin: 0 8px;">│</span>
-              <span class="old-price">${pack.oldPrice}</span>
-            </div>
-            ${priceHTML}
-          `;
-        }
-        if (pack.saveText) {
-          priceHTML += `<div class="save">${pack.saveText}</div>`;
-        }
-        document.getElementById("priceSection").innerHTML = priceHTML;
-      };
-
-      window.updateButton = function() {
-        if (!pack) return;
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
-        const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-        const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
-        const btn = document.getElementById("addCartBtn");
-        if (btn) {
-          btn.textContent = btnText;
-          // Toggle red class for remove mode
-          if (isInCart) {
-            btn.classList.add("remove-mode");
-          } else {
-            btn.classList.remove("remove-mode");
-          }
-        } else {
-          // If button doesn't exist yet, create it
-          document.getElementById("buttons").innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
-          document.getElementById("addCartBtn").onclick = () => {
-            window.addOrToggleCart?.(pack);
-            window.updateButton?.();
-          };
-        }
-      };
-
-      window.updateContents = function() {
-        if (!pack) return;
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
-        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
-        document.getElementById("illustrationCount").textContent = (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations")
-          .replace("{count}", pack.illustrationCount || "X");
-      };
-
-      window.updateCategoryDisplay?.();
-      window.updatePriceDisplay?.();
-      window.updateButton?.();
-      window.updateContents?.();
-
-      // Gallery
-      document.getElementById("gallery").innerHTML = `
-        <div class="carousel">
-          <div class="slides" id="slides">
-            ${pack.images?.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'"></div>`).join('') || '<p>No images available</p>'}
-          </div>
-          <button class="arrow prev" onclick="prevSlide()">❮</button>
-          <button class="arrow next" onclick="nextSlide()">❯</button>
-        </div>
-        <div class="thumbnails">
-          ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
-        </div>
+      contentsList.innerHTML = `
+        <li>${bulletSVG} <span>${countText}</span></li>
+        <div class="divider"></div>
+        <li>${bulletSVG} <span>${ageText}</span></li>
+        <li>${bulletSVG} <span>${refundText}</span></li>
       `;
-
-      let current = 0;
-      const total = pack.images?.length || 0;
-      window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
-      window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
-      window.goToSlide = (i) => { current = i; updateCarousel(); };
-      function updateCarousel() {
-        document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
-        document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === current));
-      }
     }
 
-    // Re-run display updates when language changes
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        const newLang = item.dataset.lang;
-        currentLang = newLang;
-        window.updatePriceDisplay?.();
-        window.updateButton?.();
-        window.updateContents?.();
-        window.updateCategoryDisplay?.();
+    function refreshAllTranslations() {
+      updateCategoryDisplay();
+      updatePriceDisplay();
+      updateCartButton();
+      updateContents();
+    }
+
+    function renderGallery(images) {
+      const galleryDiv = document.getElementById('gallery');
+      if (!galleryDiv) return;
+      const total = images.length;
+      if (total === 0) { galleryDiv.innerHTML = '<p>No images available</p>'; return; }
+
+      galleryDiv.innerHTML = `
+        <div class="carousel">
+          <div class="slides" id="slides">${images.map(img => `<div class="slide"><img src="${img}" onerror="this.src='https://placehold.co/800x600?text=Image+Error'"></div>`).join('')}</div>
+          <button class="arrow prev" id="prevBtn">❮</button><button class="arrow next" id="nextBtn">❯</button>
+        </div>
+        <div class="thumbnails" id="thumbnails">${images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" data-index="${i}" onerror="this.src='https://placehold.co/90x120?text=Thumb+Error'">`).join('')}</div>
+      `;
+      const slides = document.getElementById('slides');
+      const prev = document.getElementById('prevBtn');
+      const next = document.getElementById('nextBtn');
+      const thumbs = document.querySelectorAll('.thumb');
+      let current = 0;
+      const update = () => {
+        slides.style.transform = `translateX(-${current*100}%)`;
+        thumbs.forEach((t,i)=>t.classList.toggle('active', i===current));
+      };
+      prev.onclick = () => { current = (current-1+total)%total; update(); };
+      next.onclick = () => { current = (current+1)%total; update(); };
+      thumbs.forEach((t,i)=>t.onclick = () => { current=i; update(); });
+    }
+
+    function initPack() {
+      const id = new URLSearchParams(window.location.search).get('id') || '001';
+      const pack = packsData.find(p => p.id === id);
+      if (!pack) { document.getElementById('title').textContent = 'Pack not found'; return; }
+      currentPack = pack;
+      document.getElementById('title').textContent = pack.title;
+      const images = Array.from({ length: 4 }, (_,i)=>`https://www.velutinx.com/i/pack${pack.id.padStart(3,'0')}-${i+1}.jpg`);
+      renderGallery(images);
+      refreshAllTranslations();
+
+      // Listen for language changes (shared event)
+      document.addEventListener('languageChanged', () => {
+        currentLang = localStorage.getItem('language') || 'en';
+        refreshAllTranslations();
       });
-    });
+
+      // Poll for cart changes (to update button instantly)
+      let lastCart = localStorage.getItem('velutinx_cart');
+      setInterval(() => {
+        const newCart = localStorage.getItem('velutinx_cart');
+        if (newCart !== lastCart) {
+          lastCart = newCart;
+          updateCartButton();
+        }
+      }, 500);
+
+      // Ensure cart drawer closes when clicking outside (shared script already does, but safe fallback)
+      document.addEventListener('click', e => {
+        const drawer = document.getElementById('cartDrawer');
+        if (!drawer?.classList.contains('open')) return;
+        const cartBtn = document.getElementById('cartBtn');
+        const floatBtn = document.getElementById('floatingCartBtn');
+        if (!drawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatBtn?.contains(e.target)) {
+          drawer.classList.remove('open');
+          const overlay = document.getElementById('cartOverlay');
+          if (overlay) overlay.classList.remove('active');
+          document.body.classList.remove('drawer-open');
+        }
+      });
+    }
+
+    // Wait for shared header to be ready
+    document.addEventListener('headerReady', initPack);
+    setTimeout(() => { if (typeof window.addOrToggleCart === 'function') initPack(); }, 1000);
   </script>
 </body>
 </html>
