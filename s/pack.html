@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velutinx Pack</title>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+
+  <!-- PayPal SDK is now loaded dynamically by shop-shared.js – no direct include needed -->
+
   <style>
-    /* Your original styles – unchanged */
     .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -26,7 +28,15 @@
     .thumb.active, .thumb:hover { border-color: #5D87FF; opacity: 1; transform: scale(1.04); }
     .info { padding: 28px; }
     h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
-    .category-info { font-size: 1rem; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .category-info {
+      font-size: 1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .female { color: #ec4899; }
     .femboy { color: #3b82f6; }
     .category-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; }
@@ -44,59 +54,84 @@
     .btn-cart { background: #49BEFF; color: white; }
     .btn-cart:hover { background: #23afdb; }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
-    #snackbar { position: fixed; top: 28px; right: 28px; background: #22c55e; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; z-index: 1300; transform: translateY(-100px); opacity: 0; transition: all 0.4s ease; font-size: 0.95rem; min-width: 220px; }
-    #snackbar.show { transform: translateY(0); opacity: 1; }
-    #snackbar.remove { background: #ef4444; }
+    #snackbar {
+      position: fixed;
+      top: 28px;
+      right: 28px;
+      background: #22c55e;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 1300;
+      transform: translateY(-100px);
+      opacity: 0;
+      transition: all 0.4s ease;
+      font-size: 0.95rem;
+      min-width: 220px;
+    }
+    #snackbar.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    #snackbar.remove {
+      background: #ef4444;
+    }
   </style>
 </head>
 <body>
   <div class="lang-swipe" id="langSwipe"></div>
+<nav class="top-nav">
+  <div class="nav-left">
+    <!-- Hamburger at top-left -->
+    <button id="menuToggle" class="nav-icon" title="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div class="logo">VELUTINX</div>
+  </div>
 
-  <nav class="top-nav">
-    <div class="nav-left">
-      <button id="menuToggle" class="nav-icon" title="Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <div class="logo">VELUTINX</div>
-    </div>
-    <div class="nav-actions">
-      <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
-      <div id="langContainer">
-        <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
-          </svg>
-        </button>
-        <div id="languagePopover">
-          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
-          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
-          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
-        </div>
-      </div>
-      <button class="nav-icon" id="themeBtn">
+  <div class="nav-actions">
+    <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
+    <div id="langContainer">
+      <button class="nav-icon lang-btn" id="langBtn" title="Language">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+          <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
         </svg>
       </button>
-      <div class="cart-wrapper">
-        <button class="nav-icon cart-icon" id="cartBtn">
-          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path>
-            <path d="M19 16v6"></path>
-          </svg>
-        </button>
-        <span class="cart-badge" id="cartCount">0</span>
+      <div id="languagePopover">
+        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
+        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
+        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
+        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
       </div>
     </div>
-  </nav>
+    <button class="nav-icon" id="themeBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+      </svg>
+    </button>
+    <div class="cart-wrapper">
+      <button class="nav-icon cart-icon" id="cartBtn">
+        <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 17h-11v-14h-2"></path>
+          <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+          <path d="M16 19h6"></path>
+          <path d="M19 16v6"></path>
+        </svg>
+      </button>
+      <span class="cart-badge" id="cartCount">0</span>
+    </div>
+  </div>
+</nav>
 
+  
   <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -106,44 +141,40 @@
     </svg>
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
-
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
-      <h5 id="cartTitle"></h5>
+      <h5 id="cartTitle">Shopping Cart</h5>
       <button class="cart-close" id="cartClose">×</button>
     </div>
     <div class="cart-items" id="cartItems"></div>
     <div class="cart-total">
       <div class="cart-total-row">
-        <span id="totalLabel"></span>
+        <span id="totalLabel">Total</span>
         <span id="cartTotal">US$0.00</span>
       </div>
       <div id="paypal-button-container"></div>
     </div>
   </div>
-
   <div id="snackbar">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
     </svg>
-    <span id="snackText"></span>
+    <span id="snackText">Added successfully</span>
   </div>
-
   <main class="container">
     <div class="product">
-      <div class="gallery-card" id="gallery"><p id="loadingPackText"></p></div>
+      <div class="gallery-card" id="gallery"><p>Loading pack...</p></div>
       <div class="info-card">
         <div class="info" id="info">
-          <h1 id="title"></h1>
+          <h1 id="title">Loading...</h1>
           <div class="category-info" id="categoryInfo"></div>
           <div class="price-section" id="priceSection"></div>
           <div class="buttons" id="buttons"></div>
           <div class="contents-section" id="contentsSection">
-            <div class="contents-title" id="contentsTitle"></div>
+            <div class="contents-title" id="contentsTitle">Contents:</div>
             <ul class="contents-list"><li id="illustrationCount"></li></ul>
           </div>
-          <div class="disclaimer" id="disclaimerAge"></div>
-          <div class="disclaimer" id="disclaimerRefund"></div>
+          <div class="disclaimer" id="disclaimer"></div>
         </div>
       </div>
     </div>
@@ -152,57 +183,62 @@
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js?v=20250310"></script>
 
+  <!-- Page‑specific pack loader -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
     let currentLang = localStorage.getItem("language") || "en";
-    const t = () => window.translations?.[currentLang] || window.translations?.en || {};
-
     const params = new URLSearchParams(window.location.search);
     const packIdFromUrl = params.get("id") || "001";
     const pack = packsData.find(p => p.id === packIdFromUrl);
-
-    function updateStaticTexts() {
-      document.getElementById("cartTitle").textContent      = t().cartTitle      || "Shopping Cart";
-      document.getElementById("totalLabel").textContent     = t().totalLabel     || "Total";
-      document.getElementById("snackText").textContent      = t().snackText      || "Added successfully";
-      document.getElementById("loadingPackText").textContent = "Loading pack..."; // keep simple or add key if desired
-      document.getElementById("disclaimerAge").textContent   = t().disclaimerAge   || "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.";
-      document.getElementById("disclaimerRefund").textContent = t().disclaimerRefund || "Digital products are non-refundable after purchase.";
-    }
 
     if (!pack) {
       document.getElementById("title").textContent = "Pack not found";
     } else {
       const paddedId = pack.id.padStart(3, '0');
-      pack.images = Array.from({ length: 4 }, (_, i) => `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`);
+      pack.images = Array.from({ length: 4 }, (_, i) => 
+        `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
+      );
+
+      document.getElementById("title").textContent = pack.title || "Untitled Pack";
 
       window.updateCategoryDisplay = function() {
         const catInfo = document.getElementById("categoryInfo");
-        if (!catInfo || pack.category === 3 || pack.category === undefined) {
+        if (!catInfo || !pack || pack.category === 3 || pack.category === undefined) {
           catInfo.style.display = "none";
           return;
         }
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
         let iconSVG = "";
         let textClass = "";
-        let text = t().catFemale || "Female Models";
+        let text = t.catFemale || "Female";
         if (pack.category === 1) {
-          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><line x1="12" y1="11" x2="12" y2="21"/><line x1="8" y1="17" x2="16" y2="17"/></svg>`;
+          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="7" r="4"/>
+            <line x1="12" y1="11" x2="12" y2="21"/>
+            <line x1="8" y1="17" x2="16" y2="17"/>
+          </svg>`;
           textClass = "female";
         } else if (pack.category === 2) {
-          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="15" r="5"/><line x1="12.5" y1="11.5" x2="20" y2="4"/><polyline points="16,4 20,4 20,8"/></svg>`;
+          iconSVG = `<svg class="category-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="15" r="5"/>
+            <line x1="12.5" y1="11.5" x2="20" y2="4"/>
+            <polyline points="16,4 20,4 20,8"/>
+          </svg>`;
           textClass = "femboy";
-          text = t().catFemboy || "Femboy Models";
+          text = t.catFemboy || "Femboy";
         }
         catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text.toUpperCase()}</span>`;
         catInfo.style.display = "flex";
       };
 
       window.updatePriceDisplay = function() {
+        if (!pack) return;
         const priceNum = window.getPriceForPack?.(pack) ?? 0;
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
         let priceHTML = `
           <div>
-            <span class="price-label">${t().currentPrice || "Current Price"}:</span>
+            <span class="price-label">${t.currentPrice || "Current Price"}:</span>
             <span style="color: var(--gray); margin: 0 8px;">│</span>
             <span class="current-price">${window.formatPrice?.(priceNum) || `US$${priceNum.toFixed(2)}`}</span>
           </div>
@@ -210,20 +246,24 @@
         if (pack.oldPrice && pack.oldPrice.trim() !== "") {
           priceHTML = `
             <div>
-              <span class="price-label">${t().originalPrice || "Original Price"}:</span>
+              <span class="price-label">${t.originalPrice || "Original Price"}:</span>
               <span style="color: var(--gray); margin: 0 8px;">│</span>
               <span class="old-price">${pack.oldPrice}</span>
             </div>
             ${priceHTML}
           `;
         }
-        if (pack.saveText) priceHTML += `<div class="save">${pack.saveText}</div>`;
+        if (pack.saveText) {
+          priceHTML += `<div class="save">${pack.saveText}</div>`;
+        }
         document.getElementById("priceSection").innerHTML = priceHTML;
       };
 
       window.updateButton = function() {
+        if (!pack) return;
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
         const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
-        const btnText = isInCart ? (t().removeFromCart || "Remove from Cart") : (t().addToCart || "Add to Cart");
+        const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
         document.getElementById("buttons").innerHTML = `<button class="btn btn-cart" id="addCartBtn">${btnText}</button>`;
         document.getElementById("addCartBtn").onclick = () => {
           window.addOrToggleCart?.(pack);
@@ -232,55 +272,59 @@
       };
 
       window.updateContents = function() {
-        document.getElementById("contentsTitle").textContent = t().contentsTitle || "Contents:";
-        document.getElementById("illustrationCount").textContent = (t().contentsDesc || "ZIP file containing {count} AI-generated illustrations")
+        if (!pack) return;
+        const t = window.translations?.[currentLang] || window.translations?.en || {};
+        document.getElementById("contentsTitle").textContent = t.contentsTitle || "Contents:";
+        document.getElementById("illustrationCount").textContent = (t.contentsDesc || "ZIP file containing {count} AI-generated illustrations")
           .replace("{count}", pack.illustrationCount || "X");
       };
 
-      function updateAll() {
-        updateStaticTexts();
-        document.getElementById("title").textContent = pack.title || "Untitled Pack";
-        window.updateCategoryDisplay?.();
-        window.updatePriceDisplay?.();
-        window.updateButton?.();
-        window.updateContents?.();
+      window.updateCategoryDisplay?.();
+      window.updatePriceDisplay?.();
+      window.updateButton?.();
+      window.updateContents?.();
 
-        document.getElementById("gallery").innerHTML = `
-          <div class="carousel">
-            <div class="slides" id="slides">
-              ${pack.images.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'"></div>`).join('')}
-            </div>
-            <button class="arrow prev" onclick="prevSlide()">❮</button>
-            <button class="arrow next" onclick="nextSlide()">❯</button>
+      document.getElementById("gallery").innerHTML = `
+        <div class="carousel">
+          <div class="slides" id="slides">
+            ${pack.images?.map(img => `<div class="slide"><img src="${img}" alt="Pack image" onerror="this.src='https://via.placeholder.com/800x600?text=Image+Error'"></div>`).join('') || '<p>No images available</p>'}
           </div>
-          <div class="thumbnails">
-            ${pack.images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('')}
-          </div>
-        `;
+          <button class="arrow prev" onclick="prevSlide()">❮</button>
+          <button class="arrow next" onclick="nextSlide()">❯</button>
+        </div>
+        <div class="thumbnails">
+          ${pack.images?.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" alt="Thumbnail" onclick="goToSlide(${i})" onerror="this.src='https://via.placeholder.com/90x120?text=Thumb+Error'">`).join('') || '<p>No thumbnails</p>'}
+        </div>
+      `;
 
-        let current = 0;
-        const total = pack.images.length;
-        window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
-        window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
-        window.goToSlide = (i) => { current = i; updateCarousel(); };
-        function updateCarousel() {
-          document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
-          document.querySelectorAll('.thumb').forEach((el, idx) => el.classList.toggle('active', idx === current));
-        }
+      let current = 0;
+      const total = pack.images?.length || 0;
+      window.prevSlide = () => { current = (current - 1 + total) % total; updateCarousel(); };
+      window.nextSlide = () => { current = (current + 1) % total; updateCarousel(); };
+      window.goToSlide = (i) => { current = i; updateCarousel(); };
+      function updateCarousel() {
+        document.getElementById('slides').style.transform = `translateX(-${current * 100}%)`;
+        document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === current));
       }
-
-      updateAll();
-
-      document.querySelectorAll(".lang-item").forEach(item => {
-        item.onclick = () => {
-          const newLang = item.dataset.lang;
-          localStorage.setItem("language", newLang);
-          currentLang = newLang;
-          updateAll();
-          if (window.updateAllPrices) window.updateAllPrices();
-        };
-      });
     }
+
+document.querySelectorAll(".lang-item").forEach(item => {
+  item.onclick = () => {
+    const newLang = item.dataset.lang;
+    // Update localStorage
+    localStorage.setItem("language", newLang);
+    // Update page-specific content
+    currentLang = newLang;
+    window.updatePriceDisplay?.();
+    window.updateButton?.();
+    window.updateContents?.();
+    window.updateCategoryDisplay?.();
+    // Also update any global UI (like prices) via shop-shared.js
+    if (window.updateAllPrices) window.updateAllPrices();
+  };
+});
   </script>
+
+  <!-- The standalone PayPal script block has been removed – now handled by shop-shared.js -->
 </body>
 </html>
