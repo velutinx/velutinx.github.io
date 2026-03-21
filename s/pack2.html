@@ -248,7 +248,7 @@
           <div class="contents-section" id="contentsSection">
             <div class="contents-title" id="contentsTitle">Contents:</div>
             <ul class="contents-list" id="contentsList">
-              <!-- dynamic -->
+              <!-- filled by script -->
             </ul>
           </div>
         </div>
@@ -259,21 +259,14 @@
   <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Pack‑specific JavaScript (product data, gallery, cart integration) -->
+  <!-- Pack‑specific JavaScript -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
-
-    // Wait for shared header and cart functions to be ready
-    document.addEventListener('headerReady', initPack);
-    // Fallback in case event doesn't fire
-    setTimeout(() => {
-      if (typeof window.addOrToggleCart === 'function') initPack();
-    }, 500);
 
     let currentPack = null;
     let currentLang = localStorage.getItem('language') || 'en';
 
-    // SVG for bullet points (exclamation mark with glow and animation)
+    // SVG bullet (animated exclamation)
     const bulletSVG = `<svg class="bullet-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="glowBullet">
@@ -285,10 +278,7 @@
         </filter>
       </defs>
       <g filter="url(#glowBullet)">
-        <polygon points="50,10 90,85 10,85"
-          fill="#ffcc00"
-          stroke="#333"
-          stroke-width="4">
+        <polygon points="50,10 90,85 10,85" fill="#ffcc00" stroke="#333" stroke-width="4">
           <animateTransform attributeName="transform" type="rotate" values="-1 50 50; 1 50 50; -1 50 50" dur="2s" repeatCount="indefinite"/>
         </polygon>
       </g>
@@ -300,62 +290,21 @@
       </circle>
     </svg>`;
 
-    function initPack() {
-      const params = new URLSearchParams(window.location.search);
-      const packId = params.get('id') || '001';
-      const pack = packsData.find(p => p.id === packId);
-
-      if (!pack) {
-        document.getElementById('title').textContent = 'Pack not found';
-        return;
-      }
-
-      currentPack = pack;
-      const paddedId = pack.id.padStart(3, '0');
-      const images = Array.from({ length: 4 }, (_, i) =>
-        `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
-      );
-
-      document.getElementById('title').textContent = pack.title;
-
-      updateCategoryDisplay(pack.category);
-      updatePriceDisplay(pack);
-      updateCartButton(pack);
-      updateContents(pack);
-      renderGallery(images);
-
-      // Language changes
-      document.addEventListener('languageChanged', () => {
-        currentLang = localStorage.getItem('language') || 'en';
-        updateCategoryDisplay(pack.category);
-        updatePriceDisplay(pack);
-        updateCartButton(pack);
-        updateContents(pack);
-      });
-
-      // Listen for cart changes via localStorage (from other tabs or same page)
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'velutinx_cart') {
-          updateCartButton(pack);
-        }
-      });
-      // Poll every 2 seconds as a fallback (to catch same‑page changes without events)
-      let lastCartStr = localStorage.getItem('velutinx_cart');
-      setInterval(() => {
-        const newCartStr = localStorage.getItem('velutinx_cart');
-        if (newCartStr !== lastCartStr) {
-          lastCartStr = newCartStr;
-          updateCartButton(pack);
-        }
-      }, 2000);
-
-      // Ensure cart drawer closes when clicking outside
-      ensureCartClosesOnOutsideClick();
+    // Helper: get numeric price from pack
+    function getPriceValue(pack) {
+      if (typeof pack.price === 'number') return pack.price;
+      const code = String(pack.price || '').toUpperCase();
+      if (code.includes('LOW')) return 1.5;
+      if (code.includes('MID')) return 3.0;
+      if (code.includes('HIGH')) return 10.0;
+      return 3.0;
     }
 
-    function updateCategoryDisplay(category) {
+    // ---------- UI Update Functions ----------
+    function updateCategoryDisplay() {
       const catInfo = document.getElementById('categoryInfo');
-      if (!catInfo) return;
+      if (!catInfo || !currentPack) return;
+      const category = currentPack.category;
       const t = window.translations?.[currentLang] || window.translations?.en || {};
 
       if (category === 3 || category === undefined) {
@@ -389,11 +338,11 @@
       catInfo.style.display = 'flex';
     }
 
-    function updatePriceDisplay(pack) {
+    function updatePriceDisplay() {
       const priceSection = document.getElementById('priceSection');
-      if (!priceSection) return;
+      if (!priceSection || !currentPack) return;
       const t = window.translations?.[currentLang] || window.translations?.en || {};
-      const priceNum = getPriceValue(pack);
+      const priceNum = getPriceValue(currentPack);
       const priceFormatted = window.formatPrice ? window.formatPrice(priceNum) : `US$${priceNum.toFixed(2)}`;
 
       let html = `
@@ -403,66 +352,55 @@
           <span class="current-price">${priceFormatted}</span>
         </div>
       `;
-      if (pack.oldPrice) {
+      if (currentPack.oldPrice) {
         html = `
           <div>
             <span class="price-label">${t.originalPrice || 'Original Price'}:</span>
             <span style="color: var(--gray); margin: 0 8px;">│</span>
-            <span class="old-price">${pack.oldPrice}</span>
+            <span class="old-price">${currentPack.oldPrice}</span>
           </div>
           ${html}
         `;
       }
-      if (pack.saveText) {
-        html += `<div class="save">${pack.saveText}</div>`;
+      if (currentPack.saveText) {
+        html += `<div class="save">${currentPack.saveText}</div>`;
       }
       priceSection.innerHTML = html;
     }
 
-    function getPriceValue(pack) {
-      if (typeof pack.price === 'number') return pack.price;
-      const code = String(pack.price || '').toUpperCase();
-      if (code.includes('LOW')) return 1.5;
-      if (code.includes('MID')) return 3.0;
-      if (code.includes('HIGH')) return 10.0;
-      return 3.0;
-    }
-
-    function updateCartButton(pack) {
+    function updateCartButton() {
       const container = document.getElementById('buttons');
-      if (!container) return;
+      if (!container || !currentPack) return;
       const t = window.translations?.[currentLang] || window.translations?.en || {};
-      // Check cart using shared getCart or localStorage
+
+      // Check cart via shared getCart or localStorage
       let isInCart = false;
       if (window.getCart) {
-        isInCart = window.getCart().some(item => item.id === pack.id);
+        isInCart = window.getCart().some(item => item.id === currentPack.id);
       } else {
         const cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
-        isInCart = cart.some(item => item.id === pack.id);
+        isInCart = cart.some(item => item.id === currentPack.id);
       }
       const btnText = isInCart ? (t.removeFromCart || 'Remove from Cart') : (t.addToCart || 'Add to Cart');
       container.innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
       const btn = document.getElementById('addCartBtn');
       btn.onclick = () => {
-        window.addOrToggleCart(pack);
-        // Force immediate update after action (shared script might not dispatch event)
-        setTimeout(() => updateCartButton(pack), 50);
+        window.addOrToggleCart(currentPack);
+        // Force immediate update (shared script may not dispatch event)
+        setTimeout(() => updateCartButton(), 30);
       };
     }
 
-    function updateContents(pack) {
+    function updateContents() {
       const t = window.translations?.[currentLang] || window.translations?.en || {};
       const contentsTitle = document.getElementById('contentsTitle');
       const contentsList = document.getElementById('contentsList');
-      if (!contentsTitle || !contentsList) return;
+      if (!contentsTitle || !contentsList || !currentPack) return;
 
       contentsTitle.textContent = t.contentsTitle || 'Contents:';
 
-      // Bullet 1: illustration count
       const countText = (t.contentsDesc || 'ZIP file containing {count} AI-generated illustrations')
-        .replace('{count}', pack.illustrationCount || '?');
-
-      // Bullet 2 & 3: disclaimers (placed after a divider)
+        .replace('{count}', currentPack.illustrationCount || '?');
       const ageText = t.disclaimerAge || 'Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.';
       const refundText = t.disclaimerRefund || 'Digital products are non-refundable after purchase.';
 
@@ -474,6 +412,15 @@
       `;
     }
 
+    // Re‑render everything when language changes
+    function refreshAllTranslations() {
+      updateCategoryDisplay();
+      updatePriceDisplay();
+      updateCartButton();
+      updateContents();
+    }
+
+    // ---------- Gallery (carousel) ----------
     function renderGallery(images) {
       const galleryDiv = document.getElementById('gallery');
       if (!galleryDiv) return;
@@ -504,9 +451,7 @@
 
       function updateCarousel() {
         slides.style.transform = `translateX(-${currentSlide * 100}%)`;
-        thumbs.forEach((thumb, idx) => {
-          thumb.classList.toggle('active', idx === currentSlide);
-        });
+        thumbs.forEach((thumb, idx) => thumb.classList.toggle('active', idx === currentSlide));
       }
 
       prevBtn.addEventListener('click', () => {
@@ -525,13 +470,49 @@
       });
     }
 
-    function ensureCartClosesOnOutsideClick() {
-      // Fallback: if the shared script doesn't close the drawer on outside click, we do it manually.
+    // ---------- Initialisation ----------
+    function initPack() {
+      const params = new URLSearchParams(window.location.search);
+      const packId = params.get('id') || '001';
+      const pack = packsData.find(p => p.id === packId);
+
+      if (!pack) {
+        document.getElementById('title').textContent = 'Pack not found';
+        return;
+      }
+
+      currentPack = pack;
+      const paddedId = pack.id.padStart(3, '0');
+      const images = Array.from({ length: 4 }, (_, i) =>
+        `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
+      );
+
+      document.getElementById('title').textContent = pack.title;
+      renderGallery(images);
+      refreshAllTranslations();
+
+      // Listen for language changes
+      document.addEventListener('languageChanged', () => {
+        currentLang = localStorage.getItem('language') || 'en';
+        refreshAllTranslations();
+      });
+
+      // Poll for cart changes (so button updates instantly when added/removed from drawer)
+      let lastCart = localStorage.getItem('velutinx_cart');
+      setInterval(() => {
+        const newCart = localStorage.getItem('velutinx_cart');
+        if (newCart !== lastCart) {
+          lastCart = newCart;
+          updateCartButton();
+        }
+      }, 500);
+
+      // Ensure cart drawer closes when clicking outside (fallback)
       document.addEventListener('click', function(e) {
         const drawer = document.getElementById('cartDrawer');
+        if (!drawer || !drawer.classList.contains('open')) return;
         const cartBtn = document.getElementById('cartBtn');
         const floatBtn = document.getElementById('floatingCartBtn');
-        if (!drawer || !drawer.classList.contains('open')) return;
         if (!drawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatBtn?.contains(e.target)) {
           drawer.classList.remove('open');
           const overlay = document.getElementById('cartOverlay');
@@ -540,6 +521,12 @@
         }
       });
     }
+
+    // Wait for shared header to be ready
+    document.addEventListener('headerReady', initPack);
+    setTimeout(() => {
+      if (typeof window.addOrToggleCart === 'function') initPack();
+    }, 1000);
   </script>
 </body>
 </html>
