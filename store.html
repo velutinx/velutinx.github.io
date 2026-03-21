@@ -494,36 +494,55 @@
   </script>
 
   <!-- Language switcher + dynamic search placeholder -->
-  <script>
-    // Helper to get current translations
-    function getT() {
-      const lang = localStorage.getItem("language") || "en";
-      return window.translations?.[lang] || window.translations?.en || {};
-    }
+<script>
+// Helper to get current translations (same as in membership.html)
+function getT() {
+  const lang = localStorage.getItem("language") || "en";
+  return window.translations?.[lang] || window.translations?.en || {};
+}
 
-    // Update search placeholder using translations
-    function updateSearchPlaceholder() {
-      const t = getT();
-      const searchInput = document.getElementById("searchInput");
-      if (searchInput) {
-        searchInput.placeholder = t.searchPlaceholder || "Search products...";
-      }
-    }
+// Update search placeholder
+function updateSearchPlaceholder() {
+  const t = getT();
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.placeholder = t.searchPlaceholder || "Search products...";
+  }
+}
 
-    // Run on page load
-    window.addEventListener('load', () => {
+// Update category labels (All, Female, Femboy, Collections)
+function updateCategoryLabels() {
+  const t = getT();
+  
+  const catAllEl = document.getElementById("catAll");
+  if (catAllEl) catAllEl.textContent = t.catAll || "All Products";
+
+  const catFemaleEl = document.getElementById("catFemale");
+  if (catFemaleEl) catFemaleEl.textContent = t.catFemale || "Female Models";
+
+  const catFemboyEl = document.getElementById("catFemboy");
+  if (catFemboyEl) catFemboyEl.textContent = t.catFemboy || "Femboy Models";
+
+  const catCollectionsEl = document.getElementById("catCollections");
+  if (catCollectionsEl) catCollectionsEl.textContent = t.catCollections || "Full Collections";
+}
+
+// Run updates on page load
+window.addEventListener('load', () => {
+  updateSearchPlaceholder();
+  updateCategoryLabels();
+});
+
+// Update everything when language changes
+document.querySelectorAll(".lang-item").forEach(item => {
+  item.addEventListener("click", () => {
+    setTimeout(() => {
+      if (window.updateAllPrices) window.updateAllPrices();
       updateSearchPlaceholder();
-    });
-
-    // Update on language change
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        setTimeout(() => {
-          if (window.updateAllPrices) window.updateAllPrices();
-          updateSearchPlaceholder();  // Pulls from translations
-        }, 100);
-      });
-    });
-  </script>
+      updateCategoryLabels();  // This fixes the category labels
+    }, 100);
+  });
+});
+</script>
 </body>
 </html>
