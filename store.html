@@ -499,20 +499,27 @@
     });
   </script>
 
-  <!-- Product listing script (single copy) -->
-  <script type="module">
+
+
+
+  
+<script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
     window.addEventListener('load', async () => {
-      // Wait for header to be fully ready (ensures global helpers are defined)
+      // 1. Wait for header/globals to be ready
       await new Promise(resolve => {
         if (window.getPriceForPack && window.formatPrice) resolve();
         else window.addEventListener('headerReady', resolve, { once: true });
       });
 
+      // 2. Map the data
+      // We keep a reference to the original 'p.price' (e.g., "PRICE_MID") 
+      // so we can re-calculate the number once the worker finishes.
       const productsData = packsData.map(p => ({
         ...p,
-        price: window.getPriceForPack(p), // should now be available
+        priceKey: p.price, // Store the string key (PRICE_MID)
+        price: window.getPriceForPack(p), 
         date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
         category: p.category || 0
       }));
@@ -528,11 +535,12 @@
         productsData.forEach(p => {
           const card = document.createElement("div");
           card.className = "product-card";
-          card.dataset.title = p.title.toLowerCase();
-          card.dataset.price = p.price;
-          card.dataset.date = p.date;
           card.dataset.id = p.id;
           card.dataset.category = p.category;
+          
+          // Re-calculate price number in case worker just finished
+          const currentPriceNum = window.getPriceForPack(p);
+          card.dataset.price = currentPriceNum;
 
           const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
           card.innerHTML = `
@@ -542,9 +550,9 @@
                  loading="lazy"
                  onerror="this.src='https://via.placeholder.com/248x300?text=Image+Error'">
             <div class="card-content">
-              <div class="card-title">${escapeHtml(p.title)}</div>
+              <div class="card-title">${p.title}</div>
               <div class="price-row">
-                <div class="price" data-price="${p.price}"></div>
+                <div class="price" data-price-key="${p.priceKey}">${window.formatPrice(currentPriceNum)}</div>
                 <button class="cart-btn" title="Add to Cart">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
@@ -566,18 +574,22 @@
           const cartBtn = card.querySelector(".cart-btn");
           cartBtn.addEventListener("click", e => {
             e.stopPropagation();
-            window.addOrToggleCart?.(p);
+            // Pass the priceKey so the PayPal checkout remains secure
+            window.addOrToggleCart?.({ ...p, tier: p.priceKey });
           });
 
           grid.appendChild(card);
           p.element = card;
-          p.cartBtn = cartBtn;
         });
-
-        // Update prices and cart button states
-        window.updateCartDisplay?.();
-        window.updateAllPrices?.();
       }
+
+      // 3. LISTEN FOR WORKER SUCCESS
+      // We add a global function that your 'syncPricesFromWorker' can call 
+      // to refresh the UI once the real prices arrive.
+      window.renderShop = () => {
+        createCards();
+        filterAndSort();
+      };
 
       function filterAndSort() {
         const query = searchInput.value.toLowerCase().trim();
@@ -603,6 +615,7 @@
         visible.forEach(el => grid.appendChild(el));
       }
 
+      // Event Listeners for UI
       categoryItems.forEach((item, index) => {
         item.addEventListener("click", () => {
           categoryItems.forEach(i => i.classList.remove("active"));
@@ -622,19 +635,9 @@
 
       searchInput.addEventListener("input", filterAndSort);
 
+      // Initial render
       createCards();
       filterAndSort();
-      window.updateCartDisplay?.();
-
-      // Helper to prevent XSS
-      function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-          if (m === '&') return '&amp;';
-          if (m === '<') return '&lt;';
-          if (m === '>') return '&gt;';
-          return m;
-        });
-      }
     });
   </script>
 
