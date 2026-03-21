@@ -292,7 +292,7 @@
     </main>
   </div>
 
-  <script src="https://velutinx.com/assets/js/header.js"></script>
+  <script src="https://6eb61101.velutinx.pages.dev/assets/js/header.js"></script>
  
   <script>
     const localTranslations = {
@@ -339,8 +339,6 @@
   let productsData = [];
   const grid = document.getElementById("productGrid");
   const searchInput = document.getElementById("searchInput");
-  const sortButtons = document.querySelectorAll(".sort-btn");
-  const categoryItems = document.querySelectorAll(".category-list li");
 
   window.createCards = function() {
     if (!grid || !packsData) return;
@@ -355,11 +353,13 @@
       const card = document.createElement("div");
       card.className = "product-card";
       card.dataset.id = p.id;
-      card.dataset.category = p.category;
       
       const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
       
-      const displayPrice = window.formatPrice ? window.formatPrice(p.price) : "---";
+      // Safety check: if header.js failed to load, show --- instead of crashing
+      const displayPrice = (typeof window.formatPrice === 'function') 
+        ? window.formatPrice(p.price) 
+        : '---';
 
       card.innerHTML = `
         <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy">
@@ -383,7 +383,7 @@
 
       card.querySelector(".cart-btn").addEventListener("click", e => {
         e.stopPropagation();
-        if (window.addOrToggleCart) {
+        if (typeof window.addOrToggleCart === 'function') {
           window.addOrToggleCart(p);
         }
       });
@@ -415,8 +415,8 @@
       if (activeSort === "newest") return pB.id - pA.id;
       if (activeSort === "oldest") return pA.id - pB.id;
       
-      const priceA = window.getPriceForPack ? window.getPriceForPack(pA) : 0;
-      const priceB = window.getPriceForPack ? window.getPriceForPack(pB) : 0;
+      const priceA = (typeof window.getPriceForPack === 'function') ? window.getPriceForPack(pA) : 0;
+      const priceB = (typeof window.getPriceForPack === 'function') ? window.getPriceForPack(pB) : 0;
       
       if (activeSort === "price-asc") return priceA - priceB;
       if (activeSort === "price-desc") return priceB - priceA;
@@ -425,17 +425,17 @@
     visible.forEach(el => grid.appendChild(el));
   }
 
-  categoryItems.forEach(item => {
+  document.querySelectorAll(".category-list li").forEach(item => {
     item.addEventListener("click", () => {
-      categoryItems.forEach(i => i.classList.remove("active"));
+      document.querySelectorAll(".category-list li").forEach(i => i.classList.remove("active"));
       item.classList.add("active");
       filterAndSort();
     });
   });
 
-  sortButtons.forEach(btn => {
+  document.querySelectorAll(".sort-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      sortButtons.forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       filterAndSort();
     });
@@ -443,8 +443,9 @@
 
   searchInput.addEventListener("input", filterAndSort);
 
+  // Initialize
   window.addEventListener('headerReady', window.createCards);
-  if (window.formatPrice) window.createCards();
+  if (typeof window.formatPrice === 'function') window.createCards();
 </script>
 </body>
 </html>
