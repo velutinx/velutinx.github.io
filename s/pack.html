@@ -50,7 +50,8 @@
     .buttons { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
     .btn { flex: 1; min-width: 160px; padding: 14px 24px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
     .btn-cart { background: #49BEFF; color: white; }
-    .btn-cart:hover { background: #23afdb; }
+    .btn-cart.remove-mode { background: #ef4444; }   /* red when removing */
+    .btn-cart:hover { filter: brightness(0.9); }
     .disclaimer { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: block !important; font-size: 0.95rem; color: var(--text); }
   </style>
 </head>
@@ -418,6 +419,8 @@
       saveCart(cart);
       updateCartDisplay();
       updateAllPrices();
+      // Notify product page to update button (if pack.html is loaded)
+      if (window.updateButton) window.updateButton();
     }
 
     function updateCartDisplay() {
@@ -481,10 +484,10 @@
       updateCartDisplay();
       updateAllPrices();
       // Re-run pack-specific display updates
-      window.updateCategoryDisplay?.();
-      window.updatePriceDisplay?.();
-      window.updateButton?.();
-      window.updateContents?.();
+      if (window.updateCategoryDisplay) window.updateCategoryDisplay();
+      if (window.updatePriceDisplay) window.updatePriceDisplay();
+      if (window.updateButton) window.updateButton();
+      if (window.updateContents) window.updateContents();
     }
 
     // ---- DOM READY INIT (header + sidebar) ----
@@ -545,6 +548,8 @@
           saveCart(cart);
           updateCartDisplay();
           updateAllPrices();
+          // Update product page button if it exists
+          if (window.updateButton) window.updateButton();
         }
       });
 
@@ -659,11 +664,23 @@
         const t = window.translations?.[currentLang] || window.translations?.en || {};
         const isInCart = window.getCart?.().some(item => item.id === pack.id) ?? false;
         const btnText = isInCart ? (t.removeFromCart || "Remove from Cart") : (t.addToCart || "Add to Cart");
-        document.getElementById("buttons").innerHTML = `<button class="btn btn-cart" id="addCartBtn">${btnText}</button>`;
-        document.getElementById("addCartBtn").onclick = () => {
-          window.addOrToggleCart?.(pack);
-          window.updateButton?.();
-        };
+        const btn = document.getElementById("addCartBtn");
+        if (btn) {
+          btn.textContent = btnText;
+          // Toggle red class for remove mode
+          if (isInCart) {
+            btn.classList.add("remove-mode");
+          } else {
+            btn.classList.remove("remove-mode");
+          }
+        } else {
+          // If button doesn't exist yet, create it
+          document.getElementById("buttons").innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
+          document.getElementById("addCartBtn").onclick = () => {
+            window.addOrToggleCart?.(pack);
+            window.updateButton?.();
+          };
+        }
       };
 
       window.updateContents = function() {
