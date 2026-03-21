@@ -7,7 +7,6 @@
 
   <link rel="preconnect" href="https://www.velutinx.com" crossorigin>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <style>
@@ -209,6 +208,26 @@
       font-weight: 700; 
       color: var(--accent); 
     }
+    .cart-btn { 
+      width: 44px; 
+      height: 44px; 
+      background: var(--btn-cart); 
+      border: none; 
+      border-radius: 50%; 
+      color: white; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+    }
+    .cart-btn:hover { 
+      background: var(--btn-cart-hover); 
+      transform: scale(1.08); 
+    }
+    .cart-btn.added { 
+      background: #22c55e; 
+    }
   </style>
 </head>
 <body>
@@ -363,8 +382,7 @@
     </main>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://velutinx.com/assets/js/socials.js"></script>
+  <!-- Scripts (socials.js removed) -->
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
@@ -616,129 +634,6 @@
           updateUIForLanguage();
         }, 100);
       });
-    });
-  </script>
-
-  <!-- Product listing script -->
-  <script type="module">
-    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
-
-    window.addEventListener('load', async () => {
-      const productsData = packsData.map(p => ({
-        ...p,
-        price: window.getPriceForPack?.(p) ?? 0,
-        date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
-        category: p.category || 0
-      }));
-
-      const grid = document.getElementById("productGrid");
-      const searchInput = document.getElementById("searchInput");
-      const sortButtons = document.querySelectorAll(".sort-btn");
-      const categoryItems = document.querySelectorAll(".category-list li");
-      let currentCategory = 0;
-
-      function createCards() {
-        grid.innerHTML = "";
-        productsData.forEach(p => {
-          const card = document.createElement("div");
-          card.className = "product-card";
-          card.dataset.title = p.title.toLowerCase();
-          card.dataset.price = p.price;
-          card.dataset.date = p.date;
-          card.dataset.id = p.id;
-          card.dataset.category = p.category;
-
-          const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
-          card.innerHTML = `
-            <img src="${imageUrl}"
-                 alt="${p.title}"
-                 class="card-image"
-                 loading="lazy"
-                 onerror="this.src='https://via.placeholder.com/248x300?text=Image+Error'">
-            <div class="card-content">
-              <div class="card-title">${p.title}</div>
-              <div class="price-row">
-                <div class="price" data-price="${p.price}"></div>
-                <button class="cart-btn" title="Add to Cart">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                    <path d="M12.5 17h-6.5v-14h-2"></path>
-                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-                    <path d="M16 19h6"></path>
-                    <path d="M19 16v6"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          `;
-
-          card.addEventListener("click", e => {
-            if (e.target.closest(".cart-btn")) return;
-            window.location.href = `/s/pack?id=${p.id}`;
-          });
-
-          const cartBtn = card.querySelector(".cart-btn");
-          cartBtn.addEventListener("click", e => {
-            e.stopPropagation();
-            window.addOrToggleCart?.(p);
-          });
-
-          grid.appendChild(card);
-          p.element = card;
-          p.cartBtn = cartBtn;
-        });
-
-        window.updateCartDisplay?.();
-        window.updateAllPrices?.();
-        updateUIForLanguage(); // Ensure initial update
-      }
-
-      function filterAndSort() {
-        const query = searchInput.value.toLowerCase().trim();
-        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
-        productsData.forEach(p => {
-          const titleMatch = p.title.toLowerCase().includes(query);
-          const categoryMatch = currentCategory === 0 || p.category === currentCategory;
-          p.element.classList.toggle("hidden", !(titleMatch && categoryMatch));
-        });
-
-        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-        if (activeSort === "newest") {
-          visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
-        } else if (activeSort === "oldest") {
-          visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
-        } else if (activeSort === "price-asc") {
-          visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-        } else if (activeSort === "price-desc") {
-          visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-        }
-
-        visible.forEach(el => grid.appendChild(el));
-      }
-
-      categoryItems.forEach((item, index) => {
-        item.addEventListener("click", () => {
-          categoryItems.forEach(i => i.classList.remove("active"));
-          item.classList.add("active");
-          currentCategory = index === 0 ? 0 : index;
-          filterAndSort();
-        });
-      });
-
-      sortButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-          sortButtons.forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          filterAndSort();
-        });
-      });
-
-      searchInput.addEventListener("input", filterAndSort);
-
-      createCards();
-      filterAndSort();
-      window.updateCartDisplay?.();
     });
   </script>
 </body>
