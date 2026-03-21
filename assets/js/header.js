@@ -8,7 +8,7 @@ let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
 
 // Price formatting constants
 const tierMap = {
-  1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
+  1.5: { JPY: 250, CNY: 10.5, MXN: 24 },
   3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
   10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
 };
@@ -172,12 +172,10 @@ window.updateAllPrices = function() {
 
     window.closeCartDrawer = closeCart;
 
-    if (cartBtn && floatCartBtn && cartClose && cartDrawer) {
-      cartBtn.addEventListener('click', openCart);
-      floatCartBtn.addEventListener('click', openCart);
-      cartClose.addEventListener('click', closeCart);
-      cartOverlay.addEventListener('click', closeCart);
-    }
+    if (cartBtn) cartBtn.addEventListener('click', openCart);
+    if (floatCartBtn) floatCartBtn.addEventListener('click', openCart);
+    if (cartClose) cartClose.addEventListener('click', closeCart);
+    if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
 
     // Close drawer when clicking outside
     document.addEventListener('click', (e) => {
@@ -244,44 +242,58 @@ window.updateAllPrices = function() {
         e.stopPropagation();
         langPopover.classList.toggle('show');
       });
-      document.addEventListener('click', (e) => {
-        if (!document.getElementById('langContainer')?.contains(e.target)) {
+
+      // Select items INSIDE the popover after injection
+      langPopover.querySelectorAll('.lang-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const newLang = item.dataset.lang;
+          if (newLang) {
+            localStorage.setItem('language', newLang);
+            window.currentLanguage = newLang;
+            // Trigger the site-wide sync
+            document.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: newLang } }));
+          }
           langPopover.classList.remove('show');
-        }
+        });
       });
     }
+
+    // Close popover when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('langContainer')?.contains(e.target)) {
+        langPopover?.classList.remove('show');
+      }
+    });
 
     // --- Apply header translations ---
     function applyHeaderTranslations() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       const t = window.translations?.header?.[lang];
       if (!t) return;
-      if (storeBtn) storeBtn.textContent = t.storeBtn;
-      const menuHome = document.getElementById('menuHome');
-      const menuCommissions = document.getElementById('menuCommissions');
-      const menuArtwork = document.getElementById('menuArtwork');
-      const menuPoll = document.getElementById('menuPoll');
-      const menuStore = document.getElementById('menuStore');
-      const menuContact = document.getElementById('menuContact');
-      const cartTitle = document.getElementById('cartTitle');
-      const totalLabel = document.getElementById('totalLabel');
-      const snackText = document.getElementById('snackText');
-      const websiteBtn = document.getElementById('loginBtn');
-      if (websiteBtn) websiteBtn.textContent = t.websiteBtn || t.storeBtn;
-      if (menuHome) menuHome.textContent = t.menuHome;
-      if (menuCommissions) menuCommissions.textContent = t.menuCommissions;
-      if (menuArtwork) menuArtwork.textContent = t.menuArtwork;
-      if (menuPoll) menuPoll.textContent = t.menuPoll;
-      if (menuStore) menuStore.textContent = t.menuStore;
-      if (menuContact) menuContact.textContent = t.menuContact;
-      if (cartTitle) cartTitle.textContent = t.cartTitle;
-      if (totalLabel) totalLabel.textContent = t.totalLabel;
-      if (snackText) snackText.textContent = t.snackText;
+      
+      const transMap = {
+        'storeBtn': 'textContent',
+        'menuHome': 'textContent',
+        'menuCommissions': 'textContent',
+        'menuArtwork': 'textContent',
+        'menuPoll': 'textContent',
+        'menuStore': 'textContent',
+        'menuContact': 'textContent',
+        'cartTitle': 'textContent',
+        'totalLabel': 'textContent',
+        'snackText': 'textContent',
+        'loginBtn': 'textContent'
+      };
+
+      Object.keys(transMap).forEach(id => {
+        const el = document.getElementById(id);
+        if (el && t[id]) el[transMap[id]] = t[id];
+      });
     }
 
     // --- Language change handler ---
     document.addEventListener('languageChanged', () => {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      const lang = localStorage.getItem('language') || 'en';
       currentLang = lang;
       currentCurrency = lang === 'en' ? 'USD' :
                        lang === 'ja' ? 'JPY' :
@@ -289,23 +301,9 @@ window.updateAllPrices = function() {
       applyHeaderTranslations();
       updateCartDisplay();
       if (typeof window.updateAllPrices === 'function') window.updateAllPrices();
+      // Force store page to translate if active
+      if (typeof window.applyTranslations === 'function') window.applyTranslations('store');
     });
-
-    // --- Language item clicks ---
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const newLang = item.dataset.lang;
-        if (window.setLanguage) window.setLanguage(newLang);
-        langPopover?.classList.remove('show');
-      });
-    });
-
-    // --- Apply store translations if the page is the store ---
-    if (document.getElementById('shopTitle')) {
-      if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('store');
-      }
-    }
 
     // --- Initial setup ---
     applyHeaderTranslations();
