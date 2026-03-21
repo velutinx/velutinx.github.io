@@ -1,376 +1,151 @@
-// top.js – Shared header & cart logic for VELUTINX (with inline fallback)
-(function() {
-  // --- Translation dictionary ---
-  const translations = {
-    en: {
-      cartTitle: "Shopping Cart", totalLabel: "Total", emptyCart: "Your cart is empty",
-      addedMsg: "Added successfully", removedMsg: "Removed from cart",
-      checkoutBtn: "Proceed to checkout (DEMO)", menuHome: "HOME", menuCommissions: "COMMISSIONS",
-      menuArtwork: "ARTWORK", menuPoll: "POLL", menuStore: "STORE", menuContact: "CONTACT",
-      websiteBtn: "Website"
-    },
-    ja: {
-      cartTitle: "ショッピングカート", totalLabel: "合計", emptyCart: "カートは空です",
-      addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
-      checkoutBtn: "レジに進む (デモ)", menuHome: "ホーム", menuCommissions: "コミッション",
-      menuArtwork: "アートワーク", menuPoll: "投票", menuStore: "ストア", menuContact: "お問い合わせ",
-      websiteBtn: "ウェブサイト"
-    },
-    zh: {
-      cartTitle: "购物车", totalLabel: "总计", emptyCart: "购物车是空的",
-      addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
-      checkoutBtn: "去结账 (演示)", menuHome: "主页", menuCommissions: "委托",
-      menuArtwork: "作品集", menuPoll: "投票", menuStore: "商店", menuContact: "联系",
-      websiteBtn: "网站"
-    },
-    es: {
-      cartTitle: "Carrito de Compras", totalLabel: "Total", emptyCart: "Tu carrito está vacío",
-      addedMsg: "Añadido correctamente", removedMsg: "Eliminado del carrito",
-      checkoutBtn: "Proceder al pago (DEMO)", menuHome: "INICIO", menuCommissions: "COMISIONES",
-      menuArtwork: "OBRAS", menuPoll: "ENCUESTA", menuStore: "TIENDA", menuContact: "CONTACTO",
-      websiteBtn: "Sitio web"
-    }
-  };
+/* ===== SHARED TOP NAV + DRAWERS + FLOATING CART ===== */
 
-  // --- State ---
-  let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
-  let currentLang = localStorage.getItem('language') || 'en';
-  let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
-  const STATIC_USD = 3.0;
-  const tierMap = { 3.0: { JPY: 500, CNY: 21.0, MXN: 50 } };
-  const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+:root {
+    --bg: #d3d0c1; --card: #e8e5d8; --darker: #c0bcaa; --text: #3a3528;
+    --text-light: #e8e5d8; --accent: #aa9e76; --success: #22c55e;
+    --red-discount: #a64a5c; --gray: #8a7b6f; --border: #aa9e76;
+    --overlay: rgba(170,158,118,0.25); --btn-cart: #3a3528; --btn-cart-hover: #4a4538;
+    --price-red: #dc2626;
+}
 
-  window.formatPrice = function(usd = STATIC_USD, currency = currentCurrency) {
-    if (currency === "USD") return `US$${usd.toFixed(2)}`;
-    const exact = tierMap[usd]?.[currency];
-    if (exact !== undefined) {
-      const sym = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-      return `${sym}${exact}`;
-    }
-    let converted = usd * (approxRates[currency] || 1);
-    converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-    const sym = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-    return `${sym}${converted}`;
-  };
+body.dark {
+    --bg: #0f0f12; --card: #1a1a20; --darker: #121216; --text: #e6e3d8;
+    --text-light: #e6e3d8; --accent: #d4c08a; --success: #8b8a5e;
+    --red-discount: #a64a5c; --gray: #b8b3a5; --border: #6f6a4e;
+    --overlay: rgba(15,15,18,0.75); --price-red: #f87171;
+}
 
-  // Cart SVG icons
-  const addSvg = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/>
-    <circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/>
-    <circle cx="18" cy="7" r="5" fill="#2ecc71"/>
-    <path d="M18 5V9M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`;
-  const removeSvg = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/>
-    <circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/>
-    <circle cx="18" cy="7" r="5" fill="#e74c3c"/>
-    <path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`;
+body.drawer-open { overflow: hidden; }
+body.drawer-open::after {
+    content: ""; position: fixed; inset: 0;
+    background: var(--overlay); z-index: 1190; pointer-events: none;
+}
 
-  function saveCart() {
-    localStorage.setItem('velutinx_cart', JSON.stringify(cart));
-    updateCartUI();
-    if (window.syncCartButtons) window.syncCartButtons();
-  }
+/* ── Top Navigation ── */
+.top-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.9rem 2rem; background: var(--darker); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 1000;
+}
+.nav-left { display: flex; align-items: center; gap: 1rem; }
+.logo { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; color: #000; }
+body.dark .logo { color: var(--accent); }
 
-  function updateCartUI() {
-    const count = cart.length;
-    const total = cart.reduce((s, i) => s + STATIC_USD, 0);
-    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
-    const container = document.getElementById('cartItems');
-    const t = translations[currentLang] || translations.en;
-    if (container) {
-      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
-      cart.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${item.title}</div><div class="cart-item-price">${window.formatPrice(STATIC_USD)}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
-        container.appendChild(div);
-      });
-      document.querySelectorAll('.cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          cart.splice(idx, 1);
-          saveCart();
-          showSnack(t.removedMsg, true);
-        });
-      });
-      document.getElementById('cartTotal').innerText = window.formatPrice(total);
-    }
-  }
+.nav-actions { display: flex; align-items: center; gap: 1rem; position: relative; }
 
-  function showSnack(msg, isRemove = false) {
-    const sb = document.getElementById('snackbar');
-    const text = document.getElementById('snackText');
-    if (sb) {
-      sb.style.background = isRemove ? '#ef4444' : '#22c55e';
-      text.innerText = msg;
-      sb.classList.add('show');
-      setTimeout(() => sb.classList.remove('show'), 2000);
-    }
-  }
+.nav-icon, .menu-toggle {
+    width: 42px; height: 42px; background: var(--accent); border-radius: 9999px;
+    display: flex; align-items: center; justify-content: center; color: white;
+    border: none; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.nav-icon:hover, .menu-toggle:hover { transform: scale(1.08); background: #38aae8; }
 
-  window.addOrToggleCart = function(product) {
-    const t = translations[currentLang] || translations.en;
-    const idx = cart.findIndex(i => String(i.id) === String(product.id));
-    if (idx > -1) {
-      cart.splice(idx, 1);
-      showSnack(t.removedMsg, true);
-    } else {
-      cart.push({
-        id: product.id,
-        title: product.title,
-        price: STATIC_USD,
-        image: `https://www.velutinx.com/i/pack${String(product.id).padStart(3, '0')}-1.jpg`
-      });
-      showSnack(t.addedMsg, false);
-    }
-    saveCart();
-    updateCartUI();
-    if (window.syncCartButtons) window.syncCartButtons();
-  };
+.login-btn {
+    padding: 0.55rem 1.6rem; background: transparent; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 9999px; font-weight: 600;
+    font-size: 0.9rem; cursor: pointer; transition: 0.2s; text-decoration: none;
+    display: inline-block;
+}
+.login-btn:hover { background: rgba(170,158,118,0.15); }
 
-  window.syncCartButtons = function() {
-    const idsInCart = new Set(cart.map(i => String(i.id)));
-    document.querySelectorAll('.product-card').forEach(card => {
-      const btn = card.querySelector('.cart-btn');
-      if (!btn) return;
-      const inCart = idsInCart.has(card.dataset.id);
-      if (inCart) {
-        btn.classList.add('added');
-        btn.innerHTML = removeSvg;
-      } else {
-        btn.classList.remove('added');
-        btn.innerHTML = addSvg;
-      }
-    });
-  };
+/* Language popover */
+#languagePopover {
+    position: absolute; top: 55px; right: 8px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px; min-width: 210px;
+    z-index: 1100; opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: 0.2s; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+#languagePopover.show { opacity: 1; visibility: visible; transform: translateY(0); }
 
-  // Language & theme
-  function applyHeaderTranslations() {
-    const t = translations[currentLang] || translations.en;
+.lang-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    cursor: pointer; transition: background 0.2s; color: var(--text);
+}
+.lang-item:hover { background: var(--darker); }
+.lang-item img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 
-    const cartTitleEl = document.getElementById('cartTitle');
-    if (cartTitleEl) cartTitleEl.innerText = t.cartTitle;
-    const totalLabelEl = document.getElementById('totalLabel');
-    if (totalLabelEl) totalLabelEl.innerText = t.totalLabel;
-    const checkoutBtn = document.getElementById('demoCheckoutBtn');
-    if (checkoutBtn) checkoutBtn.innerText = t.checkoutBtn;
-    const menuHome = document.getElementById('menuHome');
-    if (menuHome) menuHome.innerText = t.menuHome;
-    const menuCommissions = document.getElementById('menuCommissions');
-    if (menuCommissions) menuCommissions.innerText = t.menuCommissions;
-    const menuArtwork = document.getElementById('menuArtwork');
-    if (menuArtwork) menuArtwork.innerText = t.menuArtwork;
-    const menuPoll = document.getElementById('menuPoll');
-    if (menuPoll) menuPoll.innerText = t.menuPoll;
-    const menuStore = document.getElementById('menuStore');
-    if (menuStore) menuStore.innerText = t.menuStore;
-    const menuContact = document.getElementById('menuContact');
-    if (menuContact) menuContact.innerText = t.menuContact;
-    const websiteBtn = document.getElementById('loginBtn');
-    if (websiteBtn) websiteBtn.innerText = t.websiteBtn;
+/* Floating cart button */
+.floating-cart {
+    position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px;
+    background: var(--accent); border-radius: 9999px; display: flex;
+    align-items: center; justify-content: center; cursor: pointer; border: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 1150; transition: 0.2s;
+}
+.floating-cart:hover { transform: scale(1.08); background: #38aae8; }
 
-    updateCartUI();
-  }
+.cart-badge, .floating-badge {
+    position: absolute; top: 0; right: 0; transform: translate(50%, -50%);
+    background: #ef4444; color: white; font-size: 0.7rem; font-weight: bold;
+    min-width: 22px; height: 22px; line-height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; padding: 0 6px;
+    border: 2px solid var(--darker);
+}
 
-  function setLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem('language', lang);
-    currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
-    applyHeaderTranslations();
-    document.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang, currency: currentCurrency } }));
-    updateCartUI();
-    if (window.updateAllPrices) window.updateAllPrices();
-  }
+/* ── Cart Drawer ── */
+.cart-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+    z-index: 1249; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.cart-overlay.active { opacity: 1; pointer-events: all; }
 
-  function initTheme() {
-    const themeBtn = document.getElementById('themeBtn');
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-      });
-    }
-    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
-  }
+.cart-drawer {
+    position: fixed; top: 0; right: -400px; width: 400px; height: 100%;
+    background: var(--accent); border-left: 1px solid var(--border);
+    box-shadow: -8px 0 30px rgba(0,0,0,0.4); z-index: 1250;
+    transition: right 0.3s cubic-bezier(0.2,0.9,0.4,1.1); display: flex;
+    flex-direction: column; color: #1f1a12;
+}
+.cart-drawer.open { right: 0; }
 
-  // ====== Inline header HTML (fallback) ======
-  const inlineHeaderHtml = `
-<nav class="top-nav">
-  <div class="nav-left">
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="logo">VELUTINX</div>
-  </div>
-  <div class="nav-actions">
-    <a href="https://velutinx.com/index-" class="login-btn" id="loginBtn">Website</a>
-    <div id="langContainer" style="position:relative">
-      <button class="nav-icon" id="langBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path></svg>
-      </button>
-      <div id="languagePopover">
-        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="en">English</div>
-        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="ja">日本語</div>
-        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="zh">简体中文</div>
-        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="es">Español</div>
-      </div>
-    </div>
-    <button class="nav-icon" id="themeBtn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path></svg>
-    </button>
-    <div class="cart-wrapper" style="position:relative">
-      <button class="nav-icon" id="cartBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>
-      </button>
-      <span class="cart-badge" id="cartCount">0</span>
-    </div>
-  </div>
-</nav>
+.cart-header { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); }
+.cart-header h5 { font-size: 1.6rem; margin: 0; }
+.cart-close { background: none; border: none; font-size: 2rem; cursor: pointer; color: #1f1a12; line-height: 1; }
 
-<button class="floating-cart" id="floatingCartBtn">
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path></svg>
-  <span class="floating-badge" id="floatingCartCount">0</span>
-</button>
+.cart-items { flex: 1; overflow-y: auto; padding: 1rem; }
+.cart-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.cart-item img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; background: #e8e5d8; }
+.cart-item-info { flex: 1; }
+.cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #a64a5c; padding: 0 8px; }
 
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <button class="menu-toggle" id="sidebarMenuToggle" style="background:transparent; color:var(--text);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="logo">VELUTINX</div>
-  </div>
-  <div class="sidebar-menu">
-    <a href="https://velutinx.com/index-" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/></svg><span id="menuHome">HOME</span></a>
-    <a href="https://velutinx.com/commission" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span id="menuCommissions">COMMISSIONS</span></a>
-    <a href="https://velutinx.com/artwork" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2"/></svg><span id="menuArtwork">ARTWORK</span></a>
-    <a href="https://velutinx.com/poll" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M16 4v16"/></svg><span id="menuPoll">POLL</span></a>
-    <a href="https://velutinx.com/store" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/><circle cx="12" cy="15" r="2"/></svg><span id="menuStore">STORE</span></a>
-    <a href="https://velutinx.com/contact" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H4z"/><path d="M22 6L12 13L2 6"/></svg><span id="menuContact">CONTACT</span></a>
-  </div>
-  <div class="sidebar-footer">© VELUTINX</div>
-</aside>
+.cart-total { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
 
-<div class="cart-overlay" id="cartOverlay"></div>
-<div class="cart-drawer" id="cartDrawer">
-  <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
-  <div class="cart-items" id="cartItems"></div>
-  <div class="cart-total"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div>
-  <button class="demo-checkout-btn" id="demoCheckoutBtn">Proceed to checkout (DEMO)</button>
-</div>
+/* ── Sidebar (left menu) ── */
+.sidebar-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+    z-index: 1299; opacity: 0; pointer-events: none; transition: 0.2s;
+}
+.sidebar-overlay.active { opacity: 1; pointer-events: all; }
 
-<div id="snackbar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span id="snackText">Added successfully</span></div>
-`;
+.sidebar {
+    position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+    background: var(--card); z-index: 1300; transition: left 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;
+}
+.sidebar.open { left: 0; }
 
-  // --- Inject header (try external, fallback to inline) ---
-  async function loadHeader() {
-    const placeholder = document.getElementById('header-placeholder');
-    if (!placeholder) return;
+.sidebar-header { display: flex; align-items: center; gap: 12px; padding: 1.2rem; border-bottom: 1px solid var(--border); }
+.sidebar-menu { flex: 1; padding: 1rem 0; }
 
-    let headerHtml = null;
+.menu-item {
+    display: flex; align-items: center; gap: 14px; padding: 0.8rem 1.5rem;
+    color: var(--text); text-decoration: none; font-weight: 700; font-size: 1.05rem;
+    transition: 0.2s;
+}
+.menu-item:hover { background: var(--darker); }
 
-    // Try to fetch external file
-    try {
-      const response = await fetch('/assets/include/top.html');
-      if (response.ok) {
-        headerHtml = await response.text();
-      } else {
-        console.warn('External header fetch failed (status ' + response.status + '), using inline fallback');
-      }
-    } catch (err) {
-      console.warn('Network error fetching header, using inline fallback', err);
-    }
+.sidebar-footer { padding: 1rem; text-align: center; font-size: 0.75rem; color: var(--gray); border-top: 1px solid var(--border); }
 
-    // If external fetch failed or returned nothing, use inline HTML
-    if (!headerHtml) {
-      headerHtml = inlineHeaderHtml;
-    }
+/* ── Snackbar (add/remove feedback) ── */
+#snackbar {
+    position: fixed; top: 20px; right: 20px; background: var(--success);
+    padding: 12px 20px; border-radius: 40px; display: flex; gap: 10px;
+    align-items: center; color: white; z-index: 1400; transform: translateY(-120px);
+    opacity: 0; transition: 0.25s; font-weight: 500;
+}
+#snackbar.show { transform: translateY(0); opacity: 1; }
+#snackbar.error { background: #ef4444; }
 
-    placeholder.innerHTML = headerHtml;
-    initializeComponents();
-  }
-
-  function initializeComponents() {
-    applyHeaderTranslations();
-    updateCartUI();
-
-    // Sidebar toggle
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const sidebarClose = document.getElementById('sidebarMenuToggle');
-    if (menuToggle && sidebar && sidebarOverlay) {
-      menuToggle.onclick = () => {
-        sidebar.classList.add('open');
-        sidebarOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      };
-      const closeSide = () => {
-        sidebar.classList.remove('open');
-        sidebarOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-      };
-      sidebarClose?.addEventListener('click', closeSide);
-      sidebarOverlay.addEventListener('click', closeSide);
-    }
-
-    // Cart drawer
-    const cartBtn = document.getElementById('cartBtn');
-    const floatCartBtn = document.getElementById('floatingCartBtn');
-    const cartDrawer = document.getElementById('cartDrawer');
-    const cartOverlay = document.getElementById('cartOverlay');
-    const cartClose = document.getElementById('cartClose');
-    const openCart = () => {
-      cartDrawer.classList.add('open');
-      cartOverlay.classList.add('active');
-      document.body.classList.add('drawer-open');
-    };
-    const closeCart = () => {
-      cartDrawer.classList.remove('open');
-      cartOverlay.classList.remove('active');
-      document.body.classList.remove('drawer-open');
-    };
-    cartBtn?.addEventListener('click', openCart);
-    floatCartBtn?.addEventListener('click', openCart);
-    cartClose?.addEventListener('click', closeCart);
-    cartOverlay?.addEventListener('click', closeCart);
-
-    // Language popover
-    const langBtn = document.getElementById('langBtn');
-    const pop = document.getElementById('languagePopover');
-    if (langBtn && pop) {
-      langBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        pop.classList.toggle('show');
-      });
-      document.querySelectorAll('.lang-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const lang = item.dataset.lang;
-          if (lang) setLanguage(lang);
-          pop.classList.remove('show');
-        });
-      });
-      document.addEventListener('click', (e) => {
-        if (!pop.contains(e.target) && e.target !== langBtn) pop.classList.remove('show');
-      });
-    }
-
-    initTheme();
-
-    const demoBtn = document.getElementById('demoCheckoutBtn');
-    if (demoBtn) demoBtn.addEventListener('click', () => alert("⚠️ Checkout is disabled in standalone demo. Cart items are stored locally."));
-
-    // Dispatch event to notify that header and cart are fully ready
-    document.dispatchEvent(new CustomEvent('headerReady'));
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadHeader);
-  } else {
-    loadHeader();
-  }
-})();
+/* Responsive */
+@media (max-width: 780px) {
+    .top-nav { padding: 0.9rem 1.2rem; }
+}
