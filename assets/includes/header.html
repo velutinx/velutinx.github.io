@@ -1,6 +1,5 @@
 <!-- Top Navigation -->
 <!-- Top Navigation -->
-<!-- Top Navigation -->
 <nav class="top-nav">
   <div class="nav-left">
     <button class="menu-toggle" id="menuToggle" aria-label="Menu">
@@ -11,6 +10,7 @@
     <div class="logo" id="logo">VELUTINX</div>
   </div>
   <div class="nav-actions">
+    <button class="login-btn" id="loginBtn">Website</button>
     <div id="langContainer">
       <button class="nav-icon lang-btn" id="langBtn" title="Language">
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -29,8 +29,32 @@
         <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
       </svg>
     </button>
+    <div class="cart-wrapper">
+      <button class="nav-icon cart-icon" id="cartBtn" title="Cart">
+        <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 17h-11v-14h-2"></path>
+          <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+          <path d="M16 19h6"></path>
+          <path d="M19 16v6"></path>
+        </svg>
+      </button>
+      <span class="cart-badge" id="cartCount">0</span>
+    </div>
   </div>
 </nav>
+
+<!-- Floating Cart Button -->
+<button class="floating-cart cart-icon" id="floatingCartBtn">
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+    <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+    <path d="M17 17h-11v-14h-2"></path>
+    <path d="M6 5l14 1l-1 7h-13"></path>
+  </svg>
+  <span class="floating-badge" id="floatingCartCount">0</span>
+</button>
 
 <!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -47,7 +71,7 @@
   </div>
   <div class="sidebar-menu">
     <div class="menu-section">
-      <a href="https://velutinx.com/index-" class="menu-item" data-menu="home">
+      <a href="https://velutinx.com/" class="menu-item" data-menu="home">
         <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
         <span id="menuHome">HOME</span>
       </a>
@@ -77,7 +101,7 @@
   <div class="sidebar-footer">
     <p>© VELUTINX</p>
   </div>
-</aside></aside>
+</aside>
 
 <!-- Cart Drawer (unchanged) -->
 <div class="cart-drawer" id="cartDrawer">
