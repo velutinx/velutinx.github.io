@@ -456,189 +456,182 @@
   <!-- Shared JavaScript -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Fixed membership logic -->
-  <script>
-    let membershipInitialised = false;
+<script>
+  // Wait for the shared header to be ready before initialising membership logic
+  let membershipInitialised = false;
 
-    function initMembership() {
-      if (membershipInitialised) return;
-      membershipInitialised = true;
+  // Translations (keeping only what's used in buttons & messages)
+  const membershipTranslations = {
+    en: {
+      btnSingle: "Single Purchase",
+      btnRecurring: "Recurring Membership",
+      removedFromCart: "Remove from cart",
+      addedToCart: "Added to cart",
+      errorOnlyHighest: "Only the highest tier can be added.",
+      errorDiscordMissing: "Please enter your Discord ID",
+      errorDiscordInvalid: "Invalid Discord ID format",
+      errorPlanNotConfigured: "Plan not configured for this tier",
+      perMonth: "/ month"
+    },
+    // keep your other languages if needed
+  };
 
-      const currentLang = localStorage.getItem('language') || 'en';
+  function initMembership() {
+    if (membershipInitialised) return;
+    membershipInitialised = true;
 
-      function getText(key, fallback = key) {
-        // You can expand this object with more translations later
-        const texts = {
-          en: {
-            btnSingle: "Single Purchase",
-            btnRecurring: "Recurring Membership",
-            removedFromCart: "Remove from cart",
-            addedToCart: "Added to cart",
-            errorOnlyHighest: "Only the highest tier can be added.",
-            errorDiscordMissing: "Please enter your Discord ID",
-            errorDiscordInvalid: "Invalid Discord ID format (17-19 digits)",
-            errorPlanNotConfigured: "Subscription plan not configured for this tier",
-            perMonth: "/ month"
-          }
-          // Add ja, zh, es entries here when needed
-        };
-        return (texts[currentLang] || texts.en)[key] || fallback;
-      }
+    let currentLang = localStorage.getItem('language') || 'en';
 
-      function updateMembershipPrices() {
-        document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-          const usd = parseFloat(el.dataset.priceUsd);
-          if (window.formatPrice && !isNaN(usd)) {
-            el.querySelector('.price-value').textContent = window.formatPrice(usd);
-          }
-        });
-      }
-
-      function updateMembershipButtons() {
-        const cart = window.getCart?.() || [];
-        const membershipInCart = new Set(
-          cart.filter(item => item?.type === 'membership').map(item => item.id)
-        );
-
-        document.querySelectorAll('.tier-card').forEach(card => {
-          const tier = Number(card.dataset.tier);
-          if (!tier) return;
-
-          const itemId = `membership-${tier}`;
-          const isActive = membershipInCart.has(itemId);
-
-          const btn = card.querySelector('.tier-btn');
-          if (!btn) return;
-
-          if (isActive) {
-            btn.textContent = getText('removedFromCart');
-            btn.classList.remove('btn-single');
-            btn.classList.add('btn-remove');
-          } else {
-            btn.textContent = getText('btnSingle');
-            btn.classList.remove('btn-remove');
-            btn.classList.add('btn-single');
-          }
-        });
-      }
-
-      function validateDiscordId() {
-        const input = document.getElementById('discordId');
-        if (!input) return null;
-        const val = input.value.trim();
-        if (!val) {
-          showSnackbar(getText('errorDiscordMissing'), true);
-          return null;
-        }
-        if (!/^\d{17,19}$/.test(val)) {
-          showSnackbar(getText('errorDiscordInvalid'), true);
-          return null;
-        }
-        return val;
-      }
-
-      function showSnackbar(msg, error = false) {
-        if (window.showSnackbar) {
-          window.showSnackbar(msg, error);
-          return;
-        }
-        // minimal fallback
-        alert(msg); // replace with real snackbar when shared.js is ready
-      }
-
-      window.handleSinglePurchase = function(tier) {
-        const discordId = validateDiscordId();
-        if (!discordId) return;
-
-        const cart = window.getCart?.() || [];
-        const memberships = cart.filter(i => i?.type === 'membership');
-        const currentTiers = memberships.map(i => i.tier);
-        const highest = currentTiers.length ? Math.max(...currentTiers) : 0;
-
-        const id = `membership-${tier}`;
-        const isAlreadyThere = currentTiers.includes(tier);
-
-        if (isAlreadyThere) {
-          window.addOrToggleCart?.({ id });
-          showSnackbar(getText('removedFromCart'));
-          updateMembershipButtons();
-          return;
-        }
-
-        if (highest > 0 && tier < highest) {
-          showSnackbar(getText('errorOnlyHighest'), true);
-          return;
-        }
-
-        // Remove previous memberships
-        memberships.forEach(item => {
-          window.addOrToggleCart?.({ id: item.id });
-        });
-
-        // Add new
-        window.addOrToggleCart?.({
-          id,
-          title: ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][tier-1] + ' (30 days)',
-          price: [5,15,30,50,75][tier-1],
-          type: 'membership',
-          tier,
-          discordId,
-          image: `https://www.velutinx.com/i/packmembership-${tier}-1.jpg`
-        });
-
-        showSnackbar(getText('addedToCart'));
-        updateMembershipButtons();
-      };
-
-      window.handleRecurring = function(tier) {
-        const discordId = validateDiscordId();
-        if (!discordId) return;
-        alert(`Would start recurring plan for tier ${tier}`);
-      };
-
-      window.scrollCarousel = function(dir) {
-        const el = document.getElementById('tierCarousel');
-        if (el) el.scrollBy({ left: dir * 340, behavior: 'smooth' });
-      };
-
-      // Initial calls
-      updateMembershipPrices();
-      updateMembershipButtons();
-
-      // Listen to cart changes
-      let lastCart = localStorage.getItem('velutinx_cart');
-      setInterval(() => {
-        const now = localStorage.getItem('velutinx_cart');
-        if (now !== lastCart) {
-          lastCart = now;
-          updateMembershipButtons();
-        }
-      }, 600);
+    function getText(key, fallback) {
+      const t = membershipTranslations[currentLang] || membershipTranslations.en || {};
+      return t[key] || fallback || key;
     }
 
-    // Try to initialize when header is ready
-    document.addEventListener('headerReady', initMembership);
+    function updateMembershipButtons() {
+      const cart = window.getCart ? window.getCart() : [];
+      const membershipIds = new Set(
+        cart.filter(item => item.type === 'membership').map(item => item.id)
+      );
 
-    // Fallback initializations
-    if (document.readyState === 'complete' && window.addOrToggleCart) {
-      initMembership();
-    } else {
-      window.addEventListener('load', () => {
-        if (window.addOrToggleCart) initMembership();
+      document.querySelectorAll('.tier-card').forEach(card => {
+        const tier = parseInt(card.dataset.tier, 10);
+        if (!tier || tier < 1 || tier > 5) return;
+
+        const id = `membership-${tier}`;
+        const isInCart = membershipIds.has(id);
+
+        const btn = card.querySelector('.tier-btn');
+        if (!btn) return;
+
+        if (isInCart) {
+          btn.textContent = getText('removedFromCart', 'Remove from cart');
+          btn.classList.remove('btn-single');
+          btn.classList.add('btn-remove');
+        } else {
+          btn.textContent = getText('btnSingle', 'Single Purchase');
+          btn.classList.remove('btn-remove');
+          btn.classList.add('btn-single');
+        }
       });
     }
 
-    // Discord help toggle
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggle = document.getElementById('discordHelpToggle');
-      const content = document.getElementById('discordHelpContent');
-      if (toggle && content) {
-        toggle.addEventListener('click', e => {
-          e.preventDefault();
-          content.classList.toggle('show');
-        });
+    function validateDiscordId() {
+      const input = document.getElementById('discordId');
+      if (!input) return null;
+      const id = input.value.trim();
+      if (!id) {
+        // showSnackbar(getText('errorDiscordMissing', 'Please enter your Discord ID'), true);
+        return null;
       }
+      if (!/^\d{17,19}$/.test(id)) {
+        // showSnackbar(getText('errorDiscordInvalid', 'Invalid Discord ID format'), true);
+        return null;
+      }
+      return id;
+    }
+
+    window.handleSinglePurchase = function(tierNumber) {
+      const discordId = validateDiscordId();
+      if (!discordId) return;
+
+      const tierPrices = {1:5, 2:15, 3:30, 4:50, 5:75};
+      const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
+
+      let cart = window.getCart ? window.getCart() : [];
+
+      // Find existing membership items
+      const membershipItems = cart.filter(item => item.type === 'membership');
+      const existingTiers = membershipItems.map(item => item.tier);
+      const highestExisting = existingTiers.length > 0 ? Math.max(...existingTiers) : 0;
+
+      const thisId = `membership-${tierNumber}`;
+      const isAlreadyInCart = existingTiers.includes(tierNumber);
+
+      // Case 1: Already have this tier → remove it
+      if (isAlreadyInCart) {
+        window.addOrToggleCart({ id: thisId });
+        // showSnackbar(getText('removedFromCart', 'Removed from cart'), false);
+        updateMembershipButtons();
+        return;
+      }
+
+      // Case 2: Trying to add lower tier when higher exists → block
+      if (highestExisting > 0 && tierNumber < highestExisting) {
+        // showSnackbar(getText('errorOnlyHighest', 'Only the highest tier can be added.'), true);
+        return;
+      }
+
+      // Case 3: Add equal or higher → remove old ones first, then add new
+      membershipItems.forEach(item => {
+        window.addOrToggleCart({ id: item.id });
+      });
+
+      window.addOrToggleCart({
+        id: thisId,
+        title: tierTitles[tierNumber] + ' (30 days)',
+        price: tierPrices[tierNumber],
+        type: 'membership',
+        tier: tierNumber,
+        discordId: discordId,
+        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+      });
+
+      // showSnackbar(getText('addedToCart', 'Added to cart'), false);
+      updateMembershipButtons();
+    };
+
+    window.handleRecurring = async function(tierNumber) {
+      const discordId = validateDiscordId();
+      if (!discordId) return;
+      const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
+      const planId = PLAN_IDS[tierNumber];
+      if (!planId) return;
+      // alert removed as requested
+    };
+
+    window.scrollCarousel = function(direction) {
+      const container = document.getElementById('tierCarousel');
+      if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
+    };
+
+    // Initial updates
+    updateMembershipButtons();
+
+    // Cart polling
+    let lastCart = localStorage.getItem('velutinx_cart');
+    setInterval(() => {
+      const newCart = localStorage.getItem('velutinx_cart');
+      if (newCart !== lastCart) {
+        lastCart = newCart;
+        updateMembershipButtons();
+      }
+    }, 500);
+  }
+
+  // Try to init when header is ready
+  document.addEventListener('headerReady', initMembership);
+
+  // Fallback
+  if (document.readyState === 'complete' && window.addOrToggleCart) {
+    initMembership();
+  } else {
+    window.addEventListener('load', () => {
+      if (window.addOrToggleCart) initMembership();
     });
-  </script>
+  }
+
+  // Discord help toggle
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('discordHelpToggle');
+    const content = document.getElementById('discordHelpContent');
+    if (toggle && content) {
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        content.classList.toggle('show');
+      });
+    }
+  });
+</script>
+
 </body>
 </html>
