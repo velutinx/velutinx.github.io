@@ -374,7 +374,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
               <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
             </svg>
-            <input type="search" id="searchInput" class="input-element" placeholder="Search products..." />
+<input type="search" id="searchInput" class="input-element" placeholder="" />
           </div>
         </div>
       </div>
@@ -519,5 +519,38 @@
       });
     });
   </script>
+
+  <script>
+// Function to update search placeholder based on current language
+function updateSearchPlaceholder() {
+  const lang = localStorage.getItem("language") || "en";
+  const placeholders = {
+    en: "Search products...",
+    ja: "商品を検索...",
+    zh: "搜索商品...",
+    es: "Buscar productos..."
+  };
+  
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.placeholder = placeholders[lang] || placeholders.en;
+  }
+}
+
+// Run on page load
+updateSearchPlaceholder();
+
+// Update when language changes (inside your existing .lang-item click handler)
+document.querySelectorAll(".lang-item").forEach(item => {
+  item.addEventListener("click", () => {
+    // Your existing code...
+    setTimeout(() => {
+      if (window.updateAllPrices) window.updateAllPrices();
+      updateSearchPlaceholder();  // ← ADD THIS LINE
+    }, 100);
+  });
+});
+</script>
+  
 </body>
 </html>
