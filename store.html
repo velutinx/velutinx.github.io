@@ -293,13 +293,13 @@
   </div>
 
   <script src="https://velutinx.com/assets/js/header.js"></script>
-  
+ 
   <script>
     const localTranslations = {
-      en: { shopTitle: "VELUTINX STORE", filterTitle: "Filter by Category", catAll: "All Products", catFemale: "Female Models", catFemboy: "Femboy Models", catCollections: "Full Collections", sortTitle: "Sort by", sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low", productsTitle: "Latest Content", searchPlaceholder: "Search products...", cartTitle: "Shopping Cart", totalLabel: "Total", snackText: "Added successfully" },
-      ja: { shopTitle: "VELUTINX ストア", filterTitle: "カテゴリでフィルター", catAll: "すべての商品", catFemale: "女性モデル", catFemboy: "男の娘モデル", catCollections: "フルコレクション", sortTitle: "並び替え", sortNewest: "最新", sortOldest: "最古", sortLow: "価格: 低い → 高い", sortHigh: "価格: 高い → 低い", productsTitle: "最新コンテンツ", searchPlaceholder: "商品を検索...", cartTitle: "ショッピングカート", totalLabel: "合計", snackText: "カートに追加しました" },
-      zh: { shopTitle: "VELUTINX 商店", filterTitle: "按类别筛选", catAll: "所有商品", catFemale: "女性模型", catFemboy: "伪娘模型", catCollections: "完整收藏", sortTitle: "排序方式", sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 低到高", sortHigh: "价格: 高到低", productsTitle: "最新内容", searchPlaceholder: "搜索商品...", cartTitle: "购物车", totalLabel: "总计", snackText: "已成功添加到购物车" },
-      es: { shopTitle: "TIENDA VELUTINX", filterTitle: "Filtrar por Categoría", catAll: "Todos los Productos", catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catCollections: "Colecciones Completas", sortTitle: "Ordenar por", sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: Bajo a Alto", sortHigh: "Precio: Alto a Bajo", productsTitle: "Contenido más reciente", searchPlaceholder: "Buscar productos...", cartTitle: "Carrito de Compras", totalLabel: "Total", snackText: "Añadido con éxito" }
+      en: { shopTitle: "VELUTINX STORE", filterTitle: "Filter by Category", catAll: "All Products", catFemale: "Female Models", catFemboy: "Femboy Models", catCollections: "Full Collections", sortTitle: "Sort by", sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low", productsTitle: "Latest Content", searchPlaceholder: "Search products...", snackText: "Added successfully" },
+      ja: { shopTitle: "VELUTINX ストア", filterTitle: "カテゴリでフィルター", catAll: "すべての商品", catFemale: "女性モデル", catFemboy: "男の娘モデル", catCollections: "フルコレクション", sortTitle: "並び替え", sortNewest: "最新", sortOldest: "最古", sortLow: "価格: 低い → 高い", sortHigh: "価格: 高い → 低い", productsTitle: "最新コンテンツ", searchPlaceholder: "商品を検索...", snackText: "カートに追加しました" },
+      zh: { shopTitle: "VELUTINX 商店", filterTitle: "按类别筛选", catAll: "所有商品", catFemale: "女性模型", catFemboy: "伪娘模型", catCollections: "完整收藏", sortTitle: "排序方式", sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 低到高", sortHigh: "价格: 高到低", productsTitle: "最新内容", searchPlaceholder: "搜索商品...", snackText: "已成功添加到购物车" },
+      es: { shopTitle: "TIENDA VELUTINX", filterTitle: "Filtrar por Categoría", catAll: "Todos los Productos", catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catCollections: "Colecciones Completas", sortTitle: "Ordenar por", sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: Bajo a Alto", sortHigh: "Precio: Alto a Bajo", productsTitle: "Contenido más reciente", searchPlaceholder: "Buscar productos...", snackText: "Añadido con éxito" }
     };
 
     function updateUIForLanguage() {
@@ -334,22 +334,20 @@
   </script>
 
 <script type="module">
-  // Import the source of truth
   import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
   let productsData = [];
   const grid = document.getElementById("productGrid");
   const searchInput = document.getElementById("searchInput");
+  const sortButtons = document.querySelectorAll(".sort-btn");
+  const categoryItems = document.querySelectorAll(".category-list li");
 
   window.createCards = function() {
-    if (!grid) return;
+    if (!grid || !packsData) return;
     grid.innerHTML = "";
     
-    // Map the imported data without looking at any HTML-defined prices
     productsData = packsData.map(p => ({
       ...p,
-      // We rely on the global getPriceForPack from header.js to interpret the price string
-      numericPrice: window.getPriceForPack ? window.getPriceForPack(p) : 0,
       category: p.category || 0
     }));
 
@@ -357,18 +355,18 @@
       const card = document.createElement("div");
       card.className = "product-card";
       card.dataset.id = p.id;
+      card.dataset.category = p.category;
       
-      // We do NOT store price in dataset to prevent easy DOM manipulation
       const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
       
+      const displayPrice = window.formatPrice ? window.formatPrice(p.price) : "---";
+
       card.innerHTML = `
         <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy">
         <div class="card-content">
           <div class="card-title">${p.title}</div>
           <div class="price-row">
-            <div class="price" data-id="${p.id}">
-              ${window.formatPrice ? window.formatPrice(p.price) : "---"}
-            </div>
+            <div class="price">${displayPrice}</div>
             <button class="cart-btn" title="Add to Cart">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path>
@@ -379,20 +377,14 @@
         </div>
       `;
 
-      // Event Listeners
       card.addEventListener("click", e => {
         if (!e.target.closest(".cart-btn")) window.location.href = `/s/pack?id=${p.id}`;
       });
 
       card.querySelector(".cart-btn").addEventListener("click", e => {
         e.stopPropagation();
-        // Pass the raw pack object. The cart logic will re-verify the price from the key.
         if (window.addOrToggleCart) {
           window.addOrToggleCart(p);
-        } else {
-          // Fallback if header.js isn't fully ready
-          window.cart.push({ ...p, price: window.getPriceForPack(p) });
-          window.updateCartDisplay?.();
         }
       });
 
@@ -400,18 +392,59 @@
       p.element = card;
     });
     
-    if (window.filterAndSort) window.filterAndSort();
+    filterAndSort();
   };
 
-  // Listen for the header being ready to ensure price formatting functions exist
-  window.addEventListener('headerReady', () => {
-    window.createCards();
+  function filterAndSort() {
+    const query = searchInput.value.toLowerCase().trim();
+    const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+    const activeCat = parseInt(document.querySelector(".category-list li.active")?.dataset.cat || "0");
+
+    productsData.forEach(p => {
+      if (!p.element) return;
+      const titleMatch = p.title.toLowerCase().includes(query);
+      const catMatch = activeCat === 0 || p.category === activeCat;
+      p.element.classList.toggle("hidden", !(titleMatch && catMatch));
+    });
+
+    let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+    visible.sort((a, b) => {
+      const pA = productsData.find(p => p.id == a.dataset.id);
+      const pB = productsData.find(p => p.id == b.dataset.id);
+      
+      if (activeSort === "newest") return pB.id - pA.id;
+      if (activeSort === "oldest") return pA.id - pB.id;
+      
+      const priceA = window.getPriceForPack ? window.getPriceForPack(pA) : 0;
+      const priceB = window.getPriceForPack ? window.getPriceForPack(pB) : 0;
+      
+      if (activeSort === "price-asc") return priceA - priceB;
+      if (activeSort === "price-desc") return priceB - priceA;
+      return 0;
+    });
+    visible.forEach(el => grid.appendChild(el));
+  }
+
+  categoryItems.forEach(item => {
+    item.addEventListener("click", () => {
+      categoryItems.forEach(i => i.classList.remove("active"));
+      item.classList.add("active");
+      filterAndSort();
+    });
   });
 
-  // If header is already loaded by the time this runs
-  if (window.formatPrice) {
-    window.createCards();
-  }
+  sortButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      sortButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      filterAndSort();
+    });
+  });
+
+  searchInput.addEventListener("input", filterAndSort);
+
+  window.addEventListener('headerReady', window.createCards);
+  if (window.formatPrice) window.createCards();
 </script>
 </body>
 </html>
