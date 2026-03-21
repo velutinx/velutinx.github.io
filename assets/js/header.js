@@ -1,8 +1,8 @@
 /* ==================== CONFIG ==================== */
 const tierMap = { 
-  1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 
-  3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 
-  10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } 
+  1.5: { JPY: 250,   CNY: 10.5, MXN: 25   },
+  3.0: { JPY: 500,   CNY: 21.0, MXN: 50   },
+  10.0: { JPY: 1500, CNY: 69.0, MXN: 175  }
 };
 
 const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
@@ -15,6 +15,13 @@ let currentCurrency = currentLang === "en" ? "USD" :
                       currentLang === "zh" ? "CNY" : "MXN";
 
 if (isDark) document.body.classList.add("dark");
+
+// Real base prices in USD (used for secure validation & fallback)
+const prices = {
+  low:  1.50,   // category 1
+  mid:  3.00,   // category 2 (most of your current packs)
+  high: 10.00   // future / collections (not used yet)
+};
 
 /* ==================== LANGUAGE TRANSLATIONS ==================== */
 const translations = {
@@ -68,21 +75,61 @@ const translations = {
   zh: { /* unchanged */ },
   es: { /* unchanged */ }
 };
+/* ==================== PRICE & FORMAT HELPERS ==================== */
+function getPriceForPack(pack) {
+  // 1. If pack.price is already a number → use it directly
+  if (typeof pack.price === 'number') {
+    return pack.price;
+  }
 
-/* ==================== HELPERS ==================== */
+  // 2. Handle string codes from packs-data.js
+  const code = String(pack.price || "").toUpperCase().trim();
+
+  if (code === "PRICE_LOW" || code === "LOW") {
+    return prices.low;  // 1.50
+  }
+  if (code === "PRICE_MID" || code === "PRICE_MED" || code === "MID" || code === "MED") {
+    return prices.mid;  // 3.00
+  }
+  if (code === "PRICE_HIGH" || code === "HIGH") {
+    return prices.high; // 10.00
+  }
+
+  // 3. Category-based fallback (your requested rule)
+  if (pack.category === 1) return prices.low;   // 1.50
+  if (pack.category === 2) return prices.mid;   // 3.00
+
+  // 4. Ultimate fallback → medium price + warning
+  console.warn(`Unknown price/category for pack ${pack.id || 'unknown'} — using mid price (3.00)`);
+  return prices.mid;
+}
+
 function formatPrice(value, currency = currentCurrency) {
-  if (currency === "USD") return `US$${value.toFixed(2)}`;
-  const rounded = Math.round(value * 100) / 100;
+  const num = Number(value);
+  if (isNaN(num) || num <= 0) {
+    return currency === "USD" ? "US$0.00" : "—";
+  }
+
+  if (currency === "USD") {
+    return `US$${num.toFixed(2)}`;
+  }
+
+  const rounded = Math.round(num * 100) / 100;
   if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
     const converted = tierMap[rounded][currency];
     const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
     return `${symbol}${converted}`;
   }
-  let converted = value * (approxRates[currency] || 1);
+
+  // Approximate conversion fallback
+  let converted = num * (approxRates[currency] || 1);
   converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
   const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
   return `${symbol}${converted}`;
 }
+
+/* ==================== HELPERS ==================== */
+// (keep the rest of your helpers like updateAllPrices, getCart, saveCart, etc. unchanged)
 
 function updateAllPrices() {
   document.querySelectorAll(".price[data-price]").forEach(el => {
