@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Artwork</title>
-  <!-- Header CSS -->
-  <link rel="stylesheet" href="/assets/css/mainheader.css">
-  <!-- Page‑specific CSS -->
+  <!-- Use the same header CSS as store.html -->
+  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+  <!-- Page‑specific CSS (gallery, zoom, etc.) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Override header background to match page flat background */
+    /* Override header background to match page flat background (same as store) */
     .top-nav {
       background: var(--bg) !important;
       backdrop-filter: none !important;
       border-bottom: 1px solid var(--border);
     }
-    /* Hide Store button and both cart icons on artwork page */
-    .artwork-page .store-btn,
+    /* Hide the Website button, cart button, and floating cart on artwork page */
+    .artwork-page .login-btn,
     .artwork-page .cart-wrapper,
     .artwork-page .floating-cart {
       display: none !important;
@@ -28,6 +28,7 @@
   <div class="lang-swipe" id="langSwipe"></div>
 
   <div id="page">
+    <!-- Header will be injected here by header.js -->
     <div id="navContainer"></div>
     <div class="divider"></div>
 
@@ -43,9 +44,9 @@
 
   <div class="zoom-overlay" id="zoomOverlay"></div>
 
-  <!-- Scripts: translt.js must be first -->
+  <!-- Scripts: translt.js must be first, then header.js, then format.js -->
   <script src="/assets/js/translt.js"></script>
-  <script src="/assets/js/mainheader.js"></script>
+  <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
@@ -59,7 +60,7 @@
       }
     })();
 
-    // Apply dark mode from localStorage
+    // Apply dark mode from localStorage (header.js also does this, but safe)
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
