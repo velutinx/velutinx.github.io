@@ -1,79 +1,45 @@
 // top.js – Shared header & cart logic for VELUTINX
-
 (function() {
-  // --- Translation dictionary for header & cart ---
+  // --- Translation dictionary ---
   const translations = {
     en: {
-      cartTitle: "Shopping Cart",
-      totalLabel: "Total",
-      emptyCart: "Your cart is empty",
-      addedMsg: "Added successfully",
-      removedMsg: "Removed from cart",
-      checkoutBtn: "Proceed to checkout (DEMO)",
-      menuHome: "HOME",
-      menuCommissions: "COMMISSIONS",
-      menuArtwork: "ARTWORK",
-      menuPoll: "POLL",
-      menuStore: "STORE",
-      menuContact: "CONTACT",
+      cartTitle: "Shopping Cart", totalLabel: "Total", emptyCart: "Your cart is empty",
+      addedMsg: "Added successfully", removedMsg: "Removed from cart",
+      checkoutBtn: "Proceed to checkout (DEMO)", menuHome: "HOME", menuCommissions: "COMMISSIONS",
+      menuArtwork: "ARTWORK", menuPoll: "POLL", menuStore: "STORE", menuContact: "CONTACT",
       websiteBtn: "Website"
     },
     ja: {
-      cartTitle: "ショッピングカート",
-      totalLabel: "合計",
-      emptyCart: "カートは空です",
-      addedMsg: "カートに追加しました",
-      removedMsg: "カートから削除しました",
-      checkoutBtn: "レジに進む (デモ)",
-      menuHome: "ホーム",
-      menuCommissions: "コミッション",
-      menuArtwork: "アートワーク",
-      menuPoll: "投票",
-      menuStore: "ストア",
-      menuContact: "お問い合わせ",
+      cartTitle: "ショッピングカート", totalLabel: "合計", emptyCart: "カートは空です",
+      addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
+      checkoutBtn: "レジに進む (デモ)", menuHome: "ホーム", menuCommissions: "コミッション",
+      menuArtwork: "アートワーク", menuPoll: "投票", menuStore: "ストア", menuContact: "お問い合わせ",
       websiteBtn: "ウェブサイト"
     },
     zh: {
-      cartTitle: "购物车",
-      totalLabel: "总计",
-      emptyCart: "购物车是空的",
-      addedMsg: "已添加到购物车",
-      removedMsg: "已从购物车移除",
-      checkoutBtn: "去结账 (演示)",
-      menuHome: "主页",
-      menuCommissions: "委托",
-      menuArtwork: "作品集",
-      menuPoll: "投票",
-      menuStore: "商店",
-      menuContact: "联系",
+      cartTitle: "购物车", totalLabel: "总计", emptyCart: "购物车是空的",
+      addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
+      checkoutBtn: "去结账 (演示)", menuHome: "主页", menuCommissions: "委托",
+      menuArtwork: "作品集", menuPoll: "投票", menuStore: "商店", menuContact: "联系",
       websiteBtn: "网站"
     },
     es: {
-      cartTitle: "Carrito de Compras",
-      totalLabel: "Total",
-      emptyCart: "Tu carrito está vacío",
-      addedMsg: "Añadido correctamente",
-      removedMsg: "Eliminado del carrito",
-      checkoutBtn: "Proceder al pago (DEMO)",
-      menuHome: "INICIO",
-      menuCommissions: "COMISIONES",
-      menuArtwork: "OBRAS",
-      menuPoll: "ENCUESTA",
-      menuStore: "TIENDA",
-      menuContact: "CONTACTO",
+      cartTitle: "Carrito de Compras", totalLabel: "Total", emptyCart: "Tu carrito está vacío",
+      addedMsg: "Añadido correctamente", removedMsg: "Eliminado del carrito",
+      checkoutBtn: "Proceder al pago (DEMO)", menuHome: "INICIO", menuCommissions: "COMISIONES",
+      menuArtwork: "OBRAS", menuPoll: "ENCUESTA", menuStore: "TIENDA", menuContact: "CONTACTO",
       websiteBtn: "Sitio web"
     }
   };
 
-  // --- Global state ---
+  // --- State ---
   let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
   let currentLang = localStorage.getItem('language') || 'en';
   let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
-  const STATIC_USD = 3.0; // all products are $3.00 USD
+  const STATIC_USD = 3.0;
   const tierMap = { 3.0: { JPY: 500, CNY: 21.0, MXN: 50 } };
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-  // --- Helper: format price with currency ---
   window.formatPrice = function(usd = STATIC_USD, currency = currentCurrency) {
     if (currency === "USD") return `US$${usd.toFixed(2)}`;
     const exact = tierMap[usd]?.[currency];
@@ -87,7 +53,7 @@
     return `${sym}${converted}`;
   };
 
-  // --- Cart icons (SVG for add/remove) ---
+  // Cart SVG icons
   const addSvg = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/>
@@ -103,11 +69,10 @@
     <path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
   </svg>`;
 
-  // --- Cart helpers ---
   function saveCart() {
     localStorage.setItem('velutinx_cart', JSON.stringify(cart));
     updateCartUI();
-    window.syncCartButtons?.(); // if store page defined it
+    if (window.syncCartButtons) window.syncCartButtons();
   }
 
   function updateCartUI() {
@@ -147,7 +112,6 @@
     }
   }
 
-  // Expose addOrToggleCart globally
   window.addOrToggleCart = function(product) {
     const t = translations[currentLang] || translations.en;
     const idx = cart.findIndex(i => String(i.id) === String(product.id));
@@ -165,10 +129,9 @@
     }
     saveCart();
     updateCartUI();
-    window.syncCartButtons?.();
+    if (window.syncCartButtons) window.syncCartButtons();
   };
 
-  // Sync cart buttons on product cards (to be called by store page)
   window.syncCartButtons = function() {
     const idsInCart = new Set(cart.map(i => String(i.id)));
     document.querySelectorAll('.product-card').forEach(card => {
@@ -185,7 +148,7 @@
     });
   };
 
-  // --- Language & theme ---
+  // Language & theme
   function applyHeaderTranslations() {
     const t = translations[currentLang] || translations.en;
     document.getElementById('cartTitle').innerText = t.cartTitle;
@@ -207,13 +170,11 @@
     localStorage.setItem('language', lang);
     currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
     applyHeaderTranslations();
-    // Notify store page to update its own translations and prices
     document.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang, currency: currentCurrency } }));
     updateCartUI();
-    window.updateAllPrices?.(); // if store page defined
+    if (window.updateAllPrices) window.updateAllPrices();
   }
 
-  // Theme toggle
   function initTheme() {
     const themeBtn = document.getElementById('themeBtn');
     if (themeBtn) {
@@ -225,13 +186,13 @@
     if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
   }
 
-  // --- Load header HTML and initialize ---
+  // Inject header HTML
   async function loadHeader() {
     const placeholder = document.getElementById('header-placeholder');
     if (!placeholder) return;
 
     try {
-      const response = await fetch('https://velutinx.github.io/assets/include/header.html');
+      const response = await fetch('/assets/include/top.html');
       if (!response.ok) throw new Error('Failed to load header');
       const html = await response.text();
       placeholder.innerHTML = html;
@@ -307,15 +268,12 @@
       });
     }
 
-    // Theme
     initTheme();
 
-    // Demo checkout button (just alert)
     const demoBtn = document.getElementById('demoCheckoutBtn');
     if (demoBtn) demoBtn.addEventListener('click', () => alert("⚠️ Checkout is disabled in standalone demo. Cart items are stored locally."));
   }
 
-  // Start loading header when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadHeader);
   } else {
