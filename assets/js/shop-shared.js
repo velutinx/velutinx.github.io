@@ -793,7 +793,7 @@ window.removeItem = (idx) => {
 /* ==================== DOM INITIALIZATION ==================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // ←←← AUTO-INJECT SIDEBAR (works on every page that loads header.js)
+  // AUTO-INJECT SIDEBAR (now works on store.html + pack.html + any future page)
   injectSidebar();
 
   updateCartDisplay();
@@ -839,7 +839,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 200);
 
-  // Sidebar toggle (already works on store.html, now also on pack.html)
+  // Sidebar toggle (hamburger button)
   const sidebar = document.getElementById('sidebar');
   const sidebarOverlay = document.getElementById('sidebarOverlay');
   const menuToggle = document.getElementById('menuToggle');
