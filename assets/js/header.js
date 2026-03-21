@@ -1,3 +1,103 @@
+// ==================== GLOBAL HELPERS (available immediately) ====================
+let currentLang = localStorage.getItem('language') || 'en';
+let currentCurrency = currentLang === 'en' ? 'USD' :
+                     currentLang === 'ja' ? 'JPY' :
+                     currentLang === 'zh' ? 'CNY' : 'MXN';
+
+let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
+
+// Price formatting constants
+const tierMap = {
+  1.5: { JPY: 250, CNY: 10.5, MXN: 25 },
+  3.0: { JPY: 500, CNY: 21.0, MXN: 50 },
+  10.0: { JPY: 1500, CNY: 69.0, MXN: 175 }
+};
+const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+
+function formatPrice(value, currency = currentCurrency) {
+  if (currency === "USD") return `US$${value.toFixed(2)}`;
+  const rounded = Math.round(value * 100) / 100;
+  if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+    const converted = tierMap[rounded][currency];
+    const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+    return `${symbol}${converted}`;
+  }
+  let converted = value * (approxRates[currency] || 1);
+  converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
+  const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
+  return `${symbol}${converted}`;
+}
+
+function getPriceForPack(pack) {
+  return typeof pack.price === 'number' ? pack.price : parseFloat(pack.price) || 0;
+}
+
+function updateCartDisplay() {
+  const count = cart.length;
+  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
+    if (el) el.textContent = count;
+  });
+  const cartItemsEl = document.getElementById('cartItems');
+  if (cartItemsEl) {
+    cartItemsEl.innerHTML = count === 0 ? '<p>Your cart is empty</p>' : '';
+    cart.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'cart-item';
+      div.innerHTML = `
+        <img src="${item.image}" alt="${item.title}">
+        <div class="cart-item-info">
+          <div class="cart-item-title">${item.title}</div>
+          <div class="cart-item-price">${formatPrice(item.price)}</div>
+        </div>
+        <button class="cart-item-remove" data-idx="${idx}">×</button>
+      `;
+      cartItemsEl.appendChild(div);
+    });
+    const totalEl = document.getElementById('cartTotal');
+    if (totalEl) totalEl.textContent = formatPrice(total);
+  }
+}
+
+function saveCart() {
+  localStorage.setItem('velutinx_cart', JSON.stringify(cart));
+}
+
+function syncCartButtons() {
+  const ids = new Set(cart.map(item => item.id));
+  document.querySelectorAll('.product-card').forEach(card => {
+    const btn = card.querySelector('.cart-btn');
+    if (btn) btn.classList.toggle('added', ids.has(card.dataset.id));
+  });
+}
+
+function showSnackbar(msg, isRemove = false) {
+  const sb = document.getElementById('snackbar');
+  const text = document.getElementById('snackText');
+  const icon = sb?.querySelector('svg');
+  if (!sb || !text || !icon) return;
+  sb.classList.toggle('remove', isRemove);
+  icon.innerHTML = isRemove
+    ? `<path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<path d="M20 6L9 17l-5-5"></path>`;
+  text.textContent = msg;
+  sb.classList.add('show');
+  setTimeout(() => sb.classList.remove('show'), 2500);
+}
+
+// Expose globally for other scripts (including store page)
+window.formatPrice = formatPrice;
+window.getPriceForPack = getPriceForPack;
+window.updateCartDisplay = updateCartDisplay;
+window.syncCartButtons = syncCartButtons;
+window.updateAllPrices = function() {
+  document.querySelectorAll(".price").forEach(el => {
+    const base = parseFloat(el.dataset.price);
+    if (!isNaN(base)) el.innerHTML = formatPrice(base);
+  });
+};
+
+// ==================== HEADER INJECTION (async) ====================
 (async function() {
   const navContainer = document.getElementById('navContainer');
   if (!navContainer) return;
@@ -34,129 +134,6 @@
       document.body.appendChild(cartOverlay);
     }
 
-    // --- Price formatting constants (store) ---
-    const tierMap = { 
-      1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 
-      3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 
-      10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } 
-    };
-    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
-    // Current currency – initialise from stored language
-    let currentLang = localStorage.getItem('language') || 'en';
-    let currentCurrency = currentLang === 'en' ? 'USD' :
-                         currentLang === 'ja' ? 'JPY' :
-                         currentLang === 'zh' ? 'CNY' : 'MXN';
-
-    // --- Cart state (from localStorage) ---
-    let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
-
-    // --- Helper functions ---
-    function showSnackbar(msg, isRemove = false) {
-      const sb = document.getElementById('snackbar');
-      const text = document.getElementById('snackText');
-      const icon = sb?.querySelector('svg');
-      if (!sb || !text || !icon) return;
-      sb.classList.toggle('remove', isRemove);
-      icon.innerHTML = isRemove
-        ? `<path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
-        : `<path d="M20 6L9 17l-5-5"></path>`;
-      text.textContent = msg;
-      sb.classList.add('show');
-      setTimeout(() => sb.classList.remove('show'), 2500);
-    }
-
-    function formatPrice(value, currency = currentCurrency) {
-      if (currency === "USD") return `US$${value.toFixed(2)}`;
-      const rounded = Math.round(value * 100) / 100;
-      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-        const converted = tierMap[rounded][currency];
-        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-        return `${symbol}${converted}`;
-      }
-      let converted = value * (approxRates[currency] || 1);
-      converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-      return `${symbol}${converted}`;
-    }
-
-    function updateCartDisplay() {
-      const count = cart.length;
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
-        if (el) el.textContent = count;
-      });
-      if (cartItemsEl) {
-        cartItemsEl.innerHTML = count === 0 ? '<p>Your cart is empty</p>' : '';
-        cart.forEach((item, idx) => {
-          const div = document.createElement('div');
-          div.className = 'cart-item';
-          div.innerHTML = `
-            <img src="${item.image}" alt="${item.title}">
-            <div class="cart-item-info">
-              <div class="cart-item-title">${item.title}</div>
-              <div class="cart-item-price">${formatPrice(item.price)}</div>
-            </div>
-            <button class="cart-item-remove" data-idx="${idx}">×</button>
-          `;
-          cartItemsEl.appendChild(div);
-        });
-        const totalEl = document.getElementById('cartTotal');
-        if (totalEl) totalEl.textContent = formatPrice(total);
-      }
-    }
-
-    function saveCart() {
-      localStorage.setItem('velutinx_cart', JSON.stringify(cart));
-    }
-
-    function getPriceForPack(pack) {
-      return typeof pack.price === 'number' ? pack.price : parseFloat(pack.price) || 0;
-    }
-
-    // Global function for adding/removing items
-    window.addOrToggleCart = function(pack) {
-      const index = cart.findIndex(item => item.id === pack.id);
-      const isAdding = index === -1;
-      const card = document.querySelector(`.product-card[data-id="${pack.id}"]`);
-      const btn = card?.querySelector('.cart-btn');
-
-      let imageUrl = pack.image || (pack.images?.[0] ?? '');
-      if (!imageUrl) {
-        const paddedId = String(pack.id).padStart(3, '0');
-        imageUrl = `https://www.velutinx.com/i/pack${paddedId}-1.jpg`;
-      }
-
-      if (isAdding) {
-        cart.push({
-          id: pack.id,
-          title: pack.title,
-          image: imageUrl,
-          price: getPriceForPack(pack),
-          quantity: 1
-        });
-        btn?.classList.add('added');
-        const t = window.translations?.header?.[currentLang] || { snackText: 'Added successfully' };
-        showSnackbar(t.snackText || 'Added successfully', false);
-      } else {
-        cart.splice(index, 1);
-        btn?.classList.remove('added');
-        showSnackbar('Removed from cart', true);
-      }
-
-      saveCart();
-      updateCartDisplay();
-      syncCartButtons();
-    };
-
-    function syncCartButtons() {
-      const ids = new Set(cart.map(item => item.id));
-      document.querySelectorAll('.product-card').forEach(card => {
-        const btn = card.querySelector('.cart-btn');
-        if (btn) btn.classList.toggle('added', ids.has(card.dataset.id));
-      });
-    }
-
     // --- Cart drawer controls (with overlay) ---
     function openCart() {
       cartDrawer.classList.add('open');
@@ -168,6 +145,9 @@
       cartOverlay.classList.remove('active');
       document.body.classList.remove('drawer-open');
     }
+
+    // Expose closeCart globally for PayPal integration to remove blur
+    window.closeCartDrawer = closeCart;
 
     if (cartBtn && floatCartBtn && cartClose && cartDrawer) {
       cartBtn.addEventListener('click', openCart);
@@ -264,7 +244,7 @@
       const totalLabel = document.getElementById('totalLabel');
       const snackText = document.getElementById('snackText');
       const websiteBtn = document.getElementById('loginBtn');
-      if (websiteBtn) websiteBtn.textContent = t.websiteBtn || t.storeBtn; // fallback to storeBtn if needed
+      if (websiteBtn) websiteBtn.textContent = t.websiteBtn || t.storeBtn;
       if (menuHome) menuHome.textContent = t.menuHome;
       if (menuCommissions) menuCommissions.textContent = t.menuCommissions;
       if (menuArtwork) menuArtwork.textContent = t.menuArtwork;
@@ -274,7 +254,6 @@
       if (cartTitle) cartTitle.textContent = t.cartTitle;
       if (totalLabel) totalLabel.textContent = t.totalLabel;
       if (snackText) snackText.textContent = t.snackText;
-      
     }
 
     // --- Language change handler (update currency and prices) ---
@@ -298,17 +277,6 @@
       });
     });
 
-    // --- Expose global functions for store page ---
-    window.updateAllPrices = function() {
-      document.querySelectorAll(".price").forEach(el => {
-        const base = parseFloat(el.dataset.price);
-        if (!isNaN(base)) el.innerHTML = formatPrice(base);
-      });
-    };
-    window.syncCartButtons = syncCartButtons;
-    window.updateCartDisplay = updateCartDisplay;
-    window.getPriceForPack = getPriceForPack;
-
     // --- Apply store translations if the page is the store ---
     if (document.getElementById('shopTitle')) {
       if (typeof window.applyTranslations === 'function') {
@@ -326,7 +294,6 @@
 
   } catch (err) {
     console.error('Failed to load header:', err);
-    // Fallback: show a simple error message (optional)
     navContainer.innerHTML = '<div style="padding: 1rem; text-align: center; background: var(--bg);">Header failed to load. Please refresh the page.</div>';
   }
 })();
