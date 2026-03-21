@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
   <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
 
-  <!-- Combined header + cart + dropdown menu styles (already includes sidebar) -->
+  <!-- Combined header + cart + dropdown menu styles -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <style>
@@ -259,7 +259,7 @@
   <script src="https://velutinx.com/assets/js/socials.js"></script>
   <script src="https://velutinx.com/assets/js/header.js"></script>
 
-  <!-- Product listing script (unchanged) -->
+  <!-- Product listing script (fixed to call updateAllPrices after creation) -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
@@ -329,6 +329,7 @@
         });
 
         window.updateCartDisplay?.();
+        window.updateAllPrices?.(); // <-- FIX: call this to display prices
       }
 
       function filterAndSort() {
