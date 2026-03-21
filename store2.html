@@ -214,7 +214,7 @@
       padding: 1.2rem 1.5rem;
       border-bottom: 1px solid var(--border);
     }
-    .cart-header h5 { font-size: 1.6rem; margin: 0; } /* bigger cart title */
+    .cart-header h5 { font-size: 1.6rem; margin: 0; }
     .cart-close { background: none; border: none; font-size: 2rem; cursor: pointer; color: #1f1a12; line-height: 1; }
     .cart-items { flex: 1; overflow-y: auto; padding: 1rem; }
     .cart-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
@@ -282,8 +282,8 @@
       padding: 0.8rem 1.5rem;
       color: var(--text);
       text-decoration: none;
-      font-weight: 700;      /* bold */
-      font-size: 1.05rem;    /* slightly bigger */
+      font-weight: 700;
+      font-size: 1.05rem;
       transition: 0.2s;
     }
     .menu-item:hover { background: var(--darker); }
@@ -292,7 +292,14 @@
     /* ----- STORE LAYOUT ----- */
     .main-container { display: flex; max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem 2rem; gap: 2rem; }
     .store-filter-sidebar { width: 260px; flex-shrink: 0; }
-    .section-title { font-weight: 600; margin-bottom: 0.8rem; color: var(--text); }
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .category-list, .sort-options { list-style: none; background: var(--card); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 1.8rem; overflow: hidden; }
     .category-list li, .sort-btn {
       padding: 0.9rem 1.2rem;
@@ -307,6 +314,13 @@
       width: 100%;
       text-align: left;
       font-size: 1rem;
+    }
+    .category-list li svg, .sort-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
     }
     .category-list li:hover, .sort-btn:hover { background: var(--darker); }
     .category-list li.active, .sort-btn.active { background: var(--accent); color: #1f1a12; font-weight: 600; }
@@ -417,7 +431,7 @@
   <span class="floating-badge" id="floatingCartCount">0</span>
 </button>
 
-<!-- ========== SIDEBAR (with hamburger close) ========== -->
+<!-- ========== SIDEBAR (hamburger close) ========== -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
@@ -437,7 +451,7 @@
   <div class="sidebar-footer">© VELUTINX</div>
 </aside>
 
-<!-- ========== CART DRAWER (blur overlay) ========== -->
+<!-- ========== CART DRAWER ========== -->
 <div class="cart-overlay" id="cartOverlay"></div>
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
@@ -451,25 +465,55 @@
 <!-- ========== STORE CONTENT ========== -->
 <div class="main-container">
   <aside class="store-filter-sidebar">
-    <div class="section-title" id="filterTitle">Filter by Category</div>  <!-- removed 📁 -->
+    <div class="section-title" id="filterTitle">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 6v4M16 12v6"/></svg>
+      <span>Filter by Category</span>
+    </div>
     <ul class="category-list" id="categoryList">
-      <li data-cat="all" class="active"><span>✨</span> <span id="catAll">All Products</span></li>
-      <li data-cat="female"><span>👩</span> <span id="catFemale">Female Models</span></li>
-      <li data-cat="femboy"><span>🌸</span> <span id="catFemboy">Femboy Models</span></li>
-      <li data-cat="collection"><span>📚</span> <span id="catCollections">Full Collections</span></li>
+      <li data-cat="all" class="active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span id="catAll">All Products</span>
+      </li>
+      <li data-cat="female">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 12v6M9 15h6"/></svg>
+        <span id="catFemale">Female Models</span>
+      </li>
+      <li data-cat="femboy">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 12v6M9 15h6"/><path d="M15 4l2-2 2 2-2 2zM9 4L7 2 5 4l2 2z"/></svg>
+        <span id="catFemboy">Femboy Models</span>
+      </li>
+      <li data-cat="membership">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3 6 6 .7-4.5 4.1L18 19l-6-3-6 3 1.5-6.2L3 8.7 9 8z"/></svg>
+        <span id="catMembership">Memberships</span>
+      </li>
     </ul>
-    <div class="section-title" id="sortTitle">🔽 Sort by</div>
+    <div class="section-title" id="sortTitle">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3v12M7 15l-3-3M7 15l3-3M17 21V9M17 9l-3 3M17 9l3 3"/></svg>
+      <span>Sort by</span>
+    </div>
     <div id="sortContainer">
-      <button class="sort-btn active" data-sort="newest"><span>🕒</span> <span id="sortNewest">Newest</span></button>
-      <button class="sort-btn" data-sort="oldest"><span>⏳</span> <span id="sortOldest">Oldest</span></button>
-      <button class="sort-btn" data-sort="price-asc"><span>💰</span> <span id="sortLow">Price: Low to High</span></button>
-      <button class="sort-btn" data-sort="price-desc"><span>💸</span> <span id="sortHigh">Price: High to Low</span></button>
+      <button class="sort-btn active" data-sort="newest">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12M12 15l-3-3M12 15l3-3"/><path d="M5 21h14"/></svg>
+        <span id="sortNewest">Newest</span>
+      </button>
+      <button class="sort-btn" data-sort="oldest">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21V9M12 9l-3 3M12 9l3 3"/><path d="M5 3h14"/></svg>
+        <span id="sortOldest">Oldest</span>
+      </button>
+      <button class="sort-btn" data-sort="price-asc">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 15h6M4 9h10M4 3h14M20 9v12M20 21l3-3M20 21l-3-3"/></svg>
+        <span id="sortLow">Price: Low to High</span>
+      </button>
+      <button class="sort-btn" data-sort="price-desc">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 15h6M4 9h10M4 3h14M20 21V9M20 9l3 3M20 9l-3-3"/></svg>
+        <span id="sortHigh">Price: High to Low</span>
+      </button>
     </div>
   </aside>
 
   <main class="products-section">
     <div class="products-header">
-      <h2 id="latestTitle">Latest Content</h2>   <!-- no camera emoji -->
+      <h2 id="latestTitle">Latest Content</h2>
       <div class="search-bar-wrapper">
         <div class="input-base">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
@@ -482,14 +526,14 @@
 </div>
 
 <script>
-  // ==================== TRANSLATIONS (full store + UI) ====================
+  // ==================== TRANSLATIONS ====================
   const translations = {
     en: {
       cartTitle: "Shopping Cart", totalLabel: "Total", emptyCart: "Your cart is empty",
       addedMsg: "Added successfully", removedMsg: "Removed from cart",
       checkoutBtn: "Proceed to checkout (DEMO)", searchPlaceholder: "Search...",
-      latestTitle: "Latest Content", filterTitle: "Filter by Category", sortTitle: "🔽 Sort by",
-      catAll: "All Products", catFemale: "Female Models", catFemboy: "Femboy Models", catCollections: "Full Collections",
+      latestTitle: "Latest Content", filterTitle: "Filter by Category", sortTitle: "Sort by",
+      catAll: "All Products", catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
       sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
       menuHome: "HOME", menuCommissions: "COMMISSIONS", menuArtwork: "ARTWORK", menuPoll: "POLL", menuStore: "STORE", menuContact: "CONTACT",
       websiteBtn: "Website"
@@ -498,8 +542,8 @@
       cartTitle: "ショッピングカート", totalLabel: "合計", emptyCart: "カートは空です",
       addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
       checkoutBtn: "レジに進む (デモ)", searchPlaceholder: "検索...",
-      latestTitle: "最新コンテンツ", filterTitle: "カテゴリで絞り込み", sortTitle: "🔽 並び替え",
-      catAll: "すべて", catFemale: "女性モデル", catFemboy: "男の娘モデル", catCollections: "フルコレクション",
+      latestTitle: "最新コンテンツ", filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え",
+      catAll: "すべて", catFemale: "女性モデル", catFemboy: "男の娘モデル", catMembership: "メンバーシップ",
       sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
       menuHome: "ホーム", menuCommissions: "コミッション", menuArtwork: "アートワーク", menuPoll: "投票", menuStore: "ストア", menuContact: "お問い合わせ",
       websiteBtn: "ウェブサイト"
@@ -508,8 +552,8 @@
       cartTitle: "购物车", totalLabel: "总计", emptyCart: "购物车是空的",
       addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
       checkoutBtn: "去结账 (演示)", searchPlaceholder: "搜索...",
-      latestTitle: "最新内容", filterTitle: "按分类筛选", sortTitle: "🔽 排序方式",
-      catAll: "所有商品", catFemale: "女性模型", catFemboy: "Femboy 模型", catCollections: "完整收藏",
+      latestTitle: "最新内容", filterTitle: "按分类筛选", sortTitle: "排序方式",
+      catAll: "所有商品", catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
       sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
       menuHome: "主页", menuCommissions: "委托", menuArtwork: "作品集", menuPoll: "投票", menuStore: "商店", menuContact: "联系",
       websiteBtn: "网站"
@@ -518,8 +562,8 @@
       cartTitle: "Carrito de Compras", totalLabel: "Total", emptyCart: "Tu carrito está vacío",
       addedMsg: "Añadido correctamente", removedMsg: "Eliminado del carrito",
       checkoutBtn: "Proceder al pago (DEMO)", searchPlaceholder: "Buscar...",
-      latestTitle: "Último Contenido", filterTitle: "Filtrar por Categoría", sortTitle: "🔽 Ordenar por",
-      catAll: "Todos los productos", catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catCollections: "Colecciones Completas",
+      latestTitle: "Último Contenido", filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por",
+      catAll: "Todos los productos", catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
       sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
       menuHome: "INICIO", menuCommissions: "COMISIONES", menuArtwork: "OBRAS", menuPoll: "ENCUESTA", menuStore: "TIENDA", menuContact: "CONTACTO",
       websiteBtn: "Sitio web"
@@ -551,7 +595,7 @@
     return `${sym}${converted}`;
   }
 
-  // Custom SVG for add (green plus) and remove (red minus) on product cards
+  // Custom SVGs for cart buttons
   const addSvg = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/>
@@ -567,7 +611,6 @@
     <path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
   </svg>`;
 
-  // cart helpers
   function saveCart() { localStorage.setItem('velutinx_cart', JSON.stringify(cart)); updateCartUI(); syncCartButtonsUI(); }
   function updateCartUI() {
     const count = cart.length;
@@ -619,13 +662,12 @@
     syncCartButtonsUI();
   };
 
-  // filtering & rendering
   function getFilteredSorted() {
     let filtered = products.filter(p => {
       if(activeCategory === "all") return true;
       if(activeCategory === "female") return p.category === 1;
       if(activeCategory === "femboy") return p.category === 2;
-      if(activeCategory === "collection") return p.category === 3;
+      if(activeCategory === "membership") return p.category === 3;
       return false;
     });
     if(searchQuery) filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -662,7 +704,6 @@
   }
   function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-  // fetch products from external URL with fallback
   async function fetchProducts() {
     const urls = [
       'https://velutinx.github.io/assets/js/packs-data.js',
@@ -680,9 +721,8 @@
           renderGrid();
           return;
         }
-      } catch(e) { console.warn(`Failed to fetch from ${url}`, e); }
+      } catch(e) { console.warn(`Failed fetch from ${url}`, e); }
     }
-    // Fallback static data (10 packs from the file)
     products = [
       { id: "001", title: "[Pack 001] Tsunade - Naruto", category: 1 }, { id: "002", title: "[Pack 002] Astolfo - Fate/Grand Order", category: 2 },
       { id: "003", title: "[Pack 003] Alexis Rhodes - Yu-Gi-Oh", category: 1 }, { id: "004", title: "[Pack 004] Nico Robin - One Piece", category: 1 },
@@ -693,7 +733,6 @@
     renderGrid();
   }
 
-  // language & UI update
   function applyTranslations() {
     const t = translations[currentLang] || translations.en;
     document.getElementById('cartTitle').innerText = t.cartTitle;
@@ -701,12 +740,12 @@
     document.getElementById('demoCheckoutBtn').innerText = t.checkoutBtn;
     document.getElementById('searchInput').placeholder = t.searchPlaceholder;
     document.getElementById('latestTitle').innerText = t.latestTitle;
-    document.getElementById('filterTitle').innerText = t.filterTitle;
-    document.getElementById('sortTitle').innerHTML = t.sortTitle;
+    document.getElementById('filterTitle').querySelector('span').innerText = t.filterTitle;
+    document.getElementById('sortTitle').querySelector('span').innerText = t.sortTitle;
     document.getElementById('catAll').innerText = t.catAll;
     document.getElementById('catFemale').innerText = t.catFemale;
     document.getElementById('catFemboy').innerText = t.catFemboy;
-    document.getElementById('catCollections').innerText = t.catCollections;
+    document.getElementById('catMembership').innerText = t.catMembership;
     document.getElementById('sortNewest').innerText = t.sortNewest;
     document.getElementById('sortOldest').innerText = t.sortOldest;
     document.getElementById('sortLow').innerText = t.sortLow;
@@ -730,11 +769,10 @@
     updateCartUI();
   }
 
-  // event listeners
   document.addEventListener('DOMContentLoaded', () => {
     fetchProducts();
     applyTranslations();
-    // category filter
+    // Category filter
     document.querySelectorAll('.category-list li').forEach(li => {
       li.addEventListener('click', () => {
         document.querySelectorAll('.category-list li').forEach(l => l.classList.remove('active'));
@@ -743,6 +781,7 @@
         renderGrid();
       });
     });
+    // Sort buttons
     document.querySelectorAll('.sort-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -752,18 +791,18 @@
       });
     });
     document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value; renderGrid(); });
-    // language popover
+    // Language popover
     const langBtn = document.getElementById('langBtn'), pop = document.getElementById('languagePopover');
     langBtn?.addEventListener('click', (e) => { e.stopPropagation(); pop.classList.toggle('show'); });
     document.querySelectorAll('.lang-item').forEach(item => {
       item.addEventListener('click', () => { const l = item.dataset.lang; if(l) setLanguage(l); pop.classList.remove('show'); });
     });
     document.addEventListener('click', (e) => { if(pop && !pop.contains(e.target) && e.target !== langBtn) pop.classList.remove('show'); });
-    // theme
+    // Theme
     const themeBtn = document.getElementById('themeBtn');
     if(themeBtn) themeBtn.addEventListener('click', () => { document.body.classList.toggle('dark'); localStorage.setItem('darkMode', document.body.classList.contains('dark')); });
     if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
-    // cart drawer
+    // Cart drawer
     const cartDrawer = document.getElementById('cartDrawer'), cartOverlay = document.getElementById('cartOverlay');
     const openCart = () => { cartDrawer.classList.add('open'); cartOverlay.classList.add('active'); document.body.classList.add('drawer-open'); };
     const closeCart = () => { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('active'); document.body.classList.remove('drawer-open'); };
@@ -771,14 +810,14 @@
     document.getElementById('floatingCartBtn')?.addEventListener('click', openCart);
     document.getElementById('cartClose')?.addEventListener('click', closeCart);
     cartOverlay?.addEventListener('click', closeCart);
-    // sidebar
+    // Sidebar
     const sidebar = document.getElementById('sidebar'), sidebarOverlay = document.getElementById('sidebarOverlay');
     const menuToggle = document.getElementById('menuToggle'), sidebarClose = document.getElementById('sidebarMenuToggle');
     if(menuToggle) menuToggle.onclick = () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); document.body.style.overflow='hidden'; };
     const closeSide = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); document.body.style.overflow=''; };
     sidebarClose?.addEventListener('click', closeSide);
     sidebarOverlay?.addEventListener('click', closeSide);
-    // demo checkout
+    // Demo checkout
     document.getElementById('demoCheckoutBtn')?.addEventListener('click', () => alert("⚠️ Checkout is disabled in standalone demo. Cart items are stored locally."));
     updateCartUI();
   });
