@@ -453,10 +453,236 @@
   <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Membership‑specific JavaScript (translations, cart integration, etc.) -->
+  <!-- Membership‑specific JavaScript (translations, cart integration, button logic) -->
   <script>
     // Wait for the shared header to be ready before initialising membership logic
     let membershipInitialised = false;
+
+    // Translations (complete, based on shop-shared.js, but only membership‑relevant keys)
+    // We'll use the full translations from shared.js, but for safety we'll also define them here.
+    // Since shared.js already defines window.translations, we'll rely on that, but we'll also add a fallback.
+    const membershipTranslations = {
+      en: {
+        membershipTitle: "Choose Your Membership",
+        membershipDescription: "Support my work and unlock exclusive perks",
+        discordIdLabel: "Your Discord ID",
+        discordHint: "How to find your Discord ID:",
+        discordHelpLink: "Where do I find my Discord ID? (click)",
+        discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
+        discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
+        discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
+        discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
+        noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
+        joinDiscord: "→ Join Discord Server ←",
+        tierBronze: "Bronze",
+        tierCopper: "Copper",
+        tierSilver: "Silver",
+        tierGold: "Gold",
+        tierPlatinum: "Platinum",
+        perMonth: "/ month",
+        btnSingle: "Single Purchase",
+        btnRecurring: "Recurring Membership",
+        perk1_1: "Full archive access immediately.",
+        perk1_2: "Includes all past releases & paid content.",
+        perk2_1: "Everything in Bronze, plus:",
+        perk2_2: "One (1) custom image request per billing cycle.",
+        perk2_3: "Approx. 20 images per request.",
+        perk2_4: "Single character, official/creator‑selected outfit.",
+        perk2_5: "Some character customization allowed.",
+        perk2_6: "Typical turnaround: ~1 day (queue order).",
+        perk3_1: "Everything in Bronze, plus:",
+        perk3_2: "One (1) custom image request per billing cycle.",
+        perk3_3: "Approx. 40 images per request.",
+        perk3_4: "Single character, custom outfit allowed.",
+        perk3_5: "Character customization allowed.",
+        perk3_6: "Typical turnaround: ~1 day (queue order).",
+        perk4_1: "Everything in Bronze, plus:",
+        perk4_2: "One (1) large custom image request per billing cycle.",
+        perk4_3: "Approx. 80 images per request.",
+        perk4_4: "Single character, custom outfit allowed.",
+        perk4_5: "Character customization allowed.",
+        perk4_6: "Typical turnaround: 3‑7 days (queue order).",
+        perk4_7: "Special/expanded requests may be discussed.",
+        perk5_1: "Everything in Bronze, plus:",
+        perk5_2: "One (1) large custom image request per billing cycle.",
+        perk5_3: "Approx. 80 images per request.",
+        perk5_4: "Single character, custom outfit allowed.",
+        perk5_5: "Character customization allowed.",
+        perk5_6: "⚡ Priority: worked on first after current tasks.",
+        perk5_7: "Typical turnaround: 3‑7 days (once started).",
+        errorDiscordMissing: "Please enter your Discord ID",
+        errorDiscordInvalid: "Invalid Discord ID format",
+        errorOnlyHighest: "Only the highest tier can be added.",
+        removedFromCart: "Removed from cart",
+        addedToCart: "Added to cart",
+        errorPlanNotConfigured: "Plan not configured for this tier",
+      },
+      ja: {
+        membershipTitle: "メンバーシップを選ぶ",
+        membershipDescription: "私の活動を支援し、特典をアンロック",
+        discordIdLabel: "Discord ID",
+        discordHint: "Discord IDの見つけ方:",
+        discordHelpLink: "Discord IDはどこで見つけられますか？ (クリック)",
+        discordHelpStep1: "<strong>手順1:</strong> Discordを開き、<strong>ユーザー設定</strong>（歯車アイコン）へ。",
+        discordHelpStep2: "<strong>手順2:</strong> <strong>アプリ設定</strong>の<strong>高度な設定</strong>で<strong>開発者モード</strong>を有効に。",
+        discordHelpStep3: "<strong>手順3:</strong> 自分のユーザー名を右クリックし、<strong>IDをコピー</strong>。",
+        discordHelpStep4: "<strong>手順4:</strong> その番号をここに貼り付け。",
+        noteBox: "<strong>📌 重要:</strong> 支払い完了後、対応するロールが自動的に付与されます。事前にDiscordサーバーに参加してください！",
+        joinDiscord: "→ Discordサーバーに参加 ←",
+        tierBronze: "ブロンズ",
+        tierCopper: "カッパー",
+        tierSilver: "シルバー",
+        tierGold: "ゴールド",
+        tierPlatinum: "プラチナ",
+        perMonth: "/月",
+        btnSingle: "単発購入",
+        btnRecurring: "定期購読",
+        perk1_1: "アーカイブへの即時フルアクセス。",
+        perk1_2: "過去の全リリースと有料コンテンツを含む。",
+        perk2_1: "ブロンズの全特典に加えて：",
+        perk2_2: "各請求サイクルに1回のカスタム画像リクエスト。",
+        perk2_3: "1リクエストあたり約20枚。",
+        perk2_4: "単一キャラクター、公式/クリエイター選択の衣装。",
+        perk2_5: "一部キャラクターカスタマイズ可能。",
+        perk2_6: "標準納期：〜1日（キュー順）。",
+        perk3_1: "ブロンズの全特典に加えて：",
+        perk3_2: "各請求サイクルに1回のカスタム画像リクエスト。",
+        perk3_3: "1リクエストあたり約40枚。",
+        perk3_4: "単一キャラクター、カスタム衣装可能。",
+        perk3_5: "キャラクターカスタマイズ可能。",
+        perk3_6: "標準納期：〜1日（キュー順）。",
+        perk4_1: "ブロンズの全特典に加えて：",
+        perk4_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。",
+        perk4_3: "1リクエストあたり約80枚。",
+        perk4_4: "単一キャラクター、カスタム衣装可能。",
+        perk4_5: "キャラクターカスタマイズ可能。",
+        perk4_6: "標準納期：3〜7日（キュー順）。",
+        perk4_7: "特別/拡張リクエストは相談可能。",
+        perk5_1: "ブロンズの全特典に加えて：",
+        perk5_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。",
+        perk5_3: "1リクエストあたり約80枚。",
+        perk5_4: "単一キャラクター、カスタム衣装可能。",
+        perk5_5: "キャラクターカスタマイズ可能。",
+        perk5_6: "⚡ 優先対応：現在のタスク完了後に最初に着手。",
+        perk5_7: "標準納期：3〜7日（着手後）。",
+        errorDiscordMissing: "Discord IDを入力してください",
+        errorDiscordInvalid: "Discord IDの形式が無効です",
+        errorOnlyHighest: "最上位ティアのみ追加できます。",
+        removedFromCart: "カートから削除しました",
+        addedToCart: "カートに追加しました",
+        errorPlanNotConfigured: "このティアのプランは設定されていません",
+      },
+      zh: {
+        membershipTitle: "选择会员资格",
+        membershipDescription: "支持我的工作并解锁专属特权",
+        discordIdLabel: "你的 Discord ID",
+        discordHint: "如何找到你的 Discord ID:",
+        discordHelpLink: "我在哪里可以找到我的 Discord ID？(点击)",
+        discordHelpStep1: "<strong>步骤1:</strong> 打开 Discord，进入<strong>用户设置</strong>（齿轮图标）。",
+        discordHelpStep2: "<strong>步骤2:</strong> 在<strong>应用设置</strong>中，选择<strong>高级</strong>并启用<strong>开发者模式</strong>。",
+        discordHelpStep3: "<strong>步骤3:</strong> 右键点击你的用户名，选择<strong>复制ID</strong>。",
+        discordHelpStep4: "<strong>步骤4:</strong> 将号码粘贴在这里。",
+        noteBox: "<strong>📌 重要:</strong> 支付成功后，你将自动获得 Discord 服务器中的对应角色。请确保已加入服务器！",
+        joinDiscord: "→ 加入 Discord 服务器 ←",
+        tierBronze: "青铜",
+        tierCopper: "铜",
+        tierSilver: "银",
+        tierGold: "金",
+        tierPlatinum: "铂金",
+        perMonth: "/月",
+        btnSingle: "单次购买",
+        btnRecurring: "定期订阅",
+        perk1_1: "立即获得完整存档访问权限。",
+        perk1_2: "包含所有过往发布及付费内容。",
+        perk2_1: "包含青铜所有权益，外加：",
+        perk2_2: "每个计费周期可提交1次定制图像请求。",
+        perk2_3: "每次请求约20张图像。",
+        perk2_4: "单一角色，官方/创作者选定服装。",
+        perk2_5: "允许一定程度的角色自定义。",
+        perk2_6: "通常交付时间：~1天（按队列顺序）。",
+        perk3_1: "包含青铜所有权益，外加：",
+        perk3_2: "每个计费周期可提交1次定制图像请求。",
+        perk3_3: "每次请求约40张图像。",
+        perk3_4: "单一角色，允许自定义服装。",
+        perk3_5: "允许角色自定义。",
+        perk3_6: "通常交付时间：~1天（按队列顺序）。",
+        perk4_1: "包含青铜所有权益，外加：",
+        perk4_2: "每个计费周期可提交1次大型定制图像请求。",
+        perk4_3: "每次请求约80张图像。",
+        perk4_4: "单一角色，允许自定义服装。",
+        perk4_5: "允许角色自定义。",
+        perk4_6: "通常交付时间：3-7天（按队列顺序）。",
+        perk4_7: "特殊/扩展请求可商议。",
+        perk5_1: "包含青铜所有权益，外加：",
+        perk5_2: "每个计费周期可提交1次大型定制图像请求。",
+        perk5_3: "每次请求约80张图像。",
+        perk5_4: "单一角色，允许自定义服装。",
+        perk5_5: "允许角色自定义。",
+        perk5_6: "⚡ 优先处理：当前任务完成后最先处理。",
+        perk5_7: "通常交付时间：3-7天（开始后）。",
+        errorDiscordMissing: "请输入你的 Discord ID",
+        errorDiscordInvalid: "Discord ID 格式无效",
+        errorOnlyHighest: "只能添加最高等级的会员资格。",
+        removedFromCart: "已从购物车移除",
+        addedToCart: "已加入购物车",
+        errorPlanNotConfigured: "该等级尚未配置订阅方案",
+      },
+      es: {
+        membershipTitle: "Elige tu Membresía",
+        membershipDescription: "Apoya mi trabajo y desbloquea beneficios exclusivos",
+        discordIdLabel: "Tu ID de Discord",
+        discordHint: "Cómo encontrar tu ID de Discord:",
+        discordHelpLink: "¿Dónde encuentro mi ID de Discord? (clic)",
+        discordHelpStep1: "<strong>Paso 1:</strong> Abre Discord y ve a <strong>Ajustes de Usuario</strong> (icono de engranaje).",
+        discordHelpStep2: "<strong>Paso 2:</strong> En <strong>Ajustes de la App</strong>, selecciona <strong>Avanzado</strong> y activa <strong>Modo Desarrollador</strong>.",
+        discordHelpStep3: "<strong>Paso 3:</strong> Haz clic derecho en tu nombre de usuario y selecciona <strong>Copiar ID</strong>.",
+        discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.",
+        noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
+        joinDiscord: "→ Unirse al Servicio de Discord ←",
+        tierBronze: "Bronce",
+        tierCopper: "Cobre",
+        tierSilver: "Plata",
+        tierGold: "Oro",
+        tierPlatinum: "Platino",
+        perMonth: "/ mes",
+        btnSingle: "Compra Única",
+        btnRecurring: "Membresía Recurrente",
+        perk1_1: "Acceso inmediato al archivo completo.",
+        perk1_2: "Incluye todos los lanzamientos anteriores y contenido de pago.",
+        perk2_1: "Todo lo de Bronce, más:",
+        perk2_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.",
+        perk2_3: "Aprox. 20 imágenes por solicitud.",
+        perk2_4: "Personaje único, atuendo seleccionado por el oficial/creador.",
+        perk2_5: "Se permite cierta personalización del personaje.",
+        perk2_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
+        perk3_1: "Todo lo de Bronce, más:",
+        perk3_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.",
+        perk3_3: "Aprox. 40 imágenes por solicitud.",
+        perk3_4: "Personaje único, se permite atuendo personalizado.",
+        perk3_5: "Se permite personalización del personaje.",
+        perk3_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
+        perk4_1: "Todo lo de Bronce, más:",
+        perk4_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.",
+        perk4_3: "Aprox. 80 imágenes por solicitud.",
+        perk4_4: "Personaje único, se permite atuendo personalizado.",
+        perk4_5: "Se permite personalización del personaje.",
+        perk4_6: "Tiempo de entrega típico: 3-7 días (orden de cola).",
+        perk4_7: "Solicitudes especiales/ampliadas pueden ser discutidas.",
+        perk5_1: "Todo lo de Bronce, más:",
+        perk5_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.",
+        perk5_3: "Aprox. 80 imágenes por solicitud.",
+        perk5_4: "Personaje único, se permite atuendo personalizado.",
+        perk5_5: "Se permite personalización del personaje.",
+        perk5_6: "⚡ Prioridad: se trabaja primero después de las tareas actuales.",
+        perk5_7: "Tiempo de entrega típico: 3-7 días (una vez iniciado).",
+        errorDiscordMissing: "Por favor ingresa tu ID de Discord",
+        errorDiscordInvalid: "Formato de ID de Discord inválido",
+        errorOnlyHighest: "Solo se puede agregar el nivel más alto.",
+        removedFromCart: "Eliminado del carrito",
+        addedToCart: "Añadido al carrito",
+        errorPlanNotConfigured: "Plan no configurado para este nivel",
+      }
+    };
 
     function initMembership() {
       if (membershipInitialised) return;
@@ -464,10 +690,11 @@
 
       let currentLang = localStorage.getItem('language') || 'en';
 
-      // Helper to get translation with fallback to English if key missing
+      // Helper to get translation – try from shared translations first, then fallback to embedded
       function getText(key, fallback) {
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
-        return t[key] !== undefined ? t[key] : fallback;
+        const sharedT = window.translations?.[currentLang] || window.translations?.en || {};
+        const embeddedT = membershipTranslations[currentLang] || membershipTranslations.en || {};
+        return sharedT[key] !== undefined ? sharedT[key] : (embeddedT[key] !== undefined ? embeddedT[key] : fallback);
       }
 
       function updateMembershipPrices() {
@@ -481,24 +708,23 @@
       }
 
       function updateMembershipText() {
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
-        const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t[id] || fallback; };
-        const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t[id] || fallback; };
+        const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = getText(id, fallback); };
+        const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = getText(id, fallback); };
         setText('membershipTitle', 'Choose Your Membership');
         setText('membershipDescription', 'Support my work and unlock exclusive perks');
-        setHTML('discordIdLabel', (t.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
-        setText('discordHintText', t.discordHint || 'How to find your Discord ID:');
-        setText('discordHelpText', t.discordHelpLink || 'Where do I find my Discord ID? (click)');
-        setHTML('discordHelpStep1', t.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-        setHTML('discordHelpStep2', t.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-        setHTML('discordHelpStep3', t.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-        setHTML('discordHelpStep4', t.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
-        setHTML('noteBox', (t.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
-          '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
+        setHTML('discordIdLabel', (getText('discordIdLabel', 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>'));
+        setText('discordHintText', getText('discordHint', 'How to find your Discord ID:'));
+        setText('discordHelpText', getText('discordHelpLink', 'Where do I find my Discord ID? (click)'));
+        setHTML('discordHelpStep1', getText('discordHelpStep1', '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).'));
+        setHTML('discordHelpStep2', getText('discordHelpStep2', '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.'));
+        setHTML('discordHelpStep3', getText('discordHelpStep3', '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.'));
+        setHTML('discordHelpStep4', getText('discordHelpStep4', '<strong>Step 4:</strong> Paste that number here.'));
+        setHTML('noteBox', (getText('noteBox', '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
+          '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (getText('joinDiscord', '→ Join Discord Server ←')) + '</a></div>'));
         for (let i = 1; i <= 5; i++) {
           const titleEl = document.getElementById(`tier${i}Title`);
           const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
-          if (titleEl && t[key]) titleEl.textContent = t[key];
+          if (titleEl && getText(key, '')) titleEl.textContent = getText(key, '');
         }
         const perkIds = [
           'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
@@ -506,22 +732,21 @@
           'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
           'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
         ];
-        perkIds.forEach(id => { const el = document.getElementById(id); if (el && t[id]) el.textContent = t[id]; });
-        document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t.btnSingle || 'Single Purchase');
-        document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t.btnRecurring || 'Recurring Membership');
-        document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
+        perkIds.forEach(id => { const el = document.getElementById(id); if (el && getText(id, '')) el.textContent = getText(id, ''); });
+        document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = getText('btnSingle', 'Single Purchase'));
+        document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = getText('btnRecurring', 'Recurring Membership'));
+        document.querySelectorAll('.per-month').forEach(el => el.textContent = getText('perMonth', '/ month'));
       }
 
       function updateMembershipButtons() {
         const cart = window.getCart ? window.getCart() : [];
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
         for (let tier = 1; tier <= 5; tier++) {
           const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
           if (!card) continue;
           const inCart = cart.some(item => item.id === `membership-${tier}`);
           const btn = card.querySelector('.btn-single, .btn-remove');
           if (btn) {
-            btn.textContent = inCart ? (t.removeFromCart || 'Remove from Cart') : (t.btnSingle || 'Single Purchase');
+            btn.textContent = inCart ? getText('removeFromCart', 'Remove from Cart') : getText('btnSingle', 'Single Purchase');
             btn.classList.toggle('btn-single', !inCart);
             btn.classList.toggle('btn-remove', inCart);
           }
