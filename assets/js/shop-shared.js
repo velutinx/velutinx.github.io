@@ -754,6 +754,9 @@ function injectSidebar() {
 
   document.body.insertAdjacentHTML("beforeend", sidebarHTML);
 }
-
+window.loadAndInitPayPal = loadAndInitPayPal;
+window.initPayPalButtons = initPayPalButtons;
+window.updateCartDisplay = updateCartDisplay;
+// add the other ones you already have, plus any missing
 // Close the IIFE (this was missing!)
 })();   // ←←← THIS LINE IS CRITICAL
