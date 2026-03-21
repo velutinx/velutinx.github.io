@@ -144,14 +144,23 @@
       margin-bottom: 8px;
     }
     .contents-list {
-      list-style-type: disc;
-      padding-left: 24px;
+      list-style: none;
+      padding-left: 0;
       margin: 0;
     }
     .contents-list li {
-      font-size: 1.1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 1rem;
       color: var(--text);
-      margin-bottom: 6px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .bullet-svg {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
     }
     .price-section {
       margin: 28px 0;
@@ -234,9 +243,11 @@
           <div class="buttons" id="buttons"></div>
           <div class="contents-section" id="contentsSection">
             <div class="contents-title" id="contentsTitle">Contents:</div>
-            <ul class="contents-list"><li id="illustrationCount"></li></ul>
+            <ul class="contents-list" id="contentsList">
+              <!-- will be filled with bullet points -->
+            </ul>
           </div>
-          <div class="disclaimer" id="disclaimer"></div>
+          <div class="disclaimer" style="display: none;"></div>
         </div>
       </div>
     </div>
@@ -259,6 +270,33 @@
     let currentPack = null;
     let currentLang = localStorage.getItem('language') || 'en';
 
+    // SVG for bullet points (exclamation mark with glow and animation)
+    const bulletSVG = `<svg class="bullet-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glowBullet">
+          <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#glowBullet)">
+        <polygon points="50,10 90,85 10,85"
+          fill="#ffcc00"
+          stroke="#333"
+          stroke-width="4">
+          <animateTransform attributeName="transform" type="rotate" values="-1 50 50; 1 50 50; -1 50 50" dur="2s" repeatCount="indefinite"/>
+        </polygon>
+      </g>
+      <rect x="47" y="35" width="6" height="25" rx="2" fill="#333">
+        <animate attributeName="height" values="25;28;25" dur="1.2s" repeatCount="indefinite"/>
+      </rect>
+      <circle cx="50" cy="70" r="4" fill="#333">
+        <animate attributeName="r" values="4;5;4" dur="1.2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>`;
+
     function initPack() {
       const params = new URLSearchParams(window.location.search);
       const packId = params.get('id') || '001';
@@ -275,10 +313,9 @@
         `https://www.velutinx.com/i/pack${paddedId}-${i+1}.jpg`
       );
 
-      // Update page title
       document.getElementById('title').textContent = pack.title;
 
-      // Category icon and label
+      // Category display
       updateCategoryDisplay(pack.category);
 
       // Price display
@@ -287,10 +324,10 @@
       // Add to cart button
       updateCartButton(pack);
 
-      // Contents
+      // Contents & disclaimers (3 bullet points)
       updateContents(pack);
 
-      // Gallery (carousel + thumbnails)
+      // Gallery
       renderGallery(images);
 
       // Listen for language changes (shared event)
@@ -301,9 +338,13 @@
         updateCartButton(pack);
         updateContents(pack);
       });
+
+      // Listen for cart updates (to refresh button when item added/removed from other places)
+      window.addEventListener('cartUpdated', () => {
+        if (currentPack) updateCartButton(currentPack);
+      });
     }
 
-    // Category icon & text (uses shared translations if available)
     function updateCategoryDisplay(category) {
       const catInfo = document.getElementById('categoryInfo');
       if (!catInfo) return;
@@ -340,7 +381,6 @@
       catInfo.style.display = 'flex';
     }
 
-    // Price display (uses shared formatPrice)
     function updatePriceDisplay(pack) {
       const priceSection = document.getElementById('priceSection');
       if (!priceSection) return;
@@ -372,50 +412,66 @@
       priceSection.innerHTML = html;
     }
 
-    // Helper to get numeric price from pack (assumes PRICE_MID = 3.0)
     function getPriceValue(pack) {
-      // If pack has a numeric price, use it
       if (typeof pack.price === 'number') return pack.price;
-      // Otherwise map PRICE_MID, etc.
       const code = String(pack.price || '').toUpperCase();
       if (code.includes('LOW')) return 1.5;
       if (code.includes('MID')) return 3.0;
       if (code.includes('HIGH')) return 10.0;
-      return 3.0; // default
+      return 3.0;
     }
 
-    // Add to cart button (uses shared addOrToggleCart)
     function updateCartButton(pack) {
       const container = document.getElementById('buttons');
       if (!container) return;
       const t = window.translations?.[currentLang] || window.translations?.en || {};
-      // Check if item is already in cart (via shared cart)
-      const isInCart = window.getCart ? window.getCart().some(item => item.id === pack.id) : false;
+      // Use shared getCart if available, else fallback to localStorage
+      let isInCart = false;
+      if (window.getCart) {
+        isInCart = window.getCart().some(item => item.id === pack.id);
+      } else {
+        const cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
+        isInCart = cart.some(item => item.id === pack.id);
+      }
       const btnText = isInCart ? (t.removeFromCart || 'Remove from Cart') : (t.addToCart || 'Add to Cart');
       container.innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
       const btn = document.getElementById('addCartBtn');
       btn.onclick = () => {
         window.addOrToggleCart(pack);
-        updateCartButton(pack); // refresh button state after cart changes
+        // After adding/removing, the shared script will dispatch a custom event? We'll simulate a manual update.
+        setTimeout(() => updateCartButton(pack), 50);
       };
     }
 
-    // Contents (uses shared translations)
     function updateContents(pack) {
       const t = window.translations?.[currentLang] || window.translations?.en || {};
-      document.getElementById('contentsTitle').textContent = t.contentsTitle || 'Contents:';
-      document.getElementById('illustrationCount').textContent = (t.contentsDesc || 'ZIP file containing {count} AI-generated illustrations')
-        .replace('{count}', pack.illustrationCount || '?');
-    }
+      const contentsTitle = document.getElementById('contentsTitle');
+      const contentsList = document.getElementById('contentsList');
+      if (!contentsTitle || !contentsList) return;
 
-    // Gallery carousel
-    let currentSlide = 0;
-    let totalSlides = 0;
+      contentsTitle.textContent = t.contentsTitle || 'Contents:';
+
+      // Bullet point 1: illustration count
+      const countText = (t.contentsDesc || 'ZIP file containing {count} AI-generated illustrations')
+        .replace('{count}', pack.illustrationCount || '?');
+
+      // Bullet point 2: age disclaimer
+      const ageText = t.disclaimerAge || 'Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.';
+
+      // Bullet point 3: refund disclaimer
+      const refundText = t.disclaimerRefund || 'Digital products are non-refundable after purchase.';
+
+      contentsList.innerHTML = `
+        <li>${bulletSVG} <span>${countText}</span></li>
+        <li>${bulletSVG} <span>${ageText}</span></li>
+        <li>${bulletSVG} <span>${refundText}</span></li>
+      `;
+    }
 
     function renderGallery(images) {
       const galleryDiv = document.getElementById('gallery');
       if (!galleryDiv) return;
-      totalSlides = images.length;
+      const totalSlides = images.length;
       if (totalSlides === 0) {
         galleryDiv.innerHTML = '<p>No images available</p>';
         return;
@@ -438,6 +494,7 @@
       const prevBtn = document.getElementById('prevBtn');
       const nextBtn = document.getElementById('nextBtn');
       const thumbs = document.querySelectorAll('.thumb');
+      let currentSlide = 0;
 
       function updateCarousel() {
         slides.style.transform = `translateX(-${currentSlide * 100}%)`;
