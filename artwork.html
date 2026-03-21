@@ -65,7 +65,7 @@
   <!-- Sidebar Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- Sidebar Menu -->
+  <!-- Sidebar Menu (with IDs for translation) -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
@@ -130,16 +130,40 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply translations on load
+    // Function to apply sidebar translations using the global header translations
+    function applySidebarTranslations() {
+      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      const t = window.translations?.header?.[lang];
+      if (!t) return;
+      
+      const menuHome = document.getElementById('menuHome');
+      const menuCommissions = document.getElementById('menuCommissions');
+      const menuArtwork = document.getElementById('menuArtwork');
+      const menuPoll = document.getElementById('menuPoll');
+      const menuStore = document.getElementById('menuStore');
+      const menuContact = document.getElementById('menuContact');
+      
+      if (menuHome) menuHome.textContent = t.menuHome;
+      if (menuCommissions) menuCommissions.textContent = t.menuCommissions;
+      if (menuArtwork) menuArtwork.textContent = t.menuArtwork;
+      if (menuPoll) menuPoll.textContent = t.menuPoll;
+      if (menuStore) menuStore.textContent = t.menuStore;
+      if (menuContact) menuContact.textContent = t.menuContact;
+    }
+
+    // Apply artwork translations on load
     if (typeof window.applyTranslations === 'function') {
       window.applyTranslations('artwork');
     }
+    // Apply sidebar translations on load
+    applySidebarTranslations();
 
     // Re-apply translations when language changes
     document.addEventListener('languageChanged', () => {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('artwork');
       }
+      applySidebarTranslations();
     });
 
     // Apply dark mode from localStorage (header.js also does this, but safe)
