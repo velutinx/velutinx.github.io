@@ -7,8 +7,8 @@
 
   <link rel="preconnect" href="https://www.velutinx.com" crossorigin>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
-  <!-- Shared header CSS -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+  <link rel="stylesheet" href="https://velutinx.com/assets/css/format.css">
 
   <style>
     /* Prevent flash of old title */
@@ -302,7 +302,6 @@
             </div>
           </div>
         </div>
-
         <div class="product-grid" id="productGrid"></div>
       </main>
     </div>
@@ -311,8 +310,8 @@
   <!-- Scripts -->
   <script src="/assets/js/translt.js"></script>
   <script src="https://velutinx.com/assets/js/header.js"></script>
-  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
   <script src="/assets/js/format.js"></script>
+  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <!-- Product listing script -->
@@ -437,25 +436,73 @@
     });
   </script>
 
-  <!-- Apply sidebar translations and store UI updates -->
+  <!-- Apply store translations and listen for language changes -->
   <script>
-    // Apply sidebar translations (menu items)
-    function applySidebarTranslations() {
+    // Function to update all store UI texts using global translations
+    function updateStoreUI() {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = window.translations?.header?.[lang];
+      const t = window.translations?.store?.[lang];
       if (!t) return;
-      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) el.textContent = t[id];
-      });
-    }
-    applySidebarTranslations();
 
-    // Re-apply when language changes (header.js already does this for store UI, but we also need sidebar)
+      // Update main shop title
+      const shopTitle = document.getElementById('shopTitle');
+      if (shopTitle) shopTitle.textContent = t.shopTitle;
+
+      // Category filter
+      const filterTitle = document.getElementById('filterTitle');
+      if (filterTitle) filterTitle.textContent = t.filterTitle;
+      const catAll = document.getElementById('catAll');
+      if (catAll) catAll.textContent = t.catAll;
+      const catFemale = document.getElementById('catFemale');
+      if (catFemale) catFemale.textContent = t.catFemale;
+      const catFemboy = document.getElementById('catFemboy');
+      if (catFemboy) catFemboy.textContent = t.catFemboy;
+      const catCollections = document.getElementById('catCollections');
+      if (catCollections) catCollections.textContent = t.catCollections;
+
+      // Sort section
+      const sortTitle = document.getElementById('sortTitle');
+      if (sortTitle) sortTitle.textContent = t.sortTitle;
+      const sortNewest = document.getElementById('sortNewest');
+      if (sortNewest) sortNewest.textContent = t.sortNewest;
+      const sortOldest = document.getElementById('sortOldest');
+      if (sortOldest) sortOldest.textContent = t.sortOldest;
+      const sortLow = document.getElementById('sortLow');
+      if (sortLow) sortLow.textContent = t.sortLow;
+      const sortHigh = document.getElementById('sortHigh');
+      if (sortHigh) sortHigh.textContent = t.sortHigh;
+
+      // Products title
+      const productsTitle = document.getElementById('productsTitle');
+      if (productsTitle) productsTitle.textContent = t.productsTitle;
+
+      // Search placeholder
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput && t.searchPlaceholder) searchInput.placeholder = t.searchPlaceholder;
+
+      // Cart drawer texts (if they exist)
+      const cartTitle = document.getElementById('cartTitle');
+      if (cartTitle) cartTitle.textContent = t.cartTitle;
+      const totalLabel = document.getElementById('totalLabel');
+      if (totalLabel) totalLabel.textContent = t.totalLabel;
+      const snackText = document.getElementById('snackText');
+      if (snackText) snackText.textContent = t.snackText;
+    }
+
+    // Apply on load
+    updateStoreUI();
+
+    // Apply on language change
     document.addEventListener('languageChanged', () => {
-      applySidebarTranslations();
+      updateStoreUI();
+      // Also update prices (currency may have changed)
+      if (window.updateAllPrices) window.updateAllPrices();
     });
+
+    // Apply dark mode (header already does, but safe)
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+    }
   </script>
 </body>
 </html>
