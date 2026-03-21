@@ -143,7 +143,8 @@ const translations = {
       originalPrice: "Original Price:",
       currentPrice: "Current Price:",
       addToCart: "Add to Cart",
-      removeFromCart: "Remove from Cart"
+      removeFromCart: "Remove from Cart",
+      websiteBtn: "Website"
     },
     ja: {
       shopTitle: "マイストア",
@@ -166,7 +167,8 @@ const translations = {
       originalPrice: "元の価格：",
       currentPrice: "現在の価格：",
       addToCart: "カートに追加",
-      removeFromCart: "カートから削除"
+      removeFromCart: "カートから削除",
+      websiteBtn: "ウェブサイト"
     },
     zh: {
       shopTitle: "我的商店",
@@ -189,7 +191,8 @@ const translations = {
       originalPrice: "原价：",
       currentPrice: "现价：",
       addToCart: "加入购物车",
-      removeFromCart: "从购物车移除"
+      removeFromCart: "从购物车移除",
+      websiteBtn: "网站"
     },
     es: {
       shopTitle: "Mi Tienda",
@@ -212,7 +215,8 @@ const translations = {
       originalPrice: "Precio original:",
       currentPrice: "Precio actual:",
       addToCart: "Añadir al carrito",
-      removeFromCart: "Eliminar del carrito"
+      removeFromCart: "Eliminar del carrito",
+      websiteBtn: "Website"
     }
   },
   header: {
