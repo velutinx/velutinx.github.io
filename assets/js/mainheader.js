@@ -76,9 +76,6 @@
       }
     }
 
-    // --- Store button redirect ---
-    if (storeBtn) storeBtn.addEventListener('click', () => window.location.href = '/store');
-
     // --- Language popover ---
     if (langBtn && langPopover) {
       langBtn.addEventListener('click', (e) => {
@@ -97,7 +94,6 @@
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       const t = window.translations?.header?.[lang];
       if (!t) return;
-      if (storeBtn) storeBtn.textContent = t.storeBtn;
       const menuHome = document.getElementById('menuHome');
       const menuCommissions = document.getElementById('menuCommissions');
       const menuArtwork = document.getElementById('menuArtwork');
