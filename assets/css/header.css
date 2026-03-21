@@ -543,9 +543,19 @@ body.dark .sidebar-header .logo {
   transform: translateY(-120px);
   opacity: 0;
   transition: all 0.45s ease;
+  font-weight: 500;
 }
 
 #snackbar.show {
   transform: translateY(0);
   opacity: 1;
+}
+
+/* Red background when removing */
+#snackbar[style*="background: #ef4444"] {
+  background: #ef4444 !important;
+}
+
+#snackbar svg {
+  min-width: 20px;
 }
