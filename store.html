@@ -234,157 +234,85 @@
 
   <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- Top navigation with shared hamburger -->
-  <nav class="top-nav">
-    <div class="nav-left">
-      <button id="menuToggle" class="nav-icon" title="Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <div class="logo" id="logo">VELUTINX</div>
-    </div>
+  <div id="page">
+    <!-- Header will be injected here by header.js -->
+    <div id="navContainer"></div>
+    <div class="divider"></div>
 
-    <div class="nav-actions">
-      <button class="login-btn" id="loginBtn">Website</button>
-      <div id="langContainer">
-        <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
-          </svg>
-        </button>
-        <div id="languagePopover">
-          <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
-          <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
-          <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
-          <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
+    <header class="shop-header">
+      <div class="shop-container">
+        <div class="shop-left">
+          <h1 class="shop-title" id="shopTitle">Loading...</h1>
         </div>
       </div>
-      <button class="nav-icon" id="themeBtn" title="Night Mode">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
-        </svg>
-      </button>
-      <div class="cart-wrapper">
-        <button class="nav-icon cart-icon" id="cartBtn" title="Cart">
-          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-            <path d="M17 17h-11v-14h-2"></path>
-            <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-            <path d="M16 19h6"></path>
-            <path d="M19 16v6"></path>
-          </svg>
-        </button>
-        <span class="cart-badge" id="cartCount">0</span>
-      </div>
-    </div>
-  </nav>
+    </header>
 
-  <!-- Floating Cart Button -->
-  <button class="floating-cart cart-icon" id="floatingCartBtn">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 17h-11v-14h-2"></path>
-      <path d="M6 5l14 1l-1 7h-13"></path>
-    </svg>
-    <span class="floating-badge" id="floatingCartCount">0</span>
-  </button>
+    <div class="main-container">
+      <aside class="store-filter-sidebar">
+        <div class="section-title" id="filterTitle">Filter by Category</div>
+        <ul class="category-list">
+          <li class="active" data-cat="0">
+            <span class="material-symbols-outlined">done_all</span>
+            <span id="catAll">All Products</span>
+          </li>
+          <li data-cat="1">
+            <span class="material-symbols-outlined">female</span>
+            <span id="catFemale">Female Models</span>
+          </li>
+          <li data-cat="2">
+            <span class="material-symbols-outlined">male</span>
+            <span id="catFemboy">Femboy Models</span>
+          </li>
+          <li data-cat="3">
+            <span class="material-symbols-outlined">collections_bookmark</span>
+            <span id="catCollections">Full Collections</span>
+          </li>
+        </ul>
+        <div class="sort-options">
+          <div class="section-title" id="sortTitle">Sort by</div>
+          <button class="sort-btn active" data-sort="newest">
+            <span class="material-symbols-outlined">clock_arrow_up</span>
+            <span id="sortNewest">Newest</span>
+          </button>
+          <button class="sort-btn" data-sort="oldest">
+            <span class="material-symbols-outlined">clock_arrow_down</span>
+            <span id="sortOldest">Oldest</span>
+          </button>
+          <button class="sort-btn" data-sort="price-asc">
+            <span class="material-symbols-outlined">stat_3</span>
+            <span id="sortLow">Price: Low to High</span>
+          </button>
+          <button class="sort-btn" data-sort="price-desc">
+            <span class="material-symbols-outlined">stat_minus_3</span>
+            <span id="sortHigh">Price: High to Low</span>
+          </button>
+        </div>
+      </aside>
 
-  <!-- Cart Drawer -->
-  <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header">
-      <h5 id="cartTitle">Shopping Cart</h5>
-      <button class="cart-close" id="cartClose">×</button>
-    </div>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total">
-      <div class="cart-total-row">
-        <span id="totalLabel">Total</span>
-        <span id="cartTotal">US$0.00</span>
-      </div>
-      <div id="paypal-button-container"></div>
-    </div>
-  </div>
-
-  <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="M20 6L9 17l-5-5"></path>
-    </svg>
-    <span id="snackText">Added successfully</span>
-  </div>
-
-  <header class="shop-header">
-    <div class="shop-container">
-      <div class="shop-left">
-        <h1 class="shop-title" id="shopTitle">Loading...</h1>
-      </div>
-    </div>
-  </header>
-
-  <div class="main-container">
-    <aside class="store-filter-sidebar">
-      <div class="section-title" id="filterTitle">Filter by Category</div>
-      <ul class="category-list">
-        <li class="active" data-cat="0">
-          <span class="material-symbols-outlined">done_all</span>
-          <span id="catAll">All Products</span>
-        </li>
-        <li data-cat="1">
-          <span class="material-symbols-outlined">female</span>
-          <span id="catFemale">Female Models</span>
-        </li>
-        <li data-cat="2">
-          <span class="material-symbols-outlined">male</span>
-          <span id="catFemboy">Femboy Models</span>
-        </li>
-        <li data-cat="3">
-          <span class="material-symbols-outlined">collections_bookmark</span>
-          <span id="catCollections">Full Collections</span>
-        </li>
-      </ul>
-      <div class="sort-options">
-        <div class="section-title" id="sortTitle">Sort by</div>
-        <button class="sort-btn active" data-sort="newest">
-          <span class="material-symbols-outlined">clock_arrow_up</span>
-          <span id="sortNewest">Newest</span>
-        </button>
-        <button class="sort-btn" data-sort="oldest">
-          <span class="material-symbols-outlined">clock_arrow_down</span>
-          <span id="sortOldest">Oldest</span>
-        </button>
-        <button class="sort-btn" data-sort="price-asc">
-          <span class="material-symbols-outlined">stat_3</span>
-          <span id="sortLow">Price: Low to High</span>
-        </button>
-        <button class="sort-btn" data-sort="price-desc">
-          <span class="material-symbols-outlined">stat_minus_3</span>
-          <span id="sortHigh">Price: High to Low</span>
-        </button>
-      </div>
-    </aside>
-
-    <main class="products-section">
-      <div class="products-header">
-        <h2 id="productsTitle">Latest Content</h2>
-        <div class="search-bar-wrapper">
-          <div class="input-base">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
-              <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-            </svg>
-            <input type="search" id="searchInput" class="input-element" placeholder="" />
+      <main class="products-section">
+        <div class="products-header">
+          <h2 id="productsTitle">Latest Content</h2>
+          <div class="search-bar-wrapper">
+            <div class="input-base">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
+                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+              </svg>
+              <input type="search" id="searchInput" class="input-element" placeholder="" />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="product-grid" id="productGrid"></div>
-    </main>
+        <div class="product-grid" id="productGrid"></div>
+      </main>
+    </div>
   </div>
 
-  <!-- Scripts (socials.js removed) -->
+  <!-- Scripts -->
+  <script src="/assets/js/translt.js"></script>
   <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/tab-title-animation.js"></script>
 
   <!-- Product listing script -->
   <script type="module">
@@ -457,7 +385,6 @@
 
         window.updateCartDisplay?.();
         window.updateAllPrices?.();
-        updateUIForLanguage(); // Initial UI update
       }
 
       function filterAndSort() {
@@ -509,132 +436,16 @@
     });
   </script>
 
-  <!-- Local translations + dynamic UI update -->
+  <!-- Language price refresh (store only) -->
   <script>
-    const localTranslations = {
-      en: {
-        filterTitle: "Filter by Category",
-        catAll: "All Products",
-        catFemale: "Female Models",
-        catFemboy: "Femboy Models",
-        catCollections: "Full Collections",
-        sortTitle: "Sort by",
-        sortNewest: "Newest",
-        sortOldest: "Oldest",
-        sortLow: "Price: Low to High",
-        sortHigh: "Price: High to Low",
-        productsTitle: "Latest Content",
-        searchPlaceholder: "Search products...",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total",
-        snackText: "Added successfully"
-      },
-      ja: {
-        filterTitle: "カテゴリでフィルター",
-        catAll: "すべての商品",
-        catFemale: "女性モデル",
-        catFemboy: "男の娘モデル",
-        catCollections: "フルコレクション",
-        sortTitle: "並び替え",
-        sortNewest: "最新",
-        sortOldest: "最古",
-        sortLow: "価格: 低い → 高い",
-        sortHigh: "価格: 高い → 低い",
-        productsTitle: "最新コンテンツ",
-        searchPlaceholder: "商品を検索...",
-        cartTitle: "ショッピングカート",
-        totalLabel: "合計",
-        snackText: "カートに追加しました"
-      },
-      zh: {
-        filterTitle: "按类别筛选",
-        catAll: "所有商品",
-        catFemale: "女性模型",
-        catFemboy: "伪娘模型",
-        catCollections: "完整收藏",
-        sortTitle: "排序方式",
-        sortNewest: "最新",
-        sortOldest: "最旧",
-        sortLow: "价格: 低到高",
-        sortHigh: "价格: 高到低",
-        productsTitle: "最新内容",
-        searchPlaceholder: "搜索商品...",
-        cartTitle: "购物车",
-        totalLabel: "总计",
-        snackText: "已成功添加到购物车"
-      },
-      es: {
-        filterTitle: "Filtrar por Categoría",
-        catAll: "Todos los Productos",
-        catFemale: "Modelos Femeninos",
-        catFemboy: "Modelos Femboy",
-        catCollections: "Colecciones Completas",
-        sortTitle: "Ordenar por",
-        sortNewest: "Más reciente",
-        sortOldest: "Más antiguo",
-        sortLow: "Precio: Bajo a Alto",
-        sortHigh: "Precio: Alto a Bajo",
-        productsTitle: "Contenido más reciente",
-        searchPlaceholder: "Buscar productos...",
-        cartTitle: "Carrito de Compras",
-        totalLabel: "Total",
-        snackText: "Añadido con éxito"
-      }
-    };
-
-    // Update all UI text based on current language
-    function updateUIForLanguage() {
-      const lang = localStorage.getItem("language") || "en";
-      const t = localTranslations[lang] || localTranslations.en;
-
-      // Category labels
-      document.getElementById("filterTitle").textContent = t.filterTitle;
-      document.getElementById("catAll").textContent = t.catAll;
-      document.getElementById("catFemale").textContent = t.catFemale;
-      document.getElementById("catFemboy").textContent = t.catFemboy;
-      document.getElementById("catCollections").textContent = t.catCollections;
-
-      // Sort section
-      document.getElementById("sortTitle").textContent = t.sortTitle;
-      document.querySelector('[data-sort="newest"] span:last-child').textContent = t.sortNewest;
-      document.querySelector('[data-sort="oldest"] span:last-child').textContent = t.sortOldest;
-      document.querySelector('[data-sort="price-asc"] span:last-child').textContent = t.sortLow;
-      document.querySelector('[data-sort="price-desc"] span:last-child').textContent = t.sortHigh;
-
-      // Products title
-      document.getElementById("productsTitle").textContent = t.productsTitle;
-
-      // Search placeholder
-      const searchInput = document.getElementById("searchInput");
-      if (searchInput) searchInput.placeholder = t.searchPlaceholder;
-
-      // Cart title (in drawer)
-      const cartTitleEl = document.getElementById("cartTitle");
-      if (cartTitleEl) cartTitleEl.textContent = t.cartTitle;
-
-      // Total label
-      const totalLabelEl = document.getElementById("totalLabel");
-      if (totalLabelEl) totalLabelEl.textContent = t.totalLabel;
-
-      // Snackbar default text
-      const snackTextEl = document.getElementById("snackText");
-      if (snackTextEl) snackTextEl.textContent = t.snackText;
-    }
-
-    // Run on page load
-    window.addEventListener('load', () => {
-      updateUIForLanguage();
-    });
-
-    // Update on language change
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
         setTimeout(() => {
           if (window.updateAllPrices) window.updateAllPrices();
-          updateUIForLanguage();
         }, 100);
       });
     });
   </script>
+
 </body>
 </html>
