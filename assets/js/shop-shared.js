@@ -358,6 +358,38 @@ const translations = {
     return `${symbol}${converted}`;
   }
 
+
+async function syncPricesFromWorker() {
+  try {
+    const response = await fetch('https://secure-checkout.velutinx.workers.dev/api/get-prices');
+    const securePrices = await response.json();
+
+    // Now, update your local "prices" object used for UI display only
+    // This allows formatPrice() to work without hardcoding numbers
+    window.prices = {
+      low: securePrices.PRICE_LOW,
+      med: securePrices.PRICE_MID,
+      high: securePrices.PRICE_HIGH,
+      premium: securePrices.PRICE_PREMIUM,
+      deluxe: securePrices.PRICE_DELUXE,
+      collection: securePrices.PRICE_COLLECTION,
+      ultimate: securePrices.PRICE_ULTIMATE
+    };
+
+    // Re-run the display update so the "MXN$0" changes to the real price
+    if (window.updateCartDisplay) window.updateCartDisplay();
+    // If you have a function that renders your shop cards, trigger it here
+    if (window.createCards) window.createCards(); 
+
+  } catch (err) {
+    console.error("Could not fetch secure prices:", err);
+  }
+}
+
+// Run it immediately
+syncPricesFromWorker();
+
+  
   /* ==================== CART MANAGEMENT ==================== */
 
   function getCart() {
