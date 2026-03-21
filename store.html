@@ -11,6 +11,83 @@
   <!-- Main header + cart + sidebar + theme styles -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/mainheader.css">
 
+  <style>
+  /* Force injected nav sidebar (HOME/COMMISSIONS/etc.) to be always visible, narrow, icon-only */
+  .sidebar:not(.main-container .sidebar) {  /* only target the one from mainheader.js */
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 80px !important;               /* narrow vertical bar */
+    height: 100vh !important;
+    transform: translateX(0) !important;  /* force visible */
+    background: rgba(0,0,0,0.05) !important;
+    border-right: 1px solid var(--border) !important;
+    box-shadow: none !important;
+    padding: 1rem 0 !important;
+    z-index: 1090 !important;
+    overflow-y: auto;
+  }
+
+  /* Style menu items as big icons only */
+  .sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding-top: 5rem; /* space below top bar if needed */
+  }
+
+  .menu-item {
+    padding: 1rem;
+    font-size: 0; /* hide text */
+    transition: all 0.2s;
+  }
+
+  .menu-item svg,
+  .menu-item i.material-symbols-outlined {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: var(--text);
+  }
+
+  .menu-item:hover {
+    transform: scale(1.2);
+    background: var(--accent);
+    border-radius: 12px;
+  }
+
+  .menu-item span {
+    display: none; /* hide any text labels */
+  }
+
+  /* Hide overlay since we don't use off-canvas anymore */
+  .sidebar-overlay {
+    display: none !important;
+  }
+
+  /* Your category sidebar stays normal */
+  .main-container .sidebar {
+    position: static !important;
+    width: 268px !important;
+    transform: none !important;
+    padding: 1.2rem !important;
+  }
+
+  @media (max-width: 960px) {
+    .sidebar:not(.main-container .sidebar) {
+      width: 70px !important;
+    }
+    .main-container {
+      flex-direction: column;
+    }
+    .main-container .sidebar {
+      width: 100% !important;
+      margin-bottom: 1.5rem;
+    }
+  }
+</style>
+
   <!-- Your store-specific styles (cleaned up – no duplicates) -->
   <style>
     .shop-container { max-width: 1480px; margin: 0 auto; padding: 2.8rem 2.5rem 1.2rem; }
