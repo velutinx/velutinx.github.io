@@ -151,17 +151,38 @@
   // Language & theme
   function applyHeaderTranslations() {
     const t = translations[currentLang] || translations.en;
-    document.getElementById('cartTitle').innerText = t.cartTitle;
-    document.getElementById('totalLabel').innerText = t.totalLabel;
-    document.getElementById('demoCheckoutBtn').innerText = t.checkoutBtn;
-    document.getElementById('menuHome').innerText = t.menuHome;
-    document.getElementById('menuCommissions').innerText = t.menuCommissions;
-    document.getElementById('menuArtwork').innerText = t.menuArtwork;
-    document.getElementById('menuPoll').innerText = t.menuPoll;
-    document.getElementById('menuStore').innerText = t.menuStore;
-    document.getElementById('menuContact').innerText = t.menuContact;
+
+    // Safely update each element – skip if element not found
+    const cartTitleEl = document.getElementById('cartTitle');
+    if (cartTitleEl) cartTitleEl.innerText = t.cartTitle;
+
+    const totalLabelEl = document.getElementById('totalLabel');
+    if (totalLabelEl) totalLabelEl.innerText = t.totalLabel;
+
+    const checkoutBtn = document.getElementById('demoCheckoutBtn');
+    if (checkoutBtn) checkoutBtn.innerText = t.checkoutBtn;
+
+    const menuHome = document.getElementById('menuHome');
+    if (menuHome) menuHome.innerText = t.menuHome;
+
+    const menuCommissions = document.getElementById('menuCommissions');
+    if (menuCommissions) menuCommissions.innerText = t.menuCommissions;
+
+    const menuArtwork = document.getElementById('menuArtwork');
+    if (menuArtwork) menuArtwork.innerText = t.menuArtwork;
+
+    const menuPoll = document.getElementById('menuPoll');
+    if (menuPoll) menuPoll.innerText = t.menuPoll;
+
+    const menuStore = document.getElementById('menuStore');
+    if (menuStore) menuStore.innerText = t.menuStore;
+
+    const menuContact = document.getElementById('menuContact');
+    if (menuContact) menuContact.innerText = t.menuContact;
+
     const websiteBtn = document.getElementById('loginBtn');
     if (websiteBtn) websiteBtn.innerText = t.websiteBtn;
+
     updateCartUI();
   }
 
@@ -192,8 +213,9 @@
     if (!placeholder) return;
 
     try {
+      // Use relative path – assumes top.html is at /assets/include/top.html
       const response = await fetch('/assets/include/top.html');
-      if (!response.ok) throw new Error('Failed to load header');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const html = await response.text();
       placeholder.innerHTML = html;
       initializeComponents();
@@ -272,6 +294,9 @@
 
     const demoBtn = document.getElementById('demoCheckoutBtn');
     if (demoBtn) demoBtn.addEventListener('click', () => alert("⚠️ Checkout is disabled in standalone demo. Cart items are stored locally."));
+
+    // Dispatch event to notify that header and cart are fully ready
+    document.dispatchEvent(new CustomEvent('headerReady'));
   }
 
   if (document.readyState === 'loading') {
