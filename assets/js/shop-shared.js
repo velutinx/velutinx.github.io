@@ -572,7 +572,6 @@ function initPayPalButtons() {
   paypal.Buttons({
     createOrder: async (data, actions) => {
       const cart = getCart();
-
       if (cart.length === 0) {
         alert("Your cart is empty.");
         return Promise.reject("Cart is empty");
@@ -620,21 +619,19 @@ function initPayPalButtons() {
         const cart = getCart();
 
         if (cart.some(item => item.type === 'membership')) {
-          // Membership flow (unchanged)
           const item = cart.find(i => i.type === 'membership');
-          const res = await fetch('https://d.velutinx.com/api/capture-membership-order', {
+          await fetch('https://d.velutinx.com/api/capture-membership-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderId: details.id, tier: item.tier, discordId: item.discordId })
           });
           window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
         } else {
-          // Normal store flow
           const total = parseFloat(details.purchase_units[0].amount.value);
           await fetch('https://velutinx-paypal-worker.velutinx.workers.dev/api/store-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderID: details.id, items: cart, payerEmail: details.payer?.email_address, amount: total })
+            body: JSON.stringify({ orderID: details.id, items: cart, payerEmail: details.payer?.email_address || null, amount: total })
           });
           window.location.href = `/s/success.html?orderID=${details.id}`;
         }
@@ -666,15 +663,6 @@ function loadAndInitPayPal() {
   loader.onload = () => initPayPalButtons();
   document.head.appendChild(loader);
 }
-
-/* ==================== GLOBAL PRICE UPDATE ==================== */
-window.updateAllPrices = function() {
-  document.querySelectorAll('.price[data-price]').forEach(el => {
-    const priceValue = parseFloat(el.dataset.price);
-    if (!isNaN(priceValue)) el.textContent = window.formatPrice(priceValue);
-  });
-  window.updateCartDisplay?.();
-};
 
 /* ==================== DOM INITIALIZATION ==================== */
 
@@ -754,4 +742,15 @@ function injectSidebar() {
         <a href="https://velutinx.com/" class="menu-item"><svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg><span>HOME</span></a>
         <a href="https://velutinx.com/commission" class="menu-item"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg><span>COMMISSIONS</span></a>
         <a href="https://velutinx.com/artwork" class="menu-item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg><span>ARTWORK</span></a>
-        <a href="https://velutinx.com/poll" class="menu-item"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor
+        <a href="https://velutinx.com/poll" class="menu-item"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg><span>POLL</span></a>
+        <a href="https://velutinx.com/store" class="menu-item"><svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg><span>STORE</span></a>
+        <a href="https://velutinx.com/contact" class="menu-item"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg><span>CONTACT</span></a>
+      </div>
+      <div class="sidebar-footer">
+        <p>© VELUTINX</p>
+      </div>
+    </aside>
+  `;
+
+  document.body.insertAdjacentHTML("beforeend", sidebarHTML);
+}
