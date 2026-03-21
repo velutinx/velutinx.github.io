@@ -316,10 +316,10 @@
       font-size: 1rem;
     }
     .category-list li svg, .sort-btn svg {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       stroke: currentColor;
-      stroke-width: 1.5;
+      stroke-width: 1.8;
       fill: none;
     }
     .category-list li:hover, .sort-btn:hover { background: var(--darker); }
@@ -471,19 +471,25 @@
     </div>
     <ul class="category-list" id="categoryList">
       <li data-cat="all" class="active">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         <span id="catAll">All Products</span>
       </li>
       <li data-cat="female">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 12v6M9 15h6"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="9" r="6" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 15V21M9 18H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
         <span id="catFemale">Female Models</span>
       </li>
       <li data-cat="femboy">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 12v6M9 15h6"/><path d="M15 4l2-2 2 2-2 2zM9 4L7 2 5 4l2 2z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="10" cy="14" r="6" stroke="currentColor" stroke-width="2"/>
+          <path d="M16 8L20 4M20 4H16M20 4V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <span id="catFemboy">Femboy Models</span>
       </li>
       <li data-cat="membership">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3 6 6 .7-4.5 4.1L18 19l-6-3-6 3 1.5-6.2L3 8.7 9 8z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3 6 6 .7-4.5 4.1L18 19l-6-3-6 3 1.5-6.2L3 8.7 9 8z"/></svg>
         <span id="catMembership">Memberships</span>
       </li>
     </ul>
@@ -526,6 +532,20 @@
 </div>
 
 <script>
+  // ==================== EMBEDDED PRODUCT DATA (no external fetch to avoid CORS) ====================
+  const EMBEDDED_PRODUCTS = [
+    { id: "001", title: "[Pack 001] Tsunade - Naruto", category: 1, price: 3.0 },
+    { id: "002", title: "[Pack 002] Astolfo - Fate/Grand Order", category: 2, price: 3.0 },
+    { id: "003", title: "[Pack 003] Alexis Rhodes - Yu-Gi-Oh", category: 1, price: 3.0 },
+    { id: "004", title: "[Pack 004] Nico Robin - One Piece", category: 1, price: 3.0 },
+    { id: "005", title: "[Pack 005] MaoMao - Apothecary Diaries", category: 1, price: 3.0 },
+    { id: "006", title: "[Pack 006] Rem - Re:Zero", category: 1, price: 3.0 },
+    { id: "007", title: "[Pack 007] Narberal Gamma - Overlord", category: 1, price: 3.0 },
+    { id: "008", title: "[Pack 008] Akeno Himejima - High School DxD", category: 1, price: 3.0 },
+    { id: "009", title: "[Pack 009] Gwen Stacy - Spider-Man", category: 1, price: 3.0 },
+    { id: "010", title: "[Pack 010] Nitocris - Fate/Grand Order", category: 1, price: 3.0 }
+  ];
+
   // ==================== TRANSLATIONS ====================
   const translations = {
     en: {
@@ -571,7 +591,7 @@
   };
 
   // ----- GLOBALS -----
-  let products = [];
+  let products = [...EMBEDDED_PRODUCTS];
   let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
   let activeCategory = "all";
   let currentSort = "newest";
@@ -704,35 +724,6 @@
   }
   function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-  async function fetchProducts() {
-    const urls = [
-      'https://velutinx.github.io/assets/js/packs-data.js',
-      'https://velutinx.com/assets/js/packs-data.js'
-    ];
-    for (const url of urls) {
-      try {
-        const resp = await fetch(url, { mode: 'cors' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const text = await resp.text();
-        const match = text.match(/export default (\[[\s\S]*?\]);/);
-        if (match && match[1]) {
-          const data = eval(match[1]);
-          products = data.map(p => ({ id: p.id, title: p.title, category: p.category, price: STATIC_USD }));
-          renderGrid();
-          return;
-        }
-      } catch(e) { console.warn(`Failed fetch from ${url}`, e); }
-    }
-    products = [
-      { id: "001", title: "[Pack 001] Tsunade - Naruto", category: 1 }, { id: "002", title: "[Pack 002] Astolfo - Fate/Grand Order", category: 2 },
-      { id: "003", title: "[Pack 003] Alexis Rhodes - Yu-Gi-Oh", category: 1 }, { id: "004", title: "[Pack 004] Nico Robin - One Piece", category: 1 },
-      { id: "005", title: "[Pack 005] MaoMao - Apothecary Diaries", category: 1 }, { id: "006", title: "[Pack 006] Rem - Re:Zero", category: 1 },
-      { id: "007", title: "[Pack 007] Narberal Gamma - Overlord", category: 1 }, { id: "008", title: "[Pack 008] Akeno Himejima - High School DxD", category: 1 },
-      { id: "009", title: "[Pack 009] Gwen Stacy - Spider-Man", category: 1 }, { id: "010", title: "[Pack 010] Nitocris - Fate/Grand Order", category: 1 }
-    ];
-    renderGrid();
-  }
-
   function applyTranslations() {
     const t = translations[currentLang] || translations.en;
     document.getElementById('cartTitle').innerText = t.cartTitle;
@@ -770,7 +761,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    fetchProducts();
+    renderGrid(); // products already embedded
     applyTranslations();
     // Category filter
     document.querySelectorAll('.category-list li').forEach(li => {
