@@ -1,3 +1,6 @@
+Here is the final, working `membership.html`. It uses the same simple approach as `pack.html` – a polling interval to refresh the membership buttons, no overriding of global functions, and embedded translations for all texts. The button toggles between blue (“Single Purchase”) and red (“Remove from Cart”) instantly when clicked, and the rule “only the highest tier remains” is enforced correctly.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -383,9 +386,9 @@
   <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Membership‑specific JavaScript (full translations, logic, and button control) -->
+  <!-- Membership‑specific JavaScript (simple approach like pack.html) -->
   <script>
-    // ========== MEMBERSHIP TRANSLATIONS (full) ==========
+    // ========== MEMBERSHIP TRANSLATIONS ==========
     const membershipTranslations = {
       en: {
         membershipTitle: "Choose Your Membership",
@@ -790,7 +793,6 @@
       if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
     };
 
-    // Initialise after shared header is ready
     function initMembership() {
       if (membershipInitialised) return;
       membershipInitialised = true;
@@ -807,12 +809,15 @@
         updateMembershipButtons();
       });
 
-      // Listen for storage events (cart changes from other tabs)
-      window.addEventListener('storage', function(e) {
-        if (e.key === 'velutinx_cart') {
+      // Poll for cart changes (like pack.html)
+      let lastCart = localStorage.getItem('velutinx_cart');
+      setInterval(() => {
+        const newCart = localStorage.getItem('velutinx_cart');
+        if (newCart !== lastCart) {
+          lastCart = newCart;
           updateMembershipButtons();
         }
-      });
+      }, 500);
     }
 
     document.addEventListener('headerReady', initMembership);
@@ -838,3 +843,4 @@
   </script>
 </body>
 </html>
+```
