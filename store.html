@@ -341,13 +341,14 @@
   const searchInput = document.getElementById("searchInput");
 
   window.createCards = function() {
-    if (!grid || !packsData) return;
+    // 1. Safety Check: Don't run if DOM or Data isn't ready
+    if (!grid || !packsData || packsData.length === 0) {
+      console.warn("Store: Grid or PacksData not ready yet.");
+      return;
+    }
+
     grid.innerHTML = "";
-    
-    productsData = packsData.map(p => ({
-      ...p,
-      category: p.category || 0
-    }));
+    productsData = packsData.map(p => ({ ...p, category: p.category || 0 }));
 
     productsData.forEach(p => {
       const card = document.createElement("div");
@@ -356,17 +357,16 @@
       
       const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
       
-      // Safety check: if header.js failed to load, show --- instead of crashing
-      const displayPrice = (typeof window.formatPrice === 'function') 
-        ? window.formatPrice(p.price) 
-        : '---';
+      // 2. Fix NaN: Ensure we have a valid number before formatting
+      const basePrice = window.getPriceForPack ? window.getPriceForPack(p) : (parseFloat(p.price) || 0);
+      const displayPrice = window.formatPrice ? window.formatPrice(basePrice) : `USD $${basePrice}`;
 
       card.innerHTML = `
         <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy">
         <div class="card-content">
           <div class="card-title">${p.title}</div>
           <div class="price-row">
-            <div class="price">${displayPrice}</div>
+            <div class="price" data-price="${basePrice}">${displayPrice}</div>
             <button class="cart-btn" title="Add to Cart">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path>
@@ -377,14 +377,16 @@
         </div>
       `;
 
-      card.addEventListener("click", e => {
-        if (!e.target.closest(".cart-btn")) window.location.href = `/s/pack?id=${p.id}`;
+      card.addEventListener("click", e => { 
+        if (!e.target.closest(".cart-btn")) window.location.href = `/s/pack?id=${p.id}`; 
       });
 
       card.querySelector(".cart-btn").addEventListener("click", e => {
         e.stopPropagation();
-        if (typeof window.addOrToggleCart === 'function') {
+        if (window.addOrToggleCart) {
           window.addOrToggleCart(p);
+        } else {
+          console.error("Cart logic (header.js) not loaded yet!");
         }
       });
 
@@ -393,10 +395,11 @@
     });
     
     filterAndSort();
+    if (window.syncCartButtons) window.syncCartButtons();
   };
 
   function filterAndSort() {
-    const query = searchInput.value.toLowerCase().trim();
+    const query = (searchInput?.value || "").toLowerCase().trim();
     const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
     const activeCat = parseInt(document.querySelector(".category-list li.active")?.dataset.cat || "0");
 
@@ -409,22 +412,21 @@
 
     let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
     visible.sort((a, b) => {
-      const pA = productsData.find(p => p.id == a.dataset.id);
-      const pB = productsData.find(p => p.id == b.dataset.id);
-      
+      const pA = productsData.find(p => String(p.id) === String(a.dataset.id));
+      const pB = productsData.find(p => String(p.id) === String(b.dataset.id));
+      if (!pA || !pB) return 0;
+
       if (activeSort === "newest") return pB.id - pA.id;
       if (activeSort === "oldest") return pA.id - pB.id;
       
-      const priceA = (typeof window.getPriceForPack === 'function') ? window.getPriceForPack(pA) : 0;
-      const priceB = (typeof window.getPriceForPack === 'function') ? window.getPriceForPack(pB) : 0;
-      
-      if (activeSort === "price-asc") return priceA - priceB;
-      if (activeSort === "price-desc") return priceB - priceA;
-      return 0;
+      const priceA = window.getPriceForPack ? window.getPriceForPack(pA) : 0;
+      const priceB = window.getPriceForPack ? window.getPriceForPack(pB) : 0;
+      return activeSort === "price-asc" ? priceA - priceB : priceB - priceA;
     });
     visible.forEach(el => grid.appendChild(el));
   }
 
+  // Listen for categories
   document.querySelectorAll(".category-list li").forEach(item => {
     item.addEventListener("click", () => {
       document.querySelectorAll(".category-list li").forEach(i => i.classList.remove("active"));
@@ -433,6 +435,7 @@
     });
   });
 
+  // Listen for sorts
   document.querySelectorAll(".sort-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
@@ -441,11 +444,23 @@
     });
   });
 
-  searchInput.addEventListener("input", filterAndSort);
+  if(searchInput) searchInput.addEventListener("input", filterAndSort);
 
-  // Initialize
-  window.addEventListener('headerReady', window.createCards);
-  if (typeof window.formatPrice === 'function') window.createCards();
+  // CRITICAL: Re-run cards when header logic or language changes
+  window.addEventListener('headerReady', () => {
+    updateUIForLanguage(); 
+    window.createCards();
+  });
+
+  document.addEventListener('languageChanged', () => {
+    updateUIForLanguage();
+    window.createCards(); 
+  });
+
+  // Final check to run if already loaded
+  if (document.readyState === 'complete') {
+      window.createCards();
+  }
 </script>
 </body>
 </html>
