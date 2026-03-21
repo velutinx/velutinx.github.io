@@ -383,7 +383,7 @@
   <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Membership‑specific JavaScript -->
+  <!-- Membership‑specific JavaScript (direct cart manipulation, button toggling) -->
   <script>
     // ========== MEMBERSHIP TRANSLATIONS ==========
     const membershipTranslations = {
@@ -731,13 +731,15 @@
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       };
 
-      // Check if already in cart
-      const cart = window.getCart ? window.getCart() : [];
+      // Get current cart
+      let cart = window.getCart ? window.getCart() : [];
       const alreadyInCart = cart.some(item => item.id === product.id);
 
       if (alreadyInCart) {
         // Remove it
         window.addOrToggleCart(product);
+        // Update buttons immediately after the action
+        setTimeout(() => updateMembershipButtons(), 10);
         return;
       }
 
@@ -757,10 +759,16 @@
         for (const item of membershipItems) {
           window.addOrToggleCart(item);
         }
+        // Give a moment for the cart to update
+        await new Promise(resolve => setTimeout(resolve, 50));
+        // Re-fetch cart after removals
+        cart = window.getCart ? window.getCart() : [];
       }
 
       // Now add the new membership
       window.addOrToggleCart(product);
+      // Update buttons after addition
+      setTimeout(() => updateMembershipButtons(), 10);
     };
 
     window.handleRecurring = async function(tierNumber) {
@@ -799,15 +807,17 @@
         updateMembershipButtons();
       });
 
-      // Poll for cart changes (to catch updates from shared cart)
-      let lastCart = localStorage.getItem('velutinx_cart');
-      setInterval(() => {
-        const newCart = localStorage.getItem('velutinx_cart');
-        if (newCart !== lastCart) {
-          lastCart = newCart;
+      // Listen for storage events (cart changes from other tabs or from shared cart drawer)
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'velutinx_cart') {
           updateMembershipButtons();
         }
-      }, 500);
+      });
+
+      // Also listen for custom event that the shared script might dispatch
+      document.addEventListener('cartUpdated', function() {
+        updateMembershipButtons();
+      });
     }
 
     document.addEventListener('headerReady', initMembership);
