@@ -1,6 +1,4 @@
 // shared.js – Injects header, sidebar, cart, etc. into any page.
-// Include this script on any page, and it will add the header automatically.
-
 (function() {
   // --------------------------------------------------------------
   // 1. Translation dictionary (for header, cart, sidebar)
@@ -204,7 +202,7 @@
   }
 
   // --------------------------------------------------------------
-  // 4. Header HTML (embedded as a string)
+  // 4. Header HTML (embedded as a string – exactly from your working page)
   // --------------------------------------------------------------
   const headerHTML = `
 <nav class="top-nav">
