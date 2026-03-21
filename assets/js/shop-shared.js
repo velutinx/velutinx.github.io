@@ -628,8 +628,8 @@ function initPayPalButtons() {
           return Promise.reject("Invalid cart total");
         }
 
-        alert("Warning: Secure price check failed. Using displayed total (may be incorrect). Proceed with caution.\n\n" + err.message);
-
+console.warn("Secure price check failed — using fallback total");
+        
         return actions.order.create({
           purchase_units: [{
             amount: { currency_code: "USD", value: clientTotal }
