@@ -552,136 +552,225 @@ const translations = {
     }, 2400);
   }
 
-  /* ==================== PAYPAL ==================== */
+/* ==================== PAYPAL ==================== */
 
-  let paypalButtonsRendered = false;
+let paypalButtonsRendered = false;
 
-  function initPayPalButtons() {
-    const container = document.getElementById("paypal-button-container");
-    const drawer = document.getElementById("cartDrawer");
+function initPayPalButtons() {
+  const container = document.getElementById("paypal-button-container");
+  const drawer = document.getElementById("cartDrawer");
 
-    if (!container || !drawer || !drawer.classList.contains("open")) return;
-    if (paypalButtonsRendered) return;
-    if (typeof paypal === 'undefined') {
-      console.warn('PayPal SDK not loaded yet');
-      return;
-    }
+  if (!container || !drawer || !drawer.classList.contains("open")) return;
+  if (paypalButtonsRendered) return;
+  if (typeof paypal === 'undefined') {
+    console.warn('PayPal SDK not loaded yet');
+    return;
+  }
 
-    container.innerHTML = '';
+  container.innerHTML = '';
 
-    paypal.Buttons({
-      createOrder: (data, actions) => {
-        const cart = getCart();
-        const total = cart.reduce((sum, item) => sum + Number(item.price), 0).toFixed(2);
-        if (parseFloat(total) <= 0) return Promise.reject('Cart is empty');
+  paypal.Buttons({
+    // ──────────────────────────────────────────────────────────────
+    // Create PayPal order using SERVER-VALIDATED prices
+    // ──────────────────────────────────────────────────────────────
+    createOrder: async (data, actions) => {
+      const cart = getCart();
+
+      if (cart.length === 0) {
+        alert("Your cart is empty.");
+        return Promise.reject("Cart is empty");
+      }
+
+      // Prepare safe payload — send tier/price identifier, NOT the price value
+      const payload = {
+        items: cart.map(item => ({
+          id: item.id,
+          title: item.title || `Pack ${item.id}`,
+          tier: item.price?.toFixed(2) || item.tier || "3.00", // fallback to medium if missing
+          quantity: item.quantity || 1
+        }))
+      };
+
+      try {
+        const response = await fetch('https://secure-checkout.velutinx.workers.dev/api/create-paypal-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'omit' // no cookies needed
+        });
+
+        if (!response.ok) {
+          let errData;
+          try { errData = await response.json(); } catch {}
+          throw new Error(errData?.error || `Server rejected request (${response.status})`);
+        }
+
+        const serverData = await response.json();
+
+        if (!serverData.success || !serverData.purchase_units?.[0]?.amount?.value) {
+          throw new Error(serverData.error || 'Invalid response from price validation server');
+        }
+
+        // Use the validated amount & items from the Worker
+        console.log('[SECURE] Using server-validated total:', serverData.purchase_units[0].amount.value);
+
+        return actions.order.create({
+          purchase_units: serverData.purchase_units
+        });
+
+      } catch (err) {
+        console.error('Secure checkout validation failed:', err);
+
+        // Fallback: use client-side total (with warning)
+        const clientTotal = cart.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2);
+        if (parseFloat(clientTotal) <= 0) {
+          alert("Cannot proceed — cart total is zero or invalid.");
+          return Promise.reject("Invalid cart total");
+        }
+
+        alert("Warning: Secure price check failed. Using displayed total (may be incorrect). Proceed with caution.\n\n" + err.message);
+
         return actions.order.create({
           purchase_units: [{
-            amount: { currency_code: "USD", value: total }
+            amount: { currency_code: "USD", value: clientTotal }
           }]
         });
-      },
-
-      onApprove: async (data, actions) => {
-        try {
-          const cart = getCart();
-          const membershipItems = cart.filter(item => item.type === 'membership');
-
-          if (membershipItems.length > 0) {
-            const item = membershipItems[0];
-            if (!item.discordId || !item.tier) {
-              console.error('Membership item missing discordId or tier', item);
-              alert('Missing Discord ID. Please remove the membership from your cart and add it again.');
-              return;
-            }
-            const details = await actions.order.capture();
-            const response = await fetch('https://d.velutinx.com/api/capture-membership-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderId: details.id,
-                tier: item.tier,
-                discordId: item.discordId
-              })
-            });
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.error || 'Backend verification failed');
-            }
-            window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
-          } else {
-            const details = await actions.order.capture();
-            const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-
-            const storeResponse = await fetch('/api/store-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderID: details.id,
-                items: cart,
-                payerEmail: details.payer.email_address,
-                amount: total,
-              }),
-            });
-
-            if (!storeResponse.ok) {
-              console.error('Failed to store order', await storeResponse.text());
-            }
-
-            window.location.href = `/s/success.html?orderID=${details.id}`;
-          }
-        } catch (err) {
-          console.error('PayPal capture error:', err);
-          alert('Payment was successful, but we had trouble finalizing your order. Please contact support with your Order ID!');
-        }
-      },
-
-      onError: (err) => {
-        console.error('PayPal error:', err);
-        alert('PayPal encountered an error. Please try again.');
       }
+    },
 
-    }).render("#paypal-button-container").then(() => {
-      paypalButtonsRendered = true;
-    });
-  }
+    // ──────────────────────────────────────────────────────────────
+    // Capture & finalize (same as before, logs to existing Worker)
+    // ──────────────────────────────────────────────────────────────
+    onApprove: async (data, actions) => {
+      try {
+        const details = await actions.order.capture();
 
-  function loadAndInitPayPal() {
-    if (window.paypalLoaded) {
-      initPayPalButtons();
-      return;
+        const cart = getCart();
+        const membershipItems = cart.filter(item => item.type === 'membership');
+
+        if (membershipItems.length > 0) {
+          // Membership special flow
+          const item = membershipItems[0];
+          if (!item.discordId || !item.tier) {
+            console.error('Membership missing discordId or tier:', item);
+            alert('Missing Discord ID or tier for membership. Please remove and re-add the membership item.');
+            return;
+          }
+
+          const membershipRes = await fetch('https://d.velutinx.com/api/capture-membership-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: details.id,
+              tier: item.tier,
+              discordId: item.discordId
+            })
+          });
+
+          if (!membershipRes.ok) {
+            const errData = await membershipRes.json().catch(() => ({}));
+            throw new Error(errData.error || 'Membership backend verification failed');
+          }
+
+          window.location.href = `/s/success.html?orderID=${details.id}&type=membership`;
+        } else {
+          // Normal store purchase — log to Supabase via existing Worker
+          const total = parseFloat(details.purchase_units[0].amount.value);
+
+          const storeRes = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev/api/store-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderID: details.id,
+              items: cart,
+              payerEmail: details.payer?.email_address || null,
+              amount: total
+            })
+          });
+
+          if (!storeRes.ok) {
+            console.warn('Failed to log order to Supabase, but payment was captured', await storeRes.text());
+          }
+
+          window.location.href = `/s/success.html?orderID=${details.id}`;
+        }
+      } catch (err) {
+        console.error('onApprove error:', err);
+        alert(
+          'Payment was successful, but we had trouble finalizing your order.\n' +
+          'Please contact support with your Order ID: ' + data.orderID
+        );
+      }
+    },
+
+    onError: (err) => {
+      console.error('PayPal SDK error:', err);
+      alert('PayPal encountered an error. Please try again or contact support.');
     }
 
-    window.paypalLoaded = true;
+  }).render("#paypal-button-container").then(() => {
+    paypalButtonsRendered = true;
+  });
+}
 
-    const loader = document.createElement('script');
-    loader.src = "https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD";
-    loader.async = true;
-    loader.onload = () => {
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        if (typeof window.paypal !== 'undefined') {
-          clearInterval(interval);
-          initPayPalButtons();
-        } else if (attempts > 50) {
-          clearInterval(interval);
-          console.error('PayPal SDK failed to load');
-        }
-      }, 200);
-    };
-    document.head.appendChild(loader);
+function loadAndInitPayPal() {
+  if (window.paypalLoaded) {
+    initPayPalButtons();
+    return;
   }
 
-  /* ==================== GLOBAL PRICE UPDATE ==================== */
-  window.updateAllPrices = function() {
-    document.querySelectorAll('.price[data-price]').forEach(el => {
-      const priceValue = parseFloat(el.dataset.price);
-      if (!isNaN(priceValue)) {
-        el.textContent = window.formatPrice(priceValue);
+  window.paypalLoaded = true;
+
+  const loader = document.createElement('script');
+  loader.src = "https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD";
+  loader.async = true;
+  loader.onload = () => {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (typeof window.paypal !== 'undefined') {
+        clearInterval(interval);
+        initPayPalButtons();
+      } else if (attempts > 50) {
+        clearInterval(interval);
+        console.error('PayPal SDK failed to load after 10 seconds');
       }
-    });
-    window.updateCartDisplay?.();
+    }, 200);
   };
+  loader.onerror = () => {
+    console.error('Failed to load PayPal SDK script');
+  };
+  document.head.appendChild(loader);
+}
+
+/* ==================== GLOBAL PRICE UPDATE ==================== */
+window.updateAllPrices = function() {
+  document.querySelectorAll('.price[data-price]').forEach(el => {
+    const priceValue = parseFloat(el.dataset.price);
+    if (!isNaN(priceValue)) {
+      el.textContent = window.formatPrice(priceValue);
+    }
+  });
+  window.updateCartDisplay?.();
+};
+
+/* ==================== GLOBAL EXPORTS ==================== */
+
+window.translations = translations;
+window.getPriceForPack = getPriceForPack;
+window.formatPrice = formatPrice;
+window.getCart = getCart;
+window.addOrToggleCart = addOrToggleCart;
+window.updateCartDisplay = updateCartDisplay;
+window.initPayPalButtons = initPayPalButtons;
+window.loadAndInitPayPal = loadAndInitPayPal;
+
+window.removeItem = (idx) => {
+  let cart = getCart();
+  cart.splice(idx, 1);
+  saveCart(cart);
+  updateCartDisplay();
+};
 
   /* ==================== GLOBAL EXPORTS ==================== */
 
