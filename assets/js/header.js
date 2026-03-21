@@ -1,8 +1,8 @@
 // ==================== GLOBAL HELPERS (available immediately) ====================
 let currentLang = localStorage.getItem('language') || 'en';
 let currentCurrency = currentLang === 'en' ? 'USD' :
-                     currentLang === 'ja' ? 'JPY' :
-                     currentLang === 'zh' ? 'CNY' : 'MXN';
+                      currentLang === 'ja' ? 'JPY' :
+                      currentLang === 'zh' ? 'CNY' : 'MXN';
 
 let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
 
@@ -34,21 +34,25 @@ function getPriceForPack(pack) {
 
 function updateCartDisplay() {
   const count = cart.length;
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  // FIXED: Ensure price is a number to prevent NaN
+  const total = cart.reduce((sum, item) => sum + (typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0), 0);
+  
   document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
     if (el) el.textContent = count;
   });
+  
   const cartItemsEl = document.getElementById('cartItems');
   if (cartItemsEl) {
     cartItemsEl.innerHTML = count === 0 ? '<p>Your cart is empty</p>' : '';
     cart.forEach((item, idx) => {
       const div = document.createElement('div');
       div.className = 'cart-item';
+      const itemPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0;
       div.innerHTML = `
-        <img src="${item.image}" alt="${item.title}">
+        <img src="${item.image || `https://www.velutinx.com/i/pack${String(item.id).padStart(3, '0')}-1.jpg`}" alt="${item.title}">
         <div class="cart-item-info">
           <div class="cart-item-title">${item.title}</div>
-          <div class="cart-item-price">${formatPrice(item.price)}</div>
+          <div class="cart-item-price">${formatPrice(itemPrice)}</div>
         </div>
         <button class="cart-item-remove" data-idx="${idx}">×</button>
       `;
@@ -64,10 +68,10 @@ function saveCart() {
 }
 
 function syncCartButtons() {
-  const ids = new Set(cart.map(item => item.id));
+  const ids = new Set(cart.map(item => String(item.id)));
   document.querySelectorAll('.product-card').forEach(card => {
     const btn = card.querySelector('.cart-btn');
-    if (btn) btn.classList.toggle('added', ids.has(card.dataset.id));
+    if (btn) btn.classList.toggle('added', ids.has(String(card.dataset.id)));
   });
 }
 
@@ -79,11 +83,31 @@ function showSnackbar(msg, isRemove = false) {
   sb.classList.toggle('remove', isRemove);
   icon.innerHTML = isRemove
     ? `<path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
-    : `<path d="M20 6L9 17l-5-5"></path>`;
+    : `<path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>`;
   text.textContent = msg;
   sb.classList.add('show');
   setTimeout(() => sb.classList.remove('show'), 2500);
 }
+
+// FIXED: Added missing logic to handle the actual "Add to Cart" click
+window.addOrToggleCart = function(pack) {
+    const idx = cart.findIndex(item => String(item.id) === String(pack.id));
+    if (idx > -1) {
+        cart.splice(idx, 1);
+        showSnackbar('Removed from cart', true);
+    } else {
+        cart.push({
+            id: pack.id,
+            title: pack.title,
+            price: getPriceForPack(pack),
+            image: `https://www.velutinx.com/i/pack${String(pack.id).padStart(3, '0')}-1.jpg`
+        });
+        showSnackbar('Added successfully', false);
+    }
+    saveCart();
+    updateCartDisplay();
+    syncCartButtons();
+};
 
 // Expose globally for other scripts (including store page)
 window.formatPrice = formatPrice;
@@ -136,17 +160,16 @@ window.updateAllPrices = function() {
 
     // --- Cart drawer controls (with overlay) ---
     function openCart() {
-      cartDrawer.classList.add('open');
+      if (cartDrawer) cartDrawer.classList.add('open');
       cartOverlay.classList.add('active');
       document.body.classList.add('drawer-open');
     }
     function closeCart() {
-      cartDrawer.classList.remove('open');
+      if (cartDrawer) cartDrawer.classList.remove('open');
       cartOverlay.classList.remove('active');
       document.body.classList.remove('drawer-open');
     }
 
-    // Expose closeCart globally for PayPal integration to remove blur
     window.closeCartDrawer = closeCart;
 
     if (cartBtn && floatCartBtn && cartClose && cartDrawer) {
@@ -156,7 +179,7 @@ window.updateAllPrices = function() {
       cartOverlay.addEventListener('click', closeCart);
     }
 
-    // Close drawer when clicking outside (but not inside)
+    // Close drawer when clicking outside
     document.addEventListener('click', (e) => {
       if (cartDrawer?.classList.contains('open') &&
           !cartDrawer.contains(e.target) &&
@@ -166,7 +189,7 @@ window.updateAllPrices = function() {
       }
     });
 
-    // Remove item from cart (inside drawer) – drawer stays open
+    // Remove item from cart (inside drawer)
     if (cartItemsEl) {
       cartItemsEl.addEventListener('click', (e) => {
         if (e.target.classList.contains('cart-item-remove')) {
@@ -256,7 +279,7 @@ window.updateAllPrices = function() {
       if (snackText) snackText.textContent = t.snackText;
     }
 
-    // --- Language change handler (update currency and prices) ---
+    // --- Language change handler ---
     document.addEventListener('languageChanged', () => {
       const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
       currentLang = lang;
