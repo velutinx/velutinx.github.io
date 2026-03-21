@@ -8,7 +8,7 @@
   <!-- Shared CSS (header, sidebar, cart, snackbar) -->
   <link rel="stylesheet" href="/assets/css/header.css">
 
-  <!-- Pack‑specific styles (carousel, product info) -->
+  <!-- Pack‑specific styles -->
   <style>
     .container {
       max-width: 1100px;
@@ -141,7 +141,7 @@
       font-weight: bold;
       font-size: 1.4rem;
       color: var(--text);
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
     .contents-list {
       list-style: none;
@@ -154,13 +154,17 @@
       gap: 12px;
       font-size: 1rem;
       color: var(--text);
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       line-height: 1.4;
     }
     .bullet-svg {
       flex-shrink: 0;
       width: 28px;
       height: 28px;
+    }
+    .divider {
+      border-top: 1px solid var(--border);
+      margin: 16px 0 16px 0;
     }
     .price-section {
       margin: 28px 0;
@@ -244,10 +248,9 @@
           <div class="contents-section" id="contentsSection">
             <div class="contents-title" id="contentsTitle">Contents:</div>
             <ul class="contents-list" id="contentsList">
-              <!-- will be filled with bullet points -->
+              <!-- dynamic -->
             </ul>
           </div>
-          <div class="disclaimer" style="display: none;"></div>
         </div>
       </div>
     </div>
@@ -315,22 +318,13 @@
 
       document.getElementById('title').textContent = pack.title;
 
-      // Category display
       updateCategoryDisplay(pack.category);
-
-      // Price display
       updatePriceDisplay(pack);
-
-      // Add to cart button
       updateCartButton(pack);
-
-      // Contents & disclaimers (3 bullet points)
       updateContents(pack);
-
-      // Gallery
       renderGallery(images);
 
-      // Listen for language changes (shared event)
+      // Language changes
       document.addEventListener('languageChanged', () => {
         currentLang = localStorage.getItem('language') || 'en';
         updateCategoryDisplay(pack.category);
@@ -339,10 +333,24 @@
         updateContents(pack);
       });
 
-      // Listen for cart updates (to refresh button when item added/removed from other places)
-      window.addEventListener('cartUpdated', () => {
-        if (currentPack) updateCartButton(currentPack);
+      // Listen for cart changes via localStorage (from other tabs or same page)
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'velutinx_cart') {
+          updateCartButton(pack);
+        }
       });
+      // Poll every 2 seconds as a fallback (to catch same‑page changes without events)
+      let lastCartStr = localStorage.getItem('velutinx_cart');
+      setInterval(() => {
+        const newCartStr = localStorage.getItem('velutinx_cart');
+        if (newCartStr !== lastCartStr) {
+          lastCartStr = newCartStr;
+          updateCartButton(pack);
+        }
+      }, 2000);
+
+      // Ensure cart drawer closes when clicking outside
+      ensureCartClosesOnOutsideClick();
     }
 
     function updateCategoryDisplay(category) {
@@ -395,7 +403,6 @@
           <span class="current-price">${priceFormatted}</span>
         </div>
       `;
-      // Optional old price / save text (if pack has them)
       if (pack.oldPrice) {
         html = `
           <div>
@@ -425,7 +432,7 @@
       const container = document.getElementById('buttons');
       if (!container) return;
       const t = window.translations?.[currentLang] || window.translations?.en || {};
-      // Use shared getCart if available, else fallback to localStorage
+      // Check cart using shared getCart or localStorage
       let isInCart = false;
       if (window.getCart) {
         isInCart = window.getCart().some(item => item.id === pack.id);
@@ -438,7 +445,7 @@
       const btn = document.getElementById('addCartBtn');
       btn.onclick = () => {
         window.addOrToggleCart(pack);
-        // After adding/removing, the shared script will dispatch a custom event? We'll simulate a manual update.
+        // Force immediate update after action (shared script might not dispatch event)
         setTimeout(() => updateCartButton(pack), 50);
       };
     }
@@ -451,18 +458,17 @@
 
       contentsTitle.textContent = t.contentsTitle || 'Contents:';
 
-      // Bullet point 1: illustration count
+      // Bullet 1: illustration count
       const countText = (t.contentsDesc || 'ZIP file containing {count} AI-generated illustrations')
         .replace('{count}', pack.illustrationCount || '?');
 
-      // Bullet point 2: age disclaimer
+      // Bullet 2 & 3: disclaimers (placed after a divider)
       const ageText = t.disclaimerAge || 'Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.';
-
-      // Bullet point 3: refund disclaimer
       const refundText = t.disclaimerRefund || 'Digital products are non-refundable after purchase.';
 
       contentsList.innerHTML = `
         <li>${bulletSVG} <span>${countText}</span></li>
+        <div class="divider"></div>
         <li>${bulletSVG} <span>${ageText}</span></li>
         <li>${bulletSVG} <span>${refundText}</span></li>
       `;
@@ -516,6 +522,22 @@
           currentSlide = idx;
           updateCarousel();
         });
+      });
+    }
+
+    function ensureCartClosesOnOutsideClick() {
+      // Fallback: if the shared script doesn't close the drawer on outside click, we do it manually.
+      document.addEventListener('click', function(e) {
+        const drawer = document.getElementById('cartDrawer');
+        const cartBtn = document.getElementById('cartBtn');
+        const floatBtn = document.getElementById('floatingCartBtn');
+        if (!drawer || !drawer.classList.contains('open')) return;
+        if (!drawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatBtn?.contains(e.target)) {
+          drawer.classList.remove('open');
+          const overlay = document.getElementById('cartOverlay');
+          if (overlay) overlay.classList.remove('active');
+          document.body.classList.remove('drawer-open');
+        }
       });
     }
   </script>
