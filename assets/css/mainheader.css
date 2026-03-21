@@ -1,4 +1,3 @@
-/* ==================== THEME VARIABLES ==================== */
 :root {
   --bg: #d3d0c1;
   --card: #e8e5d8;
@@ -48,8 +47,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0.9rem 2.5rem;
-  background: var(--bg);           /* match page background exactly */
-  backdrop-filter: none;           /* remove blur */
+  background: var(--bg);
+  backdrop-filter: none;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -95,21 +94,6 @@ body.dark .logo {
   align-items: center;
   gap: 1rem;
   position: relative;
-}
-
-.store-btn {
-  padding: 0.55rem 1.6rem;
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.18s;
-}
-.store-btn:hover {
-  background: rgba(170,158,118,0.15);
 }
 
 /* ==================== BUTTONS & ICONS ==================== */
@@ -281,162 +265,4 @@ body.dark .sidebar-header .logo {
   color: var(--gray);
   border-top: 1px solid var(--border);
   text-align: center;
-}
-
-/* ==================== CART & DRAWER ==================== */
-.cart-wrapper {
-  position: relative;
-}
-.cart-icon, .floating-cart {
-  background: var(--accent) !important;
-  border-radius: 9999px !important;
-  border: none !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
-  transition: all 0.25s ease !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-}
-.cart-icon:hover, .floating-cart:hover {
-  transform: scale(1.12) !important;
-  background: #38aae8 !important;
-}
-.floating-cart {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  width: 64px !important;
-  height: 64px !important;
-}
-.cart-badge, .floating-badge {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  transform: translate(50%, -50%) !important;
-  background: #ef4444 !important;
-  color: white !important;
-  font-size: 0.75rem !important;
-  font-weight: bold !important;
-  min-width: 22px !important;
-  height: 22px !important;
-  line-height: 22px !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 6px !important;
-  border: 2px solid var(--darker) !important;
-}
-.cart-drawer {
-  position: fixed;
-  top: 0;
-  right: -400px;
-  width: 400px;
-  height: 100%;
-  background: var(--accent);
-  border-left: 1px solid var(--border);
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
-  z-index: 1200;
-  transition: right 0.35s ease;
-  display: flex;
-  flex-direction: column;
-  color: #1f1a12;
-}
-.cart-drawer.open {
-  right: 0;
-}
-.cart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.4rem 1.6rem;
-  border-bottom: 1px solid var(--border);
-}
-.cart-header h5 { margin: 0; font-size: 1.45rem; }
-.cart-close { background: none; border: none; color: #1f1a12; font-size: 1.8rem; cursor: pointer; }
-.cart-items { flex: 1; overflow-y: auto; padding: 1.2rem; }
-.cart-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-.cart-item img { width: 85px; height: 85px; object-fit: cover; border-radius: 8px; }
-.cart-item-info { flex: 1; }
-.cart-item-title { font-weight: 600; margin-bottom: 6px; }
-.cart-item-price { font-weight: 700; }
-.cart-item-remove { background: none; border: none; color: var(--red-discount); font-size: 1.4rem; cursor: pointer; }
-.cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
-.cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
-
-/* ==================== CART OVERLAY (instead of blurring the whole page) ==================== */
-.cart-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--overlay);
-  backdrop-filter: blur(4px);
-  z-index: 1195;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
-}
-.cart-overlay.active {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.3s ease, visibility 0s linear 0s;
-}
-
-/* Remove the old body pseudo-element */
-body.drawer-open::after {
-  display: none;
-}
-
-/* Cart drawer stays above overlay */
-.cart-drawer {
-  z-index: 1200;
-}
-
-
-/* Winner overlay on cards */
-.card.winner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url('https://www.velutinx.com/images/cross.png') center / 65% no-repeat;
-  opacity: 0.65;
-  pointer-events: none;
-  z-index: 5;
-  mix-blend-mode: multiply;
-  animation: pulseCross 2.8s ease-in-out infinite;
-}
-body.dark .card.winner::after {
-  mix-blend-mode: screen;
-  opacity: 0.75;
-}
-
-/* Blur on leaderboard entries */
-.leaderboard-entry.spoiled {
-  opacity: 0.5;
-  text-decoration: line-through;
-}
-
-/* ==================== SNACKBAR ==================== */
-#snackbar {
-  position: fixed;
-  top: 28px;
-  right: 28px;
-  background: var(--success);
-  color: white;
-  padding: 14px 22px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  z-index: 1300;
-  transform: translateY(-120px);
-  opacity: 0;
-  transition: all 0.45s ease;
-}
-#snackbar.show {
-  transform: translateY(0);
-  opacity: 1;
 }
