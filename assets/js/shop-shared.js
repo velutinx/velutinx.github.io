@@ -519,15 +519,17 @@ function initPayPalButtons() {
         alert("Your cart is empty.");
         return Promise.reject("Cart is empty");
       }
-
-      const payload = {
-        items: cart.map(item => ({
-          id: item.id,
-          title: item.title || `Pack ${item.id}`,
-          tier: item.price?.toFixed(2) || item.tier || "3.00",
-          quantity: item.quantity || 1
-        }))
-      };
+      
+const payload = {
+  items: cart.map(item => ({
+    id: item.id,
+    title: item.title,
+    // CRITICAL: We pass the KEY (PRICE_MID), not the number (3.00)
+    // If it's a pack, use item.priceKey. If membership, use item.tier.
+    tier: item.priceKey || "PRICE_MID", 
+    quantity: item.quantity || 1
+  }))
+};
 
       try {
         const response = await fetch('https://secure-checkout.velutinx.workers.dev/api/create-paypal-order', {
