@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
   <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
 
-  <!-- Combined header + cart + dropdown menu styles -->
+  <!-- Combined header + cart + dropdown menu styles (already includes sidebar) -->
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <style>
@@ -62,54 +62,20 @@
 </head>
 <body>
 
-  <!-- Dropdown sidebar (purple icons) – now directly in HTML -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div class="lang-swipe" id="langSwipe"></div>
+
+  <!-- Top navigation with hamburger button -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
           <path d="M4 6h16M4 12h16M4 18h16"/>
         </svg>
       </button>
-      <div class="logo">VELUTINX</div>
+      <div class="logo" id="logo">VELUTINX</div>
     </div>
-    <div class="sidebar-menu">
-      <a href="https://velutinx.com/index-" class="menu-item" id="menuHome">
-        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
-        <span>HOME</span>
-      </a>
-      <a href="https://velutinx.com/commission" class="menu-item" id="menuCommissions">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg>
-        <span>COMMISSIONS</span>
-      </a>
-      <a href="https://velutinx.com/artwork" class="menu-item" id="menuArtwork">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg>
-        <span>ARTWORK</span>
-      </a>
-      <a href="https://velutinx.com/poll" class="menu-item" id="menuPoll">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg>
-        <span>POLL</span>
-      </a>
-      <a href="https://velutinx.com/store" class="menu-item" id="menuStore">
-        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg>
-        <span>STORE</span>
-      </a>
-      <a href="https://velutinx.com/contact" class="menu-item" id="menuContact">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg>
-        <span>CONTACT</span>
-      </a>
-    </div>
-    <div class="sidebar-footer">
-      <p>© VELUTINX</p>
-    </div>
-  </aside>
-
-  <div class="lang-swipe" id="langSwipe"></div>
-
-  <nav class="top-nav">
-    <div class="logo" onclick="window.location.href='/'" style="cursor: pointer;">VELUTINX</div>
     <div class="nav-actions">
-      <button class="login-btn" id="loginBtn" onclick="window.location.href='https://velutinx.com/infex'">Website</button>
+      <button class="login-btn" id="loginBtn">Website</button>
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
           <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -144,6 +110,7 @@
     </div>
   </nav>
 
+  <!-- Floating Cart Button -->
   <button class="floating-cart cart-icon" id="floatingCartBtn">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -154,6 +121,51 @@
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
 
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar Menu (dropdown) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+      <div class="logo">VELUTINX</div>
+    </div>
+    <div class="sidebar-menu">
+      <a href="https://velutinx.com/" class="menu-item" data-menu="home">
+        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
+        <span id="menuHome">HOME</span>
+      </a>
+      <a href="https://velutinx.com/commission" class="menu-item" data-menu="commissions">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg>
+        <span id="menuCommissions">COMMISSIONS</span>
+      </a>
+      <a href="https://velutinx.com/artwork" class="menu-item" data-menu="artwork">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg>
+        <span id="menuArtwork">ARTWORK</span>
+      </a>
+      <a href="https://velutinx.com/poll" class="menu-item" data-menu="poll">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg>
+        <span id="menuPoll">POLL</span>
+      </a>
+      <a href="https://velutinx.com/store" class="menu-item" data-menu="store">
+        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg>
+        <span id="menuStore">STORE</span>
+      </a>
+      <a href="https://velutinx.com/contact" class="menu-item" data-menu="contact">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg>
+        <span id="menuContact">CONTACT</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <p>© VELUTINX</p>
+    </div>
+  </aside>
+
+  <!-- Cart Drawer -->
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -225,6 +237,7 @@
         </button>
       </div>
     </aside>
+
     <main class="products-section">
       <div class="products-header">
         <h2 id="productsTitle">Latest Content</h2>
@@ -237,16 +250,16 @@
           </div>
         </div>
       </div>
+
       <div class="product-grid" id="productGrid"></div>
     </main>
   </div>
 
-  <!-- Scripts -->
+  <!-- Scripts (shop-shared.js removed – all functionality in header.js) -->
   <script src="https://velutinx.com/assets/js/socials.js"></script>
-  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
   <script src="https://velutinx.com/assets/js/header.js"></script>
 
-  <!-- Product listing script (fixed) -->
+  <!-- Product listing script (unchanged) -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
