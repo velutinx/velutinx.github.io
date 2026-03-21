@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>VELUTINX | Official Store</title>
   <style>
-    /* ----- GLOBAL THEME VARIABLES ----- */
+    /* ----- GLOBAL THEME VARIABLES (same as previous) ----- */
     :root {
       --bg: #d3d0c1;
       --card: #e8e5d8;
@@ -532,21 +532,7 @@
 </div>
 
 <script>
-  // ==================== EMBEDDED PRODUCT DATA (no external fetch to avoid CORS) ====================
-  const EMBEDDED_PRODUCTS = [
-    { id: "001", title: "[Pack 001] Tsunade - Naruto", category: 1, price: 3.0 },
-    { id: "002", title: "[Pack 002] Astolfo - Fate/Grand Order", category: 2, price: 3.0 },
-    { id: "003", title: "[Pack 003] Alexis Rhodes - Yu-Gi-Oh", category: 1, price: 3.0 },
-    { id: "004", title: "[Pack 004] Nico Robin - One Piece", category: 1, price: 3.0 },
-    { id: "005", title: "[Pack 005] MaoMao - Apothecary Diaries", category: 1, price: 3.0 },
-    { id: "006", title: "[Pack 006] Rem - Re:Zero", category: 1, price: 3.0 },
-    { id: "007", title: "[Pack 007] Narberal Gamma - Overlord", category: 1, price: 3.0 },
-    { id: "008", title: "[Pack 008] Akeno Himejima - High School DxD", category: 1, price: 3.0 },
-    { id: "009", title: "[Pack 009] Gwen Stacy - Spider-Man", category: 1, price: 3.0 },
-    { id: "010", title: "[Pack 010] Nitocris - Fate/Grand Order", category: 1, price: 3.0 }
-  ];
-
-  // ==================== TRANSLATIONS ====================
+  // ==================== TRANSLATIONS (full store UI) ====================
   const translations = {
     en: {
       cartTitle: "Shopping Cart", totalLabel: "Total", emptyCart: "Your cart is empty",
@@ -591,7 +577,7 @@
   };
 
   // ----- GLOBALS -----
-  let products = [...EMBEDDED_PRODUCTS];
+  let products = [];           // will be populated from external source
   let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
   let activeCategory = "all";
   let currentSort = "newest";
@@ -724,6 +710,54 @@
   }
   function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
+  // ==================== LOAD PRODUCTS FROM EXTERNAL SOURCE ====================
+  async function loadProductsFromExternal() {
+    const url = 'https://velutinx.github.io/assets/js/packs-data.js';
+    try {
+      // Method 1: dynamic import (works if file is served as module)
+      const module = await import(url);
+      if (module.default && Array.isArray(module.default)) {
+        products = module.default.map(p => ({
+          id: p.id,
+          title: p.title,
+          category: p.category,
+          price: STATIC_USD
+        }));
+        renderGrid();
+        return true;
+      }
+    } catch (importErr) {
+      console.warn('Dynamic import failed, trying fetch + eval', importErr);
+    }
+
+    // Method 2: fetch as text and evaluate (handles CORS if server allows)
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const text = await response.text();
+      const match = text.match(/export default (\[[\s\S]*?\]);/);
+      if (match && match[1]) {
+        const data = eval(match[1]);
+        products = data.map(p => ({
+          id: p.id,
+          title: p.title,
+          category: p.category,
+          price: STATIC_USD
+        }));
+        renderGrid();
+        return true;
+      }
+    } catch (fetchErr) {
+      console.error('Failed to fetch external data', fetchErr);
+    }
+
+    // Fallback: show error message in console but keep empty product list
+    console.error('Could not load product data from external source. Please check network.');
+    document.getElementById('productGrid').innerHTML = '<div style="text-align:center; padding:2rem;">⚠️ Failed to load products. Please refresh or check your connection.</div>';
+    return false;
+  }
+
+  // ==================== APPLY TRANSLATIONS ====================
   function applyTranslations() {
     const t = translations[currentLang] || translations.en;
     document.getElementById('cartTitle').innerText = t.cartTitle;
@@ -760,9 +794,11 @@
     updateCartUI();
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    renderGrid(); // products already embedded
+  // ==================== EVENT LISTENERS ====================
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadProductsFromExternal();   // load external data first
     applyTranslations();
+    
     // Category filter
     document.querySelectorAll('.category-list li').forEach(li => {
       li.addEventListener('click', () => {
@@ -782,6 +818,7 @@
       });
     });
     document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value; renderGrid(); });
+    
     // Language popover
     const langBtn = document.getElementById('langBtn'), pop = document.getElementById('languagePopover');
     langBtn?.addEventListener('click', (e) => { e.stopPropagation(); pop.classList.toggle('show'); });
@@ -789,10 +826,12 @@
       item.addEventListener('click', () => { const l = item.dataset.lang; if(l) setLanguage(l); pop.classList.remove('show'); });
     });
     document.addEventListener('click', (e) => { if(pop && !pop.contains(e.target) && e.target !== langBtn) pop.classList.remove('show'); });
-    // Theme
+    
+    // Theme toggle
     const themeBtn = document.getElementById('themeBtn');
     if(themeBtn) themeBtn.addEventListener('click', () => { document.body.classList.toggle('dark'); localStorage.setItem('darkMode', document.body.classList.contains('dark')); });
     if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+    
     // Cart drawer
     const cartDrawer = document.getElementById('cartDrawer'), cartOverlay = document.getElementById('cartOverlay');
     const openCart = () => { cartDrawer.classList.add('open'); cartOverlay.classList.add('active'); document.body.classList.add('drawer-open'); };
@@ -801,6 +840,7 @@
     document.getElementById('floatingCartBtn')?.addEventListener('click', openCart);
     document.getElementById('cartClose')?.addEventListener('click', closeCart);
     cartOverlay?.addEventListener('click', closeCart);
+    
     // Sidebar
     const sidebar = document.getElementById('sidebar'), sidebarOverlay = document.getElementById('sidebarOverlay');
     const menuToggle = document.getElementById('menuToggle'), sidebarClose = document.getElementById('sidebarMenuToggle');
@@ -808,8 +848,10 @@
     const closeSide = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); document.body.style.overflow=''; };
     sidebarClose?.addEventListener('click', closeSide);
     sidebarOverlay?.addEventListener('click', closeSide);
+    
     // Demo checkout
     document.getElementById('demoCheckoutBtn')?.addEventListener('click', () => alert("⚠️ Checkout is disabled in standalone demo. Cart items are stored locally."));
+    
     updateCartUI();
   });
 </script>
