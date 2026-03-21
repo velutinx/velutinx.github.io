@@ -165,19 +165,32 @@ function saveCart(cart) {
   localStorage.setItem("velutinx_cart", JSON.stringify(cart || []));
 }
 
+// Helper to get numeric price from a pack
+function getPriceForPack(pack) {
+  return typeof pack.price === 'number' ? pack.price : parseFloat(pack.price) || 0;
+}
+
 function addOrToggleCart(pack) {
   let cart = getCart();
   const index = cart.findIndex(item => item.id === pack.id);
-  if (index !== -1) {
-    cart.splice(index, 1);
-  } else {
+  const isAdding = index === -1;
+  const card = document.querySelector(`.product-card[data-id="${pack.id}"]`);
+  const btn = card?.querySelector(".cart-btn");
+
+  if (isAdding) {
     cart.push({
       id: pack.id,
       title: pack.title,
-      image: pack.image || (pack.images && pack.images[0]) || "",
+      image: pack.image || (pack.images?.[0] ?? ""),
       price: getPriceForPack(pack),
       quantity: 1
     });
+    btn?.classList.add("added");
+    showSnackbar("Added to cart", false);
+  } else {
+    cart.splice(index, 1);
+    btn?.classList.remove("added");
+    showSnackbar("Removed from cart", true);
   }
   saveCart(cart);
   updateCartDisplay();
@@ -194,27 +207,37 @@ function updateCartDisplay() {
 
   const itemsEl = document.getElementById("cartItems");
   if (itemsEl) {
-    itemsEl.innerHTML = "";
-    if (count === 0) {
-      itemsEl.innerHTML = "<p>Your cart is empty</p>";
-    } else {
-      cart.forEach((item, idx) => {
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
-          </div>
-          <button class="cart-item-remove" data-idx="${idx}">×</button>
-        `;
-        itemsEl.appendChild(div);
-      });
-    }
+    itemsEl.innerHTML = count === 0 ? "<p>Your cart is empty</p>" : "";
+    cart.forEach((item, idx) => {
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <img src="${item.image}" alt="${item.title}">
+        <div class="cart-item-info">
+          <div class="cart-item-title">${item.title}</div>
+          <div class="cart-item-price">${formatPrice(item.price)}</div>
+        </div>
+        <button class="cart-item-remove" data-idx="${idx}">×</button>
+      `;
+      itemsEl.appendChild(div);
+    });
     const totalEl = document.getElementById("cartTotal");
     if (totalEl) totalEl.textContent = formatPrice(total);
   }
+}
+
+function showSnackbar(msg, isRemove = false) {
+  const sb = document.getElementById("snackbar");
+  const text = document.getElementById("snackText");
+  const icon = sb?.querySelector("svg");
+  if (!sb || !text || !icon) return;
+  sb.classList.toggle("remove", isRemove);
+  icon.innerHTML = isRemove
+    ? `<path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<path d="M20 6L9 17l-5-5"></path>`;
+  text.textContent = msg;
+  sb.classList.add("show");
+  setTimeout(() => sb.classList.remove("show"), 2500);
 }
 
 function updateDisclaimers() {
@@ -246,7 +269,7 @@ function updateDisclaimers() {
   }
 }
 
-/* ==================== setLanguage function – updated to handle search placeholder ==================== */
+/* ==================== setLanguage function ==================== */
 function setLanguage(lang) {
   currentLang = lang;
   currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
@@ -404,3 +427,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initial setup
   updateCartDisplay();
 });
+
+// Expose necessary global functions (so store page can use them)
+window.getPriceForPack = getPriceForPack;
+window.addOrToggleCart = addOrToggleCart;
+window.updateCartDisplay = updateCartDisplay;
+window.updateAllPrices = updateAllPrices;
+window.formatPrice = formatPrice;
+window.getCart = getCart;
+window.saveCart = saveCart;
