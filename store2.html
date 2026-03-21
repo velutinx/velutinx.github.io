@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX | Store</title>
-  <!-- Shared CSS -->
-  <link rel="stylesheet" href="https://velutinx.github.io/assets/css/top.css">
+  <!-- Shared CSS (relative path) -->
+  <link rel="stylesheet" href="/assets/css/top.css">
   <!-- Store-specific styles (product grid, filters) -->
   <style>
     .main-container {
@@ -176,13 +176,176 @@
     </main>
   </div>
 
-  <!-- Shared JS -->
-  <script src="https://velutinx.github.io/assets/js/top.js"></script>
+  <!-- Shared JS (relative path) -->
+  <script src="/assets/js/top.js"></script>
 
-  <!-- Store-specific JS (product loading, filtering, rendering) -->
+  <!-- Store-specific JS: product loading, filtering, rendering -->
   <script>
-    // This part remains exactly as in the original store HTML, using the shared cart functions.
-    // (The full product loading and grid rendering code would go here.)
+    // Wait for shared header to be fully loaded and initialised
+    document.addEventListener('headerReady', function() {
+      console.log('Shared header ready, initialising store...');
+      initStore();
+    });
+    // Fallback: if event doesn't fire, run after a short delay
+    setTimeout(function() {
+      if (typeof window.addOrToggleCart === 'function') {
+        initStore();
+      } else {
+        console.warn('Shared header not ready, retrying...');
+      }
+    }, 500);
+
+    function initStore() {
+      // ----- GLOBALS -----
+      let products = [];
+      let activeCategory = "all";
+      let currentSort = "newest";
+      let searchQuery = "";
+      let currentLang = localStorage.getItem('language') || 'en';
+
+      // ----- Load products from external source (velutinx.com) -----
+      async function loadProducts() {
+        const url = 'https://velutinx.com/assets/js/packs-data.js';
+        try {
+          // Try dynamic import (if CORS allows)
+          const module = await import(url);
+          if (module.default && Array.isArray(module.default)) {
+            products = module.default.map(p => ({
+              id: p.id,
+              title: p.title,
+              category: p.category,
+              price: 3.0
+            }));
+            renderGrid();
+            return;
+          }
+        } catch (e) {
+          console.warn('Dynamic import failed, trying fetch+eval', e);
+        }
+        // Fallback: fetch as text and evaluate
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const text = await resp.text();
+          const match = text.match(/export default (\[[\s\S]*?\]);/);
+          if (match && match[1]) {
+            const data = eval(match[1]);
+            products = data.map(p => ({
+              id: p.id,
+              title: p.title,
+              category: p.category,
+              price: 3.0
+            }));
+            renderGrid();
+            return;
+          }
+        } catch (err) {
+          console.error('Failed to load products from external source', err);
+          document.getElementById('productGrid').innerHTML = '<div style="text-align:center; padding:2rem;">⚠️ Failed to load products. Please refresh or check your connection.</div>';
+        }
+      }
+
+      // ----- Filtering & Sorting -----
+      function getFilteredSorted() {
+        let filtered = products.filter(p => {
+          if (activeCategory === "all") return true;
+          if (activeCategory === "female") return p.category === 1;
+          if (activeCategory === "femboy") return p.category === 2;
+          if (activeCategory === "membership") return p.category === 3;
+          return false;
+        });
+        if (searchQuery) {
+          filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        }
+        if (currentSort === "newest") {
+          filtered.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        } else if (currentSort === "oldest") {
+          filtered.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+        }
+        // price sorts are just placeholder (all products same price)
+        return filtered;
+      }
+
+      // ----- Render product grid -----
+      function renderGrid() {
+        const grid = document.getElementById('productGrid');
+        if (!grid) return;
+        const items = getFilteredSorted();
+        grid.innerHTML = '';
+        items.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'product-card';
+          card.dataset.id = p.id;
+          const imgUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
+          card.innerHTML = `
+            <img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'">
+            <div class="card-content">
+              <div class="card-title">${escapeHtml(p.title)}</div>
+              <div class="price-row">
+                <div class="price">${window.formatPrice(3.0)}</div>
+                <button class="cart-btn"></button>
+              </div>
+            </div>
+          `;
+          const btn = card.querySelector('.cart-btn');
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            window.addOrToggleCart(p);
+          };
+          card.onclick = () => { window.location.href = `/s/pack?id=${p.id}`; };
+          grid.appendChild(card);
+        });
+        // Sync cart button states
+        if (window.syncCartButtons) window.syncCartButtons();
+      }
+
+      function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+          if (m === '&') return '&amp;';
+          if (m === '<') return '&lt;';
+          if (m === '>') return '&gt;';
+          return m;
+        });
+      }
+
+      // ----- Event listeners -----
+      function bindEvents() {
+        // Category filter
+        document.querySelectorAll('.category-list li').forEach(li => {
+          li.addEventListener('click', () => {
+            document.querySelectorAll('.category-list li').forEach(l => l.classList.remove('active'));
+            li.classList.add('active');
+            activeCategory = li.dataset.cat;
+            renderGrid();
+          });
+        });
+        // Sort buttons
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentSort = btn.dataset.sort;
+            renderGrid();
+          });
+        });
+        // Search
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderGrid();
+          });
+        }
+        // Language change (re-render prices)
+        document.addEventListener('languageChanged', () => {
+          renderGrid(); // re-render to update prices with new currency
+        });
+      }
+
+      // ----- Initialise -----
+      bindEvents();
+      loadProducts();
+    }
   </script>
 </body>
 </html>
