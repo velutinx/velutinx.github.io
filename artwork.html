@@ -130,16 +130,19 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Wait for translations to be ready
-    (function waitForTranslations() {
+    // Apply translations on load
+    if (typeof window.applyTranslations === 'function') {
+      window.applyTranslations('artwork');
+    }
+
+    // Re-apply translations when language changes
+    document.addEventListener('languageChanged', () => {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('artwork');
-      } else {
-        setTimeout(waitForTranslations, 200);
       }
-    })();
+    });
 
-    // Apply dark mode from localStorage
+    // Apply dark mode from localStorage (header.js also does this, but safe)
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
