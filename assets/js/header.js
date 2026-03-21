@@ -263,6 +263,8 @@
       const cartTitle = document.getElementById('cartTitle');
       const totalLabel = document.getElementById('totalLabel');
       const snackText = document.getElementById('snackText');
+      const websiteBtn = document.getElementById('loginBtn');
+      if (websiteBtn) websiteBtn.textContent = t.websiteBtn || t.storeBtn; // fallback to storeBtn if needed
       if (menuHome) menuHome.textContent = t.menuHome;
       if (menuCommissions) menuCommissions.textContent = t.menuCommissions;
       if (menuArtwork) menuArtwork.textContent = t.menuArtwork;
@@ -272,6 +274,7 @@
       if (cartTitle) cartTitle.textContent = t.cartTitle;
       if (totalLabel) totalLabel.textContent = t.totalLabel;
       if (snackText) snackText.textContent = t.snackText;
+      
     }
 
     // --- Language change handler (update currency and prices) ---
