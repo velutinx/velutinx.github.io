@@ -278,12 +278,8 @@ function showSnackbar(msg, isRemove = false) {
 }
 
 /* ==================== LANGUAGE ==================== */
-function setLanguage(lang) {
-  currentLang = lang;
-  currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
-  localStorage.setItem("language", lang);
-
-  // Update store UI only if store elements exist
+// We do NOT define setLanguage here. Instead, we listen to the global languageChanged event.
+function applyStoreTranslations(lang) {
   const t = storeTranslations[lang] || storeTranslations.en;
   const elements = {
     shopTitle: t.shopTitle,
@@ -312,7 +308,6 @@ function setLanguage(lang) {
     }
   });
 
-  // Update search input placeholder separately if it exists
   const searchInput = document.getElementById("searchInput");
   if (searchInput && t.searchPlaceholder) {
     searchInput.placeholder = t.searchPlaceholder;
@@ -320,17 +315,17 @@ function setLanguage(lang) {
 
   const shopTitleEl = document.getElementById("shopTitle");
   if (shopTitleEl) shopTitleEl.classList.add("loaded");
-
-  // Update cart and prices only if cart elements exist
-  if (document.getElementById("cartCount")) {
-    updateCartDisplay();
-    updateAllPrices();
-  }
 }
 
 /* ==================== DOM READY ==================== */
 document.addEventListener("DOMContentLoaded", () => {
-  setLanguage(currentLang);
+  // Initial store UI update based on current language
+  const initialLang = window.currentLanguage || localStorage.getItem("language") || "en";
+  applyStoreTranslations(initialLang);
+
+  // Update currentLang and currentCurrency (for price formatting)
+  currentLang = initialLang;
+  currentCurrency = initialLang === "en" ? "USD" : initialLang === "ja" ? "JPY" : initialLang === "zh" ? "CNY" : "MXN";
 
   // Website button
   const loginBtn = document.getElementById("loginBtn");
@@ -357,11 +352,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Language item clicks: use global setLanguage from translt.js (which dispatches languageChanged)
   document.querySelectorAll(".lang-item").forEach(item => {
     item.addEventListener("click", () => {
-      setLanguage(item.dataset.lang);
+      const newLang = item.dataset.lang;
+      if (window.setLanguage) window.setLanguage(newLang);
       popover?.classList.remove("show");
     });
+  });
+
+  // Listen for language changes (dispatched by translt.js)
+  document.addEventListener("languageChanged", (e) => {
+    const newLang = e.detail;
+    currentLang = newLang;
+    currentCurrency = newLang === "en" ? "USD" : newLang === "ja" ? "JPY" : newLang === "zh" ? "CNY" : "MXN";
+    applyStoreTranslations(newLang);
+    if (document.getElementById("cartCount")) {
+      updateCartDisplay();
+      updateAllPrices();
+    }
   });
 
   // Theme toggle
@@ -449,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Expose globals
+// Expose globals (but not setLanguage – that is in translt.js)
 window.getPriceForPack   = getPriceForPack;
 window.addOrToggleCart   = addOrToggleCart;
 window.updateCartDisplay = updateCartDisplay;
