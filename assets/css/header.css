@@ -204,6 +204,212 @@ body.dark .logo {
   to { bottom: 100%; }
 }
 
+:root {
+  --bg: #d3d0c1;
+  --card: #e8e5d8;
+  --darker: #c0bcaa;
+  --text: #3a3528;
+  --text-light: #e8e5d8;
+  --accent: #aa9e76;
+  --success: #22c55e;
+  --red-discount: #a64a5c;
+  --gray: #8a7b6f;
+  --border: #aa9e76;
+  --overlay: rgba(170,158,118,0.25);
+  --btn-cart: #3a3528;
+  --btn-cart-hover: #4a4538;
+}
+
+body.dark {
+  --bg: #0f0f12;
+  --card: #1a1a20;
+  --darker: #121216;
+  --text: #e6e3d8;
+  --text-light: #e6e3d8;
+  --accent: #d4c08a;
+  --success: #8b8a5e;
+  --red-discount: #a64a5c;
+  --gray: #b8b3a5;
+  --border: #6f6a4e;
+  --overlay: rgba(15,15,18,0.75);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  transition: background 0.4s, color 0.4s;
+}
+
+body.drawer-open::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 1190;
+  pointer-events: none;
+}
+
+body.drawer-open .floating-cart {
+  display: none;
+}
+
+/* ==================== TOP NAV ==================== */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 2.5rem;
+  background: var(--darker);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #000;
+}
+
+body.dark .logo {
+  color: var(--accent);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.nav-icon {
+  width: 42px;
+  height: 42px;
+  background: var(--accent);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.nav-icon:hover {
+  transform: scale(1.12);
+  background: #38aae8;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.nav-icon.active {
+  background: var(--success);
+  color: white;
+}
+
+.nav-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: white;
+  stroke-width: 1.5;
+}
+
+.login-btn {
+  padding: 0.55rem 1.6rem;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.login-btn:hover {
+  background: rgba(170,158,118,0.15);
+}
+
+/* ==================== LANGUAGE ==================== */
+#languagePopover {
+  position: absolute;
+  top: 55px;
+  right: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  min-width: 230px;
+  z-index: 1100;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.51s;
+}
+
+#languagePopover.show,
+#langContainer:hover #languagePopover,
+.lang-btn:hover + #languagePopover,
+#languagePopover:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+
+.lang-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text);
+}
+
+.lang-item:hover {
+  background: #c0bcaa;
+}
+
+.lang-item img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Swipe animation */
+.lang-swipe {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  height: 20%;
+  background: var(--accent);
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.lang-swipe.active {
+  animation: langSwipeUp 0.55s ease-in forwards;
+}
+
+@keyframes langSwipeUp {
+  to { bottom: 100%; }
+}
+
 /* ==================== SIDEBAR MENU (dropdown) ==================== */
 .nav-left {
   display: flex;
@@ -234,14 +440,16 @@ body.dark .logo {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -268px;
-  width: 268px;
+  left: -280px;                  /* Fully hide it off-screen */
+  width: 280px;
   height: 100vh;
   background: var(--card);
   z-index: 1400;
   transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 6px 0 30px rgba(0,0,0,0.25);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar.open {
@@ -255,6 +463,7 @@ body.dark .logo {
   width: 100%;
   height: 100%;
   background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
   z-index: 1399;
   opacity: 0;
   pointer-events: none;
@@ -278,7 +487,7 @@ body.dark .logo {
   color: var(--text);
 }
 
-/* Keep your existing .sidebar-header, .sidebar-menu, .menu-item, .sidebar-footer styles exactly as they are */
+/* Sidebar internal styling */
 .sidebar-header {
   padding: 1.2rem 1.5rem;
   display: flex;
@@ -347,41 +556,251 @@ body.dark .sidebar-header .logo {
   color: var(--accent);
 }
 
-.sidebar-menu {
-  flex: 1;
-  padding: 1rem 0;
+/* ==================== CART ==================== */
+.cart-wrapper {
+  position: relative;
 }
 
-.menu-item {
+/* Shared cart styling (nav + floating) */
+.cart-icon,
+.floating-cart {
+  background: var(--accent) !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+  transition: all 0.25s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.cart-icon:hover,
+.floating-cart:hover {
+  transform: scale(1.12) !important;
+  background: #38aae8 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+}
+
+.cart-icon svg,
+.floating-cart svg {
+  stroke: white !important;
+  stroke-width: 2 !important;
+}
+
+/* Top-right nav cart */
+.nav-icon#cartBtn {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.nav-icon#cartBtn svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* Bottom-right floating cart */
+.floating-cart {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.floating-cart svg {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* Badge */
+.cart-badge,
+.floating-badge {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  transform: translate(50%, -50%) !important;
+  background: #ef4444 !important;
+  color: white !important;
+  font-size: 0.75rem !important;
+  font-weight: bold !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 6px !important;
+  border: 2px solid var(--darker) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+}
+
+/* Cart drawer */
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100%;
+  background: var(--accent);
+  border-left: 1px solid var(--border);
+  box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+  z-index: 1200;
+  transition: right 0.35s ease;
+  display: flex;
+  flex-direction: column;
+  color: #1f1a12;
+}
+
+.cart-drawer.open {
+  right: 0;
+}
+
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.4rem 1.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cart-header h5 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.cart-close {
+  background: none;
+  border: none;
+  color: #1f1a12;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.cart-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.2rem;
+}
+
+.cart-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cart-item img {
+  width: 85px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.cart-item-info {
+  flex: 1;
+}
+
+.cart-item-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.cart-item-price {
+  color: #1f1a12;
+  font-weight: 700;
+}
+
+.cart-item-remove {
+  background: none;
+  border: none;
+  color: var(--red-discount);
+  font-size: 1.4rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.cart-total {
+  padding: 1.4rem 1.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+
+/* ==================== SNACKBAR ==================== */
+#snackbar {
+  position: fixed;
+  top: 28px;
+  right: 28px;
+  background: var(--success);
+  color: white;
+  padding: 14px 22px;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 0.8rem 1.8rem;
-  color: var(--text);
-  text-decoration: none;
-  transition: background 0.2s;
-  font-size: 1rem;
+  z-index: 1300;
+  transform: translateY(-120px);
+  opacity: 0;
+  transition: all 0.45s ease;
+  font-weight: 500;
 }
 
-.menu-item:hover {
-  background: var(--darker);
+#snackbar.show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
-.menu-item svg {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
+/* Red background when removing */
+#snackbar[style*="background: #ef4444"] {
+  background: #ef4444 !important;
 }
 
-.sidebar-footer {
-  padding: 1.5rem;
-  font-size: 0.75rem;
-  color: var(--gray);
-  border-top: 1px solid var(--border);
-  text-align: center;
+#snackbar svg {
+  min-width: 20px;
 }
+
+/* ==================== SHARED CART BUTTON (used on product cards) ==================== */
+.cart-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--btn-cart);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cart-btn:hover {
+  background: var(--btn-cart-hover);
+  transform: scale(1.08);
+}
+
+.cart-btn.added {
+  background: #22c55e;
+}
+
+/* Optional: small visual feedback */
+.cart-btn svg {
+  transition: transform 0.2s;
+}
+
+.cart-btn.added svg {
+  transform: scale(1.15);
+}
+
 
 /* ==================== CART ==================== */
 .cart-wrapper {
