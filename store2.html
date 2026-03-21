@@ -2,242 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>VELUTINX | Official Store</title>
-
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/top.css">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VELUTINX Store</title>
+  <!-- Your existing store CSS (including top.css) -->
+  <link rel="stylesheet" href="/assets/css/top.css">
+  <!-- Additional store-specific styles (the ones you had) -->
   <style>
-    /* ── Store-specific styles (keep the rest of your original styles here) ── */
-
-    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; transition: background 0.3s, color 0.3s; }
-
-    .main-container { display: flex; max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem 2rem; gap: 2rem; }
-    .store-filter-sidebar { width: 260px; flex-shrink: 0; }
-
-    .section-title { font-weight: 600; margin-bottom: 0.8rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
-
-    .category-list, .sort-options { list-style: none; background: var(--card); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 1.8rem; overflow: hidden; }
-
-    .category-list li, .sort-btn {
-      padding: 0.9rem 1.2rem; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s;
-      color: var(--text); background: var(--card); border: none; width: 100%; text-align: left; font-size: 1rem;
-    }
-
-    .category-list li:hover, .sort-btn:hover { background: var(--darker); }
-    .category-list li.active, .sort-btn.active { background: var(--accent); color: #1f1a12; font-weight: 600; }
-
-    .products-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
-    .products-header h2 { font-size: 1.6rem; font-weight: 700; color: var(--text); }
-
-    .search-bar-wrapper { width: 280px; }
-    .input-base { display: flex; align-items: center; background: var(--card); border-radius: 40px; border: 1px solid var(--border); padding: 6px 12px; gap: 8px; }
-    .input-element { flex: 1; background: transparent; border: none; outline: none; color: var(--text); padding: 8px 0; }
-
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.8rem; }
-
-    .product-card { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
-    .product-card:hover { transform: translateY(-6px); box-shadow: 0 14px 28px rgba(0,0,0,0.2); }
-
-    .card-image { width: 100%; aspect-ratio: 3/3.5; object-fit: cover; display: block; background: #d9d4c2; }
-    .card-content { padding: 1rem; }
-    .card-title { font-weight: 600; margin-bottom: 0.5rem; }
-
-    .price-row { display: flex; justify-content: space-between; align-items: center; }
-    .price { font-size: 1.3rem; font-weight: 700; color: var(--price-red); }
-
-    .cart-btn {
-      width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
-    }
-    .cart-btn.added { background: var(--success); }
-
-    @media (max-width: 780px) {
-      .main-container { flex-direction: column; }
-      .store-filter-sidebar { width: 100%; }
-    }
+    /* Put your product grid / filter styles here */
   </style>
 </head>
 <body>
 
-<!-- Inject shared header, drawers, etc. -->
-<script>fetch('https://velutinx.com/assets/include/top.html')
-  .then(r => r.text())
-  .then(html => document.body.insertAdjacentHTML('afterbegin', html));</script>
+  <!-- This is where the header will be injected -->
+  <div id="header-placeholder"></div>
 
-<div class="main-container">
-  <aside class="store-filter-sidebar">
-    <div class="section-title">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 6v4M16 12v6"/>
-      </svg>
-      <span>Filter by Category</span>
-    </div>
+  <!-- Your store content (product grid, filters, etc.) -->
+  <div class="main-container">
+    <!-- ... your existing HTML ... -->
+  </div>
 
-    <ul class="category-list" id="categoryList">
-      <li data-cat="all" class="active">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-        </svg>
-        <span>All Products</span>
-      </li>
-      <li data-cat="female">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="9" r="6" stroke="currentColor" stroke-width="2"/>
-          <path d="M12 15V21M9 18H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <span>Female Models</span>
-      </li>
-      <li data-cat="femboy">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <circle cx="10" cy="14" r="6" stroke="currentColor" stroke-width="2"/>
-          <path d="M16 8L20 4M20 4H16M20 4V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>Femboy Models</span>
-      </li>
-      <li data-cat="membership">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M12 2l3 6 6 .7-4.5 4.1L18 19l-6-3-6 3 1.5-6.2L3 8.7 9 8z"/>
-        </svg>
-        <span>Memberships</span>
-      </li>
-    </ul>
+  <!-- Shared JS -->
+  <script src="/assets/js/top.js"></script>
 
-    <div class="section-title">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M7 3v12M7 15l-3-3M7 15l3-3M17 21V9M17 9l-3 3M17 9l3 3"/>
-      </svg>
-      <span>Sort by</span>
-    </div>
-
-    <div id="sortContainer">
-      <button class="sort-btn active" data-sort="newest">Newest</button>
-      <button class="sort-btn" data-sort="oldest">Oldest</button>
-      <button class="sort-btn" data-sort="price-asc">Price: Low to High</button>
-      <button class="sort-btn" data-sort="price-desc">Price: High to Low</button>
-    </div>
-  </aside>
-
-  <main class="products-section">
-    <div class="products-header">
-      <h2>Latest Content</h2>
-      <div class="search-bar-wrapper">
-        <div class="input-base">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
-            <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
-            <path d="M21 21l-6 -6"></path>
-          </svg>
-          <input type="search" id="searchInput" class="input-element" placeholder="Search...">
-        </div>
-      </div>
-    </div>
-
-    <div class="product-grid" id="productGrid"></div>
-  </main>
-</div>
-
-<!-- Shared JS -->
-<script src="https://velutinx.com/assets/js/top.js"></script>
-
-<!-- Store-specific logic (keep your original product loading + rendering code here) -->
-<script>
-  // Your existing product loading, filtering, sorting, rendering code goes here...
-  // Including: loadProductsFromExternal(), renderGrid(), event listeners for category/sort/search, etc.
-
-  // Example minimal version (replace with your full logic):
-  let products = [];
-  let activeCategory = "all";
-  let currentSort = "newest";
-  let searchQuery = "";
-
-  async function loadProducts() {
-    try {
-      const res = await fetch('https://velutinx.com/assets/js/packs-data.js');
-      const text = await res.text();
-      const match = text.match(/export default (\[[\s\S]*?\]);/);
-      if (match) {
-        products = eval(match[1]);
-        renderGrid();
+  <!-- Your store-specific JS (product loading, etc.) -->
+  <script>
+    // Wait for header to be ready (event dispatched after injection)
+    document.addEventListener('headerReady', function() {
+      // Initialize store here (load products, set up filters, etc.)
+      console.log('Store initializing');
+    });
+    // Alternatively, use a timeout or check for existence of cart functions
+    setTimeout(function() {
+      if (typeof window.addOrToggleCart === 'function') {
+        // Header and cart are ready
       }
-    } catch(e) {
-      console.error("Failed to load products", e);
-      document.getElementById('productGrid').innerHTML = '<div style="padding:4rem;text-align:center;">Failed to load products</div>';
-    }
-  }
-
-  function renderGrid() {
-    const grid = document.getElementById('productGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-
-    let filtered = products.filter(p => {
-      if (activeCategory === "all") return true;
-      if (activeCategory === "female") return p.category === 1;
-      if (activeCategory === "femboy") return p.category === 2;
-      if (activeCategory === "membership") return p.category === 3;
-      return false;
-    });
-
-    if (searchQuery) {
-      filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
-
-    if (currentSort === "newest") filtered.sort((a,b) => b.id - a.id);
-    if (currentSort === "oldest") filtered.sort((a,b) => a.id - b.id);
-    // add price sort if needed
-
-    filtered.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.dataset.id = p.id;
-      const img = `https://velutinx.com/i/pack${String(p.id).padStart(3,'0')}-1.jpg`;
-      card.innerHTML = `
-        <img src="${img}" class="card-image" alt="${p.title}" onerror="this.src='https://placehold.co/300x420?text=Preview'">
-        <div class="card-content">
-          <div class="card-title">${p.title}</div>
-          <div class="price-row">
-            <div class="price">US$3.00</div>
-            <button class="cart-btn"></button>
-          </div>
-        </div>
-      `;
-      card.querySelector('.cart-btn').onclick = e => {
-        e.stopPropagation();
-        window.addOrToggleCart(p);
-      };
-      card.onclick = () => window.location.href = `/s/pack?id=${p.id}`;
-      grid.appendChild(card);
-    });
-  }
-
-  // Category & sort listeners
-  document.addEventListener('DOMContentLoaded', () => {
-    loadProducts();
-
-    document.querySelectorAll('#categoryList li').forEach(li => {
-      li.addEventListener('click', () => {
-        document.querySelectorAll('#categoryList li').forEach(l => l.classList.remove('active'));
-        li.classList.add('active');
-        activeCategory = li.dataset.cat;
-        renderGrid();
-      });
-    });
-
-    document.querySelectorAll('#sortContainer .sort-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#sortContainer .sort-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentSort = btn.dataset.sort;
-        renderGrid();
-      });
-    });
-
-    document.getElementById('searchInput')?.addEventListener('input', e => {
-      searchQuery = e.target.value;
-      renderGrid();
-    });
-  });
-</script>
+    }, 100);
+  </script>
 </body>
 </html>
