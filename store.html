@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
  
   <style>
-    /* Prevent flash of old title */
     #shopTitle {
       visibility: hidden;
       transition: visibility 0s linear 0.1s;
@@ -18,14 +17,10 @@
     #shopTitle.loaded {
       visibility: visible;
     }
-
-    /* Store filter sidebar */
     .store-filter-sidebar {
       width: 268px;
       flex-shrink: 0;
     }
-
-    /* Shop page specific styles */
     .shop-header { 
       padding: 2.2rem 2.8rem 1.6rem; 
       background: var(--bg); 
@@ -214,7 +209,6 @@
 
   <div class="lang-swipe" id="langSwipe"></div>
 
-  <!-- Top navigation with shared hamburger -->
   <nav class="top-nav">
     <div class="nav-left">
       <button id="menuToggle" class="nav-icon" title="Menu">
@@ -261,7 +255,6 @@
     </div>
   </nav>
 
-  <!-- Floating Cart Button -->
   <button class="floating-cart cart-icon" id="floatingCartBtn">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -272,7 +265,6 @@
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
 
-  <!-- Cart Drawer -->
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -357,314 +349,158 @@
           </div>
         </div>
       </div>
-
       <div class="product-grid" id="productGrid"></div>
     </main>
   </div>
 
-  <!-- Scripts -->
-<script src="https://6eb61101.velutinx.pages.dev/assets/js/header.js"></script>
-<script src="https://6eb61101.velutinx.pages.dev/assets/js/shop-shared.js"></script>
+  <script src="https://velutinx.com/assets/js/header.js"></script>
+  <script src="https://velutinx.com/assets/js/packs-data.js"></script>
   
-  <!-- Local translations + dynamic UI update (includes shop title) -->
   <script>
     const localTranslations = {
-      en: {
-        shopTitle: "VELUTINX STORE",
-        filterTitle: "Filter by Category",
-        catAll: "All Products",
-        catFemale: "Female Models",
-        catFemboy: "Femboy Models",
-        catCollections: "Full Collections",
-        sortTitle: "Sort by",
-        sortNewest: "Newest",
-        sortOldest: "Oldest",
-        sortLow: "Price: Low to High",
-        sortHigh: "Price: High to Low",
-        productsTitle: "Latest Content",
-        searchPlaceholder: "Search products...",
-        cartTitle: "Shopping Cart",
-        totalLabel: "Total",
-        snackText: "Added successfully"
-      },
-      ja: {
-        shopTitle: "VELUTINX ストア",
-        filterTitle: "カテゴリでフィルター",
-        catAll: "すべての商品",
-        catFemale: "女性モデル",
-        catFemboy: "男の娘モデル",
-        catCollections: "フルコレクション",
-        sortTitle: "並び替え",
-        sortNewest: "最新",
-        sortOldest: "最古",
-        sortLow: "価格: 低い → 高い",
-        sortHigh: "価格: 高い → 低い",
-        productsTitle: "最新コンテンツ",
-        searchPlaceholder: "商品を検索...",
-        cartTitle: "ショッピングカート",
-        totalLabel: "合計",
-        snackText: "カートに追加しました"
-      },
-      zh: {
-        shopTitle: "VELUTINX 商店",
-        filterTitle: "按类别筛选",
-        catAll: "所有商品",
-        catFemale: "女性模型",
-        catFemboy: "伪娘模型",
-        catCollections: "完整收藏",
-        sortTitle: "排序方式",
-        sortNewest: "最新",
-        sortOldest: "最旧",
-        sortLow: "价格: 低到高",
-        sortHigh: "价格: 高到低",
-        productsTitle: "最新内容",
-        searchPlaceholder: "搜索商品...",
-        cartTitle: "购物车",
-        totalLabel: "总计",
-        snackText: "已成功添加到购物车"
-      },
-      es: {
-        shopTitle: "TIENDA VELUTINX",
-        filterTitle: "Filtrar por Categoría",
-        catAll: "Todos los Productos",
-        catFemale: "Modelos Femeninos",
-        catFemboy: "Modelos Femboy",
-        catCollections: "Colecciones Completas",
-        sortTitle: "Ordenar por",
-        sortNewest: "Más reciente",
-        sortOldest: "Más antiguo",
-        sortLow: "Precio: Bajo a Alto",
-        sortHigh: "Precio: Alto a Bajo",
-        productsTitle: "Contenido más reciente",
-        searchPlaceholder: "Buscar productos...",
-        cartTitle: "Carrito de Compras",
-        totalLabel: "Total",
-        snackText: "Añadido con éxito"
-      }
+      en: { shopTitle: "VELUTINX STORE", filterTitle: "Filter by Category", catAll: "All Products", catFemale: "Female Models", catFemboy: "Femboy Models", catCollections: "Full Collections", sortTitle: "Sort by", sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low", productsTitle: "Latest Content", searchPlaceholder: "Search products...", cartTitle: "Shopping Cart", totalLabel: "Total", snackText: "Added successfully" },
+      ja: { shopTitle: "VELUTINX ストア", filterTitle: "カテゴリでフィルター", catAll: "すべての商品", catFemale: "女性モデル", catFemboy: "男の娘モデル", catCollections: "フルコレクション", sortTitle: "並び替え", sortNewest: "最新", sortOldest: "最古", sortLow: "価格: 低い → 高い", sortHigh: "価格: 高い → 低い", productsTitle: "最新コンテンツ", searchPlaceholder: "商品を検索...", cartTitle: "ショッピングカート", totalLabel: "合計", snackText: "カートに追加しました" },
+      zh: { shopTitle: "VELUTINX 商店", filterTitle: "按类别筛选", catAll: "所有商品", catFemale: "女性模型", catFemboy: "伪娘模型", catCollections: "完整收藏", sortTitle: "排序方式", sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 低到高", sortHigh: "价格: 高到低", productsTitle: "最新内容", searchPlaceholder: "搜索商品...", cartTitle: "购物车", totalLabel: "总计", snackText: "已成功添加到购物车" },
+      es: { shopTitle: "TIENDA VELUTINX", filterTitle: "Filtrar por Categoría", catAll: "Todos los Productos", catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catCollections: "Colecciones Completas", sortTitle: "Ordenar por", sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: Bajo a Alto", sortHigh: "Precio: Alto a Bajo", productsTitle: "Contenido más reciente", searchPlaceholder: "Buscar productos...", cartTitle: "Carrito de Compras", totalLabel: "Total", snackText: "Añadido con éxito" }
     };
 
     function updateUIForLanguage() {
       const lang = localStorage.getItem("language") || "en";
       const t = localTranslations[lang] || localTranslations.en;
-
-      // Shop title
-      const shopTitleEl = document.getElementById("shopTitle");
-      if (shopTitleEl) shopTitleEl.textContent = t.shopTitle;
-
-      // Category labels
+      if (document.getElementById("shopTitle")) document.getElementById("shopTitle").textContent = t.shopTitle;
       document.getElementById("filterTitle").textContent = t.filterTitle;
       document.getElementById("catAll").textContent = t.catAll;
       document.getElementById("catFemale").textContent = t.catFemale;
       document.getElementById("catFemboy").textContent = t.catFemboy;
       document.getElementById("catCollections").textContent = t.catCollections;
-
-      // Sort section
       document.getElementById("sortTitle").textContent = t.sortTitle;
       document.querySelector('[data-sort="newest"] span:last-child').textContent = t.sortNewest;
       document.querySelector('[data-sort="oldest"] span:last-child').textContent = t.sortOldest;
       document.querySelector('[data-sort="price-asc"] span:last-child').textContent = t.sortLow;
       document.querySelector('[data-sort="price-desc"] span:last-child').textContent = t.sortHigh;
-
-      // Products title
       document.getElementById("productsTitle").textContent = t.productsTitle;
-
-      // Search placeholder
       const searchInput = document.getElementById("searchInput");
       if (searchInput) searchInput.placeholder = t.searchPlaceholder;
-
-      // Cart title (in drawer)
-      const cartTitleEl = document.getElementById("cartTitle");
-      if (cartTitleEl) cartTitleEl.textContent = t.cartTitle;
-
-      // Total label
-      const totalLabelEl = document.getElementById("totalLabel");
-      if (totalLabelEl) totalLabelEl.textContent = t.totalLabel;
-
-      // Snackbar default text
-      const snackTextEl = document.getElementById("snackText");
-      if (snackTextEl) snackTextEl.textContent = t.snackText;
+      if (document.getElementById("cartTitle")) document.getElementById("cartTitle").textContent = t.cartTitle;
+      if (document.getElementById("totalLabel")) document.getElementById("totalLabel").textContent = t.totalLabel;
+      if (document.getElementById("snackText")) document.getElementById("snackText").textContent = t.snackText;
     }
 
-    // Run on page load
     window.addEventListener('load', () => {
       updateUIForLanguage();
-      // Also show title after translation
       document.getElementById("shopTitle")?.classList.add("loaded");
     });
 
-    // Update on language change (listen for languageChanged event from header)
     document.addEventListener('languageChanged', () => {
       updateUIForLanguage();
-      if (window.updateAllPrices) window.updateAllPrices();
+      if (window.createCards) window.createCards();
     });
   </script>
 
-
-
-
-  
-<script type="module">
+  <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
-    window.addEventListener('load', async () => {
-      // 1. Wait for header/globals to be ready
-      await new Promise(resolve => {
-        if (window.getPriceForPack && window.formatPrice) resolve();
-        else window.addEventListener('headerReady', resolve, { once: true });
-      });
+    let productsData = [];
+    const grid = document.getElementById("productGrid");
+    const searchInput = document.getElementById("searchInput");
+    const sortButtons = document.querySelectorAll(".sort-btn");
+    const categoryItems = document.querySelectorAll(".category-list li");
+    let currentCategory = 0;
 
-      // 2. Map the data
-      // We keep a reference to the original 'p.price' (e.g., "PRICE_MID") 
-      // so we can re-calculate the number once the worker finishes.
-      const productsData = packsData.map(p => ({
+    window.createCards = function() {
+      if (!grid) return;
+      grid.innerHTML = "";
+      
+      productsData = packsData.map(p => ({
         ...p,
-        priceKey: p.price, // Store the string key (PRICE_MID)
-        price: window.getPriceForPack(p), 
-        date: p.date || Date.now() - (parseInt(p.id) * 86400000 * 7),
+        priceKey: p.price,
+        price: window.getPriceForPack(p),
         category: p.category || 0
       }));
 
-      const grid = document.getElementById("productGrid");
-      const searchInput = document.getElementById("searchInput");
-      const sortButtons = document.querySelectorAll(".sort-btn");
-      const categoryItems = document.querySelectorAll(".category-list li");
-      let currentCategory = 0;
+      productsData.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.dataset.id = p.id;
+        card.dataset.category = p.category;
+        card.dataset.price = p.price;
 
-      function createCards() {
-        grid.innerHTML = "";
-        productsData.forEach(p => {
-          const card = document.createElement("div");
-          card.className = "product-card";
-          card.dataset.id = p.id;
-          card.dataset.category = p.category;
-          
-          // Re-calculate price number in case worker just finished
-          const currentPriceNum = window.getPriceForPack(p);
-          card.dataset.price = currentPriceNum;
-
-          const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
-          card.innerHTML = `
-            <img src="${imageUrl}"
-                 alt="${p.title}"
-                 class="card-image"
-                 loading="lazy"
-                 onerror="this.src='https://via.placeholder.com/248x300?text=Image+Error'">
-            <div class="card-content">
-              <div class="card-title">${p.title}</div>
-              <div class="price-row">
-                <div class="price" data-price-key="${p.priceKey}">${window.formatPrice(currentPriceNum)}</div>
-                <button class="cart-btn" title="Add to Cart">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                    <path d="M12.5 17h-6.5v-14h-2"></path>
-                    <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-                    <path d="M16 19h6"></path>
-                    <path d="M19 16v6"></path>
-                  </svg>
-                </button>
-              </div>
+        const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
+        card.innerHTML = `
+          <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy" onerror="this.src='https://via.placeholder.com/248x300?text=Error'">
+          <div class="card-content">
+            <div class="card-title">${p.title}</div>
+            <div class="price-row">
+              <div class="price">${window.formatPrice(p.price)}</div>
+              <button class="cart-btn" title="Add to Cart">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path>
+                </svg>
+              </button>
             </div>
-          `;
+          </div>
+        `;
 
-          card.addEventListener("click", e => {
-            if (e.target.closest(".cart-btn")) return;
-            window.location.href = `/s/pack?id=${p.id}`;
-          });
-
-          const cartBtn = card.querySelector(".cart-btn");
-          cartBtn.addEventListener("click", e => {
-            e.stopPropagation();
-            // Pass the priceKey so the PayPal checkout remains secure
-            window.addOrToggleCart?.({ ...p, tier: p.priceKey });
-          });
-
-          grid.appendChild(card);
-          p.element = card;
-        });
-      }
-
-      // 3. LISTEN FOR WORKER SUCCESS
-      // We add a global function that your 'syncPricesFromWorker' can call 
-      // to refresh the UI once the real prices arrive.
-      window.renderShop = () => {
-        createCards();
-        filterAndSort();
-      };
-
-      function filterAndSort() {
-        const query = searchInput.value.toLowerCase().trim();
-        const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
-
-        productsData.forEach(p => {
-          const titleMatch = p.title.toLowerCase().includes(query);
-          const categoryMatch = currentCategory === 0 || p.category === currentCategory;
-          p.element.classList.toggle("hidden", !(titleMatch && categoryMatch));
+        card.addEventListener("click", e => {
+          if (!e.target.closest(".cart-btn")) window.location.href = `/s/pack?id=${p.id}`;
         });
 
-        let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
-        if (activeSort === "newest") {
-          visible.sort((a, b) => parseInt(b.dataset.id || 0) - parseInt(a.dataset.id || 0));
-        } else if (activeSort === "oldest") {
-          visible.sort((a, b) => parseInt(a.dataset.id || 0) - parseInt(b.dataset.id || 0));
-        } else if (activeSort === "price-asc") {
-          visible.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-        } else if (activeSort === "price-desc") {
-          visible.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-        }
-
-        visible.forEach(el => grid.appendChild(el));
-      }
-
-      // Event Listeners for UI
-      categoryItems.forEach((item, index) => {
-        item.addEventListener("click", () => {
-          categoryItems.forEach(i => i.classList.remove("active"));
-          item.classList.add("active");
-          currentCategory = index === 0 ? 0 : index;
-          filterAndSort();
+        card.querySelector(".cart-btn").addEventListener("click", e => {
+          e.stopPropagation();
+          window.addOrToggleCart?.({ ...p, tier: p.priceKey });
         });
+
+        grid.appendChild(card);
+        p.element = card;
       });
-
-      sortButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-          sortButtons.forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          filterAndSort();
-        });
-      });
-
-      searchInput.addEventListener("input", filterAndSort);
-
-      // Initial render
-      createCards();
       filterAndSort();
+    };
+
+    function filterAndSort() {
+      const query = searchInput.value.toLowerCase().trim();
+      const activeSort = document.querySelector(".sort-btn.active")?.dataset.sort || "newest";
+
+      productsData.forEach(p => {
+        if (!p.element) return;
+        const titleMatch = p.title.toLowerCase().includes(query);
+        const catMatch = currentCategory === 0 || p.category === currentCategory;
+        p.element.classList.toggle("hidden", !(titleMatch && catMatch));
+      });
+
+      let visible = Array.from(grid.children).filter(el => !el.classList.contains("hidden"));
+      visible.sort((a, b) => {
+        if (activeSort === "newest") return parseInt(b.dataset.id) - parseInt(a.dataset.id);
+        if (activeSort === "oldest") return parseInt(a.dataset.id) - parseInt(b.dataset.id);
+        if (activeSort === "price-asc") return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        if (activeSort === "price-desc") return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+        return 0;
+      });
+      visible.forEach(el => grid.appendChild(el));
+    }
+
+    categoryItems.forEach((item, idx) => {
+      item.addEventListener("click", () => {
+        categoryItems.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+        currentCategory = idx;
+        filterAndSort();
+      });
+    });
+
+    sortButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        sortButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        filterAndSort();
+      });
+    });
+
+    searchInput.addEventListener("input", filterAndSort);
+
+    window.addEventListener('load', () => {
+      if (window.getPriceForPack) window.createCards();
+      else window.addEventListener('headerReady', window.createCards, { once: true });
     });
   </script>
-
-  <!-- PayPal button setup (must close cart drawer on cancel/error) -->
-  <script>
-    // This script assumes PayPal is loaded and the button container exists.
-    // If you have a separate PayPal initialization, make sure to call window.closeCartDrawer() in onCancel and onError.
-    // Example using the PayPal JS SDK:
-    /*
-    paypal.Buttons({
-      createOrder: function(data, actions) {
-        // ... your order creation logic
-      },
-      onApprove: function(data, actions) {
-        // ... capture order
-      },
-      onCancel: function(data) {
-        // Close cart drawer when PayPal popup is closed without payment
-        if (window.closeCartDrawer) window.closeCartDrawer();
-      },
-      onError: function(err) {
-        console.error(err);
-        if (window.closeCartDrawer) window.closeCartDrawer();
-      }
-    }).render('#paypal-button-container');
-    */
-  </script>
-
 </body>
 </html>
