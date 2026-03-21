@@ -16,37 +16,6 @@
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const menuToggle = document.getElementById('menuToggle');
     const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
-    const snackbar = document.getElementById('snackbar');
-
-
-    // --- Helper functions ---
-    function showSnackbar(msg, isRemove = false) {
-      const sb = document.getElementById('snackbar');
-      const text = document.getElementById('snackText');
-      const icon = sb?.querySelector('svg');
-      if (!sb || !text || !icon) return;
-      sb.classList.toggle('remove', isRemove);
-      icon.innerHTML = isRemove
-        ? `<path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
-        : `<path d="M20 6L9 17l-5-5"></path>`;
-      text.textContent = msg;
-      sb.classList.add('show');
-      setTimeout(() => sb.classList.remove('show'), 2500);
-    }
-
-    function formatPrice(value, currency = currentCurrency) {
-      if (currency === "USD") return `US$${value.toFixed(2)}`;
-      const rounded = Math.round(value * 100) / 100;
-      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-        const converted = tierMap[rounded][currency];
-        const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-        return `${symbol}${converted}`;
-      }
-      let converted = value * (approxRates[currency] || 1);
-      converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-      const symbol = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-      return `${symbol}${converted}`;
-    }
 
     // --- Sidebar toggle ---
     function openSidebar() {
@@ -100,28 +69,17 @@
       const menuPoll = document.getElementById('menuPoll');
       const menuStore = document.getElementById('menuStore');
       const menuContact = document.getElementById('menuContact');
-      const totalLabel = document.getElementById('totalLabel');
-      const snackText = document.getElementById('snackText');
       if (menuHome) menuHome.textContent = t.menuHome;
       if (menuCommissions) menuCommissions.textContent = t.menuCommissions;
       if (menuArtwork) menuArtwork.textContent = t.menuArtwork;
       if (menuPoll) menuPoll.textContent = t.menuPoll;
       if (menuStore) menuStore.textContent = t.menuStore;
       if (menuContact) menuContact.textContent = t.menuContact;
-      if (totalLabel) totalLabel.textContent = t.totalLabel;
-      if (snackText) snackText.textContent = t.snackText;
     }
 
-    // --- Language change handler (update currency and prices) ---
+    // --- Language change handler ---
     document.addEventListener('languageChanged', () => {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      currentLang = lang;
-      currentCurrency = lang === 'en' ? 'USD' :
-                       lang === 'ja' ? 'JPY' :
-                       lang === 'zh' ? 'CNY' : 'MXN';
       applyHeaderTranslations();
-      // Also update product prices if the store page is loaded
-      if (typeof window.updateAllPrices === 'function') window.updateAllPrices();
     });
 
     // --- Language item clicks ---
@@ -133,28 +91,8 @@
       });
     });
 
-    // --- Expose global functions for store page ---
-    window.updateAllPrices = function() {
-      document.querySelectorAll(".price").forEach(el => {
-        const base = parseFloat(el.dataset.price);
-        if (!isNaN(base)) el.innerHTML = formatPrice(base);
-      });
-    };
-
-    // --- Apply store translations if the page is the store ---
-    if (document.getElementById('shopTitle')) {
-      // The store page is loaded – apply its translations
-      if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('store');
-      }
-    }
-
     // --- Initial setup ---
     applyHeaderTranslations();
-
-    // --- Notify that header and cart logic are ready ---
-    window.dispatchEvent(new CustomEvent('headerReady'));
-
   } catch (err) {
     console.error('Failed to load header:', err);
   }
