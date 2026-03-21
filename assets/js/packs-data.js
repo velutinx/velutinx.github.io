@@ -9,7 +9,5 @@ export default [
   { id: "007", title: "[Pack 007] Narberal Gamma - Overlord", category: 1, price: "PRICE_MID", illustrationCount: 54 },
   { id: "008", title: "[Pack 008] Akeno Himejima - High School DxD", category: 1, price: "PRICE_MID", illustrationCount: 86 },
   { id: "009", title: "[Pack 009] Gwen Stacy - Spider-Man", category: 1, price: "PRICE_MID", illustrationCount: 46 },
-  { id: "010", title: "[Pack 010] Nitocris - Fate/Grand Order", category: 1, price: "PRICE_MID", illustrationCount: 116 },
-  // Add all your packs up to 181...
-  { id: "181", title: "[Pack 181] Character Name - Series", category: 1, price: "PRICE_MID", illustrationCount: 50 },
+  { id: "010", title: "[Pack 010] Nitocris - Fate/Grand Order", category: 1, price: "PRICE_MID", illustrationCount: 116 }
 ];
