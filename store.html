@@ -340,15 +340,17 @@
   const grid = document.getElementById("productGrid");
   const searchInput = document.getElementById("searchInput");
 
+  // Function to render the store cards
   window.createCards = function() {
-    // 1. Safety Check: Don't run if DOM or Data isn't ready
-    if (!grid || !packsData || packsData.length === 0) {
-      console.warn("Store: Grid or PacksData not ready yet.");
-      return;
-    }
+    if (!grid || !packsData || packsData.length === 0) return;
 
     grid.innerHTML = "";
-    productsData = packsData.map(p => ({ ...p, category: p.category || 0 }));
+    // Map data and ensure price is treated as a number
+    productsData = packsData.map(p => ({ 
+      ...p, 
+      category: p.category || 0,
+      price: typeof p.price === 'number' ? p.price : parseFloat(p.price) || 0
+    }));
 
     productsData.forEach(p => {
       const card = document.createElement("div");
@@ -357,16 +359,15 @@
       
       const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
       
-      // 2. Fix NaN: Ensure we have a valid number before formatting
-      const basePrice = window.getPriceForPack ? window.getPriceForPack(p) : (parseFloat(p.price) || 0);
-      const displayPrice = window.formatPrice ? window.formatPrice(basePrice) : `USD $${basePrice}`;
+      // Get formatted price from header.js or fallback to USD string
+      const displayPrice = window.formatPrice ? window.formatPrice(p.price) : `$${p.price.toFixed(2)}`;
 
       card.innerHTML = `
         <img src="${imageUrl}" alt="${p.title}" class="card-image" loading="lazy">
         <div class="card-content">
           <div class="card-title">${p.title}</div>
           <div class="price-row">
-            <div class="price" data-price="${basePrice}">${displayPrice}</div>
+            <div class="price" data-price="${p.price}">${displayPrice}</div>
             <button class="cart-btn" title="Add to Cart">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12.5 17h-6.5v-14h-2"></path>
@@ -385,8 +386,6 @@
         e.stopPropagation();
         if (window.addOrToggleCart) {
           window.addOrToggleCart(p);
-        } else {
-          console.error("Cart logic (header.js) not loaded yet!");
         }
       });
 
@@ -415,18 +414,14 @@
       const pA = productsData.find(p => String(p.id) === String(a.dataset.id));
       const pB = productsData.find(p => String(p.id) === String(b.dataset.id));
       if (!pA || !pB) return 0;
-
       if (activeSort === "newest") return pB.id - pA.id;
       if (activeSort === "oldest") return pA.id - pB.id;
-      
-      const priceA = window.getPriceForPack ? window.getPriceForPack(pA) : 0;
-      const priceB = window.getPriceForPack ? window.getPriceForPack(pB) : 0;
-      return activeSort === "price-asc" ? priceA - priceB : priceB - priceA;
+      return activeSort === "price-asc" ? pA.price - pB.price : pB.price - pA.price;
     });
     visible.forEach(el => grid.appendChild(el));
   }
 
-  // Listen for categories
+  // UI Event Listeners
   document.querySelectorAll(".category-list li").forEach(item => {
     item.addEventListener("click", () => {
       document.querySelectorAll(".category-list li").forEach(i => i.classList.remove("active"));
@@ -435,7 +430,6 @@
     });
   });
 
-  // Listen for sorts
   document.querySelectorAll(".sort-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
@@ -446,21 +440,23 @@
 
   if(searchInput) searchInput.addEventListener("input", filterAndSort);
 
-  // CRITICAL: Re-run cards when header logic or language changes
+  // --- Synchronization ---
+  
+  // 1. When header says it's ready, update everything
   window.addEventListener('headerReady', () => {
-    updateUIForLanguage(); 
+    if (typeof updateUIForLanguage === 'function') updateUIForLanguage();
     window.createCards();
   });
 
+  // 2. When language changes, update UI and re-render cards for price currency
   document.addEventListener('languageChanged', () => {
-    updateUIForLanguage();
-    window.createCards(); 
+    if (typeof updateUIForLanguage === 'function') updateUIForLanguage();
+    window.createCards();
   });
 
-  // Final check to run if already loaded
-  if (document.readyState === 'complete') {
-      window.createCards();
-  }
+  // 3. Initial Boot
+  window.createCards();
+  if (typeof updateUIForLanguage === 'function') updateUIForLanguage();
 </script>
 </body>
 </html>
