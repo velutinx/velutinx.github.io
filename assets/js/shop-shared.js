@@ -1,23 +1,8 @@
 (function () {
   "use strict";
-
 /* ==================== TRANSLATIONS ==================== */
 const translations = {
   en: {
-    // Store / general
-    shopTitle: "My Store",
-    filterTitle: "Filter by Category",
-    catAll: "All Products",
-    catFemale: "Female Models",
-    catFemboy: "Femboy Models",
-    catCollections: "Full Collections",
-    sortTitle: "Sort by",
-    sortNewest: "Newest",
-    sortOldest: "Oldest",
-    sortLow: "Price: Low to High",
-    sortHigh: "Price: High to Low",
-    productsTitle: "Latest Content",
-    searchPlaceholder: "Search products...",
     cartTitle: "Shopping Cart",
     totalLabel: "Total",
     snackText: "Added successfully",
@@ -43,13 +28,13 @@ const translations = {
     discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
     noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
     joinDiscord: "→ Join Discord Server ←",
-
+    
     tierBronze: "Bronze",
     tierCopper: "Copper",
     tierSilver: "Silver",
     tierGold: "Gold",
     tierPlatinum: "Platinum",
-
+    
     perMonth: "/ month",
     btnSingle: "Single Purchase",
     btnRecurring: "Recurring Membership",
@@ -94,20 +79,6 @@ const translations = {
   },
 
   ja: {
-    // Store / general
-    shopTitle: "マイストア",
-    filterTitle: "カテゴリでフィルター",
-    catAll: "すべての商品",
-    catFemale: "女性モデル",
-    catFemboy: "男の娘モデル",
-    catCollections: "フルコレクション",
-    sortTitle: "並び替え",
-    sortNewest: "最新",
-    sortOldest: "最古",
-    sortLow: "価格: 低い → 高い",
-    sortHigh: "価格: 高い → 低い",
-    productsTitle: "最新コンテンツ",
-    searchPlaceholder: "商品を検索...",
     cartTitle: "ショッピングカート",
     totalLabel: "合計",
     snackText: "カートに追加しました",
@@ -184,20 +155,6 @@ const translations = {
   },
 
   zh: {
-    // Store / general
-    shopTitle: "我的商店",
-    filterTitle: "按类别筛选",
-    catAll: "所有商品",
-    catFemale: "女性模型",
-    catFemboy: "伪娘模型",
-    catCollections: "完整收藏",
-    sortTitle: "排序方式",
-    sortNewest: "最新",
-    sortOldest: "最旧",
-    sortLow: "价格: 低到高",
-    sortHigh: "价格: 高到低",
-    productsTitle: "最新内容",
-    searchPlaceholder: "搜索商品...",
     cartTitle: "购物车",
     totalLabel: "总计",
     snackText: "已成功添加到购物车",
@@ -274,20 +231,6 @@ const translations = {
   },
 
   es: {
-    // Store / general
-    shopTitle: "Mi Tienda",
-    filterTitle: "Filtrar por Categoría",
-    catAll: "Todos los Productos",
-    catFemale: "Modelos Femeninos",
-    catFemboy: "Modelos Femboy",
-    catCollections: "Colecciones Completas",
-    sortTitle: "Ordenar por",
-    sortNewest: "Más reciente",
-    sortOldest: "Más antiguo",
-    sortLow: "Precio: Bajo a Alto",
-    sortHigh: "Precio: Alto a Bajo",
-    productsTitle: "Contenido más reciente",
-    searchPlaceholder: "Buscar productos...",
     cartTitle: "Carrito de Compras",
     totalLabel: "Total",
     snackText: "Añadido con éxito",
@@ -363,6 +306,7 @@ const translations = {
     errorPlanNotConfigured: "❌ Plan no configurado para este nivel",
   }
 };
+
 
   /* ==================== HELPER: GET CURRENT LANGUAGE ==================== */
   function getCurrentLang() {
