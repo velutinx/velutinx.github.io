@@ -22,14 +22,19 @@
       visibility: visible;
     }
 
-    /* Your original store styles (unchanged) */
+    /* Store filter sidebar – renamed to avoid conflict with dropdown sidebar */
+    .store-filter-sidebar {
+      width: 268px;
+      flex-shrink: 0;
+    }
+
+    /* Your original store styles (adjusted) */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
     .shop-title { font-size: 2.3rem; font-weight: 800; color: #000; margin: 0; }
     body.dark .shop-title { color: var(--accent); }
     .main-container { display: flex; max-width: 1480px; margin: 0 auto; padding: 1.5rem 2.5rem; gap: 2.5rem; }
-    .sidebar { width: 268px; flex-shrink: 0; }
     .products-section { flex: 1; }
     .section-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.9rem; color: var(--text); padding-left: 0.5rem; }
     .category-list { list-style: none; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); padding: 0; }
@@ -197,7 +202,7 @@
   </header>
 
   <div class="main-container">
-    <aside class="sidebar">
+    <aside class="store-filter-sidebar">
       <div class="section-title" id="filterTitle">Filter by Category</div>
       <ul class="category-list">
         <li class="active" data-cat="0">
@@ -259,7 +264,7 @@
   <script src="https://velutinx.com/assets/js/socials.js"></script>
   <script src="https://velutinx.com/assets/js/header.js"></script>
 
-  <!-- Product listing script (fixed to call updateAllPrices after creation) -->
+  <!-- Product listing script -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
@@ -329,7 +334,7 @@
         });
 
         window.updateCartDisplay?.();
-        window.updateAllPrices?.(); // <-- FIX: call this to display prices
+        window.updateAllPrices?.();
       }
 
       function filterAndSort() {
