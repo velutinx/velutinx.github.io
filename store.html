@@ -15,11 +15,9 @@
       --card: #e8e5d8;
       --darker: #c0bcaa;
       --text: #3a3528;
-      --text-light: #e8e5d8;
       --accent: #aa9e76;
       --success: #22c55e;
       --red-discount: #a64a5c;
-      --gray: #8a7b6f;
       --border: #aa9e76;
       --overlay: rgba(170,158,118,0.25);
       --btn-cart: #3a3528;
@@ -29,13 +27,10 @@
     body.dark {
       --bg: #0f0f12;
       --card: #1a1a20;
-      --darker: #121216;
       --text: #e6e3d8;
-      --text-light: #e6e3d8;
       --accent: #d4c08a;
       --success: #8b8a5e;
       --red-discount: #a64a5c;
-      --gray: #b8b3a5;
       --border: #6f6a4e;
       --overlay: rgba(15,15,18,0.75);
     }
@@ -54,90 +49,11 @@
       content: ""; position: fixed; inset: 0; background: var(--overlay); z-index: 1190; pointer-events: none;
     }
 
-    body.drawer-open .floating-cart { display: none; }
-
-    .top-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.9rem 2.5rem; background: var(--darker); border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; z-index: 1000;
-    }
-
-    .logo { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; color: #000; cursor: pointer; }
-
-    body.dark .logo { color: var(--accent); }
-
-    .nav-actions { display: flex; align-items: center; gap: 1rem; position: relative; }
-
-    .nav-icon {
-      width: 42px; height: 42px; background: var(--accent); border-radius: 9999px;
-      display: flex; align-items: center; justify-content: center; color: white;
-      border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.25s ease; cursor: pointer;
-    }
-
-    .nav-icon:hover { transform: scale(1.12); background: #38aae8; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-
-    .nav-icon svg { width: 22px; height: 22px; stroke: white; stroke-width: 1.5; }
-
-    .login-btn {
-      padding: 0.55rem 1.6rem; background: transparent; color: var(--accent);
-      border: 1px solid var(--accent); border-radius: 9999px; font-weight: 600;
-      font-size: 0.95rem; cursor: pointer; transition: all 0.18s;
-    }
-
-    .login-btn:hover { background: rgba(170,158,118,0.15); }
-
-    #languagePopover {
-      position: absolute; top: 55px; right: 8px; background: var(--card);
-      border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      min-width: 230px; z-index: 1100; opacity: 0; visibility: hidden; transform: translateY(-10px);
-      transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.51s;
-    }
-
-    #languagePopover.show,
-    #langContainer:hover #languagePopover,
-    .lang-btn:hover + #languagePopover,
-    #languagePopover:hover { opacity: 1; visibility: visible; transform: translateY(0); transition-delay: 0s; }
-
-    .lang-item { display: flex; align-items: center; gap: 14px; padding: 12px 18px; cursor: pointer; transition: background 0.2s; color: var(--text); }
-
-    .lang-item:hover { background: #c0bcaa; }
-
-    .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-
-    .cart-wrapper { position: relative; }
-
-    .cart-icon, .floating-cart {
-      background: var(--accent) !important; border-radius: 9999px !important; border: none !important;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important; transition: all 0.25s ease !important;
-      display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important;
-    }
-
-    .cart-icon:hover, .floating-cart:hover {
-      transform: scale(1.12) !important; background: #38aae8 !important; box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
-    }
-
-    .cart-icon svg, .floating-cart svg { stroke: white !important; stroke-width: 2 !important; }
-
-    .nav-icon#cartBtn { width: 42px !important; height: 42px !important; }
-
-    .nav-icon#cartBtn svg { width: 22px !important; height: 22px !important; }
-
-    .floating-cart { position: fixed !important; bottom: 24px !important; right: 24px !important; width: 64px !important; height: 64px !important; }
-
-    .floating-cart svg { width: 28px !important; height: 28px !important; }
-
-    .cart-badge, .floating-badge {
-      position: absolute !important; top: 0 !important; right: 0 !important; transform: translate(50%, -50%) !important;
-      background: #ef4444 !important; color: white !important; font-size: 0.75rem !important; font-weight: bold !important;
-      min-width: 22px !important; height: 22px !important; line-height: 22px !important; border-radius: 50% !important;
-      display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 6px !important;
-      border: 2px solid var(--darker) !important; box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
-    }
-
     .cart-drawer {
       position: fixed; top: 0; right: -400px; width: 400px; height: 100%;
-      background: var(--accent); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-      z-index: 1200; transition: right 0.35s ease; display: flex; flex-direction: column; color: #1f1a12;
+      background: var(--accent); border-left: 1px solid var(--border);
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5); z-index: 1200;
+      transition: right 0.35s ease; display: flex; flex-direction: column; color: #1f1a12;
     }
 
     .cart-drawer.open { right: 0; }
@@ -177,24 +93,11 @@
 
     #snackbar.remove { background: #ef4444 !important; }
 
-    #shopTitle { visibility: hidden; transition: visibility 0s linear 0.1s; }
-
-    #shopTitle.loaded { visibility: visible; }
-
-    .material-symbols-outlined {
-      font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      font-size: 20px; line-height: 1; vertical-align: middle; margin-right: 8px; color: inherit;
-    }
-
-    .category-list li, .sort-btn { display: flex; align-items: center; }
-
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
 
-    .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
+    .shop-container { max-width: 1480px; margin: 0 auto; padding: 2.8rem 2.5rem 1.2rem; }
 
-    .shop-left { display: flex; align-items: center; gap: 1.2rem; }
-
-    .shop-title { font-size: 2.3rem; font-weight: 800; color: #000; margin: 0; }
+    .shop-title { font-size: 2.6rem; font-weight: 800; color: #000; margin: 0; }
 
     body.dark .shop-title { color: var(--accent); }
 
@@ -257,12 +160,15 @@
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
 
     .cart-btn.added { background: #22c55e; }
+
+    @media (max-width: 960px) {
+      .main-container { flex-direction: column; padding: 1rem; }
+      .sidebar { width: 100%; }
+      .search-bar-wrapper { width: 100%; }
+    }
   </style>
 </head>
 <body>
-
-  <div class="lang-swipe" id="langSwipe"></div>
-
 
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
@@ -289,7 +195,7 @@
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
-        <h1 class="shop-title" id="shopTitle">Loading...</h1>
+        <h1 class="shop-title" id="shopTitle">VELUTINX Store</h1>
       </div>
     </div>
   </header>
@@ -321,7 +227,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
               <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
             </svg>
-            <input type="search" id="searchInput" class="input-element" />
+            <input type="search" id="searchInput" class="input-element" placeholder="Search products..." />
           </div>
         </div>
       </div>
@@ -330,13 +236,11 @@
     </main>
   </div>
 
-  <div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;"></div>
-
   <!-- Scripts -->
   <script src="https://velutinx.com/assets/js/socials.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
 
-  <!-- Core logic -->
+  <!-- Core logic (cleaned - no top bar or floating cart) -->
   <script>
     // CONFIG & STATE
     const tierMap = {
@@ -348,43 +252,16 @@
     const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
     let cart = JSON.parse(localStorage.getItem("velutinx_cart") || "[]");
-    let isDark = localStorage.getItem("darkMode") === "true";
     let currentLang = localStorage.getItem("language") || "en";
     let currentCurrency = currentLang === "en" ? "USD" :
                           currentLang === "ja" ? "JPY" :
                           currentLang === "zh" ? "CNY" : "MXN";
 
-    if (isDark) document.body.classList.add("dark");
-
     const translations = {
-      en: {
-        shopTitle: "My Store", filterTitle: "Filter by Category", catAll: "All Products", catFemale: "Female Models",
-        catFemboy: "Femboy Models", catCollections: "Full Collections", sortTitle: "Sort by", sortNewest: "Newest",
-        sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low", productsTitle: "Latest Content",
-        searchPlaceholder: "Search products...", cartTitle: "Shopping Cart", totalLabel: "Total",
-        snackAdded: "Added successfully", snackRemoved: "Removed from cart", loginBtn: "Website"
-      },
-      ja: {
-        shopTitle: "マイストア", filterTitle: "カテゴリでフィルター", catAll: "すべての商品", catFemale: "女性モデル",
-        catFemboy: "男の娘モデル", catCollections: "フルコレクション", sortTitle: "並び替え", sortNewest: "最新",
-        sortOldest: "最古", sortLow: "価格: 低い → 高い", sortHigh: "価格: 高い → 低い", productsTitle: "最新コンテンツ",
-        searchPlaceholder: "商品を検索...", cartTitle: "ショッピングカート", totalLabel: "合計",
-        snackAdded: "カートに追加しました", snackRemoved: "カートから削除しました", loginBtn: "ウェブサイト"
-      },
-      zh: {
-        shopTitle: "我的商店", filterTitle: "按类别筛选", catAll: "所有产品", catFemale: "女性模型",
-        catFemboy: "伪娘模型", catCollections: "完整收藏", sortTitle: "排序方式", sortNewest: "最新",
-        sortOldest: "最旧", sortLow: "价格: 低到高", sortHigh: "价格: 高到低", productsTitle: "最新内容",
-        searchPlaceholder: "搜索商品...", cartTitle: "购物车", totalLabel: "总计",
-        snackAdded: "已成功添加到购物车", snackRemoved: "已从购物车移除", loginBtn: "网站"
-      },
-      es: {
-        shopTitle: "Mi Tienda", filterTitle: "Filtrar por Categoría", catAll: "Todos los Productos", catFemale: "Modelos Femeninos",
-        catFemboy: "Modelos Femboy", catCollections: "Colecciones Completas", sortTitle: "Ordenar por", sortNewest: "Más reciente",
-        sortOldest: "Más antiguo", sortLow: "Precio: Bajo a Alto", sortHigh: "Precio: Alto a Bajo", productsTitle: "Contenido Más Reciente",
-        searchPlaceholder: "Buscar productos...", cartTitle: "Carrito de Compras", totalLabel: "Total",
-        snackAdded: "Añadido con éxito", snackRemoved: "Eliminado del carrito", loginBtn: "Sitio web"
-      }
+      en: { cartTitle: "Shopping Cart", totalLabel: "Total", snackAdded: "Added successfully", snackRemoved: "Removed from cart" },
+      ja: { cartTitle: "ショッピングカート", totalLabel: "合計", snackAdded: "カートに追加しました", snackRemoved: "カートから削除しました" },
+      zh: { cartTitle: "购物车", totalLabel: "总计", snackAdded: "已成功添加到购物车", snackRemoved: "已从购物车移除" },
+      es: { cartTitle: "Carrito de Compras", totalLabel: "Total", snackAdded: "Añadido con éxito", snackRemoved: "Eliminado del carrito" }
     };
 
     // HELPERS
@@ -405,7 +282,7 @@
     function updateAllPrices() {
       document.querySelectorAll(".price").forEach(el => {
         const base = parseFloat(el.dataset.price);
-        if (!isNaN(base)) el.innerHTML = formatPrice(base);
+        if (!isNaN(base)) el.textContent = formatPrice(base);
       });
     }
 
@@ -437,7 +314,7 @@
         cart.push({
           id: pack.id,
           title: pack.title,
-          image: pack.image || (pack.images?.[0] ?? ""),
+          image: pack.image || `https://www.velutinx.com/i/pack${String(pack.id).padStart(3, '0')}-1.jpg`,
           price: window.getPriceForPack?.(pack) ?? pack.price ?? 0,
           quantity: 1
         });
@@ -451,17 +328,12 @@
 
       saveCart();
       updateCartDisplay();
-      syncCartButtons();
     };
 
     function updateCartDisplay() {
-      const count = cart.length;
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      document.querySelectorAll("#cartCount, #floatingCartCount").forEach(el => el.textContent = count);
-
       const itemsEl = document.getElementById("cartItems");
       if (itemsEl) {
-        itemsEl.innerHTML = count === 0 ? "<p>Your cart is empty</p>" : "";
+        itemsEl.innerHTML = cart.length === 0 ? "<p>Your cart is empty</p>" : "";
         cart.forEach((item, i) => {
           const div = document.createElement("div");
           div.className = "cart-item";
@@ -475,51 +347,21 @@
           `;
           itemsEl.appendChild(div);
         });
-        document.getElementById("cartTotal").textContent = formatPrice(total);
+        document.getElementById("cartTotal").textContent = formatPrice(cart.reduce((sum, item) => sum + item.price, 0));
       }
-    }
-
-    function syncCartButtons() {
-      const ids = new Set(cart.map(item => item.id));
-      document.querySelectorAll(".product-card").forEach(card => {
-        const btn = card.querySelector(".cart-btn");
-        if (btn) btn.classList.toggle("added", ids.has(card.dataset.id));
-      });
     }
 
     function setLanguage(lang) {
       currentLang = lang;
       currentCurrency = lang === "en" ? "USD" : lang === "ja" ? "JPY" : lang === "zh" ? "CNY" : "MXN";
       localStorage.setItem("language", lang);
-      const t = translations[lang] || translations.en;
-
-      document.querySelectorAll("[id]").forEach(el => {
-        if (t[el.id]) {
-          if (el.tagName === "INPUT") el.placeholder = t[el.id];
-          else el.textContent = t[el.id];
-        }
-      });
-
-      document.getElementById("shopTitle")?.classList.add("loaded");
       updateAllPrices();
       updateCartDisplay();
-      syncCartButtons();
     }
 
     // INIT
     document.addEventListener("DOMContentLoaded", () => {
       setLanguage(currentLang);
-
-
-
-      document.addEventListener("click", e => {
-        if (!document.getElementById("langContainer")?.contains(e.target)) {
-          popover?.classList.remove("show");
-        }
-      });
-
-
-
 
       const drawer = document.getElementById("cartDrawer");
 
@@ -528,34 +370,26 @@
         document.body.classList.add("drawer-open");
       };
 
-      document.getElementById("cartBtn")?.addEventListener("click", openDrawer);
-      document.getElementById("floatingCartBtn")?.addEventListener("click", openDrawer);
-
+      // Only open from product cards now (no top/floating button)
       document.getElementById("cartClose")?.addEventListener("click", () => {
         drawer.classList.remove("open");
         document.body.classList.remove("drawer-open");
       });
 
-      // Remove from drawer – IMPORTANT: keep drawer open
       document.getElementById("cartItems")?.addEventListener("click", e => {
         if (e.target.classList.contains("cart-item-remove")) {
           e.stopPropagation();
-          e.preventDefault();
-
           const idx = parseInt(e.target.dataset.idx);
-          if (isNaN(idx) || idx < 0 || idx >= cart.length) return;
-
-          cart.splice(idx, 1);
-          saveCart();
-          updateCartDisplay();
-          syncCartButtons();
-          showSnackbar(translations[currentLang].snackRemoved, true);
-          // NO drawer close here
+          if (!isNaN(idx) && idx >= 0 && idx < cart.length) {
+            cart.splice(idx, 1);
+            saveCart();
+            updateCartDisplay();
+            showSnackbar(translations[currentLang].snackRemoved, true);
+          }
         }
       });
 
       updateCartDisplay();
-      syncCartButtons();
     });
   </script>
 
@@ -631,8 +465,7 @@
           p.element = card;
         });
 
-        window.updateCartDisplay?.();
-        window.syncCartButtons?.();
+        window.updateAllPrices?.();
       }
 
       function filterAndSort() {
@@ -681,20 +514,7 @@
 
       createCards();
       filterAndSort();
-      window.updateCartDisplay?.();
-      window.syncCartButtons?.();
-    });
-  </script>
-
-  <!-- Language price refresh -->
-  <script>
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        setTimeout(() => {
-          window.updateAllPrices?.();
-          window.syncCartButtons?.();
-        }, 100);
-      });
+      window.updateAllPrices?.();
     });
   </script>
 
