@@ -273,7 +273,6 @@ function setLanguage(lang) {
     }
   });
 
-  // Make title visible after update (flicker fix)
   const titleEl = document.getElementById("shopTitle");
   if (titleEl) {
     titleEl.classList.add("loaded");
@@ -340,36 +339,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Cart drawer with overlay
+  // Cart drawer
   const cartBtn = document.getElementById("cartBtn");
   const floatCartBtn = document.getElementById("floatingCartBtn");
   const cartClose = document.getElementById("cartClose");
   const cartDrawer = document.getElementById("cartDrawer");
 
-  // Create cart overlay
-  let cartOverlay = document.getElementById('cartOverlay');
-  if (!cartOverlay) {
-    cartOverlay = document.createElement('div');
-    cartOverlay.id = 'cartOverlay';
-    cartOverlay.className = 'cart-overlay';
-    document.body.appendChild(cartOverlay);
-  }
-
   const openCart = () => {
     cartDrawer?.classList.add("open");
-    cartOverlay?.classList.add("active");
     document.body.classList.add("drawer-open");
   };
   const closeCart = () => {
     cartDrawer?.classList.remove("open");
-    cartOverlay?.classList.remove("active");
     document.body.classList.remove("drawer-open");
   };
 
   cartBtn?.addEventListener("click", openCart);
   floatCartBtn?.addEventListener("click", openCart);
   cartClose?.addEventListener("click", closeCart);
-  cartOverlay?.addEventListener("click", closeCart);
 
   document.addEventListener("click", e => {
     if (cartDrawer?.classList.contains("open") && 
@@ -391,28 +378,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Sidebar toggle
+  // ==================== SIDEBAR TOGGLE (dropdown menu) ====================
   const sidebar = document.getElementById('sidebar');
   const sidebarOverlay = document.getElementById('sidebarOverlay');
   const menuToggle = document.getElementById('menuToggle');
   const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
 
-  if (menuToggle && sidebarMenuToggle && sidebarOverlay) {
-    menuToggle.addEventListener('click', () => {
-      sidebar?.classList.add('open');
-      sidebarOverlay?.classList.add('active');
+  if (menuToggle && sidebar && sidebarOverlay && sidebarMenuToggle) {
+    const openSidebar = () => {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
-    });
-    sidebarMenuToggle.addEventListener('click', () => {
-      sidebar?.classList.remove('open');
-      sidebarOverlay?.classList.remove('active');
+    };
+    const closeSidebar = () => {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('active');
       document.body.style.overflow = '';
-    });
-    sidebarOverlay.addEventListener('click', () => {
-      sidebar?.classList.remove('open');
-      sidebarOverlay?.classList.remove('active');
-      document.body.style.overflow = '';
-    });
+    };
+
+    menuToggle.addEventListener('click', openSidebar);
+    sidebarMenuToggle.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
   }
 
   // Initial setup
