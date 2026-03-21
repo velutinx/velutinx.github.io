@@ -888,63 +888,65 @@ window.handleRecurring = async function(tierNumber) {
     alert(`Recurring subscription for Tier ${tierNumber} would start.\nPlan ID: ${planId}`);
 };
 
-window.scrollCarousel = function(direction) {
+    window.scrollCarousel = function(direction) {
     const container = document.getElementById('tierCarousel');
     if (container) {
         container.scrollBy({ left: direction * 320, behavior: 'smooth' });
     }
 };
 
-    // ───────────────────────────────────────────────
-    // Initialization & event listeners
-    // ───────────────────────────────────────────────
+// ───────────────────────────────────────────────
+// Initialization & event listeners — MUST be INSIDE initMembership
+// ───────────────────────────────────────────────
 
+updateMembershipText();
+updateMembershipPrices();
+updateMembershipButtons();
+
+// Language change listener
+document.addEventListener('languageChanged', function(e) {
+    currentLang = e.detail.language || 'en';
     updateMembershipText();
     updateMembershipPrices();
     updateMembershipButtons();
+});
 
-    // Language change
-    document.addEventListener('languageChanged', function(e) {
-        currentLang = e.detail.language;
-        updateMembershipText();
-        updateMembershipPrices();
+// Cart polling (for cross-tab / external cart changes)
+let lastCart = localStorage.getItem('velutinx_cart');
+setInterval(() => {
+    const newCart = localStorage.getItem('velutinx_cart');
+    if (newCart !== lastCart) {
+        lastCart = newCart;
         updateMembershipButtons();
-    });
+    }
+}, 400);
 
-    // Cart change polling (cross-tab / async updates)
-    let lastCart = localStorage.getItem('velutinx_cart');
-    setInterval(() => {
-        const newCart = localStorage.getItem('velutinx_cart');
-        if (newCart !== lastCart) {
-            lastCart = newCart;
-            updateMembershipButtons();
-        }
-    }, 400);
-      
+    }   //  ← THIS is the missing } that closes initMembership()
 
-      
-
-    // Wait for shared header to be ready
+    // Wait for shared header to be ready before running initMembership
     document.addEventListener('headerReady', initMembership);
-    // Fallback if header already ready
+
+    // Fallback: if shared.js already ran and header is ready
     if (document.readyState === 'complete' && window.addOrToggleCart) {
-      initMembership();
+        initMembership();
     } else {
-      window.addEventListener('load', () => {
-        if (window.addOrToggleCart) initMembership();
-      });
+        window.addEventListener('load', () => {
+            if (window.addOrToggleCart) {
+                initMembership();
+            }
+        });
     }
 
-    // Discord help toggle (independent of header)
+    // Discord help toggle – independent of membership init
     document.addEventListener('DOMContentLoaded', function() {
-      const toggle = document.getElementById('discordHelpToggle');
-      const content = document.getElementById('discordHelpContent');
-      if (toggle && content) {
-        toggle.addEventListener('click', function(e) {
-          e.preventDefault();
-          content.classList.toggle('show');
-        });
-      }
+        const toggle = document.getElementById('discordHelpToggle');
+        const content = document.getElementById('discordHelpContent');
+        if (toggle && content) {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                content.classList.toggle('show');
+            });
+        }
     });
   </script>
 </body>
