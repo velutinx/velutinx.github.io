@@ -462,16 +462,14 @@
       if (membershipInitialised) return;
       membershipInitialised = true;
 
-      // Get current language from localStorage
       let currentLang = localStorage.getItem('language') || 'en';
 
-      // Helper to get translation from shared object
+      // Helper to get translation with fallback to English if key missing
       function getText(key, fallback) {
         const t = window.translations?.[currentLang] || window.translations?.en || {};
         return t[key] !== undefined ? t[key] : fallback;
       }
 
-      // Update prices using shared formatPrice
       function updateMembershipPrices() {
         document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
           const usd = parseFloat(el.dataset.priceUsd);
@@ -482,7 +480,6 @@
         });
       }
 
-      // Update all text content from translations
       function updateMembershipText() {
         const t = window.translations?.[currentLang] || window.translations?.en || {};
         const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t[id] || fallback; };
@@ -515,7 +512,6 @@
         document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
       }
 
-      // Update membership buttons based on current cart
       function updateMembershipButtons() {
         const cart = window.getCart ? window.getCart() : [];
         const t = window.translations?.[currentLang] || window.translations?.en || {};
@@ -532,24 +528,21 @@
         }
       }
 
-      // Discord ID validation
       function validateDiscordId() {
         const input = document.getElementById('discordId');
         if (!input) return null;
         const id = input.value.trim();
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
         if (!id) {
-          showSnackbar(t.errorDiscordMissing || 'Please enter your Discord ID', true);
+          showSnackbar(getText('errorDiscordMissing', 'Please enter your Discord ID'), true);
           return null;
         }
         if (!/^\d{17,19}$/.test(id)) {
-          showSnackbar(t.errorDiscordInvalid || 'Invalid Discord ID format', true);
+          showSnackbar(getText('errorDiscordInvalid', 'Invalid Discord ID format'), true);
           return null;
         }
         return id;
       }
 
-      // Snackbar wrapper (uses shared if available, otherwise fallback)
       function showSnackbar(msg, isError = false) {
         if (window.showSnackbar) {
           window.showSnackbar(msg, isError);
@@ -565,39 +558,49 @@
         }
       }
 
-      // Handlers (globally accessible)
       window.handleSinglePurchase = async function(tierNumber) {
         const discordId = validateDiscordId();
         if (!discordId) return;
-        const t = window.translations?.[currentLang] || window.translations?.en || {};
+
         const tierPrices = {1:5,2:15,3:30,4:50,5:75};
         const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
+
         let cart = window.getCart ? window.getCart() : [];
         const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
+
         if (alreadyInCart) {
           window.addOrToggleCart({ id: `membership-${tierNumber}` });
-          showSnackbar(t.removedFromCart || 'Removed from cart', false);
-        } else {
-          const membershipItems = cart.filter(item => item.type === 'membership');
-          const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-          if (highestTier !== null && tierNumber < highestTier) {
-            showSnackbar(t.errorOnlyHighest || 'Only the highest tier can be added.', true);
-            return;
-          }
-          // Remove all existing membership items first (so that only the new highest remains)
-          membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
-          window.addOrToggleCart({
-            id: `membership-${tierNumber}`,
-            title: tierTitles[tierNumber] + ' (30 days)',
-            price: tierPrices[tierNumber],
-            type: 'membership',
-            tier: tierNumber,
-            discordId: discordId,
-            image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-          });
-          showSnackbar(t.addedToCart || 'Added to cart', false);
+          showSnackbar(getText('removedFromCart', 'Removed from cart'), false);
+          updateMembershipButtons(); // immediate visual update
+          return;
         }
-        updateMembershipButtons(); // immediate visual update
+
+        // Check for existing membership items
+        const membershipItems = cart.filter(item => item.type === 'membership');
+        const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
+
+        if (highestTier !== null && tierNumber < highestTier) {
+          // Cannot add a lower tier when a higher one already exists
+          showSnackbar(getText('errorOnlyHighest', 'Only the highest tier can be added.'), true);
+          return;
+        }
+
+        // Remove all existing membership items (so only the new one remains)
+        membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
+
+        // Add the new membership
+        window.addOrToggleCart({
+          id: `membership-${tierNumber}`,
+          title: tierTitles[tierNumber] + ' (30 days)',
+          price: tierPrices[tierNumber],
+          type: 'membership',
+          tier: tierNumber,
+          discordId: discordId,
+          image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+        });
+
+        showSnackbar(getText('addedToCart', 'Added to cart'), false);
+        updateMembershipButtons();
       };
 
       window.handleRecurring = async function(tierNumber) {
@@ -606,8 +609,7 @@
         const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
         const planId = PLAN_IDS[tierNumber];
         if (!planId) {
-          const t = window.translations?.[currentLang] || window.translations?.en || {};
-          showSnackbar(t.errorPlanNotConfigured || 'Plan not configured for this tier', true);
+          showSnackbar(getText('errorPlanNotConfigured', 'Plan not configured for this tier'), true);
           return;
         }
         alert(`Recurring subscription for Tier ${tierNumber} would start.`);
@@ -618,12 +620,12 @@
         if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
       };
 
-      // Initial update
+      // Initial updates
       updateMembershipText();
       updateMembershipPrices();
       updateMembershipButtons();
 
-      // Listen for language changes (dispatched by shared.js)
+      // Listen for language changes
       document.addEventListener('languageChanged', function(e) {
         currentLang = e.detail.language;
         updateMembershipText();
@@ -631,7 +633,7 @@
         updateMembershipButtons();
       });
 
-      // Poll cart changes to update buttons (avoid recursion by not overriding shared functions)
+      // Poll cart changes (to catch updates from other tabs or same‑tab after manual cart actions)
       let lastCart = localStorage.getItem('velutinx_cart');
       setInterval(() => {
         const newCart = localStorage.getItem('velutinx_cart');
@@ -644,7 +646,7 @@
 
     // Wait for shared header to be ready
     document.addEventListener('headerReady', initMembership);
-    // Fallback in case headerReady already fired
+    // Fallback if header already ready
     if (document.readyState === 'complete' && window.addOrToggleCart) {
       initMembership();
     } else {
