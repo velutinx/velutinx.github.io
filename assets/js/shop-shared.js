@@ -754,3 +754,6 @@ function injectSidebar() {
 
   document.body.insertAdjacentHTML("beforeend", sidebarHTML);
 }
+
+// Close the IIFE (this was missing!)
+})();   // ←←← THIS LINE IS CRITICAL
