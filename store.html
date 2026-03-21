@@ -4,9 +4,13 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SHOP | VELUTINX</title>
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+
+  <link rel="preconnect" href="https://www.velutinx.com" crossorigin>
   <link rel="stylesheet" href="https://velutinx.com/assets/css/material-symbols.css">
   <link rel="stylesheet" href="https://velutinx.com/assets/css/socials.css">
+
+  <!-- Combined header + cart + dropdown menu styles -->
+  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
 
   <style>
     /* Prevent flash of old title */
@@ -18,23 +22,7 @@
       visibility: visible;
     }
 
-    /* Material Symbols */
-    .material-symbols-outlined {
-      font-family: 'Material Symbols Outlined';
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      font-size: 20px;
-      line-height: 1;
-      vertical-align: middle;
-      margin-right: 8px;
-      color: inherit;
-    }
-
-    .category-list li, .sort-btn {
-      display: flex;
-      align-items: center;
-    }
-
-    /* Your original styles (unchanged) */
+    /* Your original store styles (unchanged) */
     .shop-header { padding: 2.2rem 2.8rem 1.6rem; background: var(--bg); }
     .shop-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; gap: 2rem; flex-wrap: wrap; }
     .shop-left { display: flex; align-items: center; gap: 1.2rem; }
@@ -70,69 +58,61 @@
     .cart-btn { width: 44px; height: 44px; background: var(--btn-cart); border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
     .cart-btn.added { background: #22c55e; }
-    #snackbar {
-      position: fixed;
-      top: 28px;
-      right: 28px;
-      background: #22c55e;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 1300;
-      transform: translateY(-100px);
-      opacity: 0;
-      transition: all 0.4s ease;
-      font-size: 0.95rem;
-      min-width: 220px;
-    }
-    #snackbar.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    .cart-drawer {
-      position: fixed;
-      top: 0;
-      right: -400px;
-      width: 400px;
-      height: 100%;
-      background: var(--card);
-      transition: right 0.4s ease;
-      z-index: 1200;
-      box-shadow: -4px 0 20px rgba(0,0,0,0.4);
-      overflow-y: auto;
-      color: var(--text);
-    }
-    .cart-drawer.open {
-      right: 0;
-    }
-    .cart-header {
-      display: flex;
-      justify-content: space-between;
-      padding: 1.5rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .cart-items {
-      padding: 1rem;
-    }
-    .cart-total {
-      padding: 1.5rem;
-      border-top: 1px solid var(--border);
-    }
   </style>
 </head>
 <body>
+
+  <!-- Dropdown sidebar (purple icons) – now directly in HTML -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+      <div class="logo">VELUTINX</div>
+    </div>
+    <div class="sidebar-menu">
+      <a href="https://velutinx.com/index-" class="menu-item" id="menuHome">
+        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/></svg>
+        <span>HOME</span>
+      </a>
+      <a href="https://velutinx.com/commission" class="menu-item" id="menuCommissions">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/></svg>
+        <span>COMMISSIONS</span>
+      </a>
+      <a href="https://velutinx.com/artwork" class="menu-item" id="menuArtwork">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2" stroke="currentColor"/></svg>
+        <span>ARTWORK</span>
+      </a>
+      <a href="https://velutinx.com/poll" class="menu-item" id="menuPoll">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" stroke="currentColor" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor"/><path d="M16 4v16" stroke="currentColor"/></svg>
+        <span>POLL</span>
+      </a>
+      <a href="https://velutinx.com/store" class="menu-item" id="menuStore">
+        <svg viewBox="0 0 24 24"><path d="M3 9L12 3L21 9L12 15L3 9Z" stroke="currentColor" fill="none"/><path d="M5 12v6h14v-6" stroke="currentColor" fill="none"/><circle cx="12" cy="15" r="2" stroke="currentColor"/></svg>
+        <span>STORE</span>
+      </a>
+      <a href="https://velutinx.com/contact" class="menu-item" id="menuContact">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H4z" stroke="currentColor" fill="none"/><path d="M22 6L12 13L2 6" stroke="currentColor"/></svg>
+        <span>CONTACT</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <p>© VELUTINX</p>
+    </div>
+  </aside>
+
   <div class="lang-swipe" id="langSwipe"></div>
+
   <nav class="top-nav">
     <div class="logo" onclick="window.location.href='/'" style="cursor: pointer;">VELUTINX</div>
     <div class="nav-actions">
       <button class="login-btn" id="loginBtn" onclick="window.location.href='https://velutinx.com/infex'">Website</button>
       <div id="langContainer">
         <button class="nav-icon lang-btn" id="langBtn" title="Language">
-          <svg xmlns="https://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
           </svg>
         </button>
@@ -144,13 +124,13 @@
         </div>
       </div>
       <button class="nav-icon" id="themeBtn" title="Night Mode">
-        <svg xmlns="https://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
         </svg>
       </button>
       <div class="cart-wrapper">
         <button class="nav-icon cart-icon" id="cartBtn" title="Cart">
-          <svg id="cartIcon" xmlns="https://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
             <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
             <path d="M17 17h-11v-14h-2"></path>
@@ -163,8 +143,9 @@
       </div>
     </div>
   </nav>
+
   <button class="floating-cart cart-icon" id="floatingCartBtn">
-    <svg xmlns="https://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
       <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
       <path d="M17 17h-11v-14h-2"></path>
@@ -172,6 +153,7 @@
     </svg>
     <span class="floating-badge" id="floatingCartCount">0</span>
   </button>
+
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h5 id="cartTitle">Shopping Cart</h5>
@@ -186,12 +168,14 @@
       <div id="paypal-button-container"></div>
     </div>
   </div>
+
   <div id="snackbar">
-    <svg xmlns="https://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M20 6L9 17l-5-5"></path>
     </svg>
     <span id="snackText">Added successfully</span>
   </div>
+
   <header class="shop-header">
     <div class="shop-container">
       <div class="shop-left">
@@ -199,6 +183,7 @@
       </div>
     </div>
   </header>
+
   <div class="main-container">
     <aside class="sidebar">
       <div class="section-title" id="filterTitle">Filter by Category</div>
@@ -245,10 +230,10 @@
         <h2 id="productsTitle">Latest Content</h2>
         <div class="search-bar-wrapper">
           <div class="input-base">
-            <svg xmlns="https://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
               <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
             </svg>
-            <input type="search" id="searchInput" class="input-element" />
+            <input type="search" id="searchInput" class="input-element" placeholder="Search products..." />
           </div>
         </div>
       </div>
@@ -256,17 +241,12 @@
     </main>
   </div>
 
-  <!-- Social menu container (unchanged) -->
-  <div class="social-menu-container" style="position: fixed; bottom: 300px; left: 300px; z-index: 1000;">
-    <!-- ... (keep as is) ... -->
-  </div>
-
   <!-- Scripts -->
   <script src="https://velutinx.com/assets/js/socials.js"></script>
-  <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
+  <script src="https://velutinx.com/assets/js/header.js"></script>
 
-  <!-- Product listing script (fixed onerror) -->
+  <!-- Product listing script (fixed) -->
   <script type="module">
     import packsData from 'https://velutinx.com/assets/js/packs-data.js';
 
@@ -295,7 +275,6 @@
           card.dataset.id = p.id;
           card.dataset.category = p.category;
 
-          // FIXED: onerror uses a static placeholder without concatenation issues
           const imageUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
           card.innerHTML = `
             <img src="${imageUrl}"
@@ -308,7 +287,7 @@
               <div class="price-row">
                 <div class="price" data-price="${p.price}"></div>
                 <button class="cart-btn" title="Add to Cart">
-                  <svg xmlns="https://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
                     <path d="M12.5 17h-6.5v-14h-2"></path>
                     <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
@@ -392,7 +371,6 @@
   <script>
     document.querySelectorAll(".lang-item").forEach(item => {
       item.addEventListener("click", () => {
-        // Let header.js handle the language change, then update prices
         setTimeout(() => {
           if (window.updateAllPrices) window.updateAllPrices();
         }, 100);
