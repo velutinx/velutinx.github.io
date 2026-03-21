@@ -519,20 +519,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       setLanguage(currentLang);
 
-      document.querySelector(".logo")?.addEventListener("click", () => {
-        window.location.href = "https://velutinx.com/store";
-      });
 
-      document.getElementById("loginBtn")?.addEventListener("click", () => {
-        window.location.href = "https://velutinx.com/";
-      });
-
-      const langBtn = document.getElementById("langBtn");
-      const popover = document.getElementById("languagePopover");
-      langBtn?.addEventListener("click", e => {
-        e.stopPropagation();
-        popover.classList.toggle("show");
-      });
 
       document.addEventListener("click", e => {
         if (!document.getElementById("langContainer")?.contains(e.target)) {
@@ -540,18 +527,8 @@
         }
       });
 
-      document.querySelectorAll(".lang-item").forEach(item => {
-        item.addEventListener("click", () => {
-          setLanguage(item.dataset.lang);
-          popover?.classList.remove("show");
-        });
-      });
 
-      document.getElementById("themeBtn")?.addEventListener("click", () => {
-        isDark = !isDark;
-        document.body.classList.toggle("dark", isDark);
-        localStorage.setItem("darkMode", isDark);
-      });
+
 
       const drawer = document.getElementById("cartDrawer");
 
