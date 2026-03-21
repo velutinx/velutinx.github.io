@@ -699,7 +699,6 @@
       if (!input) return null;
       const id = input.value.trim();
       if (!id) {
-        // Use shared snackbar or our own
         const msg = getText('errorDiscordMissing', 'Please enter your Discord ID');
         if (window.showSnackbar) window.showSnackbar(msg, true);
         else alert(msg);
