@@ -7,8 +7,9 @@
 
   <!-- Shared CSS (header, sidebar, cart, snackbar) -->
   <link rel="stylesheet" href="/assets/css/shared.css">
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
 
-  <!-- Pack‑specific styles (carousel, etc.) -->
+  <!-- Pack‑specific styles -->
   <style>
     .container {
       max-width: 1100px;
@@ -224,10 +225,8 @@
 </head>
 <body>
 
-  <!-- Shared header will be injected here -->
   <div id="header-placeholder"></div>
 
-  <!-- Pack‑specific content -->
   <main class="container">
     <div class="product">
       <div class="gallery-card" id="gallery"><p>Loading pack...</p></div>
@@ -246,14 +245,109 @@
     </div>
   </main>
 
-  <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
+  <script src="/assets/js/price.js" type="module"></script>
 
-  <!-- Pack‑specific JavaScript -->
   <script type="module">
-    import packsData from 'https://velutinx.com/assets/js/packs-data.js';
+    import packsData from '/assets/js/packs-data.js';
 
-    // ========== PACK TRANSLATIONS (embedded) ==========
+    // ==================== Store‑specific translations ====================
+    const storeTranslations = {
+      en: {
+        filterTitle: "Filter by Category", sortTitle: "Sort by", catAll: "All Products",
+        catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
+        sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
+        latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
+        addedMsg: "Added to cart", removedMsg: "Removed from cart"
+      },
+      ja: {
+        filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
+        catFemale: "婦人", catFemboy: "男の娘", catMembership: "メンバーシップ",
+        sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
+        latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
+        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました"
+      },
+      zh: {
+        filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
+        catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
+        sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
+        latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
+        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除"
+      },
+      es: {
+        filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
+        catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
+        sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
+        latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
+        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito"
+      }
+    };
+
+    // ==================== Custom cart (same as store.html) ====================
+    let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
+
+    function saveStoreCart() {
+      localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
+      updateStoreCartUI();
+    }
+
+    function updateStoreCartUI() {
+      const container = document.getElementById('cartItems');
+      const totalSpan = document.getElementById('cartTotal');
+      if (!container) return;
+      const t = storeTranslations[window.currentLanguage || 'en'];
+      container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
+      let total = 0;
+      storeCart.forEach((item, idx) => {
+        const priceStr = window.getFormattedPrice(item.priceKey);
+        total += window.priceKeyMap[item.priceKey] || 0;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
+        container.appendChild(div);
+      });
+      document.querySelectorAll('.cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          storeCart.splice(idx, 1);
+          saveStoreCart();
+          showSnackbar(t.removedMsg, true);
+          updateCartButton(); // update the button on pack page
+        });
+      });
+      if (totalSpan) totalSpan.innerText = window.formatPrice(total);
+      document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
+
+      const cartDrawer = document.getElementById('cartDrawer');
+      if (cartDrawer && cartDrawer.classList.contains('open')) renderPayPalButton();
+    }
+
+    function showSnackbar(msg, isRemove) {
+      const sb = document.getElementById('snackbar');
+      if (sb) {
+        sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+        const textSpan = sb.querySelector('#snackText');
+        if (textSpan) textSpan.innerText = msg;
+        sb.classList.add('show');
+        setTimeout(() => sb.classList.remove('show'), 2000);
+      } else alert(msg);
+    }
+
+    window.addOrToggleCart = function(product) {
+      const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
+      const t = storeTranslations[window.currentLanguage || 'en'];
+      if (idx > -1) {
+        storeCart.splice(idx, 1);
+        showSnackbar(t.removedMsg, true);
+      } else {
+        storeCart.push({ id: product.id, title: product.title, priceKey: product.priceKey, image: product.image, type: 'store' });
+        showSnackbar(t.addedMsg, false);
+      }
+      saveStoreCart();
+      updateCartButton(); // refresh the button on pack page
+    };
+
+    // ==================== Pack‑specific logic ====================
     const packTranslations = {
       en: {
         catFemale: "Female",
@@ -304,7 +398,6 @@
     let currentPack = null;
     let currentLang = localStorage.getItem('language') || 'en';
 
-    // Animated exclamation SVG bullet
     const bulletSVG = `<svg class="bullet-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <defs><filter id="glowBullet"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
       <g filter="url(#glowBullet)"><polygon points="50,10 90,85 10,85" fill="#ffcc00" stroke="#333" stroke-width="4"><animateTransform attributeName="transform" type="rotate" values="-1 50 50; 1 50 50; -1 50 50" dur="2s" repeatCount="indefinite"/></polygon></g>
@@ -312,17 +405,6 @@
       <circle cx="50" cy="70" r="4" fill="#333"><animate attributeName="r" values="4;5;4" dur="1.2s" repeatCount="indefinite"/></circle>
     </svg>`;
 
-    // Helper: get numeric price from pack (PRICE_MID = 3.0)
-    function getPriceValue(pack) {
-      if (typeof pack.price === 'number') return pack.price;
-      const code = String(pack.price || '').toUpperCase();
-      if (code.includes('LOW')) return 1.5;
-      if (code.includes('MID')) return 3.0;
-      if (code.includes('HIGH')) return 10.0;
-      return 3.0;
-    }
-
-    // Helper: get a pack translation with fallback
     function getPackText(key, fallback) {
       const t = packTranslations[currentLang] || packTranslations.en;
       return t[key] !== undefined ? t[key] : fallback;
@@ -356,33 +438,26 @@
     function updatePriceDisplay() {
       const priceSection = document.getElementById('priceSection');
       if (!priceSection || !currentPack) return;
-      const priceNum = getPriceValue(currentPack);
-      const priceFormatted = window.formatPrice ? window.formatPrice(priceNum) : `US$${priceNum.toFixed(2)}`;
+      const priceNum = currentPack.price; // symbolic key like "PRICE_2"
+      const priceFormatted = window.getFormattedPrice(priceNum);
       const currentPriceLabel = getPackText('currentPrice', 'Current Price');
-      let html = `<div><span class="price-label">${currentPriceLabel}:</span><span style="color: var(--gray); margin: 0 8px;">│</span><span class="current-price">${priceFormatted}</span></div>`;
-      if (currentPack.oldPrice) {
-        const originalLabel = getPackText('originalPrice', 'Original Price');
-        html = `<div><span class="price-label">${originalLabel}:</span><span style="color: var(--gray); margin: 0 8px;">│</span><span class="old-price">${currentPack.oldPrice}</span></div>${html}`;
-      }
-      if (currentPack.saveText) html += `<div class="save">${currentPack.saveText}</div>`;
-      priceSection.innerHTML = html;
+      priceSection.innerHTML = `<div><span class="price-label">${currentPriceLabel}:</span><span style="color: var(--gray); margin: 0 8px;">│</span><span class="current-price">${priceFormatted}</span></div>`;
     }
 
     function updateCartButton() {
       const container = document.getElementById('buttons');
       if (!container || !currentPack) return;
-      let isInCart = false;
-      if (window.getCart) {
-        isInCart = window.getCart().some(item => item.id === currentPack.id);
-      } else {
-        const cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
-        isInCart = cart.some(item => item.id === currentPack.id);
-      }
+      const isInCart = storeCart.some(item => item.id === currentPack.id);
       const btnText = isInCart ? getPackText('removeFromCart', 'Remove from Cart') : getPackText('addToCart', 'Add to Cart');
       container.innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
       document.getElementById('addCartBtn').onclick = () => {
-        window.addOrToggleCart(currentPack);
-        setTimeout(() => updateCartButton(), 30);
+        window.addOrToggleCart({
+          id: currentPack.id,
+          title: currentPack.title,
+          priceKey: currentPack.price,
+          image: `https://www.velutinx.com/i/pack${String(currentPack.id).padStart(3, '0')}-1.jpg`,
+          type: 'store'
+        });
       };
     }
 
@@ -448,41 +523,119 @@
       const images = Array.from({ length: 4 }, (_,i)=>`https://www.velutinx.com/i/pack${pack.id.padStart(3,'0')}-${i+1}.jpg`);
       renderGallery(images);
       refreshAllTranslations();
+    }
 
-      // Listen for language changes (shared event)
-      document.addEventListener('languageChanged', () => {
-        currentLang = localStorage.getItem('language') || 'en';
-        refreshAllTranslations();
-      });
+    // ==================== PayPal integration (same as store.html) ====================
+    let isRendering = false;
 
-      // Poll for cart changes (to update button instantly)
-      let lastCart = localStorage.getItem('velutinx_cart');
-      setInterval(() => {
-        const newCart = localStorage.getItem('velutinx_cart');
-        if (newCart !== lastCart) {
-          lastCart = newCart;
-          updateCartButton();
+    function renderPayPalButton() {
+      const container = document.getElementById('paypal-button-container');
+      if (!container || !document.body.contains(container)) return;
+      const cartDrawer = document.getElementById('cartDrawer');
+      if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
+      if (isRendering) return;
+      isRendering = true;
+
+      const cart = storeCart;
+      if (cart.length === 0) {
+        container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+        isRendering = false;
+        return;
+      }
+
+      container.innerHTML = '';
+      paypal.Buttons({
+        createOrder: async () => {
+          const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Order creation failed');
+          return data.orderID;
+        },
+        onApprove: (data, actions) => {
+          return actions.order.capture().then(() => {
+            storeCart = [];
+            saveStoreCart();
+            updateStoreCartUI();
+            updateCartButton(); // refresh button on pack page
+            window.location.href = `/s/success.html?orderID=${data.orderID}`;
+          });
+        },
+        onError: (err) => {
+          console.error('PayPal error', err);
+          alert('Something went wrong. Please try again.');
+        },
+        onCancel: () => {
+          isRendering = false;
         }
-      }, 500);
-
-      // Ensure cart drawer closes when clicking outside (shared script already does, but safe fallback)
-      document.addEventListener('click', e => {
-        const drawer = document.getElementById('cartDrawer');
-        if (!drawer?.classList.contains('open')) return;
-        const cartBtn = document.getElementById('cartBtn');
-        const floatBtn = document.getElementById('floatingCartBtn');
-        if (!drawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatBtn?.contains(e.target)) {
-          drawer.classList.remove('open');
-          const overlay = document.getElementById('cartOverlay');
-          if (overlay) overlay.classList.remove('active');
-          document.body.classList.remove('drawer-open');
-        }
+      }).render(container).then(() => {
+        isRendering = false;
+      }).catch(() => {
+        isRendering = false;
       });
     }
 
-    // Wait for shared header to be ready
-    document.addEventListener('headerReady', initPack);
-    setTimeout(() => { if (typeof window.addOrToggleCart === 'function') initPack(); }, 1000);
+    window.setupStoreCheckout = () => renderPayPalButton();
+
+    // ==================== Intercept cart button clicks ====================
+    function interceptCartButtons() {
+      const cartBtn = document.getElementById('cartBtn');
+      const floatCartBtn = document.getElementById('floatingCartBtn');
+      if (!cartBtn && !floatCartBtn) return;
+
+      const openOurCart = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const drawer = document.getElementById('cartDrawer');
+        const overlay = document.getElementById('cartOverlay');
+        if (drawer && !drawer.classList.contains('open')) {
+          drawer.classList.add('open');
+          overlay.classList.add('active');
+          document.body.classList.add('drawer-open');
+          renderPayPalButton();
+        }
+      };
+
+      if (cartBtn) cartBtn.addEventListener('click', openOurCart, true);
+      if (floatCartBtn) floatCartBtn.addEventListener('click', openOurCart, true);
+    }
+
+    // ==================== Override shared.js functions ====================
+    function overrideSharedCart() {
+      window.renderPayPalButton = function() {};
+      window.updateCartUI = function() {};
+      window.saveCart = function() {};
+    }
+
+    // ==================== Initialisation ====================
+    function init() {
+      if (!window.priceKeyMap || !window.priceUsdMap) {
+        setTimeout(init, 200);
+        return;
+      }
+      initPack();
+      updateStoreCartUI();
+      interceptCartButtons();
+      overrideSharedCart();
+
+      // Listen for language changes
+      document.addEventListener('languageChanged', () => {
+        currentLang = localStorage.getItem('language') || 'en';
+        refreshAllTranslations();
+        updateStoreCartUI();
+      });
+    }
+
+    document.addEventListener('headerReady', () => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    });
   </script>
 </body>
 </html>
