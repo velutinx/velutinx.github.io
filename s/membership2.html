@@ -6,7 +6,7 @@
   <title>VELUTINX — Membership</title>
   <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Membership-specific styles (carousel, discord section, etc.) -->
+  <!-- Membership-specific styles -->
   <style>
     /* Additional styles for membership page */
     .container {
@@ -237,8 +237,6 @@
       border-radius: 8px;
       font-size: 0.95rem;
     }
-    #snackbar { display: none; } /* We'll use our own snackbar? Actually shared.js already provides one */
-    /* Hide duplicate snackbar if any */
   </style>
 </head>
 <body>
@@ -282,7 +280,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tier 1: Bronze -->
+      <!-- Tiers 1-5 (same as before) -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -398,46 +396,24 @@
 <script src="/s/js/translations.js"></script>
 <script>
   // ============================================================
-  // Membership-specific code (adapted to work with shared header)
+  // Membership-specific code (compatible with shared header)
   // ============================================================
   let currentLang = localStorage.getItem('language') || 'en';
   let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
 
-  // Helper to get cart from localStorage (same key as shared.js)
+  // Helper to get cart (uses same localStorage key as shared.js)
   function getCart() {
     try {
       return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
     } catch { return []; }
   }
 
-  function saveCart(cart) {
-    localStorage.setItem('velutinx_cart', JSON.stringify(cart || []));
-    // Update shared header cart UI (call shared's internal update if possible, else we'll implement our own)
-    if (window.updateSharedCartUI) window.updateSharedCartUI();
-  }
-
-  // Format price using shared.js's formatPrice if available, else fallback
+  // Format price using shared.js's formatPrice if available
   function formatPrice(usd) {
     if (window.formatPrice) return window.formatPrice(usd);
-    // fallback
     return `US$${usd.toFixed(2)}`;
   }
 
-  function showSnackbar(message, isRemove = false) {
-    // Use shared snackbar if available
-    const sb = document.querySelector('#snackbar');
-    if (sb) {
-      sb.style.background = isRemove ? '#ef4444' : '#22c55e';
-      const textSpan = sb.querySelector('#snackText');
-      if (textSpan) textSpan.innerText = message;
-      sb.classList.add('show');
-      setTimeout(() => sb.classList.remove('show'), 2000);
-    } else {
-      alert(message); // fallback
-    }
-  }
-
-  // Update membership UI text based on current language
   function updateMembershipText() {
     const t = window.translations[currentLang] || window.translations.en;
     const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t[id] || fallback; };
@@ -512,51 +488,57 @@
     return id;
   }
 
-  // Override shared's addOrToggleCart with our membership version
-  window.addOrToggleCart = function(product) {
-    // product is expected to have { id, title, price, image, type, tier, discordId? }
-    let cart = getCart();
-    const idx = cart.findIndex(i => String(i.id) === String(product.id));
-    const t = window.translations[currentLang] || window.translations.en;
-    if (idx > -1) {
-      cart.splice(idx, 1);
-      showSnackbar(t.removedFromCart || 'Removed from cart', true);
+  function showSnackbar(message, isRemove = false) {
+    const sb = document.querySelector('#snackbar');
+    if (sb) {
+      sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+      const textSpan = sb.querySelector('#snackText');
+      if (textSpan) textSpan.innerText = message;
+      sb.classList.add('show');
+      setTimeout(() => sb.classList.remove('show'), 2000);
     } else {
-      cart.push(product);
-      showSnackbar(t.addedToCart || 'Added to cart', false);
+      alert(message);
     }
-    saveCart(cart);
+  }
+
+  // Custom membership item addition (uses shared's addOrToggleCart)
+  function addMembershipToCart(tierNumber, discordId) {
+    const tierPrices = {1:5,2:15,3:30,4:50,5:75};
+    const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
+    const product = {
+      id: `membership-${tierNumber}`,
+      title: tierTitles[tierNumber] + ' (30 days)',
+      price: tierPrices[tierNumber],
+      type: 'membership',
+      tier: tierNumber,
+      discordId: discordId,
+      image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+    };
+    window.addOrToggleCart(product);
     updateMembershipButtons();
-  };
+  }
 
   window.handleSinglePurchase = function(tierNumber) {
     const discordId = validateDiscordId();
     if (!discordId) return;
     const t = window.translations[currentLang] || window.translations.en;
-    const tierPrices = {1:5,2:15,3:30,4:50,5:75};
-    const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
     let cart = getCart();
     const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
     if (alreadyInCart) {
       window.addOrToggleCart({ id: `membership-${tierNumber}` });
-    } else {
-      const membershipItems = cart.filter(item => item.type === 'membership');
-      const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-      if (highestTier !== null && tierNumber < highestTier) {
-        showSnackbar(t.errorOnlyHighest || 'Only the highest tier can be added.', true);
-        return;
-      }
-      membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
-      window.addOrToggleCart({
-        id: `membership-${tierNumber}`,
-        title: tierTitles[tierNumber] + ' (30 days)',
-        price: tierPrices[tierNumber],
-        type: 'membership',
-        tier: tierNumber,
-        discordId: discordId,
-        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-      });
+      updateMembershipButtons();
+      return;
     }
+    const membershipItems = cart.filter(item => item.type === 'membership');
+    const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
+    if (highestTier !== null && tierNumber < highestTier) {
+      showSnackbar(t.errorOnlyHighest || 'Only the highest tier can be added.', true);
+      return;
+    }
+    // Remove existing membership(s) first
+    membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
+    // Add new one
+    addMembershipToCart(tierNumber, discordId);
   };
 
   window.handleRecurring = async function(tierNumber) {
@@ -577,59 +559,27 @@
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
 
-  // Custom function to update shared cart drawer UI (since shared.js doesn't expose its update)
-  window.updateSharedCartUI = function() {
-    const cart = getCart();
-    const container = document.getElementById('cartItems');
-    const totalSpan = document.getElementById('cartTotal');
-    const t = window.translations[currentLang] || window.translations.en;
-    if (container) {
-      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart || 'Your cart is empty'}</div>` : '';
-      cart.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${item.title}</div><div class="cart-item-price">${formatPrice(item.price)}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
-        container.appendChild(div);
-      });
-      document.querySelectorAll('.cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          let cart = getCart();
-          cart.splice(idx, 1);
-          saveCart(cart);
-          updateMembershipButtons();
-        });
-      });
-      const total = cart.reduce((sum, i) => sum + (i.price || 0), 0);
-      if (totalSpan) totalSpan.innerText = formatPrice(total);
-    }
-    // Update cart count badge
-    const count = cart.length;
-    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
-  };
+  // Set up observer to detect cart changes (so membership buttons update when items are removed from drawer)
+  function observeCartChanges() {
+    const cartItemsContainer = document.getElementById('cartItems');
+    if (!cartItemsContainer) return;
+    const observer = new MutationObserver(() => updateMembershipButtons());
+    observer.observe(cartItemsContainer, { childList: true, subtree: true });
+  }
 
-  // Wait for shared header to be ready
   document.addEventListener('headerReady', function() {
-    // Override shared.js's addOrToggleCart to use our version
-    window.addOrToggleCart = window.addOrToggleCart; // already set above, but ensure it's not overwritten
-    // Replace the demo checkout button action if needed
-    const demoBtn = document.getElementById('demoCheckoutBtn');
-    if (demoBtn) {
-      demoBtn.onclick = () => alert("Checkout is a demo. Your cart items are stored locally.");
-    }
     // Initial UI sync
-    updateSharedCartUI();
+    updateMembershipText();
     updateMembershipButtons();
+    observeCartChanges();
+
     // Listen for language changes from shared header
     document.addEventListener('languageChanged', function(e) {
       currentLang = e.detail.language;
       currentCurrency = e.detail.currency;
       updateMembershipText();
       updateMembershipButtons();
-      updateSharedCartUI();
     });
-    // Initial translation
-    updateMembershipText();
   });
 
   // Discord help toggle
