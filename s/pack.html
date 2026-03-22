@@ -251,6 +251,16 @@
   <script type="module">
     import packsData from '/assets/js/packs-data.js';
 
+    // ==================== Helper functions ====================
+    function escapeHtml(str) {
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
     // ==================== Store‑specific translations ====================
     const storeTranslations = {
       en: {
