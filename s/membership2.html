@@ -1,350 +1,152 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VELUTINX — Membership</title>
+const supabase = require('./supabase');
+const { formatTime, emojis, reactIds, weights } = require('../utils/helpers');
 
-  <link rel="stylesheet" href="/assets/css/shared.css">
+/**
+ * Calculates scores by summing the weights in the votes_discord table
+ * and adding the head-count from the website 'votes' table.
+ * Also applies spoiler tags to any character marked as winner (selected_at not null).
+ */
+async function getPollResults(message, characters) {
+    const displayResults = [];
+    const rawDataForDB = [];
 
-  <style>
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
-    @media (min-width: 600px) { .container { padding: 0 24px; } }
-    main { padding: 40px 0; }
-    .membership-title { font-size: 2.5rem; font-weight: 800; color: var(--text); margin-bottom: 16px; text-align: center; }
-    .membership-description { color: var(--text); text-align: center; margin-bottom: 32px; font-size: 1.2rem; }
-    .carousel-container { position: relative; margin: 40px 0; }
-    .carousel-scroll { display: flex; overflow-x: auto; gap: 2rem; padding: 20px 0; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; }
-    .carousel-scroll::-webkit-scrollbar { display: none; }
-    .tier-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; width: 300px; max-width: 100%; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; transition: transform 0.2s; }
-    .tier-card:hover { transform: translateY(-4px); }
-    .tier-card h3 { font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--text); }
-    .tier-price { color: #ef4444; font-weight: 800; font-size: 2rem; text-align: center; margin: 0.5rem 0; }
-    .price-value { font-size: inherit; font-weight: inherit; }
-    .per-month { font-size: 1rem; font-weight: normal; color: var(--text-light); }
-    .tier-perks { list-style: none; padding: 0; margin: 1.5rem 0; flex: 1; }
-    .tier-perks li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); font-size: 1rem; line-height: 1.4; }
-    .tier-perks li:last-child { border-bottom: none; }
-    .tier-perks li::before { content: "✓"; color: var(--success); font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
-    .tier-header { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-    .tier-star { width: 40px; height: 40px; display: inline-block; vertical-align: middle; margin-right: 10px; }
-    .tier-star svg { width: 100%; height: 100%; }
-    .tier-title { font-size: 1.8rem; margin: 0; }
-    .button-row { display: flex; gap: 10px; margin-top: 1.5rem; }
-    .tier-btn { flex: 1; padding: 10px 0; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; text-align: center; }
-    .btn-single { background: #3b82f6; }
-    .btn-single:hover { background: #2563eb; }
-    .btn-recurring { background: #10b981; }
-    .btn-recurring:hover { background: #059669; }
-    .btn-remove { background: #ef4444 !important; }
-    .btn-remove:hover { background: #dc2626 !important; }
-    .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: var(--card); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 1.8rem; font-weight: 400; color: var(--text); transition: all 0.2s; line-height: 1; }
-    .carousel-arrow:hover { background: var(--accent); color: white; border-color: var(--accent); }
-    .arrow-left { left: -20px; }
-    .arrow-right { right: -20px; }
-    @media (max-width: 700px) { .arrow-left { left: -10px; } .arrow-right { right: -10px; } }
-    .discord-section { max-width: 1100px; margin: 0 auto 40px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
-    .discord-input label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
-    .discord-input input { width: 100%; padding: 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; transition: border-color 0.2s; }
-    .discord-input input:focus { outline: none; border-color: var(--accent); }
-    .discord-hint { font-size: 0.9rem; color: #000000 !important; margin-top: 8px; }
-    body.dark .discord-hint { color: #ffffff !important; }
-    .discord-help-link { color: #000000 !important; font-weight: bold !important; text-decoration: underline; cursor: pointer; margin-top: 12px; display: inline-block; }
-    body.dark .discord-help-link { color: #ffffff !important; }
-    .discord-help-content { display: none; margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
-    .discord-help-content.show { display: block; }
-    .discord-help-content p { margin-bottom: 12px; }
-    .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
-    .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
-  </style>
-</head>
-<body>
+    try {
+        // 1. Fetch all current Discord votes for this poll
+        const { data: discordVotes, error: dError } = await supabase
+            .from('votes_discord')
+            .select('option_id, weight')
+            .eq('poll_id', 'character_poll_new');
 
-  <div id="header-placeholder"></div>
+        if (dError) throw dError;
 
-  <main class="container">
-    <h1 class="membership-title" id="membershipTitle">Choose Your Membership</h1>
-    <p class="membership-description" id="membershipDescription">Support my work and unlock exclusive perks</p>
+        // 2. Fetch all website votes for this poll
+        const { data: websiteVotes, error: wError } = await supabase
+            .from('website_voting')
+            .select('option_id')
+            .eq('poll_id', 'character_poll_new');
 
-    <div class="discord-section">
-      <div class="discord-input">
-        <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
-        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
-        <div class="discord-hint" id="discordHint">
-          <span id="discordHintText">How to find your Discord ID:</span>
-          <span class="discord-help-link" id="discordHelpToggle">
-            <span id="discordHelpText">Where do I find my Discord ID? (click)</span>
-            <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-left: 4px;">
-              <title>dropdown</title>
-              <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/>
-            </svg>
-          </span>
-        </div>
-      </div>
-      <div class="discord-help-content" id="discordHelpContent">
-        <p id="discordHelpStep1"><strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).</p>
-        <p id="discordHelpStep2"><strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.</p>
-        <p id="discordHelpStep3"><strong>Step 3:</strong> Right-click your username anywhere and select <strong>Copy ID</strong>.</p>
-        <p id="discordHelpStep4"><strong>Step 4:</strong> Paste that number here.</p>
-        <img src="https://www.velutinx.com/images/discordID.jpg" alt="Discord ID copy example" style="max-width:100%; border-radius:8px; margin-top:10px;">
-      </div>
-      <div class="note-box" id="noteBox">
-        <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
-        <div style="margin-top:12px;">
-          <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
-        </div>
-      </div>
-    </div>
+        if (wError) throw wError;
 
-    <div class="carousel-container">
-      <div class="carousel-scroll" id="tierCarousel">
-        <!-- Tier 1 -->
-        <div class="tier-card" data-tier="1">
-          <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"/></g></svg></span>
-            <h3>BRONZE</h3>
-          </div>
-          <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Full archive access immediately.</li>
-            <li>Includes all past releases & paid content.</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(1)">Recurring Membership</button>
-          </div>
-        </div>
+        // 3. Fetch existing winner status from final_votes (selected_at)
+        const { data: winnerData, error: winnerError } = await supabase
+            .from('final_votes')
+            .select('option_id, selected_at')
+            .eq('poll_id', 'character_poll_new');
 
-        <!-- Tier 2 -->
-        <div class="tier-card" data-tier="2">
-          <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"/></g></svg></span>
-            <h3>COPPER</h3>
-          </div>
-          <div class="tier-price" data-price-usd="15"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 20 images per request.</li>
-            <li>Single character, official/creator-selected outfit.</li>
-            <li>Some character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
-          </div>
-        </div>
+        if (winnerError) throw winnerError;
 
-        <!-- Tier 3 -->
-        <div class="tier-card" data-tier="3">
-          <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"/></g></svg></span>
-            <h3>SILVER</h3>
-          </div>
-          <div class="tier-price" data-price-usd="30"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 40 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
-          </div>
-        </div>
+        // Build a map for quick lookup of winners
+        const winnerMap = {};
+        if (winnerData) {
+            winnerData.forEach(row => {
+                if (row.selected_at) {
+                    winnerMap[row.option_id] = true;
+                }
+            });
+        }
 
-        <!-- Tier 4 -->
-        <div class="tier-card" data-tier="4">
-          <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"/></g></svg></span>
-            <h3>GOLD</h3>
-          </div>
-          <div class="tier-price" data-price-usd="50"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: 3-7 days (queue order).</li>
-            <li>Special/expanded requests may be discussed.</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)">Recurring Membership</button>
-          </div>
-        </div>
+        for (let i = 0; i < characters.length; i++) {
+            const optionId = i + 1;
 
-        <!-- Tier 5 -->
-        <div class="tier-card" data-tier="5">
-          <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"/></g></svg></span>
-            <h3>PLATINUM</h3>
-          </div>
-          <div class="tier-price" data-price-usd="75"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>⚡ Priority: worked on first after current tasks.</li>
-            <li>Typical turnaround: 3-7 days (once started).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(5)">Recurring Membership</button>
-          </div>
-        </div>
-      </div>
+            // Sum the weights from the Discord table for this specific option
+            const discordScore = discordVotes
+                ? discordVotes
+                    .filter(v => v.option_id === optionId)
+                    .reduce((sum, v) => sum + parseFloat(v.weight), 0)
+                : 0;
 
-      <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
-      <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
-    </div>
-  </main>
+            // Count website entries for this option (1 point each)
+            const websiteScore = websiteVotes
+                ? websiteVotes.filter(v => v.option_id === optionId).length
+                : 0;
 
-  <script src="/assets/js/shared.js"></script>
+            const totalScore = discordScore + websiteScore;
+            const rawName = characters[i].replace(/:female_sign:|:male_sign:/g, m => m === ':female_sign:' ? '♀️' : '♂️');
 
-  <script>
-    let membershipInitialised = false;
+            // Check if this character is a winner
+            const isWinner = winnerMap[optionId] || false;
 
-    function initMembership() {
-      if (membershipInitialised) return;
-      membershipInitialised = true;
-
-      function updateMembershipButtons() {
-        const cart = window.getCart ? window.getCart() : [];
-        let activeTier = null;
-
-        // Find if any membership is in cart and what is the highest
-        cart.forEach(item => {
-          if (item && item.type === 'membership' && item.tier) {
-            if (!activeTier || item.tier > activeTier) {
-              activeTier = item.tier;
+            // Build the line with proper formatting
+            let line = `${emojis[i]} \`  ${totalScore.toFixed(2).padStart(5, ' ')}   ${rawName.padEnd(30)} \` \n`;
+            if (isWinner) {
+                line = `||${line}||`; // Wrap in spoiler tags
             }
-          }
-        });
-
-        document.querySelectorAll('.tier-card').forEach(card => {
-          const tier = Number(card.dataset.tier);
-          if (!tier) return;
-
-          const btn = card.querySelector('.tier-btn');
-          if (!btn) return;
-
-          if (tier === activeTier) {
-            btn.textContent = "Remove from cart";
-            btn.classList.remove('btn-single');
-            btn.classList.add('btn-remove');
-          } else {
-            btn.textContent = "Single Purchase";
-            btn.classList.remove('btn-remove');
-            btn.classList.add('btn-single');
-          }
-        });
-      }
-
-      window.handleSinglePurchase = function(tierNumber) {
-        const input = document.getElementById('discordId');
-        const discordId = input?.value?.trim();
-        if (!discordId || !/^\d{17,19}$/.test(discordId)) {
-          return; // no valid ID → do nothing
+            displayResults.push(line);
+            
+            rawDataForDB.push({ 
+                poll_id: 'character_poll_new', 
+                option_id: optionId, 
+                character_name: rawName, 
+                score: totalScore 
+            });
         }
 
-        let cart = window.getCart ? window.getCart() : [];
-        let currentMemberships = cart.filter(item => item?.type === 'membership');
+        // Keep final_votes table synced for the web dashboard (scores only, winner status preserved)
+        await supabase.from('final_votes').upsert(rawDataForDB, { onConflict: 'poll_id,option_id' });
 
-        // Find current highest tier in cart
-        let highestInCart = 0;
-        currentMemberships.forEach(item => {
-          if (item.tier > highestInCart) highestInCart = item.tier;
-        });
-
-        const thisId = `membership-${tierNumber}`;
-
-        // If same tier already in cart → remove it
-        if (currentMemberships.some(item => item.id === thisId)) {
-          window.addOrToggleCart?.({ id: thisId });
-          updateMembershipButtons();
-          return;
-        }
-
-        // Block if trying to add lower tier than what's already there
-        if (highestInCart > 0 && tierNumber < highestInCart) {
-          return; // silently block
-        }
-
-        // Remove all existing memberships
-        currentMemberships.forEach(item => {
-          window.addOrToggleCart?.({ id: item.id });
-        });
-
-        // Add the new (higher or equal) tier
-        window.addOrToggleCart?.({
-          id: thisId,
-          title: ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][tierNumber-1] + ' (30 days)',
-          price: [5,15,30,50,75][tierNumber-1],
-          type: 'membership',
-          tier: tierNumber,
-          discordId: discordId,
-          image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-        });
-
-        updateMembershipButtons();
-      };
-
-      window.handleRecurring = function(tierNumber) {
-        const discordId = document.getElementById('discordId')?.value?.trim();
-        if (!discordId || !/^\d{17,19}$/.test(discordId)) return;
-        // no alert - just placeholder
-      };
-
-      window.scrollCarousel = function(direction) {
-        const el = document.getElementById('tierCarousel');
-        if (el) el.scrollBy({ left: direction * 320, behavior: 'smooth' });
-      };
-
-      // Run once after short delay (to let shared.js possibly initialize cart)
-      setTimeout(updateMembershipButtons, 400);
-
-      // Poll for cart changes from other tabs/actions
-      let lastCartStr = localStorage.getItem('velutinx_cart') || '';
-      setInterval(() => {
-        const current = localStorage.getItem('velutinx_cart') || '';
-        if (current !== lastCartStr) {
-          lastCartStr = current;
-          updateMembershipButtons();
-        }
-      }, 600);
+    } catch (err) {
+        console.error("Error calculating poll results:", err);
+        return "Error loading results...";
     }
 
-    document.addEventListener('headerReady', initMembership);
+    return displayResults.join('');
+}
 
-    if (document.readyState === 'complete' && window.addOrToggleCart) {
-      initMembership();
-    } else {
-      window.addEventListener('load', () => {
-        if (window.addOrToggleCart) initMembership();
-      });
-    }
+async function generateMessageContent(endTime, resultsText, characters) {
+    let header = `:hourglass_flowing_sand: Time remaining: **${formatTime(endTime - Date.now())}**\n\n`;
+    let body = resultsText || characters.map((char, i) => {
+        const name = char.replace(/:female_sign:|:male_sign:/g, m => m === ':female_sign:' ? '♀️' : '♂️');
+        return `${emojis[i]} \`    0.00   ${name.padEnd(30)} \` \n`;
+    }).join('');
+    
+    return header + body + `\nDiscord weighted vote + Website poll results\n\n:point_down: Click the thread below for character images & discussion!`;
+}
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggle = document.getElementById('discordHelpToggle');
-      const content = document.getElementById('discordHelpContent');
-      toggle?.addEventListener('click', e => {
-        e.preventDefault();
-        content?.classList.toggle('show');
-      });
-    });
-  </script>
-</body>
-</html>
+/**
+ * Generates the final "Poll ended" message (for manual stop)
+ * @param {string} pollList - The raw character list stored in auto_resume
+ * @returns {Promise<string>} The final message content
+ */
+async function getFinalPollMessageContent(pollList) {
+    // Parse characters from the stored poll list (same as in startpoll.js)
+    const characters = pollList
+        .split(/(?=:female_sign:|:male_sign:|♀️|♂️)/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+    // Get the formatted results (scores, spoilers for winners)
+    const resultsString = await getPollResults(null, characters);
+
+    return `🛑 **Poll has ended.**\n\n${resultsString}\n\nDiscord weighted vote + Website poll results\n\n:point_down: Click the thread below for character images & discussion!`;
+}
+
+function runPollInterval(pollMessage, endTime, characters) {
+    const timer = setInterval(async () => {
+        const now = Date.now();
+        if (now >= endTime) {
+            clearInterval(timer);
+            try {
+                const results = await getPollResults(pollMessage, characters);
+                const content = await generateMessageContent(endTime, results, characters);
+                await pollMessage.edit({ content: content.replace(/:hourglass_flowing_sand: .*/, "⌛ **Poll Ended**") });
+            } catch (e) {
+                console.error("Error ending poll:", e);
+            }
+            // Cleanup: clear auto_resume but keep votes_discord for history/audit if desired
+            await supabase.from('auto_resume').delete().eq('message_id', pollMessage.id);
+        } else {
+            try {
+                const results = await getPollResults(pollMessage, characters);
+                const content = await generateMessageContent(endTime, results, characters);
+                await pollMessage.edit({ content });
+            } catch (e) {
+                if (e.code === 10008) { // Message deleted
+                    clearInterval(timer);
+                    await supabase.from('auto_resume').delete().eq('message_id', pollMessage.id);
+                }
+            }
+        }
+    }, 10000); // 10s interval
+}
+
+module.exports = { getPollResults, generateMessageContent, runPollInterval, getFinalPollMessageContent };
