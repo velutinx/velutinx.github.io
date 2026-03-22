@@ -60,6 +60,7 @@
 </head>
 <body>
 
+  <!-- Header should be injected here by shared2.js -->
   <div id="header-placeholder"></div>
 
   <main class="container">
@@ -69,7 +70,8 @@
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
-        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
+        <!-- Autofill test ID -->
+        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" value="1475213827737129182" required>
         <div class="discord-hint" id="discordHint">
           <span id="discordHintText">How to find your Discord ID:</span>
           <span class="discord-help-link" id="discordHelpToggle">
@@ -207,10 +209,9 @@
     </div>
   </main>
 
-  <!-- FIXED: correct path to your new shared2.js location -->
+  <!-- IMPORTANT: this path matches your current directory structure -->
   <script src="/s/js/shared2.js"></script>
 
-  <!-- Your membership logic (unchanged from working state) -->
   <script>
     let membershipInitialised = false;
 
@@ -290,7 +291,7 @@
       };
 
       window.handleRecurring = function(tierNumber) {
-        // placeholder - no alert
+        // placeholder
       };
 
       window.scrollCarousel = function(dir) {
