@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
 
-  <!-- Use the modified version -->
   <link rel="stylesheet" href="/assets/css/shared2.css">
 
-  <!-- Membership-specific styles -->
   <style>
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
@@ -62,7 +60,6 @@
 </head>
 <body>
 
-  <!-- This is where shared2.js should inject the header -->
   <div id="header-placeholder"></div>
 
   <main class="container">
@@ -101,7 +98,6 @@
 
     <div class="carousel-container">
       <div class="carousel-scroll" id="tierCarousel">
-        <!-- Tier 1 Bronze -->
         <div class="tier-card" data-tier="1">
           <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <div class="tier-header">
@@ -119,7 +115,6 @@
           </div>
         </div>
 
-        <!-- Tier 2 Copper -->
         <div class="tier-card" data-tier="2">
           <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <div class="tier-header">
@@ -141,7 +136,6 @@
           </div>
         </div>
 
-        <!-- Tier 3 Silver -->
         <div class="tier-card" data-tier="3">
           <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <div class="tier-header">
@@ -163,7 +157,6 @@
           </div>
         </div>
 
-        <!-- Tier 4 Gold -->
         <div class="tier-card" data-tier="4">
           <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <div class="tier-header">
@@ -186,7 +179,6 @@
           </div>
         </div>
 
-        <!-- Tier 5 Platinum -->
         <div class="tier-card" data-tier="5">
           <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <div class="tier-header">
@@ -215,10 +207,10 @@
     </div>
   </main>
 
-  <!-- Changed to shared2.js so header gets injected -->
-  <script src="/assets/js/shared2.js"></script>
+  <!-- FIXED: correct path to your new shared2.js location -->
+  <script src="/s/js/shared2.js"></script>
 
-  <!-- Membership logic (unchanged from when buttons started working) -->
+  <!-- Your membership logic (unchanged from working state) -->
   <script>
     let membershipInitialised = false;
 
@@ -298,7 +290,7 @@
       };
 
       window.handleRecurring = function(tierNumber) {
-        // no-op / placeholder
+        // placeholder - no alert
       };
 
       window.scrollCarousel = function(dir) {
