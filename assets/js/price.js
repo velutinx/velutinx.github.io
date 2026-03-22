@@ -1,5 +1,5 @@
 // assets/js/price.js
-const WORKER_URL = 'https://supabase-link.velutinx.workers.dev/'; // <-- use your worker URL
+const WORKER_URL = 'https://supabase-link.velutinx.workers.dev/';
 
 async function fetchPriceData() {
   const cacheKey = 'velutinx_price_data';
@@ -40,4 +40,42 @@ async function fetchPriceData() {
   }
 }
 
-// ... rest of price.js (same as before) ...
+  // Build key -> USD map
+  const keyMap = {};
+  keys.forEach(k => { keyMap[k.key] = k.usd; });
+  window.priceKeyMap = keyMap;
+
+  // Build USD -> currency object map
+  const usdMap = {};
+  tiers.forEach(t => { usdMap[t.usd] = { usd: t.usd, cny: t.cny, jpy: t.jpy, mxn: t.mxn }; });
+  window.priceUsdMap = usdMap;
+
+  document.dispatchEvent(new CustomEvent('priceMapReady'));
+}
+
+// Helper: convert a symbolic key to USD, then to formatted price
+window.getFormattedPrice = function(priceKey, currency = null) {
+  if (!window.priceKeyMap || !window.priceUsdMap) return `$${priceKey}`;
+  const usd = window.priceKeyMap[priceKey];
+  if (!usd) return `$${priceKey}`;
+  return window.formatPrice(usd, currency);
+};
+
+// Original formatPrice (expects numeric USD)
+window.formatPrice = function(usd, currency = null) {
+  if (!window.priceUsdMap) return `$${usd.toFixed(2)}`;
+  const priceObj = window.priceUsdMap[usd];
+  if (!priceObj) return `$${usd.toFixed(2)}`;
+
+  const curr = currency || (window.currentLanguage === 'en' ? 'usd' :
+                            window.currentLanguage === 'ja' ? 'jpy' :
+                            window.currentLanguage === 'zh' ? 'cny' : 'mxn');
+  const value = priceObj[curr];
+  const symbol = curr === 'usd' ? '$' : curr === 'cny' ? '¥' : curr === 'jpy' ? '¥' : 'MX$';
+  if (curr === 'jpy' || curr === 'mxn') {
+    return `${symbol}${Math.round(value)}`;
+  }
+  return `${symbol}${value.toFixed(2)}`;
+};
+
+initPriceMap();
