@@ -372,26 +372,6 @@
     });
   }
 
-  // ----- PayPal integration (simplified, with container creation) -----
-  let isRendering = false;
-
-  function ensurePayPalContainer() {
-    let container = document.getElementById('paypal-button-container');
-    if (!container) {
-      console.log('[DEBUG] Creating paypal-button-container');
-      const cartTotalDiv = document.querySelector('.cart-total');
-      if (cartTotalDiv) {
-        container = document.createElement('div');
-        container.id = 'paypal-button-container';
-        container.style.margin = '12px 20px 20px';
-        cartTotalDiv.after(container);
-      } else {
-        console.log('[DEBUG] .cart-total not found');
-      }
-    }
-    return container;
-  }
-
 
 
 
