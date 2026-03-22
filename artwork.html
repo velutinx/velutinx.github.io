@@ -5,81 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Artwork</title>
   <!-- Shared header CSS -->
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/shared.css">
+  <link rel="stylesheet" href="/assets/css/shared.css">
   <!-- Page‑specific CSS -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Override header background to match page flat background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
-    }
-    /* Hide Website button, cart wrapper, and floating cart on artwork page */
+    /* Hide cart and website button on artwork page */
     .artwork-page .login-btn,
     .artwork-page .cart-wrapper,
     .artwork-page .floating-cart {
       display: none !important;
     }
+    /* Optional: adjust top‑nav background if needed */
+    .artwork-page .top-nav {
+      background: var(--bg) !important;
+      border-bottom: 1px solid var(--border);
+    }
   </style>
 </head>
 <body class="artwork-page">
 
-  <div class="lang-swipe" id="langSwipe"></div>
+  <!-- Header will be injected here by shared.js -->
+  <div id="header-placeholder"></div>
 
-  <div id="page">
-    <!-- Header will be injected here by header.js -->
-    <div id="navContainer"></div>
-    <div class="divider"></div>
+  <div class="divider"></div>
 
-    <section class="artwork-wrap">
-      <div class="artwork-intro" id="artworkIntro">
-        Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images
-      </div>
-      <div class="gallery" id="gallery"></div>
-    </section>
+  <section class="artwork-wrap">
+    <div class="artwork-intro" id="artworkIntro">
+      Hello! These are just a few small samples of my artwork — I share a lot more on my free Discord! — Temporal Images
+    </div>
+    <div class="gallery" id="gallery"></div>
+  </section>
 
-    <div class="divider"></div>
-  </div>
+  <div class="divider"></div>
 
   <div class="zoom-overlay" id="zoomOverlay"></div>
 
-  <!-- Scripts -->
+  <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
+  <script src="/assets/js/shared.js"></script>
+  <!-- Page‑specific scripts -->
   <script src="/assets/js/translt.js"></script>
-  <script src="https://velutinx.com/assets/js/shared.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply artwork translations on load
-    if (typeof window.applyTranslations === 'function') {
-      window.applyTranslations('artwork');
-    }
-
-    // Apply sidebar translations (menu items)
-    function applySidebarTranslations() {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = window.translations?.header?.[lang];
-      if (!t) return;
-      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) el.textContent = t[id];
-      });
-    }
-    applySidebarTranslations();
-
-    // Re-apply when language changes
-    document.addEventListener('languageChanged', () => {
+    // Apply artwork translations after header is ready and when language changes
+    function applyArtworkTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('artwork');
       }
-      applySidebarTranslations();
+    }
+
+    // Wait for shared.js to inject the header and dispatch 'headerReady'
+    document.addEventListener('headerReady', () => {
+      applyArtworkTranslations();
     });
 
-    // Dark mode from localStorage
+    // Re‑apply when language changes (shared.js dispatches this)
+    document.addEventListener('languageChanged', () => {
+      applyArtworkTranslations();
+    });
+
+    // Dark mode from localStorage (shared.js already handles theme, but this ensures consistency)
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
+    }
+
+    // Fallback in case headerReady already fired before we added listener
+    if (document.querySelector('#menuHome')) {
+      // Header is already present (shared.js ran synchronously)
+      applyArtworkTranslations();
     }
   </script>
 </body>
