@@ -383,7 +383,7 @@
   <!-- Shared JavaScript (injects header, handles cart, language, theme) -->
   <script src="/assets/js/shared.js"></script>
 
-  <!-- Membership‑specific JavaScript (direct cart manipulation, button toggling) -->
+  <!-- Membership‑specific JavaScript -->
   <script>
     // ========== MEMBERSHIP TRANSLATIONS ==========
     const membershipTranslations = {
@@ -617,7 +617,6 @@
       }
     };
 
-    let membershipInitialised = false;
     let currentLang = localStorage.getItem('language') || 'en';
 
     function getText(key, fallback) {
@@ -791,6 +790,7 @@
     };
 
     // Initialise after shared header is ready
+    let membershipInitialised = false;
     function initMembership() {
       if (membershipInitialised) return;
       membershipInitialised = true;
