@@ -330,11 +330,35 @@ function getFilteredSorted() {
     if (activeCategory === "membership") return p.category === 3;
     return false;
   });
-  if (searchQuery) filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
-  if (currentSort === "newest") filtered.sort((a,b) => parseInt(b.id) - parseInt(a.id));
-  else if (currentSort === "oldest") filtered.sort((a,b) => parseInt(a.id) - parseInt(b.id));
-  else if (currentSort === "price-asc") filtered.sort((a,b) => (window.priceKeyMap[a.priceKey] || 0) - (window.priceKeyMap[b.priceKey] || 0));
-  else if (currentSort === "price-desc") filtered.sort((a,b) => (window.priceKeyMap[b.priceKey] || 0) - (window.priceKeyMap[a.priceKey] || 0));
+  if (searchQuery) {
+    filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }
+  if (currentSort === "newest") {
+    filtered.sort((a, b) => {
+      // Special item "membership" always first
+      if (a.id === 'membership') return -1;
+      if (b.id === 'membership') return 1;
+      return parseInt(b.id) - parseInt(a.id);
+    });
+  } else if (currentSort === "oldest") {
+    filtered.sort((a, b) => {
+      if (a.id === 'membership') return -1;
+      if (b.id === 'membership') return 1;
+      return parseInt(a.id) - parseInt(b.id);
+    });
+  } else if (currentSort === "price-asc") {
+    filtered.sort((a, b) => {
+      if (a.id === 'membership') return -1;
+      if (b.id === 'membership') return 1;
+      return (window.priceKeyMap[a.priceKey] || 0) - (window.priceKeyMap[b.priceKey] || 0);
+    });
+  } else if (currentSort === "price-desc") {
+    filtered.sort((a, b) => {
+      if (a.id === 'membership') return -1;
+      if (b.id === 'membership') return 1;
+      return (window.priceKeyMap[b.priceKey] || 0) - (window.priceKeyMap[a.priceKey] || 0);
+    });
+  }
   return filtered;
 }
 
@@ -344,22 +368,37 @@ function renderStoreGrid() {
   const items = getFilteredSorted();
   grid.innerHTML = '';
   items.forEach(p => {
-    const imgUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
-    const priceString = window.getFormattedPrice(p.priceKey);
-    const inCart = storeCart.some(i => String(i.id) === String(p.id));
-    const cartButtonSvg = inCart
-      ? `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#e74c3c"/><path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`
-      : `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#2ecc71"/><path d="M18 5V9M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`;
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = p.id;
-    card.innerHTML = `<img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'"><div class="card-content"><div class="card-title">${escapeHtml(p.title)}</div><div class="price-row"><div class="price">${priceString}</div><button class="cart-btn ${inCart ? 'added' : ''}">${cartButtonSvg}</button></div></div>`;
-    const btn = card.querySelector('.cart-btn');
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      window.addOrToggleCart({ id: p.id, title: p.title, priceKey: p.priceKey, image: imgUrl, type: 'store' });
-    };
-    card.onclick = () => { window.location.href = `/s/pack?id=${p.id}`; };
+
+    if (p.id === 'membership') {
+      // Special membership link card
+      card.innerHTML = `
+        <img src="https://www.velutinx.com/images/membership-card.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
+        <div class="card-content">
+          <div class="card-title">${escapeHtml(p.title)}</div>
+          <div class="price-row" style="justify-content: center;">
+            <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;">Learn More</a>
+          </div>
+        </div>
+      `;
+      card.onclick = () => { window.location.href = '/s/membership'; };
+    } else {
+      const imgUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
+      const priceString = window.getFormattedPrice(p.priceKey);
+      const inCart = storeCart.some(i => String(i.id) === String(p.id));
+      const cartButtonSvg = inCart
+        ? `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#e74c3c"/><path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`
+        : `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#2ecc71"/><path d="M18 5V9M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+      card.innerHTML = `<img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'"><div class="card-content"><div class="card-title">${escapeHtml(p.title)}</div><div class="price-row"><div class="price">${priceString}</div><button class="cart-btn ${inCart ? 'added' : ''}">${cartButtonSvg}</button></div></div>`;
+      const btn = card.querySelector('.cart-btn');
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        window.addOrToggleCart({ id: p.id, title: p.title, priceKey: p.priceKey, image: imgUrl, type: 'store' });
+      };
+      card.onclick = () => { window.location.href = `/s/pack?id=${p.id}`; };
+    }
     grid.appendChild(card);
   });
 }
@@ -423,7 +462,6 @@ function renderPayPalButton() {
   if (isRendering) return;
   isRendering = true;
 
-  // Send the full storeCart (not a mapped version)
   const cart = storeCart;
   if (cart.length === 0) {
     container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
@@ -487,7 +525,6 @@ function interceptCartButtons() {
     }
   };
 
-  // Capture phase to run before shared.js listener
   if (cartBtn) cartBtn.addEventListener('click', openOurCart, true);
   if (floatCartBtn) floatCartBtn.addEventListener('click', openOurCart, true);
 }
@@ -498,12 +535,23 @@ function initStore() {
     setTimeout(initStore, 200);
     return;
   }
-  products = packsData.map(p => ({
+  // Build products array from packsData
+  const packProducts = packsData.map(p => ({
     id: p.id,
     title: p.title,
     category: p.category,
     priceKey: p.price
   }));
+  // Add membership item as the first product (newest)
+  const membershipItem = {
+    id: "membership",
+    title: "Requests & Membership",
+    category: 3, // membership category
+    priceKey: null,
+    isLink: true
+  };
+  products = [membershipItem, ...packProducts];
+
   applyStoreTranslations();
   bindStoreEvents();
   renderStoreGrid();
