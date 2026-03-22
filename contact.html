@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Contact</title>
   <!-- Shared header CSS -->
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/shared.css">
-  <!-- Shared page styles (includes contact form styles) -->
+  <link rel="stylesheet" href="/assets/css/shared.css">
+  <!-- Page‑specific CSS (includes contact form styles) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Override header background to match page flat background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
-    }
-    /* Hide Website button, cart wrapper, and floating cart on contact page */
+    /* Hide cart and website button on contact page */
     .contact-page .login-btn,
     .contact-page .cart-wrapper,
     .contact-page .floating-cart {
       display: none !important;
+    }
+    /* Adjust top‑nav background to match page background */
+    .contact-page .top-nav {
+      background: var(--bg) !important;
+      border-bottom: 1px solid var(--border);
     }
     /* Ensure the circular menu doesn't overflow on small screens */
     @media (max-width: 768px) {
@@ -31,110 +30,106 @@
 </head>
 <body class="contact-page">
 
-  <div class="lang-swipe" id="langSwipe"></div>
+  <!-- Header will be injected here by shared.js -->
+  <div id="header-placeholder"></div>
 
-  <div id="page">
-    <!-- Header will be injected here by header.js -->
-    <div id="navContainer"></div>
-    <div class="divider"></div>
+  <div class="divider"></div>
 
-    <section class="contact-wrap">
-      <div class="contact-left">
-        <h2 id="contactTitle">CONTACT</h2>
-        <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
+  <section class="contact-wrap">
+    <div class="contact-left">
+      <h2 id="contactTitle">CONTACT</h2>
+      <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
 
-        <form id="contactForm" action="https://formspree.io/f/xqebavbr" method="POST">
-          <input type="hidden" name="_subject" value="New Contact from Website">
+      <form id="contactForm" action="https://formspree.io/f/xqebavbr" method="POST">
+        <input type="hidden" name="_subject" value="New Contact from Website">
 
-          <div class="form-group">
-            <label id="labelName">NAME</label>
-            <input type="text" id="name" name="name" placeholder="Name">
-          </div>
-          <div class="form-group">
-            <label id="labelEmail">EMAIL</label>
-            <input type="email" id="email" name="email" placeholder="Email">
-          </div>
-          <div class="form-group">
-            <label id="labelMessage">MESSAGE</label>
-            <textarea id="message" name="message" placeholder="Message"></textarea>
-          </div>
-          <div class="send-row">
-            <button class="send-btn" id="sendBtn" type="submit">SEND</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="contact-right" id="socialArea">
-        <!-- Circular social menu – same as original -->
-        <div class="menu" style="transform: translate(200px, 200px);">
-          <input type="checkbox" id="check" class="checkbox">
-          <label for="check" class="label_checkbox">
-            <svg class="icon_plus" viewBox="0 0 24 24">
-              <path d="M12 3v18M3 12h18" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-            </svg>
-            <svg class="icon_close" viewBox="0 0 24 24">
-              <path d="M5 5L19 19M19 5L5 19" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-            </svg>
-          </label>
-          <a href="https://x.com/VelutinxSFW" target="_blank" class="menu_link twitter">
-            <img src="https://www.velutinx.com/images/LogoTwitter.png" class="menu_icon" alt="Twitter">
-          </a>
-          <a href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank" class="menu_link bluesky">
-            <img src="https://www.velutinx.com/images/LogoBluesky.png" class="menu_icon" alt="Bluesky">
-          </a>
-          <a href="https://www.pixiv.net/en/users/117116845" target="_blank" class="menu_link pixiv">
-            <img src="https://www.velutinx.com/images/LogoPixiv.png" class="menu_icon" alt="Pixiv">
-          </a>
-          <a href="https://ko-fi.com/velutinxstudio" target="_blank" class="menu_link kofi">
-            <img src="https://www.velutinx.com/images/LogoKoFi.png" class="menu_icon" alt="Ko‑fi">
-          </a>
-          <a href="https://www.instagram.com/velutinxx/" target="_blank" class="menu_link instagram">
-            <img src="https://www.velutinx.com/images/LogoInstagram.png" class="menu_icon" alt="Instagram">
-          </a>
-          <a href="https://subscribestar.adult/velutinx" target="_blank" class="menu_link substar">
-            <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" class="menu_icon" alt="SubscribeStar">
-          </a>
+        <div class="form-group">
+          <label id="labelName">NAME</label>
+          <input type="text" id="name" name="name" placeholder="Name">
         </div>
+        <div class="form-group">
+          <label id="labelEmail">EMAIL</label>
+          <input type="email" id="email" name="email" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <label id="labelMessage">MESSAGE</label>
+          <textarea id="message" name="message" placeholder="Message"></textarea>
+        </div>
+        <div class="send-row">
+          <button class="send-btn" id="sendBtn" type="submit">SEND</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="contact-right" id="socialArea">
+      <!-- Circular social menu – same as original -->
+      <div class="menu" style="transform: translate(200px, 200px);">
+        <input type="checkbox" id="check" class="checkbox">
+        <label for="check" class="label_checkbox">
+          <svg class="icon_plus" viewBox="0 0 24 24">
+            <path d="M12 3v18M3 12h18" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+          <svg class="icon_close" viewBox="0 0 24 24">
+            <path d="M5 5L19 19M19 5L5 19" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </label>
+        <a href="https://x.com/VelutinxSFW" target="_blank" class="menu_link twitter">
+          <img src="https://www.velutinx.com/images/LogoTwitter.png" class="menu_icon" alt="Twitter">
+        </a>
+        <a href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank" class="menu_link bluesky">
+          <img src="https://www.velutinx.com/images/LogoBluesky.png" class="menu_icon" alt="Bluesky">
+        </a>
+        <a href="https://www.pixiv.net/en/users/117116845" target="_blank" class="menu_link pixiv">
+          <img src="https://www.velutinx.com/images/LogoPixiv.png" class="menu_icon" alt="Pixiv">
+        </a>
+        <a href="https://ko-fi.com/velutinxstudio" target="_blank" class="menu_link kofi">
+          <img src="https://www.velutinx.com/images/LogoKoFi.png" class="menu_icon" alt="Ko‑fi">
+        </a>
+        <a href="https://www.instagram.com/velutinxx/" target="_blank" class="menu_link instagram">
+          <img src="https://www.velutinx.com/images/LogoInstagram.png" class="menu_icon" alt="Instagram">
+        </a>
+        <a href="https://subscribestar.adult/velutinx" target="_blank" class="menu_link substar">
+          <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" class="menu_icon" alt="SubscribeStar">
+        </a>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="divider"></div>
-  </div>
+  <div class="divider"></div>
 
-  <!-- Scripts -->
+  <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
+  <script src="/assets/js/shared.js"></script>
+  <!-- Page‑specific scripts (translations, gallery, tab animation) -->
   <script src="/assets/js/translt.js"></script>
-  <script src="https://velutinx.com/assets/js/shared.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply contact translations on load
-    if (typeof window.applyTranslations === 'function') {
-      window.applyTranslations('contact');
-    }
-
-    // Apply sidebar translations (menu items)
-    function applySidebarTranslations() {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = window.translations?.header?.[lang];
-      if (!t) return;
-      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) el.textContent = t[id];
-      });
-    }
-    applySidebarTranslations();
-
-    // Re-apply when language changes
-    document.addEventListener('languageChanged', () => {
+    // Apply contact translations using translt.js
+    function applyContactTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('contact');
       }
-      applySidebarTranslations();
+    }
+
+    // Initial apply (when page loads)
+    applyContactTranslations();
+
+    // When language changes via shared header, update translt.js and reapply
+    document.addEventListener('languageChanged', (e) => {
+      const newLang = e.detail.language;
+      if (newLang && typeof window.setLanguage === 'function') {
+        // Update translt.js's internal language
+        window.setLanguage(newLang);
+      } else if (newLang) {
+        // Fallback
+        window.currentLanguage = newLang;
+      }
+      // Reapply contact translations
+      applyContactTranslations();
     });
 
-    // Dark mode from localStorage
+    // Ensure dark mode from localStorage is applied
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
