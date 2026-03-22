@@ -6,7 +6,7 @@
   <title>VELUTINX — Membership</title>
   <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Membership-specific styles -->
+  <!-- Additional membership styles -->
   <style>
     .container {
       max-width: 1200px;
@@ -238,7 +238,7 @@
 </head>
 <body>
 
-<!-- ========== HEADER (embedded, with dynamic translations) ========== -->
+<!-- ========== HEADER (embedded from shared.js, but with custom handlers) ========== -->
 <nav class="top-nav">
   <div class="nav-left">
     <button class="menu-toggle" id="menuToggle" aria-label="Menu">
@@ -340,7 +340,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 (same as before) -->
+      <!-- Tier 1: Bronze -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -357,6 +357,7 @@
           <button class="tier-btn btn-recurring" onclick="handleRecurring(1)"><span class="btn-recurring-text">Recurring Membership</span></button>
         </div>
       </div>
+      <!-- Tier 2: Copper -->
       <div class="tier-card" data-tier="2">
         <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -377,6 +378,7 @@
           <button class="tier-btn btn-recurring" onclick="handleRecurring(2)"><span class="btn-recurring-text">Recurring Membership</span></button>
         </div>
       </div>
+      <!-- Tier 3: Silver -->
       <div class="tier-card" data-tier="3">
         <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -397,6 +399,7 @@
           <button class="tier-btn btn-recurring" onclick="handleRecurring(3)"><span class="btn-recurring-text">Recurring Membership</span></button>
         </div>
       </div>
+      <!-- Tier 4: Gold -->
       <div class="tier-card" data-tier="4">
         <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -418,6 +421,7 @@
           <button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Recurring Membership</span></button>
         </div>
       </div>
+      <!-- Tier 5: Platinum -->
       <div class="tier-card" data-tier="5">
         <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -469,6 +473,7 @@
   }
 
   function formatPrice(usd) {
+    // simple USD only for membership page (or you can extend with currency logic)
     return `US$${usd.toFixed(2)}`;
   }
 
@@ -614,14 +619,7 @@
     const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t[id] || fallback; };
     const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t[id] || fallback; };
 
-    // Special case: remove sparkle from Japanese membership title
-    let title = t.membershipTitle || '✨ Choose Your Membership';
-    if (currentLang === 'ja' && title.includes('✨')) {
-      title = title.replace('✨ ', '');
-    }
-    const titleEl = document.getElementById('membershipTitle');
-    if (titleEl) titleEl.textContent = title;
-
+    setText('membershipTitle', '✨ Choose Your Membership');
     setText('membershipDescription', 'Support my work and unlock exclusive perks');
     setHTML('discordIdLabel', (t.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
     setText('discordHintText', t.discordHint || 'How to find your Discord ID:');
@@ -662,34 +660,6 @@
         if (priceSpan) priceSpan.textContent = formatPrice(usd);
       }
     });
-  }
-
-  // ========== Header UI translation (sidebar, buttons, cart labels) ==========
-  function updateHeaderTexts() {
-    const t = window.translations[currentLang] || window.translations.en;
-    // Sidebar menu items
-    const menuHome = document.getElementById('menuHome');
-    if (menuHome) menuHome.textContent = t.menuHome || 'HOME';
-    const menuCommissions = document.getElementById('menuCommissions');
-    if (menuCommissions) menuCommissions.textContent = t.menuCommissions || 'COMMISSIONS';
-    const menuArtwork = document.getElementById('menuArtwork');
-    if (menuArtwork) menuArtwork.textContent = t.menuArtwork || 'ARTWORK';
-    const menuPoll = document.getElementById('menuPoll');
-    if (menuPoll) menuPoll.textContent = t.menuPoll || 'POLL';
-    const menuStore = document.getElementById('menuStore');
-    if (menuStore) menuStore.textContent = t.menuStore || 'STORE';
-    const menuContact = document.getElementById('menuContact');
-    if (menuContact) menuContact.textContent = t.menuContact || 'CONTACT';
-    // Website button
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) loginBtn.textContent = t.websiteBtn || 'Website';
-    // Cart drawer
-    const cartTitle = document.getElementById('cartTitle');
-    if (cartTitle) cartTitle.textContent = t.cartTitle || 'Shopping Cart';
-    const totalLabel = document.getElementById('totalLabel');
-    if (totalLabel) totalLabel.textContent = t.totalLabel || 'Total';
-    const demoBtn = document.getElementById('demoCheckoutBtn');
-    if (demoBtn) demoBtn.textContent = t.checkoutBtn || 'Proceed to checkout (DEMO)';
   }
 
   // ========== Header UI Handlers (sidebar, theme, language, cart drawer) ==========
@@ -748,7 +718,19 @@
             updateMembershipText();
             updateMembershipButtons();
             updateCartUI();
-            updateHeaderTexts();
+            // Also update header text (simple – menu items, cart title, etc.)
+            const t = window.translations[currentLang] || window.translations.en;
+            document.getElementById('cartTitle').innerText = t.cartTitle;
+            document.getElementById('totalLabel').innerText = t.totalLabel;
+            const demoBtn = document.getElementById('demoCheckoutBtn');
+            if (demoBtn) demoBtn.innerText = t.checkoutBtn;
+            document.getElementById('menuHome').innerText = t.menuHome;
+            document.getElementById('menuCommissions').innerText = t.menuCommissions;
+            document.getElementById('menuArtwork').innerText = t.menuArtwork;
+            document.getElementById('menuPoll').innerText = t.menuPoll;
+            document.getElementById('menuStore').innerText = t.menuStore;
+            document.getElementById('menuContact').innerText = t.menuContact;
+            document.getElementById('loginBtn').innerText = t.websiteBtn;
           }
           langPopover.classList.remove('show');
         });
@@ -779,7 +761,6 @@
     updateMembershipText();
     updateMembershipButtons();
     updateCartUI();
-    updateHeaderTexts(); // ensure header reflects stored language
   });
 </script>
 </body>
