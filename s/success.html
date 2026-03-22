@@ -57,32 +57,35 @@ if (!orderId) {
 } else {
     document.getElementById("order-id").textContent = `#${orderId}`;
 
-    async function recordAndFetch(orderId, retries = 3) {
-        let lastError;
-        for (let attempt = 1; attempt <= retries; attempt++) {
-            try {
-                const res = await fetch(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderID: orderId }),
-                });
-                if (!res.ok) {
-                    if (res.status === 404 && attempt < retries) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        continue;
-                    }
-                    const errText = await res.text();
-                    throw new Error(`Server responded with status ${res.status}: ${errText}`);
+async function recordAndFetch(orderId, retries = 3) {
+    let lastError;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    orderID: orderId,
+                    language: localStorage.getItem('language') || 'en'
+                }),
+            });
+            if (!res.ok) {
+                if (res.status === 404 && attempt < retries) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
                 }
-                return await res.json();
-            } catch (err) {
-                lastError = err;
-                if (attempt === retries) throw lastError;
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                const errText = await res.text();
+                throw new Error(`Server responded with status ${res.status}: ${errText}`);
             }
+            return await res.json();
+        } catch (err) {
+            lastError = err;
+            if (attempt === retries) throw lastError;
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        throw lastError;
     }
+    throw lastError;
+}
 
     recordAndFetch(orderId, 3)
         .then(data => {
