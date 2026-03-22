@@ -337,7 +337,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 (identical to original, included for brevity) -->
+      <!-- Tiers 1–5 (same as before) -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -445,6 +445,71 @@
 <script src="/s/js/translations.js"></script>
 <script>
   // --------------------------------------------------------------
+  // Header translations (embedded, because translations.js may not contain them)
+  // --------------------------------------------------------------
+  const headerTranslations = {
+    en: {
+      menuHome: "HOME",
+      menuCommissions: "COMMISSIONS",
+      menuArtwork: "ARTWORK",
+      menuPoll: "POLL",
+      menuStore: "STORE",
+      menuContact: "CONTACT",
+      websiteBtn: "Website",
+      cartTitle: "Shopping Cart",
+      totalLabel: "Total",
+      checkoutBtn: "Proceed to checkout (DEMO)",
+      emptyCart: "Your cart is empty"
+    },
+    ja: {
+      menuHome: "ホーム",
+      menuCommissions: "コミッション",
+      menuArtwork: "アートワーク",
+      menuPoll: "投票",
+      menuStore: "ストア",
+      menuContact: "お問い合わせ",
+      websiteBtn: "ウェブサイト",
+      cartTitle: "ショッピングカート",
+      totalLabel: "合計",
+      checkoutBtn: "レジに進む (デモ)",
+      emptyCart: "カートは空です"
+    },
+    zh: {
+      menuHome: "主页",
+      menuCommissions: "委托",
+      menuArtwork: "作品集",
+      menuPoll: "投票",
+      menuStore: "商店",
+      menuContact: "联系",
+      websiteBtn: "网站",
+      cartTitle: "购物车",
+      totalLabel: "总计",
+      checkoutBtn: "去结账 (演示)",
+      emptyCart: "购物车是空的"
+    },
+    es: {
+      menuHome: "INICIO",
+      menuCommissions: "COMISIONES",
+      menuArtwork: "OBRAS",
+      menuPoll: "ENCUESTA",
+      menuStore: "TIENDA",
+      menuContact: "CONTACTO",
+      websiteBtn: "Sitio web",
+      cartTitle: "Carrito de Compras",
+      totalLabel: "Total",
+      checkoutBtn: "Proceder al pago (DEMO)",
+      emptyCart: "Tu carrito está vacío"
+    }
+  };
+
+  // Merge function: get from translations.js if available, else fallback to headerTranslations
+  function getTranslation(key) {
+    const main = window.translations ? window.translations[currentLang] : null;
+    if (main && main[key] !== undefined) return main[key];
+    return headerTranslations[currentLang]?.[key] || headerTranslations.en[key];
+  }
+
+  // --------------------------------------------------------------
   // Membership cart logic
   // --------------------------------------------------------------
   let currentLang = localStorage.getItem('language') || 'en';
@@ -486,10 +551,10 @@
     const cart = getCart();
     const container = document.getElementById('cartItems');
     const totalSpan = document.getElementById('cartTotal');
-    const t = window.translations[currentLang] || window.translations.en;
+    const emptyMsg = getTranslation('emptyCart');
 
     if (container) {
-      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart || 'Your cart is empty'}</div>` : '';
+      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${emptyMsg}</div>` : '';
       cart.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'cart-item';
@@ -521,13 +586,13 @@
   window.addOrToggleCart = function(product) {
     let cart = getCart();
     const idx = cart.findIndex(i => String(i.id) === String(product.id));
-    const t = window.translations[currentLang] || window.translations.en;
+    const t = getTranslation;
     if (idx > -1) {
       cart.splice(idx, 1);
-      showSnackbar(t.removedFromCart || 'Removed from cart', true);
+      showSnackbar(getTranslation('removedFromCart') || 'Removed from cart', true);
     } else {
       cart.push(product);
-      showSnackbar(t.addedToCart || 'Added to cart', false);
+      showSnackbar(getTranslation('addedToCart') || 'Added to cart', false);
     }
     saveCart(cart);
   };
@@ -536,16 +601,14 @@
     const input = document.getElementById('discordId');
     if (!input) return null;
     const id = input.value.trim();
-    const t = window.translations[currentLang] || window.translations.en;
-    if (!id) { showSnackbar(t.errorDiscordMissing || 'Please enter your Discord ID', true); return null; }
-    if (!/^\d{17,19}$/.test(id)) { showSnackbar(t.errorDiscordInvalid || 'Invalid Discord ID format', true); return null; }
+    if (!id) { showSnackbar(getTranslation('errorDiscordMissing') || 'Please enter your Discord ID', true); return null; }
+    if (!/^\d{17,19}$/.test(id)) { showSnackbar(getTranslation('errorDiscordInvalid') || 'Invalid Discord ID format', true); return null; }
     return id;
   }
 
   window.handleSinglePurchase = function(tierNumber) {
     const discordId = validateDiscordId();
     if (!discordId) return;
-    const t = window.translations[currentLang] || window.translations.en;
     let cart = getCart();
     const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
     if (alreadyInCart) {
@@ -555,12 +618,10 @@
     const membershipItems = cart.filter(item => item.type === 'membership');
     const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
     if (highestTier !== null && tierNumber < highestTier) {
-      showSnackbar(t.errorOnlyHighest || 'Only the highest tier can be added.', true);
+      showSnackbar(getTranslation('errorOnlyHighest') || 'Only the highest tier can be added.', true);
       return;
     }
-    // Remove existing membership(s)
     membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
-    // Add new one
     window.addOrToggleCart({
       id: `membership-${tierNumber}`,
       title: `${TIER_TITLES[tierNumber]} (30 days)`,
@@ -578,8 +639,7 @@
     const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
     const planId = PLAN_IDS[tierNumber];
     if (!planId) {
-      const t = window.translations[currentLang] || window.translations.en;
-      showSnackbar(t.errorPlanNotConfigured || 'Plan not configured for this tier', true);
+      showSnackbar(getTranslation('errorPlanNotConfigured') || 'Plan not configured for this tier', true);
       return;
     }
     alert(`Recurring subscription for Tier ${tierNumber} would start.`);
@@ -592,14 +652,13 @@
 
   function updateMembershipButtons() {
     const cart = getCart();
-    const t = window.translations[currentLang] || window.translations.en;
     for (let tier = 1; tier <= 5; tier++) {
       const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
       if (!card) continue;
       const inCart = cart.some(item => item.id === `membership-${tier}`);
       const btn = card.querySelector('.btn-single, .btn-remove');
       if (btn) {
-        btn.textContent = inCart ? (t.removeFromCart || 'Remove from Cart') : (t.btnSingle || 'Single Purchase');
+        btn.textContent = inCart ? (getTranslation('removeFromCart') || 'Remove from Cart') : (getTranslation('btnSingle') || 'Single Purchase');
         btn.classList.toggle('btn-single', !inCart);
         btn.classList.toggle('btn-remove', inCart);
       }
@@ -607,33 +666,31 @@
   }
 
   function updateMembershipText() {
-    const t = window.translations[currentLang] || window.translations.en;
-    const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t[id] || fallback; };
-    const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t[id] || fallback; };
+    const t = window.translations ? window.translations[currentLang] : null;
+    const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = (t && t[id]) || fallback; };
+    const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = (t && t[id]) || fallback; };
 
-    // Remove sparkle from Japanese title
-    let title = t.membershipTitle || '✨ Choose Your Membership';
-    if (currentLang === 'ja' && title.includes('✨')) {
-      title = title.replace('✨ ', '');
-    }
+    // Remove sparkle from all languages
+    let title = (t && t.membershipTitle) || '✨ Choose Your Membership';
+    title = title.replace(/✨\s*/, '');
     const titleEl = document.getElementById('membershipTitle');
     if (titleEl) titleEl.textContent = title;
 
     setText('membershipDescription', 'Support my work and unlock exclusive perks');
-    setHTML('discordIdLabel', (t.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
-    setText('discordHintText', t.discordHint || 'How to find your Discord ID:');
-    setText('discordHelpText', t.discordHelpLink || 'Where do I find my Discord ID? (click)');
-    setHTML('discordHelpStep1', t.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-    setHTML('discordHelpStep2', t.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-    setHTML('discordHelpStep3', t.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-    setHTML('discordHelpStep4', t.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
-    setHTML('noteBox', (t.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
-      '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
+    setHTML('discordIdLabel', ((t && t.discordIdLabel) || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
+    setText('discordHintText', (t && t.discordHint) || 'How to find your Discord ID:');
+    setText('discordHelpText', (t && t.discordHelpLink) || 'Where do I find my Discord ID? (click)');
+    setHTML('discordHelpStep1', (t && t.discordHelpStep1) || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+    setHTML('discordHelpStep2', (t && t.discordHelpStep2) || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+    setHTML('discordHelpStep3', (t && t.discordHelpStep3) || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+    setHTML('discordHelpStep4', (t && t.discordHelpStep4) || '<strong>Step 4:</strong> Paste that number here.');
+    setHTML('noteBox', ((t && t.noteBox) || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
+      '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + ((t && t.joinDiscord) || '→ Join Discord Server ←') + '</a></div>');
 
     for (let i = 1; i <= 5; i++) {
       const titleEl = document.getElementById(`tier${i}Title`);
       const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
-      if (titleEl && t[key]) titleEl.textContent = t[key];
+      if (titleEl && t && t[key]) titleEl.textContent = t[key];
     }
 
     const perkIds = [
@@ -642,11 +699,11 @@
       'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
       'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
     ];
-    perkIds.forEach(id => { const el = document.getElementById(id); if (el && t[id]) el.textContent = t[id]; });
+    perkIds.forEach(id => { const el = document.getElementById(id); if (el && t && t[id]) el.textContent = t[id]; });
 
-    document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t.btnSingle || 'Single Purchase');
-    document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t.btnRecurring || 'Recurring Membership');
-    document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
+    document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = (t && t.btnSingle) || 'Single Purchase');
+    document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = (t && t.btnRecurring) || 'Recurring Membership');
+    document.querySelectorAll('.per-month').forEach(el => el.textContent = (t && t.perMonth) || '/ month');
 
     updateMembershipPrices();
   }
@@ -663,27 +720,16 @@
 
   // ========== Header UI translation ==========
   function updateHeaderTexts() {
-    const t = window.translations[currentLang] || window.translations.en;
-    const menuHome = document.getElementById('menuHome');
-    if (menuHome) menuHome.textContent = t.menuHome || 'HOME';
-    const menuCommissions = document.getElementById('menuCommissions');
-    if (menuCommissions) menuCommissions.textContent = t.menuCommissions || 'COMMISSIONS';
-    const menuArtwork = document.getElementById('menuArtwork');
-    if (menuArtwork) menuArtwork.textContent = t.menuArtwork || 'ARTWORK';
-    const menuPoll = document.getElementById('menuPoll');
-    if (menuPoll) menuPoll.textContent = t.menuPoll || 'POLL';
-    const menuStore = document.getElementById('menuStore');
-    if (menuStore) menuStore.textContent = t.menuStore || 'STORE';
-    const menuContact = document.getElementById('menuContact');
-    if (menuContact) menuContact.textContent = t.menuContact || 'CONTACT';
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) loginBtn.textContent = t.websiteBtn || 'Website';
-    const cartTitle = document.getElementById('cartTitle');
-    if (cartTitle) cartTitle.textContent = t.cartTitle || 'Shopping Cart';
-    const totalLabel = document.getElementById('totalLabel');
-    if (totalLabel) totalLabel.textContent = t.totalLabel || 'Total';
-    const demoBtn = document.getElementById('demoCheckoutBtn');
-    if (demoBtn) demoBtn.textContent = t.checkoutBtn || 'Proceed to checkout (DEMO)';
+    document.getElementById('menuHome').textContent = getTranslation('menuHome');
+    document.getElementById('menuCommissions').textContent = getTranslation('menuCommissions');
+    document.getElementById('menuArtwork').textContent = getTranslation('menuArtwork');
+    document.getElementById('menuPoll').textContent = getTranslation('menuPoll');
+    document.getElementById('menuStore').textContent = getTranslation('menuStore');
+    document.getElementById('menuContact').textContent = getTranslation('menuContact');
+    document.getElementById('loginBtn').textContent = getTranslation('websiteBtn');
+    document.getElementById('cartTitle').textContent = getTranslation('cartTitle');
+    document.getElementById('totalLabel').textContent = getTranslation('totalLabel');
+    document.getElementById('demoCheckoutBtn').textContent = getTranslation('checkoutBtn');
   }
 
   // ========== Header UI Handlers ==========
