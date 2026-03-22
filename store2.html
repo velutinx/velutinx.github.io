@@ -258,7 +258,7 @@ function updateStoreCartUI() {
   if (totalSpan) totalSpan.innerText = window.formatPrice(total);
   document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
 
-  // Re‑render PayPal button only if drawer is open and container exists
+  // Re‑render PayPal button if drawer is open
   const cartDrawer = document.getElementById('cartDrawer');
   if (cartDrawer && cartDrawer.classList.contains('open')) {
     renderPayPalButton();
@@ -418,22 +418,24 @@ function observeCartDrawer() {
 }
 
 // ==================== PayPal integration ====================
+let isRendering = false;
+
 function renderPayPalButton() {
   const container = document.getElementById('paypal-button-container');
-  // Ensure container exists and is still attached to DOM
   if (!container || !document.body.contains(container)) return;
   const cartDrawer = document.getElementById('cartDrawer');
-  // Only render if the drawer is open
   if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
+  if (isRendering) return;
+  isRendering = true;
 
-  // Clear previous content
-  container.innerHTML = '';
   const items = storeCart.map(item => ({ priceKey: item.priceKey, quantity: 1 }));
   if (items.length === 0) {
     container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+    isRendering = false;
     return;
   }
 
+  container.innerHTML = '';
   paypal.Buttons({
     createOrder: async () => {
       const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
@@ -457,8 +459,15 @@ function renderPayPalButton() {
     onError: (err) => {
       console.error('PayPal error', err);
       alert('Something went wrong. Please try again.');
+    },
+    onCancel: () => {
+      isRendering = false;
     }
-  }).render(container);
+  }).render(container).then(() => {
+    isRendering = false;
+  }).catch(() => {
+    isRendering = false;
+  });
 }
 
 window.setupStoreCheckout = () => renderPayPalButton();
@@ -481,6 +490,9 @@ function initStore() {
   updateStoreCartUI();
   observeCartDrawer();
   renderPayPalButton(); // initial – will only render if drawer is already open
+
+  // Override shared.js's PayPal button to avoid conflict
+  window.renderPayPalButton = function() {};
 }
 
 // Override shared cart to prevent interference
