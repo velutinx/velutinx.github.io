@@ -7,8 +7,146 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (store styles – same as before, omitted for brevity) */
-    /* Keep all styles from the previous version */
+    /* store-specific styles – unchanged */
+    .main-container {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 2rem;
+      gap: 2rem;
+    }
+    .store-filter-sidebar {
+      width: 260px;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .category-list, .sort-options {
+      list-style: none;
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      margin-bottom: 1.8rem;
+      overflow: hidden;
+    }
+    .category-list li, .sort-btn {
+      padding: 0.9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      color: var(--text);
+      background: var(--card);
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-size: 1rem;
+    }
+    .category-list li svg, .sort-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+    }
+    .category-list li:hover, .sort-btn:hover { background: var(--darker); }
+    .category-list li.active, .sort-btn.active {
+      background: var(--accent);
+      color: #1f1a12;
+      font-weight: 600;
+    }
+    .products-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .products-header h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .search-bar-wrapper { width: 280px; }
+    .input-base {
+      display: flex;
+      align-items: center;
+      background: var(--card);
+      border-radius: 40px;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      gap: 8px;
+    }
+    .input-element {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      padding: 8px 0;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.8rem;
+    }
+    .product-card {
+      background: var(--card);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 28px rgba(0,0,0,0.2);
+    }
+    .card-image {
+      width: 100%;
+      aspect-ratio: 3/3.5;
+      object-fit: cover;
+      display: block;
+      background: #d9d4c2;
+    }
+    .card-content { padding: 1rem; }
+    .card-title { font-weight: 600; margin-bottom: 0.5rem; }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .price {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--price-red);
+    }
+    .cart-btn {
+      width: 44px;
+      height: 44px;
+      background: var(--btn-cart);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .cart-btn svg { width: 26px; height: 26px; }
+    .cart-btn.added { background: var(--success); }
+    @media (max-width: 780px) {
+      .main-container { flex-direction: column; }
+      .store-filter-sidebar { width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -17,8 +155,22 @@
 
   <div class="main-container">
     <aside class="store-filter-sidebar">
-      <!-- same sidebar HTML as before -->
+      <div class="section-title" id="filterTitle"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 6v4M16 12v6"/></svg><span>Filter by Category</span></div>
+      <ul class="category-list" id="categoryList">
+        <li data-cat="all" class="active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span id="catAll">All Products</span></li>
+        <li data-cat="female"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="9" r="6" stroke="currentColor" stroke-width="2"/><path d="M12 15V21M9 18H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="catFemale">Female Models</span></li>
+        <li data-cat="femboy"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="14" r="6" stroke="currentColor" stroke-width="2"/><path d="M16 8L20 4M20 4H16M20 4V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="catFemboy">Femboy Models</span></li>
+        <li data-cat="membership"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3 6 6 .7-4.5 4.1L18 19l-6-3-6 3 1.5-6.2L3 8.7 9 8z"/></svg><span id="catMembership">Memberships</span></li>
+      </ul>
+      <div class="section-title" id="sortTitle"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3v12M7 15l-3-3M7 15l3-3M17 21V9M17 9l-3 3M17 9l3 3"/></svg><span>Sort by</span></div>
+      <div id="sortContainer">
+        <button class="sort-btn active" data-sort="newest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12M12 15l-3-3M12 15l3-3"/><path d="M5 21h14"/></svg><span id="sortNewest">Newest</span></button>
+        <button class="sort-btn" data-sort="oldest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21V9M12 9l-3 3M12 9l3 3"/><path d="M5 3h14"/></svg><span id="sortOldest">Oldest</span></button>
+        <button class="sort-btn" data-sort="price-asc"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 15h6M4 9h10M4 3h14M20 9v12M20 21l3-3M20 21l-3-3"/></svg><span id="sortLow">Price: Low to High</span></button>
+        <button class="sort-btn" data-sort="price-desc"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 15h6M4 9h10M4 3h14M20 21V9M20 9l3 3M20 9l-3-3"/></svg><span id="sortHigh">Price: High to Low</span></button>
+      </div>
     </aside>
+
     <main class="products-section">
       <div class="products-header">
         <h2 id="latestTitle">Latest Content</h2>
@@ -141,18 +293,30 @@
 
     function applyStoreTranslations() {
       const t = storeTranslations[currentLang];
-      document.getElementById('filterTitle').querySelector('span').innerText = t.filterTitle;
-      document.getElementById('sortTitle').querySelector('span').innerText = t.sortTitle;
-      document.getElementById('catAll').innerText = t.catAll;
-      document.getElementById('catFemale').innerText = t.catFemale;
-      document.getElementById('catFemboy').innerText = t.catFemboy;
-      document.getElementById('catMembership').innerText = t.catMembership;
-      document.getElementById('sortNewest').innerText = t.sortNewest;
-      document.getElementById('sortOldest').innerText = t.sortOldest;
-      document.getElementById('sortLow').innerText = t.sortLow;
-      document.getElementById('sortHigh').innerText = t.sortHigh;
-      document.getElementById('latestTitle').innerText = t.latestTitle;
-      document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+      const filterTitleSpan = document.querySelector('#filterTitle span');
+      if (filterTitleSpan) filterTitleSpan.innerText = t.filterTitle;
+      const sortTitleSpan = document.querySelector('#sortTitle span');
+      if (sortTitleSpan) sortTitleSpan.innerText = t.sortTitle;
+      const catAll = document.getElementById('catAll');
+      if (catAll) catAll.innerText = t.catAll;
+      const catFemale = document.getElementById('catFemale');
+      if (catFemale) catFemale.innerText = t.catFemale;
+      const catFemboy = document.getElementById('catFemboy');
+      if (catFemboy) catFemboy.innerText = t.catFemboy;
+      const catMembership = document.getElementById('catMembership');
+      if (catMembership) catMembership.innerText = t.catMembership;
+      const sortNewest = document.getElementById('sortNewest');
+      if (sortNewest) sortNewest.innerText = t.sortNewest;
+      const sortOldest = document.getElementById('sortOldest');
+      if (sortOldest) sortOldest.innerText = t.sortOldest;
+      const sortLow = document.getElementById('sortLow');
+      if (sortLow) sortLow.innerText = t.sortLow;
+      const sortHigh = document.getElementById('sortHigh');
+      if (sortHigh) sortHigh.innerText = t.sortHigh;
+      const latestTitle = document.getElementById('latestTitle');
+      if (latestTitle) latestTitle.innerText = t.latestTitle;
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.placeholder = t.searchPlaceholder;
     }
 
     function getFilteredSorted() {
@@ -233,7 +397,6 @@
         currentLang = localStorage.getItem('language') || 'en';
         applyStoreTranslations();
         renderStoreGrid();
-        // If drawer is open, re-render it with current language
         const drawer = document.getElementById('cartDrawer');
         if (drawer && drawer.classList.contains('open')) {
           updateStoreCartUI();
@@ -281,12 +444,10 @@
         },
         onApprove: (data, actions) => {
           return actions.order.capture().then(() => {
-            // Clear the cart after successful payment
             storeCart = [];
             saveStoreCart();
             updateStoreCartUI();
             renderStoreGrid();
-            // Redirect to success page with order ID
             window.location.href = `/s/success.html?orderID=${data.orderID}`;
           });
         },
@@ -297,28 +458,37 @@
       }).render(container);
     }
 
-    // Override the shared `setupStoreCheckout` to use our button
     window.setupStoreCheckout = function() {
       renderPayPalButton();
     };
 
     // ==================== Initialise when header and price map are ready ====================
+    function initStore() {
+      products = packsData.map(p => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        priceKey: p.price
+      }));
+      applyStoreTranslations();
+      bindStoreEvents();
+      renderStoreGrid();
+      updateStoreCartUI();
+      observeCartDrawer();
+      renderPayPalButton();
+    }
+
     document.addEventListener('headerReady', () => {
-      document.addEventListener('priceMapReady', () => {
-        products = packsData.map(p => ({
-          id: p.id,
-          title: p.title,
-          category: p.category,
-          priceKey: p.price   // symbolic key like "PRICE_2"
-        }));
-        applyStoreTranslations();
-        bindStoreEvents();
-        renderStoreGrid();
-        updateStoreCartUI();
-        observeCartDrawer();
-        renderPayPalButton(); // initial render in case drawer is already open
-      });
-      if (window.priceKeyMap && window.priceUsdMap) document.dispatchEvent(new CustomEvent('priceMapReady'));
+      // Wait for DOM to be fully parsed before touching elements
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          document.addEventListener('priceMapReady', initStore);
+          if (window.priceKeyMap && window.priceUsdMap) initStore();
+        });
+      } else {
+        document.addEventListener('priceMapReady', initStore);
+        if (window.priceKeyMap && window.priceUsdMap) initStore();
+      }
     });
   </script>
 </body>
