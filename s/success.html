@@ -6,7 +6,7 @@
     <title>Purchase Successful - VELUTINX</title>
     <link rel="stylesheet" href="/assets/css/shared.css">
     <style>
-        /* (styles unchanged) */
+        /* (styles unchanged – same as before) */
         body { background: var(--bg); }
         .success-wrapper { max-width: 650px; margin: 60px auto; padding: 20px; }
         .success-container { background: var(--card); border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border); }
@@ -57,62 +57,54 @@ if (!orderId) {
 } else {
     document.getElementById("order-id").textContent = `#${orderId}`;
 
-async function recordAndFetch(orderId, retries = 3) {
-    let lastError;
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            // Add cache‑busting timestamp
-            const url = `${WORKER_URL}?t=${Date.now()}`;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    orderID: orderId,
-                    language: localStorage.getItem('language') || 'en'
-                }),
-            });
-            if (!res.ok) {
-                if (res.status === 404 && attempt < retries) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    continue;
+    async function recordAndFetch(orderId, retries = 3) {
+        let lastError;
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        orderID: orderId,
+                        language: localStorage.getItem('language') || 'en'
+                    }),
+                });
+                if (!res.ok) {
+                    if (res.status === 404 && attempt < retries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        continue;
+                    }
+                    const errText = await res.text();
+                    throw new Error(`Server responded with status ${res.status}: ${errText}`);
                 }
-                const errText = await res.text();
-                throw new Error(`Server responded with status ${res.status}: ${errText}`);
+                return await res.json();
+            } catch (err) {
+                lastError = err;
+                if (attempt === retries) throw lastError;
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
-            const data = await res.json();
-            console.log('[DEBUG] Worker response:', data); // <-- log the response
-            return data;
-        } catch (err) {
-            lastError = err;
-            if (attempt === retries) throw lastError;
-            await new Promise(resolve => setTimeout(resolve, 1000));
         }
+        throw lastError;
     }
-    throw lastError;
-}
 
     recordAndFetch(orderId, 3)
-.then(data => {
-    console.log('Full worker response:', data);
-    if (data.items && data.items.length > 0) {
-        let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
-        data.items.forEach(item => {
-            console.log('Processing item:', item);
-            console.log('item.link:', item.link);
-            // Accept both 'pack' and 'store' types
-            if ((item.type === 'pack' || item.type === 'store') && item.link) {
-                html += `<a href="${item.link}" class="download-item" target="_blank">Download ${escapeHtml(item.title)} ↓</a>`;
-            } else if (item.type === 'membership') {
-                html += `<div class="membership-message">✅ Your membership has been activated!<br>The corresponding role will be assigned in Discord within a few minutes.</div>`;
+        .then(data => {
+            if (data.items && data.items.length > 0) {
+                let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
+                data.items.forEach(item => {
+                    if ((item.type === 'pack' || item.type === 'store') && item.link) {
+                        html += `<a href="${item.link}" class="download-item" target="_blank">Download ${escapeHtml(item.title)} ↓</a>`;
+                    } else if (item.type === 'membership') {
+                        html += `<div class="membership-message">✅ Your membership has been activated!<br>The corresponding role will be assigned in Discord within a few minutes.</div>`;
+                    } else {
+                        html += `<p class="error-text">Missing download link for ${escapeHtml(item.title)}</p>`;
+                    }
+                });
+                section.innerHTML = html;
             } else {
-                html += `<p class="error-text">Missing download link for ${escapeHtml(item.title)}</p>`;
+                section.innerHTML = `<p class="error-text">No files available for this order. Contact support.</p>`;
             }
-        });
-        section.innerHTML = html;
-    } else {
-        section.innerHTML = `<p class="error-text">No files available for this order. Contact support.</p>`;
-    }
-})
+        })
         .catch(err => {
             console.error("Download fetch failed:", err);
             section.innerHTML = `<p class="error-text">Failed to load your files (${err.message}).<br>Please contact support on Discord (velutinxx) and provide this order ID: <strong>${orderId}</strong></p>`;
