@@ -61,7 +61,9 @@ async function recordAndFetch(orderId, retries = 3) {
     let lastError;
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
-            const res = await fetch(WORKER_URL, {
+            // Add cache‑busting timestamp
+            const url = `${WORKER_URL}?t=${Date.now()}`;
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -77,7 +79,9 @@ async function recordAndFetch(orderId, retries = 3) {
                 const errText = await res.text();
                 throw new Error(`Server responded with status ${res.status}: ${errText}`);
             }
-            return await res.json();
+            const data = await res.json();
+            console.log('[DEBUG] Worker response:', data); // <-- log the response
+            return data;
         } catch (err) {
             lastError = err;
             if (attempt === retries) throw lastError;
