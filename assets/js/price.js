@@ -64,15 +64,17 @@ window.getFormattedPrice = function(priceKey, currency = null) {
   return window.formatPrice(usd, currency);
 };
 
-// Original formatPrice (expects numeric USD)
+// assets/js/price.js – updated formatPrice using localStorage
 window.formatPrice = function(usd, currency = null) {
   if (!window.priceUsdMap) return `$${usd.toFixed(2)}`;
   const priceObj = window.priceUsdMap[usd];
   if (!priceObj) return `$${usd.toFixed(2)}`;
 
-  const curr = currency || (window.currentLanguage === 'en' ? 'usd' :
-                            window.currentLanguage === 'ja' ? 'jpy' :
-                            window.currentLanguage === 'zh' ? 'cny' : 'mxn');
+  // Read current language from localStorage (set by shared.js)
+  const lang = localStorage.getItem('language') || 'en';
+  const curr = currency || (lang === 'ja' ? 'jpy' :
+                            lang === 'zh' ? 'cny' :
+                            lang === 'es' ? 'mxn' : 'usd');
   const value = priceObj[curr];
   const symbol = curr === 'usd' ? '$' : curr === 'cny' ? '¥' : curr === 'jpy' ? '¥' : 'MX$';
   if (curr === 'jpy' || curr === 'mxn') {
