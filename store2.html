@@ -490,6 +490,20 @@ document.addEventListener('languageChanged', () => {
       // Do nothing – we handle cart rendering ourselves
     };
 
+    // Ensure store cart is always shown when drawer opens, regardless of language
+function ensureCartDisplay() {
+  const drawer = document.getElementById('cartDrawer');
+  if (drawer && drawer.classList.contains('open')) {
+    updateStoreCartUI();
+  }
+}
+
+// Listen to drawer open with both MutationObserver and a manual trigger
+const cartBtn = document.getElementById('cartBtn');
+const floatCartBtn = document.getElementById('floatingCartBtn');
+if (cartBtn) cartBtn.addEventListener('click', ensureCartDisplay);
+if (floatCartBtn) floatCartBtn.addEventListener('click', ensureCartDisplay);
+
     document.addEventListener('headerReady', () => {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
