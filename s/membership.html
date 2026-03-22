@@ -1,521 +1,826 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
-  <link rel="stylesheet" href="https://velutinx.com/s/css/membercss.css">
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
-  <!-- No inline styles needed – all handled by membercss.css -->
+  <link rel="stylesheet" href="/assets/css/shared.css">
+  <style>
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    @media (min-width: 600px) { .container { padding: 0 24px; } }
+    main { padding: 40px 0; }
+    .membership-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .membership-description {
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 1.2rem;
+    }
+    .carousel-container {
+      position: relative;
+      margin: 40px 0;
+    }
+    .carousel-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 2rem;
+      padding: 20px 0;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .carousel-scroll::-webkit-scrollbar { display: none; }
+    .tier-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2rem;
+      width: 300px;
+      flex-shrink: 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s;
+    }
+    .tier-card:hover { transform: translateY(-4px); }
+    .tier-card h3 {
+      font-size: 1.8rem;
+      margin: 0 0 0.5rem;
+      color: var(--text);
+    }
+    .tier-price {
+      color: #ef4444;
+      font-weight: 800;
+      font-size: 2rem;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    .price-value { font-size: inherit; font-weight: inherit; }
+    .per-month {
+      font-size: 1rem;
+      font-weight: normal;
+      color: var(--text-light);
+    }
+    .tier-perks {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+      flex: 1;
+    }
+    .tier-perks li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+    .tier-perks li:last-child { border-bottom: none; }
+    .tier-perks li::before {
+      content: "✓";
+      color: var(--success);
+      font-weight: bold;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .tier-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .tier-star {
+      width: 40px;
+      height: 40px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    .tier-star svg { width: 100%; height: 100%; }
+    .tier-title { font-size: 1.8rem; margin: 0; }
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.5rem;
+    }
+    .tier-btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      color: white;
+      text-align: center;
+    }
+    .btn-single { background: #3b82f6; }
+    .btn-single:hover { background: #2563eb; }
+    .btn-recurring { background: #10b981; }
+    .btn-recurring:hover { background: #059669; }
+    .btn-remove { background: #ef4444 !important; }
+    .btn-remove:hover { background: #dc2626 !important; }
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--text);
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    .carousel-arrow:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .arrow-left { left: -20px; }
+    .arrow-right { right: -20px; }
+    @media (max-width: 700px) {
+      .arrow-left { left: -10px; }
+      .arrow-right { right: -10px; }
+    }
+    .discord-section {
+      max-width: 1100px;
+      margin: 0 auto 40px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .discord-input label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .discord-input input {
+      width: 100%;
+      padding: 14px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    .discord-input input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .discord-hint {
+      font-size: 0.9rem;
+      color: #000000 !important;
+      margin-top: 8px;
+    }
+    body.dark .discord-hint { color: #ffffff !important; }
+    .discord-help-link {
+      color: #000000 !important;
+      font-weight: bold !important;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 12px;
+      display: inline-block;
+    }
+    body.dark .discord-help-link { color: #ffffff !important; }
+    .discord-help-content {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .discord-help-content.show { display: block; }
+    .discord-help-content p { margin-bottom: 12px; }
+    .discord-help-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .note-box {
+      background: rgba(170,158,118,0.1);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      margin: 24px 0 0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    .cart-drawer .cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #a64a5c; padding: 0 8px; }
+  </style>
 </head>
 <body>
-  <!-- Header (same as before) -->
-  <div class="lang-swipe" id="langSwipe"></div>
+
+<!-- ========== HEADER (embedded) ========== -->
 <nav class="top-nav">
   <div class="nav-left">
-    <!-- Hamburger – same as pack.html & store.html -->
-    <button id="menuToggle" class="nav-icon" title="Menu">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-        <path d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <div class="logo">VELUTINX</div>
   </div>
-
   <div class="nav-actions">
-    <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/infex'">Website</button>
-    <div id="langContainer">
-      <button class="nav-icon lang-btn" id="langBtn" title="Language">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
-        </svg>
+    <a href="https://velutinx.com/index-" class="login-btn" id="loginBtn">Website</a>
+    <div id="langContainer" style="position:relative">
+      <button class="nav-icon" id="langBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path></svg>
       </button>
       <div id="languagePopover">
-        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
-        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
-        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
-        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
+        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="en">English</div>
+        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="ja">日本語</div>
+        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="zh">简体中文</div>
+        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="es">Español</div>
       </div>
     </div>
     <button class="nav-icon" id="themeBtn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
-      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path></svg>
     </button>
-    <div class="cart-wrapper">
-      <button class="nav-icon cart-icon" id="cartBtn">
-        <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-          <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-          <path d="M17 17h-11v-14h-2"></path>
-          <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-          <path d="M16 19h6"></path>
-          <path d="M19 16v6"></path>
-        </svg>
+    <div class="cart-wrapper" style="position:relative">
+      <button class="nav-icon" id="cartBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>
       </button>
       <span class="cart-badge" id="cartCount">0</span>
     </div>
   </div>
 </nav>
-  <button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-      <path d="M17 17h-11v-14h-2"></path>
-      <path d="M6 5l14 1l-1 7h-13"></path>
-    </svg>
-    <span class="floating-badge" id="floatingCartCount">0</span>
-  </button>
-  <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header">
-      <h5 id="cartTitle">Shopping Cart</h5>
-      <button class="cart-close" id="cartClose">×</button>
-    </div>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="cart-total">
-      <div class="cart-total-row">
-        <span id="totalLabel">Total</span>
-        <span id="cartTotal">US$0.00</span>
+
+<button class="floating-cart" id="floatingCartBtn">
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path></svg>
+  <span class="floating-badge" id="floatingCartCount">0</span>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <button class="menu-toggle" id="sidebarMenuToggle" style="background:transparent; color:var(--text);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="logo">VELUTINX</div>
+  </div>
+  <div class="sidebar-menu">
+    <a href="https://velutinx.com/index-" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/></svg><span id="menuHome">HOME</span></a>
+    <a href="https://velutinx.com/commission" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span id="menuCommissions">COMMISSIONS</span></a>
+    <a href="https://velutinx.com/artwork" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2"/></svg><span id="menuArtwork">ARTWORK</span></a>
+    <a href="https://velutinx.com/poll" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M16 4v16"/></svg><span id="menuPoll">POLL</span></a>
+    <a href="https://velutinx.com/store" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/><circle cx="12" cy="15" r="2"/></svg><span id="menuStore">STORE</span></a>
+    <a href="https://velutinx.com/contact" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H4z"/><path d="M22 6L12 13L2 6"/></svg><span id="menuContact">CONTACT</span></a>
+  </div>
+  <div class="sidebar-footer">© VELUTINX</div>
+</aside>
+
+<div class="cart-overlay" id="cartOverlay"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-total"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div>
+  <button class="demo-checkout-btn" id="demoCheckoutBtn">Proceed to checkout (DEMO)</button>
+</div>
+
+<div id="snackbar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span id="snackText">Added successfully</span></div>
+
+<main class="container">
+  <h1 class="membership-title" id="membershipTitle">✨ Choose Your Membership</h1>
+  <p class="membership-description" id="membershipDescription">Support my work and unlock exclusive perks</p>
+
+  <div class="discord-section">
+    <div class="discord-input">
+      <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
+      <input type="text" id="discordId" placeholder="e.g., 123456789012345678" value="1467153810970644638" required>
+      <div class="discord-hint">
+        <span id="discordHintText">How to find your Discord ID:</span>
+        <span class="discord-help-link" id="discordHelpToggle">
+          <span id="discordHelpText">Where do I find my Discord ID? (click)</span>
+          <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" style="vertical-align: middle; margin-left: 4px;">
+            <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/>
+          </svg>
+        </span>
       </div>
-      <div id="paypal-button-container"></div>
+    </div>
+    <div class="discord-help-content" id="discordHelpContent">
+      <p id="discordHelpStep1"><strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).</p>
+      <p id="discordHelpStep2"><strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.</p>
+      <p id="discordHelpStep3"><strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.</p>
+      <p id="discordHelpStep4"><strong>Step 4:</strong> Paste that number here.</p>
+      <img src="https://www.velutinx.com/images/discordID.jpg" alt="Discord ID copy example" style="max-width:100%; border-radius:8px; margin-top:10px;">
+    </div>
+    <div class="note-box" id="noteBox">
+      <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
+      <div style="margin-top:12px;">
+        <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
+      </div>
     </div>
   </div>
-  <div id="snackbar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="M20 6L9 17l-5-5"></path>
-    </svg>
-    <span id="snackText">Success</span>
+
+  <div class="carousel-container">
+    <div class="carousel-scroll" id="tierCarousel">
+      <!-- Tiers 1–5 (same as before) -->
+      <div class="tier-card" data-tier="1">
+        <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier1Title">BRONZE</h3>
+        </div>
+        <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk1_1">Full archive access immediately.</li>
+          <li id="perk1_2">Includes all past releases & paid content.</li>
+        </ul>
+        <div class="button-row">
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)"><span class="btn-single-text">Single Purchase</span></button>
+          <button class="tier-btn btn-recurring" onclick="handleRecurring(1)"><span class="btn-recurring-text">Recurring Membership</span></button>
+        </div>
+      </div>
+      <div class="tier-card" data-tier="2">
+        <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier2Title">COPPER</h3>
+        </div>
+        <div class="tier-price" data-price-usd="15"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk2_1">Everything in Bronze, plus:</li>
+          <li id="perk2_2">One (1) custom image request per billing cycle.</li>
+          <li id="perk2_3">Approx. 20 images per request.</li>
+          <li id="perk2_4">Single character, official/creator‑selected outfit.</li>
+          <li id="perk2_5">Some character customization allowed.</li>
+          <li id="perk2_6">Typical turnaround: ~1 day (queue order).</li>
+        </ul>
+        <div class="button-row">
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)"><span class="btn-single-text">Single Purchase</span></button>
+          <button class="tier-btn btn-recurring" onclick="handleRecurring(2)"><span class="btn-recurring-text">Recurring Membership</span></button>
+        </div>
+      </div>
+      <div class="tier-card" data-tier="3">
+        <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier3Title">SILVER</h3>
+        </div>
+        <div class="tier-price" data-price-usd="30"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk3_1">Everything in Bronze, plus:</li>
+          <li id="perk3_2">One (1) custom image request per billing cycle.</li>
+          <li id="perk3_3">Approx. 40 images per request.</li>
+          <li id="perk3_4">Single character, custom outfit allowed.</li>
+          <li id="perk3_5">Character customization allowed.</li>
+          <li id="perk3_6">Typical turnaround: ~1 day (queue order).</li>
+        </ul>
+        <div class="button-row">
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)"><span class="btn-single-text">Single Purchase</span></button>
+          <button class="tier-btn btn-recurring" onclick="handleRecurring(3)"><span class="btn-recurring-text">Recurring Membership</span></button>
+        </div>
+      </div>
+      <div class="tier-card" data-tier="4">
+        <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier4Title">GOLD</h3>
+        </div>
+        <div class="tier-price" data-price-usd="50"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk4_1">Everything in Bronze, plus:</li>
+          <li id="perk4_2">One (1) large custom image request per billing cycle.</li>
+          <li id="perk4_3">Approx. 80 images per request.</li>
+          <li id="perk4_4">Single character, custom outfit allowed.</li>
+          <li id="perk4_5">Character customization allowed.</li>
+          <li id="perk4_6">Typical turnaround: 3‑7 days (queue order).</li>
+          <li id="perk4_7">Special/expanded requests may be discussed.</li>
+        </ul>
+        <div class="button-row">
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)"><span class="btn-single-text">Single Purchase</span></button>
+          <button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Recurring Membership</span></button>
+        </div>
+      </div>
+      <div class="tier-card" data-tier="5">
+        <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
+        </div>
+        <div class="tier-price" data-price-usd="75"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk5_1">Everything in Bronze, plus:</li>
+          <li id="perk5_2">One (1) large custom image request per billing cycle.</li>
+          <li id="perk5_3">Approx. 80 images per request.</li>
+          <li id="perk5_4">Single character, custom outfit allowed.</li>
+          <li id="perk5_5">Character customization allowed.</li>
+          <li id="perk5_6">⚡ Priority: worked on first after current tasks.</li>
+          <li id="perk5_7">Typical turnaround: 3‑7 days (once started).</li>
+        </ul>
+        <div class="button-row">
+          <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)"><span class="btn-single-text">Single Purchase</span></button>
+          <button class="tier-btn btn-recurring" onclick="handleRecurring(5)"><span class="btn-recurring-text">Recurring Membership</span></button>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
+    <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
   </div>
+</main>
 
-  <main class="container">
-    <h1 class="membership-title" id="membershipTitle">✨ Choose Your Membership</h1>
-    <p class="membership-description" id="membershipDescription">Support my work and unlock exclusive perks</p>
+<script src="/s/js/translations.js"></script>
+<script>
+  // --------------------------------------------------------------
+  // Header translations (embedded, because translations.js may not contain them)
+  // --------------------------------------------------------------
+  const headerTranslations = {
+    en: {
+      menuHome: "HOME",
+      menuCommissions: "COMMISSIONS",
+      menuArtwork: "ARTWORK",
+      menuPoll: "POLL",
+      menuStore: "STORE",
+      menuContact: "CONTACT",
+      websiteBtn: "Website",
+      cartTitle: "Shopping Cart",
+      totalLabel: "Total",
+      checkoutBtn: "Proceed to checkout (DEMO)",
+      emptyCart: "Your cart is empty"
+    },
+    ja: {
+      menuHome: "ホーム",
+      menuCommissions: "コミッション",
+      menuArtwork: "アートワーク",
+      menuPoll: "投票",
+      menuStore: "ストア",
+      menuContact: "お問い合わせ",
+      websiteBtn: "ウェブサイト",
+      cartTitle: "ショッピングカート",
+      totalLabel: "合計",
+      checkoutBtn: "レジに進む (デモ)",
+      emptyCart: "カートは空です"
+    },
+    zh: {
+      menuHome: "主页",
+      menuCommissions: "委托",
+      menuArtwork: "作品集",
+      menuPoll: "投票",
+      menuStore: "商店",
+      menuContact: "联系",
+      websiteBtn: "网站",
+      cartTitle: "购物车",
+      totalLabel: "总计",
+      checkoutBtn: "去结账 (演示)",
+      emptyCart: "购物车是空的"
+    },
+    es: {
+      menuHome: "INICIO",
+      menuCommissions: "COMISIONES",
+      menuArtwork: "OBRAS",
+      menuPoll: "ENCUESTA",
+      menuStore: "TIENDA",
+      menuContact: "CONTACTO",
+      websiteBtn: "Sitio web",
+      cartTitle: "Carrito de Compras",
+      totalLabel: "Total",
+      checkoutBtn: "Proceder al pago (DEMO)",
+      emptyCart: "Tu carrito está vacío"
+    }
+  };
 
-    <div class="discord-section">
-      <div class="discord-input">
-        <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
-        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
-        <div class="discord-hint" id="discordHint">
-          <span id="discordHintText">How to find your Discord ID:</span>
-          <span class="discord-help-link" id="discordHelpToggle">
-            <span id="discordHelpText">Where do I find my Discord ID? (click)</span>
-            <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-left: 4px;">
-              <title>dropdown</title>
-              <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/>
-            </svg>
-          </span>
-        </div>
-      </div>
-      <div class="discord-help-content" id="discordHelpContent">
-        <p id="discordHelpStep1"><strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).</p>
-        <p id="discordHelpStep2"><strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.</p>
-        <p id="discordHelpStep3"><strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.</p>
-        <p id="discordHelpStep4"><strong>Step 4:</strong> Paste that number here.</p>
-        <img src="https://www.velutinx.com/images/discordID.jpg" alt="Discord ID copy example" style="max-width:100%; border-radius:8px; margin-top:10px;">
-      </div>
-      <div class="note-box" id="noteBox">
-        <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
-        <div style="margin-top:12px;">
-          <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
-        </div>
-      </div>
-    </div>
+  // Merge function: get from translations.js if available, else fallback to headerTranslations
+  function getTranslation(key) {
+    const main = window.translations ? window.translations[currentLang] : null;
+    if (main && main[key] !== undefined) return main[key];
+    return headerTranslations[currentLang]?.[key] || headerTranslations.en[key];
+  }
 
-    <div class="carousel-container">
-      <div class="carousel-scroll" id="tierCarousel">
-        <!-- Tier 1: Bronze -->
-        <div class="tier-card" data-tier="1">
-          <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <g transform-origin="100 100">
-                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e">
-                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                  </path>
-                </g>
-              </svg>
-            </span>
-            <h3 class="tier-title" id="tier1Title">BRONZE</h3>
-          </div>
-          <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier1Perks">
-            <li id="perk1_1">Full archive access immediately.</li>
-            <li id="perk1_2">Includes all past releases & paid content.</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(1)"><span class="btn-single-text">Single Purchase</span></button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(1)"><span class="btn-recurring-text">Recurring Membership</span></button>
-          </div>
-        </div>
+  // --------------------------------------------------------------
+  // Membership cart logic
+  // --------------------------------------------------------------
+  let currentLang = localStorage.getItem('language') || 'en';
+  let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
 
-        <!-- Tier 2: Copper -->
-        <div class="tier-card" data-tier="2">
-          <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <g transform-origin="100 100">
-                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333">
-                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                  </path>
-                </g>
-              </svg>
-            </span>
-            <h3 class="tier-title" id="tier2Title">COPPER</h3>
-          </div>
-          <div class="tier-price" data-price-usd="15"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier2Perks">
-            <li id="perk2_1">Everything in Bronze, plus:</li>
-            <li id="perk2_2">One (1) custom image request per billing cycle.</li>
-            <li id="perk2_3">Approx. 20 images per request.</li>
-            <li id="perk2_4">Single character, official/creator‑selected outfit.</li>
-            <li id="perk2_5">Some character customization allowed.</li>
-            <li id="perk2_6">Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)"><span class="btn-single-text">Single Purchase</span></button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(2)"><span class="btn-recurring-text">Recurring Membership</span></button>
-          </div>
-        </div>
+  const TIER_PRICES = {1:5, 2:15, 3:30, 4:50, 5:75};
+  const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
-        <!-- Tier 3: Silver -->
-        <div class="tier-card" data-tier="3">
-          <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <g transform-origin="100 100">
-                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0">
-                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                  </path>
-                </g>
-              </svg>
-            </span>
-            <h3 class="tier-title" id="tier3Title">SILVER</h3>
-          </div>
-          <div class="tier-price" data-price-usd="30"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier3Perks">
-            <li id="perk3_1">Everything in Bronze, plus:</li>
-            <li id="perk3_2">One (1) custom image request per billing cycle.</li>
-            <li id="perk3_3">Approx. 40 images per request.</li>
-            <li id="perk3_4">Single character, custom outfit allowed.</li>
-            <li id="perk3_5">Character customization allowed.</li>
-            <li id="perk3_6">Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)"><span class="btn-single-text">Single Purchase</span></button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(3)"><span class="btn-recurring-text">Recurring Membership</span></button>
-          </div>
-        </div>
+  function getCart() {
+    try {
+      return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
+    } catch { return []; }
+  }
 
-        <!-- Tier 4: Gold -->
-        <div class="tier-card" data-tier="4">
-          <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <g transform-origin="100 100">
-                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700">
-                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                  </path>
-                </g>
-              </svg>
-            </span>
-            <h3 class="tier-title" id="tier4Title">GOLD</h3>
-          </div>
-          <div class="tier-price" data-price-usd="50"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier4Perks">
-            <li id="perk4_1">Everything in Bronze, plus:</li>
-            <li id="perk4_2">One (1) large custom image request per billing cycle.</li>
-            <li id="perk4_3">Approx. 80 images per request.</li>
-            <li id="perk4_4">Single character, custom outfit allowed.</li>
-            <li id="perk4_5">Character customization allowed.</li>
-            <li id="perk4_6">Typical turnaround: 3‑7 days (queue order).</li>
-            <li id="perk4_7">Special/expanded requests may be discussed.</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)"><span class="btn-single-text">Single Purchase</span></button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)"><span class="btn-recurring-text">Recurring Membership</span></button>
-          </div>
-        </div>
+  function saveCart(cart) {
+    localStorage.setItem('velutinx_cart', JSON.stringify(cart));
+    updateCartUI();
+    updateMembershipButtons();
+  }
 
-        <!-- Tier 5: Platinum -->
-        <div class="tier-card" data-tier="5">
-          <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" class="card-image" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <g transform-origin="100 100">
-                  <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2">
-                    <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                    <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" calcMode="spline" dur="2.8s" repeatCount="indefinite"/>
-                  </path>
-                </g>
-              </svg>
-            </span>
-            <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
+  function formatPrice(usd) {
+    return `US$${usd.toFixed(2)}`;
+  }
+
+  function showSnackbar(message, isRemove = false) {
+    const sb = document.getElementById('snackbar');
+    if (sb) {
+      sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+      const textSpan = sb.querySelector('#snackText');
+      if (textSpan) textSpan.innerText = message;
+      sb.classList.add('show');
+      setTimeout(() => sb.classList.remove('show'), 2000);
+    } else {
+      alert(message);
+    }
+  }
+
+  function updateCartUI() {
+    const cart = getCart();
+    const container = document.getElementById('cartItems');
+    const totalSpan = document.getElementById('cartTotal');
+    const emptyMsg = getTranslation('emptyCart');
+
+    if (container) {
+      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${emptyMsg}</div>` : '';
+      cart.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div class="cart-item-info">
+            <div class="cart-item-title">${item.title}</div>
+            <div class="cart-item-price">${formatPrice(item.price)}</div>
           </div>
-          <div class="tier-price" data-price-usd="75"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks" id="tier5Perks">
-            <li id="perk5_1">Everything in Bronze, plus:</li>
-            <li id="perk5_2">One (1) large custom image request per billing cycle.</li>
-            <li id="perk5_3">Approx. 80 images per request.</li>
-            <li id="perk5_4">Single character, custom outfit allowed.</li>
-            <li id="perk5_5">Character customization allowed.</li>
-            <li id="perk5_6">⚡ Priority: worked on first after current tasks.</li>
-            <li id="perk5_7">Typical turnaround: 3‑7 days (once started).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)"><span class="btn-single-text">Single Purchase</span></button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(5)"><span class="btn-recurring-text">Recurring Membership</span></button>
-          </div>
-        </div>
-      </div>
-      <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
-      <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
-    </div>
-  </main>
-
-  <script src="https://velutinx.com/assets/js/header.js"></script>
-  <script src="https://velutinx.com/assets/js/shop-shared.js"></script>
-
-  <script>
-    // Carousel scroll
-    window.scrollCarousel = function(direction) {
-      const container = document.getElementById('tierCarousel');
-      if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
-    };
-
-    // Discord help toggle
-    document.addEventListener('DOMContentLoaded', function() {
-      const toggle = document.getElementById('discordHelpToggle');
-      const content = document.getElementById('discordHelpContent');
-      if (toggle && content) {
-        toggle.addEventListener('click', function(e) {
-          e.preventDefault();
-          content.classList.toggle('show');
+          <button class="cart-item-remove" data-idx="${idx}">✕</button>
+        `;
+        container.appendChild(div);
+      });
+      document.querySelectorAll('.cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const cart = getCart();
+          cart.splice(idx, 1);
+          saveCart(cart);
         });
+      });
+      const total = cart.reduce((sum, i) => sum + (i.price || 0), 0);
+      if (totalSpan) totalSpan.innerText = formatPrice(total);
+    }
+    const count = cart.length;
+    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
+  }
+
+  window.addOrToggleCart = function(product) {
+    let cart = getCart();
+    const idx = cart.findIndex(i => String(i.id) === String(product.id));
+    const t = getTranslation;
+    if (idx > -1) {
+      cart.splice(idx, 1);
+      showSnackbar(getTranslation('removedFromCart') || 'Removed from cart', true);
+    } else {
+      cart.push(product);
+      showSnackbar(getTranslation('addedToCart') || 'Added to cart', false);
+    }
+    saveCart(cart);
+  };
+
+  function validateDiscordId() {
+    const input = document.getElementById('discordId');
+    if (!input) return null;
+    const id = input.value.trim();
+    if (!id) { showSnackbar(getTranslation('errorDiscordMissing') || 'Please enter your Discord ID', true); return null; }
+    if (!/^\d{17,19}$/.test(id)) { showSnackbar(getTranslation('errorDiscordInvalid') || 'Invalid Discord ID format', true); return null; }
+    return id;
+  }
+
+  window.handleSinglePurchase = function(tierNumber) {
+    const discordId = validateDiscordId();
+    if (!discordId) return;
+    let cart = getCart();
+    const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
+    if (alreadyInCart) {
+      window.addOrToggleCart({ id: `membership-${tierNumber}` });
+      return;
+    }
+    const membershipItems = cart.filter(item => item.type === 'membership');
+    const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
+    if (highestTier !== null && tierNumber < highestTier) {
+      showSnackbar(getTranslation('errorOnlyHighest') || 'Only the highest tier can be added.', true);
+      return;
+    }
+    membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
+    window.addOrToggleCart({
+      id: `membership-${tierNumber}`,
+      title: `${TIER_TITLES[tierNumber]} (30 days)`,
+      price: TIER_PRICES[tierNumber],
+      type: 'membership',
+      tier: tierNumber,
+      discordId: discordId,
+      image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+    });
+  };
+
+  window.handleRecurring = function(tierNumber) {
+    const discordId = validateDiscordId();
+    if (!discordId) return;
+    const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
+    const planId = PLAN_IDS[tierNumber];
+    if (!planId) {
+      showSnackbar(getTranslation('errorPlanNotConfigured') || 'Plan not configured for this tier', true);
+      return;
+    }
+    alert(`Recurring subscription for Tier ${tierNumber} would start.`);
+  };
+
+  window.scrollCarousel = function(direction) {
+    const container = document.getElementById('tierCarousel');
+    if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
+  };
+
+  function updateMembershipButtons() {
+    const cart = getCart();
+    for (let tier = 1; tier <= 5; tier++) {
+      const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+      if (!card) continue;
+      const inCart = cart.some(item => item.id === `membership-${tier}`);
+      const btn = card.querySelector('.btn-single, .btn-remove');
+      if (btn) {
+        btn.textContent = inCart ? (getTranslation('removeFromCart') || 'Remove from Cart') : (getTranslation('btnSingle') || 'Single Purchase');
+        btn.classList.toggle('btn-single', !inCart);
+        btn.classList.toggle('btn-remove', inCart);
+      }
+    }
+  }
+
+  function updateMembershipText() {
+    const t = window.translations ? window.translations[currentLang] : null;
+    const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = (t && t[id]) || fallback; };
+    const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = (t && t[id]) || fallback; };
+
+    // Remove sparkle from all languages
+    let title = (t && t.membershipTitle) || '✨ Choose Your Membership';
+    title = title.replace(/✨\s*/, '');
+    const titleEl = document.getElementById('membershipTitle');
+    if (titleEl) titleEl.textContent = title;
+
+    setText('membershipDescription', 'Support my work and unlock exclusive perks');
+    setHTML('discordIdLabel', ((t && t.discordIdLabel) || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
+    setText('discordHintText', (t && t.discordHint) || 'How to find your Discord ID:');
+    setText('discordHelpText', (t && t.discordHelpLink) || 'Where do I find my Discord ID? (click)');
+    setHTML('discordHelpStep1', (t && t.discordHelpStep1) || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+    setHTML('discordHelpStep2', (t && t.discordHelpStep2) || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+    setHTML('discordHelpStep3', (t && t.discordHelpStep3) || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+    setHTML('discordHelpStep4', (t && t.discordHelpStep4) || '<strong>Step 4:</strong> Paste that number here.');
+    setHTML('noteBox', ((t && t.noteBox) || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
+      '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + ((t && t.joinDiscord) || '→ Join Discord Server ←') + '</a></div>');
+
+    for (let i = 1; i <= 5; i++) {
+      const titleEl = document.getElementById(`tier${i}Title`);
+      const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
+      if (titleEl && t && t[key]) titleEl.textContent = t[key];
+    }
+
+    const perkIds = [
+      'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
+      'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
+      'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
+      'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
+    ];
+    perkIds.forEach(id => { const el = document.getElementById(id); if (el && t && t[id]) el.textContent = t[id]; });
+
+    document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = (t && t.btnSingle) || 'Single Purchase');
+    document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = (t && t.btnRecurring) || 'Recurring Membership');
+    document.querySelectorAll('.per-month').forEach(el => el.textContent = (t && t.perMonth) || '/ month');
+
+    updateMembershipPrices();
+  }
+
+  function updateMembershipPrices() {
+    document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+      const usd = parseFloat(el.dataset.priceUsd);
+      if (!isNaN(usd)) {
+        const priceSpan = el.querySelector('.price-value');
+        if (priceSpan) priceSpan.textContent = formatPrice(usd);
       }
     });
+  }
 
-    // Helper to get current translations
-    function getT() {
-      const lang = localStorage.getItem("language") || "en";
-      return window.translations?.[lang] || window.translations?.en || {};
+  // ========== Header UI translation ==========
+  function updateHeaderTexts() {
+    document.getElementById('menuHome').textContent = getTranslation('menuHome');
+    document.getElementById('menuCommissions').textContent = getTranslation('menuCommissions');
+    document.getElementById('menuArtwork').textContent = getTranslation('menuArtwork');
+    document.getElementById('menuPoll').textContent = getTranslation('menuPoll');
+    document.getElementById('menuStore').textContent = getTranslation('menuStore');
+    document.getElementById('menuContact').textContent = getTranslation('menuContact');
+    document.getElementById('loginBtn').textContent = getTranslation('websiteBtn');
+    document.getElementById('cartTitle').textContent = getTranslation('cartTitle');
+    document.getElementById('totalLabel').textContent = getTranslation('totalLabel');
+    document.getElementById('demoCheckoutBtn').textContent = getTranslation('checkoutBtn');
+  }
+
+  // ========== Header UI Handlers ==========
+  function initHeaderUI() {
+    // Sidebar
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebarClose = document.getElementById('sidebarMenuToggle');
+    if (menuToggle && sidebar && sidebarOverlay) {
+      const openSidebar = () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
+      const closeSidebar = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); document.body.style.overflow = ''; };
+      menuToggle.onclick = openSidebar;
+      sidebarClose?.addEventListener('click', closeSidebar);
+      sidebarOverlay.addEventListener('click', closeSidebar);
     }
 
-// Update membership button text based on cart (using translations)
-function updateMembershipButtons() {
-  const t = getT();
-  const cart = window.getCart ? window.getCart() : [];
-  for (let tier = 1; tier <= 5; tier++) {
-    const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-    if (!card) continue;
-    const btn = card.querySelector('.btn-single, .btn-remove');
-    if (!btn) continue;
-    const inCart = cart.some(item => item.id === `membership-${tier}`);
-    btn.textContent = inCart ? (t.removeFromCart || 'Remove from Cart') : (t.btnSingle || 'Single Purchase');
-    btn.classList.toggle('btn-single', !inCart);
-    btn.classList.toggle('btn-remove', inCart);
-  }
-}
-
-// Override shared updateCartDisplay to also update membership buttons
-const originalUpdateCartDisplay = window.updateCartDisplay;
-window.updateCartDisplay = function() {
-  if (originalUpdateCartDisplay) originalUpdateCartDisplay();
-  updateMembershipButtons();
-};
-
-    // Update membership prices based on current currency
-    function updateMembershipPrices() {
-      document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-        const usd = parseFloat(el.dataset.priceUsd);
-        if (!isNaN(usd) && window.formatPrice) {
-          const priceSpan = el.querySelector('.price-value');
-          if (priceSpan) {
-            priceSpan.textContent = window.formatPrice(usd);
-          }
-        }
+    // Theme
+    const themeBtn = document.getElementById('themeBtn');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
       });
     }
+    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 
-// Update all membership text from translations (including perks and tier titles)
-function updateMembershipText() {
-  const t = getT();
-
-  const setText = (id, fallback) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = t[id] || fallback;
-  };
-  const setHTML = (id, fallback) => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = t[id] || fallback;
-  };
-
-  setText('membershipTitle', '✨ Choose Your Membership');
-  setText('membershipDescription', 'Support my work and unlock exclusive perks');
-  setHTML('discordIdLabel', (t.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
-  setText('discordHintText', t.discordHint || 'How to find your Discord ID:');
-  setText('discordHelpText', t.discordHelpLink || 'Where do I find my Discord ID? (click)');
-  setHTML('discordHelpStep1', t.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-  setHTML('discordHelpStep2', t.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-  setHTML('discordHelpStep3', t.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-  setHTML('discordHelpStep4', t.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
-  setHTML('noteBox', (t.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
-    '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
-
-  // Update perk descriptions using IDs
-  const perkIds = [
-    'perk1_1', 'perk1_2',
-    'perk2_1', 'perk2_2', 'perk2_3', 'perk2_4', 'perk2_5', 'perk2_6',
-    'perk3_1', 'perk3_2', 'perk3_3', 'perk3_4', 'perk3_5', 'perk3_6',
-    'perk4_1', 'perk4_2', 'perk4_3', 'perk4_4', 'perk4_5', 'perk4_6', 'perk4_7',
-    'perk5_1', 'perk5_2', 'perk5_3', 'perk5_4', 'perk5_5', 'perk5_6', 'perk5_7'
-  ];
-  perkIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = t[id] || '';
-  });
-
-  // Update tier titles from translations
-  const tierKeys = ['tierBronze', 'tierCopper', 'tierSilver', 'tierGold', 'tierPlatinum'];
-  for (let i = 1; i <= 5; i++) {
-    const titleEl = document.getElementById(`tier${i}Title`);
-    if (titleEl) {
-      const key = tierKeys[i-1];
-      titleEl.textContent = t[key] || 'Bronze'; // fallback
-    }
-  }
-
-  // Update static button labels (these are the inner spans, not the dynamic buttons)
-  document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t.btnSingle || 'Single Purchase');
-  document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t.btnRecurring || 'Recurring Membership');
-  document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
-}
-
-    // Snackbar with translated messages
-    function showSnackbar(messageKey, isError = false) {
-      const snackbar = document.getElementById('snackbar');
-      const snackText = document.getElementById('snackText');
-      if (!snackbar || !snackText) return;
-
-      const t = getT();
-      let message = t[messageKey] || messageKey; // fallback to key if not found
-
-      snackText.textContent = message;
-      snackbar.classList.toggle('error', isError);
-      snackbar.classList.add('show');
-      setTimeout(() => snackbar.classList.remove('show', 'error'), 2400);
-    }
-
-    // Discord ID validation with translated messages
-    function validateDiscordId() {
-      const discordInput = document.getElementById('discordId');
-      if (!discordInput) return null;
-      const id = discordInput.value.trim();
-      if (!id) {
-        showSnackbar('errorDiscordMissing', true);
-        return null;
-      }
-      if (!/^\d{17,19}$/.test(id)) {
-        showSnackbar('errorDiscordInvalid', true);
-        return null;
-      }
-      return id;
-    }
-
-    // Main purchase handler
-    window.handleSinglePurchase = async function(tierNumber) {
-      const discordId = validateDiscordId();
-      if (!discordId) return;
-
-      const tierPrices = { 1: 5.00, 2: 15.00, 3: 30.00, 4: 50.00, 5: 75.00 };
-      const tierTitles = {
-        1: 'BRONZE',
-        2: 'COPPER',
-        3: 'SILVER',
-        4: 'GOLD',
-        5: 'PLATINUM'
-      };
-
-      let cart = window.getCart ? window.getCart() : [];
-      const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
-
-      if (alreadyInCart) {
-        if (window.addOrToggleCart) window.addOrToggleCart({ id: `membership-${tierNumber}` });
-        showSnackbar('removedFromCart', false);
-      } else {
-        const membershipItems = cart.filter(item => item.type === 'membership');
-        const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-
-        if (highestTier !== null && tierNumber < highestTier) {
-          showSnackbar('errorOnlyHighest', true);
-          return;
-        }
-
-        membershipItems.forEach(item => {
-          if (window.addOrToggleCart) window.addOrToggleCart({ id: item.id });
-        });
-
-        if (window.addOrToggleCart) {
-          window.addOrToggleCart({
-            id: `membership-${tierNumber}`,
-            title: tierTitles[tierNumber] + ' (30 days)',
-            price: tierPrices[tierNumber],
-            type: 'membership',
-            tier: tierNumber,
-            discordId: discordId
-          });
-        }
-        showSnackbar('addedToCart', false);
-      }
-      updateMembershipButtons();
-    };
-
-    // Recurring handler (placeholder)
-    window.handleRecurring = async function(tierNumber) {
-      const discordId = validateDiscordId();
-      if (!discordId) return;
-      const PLAN_IDS = { 1: 'P-BRONZE_PLAN_ID', 2: 'P-COPPER_PLAN_ID', 3: 'P-SILVER_PLAN_ID', 4: 'P-GOLD_PLAN_ID', 5: 'P-PLATINUM_PLAN_ID' };
-      const planId = PLAN_IDS[tierNumber];
-      if (!planId) { showSnackbar('errorPlanNotConfigured', true); return; }
-      alert(`Recurring subscription for Tier ${tierNumber} would start.`);
-    };
+    // Cart drawer
+    const cartBtn = document.getElementById('cartBtn');
+    const floatCartBtn = document.getElementById('floatingCartBtn');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartOverlay = document.getElementById('cartOverlay');
+    const cartClose = document.getElementById('cartClose');
+    const openCart = () => { cartDrawer.classList.add('open'); cartOverlay.classList.add('active'); document.body.classList.add('drawer-open'); };
+    const closeCart = () => { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('active'); document.body.classList.remove('drawer-open'); };
+    cartBtn?.addEventListener('click', openCart);
+    floatCartBtn?.addEventListener('click', openCart);
+    cartClose?.addEventListener('click', closeCart);
+    cartOverlay?.addEventListener('click', closeCart);
+    document.addEventListener('click', (e) => {
+      if (cartDrawer?.classList.contains('open') && !cartDrawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatCartBtn?.contains(e.target)) closeCart();
+    });
 
     // Language switcher
-    document.querySelectorAll(".lang-item").forEach(item => {
-      item.addEventListener("click", () => {
-        setTimeout(() => {
-          updateMembershipText();
-          updateMembershipPrices();
-          updateMembershipButtons(); // also update button texts
-          if (window.updateAllPrices) window.updateAllPrices();
-        }, 100);
+    const langBtn = document.getElementById('langBtn');
+    const langPopover = document.getElementById('languagePopover');
+    if (langBtn && langPopover) {
+      langBtn.addEventListener('click', (e) => { e.stopPropagation(); langPopover.classList.toggle('show'); });
+      document.querySelectorAll('.lang-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const newLang = item.dataset.lang;
+          if (newLang) {
+            currentLang = newLang;
+            localStorage.setItem('language', newLang);
+            currentCurrency = newLang === 'en' ? 'USD' : (newLang === 'ja' ? 'JPY' : (newLang === 'zh' ? 'CNY' : 'MXN'));
+            updateMembershipText();
+            updateMembershipButtons();
+            updateCartUI();
+            updateHeaderTexts(); // update sidebar, cart, and website button
+          }
+          langPopover.classList.remove('show');
+        });
       });
-    });
+      document.addEventListener('click', (e) => {
+        if (!langPopover.contains(e.target) && e.target !== langBtn) langPopover.classList.remove('show');
+      });
+    }
 
-    // Page setup
-    window.addEventListener('load', function() {
-      const themeBtn = document.getElementById('themeBtn');
-      if (themeBtn) {
-        themeBtn.onclick = () => {
-          document.body.classList.toggle('dark');
-          localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-        };
-      }
-      if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+    // Demo checkout button
+    const demoBtn = document.getElementById('demoCheckoutBtn');
+    if (demoBtn) demoBtn.addEventListener('click', () => alert("⚠️ Checkout is a demo. Cart items are stored locally."));
+  }
 
-      updateMembershipButtons();
-      updateMembershipText();
-      updateMembershipPrices();
-      if (window.updateCartDisplay) window.updateCartDisplay();
-    });
-  </script>
+  // Discord help toggle
+  function initDiscordHelp() {
+    const helpToggle = document.getElementById('discordHelpToggle');
+    const helpContent = document.getElementById('discordHelpContent');
+    if (helpToggle && helpContent) {
+      helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
+    }
+  }
+
+  // Initialize everything when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    initHeaderUI();
+    initDiscordHelp();
+    updateMembershipText();
+    updateMembershipButtons();
+    updateCartUI();
+    updateHeaderTexts(); // initial header texts based on stored language
+  });
+</script>
 </body>
 </html>
