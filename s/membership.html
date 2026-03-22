@@ -209,10 +209,9 @@
 
 <script>
   // --------------------------------------------------------------
-  // Membership logic (using the store cart for checkout)
+  // Membership logic (simplified – no restrictions for testing)
   // --------------------------------------------------------------
   let currentLang = localStorage.getItem('language') || 'en';
-  let priceMapReady = false;
 
   // Map tier numbers to existing price keys from Supabase
   const TIER_PRICE_KEYS = {
@@ -232,10 +231,6 @@
     if (window.updateStoreCartUI) window.updateStoreCartUI();
     updateMembershipButtons();
   }
-
-  // Helper to get cart (for compatibility)
-  function getCart() { return storeCart; }
-  function saveCart(cart) { storeCart = cart; saveStoreCart(); }
 
   // Override shared.js snackbar (use its element)
   function showSnackbar(message, isRemove = false) {
@@ -290,13 +285,7 @@
       return;
     }
 
-    // Check if there's already another membership in the cart
-    const membershipItems = storeCart.filter(item => item.type === 'membership');
-    if (membershipItems.length > 0) {
-      showSnackbar(t?.errorOnlyHighest || 'Only one membership can be added at a time.', true);
-      return;
-    }
-
+    // No restrictions for now – allow adding any tier even if another exists
     const priceKey = TIER_PRICE_KEYS[tierNumber];
     if (!priceKey) {
       showSnackbar('Invalid tier', true);
@@ -383,14 +372,30 @@
     });
   }
 
-  // ----- PayPal integration (copied from store.html) -----
+  // ----- PayPal integration (simplified, with container creation) -----
   let isRendering = false;
 
-  function renderPayPalButton() {
-    console.log('[DEBUG] renderPayPalButton called');
-    const container = document.getElementById('paypal-button-container');
+  function ensurePayPalContainer() {
+    let container = document.getElementById('paypal-button-container');
     if (!container) {
-      console.log('[DEBUG] Container not found');
+      console.log('[DEBUG] Creating paypal-button-container');
+      const cartTotalDiv = document.querySelector('.cart-total');
+      if (cartTotalDiv) {
+        container = document.createElement('div');
+        container.id = 'paypal-button-container';
+        container.style.margin = '12px 20px 20px';
+        cartTotalDiv.after(container);
+      } else {
+        console.log('[DEBUG] .cart-total not found');
+      }
+    }
+    return container;
+  }
+
+  function renderPayPalButton() {
+    const container = ensurePayPalContainer();
+    if (!container) {
+      console.log('[DEBUG] Container still not found');
       return;
     }
     if (!document.body.contains(container)) {
@@ -531,7 +536,6 @@
     const checkPrice = setInterval(() => {
       if (window.priceKeyMap && window.priceUsdMap) {
         clearInterval(checkPrice);
-        priceMapReady = true;
         updateMembershipText();
         updateMembershipButtons();
         updateStoreCartUI();
