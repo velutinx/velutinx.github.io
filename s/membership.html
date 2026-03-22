@@ -399,88 +399,120 @@
 
 
   
-function renderPayPalButton() {
-  const container = ensurePayPalContainer();
-  if (!container) {
-    console.log('[DEBUG] Container still not found');
-    return;
-  }
-  if (!document.body.contains(container)) {
-    console.log('[DEBUG] Container not in DOM');
-    return;
-  }
-  const cartDrawer = document.getElementById('cartDrawer');
-  if (!cartDrawer || !cartDrawer.classList.contains('open')) {
-    console.log('[DEBUG] Drawer not open');
-    return;
-  }
-  if (isRendering) {
-    console.log('[DEBUG] Already rendering');
-    return;
-  }
-  if (!window.priceKeyMap || !window.priceUsdMap) {
-    console.log('[DEBUG] Price map not ready, waiting...');
-    return;
-  }
-  isRendering = true;
+  // ----- PayPal integration (enhanced diagnostics) -----
+  let isRendering = false;
 
-  const cart = storeCart;
-  if (cart.length === 0) {
-    container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
-    isRendering = false;
-    return;
+  function ensurePayPalContainer() {
+    let container = document.getElementById('paypal-button-container');
+    if (!container) {
+      console.log('[DEBUG] Creating paypal-button-container');
+      const cartTotalDiv = document.querySelector('.cart-total');
+      if (cartTotalDiv) {
+        container = document.createElement('div');
+        container.id = 'paypal-button-container';
+        container.style.margin = '12px 20px 20px';
+        cartTotalDiv.after(container);
+      } else {
+        console.log('[DEBUG] .cart-total not found');
+      }
+    }
+    return container;
   }
 
-  container.innerHTML = '';
-  console.log('[DEBUG] Container cleared, about to render PayPal button');
+  function renderPayPalButton() {
+    const container = ensurePayPalContainer();
+    if (!container) {
+      console.log('[DEBUG] Container still not found');
+      return;
+    }
+    if (!document.body.contains(container)) {
+      console.log('[DEBUG] Container not in DOM');
+      return;
+    }
+    const cartDrawer = document.getElementById('cartDrawer');
+    if (!cartDrawer || !cartDrawer.classList.contains('open')) {
+      console.log('[DEBUG] Drawer not open');
+      return;
+    }
+    if (isRendering) {
+      console.log('[DEBUG] Already rendering');
+      return;
+    }
+    if (!window.priceKeyMap || !window.priceUsdMap) {
+      console.log('[DEBUG] Price map not ready, waiting...');
+      return;
+    }
+    isRendering = true;
 
-  const buttons = paypal.Buttons({
-    createOrder: async () => {
-      const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Order creation failed');
-      return data.orderID;
-    },
-    onApprove: (data, actions) => {
-      return actions.order.capture().then(() => {
-        storeCart = [];
-        saveStoreCart();
-        if (window.updateStoreCartUI) window.updateStoreCartUI();
-        updateMembershipButtons();
-        window.location.href = `/s/success.html?orderID=${data.orderID}`;
-      });
-    },
-    onError: (err) => {
-      console.error('PayPal error', err);
-      alert('Something went wrong. Please try again.');
-    },
-    onCancel: () => {
+    const cart = storeCart;
+    if (cart.length === 0) {
+      container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
       isRendering = false;
+      return;
     }
-  });
 
-  buttons.render(container).then(() => {
-    console.log('[DEBUG] PayPal button rendered successfully');
-    isRendering = false;
-  }).catch((err) => {
-    console.error('PayPal render error:', err);
-    isRendering = false;
-  });
+    container.innerHTML = '';
+    console.log('[DEBUG] Container cleared, about to render PayPal button');
+    console.log('[DEBUG] typeof paypal:', typeof paypal);
+    console.log('[DEBUG] paypal.Buttons:', typeof paypal?.Buttons);
+    console.log('[DEBUG] cart items:', cart);
 
-  // After 2 seconds, check if the container has any children (meaning button rendered)
-  setTimeout(() => {
-    if (container.children.length === 0) {
-      console.log('[DEBUG] Container still empty after render attempt. Possible SDK or script error.');
-      console.log('[DEBUG] Container outerHTML:', container.outerHTML);
-      console.log('[DEBUG] paypal variable:', typeof paypal);
-      console.log('[DEBUG] paypal object keys:', paypal ? Object.keys(paypal) : 'undefined');
-    }
-  }, 2000);
-}
+    const buttons = paypal.Buttons({
+      createOrder: async () => {
+        console.log('[DEBUG] createOrder called');
+        try {
+          const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart })
+          });
+          const data = await response.json();
+          console.log('[DEBUG] createOrder response:', data);
+          if (!response.ok) throw new Error(data.error || 'Order creation failed');
+          return data.orderID;
+        } catch (err) {
+          console.error('[DEBUG] createOrder error:', err);
+          throw err;
+        }
+      },
+      onApprove: (data, actions) => {
+        console.log('[DEBUG] onApprove called');
+        return actions.order.capture().then(() => {
+          storeCart = [];
+          saveStoreCart();
+          if (window.updateStoreCartUI) window.updateStoreCartUI();
+          updateMembershipButtons();
+          window.location.href = `/s/success.html?orderID=${data.orderID}`;
+        });
+      },
+      onError: (err) => {
+        console.error('PayPal error', err);
+        alert('Something went wrong. Please try again.');
+      },
+      onCancel: () => {
+        console.log('[DEBUG] onCancel');
+        isRendering = false;
+      }
+    });
+
+    buttons.render(container).then(() => {
+      console.log('[DEBUG] PayPal button rendered successfully');
+      isRendering = false;
+    }).catch((err) => {
+      console.error('PayPal render error:', err);
+      isRendering = false;
+    });
+
+    // After 2 seconds, check if the container has any children
+    setTimeout(() => {
+      if (container.children.length === 0) {
+        console.log('[DEBUG] Container still empty after render attempt. Possible SDK or script error.');
+        console.log('[DEBUG] Container outerHTML:', container.outerHTML);
+        console.log('[DEBUG] paypal variable:', typeof paypal);
+        console.log('[DEBUG] paypal object keys:', paypal ? Object.keys(paypal) : 'undefined');
+      }
+    }, 2000);
+  }
 
   window.setupStoreCheckout = () => renderPayPalButton();
 
@@ -550,49 +582,7 @@ function renderPayPalButton() {
 
   function escapeHtml(str) {
     return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
-  }
-
-  // Initialise
-  document.addEventListener('headerReady', () => {
-    // Wait for price.js
-    const checkPrice = setInterval(() => {
-      if (window.priceKeyMap && window.priceUsdMap) {
-        clearInterval(checkPrice);
-        updateMembershipText();
-        updateMembershipButtons();
-        updateStoreCartUI();
-        interceptCartButtons();
-        overrideSharedCart();
-        // Expose needed functions
-        window.updateStoreCartUI = updateStoreCartUI;
-        window.getFormattedPrice = window.getFormattedPrice;
-        window.formatPrice = window.formatPrice;
-
-        // If drawer is already open, render button
-        const drawer = document.getElementById('cartDrawer');
-        if (drawer && drawer.classList.contains('open')) {
-          console.log('[DEBUG] Drawer already open at init, rendering button');
-          renderPayPalButton();
-        }
-      }
-    }, 100);
-  });
-
-  // Re-render button if price map loads after drawer is already open
-  document.addEventListener('priceMapReady', () => {
-    const drawer = document.getElementById('cartDrawer');
-    if (drawer && drawer.classList.contains('open')) {
-      console.log('[DEBUG] priceMapReady event, drawer open, rendering button');
-      renderPayPalButton();
-    }
-  });
-
-  // Discord help toggle
-  document.addEventListener('DOMContentLoaded', () => {
-    const helpToggle = document.getElementById('discordHelpToggle');
-    const helpContent = document.getElementById('discordHelpContent');
-    if (helpToggle && helpContent) {
-      helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
+  }gle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
     }
   });
 </script>
