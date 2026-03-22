@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
+  <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
+  <!-- Membership-specific styles -->
   <style>
     .container {
       max-width: 1200px;
@@ -230,77 +232,14 @@
       border-radius: 8px;
       font-size: 0.95rem;
     }
-    .cart-drawer .cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #a64a5c; padding: 0 8px; }
+    /* Ensure cart drawer displays membership items correctly */
+    .cart-item-price { font-weight: 700; }
   </style>
 </head>
 <body>
 
-<!-- ========== HEADER (embedded) ========== -->
-<nav class="top-nav">
-  <div class="nav-left">
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="logo">VELUTINX</div>
-  </div>
-  <div class="nav-actions">
-    <a href="https://velutinx.com/index-" class="login-btn" id="loginBtn">Website</a>
-    <div id="langContainer" style="position:relative">
-      <button class="nav-icon" id="langBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path></svg>
-      </button>
-      <div id="languagePopover">
-        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="en">English</div>
-        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="ja">日本語</div>
-        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="zh">简体中文</div>
-        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="es">Español</div>
-      </div>
-    </div>
-    <button class="nav-icon" id="themeBtn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path></svg>
-    </button>
-    <div class="cart-wrapper" style="position:relative">
-      <button class="nav-icon" id="cartBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>
-      </button>
-      <span class="cart-badge" id="cartCount">0</span>
-    </div>
-  </div>
-</nav>
-
-<button class="floating-cart" id="floatingCartBtn">
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path></svg>
-  <span class="floating-badge" id="floatingCartCount">0</span>
-</button>
-
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <button class="menu-toggle" id="sidebarMenuToggle" style="background:transparent; color:var(--text);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="logo">VELUTINX</div>
-  </div>
-  <div class="sidebar-menu">
-    <a href="https://velutinx.com/index-" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/></svg><span id="menuHome">HOME</span></a>
-    <a href="https://velutinx.com/commission" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span id="menuCommissions">COMMISSIONS</span></a>
-    <a href="https://velutinx.com/artwork" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M7 7l2 2M17 7l-2 2M7 17l2-2M17 17l-2-2"/></svg><span id="menuArtwork">ARTWORK</span></a>
-    <a href="https://velutinx.com/poll" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M16 4v16"/></svg><span id="menuPoll">POLL</span></a>
-    <a href="https://velutinx.com/store" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/><circle cx="12" cy="15" r="2"/></svg><span id="menuStore">STORE</span></a>
-    <a href="https://velutinx.com/contact" class="menu-item"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H4z"/><path d="M22 6L12 13L2 6"/></svg><span id="menuContact">CONTACT</span></a>
-  </div>
-  <div class="sidebar-footer">© VELUTINX</div>
-</aside>
-
-<div class="cart-overlay" id="cartOverlay"></div>
-<div class="cart-drawer" id="cartDrawer">
-  <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
-  <div class="cart-items" id="cartItems"></div>
-  <div class="cart-total"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div>
-  <button class="demo-checkout-btn" id="demoCheckoutBtn">Proceed to checkout (DEMO)</button>
-</div>
-
-<div id="snackbar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span id="snackText">Added successfully</span></div>
+<!-- Header will be injected here by shared.js -->
+<div id="header-placeholder"></div>
 
 <main class="container">
   <h1 class="membership-title" id="membershipTitle">✨ Choose Your Membership</h1>
@@ -442,82 +381,20 @@
   </div>
 </main>
 
+<!-- Shared header JS (injects header, sidebar, cart, etc.) -->
+<script src="/assets/js/shared.js"></script>
+<!-- Membership translations -->
 <script src="/s/js/translations.js"></script>
+
 <script>
   // --------------------------------------------------------------
-  // Header translations (embedded, because translations.js may not contain them)
-  // --------------------------------------------------------------
-  const headerTranslations = {
-    en: {
-      menuHome: "HOME",
-      menuCommissions: "COMMISSIONS",
-      menuArtwork: "ARTWORK",
-      menuPoll: "POLL",
-      menuStore: "STORE",
-      menuContact: "CONTACT",
-      websiteBtn: "Website",
-      cartTitle: "Shopping Cart",
-      totalLabel: "Total",
-      checkoutBtn: "Proceed to checkout (DEMO)",
-      emptyCart: "Your cart is empty"
-    },
-    ja: {
-      menuHome: "ホーム",
-      menuCommissions: "コミッション",
-      menuArtwork: "アートワーク",
-      menuPoll: "投票",
-      menuStore: "ストア",
-      menuContact: "お問い合わせ",
-      websiteBtn: "ウェブサイト",
-      cartTitle: "ショッピングカート",
-      totalLabel: "合計",
-      checkoutBtn: "レジに進む (デモ)",
-      emptyCart: "カートは空です"
-    },
-    zh: {
-      menuHome: "主页",
-      menuCommissions: "委托",
-      menuArtwork: "作品集",
-      menuPoll: "投票",
-      menuStore: "商店",
-      menuContact: "联系",
-      websiteBtn: "网站",
-      cartTitle: "购物车",
-      totalLabel: "总计",
-      checkoutBtn: "去结账 (演示)",
-      emptyCart: "购物车是空的"
-    },
-    es: {
-      menuHome: "INICIO",
-      menuCommissions: "COMISIONES",
-      menuArtwork: "OBRAS",
-      menuPoll: "ENCUESTA",
-      menuStore: "TIENDA",
-      menuContact: "CONTACTO",
-      websiteBtn: "Sitio web",
-      cartTitle: "Carrito de Compras",
-      totalLabel: "Total",
-      checkoutBtn: "Proceder al pago (DEMO)",
-      emptyCart: "Tu carrito está vacío"
-    }
-  };
-
-  // Merge function: get from translations.js if available, else fallback to headerTranslations
-  function getTranslation(key) {
-    const main = window.translations ? window.translations[currentLang] : null;
-    if (main && main[key] !== undefined) return main[key];
-    return headerTranslations[currentLang]?.[key] || headerTranslations.en[key];
-  }
-
-  // --------------------------------------------------------------
-  // Membership cart logic
+  // Membership‑specific cart logic (overrides shared.js)
   // --------------------------------------------------------------
   let currentLang = localStorage.getItem('language') || 'en';
-  let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
-
   const TIER_PRICES = {1:5, 2:15, 3:30, 4:50, 5:75};
   const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
+  // Helper to get cart from localStorage (shared.js uses same key)
   function getCart() {
     try {
       return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
@@ -526,14 +403,16 @@
 
   function saveCart(cart) {
     localStorage.setItem('velutinx_cart', JSON.stringify(cart));
-    updateCartUI();
+    updateCartUI();      // our version
     updateMembershipButtons();
   }
 
+  // Format price (simple USD for membership)
   function formatPrice(usd) {
     return `US$${usd.toFixed(2)}`;
   }
 
+  // Override shared.js snackbar (use its element)
   function showSnackbar(message, isRemove = false) {
     const sb = document.getElementById('snackbar');
     if (sb) {
@@ -547,14 +426,15 @@
     }
   }
 
+  // Custom cart drawer renderer (overrides shared.js)
   function updateCartUI() {
     const cart = getCart();
     const container = document.getElementById('cartItems');
     const totalSpan = document.getElementById('cartTotal');
-    const emptyMsg = getTranslation('emptyCart');
+    const t = window.translations?.[currentLang] || window.translations?.en;
 
     if (container) {
-      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${emptyMsg}</div>` : '';
+      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t?.emptyCart || 'Your cart is empty'}</div>` : '';
       cart.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'cart-item';
@@ -583,16 +463,17 @@
     document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
   }
 
+  // Main add/remove function (replaces shared.js version)
   window.addOrToggleCart = function(product) {
     let cart = getCart();
     const idx = cart.findIndex(i => String(i.id) === String(product.id));
-    const t = getTranslation;
+    const t = window.translations?.[currentLang] || window.translations?.en;
     if (idx > -1) {
       cart.splice(idx, 1);
-      showSnackbar(getTranslation('removedFromCart') || 'Removed from cart', true);
+      showSnackbar(t?.removedFromCart || 'Removed from cart', true);
     } else {
       cart.push(product);
-      showSnackbar(getTranslation('addedToCart') || 'Added to cart', false);
+      showSnackbar(t?.addedToCart || 'Added to cart', false);
     }
     saveCart(cart);
   };
@@ -601,14 +482,16 @@
     const input = document.getElementById('discordId');
     if (!input) return null;
     const id = input.value.trim();
-    if (!id) { showSnackbar(getTranslation('errorDiscordMissing') || 'Please enter your Discord ID', true); return null; }
-    if (!/^\d{17,19}$/.test(id)) { showSnackbar(getTranslation('errorDiscordInvalid') || 'Invalid Discord ID format', true); return null; }
+    const t = window.translations?.[currentLang] || window.translations?.en;
+    if (!id) { showSnackbar(t?.errorDiscordMissing || 'Please enter your Discord ID', true); return null; }
+    if (!/^\d{17,19}$/.test(id)) { showSnackbar(t?.errorDiscordInvalid || 'Invalid Discord ID format', true); return null; }
     return id;
   }
 
   window.handleSinglePurchase = function(tierNumber) {
     const discordId = validateDiscordId();
     if (!discordId) return;
+    const t = window.translations?.[currentLang] || window.translations?.en;
     let cart = getCart();
     const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
     if (alreadyInCart) {
@@ -618,10 +501,12 @@
     const membershipItems = cart.filter(item => item.type === 'membership');
     const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
     if (highestTier !== null && tierNumber < highestTier) {
-      showSnackbar(getTranslation('errorOnlyHighest') || 'Only the highest tier can be added.', true);
+      showSnackbar(t?.errorOnlyHighest || 'Only the highest tier can be added.', true);
       return;
     }
+    // Remove existing membership(s)
     membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
+    // Add new one
     window.addOrToggleCart({
       id: `membership-${tierNumber}`,
       title: `${TIER_TITLES[tierNumber]} (30 days)`,
@@ -639,7 +524,8 @@
     const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
     const planId = PLAN_IDS[tierNumber];
     if (!planId) {
-      showSnackbar(getTranslation('errorPlanNotConfigured') || 'Plan not configured for this tier', true);
+      const t = window.translations?.[currentLang] || window.translations?.en;
+      showSnackbar(t?.errorPlanNotConfigured || 'Plan not configured for this tier', true);
       return;
     }
     alert(`Recurring subscription for Tier ${tierNumber} would start.`);
@@ -652,13 +538,14 @@
 
   function updateMembershipButtons() {
     const cart = getCart();
+    const t = window.translations?.[currentLang] || window.translations?.en;
     for (let tier = 1; tier <= 5; tier++) {
       const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
       if (!card) continue;
       const inCart = cart.some(item => item.id === `membership-${tier}`);
       const btn = card.querySelector('.btn-single, .btn-remove');
       if (btn) {
-        btn.textContent = inCart ? (getTranslation('removeFromCart') || 'Remove from Cart') : (getTranslation('btnSingle') || 'Single Purchase');
+        btn.textContent = inCart ? (t?.removeFromCart || 'Remove from Cart') : (t?.btnSingle || 'Single Purchase');
         btn.classList.toggle('btn-single', !inCart);
         btn.classList.toggle('btn-remove', inCart);
       }
@@ -666,31 +553,31 @@
   }
 
   function updateMembershipText() {
-    const t = window.translations ? window.translations[currentLang] : null;
-    const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = (t && t[id]) || fallback; };
-    const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = (t && t[id]) || fallback; };
+    const t = window.translations?.[currentLang] || window.translations?.en;
+    const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
+    const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
 
     // Remove sparkle from all languages
-    let title = (t && t.membershipTitle) || '✨ Choose Your Membership';
+    let title = t?.membershipTitle || '✨ Choose Your Membership';
     title = title.replace(/✨\s*/, '');
     const titleEl = document.getElementById('membershipTitle');
     if (titleEl) titleEl.textContent = title;
 
     setText('membershipDescription', 'Support my work and unlock exclusive perks');
-    setHTML('discordIdLabel', ((t && t.discordIdLabel) || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
-    setText('discordHintText', (t && t.discordHint) || 'How to find your Discord ID:');
-    setText('discordHelpText', (t && t.discordHelpLink) || 'Where do I find my Discord ID? (click)');
-    setHTML('discordHelpStep1', (t && t.discordHelpStep1) || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-    setHTML('discordHelpStep2', (t && t.discordHelpStep2) || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-    setHTML('discordHelpStep3', (t && t.discordHelpStep3) || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-    setHTML('discordHelpStep4', (t && t.discordHelpStep4) || '<strong>Step 4:</strong> Paste that number here.');
-    setHTML('noteBox', ((t && t.noteBox) || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
-      '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + ((t && t.joinDiscord) || '→ Join Discord Server ←') + '</a></div>');
+    setHTML('discordIdLabel', (t?.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
+    setText('discordHintText', t?.discordHint || 'How to find your Discord ID:');
+    setText('discordHelpText', t?.discordHelpLink || 'Where do I find my Discord ID? (click)');
+    setHTML('discordHelpStep1', t?.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+    setHTML('discordHelpStep2', t?.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+    setHTML('discordHelpStep3', t?.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+    setHTML('discordHelpStep4', t?.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
+    setHTML('noteBox', (t?.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
+      '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t?.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
 
     for (let i = 1; i <= 5; i++) {
       const titleEl = document.getElementById(`tier${i}Title`);
       const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
-      if (titleEl && t && t[key]) titleEl.textContent = t[key];
+      if (titleEl && t?.[key]) titleEl.textContent = t[key];
     }
 
     const perkIds = [
@@ -699,11 +586,11 @@
       'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
       'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
     ];
-    perkIds.forEach(id => { const el = document.getElementById(id); if (el && t && t[id]) el.textContent = t[id]; });
+    perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
 
-    document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = (t && t.btnSingle) || 'Single Purchase');
-    document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = (t && t.btnRecurring) || 'Recurring Membership');
-    document.querySelectorAll('.per-month').forEach(el => el.textContent = (t && t.perMonth) || '/ month');
+    document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t?.btnSingle || 'Single Purchase');
+    document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t?.btnRecurring || 'Recurring Membership');
+    document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
 
     updateMembershipPrices();
   }
@@ -718,108 +605,32 @@
     });
   }
 
-  // ========== Header UI translation ==========
-  function updateHeaderTexts() {
-    document.getElementById('menuHome').textContent = getTranslation('menuHome');
-    document.getElementById('menuCommissions').textContent = getTranslation('menuCommissions');
-    document.getElementById('menuArtwork').textContent = getTranslation('menuArtwork');
-    document.getElementById('menuPoll').textContent = getTranslation('menuPoll');
-    document.getElementById('menuStore').textContent = getTranslation('menuStore');
-    document.getElementById('menuContact').textContent = getTranslation('menuContact');
-    document.getElementById('loginBtn').textContent = getTranslation('websiteBtn');
-    document.getElementById('cartTitle').textContent = getTranslation('cartTitle');
-    document.getElementById('totalLabel').textContent = getTranslation('totalLabel');
-    document.getElementById('demoCheckoutBtn').textContent = getTranslation('checkoutBtn');
-  }
+  // Wait for shared header to be injected, then override cart functions and apply translations
+  document.addEventListener('headerReady', () => {
+    // Override cart drawer rendering and add/remove
+    updateCartUI();
+    // Replace shared.js's addOrToggleCart with our version
+    window.addOrToggleCart = window.addOrToggleCart;
+    // Reapply membership translations (header translations are handled by shared.js)
+    updateMembershipText();
+    updateMembershipButtons();
 
-  // ========== Header UI Handlers ==========
-  function initHeaderUI() {
-    // Sidebar
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const sidebarClose = document.getElementById('sidebarMenuToggle');
-    if (menuToggle && sidebar && sidebarOverlay) {
-      const openSidebar = () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
-      const closeSidebar = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); document.body.style.overflow = ''; };
-      menuToggle.onclick = openSidebar;
-      sidebarClose?.addEventListener('click', closeSidebar);
-      sidebarOverlay.addEventListener('click', closeSidebar);
-    }
-
-    // Theme
-    const themeBtn = document.getElementById('themeBtn');
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-      });
-    }
-    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
-
-    // Cart drawer
-    const cartBtn = document.getElementById('cartBtn');
-    const floatCartBtn = document.getElementById('floatingCartBtn');
-    const cartDrawer = document.getElementById('cartDrawer');
-    const cartOverlay = document.getElementById('cartOverlay');
-    const cartClose = document.getElementById('cartClose');
-    const openCart = () => { cartDrawer.classList.add('open'); cartOverlay.classList.add('active'); document.body.classList.add('drawer-open'); };
-    const closeCart = () => { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('active'); document.body.classList.remove('drawer-open'); };
-    cartBtn?.addEventListener('click', openCart);
-    floatCartBtn?.addEventListener('click', openCart);
-    cartClose?.addEventListener('click', closeCart);
-    cartOverlay?.addEventListener('click', closeCart);
-    document.addEventListener('click', (e) => {
-      if (cartDrawer?.classList.contains('open') && !cartDrawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatCartBtn?.contains(e.target)) closeCart();
+    // Listen for language changes from shared.js
+    document.addEventListener('languageChanged', (e) => {
+      currentLang = e.detail.language;
+      updateMembershipText();
+      updateMembershipButtons();
+      updateCartUI();
     });
-
-    // Language switcher
-    const langBtn = document.getElementById('langBtn');
-    const langPopover = document.getElementById('languagePopover');
-    if (langBtn && langPopover) {
-      langBtn.addEventListener('click', (e) => { e.stopPropagation(); langPopover.classList.toggle('show'); });
-      document.querySelectorAll('.lang-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const newLang = item.dataset.lang;
-          if (newLang) {
-            currentLang = newLang;
-            localStorage.setItem('language', newLang);
-            currentCurrency = newLang === 'en' ? 'USD' : (newLang === 'ja' ? 'JPY' : (newLang === 'zh' ? 'CNY' : 'MXN'));
-            updateMembershipText();
-            updateMembershipButtons();
-            updateCartUI();
-            updateHeaderTexts(); // update sidebar, cart, and website button
-          }
-          langPopover.classList.remove('show');
-        });
-      });
-      document.addEventListener('click', (e) => {
-        if (!langPopover.contains(e.target) && e.target !== langBtn) langPopover.classList.remove('show');
-      });
-    }
-
-    // Demo checkout button
-    const demoBtn = document.getElementById('demoCheckoutBtn');
-    if (demoBtn) demoBtn.addEventListener('click', () => alert("⚠️ Checkout is a demo. Cart items are stored locally."));
-  }
+  });
 
   // Discord help toggle
-  function initDiscordHelp() {
+  document.addEventListener('DOMContentLoaded', () => {
     const helpToggle = document.getElementById('discordHelpToggle');
     const helpContent = document.getElementById('discordHelpContent');
     if (helpToggle && helpContent) {
       helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
     }
-  }
-
-  // Initialize everything when DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
-    initHeaderUI();
-    initDiscordHelp();
-    updateMembershipText();
-    updateMembershipButtons();
-    updateCartUI();
-    updateHeaderTexts(); // initial header texts based on stored language
   });
 </script>
 </body>
