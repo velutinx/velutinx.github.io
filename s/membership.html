@@ -6,6 +6,8 @@
   <title>VELUTINX — Membership</title>
   <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
+  <!-- PayPal SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <!-- Membership-specific styles -->
   <style>
     .container {
@@ -238,7 +240,6 @@
 </head>
 <body>
 
-<!-- Header will be injected here by shared.js -->
 <div id="header-placeholder"></div>
 
 <main class="container">
@@ -381,36 +382,38 @@
   </div>
 </main>
 
-<!-- Shared header JS (injects header, sidebar, cart, etc.) -->
 <script src="/assets/js/shared.js"></script>
-<!-- Membership translations -->
+<script src="/assets/js/price.js" type="module"></script>
 <script src="/s/js/translations.js"></script>
 
 <script>
   // --------------------------------------------------------------
-  // Membership‑specific cart logic (overrides shared.js)
+  // Membership logic (using the store cart for checkout)
   // --------------------------------------------------------------
   let currentLang = localStorage.getItem('language') || 'en';
-  const TIER_PRICES = {1:5, 2:15, 3:30, 4:50, 5:75};
+
+  // Map tier numbers to existing price keys from Supabase
+  const TIER_PRICE_KEYS = {
+    1: 'PRICE_3', // 5 USD
+    2: 'PRICE_4', // 9 USD
+    3: 'PRICE_5', // 14 USD
+    4: 'PRICE_6', // 29 USD
+    5: 'PRICE_7'  // 39 USD
+  };
   const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
-  // Helper to get cart from localStorage (shared.js uses same key)
-  function getCart() {
-    try {
-      return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
-    } catch { return []; }
-  }
+  // Use the store cart (same as store.html)
+  let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 
-  function saveCart(cart) {
-    localStorage.setItem('velutinx_cart', JSON.stringify(cart));
-    updateCartUI();      // our version
+  function saveStoreCart() {
+    localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
+    if (window.updateStoreCartUI) window.updateStoreCartUI();
     updateMembershipButtons();
   }
 
-  // Format price (simple USD for membership)
-  function formatPrice(usd) {
-    return `US$${usd.toFixed(2)}`;
-  }
+  // Helper to get cart (for compatibility)
+  function getCart() { return storeCart; }
+  function saveCart(cart) { storeCart = cart; saveStoreCart(); }
 
   // Override shared.js snackbar (use its element)
   function showSnackbar(message, isRemove = false) {
@@ -426,57 +429,21 @@
     }
   }
 
-  // Custom cart drawer renderer (overrides shared.js)
-  function updateCartUI() {
-    const cart = getCart();
-    const container = document.getElementById('cartItems');
-    const totalSpan = document.getElementById('cartTotal');
+  // Update membership buttons to reflect cart state
+  function updateMembershipButtons() {
     const t = window.translations?.[currentLang] || window.translations?.en;
-
-    if (container) {
-      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t?.emptyCart || 'Your cart is empty'}</div>` : '';
-      cart.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
-          </div>
-          <button class="cart-item-remove" data-idx="${idx}">✕</button>
-        `;
-        container.appendChild(div);
-      });
-      document.querySelectorAll('.cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          const cart = getCart();
-          cart.splice(idx, 1);
-          saveCart(cart);
-        });
-      });
-      const total = cart.reduce((sum, i) => sum + (i.price || 0), 0);
-      if (totalSpan) totalSpan.innerText = formatPrice(total);
+    for (let tier = 1; tier <= 5; tier++) {
+      const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+      if (!card) continue;
+      const inCart = storeCart.some(item => item.id === `membership-${tier}`);
+      const btn = card.querySelector('.btn-single, .btn-remove');
+      if (btn) {
+        btn.textContent = inCart ? (t?.removeFromCart || 'Remove from Cart') : (t?.btnSingle || 'Single Purchase');
+        btn.classList.toggle('btn-single', !inCart);
+        btn.classList.toggle('btn-remove', inCart);
+      }
     }
-    const count = cart.length;
-    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
   }
-
-  // Main add/remove function (replaces shared.js version)
-  window.addOrToggleCart = function(product) {
-    let cart = getCart();
-    const idx = cart.findIndex(i => String(i.id) === String(product.id));
-    const t = window.translations?.[currentLang] || window.translations?.en;
-    if (idx > -1) {
-      cart.splice(idx, 1);
-      showSnackbar(t?.removedFromCart || 'Removed from cart', true);
-    } else {
-      cart.push(product);
-      showSnackbar(t?.addedToCart || 'Added to cart', false);
-    }
-    saveCart(cart);
-  };
 
   function validateDiscordId() {
     const input = document.getElementById('discordId');
@@ -492,30 +459,39 @@
     const discordId = validateDiscordId();
     if (!discordId) return;
     const t = window.translations?.[currentLang] || window.translations?.en;
-    let cart = getCart();
-    const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
+    const alreadyInCart = storeCart.some(item => item.id === `membership-${tierNumber}`);
     if (alreadyInCart) {
-      window.addOrToggleCart({ id: `membership-${tierNumber}` });
+      const idx = storeCart.findIndex(item => item.id === `membership-${tierNumber}`);
+      if (idx !== -1) storeCart.splice(idx, 1);
+      saveStoreCart();
+      showSnackbar(t?.removedFromCart || 'Removed from cart', true);
       return;
     }
-    const membershipItems = cart.filter(item => item.type === 'membership');
-    const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-    if (highestTier !== null && tierNumber < highestTier) {
-      showSnackbar(t?.errorOnlyHighest || 'Only the highest tier can be added.', true);
+
+    // Check if there's already another membership in the cart
+    const membershipItems = storeCart.filter(item => item.type === 'membership');
+    if (membershipItems.length > 0) {
+      showSnackbar(t?.errorOnlyHighest || 'Only one membership can be added at a time.', true);
       return;
     }
-    // Remove existing membership(s)
-    membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
-    // Add new one
-    window.addOrToggleCart({
+
+    const priceKey = TIER_PRICE_KEYS[tierNumber];
+    if (!priceKey) {
+      showSnackbar('Invalid tier', true);
+      return;
+    }
+
+    storeCart.push({
       id: `membership-${tierNumber}`,
       title: `${TIER_TITLES[tierNumber]} (30 days)`,
-      price: TIER_PRICES[tierNumber],
-      type: 'membership',
+      priceKey: priceKey,
+      type: 'store',
       tier: tierNumber,
       discordId: discordId,
       image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
     });
+    saveStoreCart();
+    showSnackbar(t?.addedToCart || 'Added to cart', false);
   };
 
   window.handleRecurring = function(tierNumber) {
@@ -536,28 +512,11 @@
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
 
-  function updateMembershipButtons() {
-    const cart = getCart();
-    const t = window.translations?.[currentLang] || window.translations?.en;
-    for (let tier = 1; tier <= 5; tier++) {
-      const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-      if (!card) continue;
-      const inCart = cart.some(item => item.id === `membership-${tier}`);
-      const btn = card.querySelector('.btn-single, .btn-remove');
-      if (btn) {
-        btn.textContent = inCart ? (t?.removeFromCart || 'Remove from Cart') : (t?.btnSingle || 'Single Purchase');
-        btn.classList.toggle('btn-single', !inCart);
-        btn.classList.toggle('btn-remove', inCart);
-      }
-    }
-  }
-
   function updateMembershipText() {
     const t = window.translations?.[currentLang] || window.translations?.en;
     const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
     const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
 
-    // Remove sparkle from all languages
     let title = t?.membershipTitle || '✨ Choose Your Membership';
     title = title.replace(/✨\s*/, '');
     const titleEl = document.getElementById('membershipTitle');
@@ -592,36 +551,152 @@
     document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t?.btnRecurring || 'Recurring Membership');
     document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
 
-    updateMembershipPrices();
-  }
-
-  function updateMembershipPrices() {
+    // Update prices using price.js formatting
     document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
       const usd = parseFloat(el.dataset.priceUsd);
-      if (!isNaN(usd)) {
+      if (!isNaN(usd) && window.formatPrice) {
         const priceSpan = el.querySelector('.price-value');
-        if (priceSpan) priceSpan.textContent = formatPrice(usd);
+        if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
       }
     });
   }
 
-  // Wait for shared header to be injected, then override cart functions and apply translations
-  document.addEventListener('headerReady', () => {
-    // Override cart drawer rendering and add/remove
-    updateCartUI();
-    // Replace shared.js's addOrToggleCart with our version
-    window.addOrToggleCart = window.addOrToggleCart;
-    // Reapply membership translations (header translations are handled by shared.js)
-    updateMembershipText();
-    updateMembershipButtons();
+  // ----- PayPal integration (copied from store.html) -----
+  let isRendering = false;
 
-    // Listen for language changes from shared.js
-    document.addEventListener('languageChanged', (e) => {
-      currentLang = e.detail.language;
-      updateMembershipText();
-      updateMembershipButtons();
-      updateCartUI();
+  function renderPayPalButton() {
+    const container = document.getElementById('paypal-button-container');
+    if (!container || !document.body.contains(container)) return;
+    const cartDrawer = document.getElementById('cartDrawer');
+    if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
+    if (isRendering) return;
+    isRendering = true;
+
+    const cart = storeCart;
+    if (cart.length === 0) {
+      container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+      isRendering = false;
+      return;
+    }
+
+    container.innerHTML = '';
+    paypal.Buttons({
+      createOrder: async () => {
+        const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cart })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Order creation failed');
+        return data.orderID;
+      },
+      onApprove: (data, actions) => {
+        return actions.order.capture().then(() => {
+          storeCart = [];
+          saveStoreCart();
+          if (window.updateStoreCartUI) window.updateStoreCartUI();
+          updateMembershipButtons();
+          window.location.href = `/s/success.html?orderID=${data.orderID}`;
+        });
+      },
+      onError: (err) => {
+        console.error('PayPal error', err);
+        alert('Something went wrong. Please try again.');
+      },
+      onCancel: () => {
+        isRendering = false;
+      }
+    }).render(container).then(() => {
+      isRendering = false;
+    }).catch(() => {
+      isRendering = false;
     });
+  }
+
+  window.setupStoreCheckout = () => renderPayPalButton();
+
+  function interceptCartButtons() {
+    const cartBtn = document.getElementById('cartBtn');
+    const floatCartBtn = document.getElementById('floatingCartBtn');
+    if (!cartBtn && !floatCartBtn) return;
+
+    const openOurCart = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const drawer = document.getElementById('cartDrawer');
+      const overlay = document.getElementById('cartOverlay');
+      if (drawer && !drawer.classList.contains('open')) {
+        drawer.classList.add('open');
+        overlay.classList.add('active');
+        document.body.classList.add('drawer-open');
+        renderPayPalButton();
+      }
+    };
+
+    if (cartBtn) cartBtn.addEventListener('click', openOurCart, true);
+    if (floatCartBtn) floatCartBtn.addEventListener('click', openOurCart, true);
+  }
+
+  // Override shared.js functions to prevent interference
+  function overrideSharedCart() {
+    window.renderPayPalButton = function() {};
+    window.updateCartUI = function() {};
+    window.saveCart = function() {};
+  }
+
+  // Cart UI update function (must be defined to match store.html)
+  function updateStoreCartUI() {
+    const container = document.getElementById('cartItems');
+    const totalSpan = document.getElementById('cartTotal');
+    if (!container) return;
+    const t = window.storeTranslations?.[window.currentLanguage || 'en'] || { emptyCart: 'Your cart is empty' };
+    container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
+    let total = 0;
+    storeCart.forEach((item, idx) => {
+      const priceStr = window.getFormattedPrice(item.priceKey);
+      total += window.priceKeyMap[item.priceKey] || 0;
+      const div = document.createElement('div');
+      div.className = 'cart-item';
+      div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
+      container.appendChild(div);
+    });
+    document.querySelectorAll('.cart-item-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(btn.dataset.idx);
+        storeCart.splice(idx, 1);
+        saveStoreCart();
+        updateMembershipButtons();
+      });
+    });
+    if (totalSpan) totalSpan.innerText = window.formatPrice(total);
+    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
+
+    const cartDrawer = document.getElementById('cartDrawer');
+    if (cartDrawer && cartDrawer.classList.contains('open')) renderPayPalButton();
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
+  }
+
+  // Initialise
+  document.addEventListener('headerReady', () => {
+    // Wait for price.js
+    const checkPrice = setInterval(() => {
+      if (window.priceKeyMap && window.priceUsdMap) {
+        clearInterval(checkPrice);
+        updateMembershipText();
+        updateMembershipButtons();
+        updateStoreCartUI();
+        interceptCartButtons();
+        overrideSharedCart();
+        // Expose needed functions
+        window.updateStoreCartUI = updateStoreCartUI;
+        window.getFormattedPrice = window.getFormattedPrice;
+        window.formatPrice = window.formatPrice;
+      }
+    }, 100);
   });
 
   // Discord help toggle
