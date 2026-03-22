@@ -1,0 +1,62 @@
+/* shared2.css - modified version with stronger .btn-remove specificity */
+:root {
+  --bg: #d3d0c1;
+  --card: #e8e5d8;
+  --darker: #c0bcaa;
+  --text: #3a3528;
+  --accent: #aa9e76;
+  --success: #22c55e;
+  --border: #aa9e76;
+  --overlay: rgba(170,158,118,0.25);
+  --btn-cart: #3a3528;
+  --price-red: #dc2626;
+}
+body.dark {
+  --bg: #0f0f12;
+  --card: #1a1a20;
+  --darker: #121216;
+  --text: #e6e3d8;
+  --accent: #d4c08a;
+  --success: #8b8a5e;
+  --border: #6f6a4e;
+  --price-red: #f87171;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+body.drawer-open { overflow: hidden; }
+body.drawer-open::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 1190;
+  pointer-events: none;
+}
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 2rem;
+  background: var(--darker);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+/* ... rest of your original shared.css remains unchanged ... */
+
+/* Force btn-remove to win over btn-single */
+.tier-btn.btn-remove,
+.tier-btn.btn-remove:hover {
+  background: #ef4444 !important;
+  color: white !important;
+}
+.tier-btn.btn-remove:hover {
+  background: #dc2626 !important;
+}
