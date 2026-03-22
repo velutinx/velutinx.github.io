@@ -16,7 +16,7 @@ async function fetchPriceData() {
     return data;
   } catch (err) {
     console.warn('Failed to fetch from worker, using fallback data', err);
-    // Fallback: return hardcoded values (only for development)
+    // Fallback – only for development, remove in production
     return {
       keys: [
         { key: 'PRICE_1', usd: 1.50 },
@@ -39,6 +39,9 @@ async function fetchPriceData() {
     };
   }
 }
+
+async function initPriceMap() {
+  const { keys, tiers } = await fetchPriceData();
 
   // Build key -> USD map
   const keyMap = {};
