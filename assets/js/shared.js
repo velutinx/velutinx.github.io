@@ -266,7 +266,7 @@
   <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="cartClose">×</button></div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-total"><span id="totalLabel">Total</span><span id="cartTotal">US$0.00</span></div>
-  <button class="demo-checkout-btn" id="demoCheckoutBtn">Proceed to checkout (DEMO)</button>
+<div id="paypal-button-container" style="margin: 12px 20px 20px;"></div>
 </div>
 
 <div id="snackbar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span id="snackText">Added successfully</span></div>
@@ -353,6 +353,63 @@
     const demoBtn = document.getElementById('demoCheckoutBtn');
     if (demoBtn) demoBtn.addEventListener('click', () => alert("⚠️ Checkout is disabled in standalone demo. Cart items are stored locally."));
 
+// ----- PayPal checkout support -----
+window.setupStoreCheckout = function(getCartItems, onSuccess) {
+  window._storeGetCartItems = getCartItems;
+  window._storeOnSuccess = onSuccess;
+  renderPayPalButton();
+};
+
+function renderPayPalButton() {
+  const container = document.getElementById('paypal-button-container');
+  if (!container) return;
+  container.innerHTML = ''; // clear previous
+
+  // Determine which cart to use
+  const getItems = window._storeGetCartItems || (() => cart.map(item => ({ priceKey: item.priceKey, quantity: 1 })));
+  const items = getItems();
+  if (items.length === 0) {
+    container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+    return;
+  }
+
+  // Create order via worker
+  async function createOrder() {
+    const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cart: items })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Order creation failed');
+    return data.orderID;
+  }
+
+  paypal.Buttons({
+    createOrder,
+    onApprove: (data, actions) => {
+      return actions.order.capture().then(() => {
+        // Call success callback (e.g., clear cart)
+        if (window._storeOnSuccess) window._storeOnSuccess();
+        // Optionally reload cart UI
+        updateCartUI();
+        alert('Payment successful! Your order will be processed.');
+      });
+    },
+    onError: (err) => {
+      console.error('PayPal error', err);
+      alert('Something went wrong. Please try again.');
+    }
+  }).render(container);
+}
+
+// Re-render PayPal button whenever cart changes (shared or store)
+const originalUpdateCartUI = updateCartUI;
+updateCartUI = function() {
+  originalUpdateCartUI();
+  renderPayPalButton();
+};
+    
     // Dispatch event to let page know header is ready
     document.dispatchEvent(new CustomEvent('headerReady'));
   }
