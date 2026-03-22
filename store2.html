@@ -257,6 +257,12 @@
       });
       if (totalSpan) totalSpan.innerText = window.formatPrice(total);
       document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
+
+      // Re‑render PayPal button if drawer is open
+      const cartDrawer = document.getElementById('cartDrawer');
+      if (cartDrawer && cartDrawer.classList.contains('open')) {
+        renderPayPalButton();
+      }
     }
 
     function showSnackbar(msg, isRemove) {
@@ -399,7 +405,7 @@
         renderStoreGrid();
         const drawer = document.getElementById('cartDrawer');
         if (drawer && drawer.classList.contains('open')) {
-          updateStoreCartUI();
+          updateStoreCartUI(); // force re‑render of cart with new currency
         }
       });
     }
@@ -475,11 +481,16 @@
       renderStoreGrid();
       updateStoreCartUI();
       observeCartDrawer();
-      renderPayPalButton();
+      renderPayPalButton(); // initial render (drawer may already be open)
     }
 
+    // Override the shared updateCartUI to prevent it from overwriting our store cart
+    window.originalUpdateCartUI = window.updateCartUI;
+    window.updateCartUI = function() {
+      // Do nothing – we handle cart rendering ourselves
+    };
+
     document.addEventListener('headerReady', () => {
-      // Wait for DOM to be fully parsed before touching elements
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
           document.addEventListener('priceMapReady', initStore);
