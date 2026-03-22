@@ -6,24 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <!-- Shared header CSS -->
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+  <link rel="stylesheet" href="/assets/css/shared.css">
   <!-- Shared page styles (includes poll styles, star effects) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <!-- Supabase & fingerprint -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
   <style>
-    /* Override header background to match page flat background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
-    }
-    /* Hide Website button, cart wrapper, and floating cart on poll page */
+    /* Hide cart and website button on poll page */
     .poll-page .login-btn,
     .poll-page .cart-wrapper,
     .poll-page .floating-cart {
       display: none !important;
+    }
+    /* Adjust top‑nav background to match page background */
+    .poll-page .top-nav {
+      background: var(--bg) !important;
+      border-bottom: 1px solid var(--border);
     }
     /* Discord logo wobble (same as index) */
     .icon-link img {
@@ -36,69 +35,70 @@
 </head>
 <body class="poll-page">
 
-  <div class="lang-swipe" id="langSwipe"></div>
+  <!-- Header will be injected here by shared.js -->
+  <div id="header-placeholder"></div>
 
-  <div id="page">
-    <!-- Header will be injected here by header.js -->
-    <div id="navContainer"></div>
-    <div class="divider"></div>
+  <div class="divider"></div>
 
-    <section class="poll-section">
-      <h1 class="poll-title">Vote for Your Favorite Character</h1>
-      <p class="poll-subtitle">Click once — you can change your vote anytime</p>
+  <section class="poll-section">
+    <h1 class="poll-title">Vote for Your Favorite Character</h1>
+    <p class="poll-subtitle">Click once — you can change your vote anytime</p>
 
-      <div class="poll-page">
-        <div class="big-card" id="leftBig"><img id="leftImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
-        <div class="big-card" id="rightBig"><img id="rightImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
+    <div class="poll-page">
+      <div class="big-card" id="leftBig"><img id="leftImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
+      <div class="big-card" id="rightBig"><img id="rightImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
 
-        <div class="center">
-          <div class="grid" id="grid"></div>
-          <div class="bottom">
-            <div id="leaderboard">
-              <h3>Leaderboard</h3>
-              <div class="tooltip">Website + Discord votes</div>
-              <div id="results">Loading…</div>
-            </div>
-            <div class="icon-wrapper">
-              <a class="icon-link" href="https://discord.gg/XF363uYfSh" target="_blank">
-                <img src="https://www.velutinx.com/images/LogoDiscord.png" alt="Discord">
-              </a>
-              <div class="discord-disclaimer">Join discord for an extra vote!!</div>
-            </div>
+      <div class="center">
+        <div class="grid" id="grid"></div>
+        <div class="bottom">
+          <div id="leaderboard">
+            <h3>Leaderboard</h3>
+            <div class="tooltip">Website + Discord votes</div>
+            <div id="results">Loading…</div>
+          </div>
+          <div class="icon-wrapper">
+            <a class="icon-link" href="https://discord.gg/XF363uYfSh" target="_blank">
+              <img src="https://www.velutinx.com/images/LogoDiscord.png" alt="Discord">
+            </a>
+            <div class="discord-disclaimer">Join discord for an extra vote!!</div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="divider"></div>
-  </div>
+  <div class="divider"></div>
 
-  <!-- Scripts -->
+  <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
+  <script src="/assets/js/shared.js"></script>
+  <!-- Page‑specific scripts (translations, format, tab animation) -->
   <script src="/assets/js/translt.js"></script>
-  <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply sidebar translations (menu items)
-    function applySidebarTranslations() {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = window.translations?.header?.[lang];
-      if (!t) return;
-      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) el.textContent = t[id];
-      });
+    // ==================== POLL TRANSLATIONS ====================
+    function applyPollTranslations() {
+      if (typeof window.applyTranslations === 'function') {
+        window.applyTranslations('poll');
+      }
     }
-    applySidebarTranslations();
 
-    // Re-apply when language changes
-    document.addEventListener('languageChanged', () => {
-      applySidebarTranslations();
+    // Initial apply (when page loads)
+    applyPollTranslations();
+
+    // When language changes via shared header, update translt.js and reapply
+    document.addEventListener('languageChanged', (e) => {
+      const newLang = e.detail.language;
+      if (newLang && typeof window.setLanguage === 'function') {
+        window.setLanguage(newLang);
+      } else if (newLang) {
+        window.currentLanguage = newLang;
+      }
+      applyPollTranslations();
     });
 
-    // ==================== SUPABASE & POLL LOGIC ====================
+    // ==================== SUPABASE & POLL LOGIC (unchanged) ====================
     const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
     const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
     const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
@@ -189,7 +189,6 @@
 
     async function fetchLeaderboard() {
       try {
-        // Get all rows from final_votes (scores + winner flag)
         const { data: rows, error } = await sb
           .from('final_votes')
           .select('option_id, character_name, score, selected_at')
@@ -198,7 +197,6 @@
 
         if (error) throw error;
 
-        // Determine winners: those with selected_at not null
         const winnerIds = new Set();
         rows.forEach(row => {
           if (row.selected_at && row.selected_at !== null) {
@@ -206,7 +204,6 @@
           }
         });
 
-        // Build leaderboard HTML
         resultsBox.innerHTML = rows.map(row => {
           const id = Number(row.option_id);
           const isWinner = winnerIds.has(id);
@@ -216,7 +213,6 @@
           </div>`;
         }).join('') || "No votes yet";
 
-        // Update card labels and winner overlay
         document.querySelectorAll(".card").forEach(card => {
           const id = Number(card.dataset.id);
           const row = rows.find(r => Number(r.option_id) === id);
@@ -241,7 +237,6 @@
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      // Real-time subscriptions – on final_votes and website_voting
       sb.channel('grid-updates')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
         .subscribe();
@@ -274,17 +269,9 @@
     setInterval(rotate, 3500);
     rotate(); showSelected(1); init();
 
-    // Dark mode from localStorage (already set by header, but safe)
+    // Dark mode from localStorage
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
-    }
-
-    // Apply poll translations
-    if (typeof window.applyTranslations === 'function') {
-      window.applyTranslations('poll');
-      document.addEventListener('languageChanged', () => {
-        window.applyTranslations('poll');
-      });
     }
   </script>
 </body>
