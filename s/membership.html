@@ -212,6 +212,7 @@
   // Membership logic (simplified – no restrictions for testing)
   // --------------------------------------------------------------
   let currentLang = localStorage.getItem('language') || 'en';
+  let isRendering = false; // moved to top, single declaration
 
   // Map tier numbers to existing price keys from Supabase
   const TIER_PRICE_KEYS = {
@@ -372,16 +373,7 @@
     });
   }
 
-
-
-
-
-
-
-  
   // ----- PayPal integration (enhanced diagnostics) -----
-  let isRendering = false;
-
   function ensurePayPalContainer() {
     let container = document.getElementById('paypal-button-container');
     if (!container) {
@@ -562,7 +554,49 @@
 
   function escapeHtml(str) {
     return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
-  }gle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
+  }
+
+  // Initialise
+  document.addEventListener('headerReady', () => {
+    // Wait for price.js
+    const checkPrice = setInterval(() => {
+      if (window.priceKeyMap && window.priceUsdMap) {
+        clearInterval(checkPrice);
+        updateMembershipText();
+        updateMembershipButtons();
+        updateStoreCartUI();
+        interceptCartButtons();
+        overrideSharedCart();
+        // Expose needed functions
+        window.updateStoreCartUI = updateStoreCartUI;
+        window.getFormattedPrice = window.getFormattedPrice;
+        window.formatPrice = window.formatPrice;
+
+        // If drawer is already open, render button
+        const drawer = document.getElementById('cartDrawer');
+        if (drawer && drawer.classList.contains('open')) {
+          console.log('[DEBUG] Drawer already open at init, rendering button');
+          renderPayPalButton();
+        }
+      }
+    }, 100);
+  });
+
+  // Re-render button if price map loads after drawer is already open
+  document.addEventListener('priceMapReady', () => {
+    const drawer = document.getElementById('cartDrawer');
+    if (drawer && drawer.classList.contains('open')) {
+      console.log('[DEBUG] priceMapReady event, drawer open, rendering button');
+      renderPayPalButton();
+    }
+  });
+
+  // Discord help toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const helpToggle = document.getElementById('discordHelpToggle');
+    const helpContent = document.getElementById('discordHelpContent');
+    if (helpToggle && helpContent) {
+      helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
     }
   });
 </script>
