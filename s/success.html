@@ -6,106 +6,23 @@
     <title>Purchase Successful - VELUTINX</title>
     <link rel="stylesheet" href="/assets/css/shared.css">
     <style>
-        /* Success‑specific overrides */
-        body {
-            background: var(--bg);
-        }
-        .success-wrapper {
-            max-width: 650px;
-            margin: 60px auto;
-            padding: 20px;
-        }
-        .success-container {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            border: 1px solid var(--border);
-        }
-        .success-container h1 {
-            color: var(--text);
-            margin-bottom: 8px;
-            font-size: 24px;
-        }
-        .success-container p, 
-        .success-container span {
-            color: var(--text);
-            font-size: 16px;
-        }
-        .order-number {
-            background: var(--darker);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-weight: bold;
-            color: var(--text) !important;
-        }
-        #download-section {
-            margin: 30px 0;
-            min-height: 50px;
-        }
-        .download-item {
-            display: block;
-            background: var(--accent);
-            color: white !important;
-            text-decoration: none;
-            padding: 18px 24px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            font-weight: 600;
-            transition: transform 0.2s, background 0.2s;
-            text-align: center;
-        }
-        .download-item:hover {
-            background: #38aae8;
-            transform: translateY(-2px);
-        }
-        .membership-message {
-            background: rgba(34,197,94,0.2);
-            color: var(--success);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-weight: 500;
-            border: 1px solid var(--success);
-        }
-        .disclaimer-box {
-            margin-top: 30px;
-            padding-top: 25px;
-            border-top: 1px solid var(--border);
-            text-align: left;
-        }
-        .disclaimer-box p {
-            color: var(--text);
-            font-size: 14px;
-            margin-bottom: 12px;
-            line-height: 1.6;
-        }
-        .id-note {
-            background: rgba(170,158,118,0.1);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-size: 13px !important;
-        }
-        .error-text {
-            color: #ef4444 !important;
-            font-weight: bold;
-            padding: 20px;
-            background: rgba(239,68,68,0.1);
-            border-radius: 8px;
-            border: 1px solid #ef4444;
-        }
-        .loading-dots:after {
-            content: ' .';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: ' .'; }
-            40% { content: ' ..'; }
-            60% { content: ' ...'; }
-        }
+        /* success styles – unchanged */
+        body { background: var(--bg); }
+        .success-wrapper { max-width: 650px; margin: 60px auto; padding: 20px; }
+        .success-container { background: var(--card); border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border); }
+        .success-container h1 { color: var(--text); margin-bottom: 8px; font-size: 24px; }
+        .success-container p, .success-container span { color: var(--text); font-size: 16px; }
+        .order-number { background: var(--darker); padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: bold; color: var(--text) !important; }
+        #download-section { margin: 30px 0; min-height: 50px; }
+        .download-item { display: block; background: var(--accent); color: white !important; text-decoration: none; padding: 18px 24px; border-radius: 10px; margin-bottom: 12px; font-weight: 600; transition: transform 0.2s, background 0.2s; text-align: center; }
+        .download-item:hover { background: #38aae8; transform: translateY(-2px); }
+        .membership-message { background: rgba(34,197,94,0.2); color: var(--success); padding: 20px; border-radius: 10px; margin: 20px 0; font-weight: 500; border: 1px solid var(--success); }
+        .disclaimer-box { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border); text-align: left; }
+        .disclaimer-box p { color: var(--text); font-size: 14px; margin-bottom: 12px; line-height: 1.6; }
+        .id-note { background: rgba(170,158,118,0.1); padding: 15px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px !important; }
+        .error-text { color: #ef4444 !important; font-weight: bold; padding: 20px; background: rgba(239,68,68,0.1); border-radius: 8px; border: 1px solid #ef4444; }
+        .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%,20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } }
     </style>
 </head>
 <body>
@@ -118,21 +35,12 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
-        
         <h1>Purchase Confirmed!</h1>
         <p>Order Number: <span class="order-number" id="order-id">#00001</span></p>
-
-        <div id="download-section">
-            <p class="loading-dots">Preparing your order...</p>
-        </div>
-
+        <div id="download-section"><p class="loading-dots">Preparing your order...</p></div>
         <div class="disclaimer-box">
             <p><strong>Support:</strong> If you have any issues, please message me on <strong>Discord (velutinxx)</strong> or email <strong>support@velutinx.com</strong>.</p>
-            
-            <p class="id-note" id="support-note">
-                <strong>Identification:</strong> When contacting support, please include your <strong>Order Number</strong> and your <strong>PayPal Email</strong> address. This helps me verify your transaction quickly.
-            </p>
-            
+            <p class="id-note" id="support-note"><strong>Identification:</strong> When contacting support, please include your <strong>Order Number</strong> and your <strong>PayPal Email</strong> address. This helps me verify your transaction quickly.</p>
             <p id="notice-text"><strong>Notice:</strong> Download links are valid for 24 hours. Please do not share these links with others.</p>
         </div>
     </div>
@@ -142,40 +50,40 @@
 const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get("orderID") || urlParams.get("token");
 const section = document.getElementById("download-section");
-
 const WORKER_URL = 'https://orders.velutinx.workers.dev/';
-
-async function recordAndFetch(orderId, retries = 3) {
-    let lastError;
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            const res = await fetch(WORKER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderID: orderId }),
-            });
-            if (!res.ok) {
-                if (res.status === 404 && attempt < retries) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    continue;
-                }
-                throw new Error(`Server responded with status ${res.status}`);
-            }
-            return await res.json();
-        } catch (err) {
-            lastError = err;
-            if (attempt === retries) throw lastError;
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-    }
-    throw lastError;
-}
 
 if (!orderId) {
     section.innerHTML = `<p class="error-text">No order information found. Something went wrong with the payment process.</p>`;
 } else {
     document.getElementById("order-id").textContent = `#${orderId}`;
-    
+
+    async function recordAndFetch(orderId, retries = 3) {
+        let lastError;
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderID: orderId }),
+                });
+                if (!res.ok) {
+                    if (res.status === 404 && attempt < retries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        continue;
+                    }
+                    const errText = await res.text();
+                    throw new Error(`Server responded with status ${res.status}: ${errText}`);
+                }
+                return await res.json();
+            } catch (err) {
+                lastError = err;
+                if (attempt === retries) throw lastError;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        throw lastError;
+    }
+
     recordAndFetch(orderId, 3)
         .then(data => {
             if (data.items && data.items.length > 0) {
@@ -201,14 +109,8 @@ if (!orderId) {
 }
 
 function escapeHtml(str) {
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
+    return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
 }
 </script>
-
 </body>
 </html>
