@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <style>
-    /* ==================== HEADER.CSS (all styles) ==================== */
+    /* ==================== BASE STYLES ==================== */
     :root {
       --bg: #d3d0c1;
       --card: #e8e5d8;
@@ -51,102 +51,6 @@
       pointer-events: none;
     }
     body.drawer-open .floating-cart { display: none; }
-
-    /* top nav */
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.9rem 2.5rem;
-      background: var(--darker);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    .logo {
-      font-size: 1.8rem;
-      font-weight: 900;
-      letter-spacing: 2px;
-      color: #000;
-    }
-    body.dark .logo { color: var(--accent); }
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      position: relative;
-    }
-    .nav-icon, .menu-toggle {
-      width: 42px;
-      height: 42px;
-      background: var(--accent);
-      border-radius: 9999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .nav-icon:hover, .menu-toggle:hover {
-      transform: scale(1.12);
-      background: #38aae8;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-    }
-    .nav-icon.active { background: var(--success); color: white; }
-    .nav-icon svg { width: 22px; height: 22px; stroke: white; stroke-width: 1.5; }
-    .login-btn {
-      padding: 0.55rem 1.6rem;
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.18s;
-    }
-    .login-btn:hover { background: rgba(170,158,118,0.15); }
-
-    /* language popover */
-    #languagePopover {
-      position: absolute;
-      top: 55px;
-      right: 8px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      min-width: 230px;
-      z-index: 1100;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.51s;
-    }
-    #languagePopover.show,
-    #langContainer:hover #languagePopover,
-    .lang-btn:hover + #languagePopover,
-    #languagePopover:hover {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-      transition-delay: 0s;
-    }
-    .lang-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 18px;
-      cursor: pointer;
-      transition: background 0.2s;
-      color: var(--text);
-    }
-    .lang-item:hover { background: #c0bcaa; }
-    .lang-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
 
     /* floating cart */
     .floating-cart {
@@ -246,73 +150,6 @@
     .cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
     .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
 
-    /* sidebar */
-    .sidebar-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(4px);
-      z-index: 9998;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.35s ease;
-    }
-    .sidebar-overlay.active { opacity: 1; pointer-events: all; }
-    .sidebar {
-      position: fixed !important;
-      top: 0;
-      left: -280px;
-      width: 280px;
-      height: 100vh;
-      background: var(--card);
-      z-index: 9999;
-      transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 6px 0 30px rgba(0,0,0,0.35);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-    .sidebar.open { left: 0 !important; }
-    .sidebar-header {
-      padding: 1.2rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .sidebar-menu-toggle {
-      width: 36px;
-      height: 36px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: background 0.2s;
-      color: var(--text);
-    }
-    .sidebar-header .logo { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; color: var(--text); }
-    .sidebar-menu { flex: 1; padding: 1rem 0; }
-    .menu-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 0.8rem 1.8rem;
-      color: var(--text);
-      text-decoration: none;
-      transition: background 0.2s;
-      font-size: 1rem;
-    }
-    .menu-item:hover { background: var(--darker); }
-    .menu-item svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; }
-    .sidebar-footer { padding: 1.5rem; font-size: 0.75rem; color: var(--gray); border-top: 1px solid var(--border); text-align: center; }
-    body.dark .sidebar-header .logo { color: var(--accent); }
-
     /* snackbar */
     #snackbar {
       position: fixed;
@@ -355,7 +192,7 @@
     .cart-btn svg { transition: transform 0.2s; }
     .cart-btn.added svg { transform: scale(1.15); }
 
-    /* ==================== MEMBERCSS.CSS (membership specific) ==================== */
+    /* ==================== MEMBERSHIP STYLES ==================== */
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -609,53 +446,7 @@
 </head>
 <body>
 
-<!-- ========== HEADER (embedded) ========== -->
-<div class="lang-swipe" id="langSwipe"></div>
-<nav class="top-nav">
-  <div class="nav-left">
-    <button id="menuToggle" class="nav-icon" title="Menu">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-        <path d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
-    </button>
-    <div class="logo">VELUTINX</div>
-  </div>
-  <div class="nav-actions">
-    <button class="login-btn" id="loginBtn" onclick="window.location.href='https://www.velutinx.com/index-'">Website</button>
-    <div id="langContainer">
-      <button class="nav-icon lang-btn" id="langBtn" title="Language">
-        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M4 5h7"></path><path d="M7 4c0 4.846 0 7 .5 8"></path><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143"></path><path d="M12 20l4 -9l4 9"></path><path d="M19.1 18h-6.2"></path>
-        </svg>
-      </button>
-      <div id="languagePopover">
-        <div class="lang-item" data-lang="en"><img src="https://flagcdn.com/w40/us.png" alt="US"/><p>English (USD)</p></div>
-        <div class="lang-item" data-lang="ja"><img src="https://flagcdn.com/w40/jp.png" alt="JP"/><p>日本語 (円)</p></div>
-        <div class="lang-item" data-lang="zh"><img src="https://flagcdn.com/w40/cn.png" alt="CN"/><p>简体中文 (元)</p></div>
-        <div class="lang-item" data-lang="es"><img src="https://flagcdn.com/w40/mx.png" alt="MX"/><p>Español (MXN)</p></div>
-      </div>
-    </div>
-    <button class="nav-icon" id="themeBtn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
-      </svg>
-    </button>
-    <div class="cart-wrapper">
-      <button class="nav-icon cart-icon" id="cartBtn">
-        <svg id="cartIcon" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-          <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-          <path d="M17 17h-11v-14h-2"></path>
-          <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
-          <path d="M16 19h6"></path>
-          <path d="M19 16v6"></path>
-        </svg>
-      </button>
-      <span class="cart-badge" id="cartCount">0</span>
-    </div>
-  </div>
-</nav>
-<button class="floating-cart cart-icon" id="floatingCartBtn" title="Shopping Cart">
+<button class="floating-cart" id="floatingCartBtn" title="Shopping Cart">
   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
     <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -664,6 +455,8 @@
   </svg>
   <span class="floating-badge" id="floatingCartCount">0</span>
 </button>
+
+<div class="cart-overlay" id="cartOverlay"></div>
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-header">
     <h5 id="cartTitle">Shopping Cart</h5>
@@ -678,6 +471,7 @@
     <div id="paypal-button-container"></div>
   </div>
 </div>
+
 <div id="snackbar">
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
     <path d="M20 6L9 17l-5-5"></path>
@@ -685,29 +479,6 @@
   <span id="snackText">Success</span>
 </div>
 
-<!-- ========== SIDEBAR ========== -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <button class="sidebar-menu-toggle" id="sidebarMenuToggle">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
-    </button>
-    <div class="logo">VELUTINX</div>
-  </div>
-  <div class="sidebar-menu">
-    <a href="https://velutinx.com/" class="menu-item"><span>HOME</span></a>
-    <a href="https://velutinx.com/commission" class="menu-item"><span>COMMISSIONS</span></a>
-    <a href="https://velutinx.com/artwork" class="menu-item"><span>ARTWORK</span></a>
-    <a href="https://velutinx.com/poll" class="menu-item"><span>POLL</span></a>
-    <a href="https://velutinx.com/store" class="menu-item"><span>STORE</span></a>
-    <a href="https://velutinx.com/contact" class="menu-item"><span>CONTACT</span></a>
-  </div>
-  <div class="sidebar-footer"><p>© VELUTINX</p></div>
-</aside>
-
-<!-- ========== MEMBERSHIP CONTENT ========== -->
 <main class="container">
   <h1 class="membership-title" id="membershipTitle">✨ Choose Your Membership</h1>
   <p class="membership-description" id="membershipDescription">Support my work and unlock exclusive perks</p>
@@ -715,7 +486,7 @@
   <div class="discord-section">
     <div class="discord-input">
       <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
-      <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
+      <input type="text" id="discordId" placeholder="e.g., 123456789012345678" value="1467153810970644638" required>
       <div class="discord-hint" id="discordHint">
         <span id="discordHintText">How to find your Discord ID:</span>
         <span class="discord-help-link" id="discordHelpToggle">
@@ -853,163 +624,13 @@
   </div>
 </main>
 
-<!-- ========== ALL JAVASCRIPT (combined) ========== -->
+<script src="/s/js/translations.js"></script>
 <script>
   // ------------------------------------------------------------------
-  // 1. Translations (full from shop-shared.js)
+  // 1. Language & price helpers (English only, since UI toggles removed)
   // ------------------------------------------------------------------
-  const translations = {
-    en: {
-      cartTitle: "Shopping Cart", totalLabel: "Total", snackText: "Added successfully",
-      loginBtn: "Website", disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-      disclaimerRefund: "Digital products are non-refundable after purchase.", contentsTitle: "Contents:",
-      contentsDesc: "ZIP file containing {count} AI-generated illustrations", originalPrice: "Original Price:",
-      currentPrice: "Current Price:", addToCart: "Add to Cart", removeFromCart: "Remove from Cart",
-      membershipTitle: "✨ Choose Your Membership", membershipDescription: "Support my work and unlock exclusive perks",
-      discordIdLabel: "Your Discord ID", discordHint: "How to find your Discord ID:",
-      discordHelpLink: "Where do I find my Discord ID? (click)",
-      discordHelpStep1: "<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).",
-      discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
-      discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
-      discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
-      noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
-      joinDiscord: "→ Join Discord Server ←",
-      tierBronze: "Bronze", tierCopper: "Copper", tierSilver: "Silver", tierGold: "Gold", tierPlatinum: "Platinum",
-      perMonth: "/ month", btnSingle: "Single Purchase", btnRecurring: "Recurring Membership",
-      perk1_1: "Full archive access immediately.", perk1_2: "Includes all past releases & paid content.",
-      perk2_1: "Everything in Bronze, plus:", perk2_2: "One (1) custom image request per billing cycle.",
-      perk2_3: "Approx. 20 images per request.", perk2_4: "Single character, official/creator‑selected outfit.",
-      perk2_5: "Some character customization allowed.", perk2_6: "Typical turnaround: ~1 day (queue order).",
-      perk3_1: "Everything in Bronze, plus:", perk3_2: "One (1) custom image request per billing cycle.",
-      perk3_3: "Approx. 40 images per request.", perk3_4: "Single character, custom outfit allowed.",
-      perk3_5: "Character customization allowed.", perk3_6: "Typical turnaround: ~1 day (queue order).",
-      perk4_1: "Everything in Bronze, plus:", perk4_2: "One (1) large custom image request per billing cycle.",
-      perk4_3: "Approx. 80 images per request.", perk4_4: "Single character, custom outfit allowed.",
-      perk4_5: "Character customization allowed.", perk4_6: "Typical turnaround: 3‑7 days (queue order).",
-      perk4_7: "Special/expanded requests may be discussed.",
-      perk5_1: "Everything in Bronze, plus:", perk5_2: "One (1) large custom image request per billing cycle.",
-      perk5_3: "Approx. 80 images per request.", perk5_4: "Single character, custom outfit allowed.",
-      perk5_5: "Character customization allowed.", perk5_6: "⚡ Priority: worked on first after current tasks.",
-      perk5_7: "Typical turnaround: 3‑7 days (once started).",
-      errorDiscordMissing: "❌ Please enter your Discord ID", errorDiscordInvalid: "❌ Invalid Discord ID format",
-      errorOnlyHighest: "❌ Only the highest tier can be added.", removedFromCart: "Removed from cart",
-      addedToCart: "Added to cart", errorPlanNotConfigured: "❌ Plan not configured for this tier",
-    },
-    ja: {
-      cartTitle: "ショッピングカート", totalLabel: "合計", snackText: "カートに追加しました",
-      loginBtn: "ウェブサイト", disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-      disclaimerRefund: "デジタル商品は購入後の返金はできません。", contentsTitle: "内容：",
-      contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル", originalPrice: "元の価格：",
-      currentPrice: "現在の価格：", addToCart: "カートに追加", removeFromCart: "カートから削除",
-      membershipTitle: "✨ メンバーシップを選ぶ", membershipDescription: "私の活動を支援し、特典をアンロック",
-      discordIdLabel: "Discord ID", discordHint: "Discord IDの見つけ方:",
-      discordHelpLink: "Discord IDはどこで見つけられますか？ (クリック)",
-      discordHelpStep1: "<strong>手順1:</strong> Discordを開き、<strong>ユーザー設定</strong>（歯車アイコン）へ。",
-      discordHelpStep2: "<strong>手順2:</strong> <strong>アプリ設定</strong>の<strong>高度な設定</strong>で<strong>開発者モード</strong>を有効に。",
-      discordHelpStep3: "<strong>手順3:</strong> 自分のユーザー名を右クリックし、<strong>IDをコピー</strong>。",
-      discordHelpStep4: "<strong>手順4:</strong> その番号をここに貼り付け。",
-      noteBox: "<strong>📌 重要:</strong> 支払い完了後、対応するロールが自動的に付与されます。事前にDiscordサーバーに参加してください！",
-      joinDiscord: "→ Discordサーバーに参加 ←",
-      tierBronze: "ブロンズ", tierCopper: "カッパー", tierSilver: "シルバー", tierGold: "ゴールド", tierPlatinum: "プラチナ",
-      perMonth: "/月", btnSingle: "単発購入", btnRecurring: "定期購読",
-      perk1_1: "アーカイブへの即時フルアクセス。", perk1_2: "過去の全リリースと有料コンテンツを含む。",
-      perk2_1: "ブロンズの全特典に加えて：", perk2_2: "各請求サイクルに1回のカスタム画像リクエスト。",
-      perk2_3: "1リクエストあたり約20枚。", perk2_4: "単一キャラクター、公式/クリエイター選択の衣装。",
-      perk2_5: "一部キャラクターカスタマイズ可能。", perk2_6: "標準納期：〜1日（キュー順）。",
-      perk3_1: "ブロンズの全特典に加えて：", perk3_2: "各請求サイクルに1回のカスタム画像リクエスト。",
-      perk3_3: "1リクエストあたり約40枚。", perk3_4: "単一キャラクター、カスタム衣装可能。",
-      perk3_5: "キャラクターカスタマイズ可能。", perk3_6: "標準納期：〜1日（キュー順）。",
-      perk4_1: "ブロンズの全特典に加えて：", perk4_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。",
-      perk4_3: "1リクエストあたり約80枚。", perk4_4: "単一キャラクター、カスタム衣装可能。",
-      perk4_5: "キャラクターカスタマイズ可能。", perk4_6: "標準納期：3〜7日（キュー順）。",
-      perk4_7: "特別/拡張リクエストは相談可能。",
-      perk5_1: "ブロンズの全特典に加えて：", perk5_2: "各請求サイクルに1回の大規模カスタム画像リクエスト。",
-      perk5_3: "1リクエストあたり約80枚。", perk5_4: "単一キャラクター、カスタム衣装可能。",
-      perk5_5: "キャラクターカスタマイズ可能。", perk5_6: "⚡ 優先対応：現在のタスク完了後に最初に着手。",
-      perk5_7: "標準納期：3〜7日（着手後）。",
-      errorDiscordMissing: "❌ Discord IDを入力してください", errorDiscordInvalid: "❌ Discord IDの形式が無効です",
-      errorOnlyHighest: "❌ 最上位ティアのみ追加できます。", removedFromCart: "カートから削除しました",
-      addedToCart: "カートに追加しました", errorPlanNotConfigured: "❌ このティアのプランは設定されていません",
-    },
-    zh: {
-      cartTitle: "购物车", totalLabel: "总计", snackText: "已成功添加到购物车",
-      loginBtn: "网站", disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
-      disclaimerRefund: "数字产品购买后不可退款。", contentsTitle: "内容：",
-      contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件", originalPrice: "原价：",
-      currentPrice: "现价：", addToCart: "加入购物车", removeFromCart: "从购物车移除",
-      membershipTitle: "✨ 选择会员资格", membershipDescription: "支持我的工作并解锁专属特权",
-      discordIdLabel: "你的 Discord ID", discordHint: "如何找到你的 Discord ID:",
-      discordHelpLink: "我在哪里可以找到我的 Discord ID？(点击)",
-      discordHelpStep1: "<strong>步骤1:</strong> 打开 Discord，进入<strong>用户设置</strong>（齿轮图标）。",
-      discordHelpStep2: "<strong>步骤2:</strong> 在<strong>应用设置</strong>中，选择<strong>高级</strong>并启用<strong>开发者模式</strong>。",
-      discordHelpStep3: "<strong>步骤3:</strong> 右键点击你的用户名，选择<strong>复制ID</strong>。",
-      discordHelpStep4: "<strong>步骤4:</strong> 将号码粘贴在这里。",
-      noteBox: "<strong>📌 重要:</strong> 支付成功后，你将自动获得 Discord 服务器中的对应角色。请确保已加入服务器！",
-      joinDiscord: "→ 加入 Discord 服务器 ←",
-      tierBronze: "青铜", tierCopper: "铜", tierSilver: "银", tierGold: "金", tierPlatinum: "铂金",
-      perMonth: "/月", btnSingle: "单次购买", btnRecurring: "定期订阅",
-      perk1_1: "立即获得完整存档访问权限。", perk1_2: "包含所有过往发布及付费内容。",
-      perk2_1: "包含青铜所有权益，外加：", perk2_2: "每个计费周期可提交1次定制图像请求。",
-      perk2_3: "每次请求约20张图像。", perk2_4: "单一角色，官方/创作者选定服装。",
-      perk2_5: "允许一定程度的角色自定义。", perk2_6: "通常交付时间：~1天（按队列顺序）。",
-      perk3_1: "包含青铜所有权益，外加：", perk3_2: "每个计费周期可提交1次定制图像请求。",
-      perk3_3: "每次请求约40张图像。", perk3_4: "单一角色，允许自定义服装。",
-      perk3_5: "允许角色自定义。", perk3_6: "通常交付时间：~1天（按队列顺序）。",
-      perk4_1: "包含青铜所有权益，外加：", perk4_2: "每个计费周期可提交1次大型定制图像请求。",
-      perk4_3: "每次请求约80张图像。", perk4_4: "单一角色，允许自定义服装。",
-      perk4_5: "允许角色自定义。", perk4_6: "通常交付时间：3-7天（按队列顺序）。",
-      perk4_7: "特殊/扩展请求可商议。",
-      perk5_1: "包含青铜所有权益，外加：", perk5_2: "每个计费周期可提交1次大型定制图像请求。",
-      perk5_3: "每次请求约80张图像。", perk5_4: "单一角色，允许自定义服装。",
-      perk5_5: "允许角色自定义。", perk5_6: "⚡ 优先处理：当前任务完成后最先处理。",
-      perk5_7: "通常交付时间：3-7天（开始后）。",
-      errorDiscordMissing: "❌ 请输入你的 Discord ID", errorDiscordInvalid: "❌ Discord ID 格式无效",
-      errorOnlyHighest: "❌ 只能添加最高等级的会员资格。", removedFromCart: "已从购物车移除",
-      addedToCart: "已加入购物车", errorPlanNotConfigured: "❌ 该等级尚未配置订阅方案",
-    },
-    es: {
-      cartTitle: "Carrito de Compras", totalLabel: "Total", snackText: "Añadido con éxito",
-      loginBtn: "Sitio web", disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
-      disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.", contentsTitle: "Contenido:",
-      contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA", originalPrice: "Precio original:",
-      currentPrice: "Precio actual:", addToCart: "Añadir al carrito", removeFromCart: "Eliminar del carrito",
-      membershipTitle: "✨ Elige tu Membresía", membershipDescription: "Apoya mi trabajo y desbloquea beneficios exclusivos",
-      discordIdLabel: "Tu ID de Discord", discordHint: "Cómo encontrar tu ID de Discord:",
-      discordHelpLink: "¿Dónde encuentro mi ID de Discord? (clic)",
-      discordHelpStep1: "<strong>Paso 1:</strong> Abre Discord y ve a <strong>Ajustes de Usuario</strong> (icono de engranaje).",
-      discordHelpStep2: "<strong>Paso 2:</strong> En <strong>Ajustes de la App</strong>, selecciona <strong>Avanzado</strong> y activa <strong>Modo Desarrollador</strong>.",
-      discordHelpStep3: "<strong>Paso 3:</strong> Haz clic derecho en tu nombre de usuario y selecciona <strong>Copiar ID</strong>.",
-      discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.",
-      noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
-      joinDiscord: "→ Unirse al Servicio de Discord ←",
-      tierBronze: "Bronce", tierCopper: "Cobre", tierSilver: "Plata", tierGold: "Oro", tierPlatinum: "Platino",
-      perMonth: "/ mes", btnSingle: "Compra Única", btnRecurring: "Membresía Recurrente",
-      perk1_1: "Acceso inmediato al archivo completo.", perk1_2: "Incluye todos los lanzamientos anteriores y contenido de pago.",
-      perk2_1: "Todo lo de Bronce, más:", perk2_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.",
-      perk2_3: "Aprox. 20 imágenes por solicitud.", perk2_4: "Personaje único, atuendo seleccionado por el oficial/creador.",
-      perk2_5: "Se permite cierta personalización del personaje.", perk2_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
-      perk3_1: "Todo lo de Bronce, más:", perk3_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación.",
-      perk3_3: "Aprox. 40 imágenes por solicitud.", perk3_4: "Personaje único, se permite atuendo personalizado.",
-      perk3_5: "Se permite personalización del personaje.", perk3_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
-      perk4_1: "Todo lo de Bronce, más:", perk4_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.",
-      perk4_3: "Aprox. 80 imágenes por solicitud.", perk4_4: "Personaje único, se permite atuendo personalizado.",
-      perk4_5: "Se permite personalización del personaje.", perk4_6: "Tiempo de entrega típico: 3-7 días (orden de cola).",
-      perk4_7: "Solicitudes especiales/ampliadas pueden ser discutidas.",
-      perk5_1: "Todo lo de Bronce, más:", perk5_2: "Una (1) solicitud de imagen personalizada grande por ciclo de facturación.",
-      perk5_3: "Aprox. 80 imágenes por solicitud.", perk5_4: "Personaje único, se permite atuendo personalizado.",
-      perk5_5: "Se permite personalización del personaje.", perk5_6: "⚡ Prioridad: se trabaja primero después de las tareas actuales.",
-      perk5_7: "Tiempo de entrega típico: 3-7 días (una vez iniciado).",
-      errorDiscordMissing: "❌ Por favor ingresa tu ID de Discord", errorDiscordInvalid: "❌ Formato de ID de Discord inválido",
-      errorOnlyHighest: "❌ Solo se puede agregar el nivel más alto.", removedFromCart: "Eliminado del carrito",
-      addedToCart: "Añadido al carrito", errorPlanNotConfigured: "❌ Plan no configurado para este nivel",
-    }
-  };
-
-  // ------------------------------------------------------------------
-  // 2. Cart & price helpers (adapted from header.js + shop-shared.js)
-  // ------------------------------------------------------------------
-  let currentLang = localStorage.getItem('language') || 'en';
-  let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
+  let currentLang = 'en';
+  let currentCurrency = 'USD';
   const tierMap = { 1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } };
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
@@ -1051,7 +672,7 @@
     const cart = getCart();
     const count = cart.length;
     const total = cart.reduce((s,i) => s + (i.price || 0), 0);
-    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if(el) el.textContent = count; });
+    document.querySelectorAll('#floatingCartCount').forEach(el => { if(el) el.textContent = count; });
     const container = document.getElementById('cartItems');
     if (container) {
       container.innerHTML = count === 0 ? '<p style="padding:1rem;">Your cart is empty</p>' : '';
@@ -1077,7 +698,7 @@
   window.addOrToggleCart = function(pack) {
     let cart = getCart();
     const idx = cart.findIndex(i => String(i.id) === String(pack.id));
-    const t = translations[currentLang] || translations.en;
+    const t = window.translations[currentLang] || window.translations.en;
     if (idx > -1) {
       cart.splice(idx,1);
       showSnackbar(t.removedFromCart || 'Removed from cart', true);
@@ -1099,7 +720,7 @@
   };
 
   // ------------------------------------------------------------------
-  // 3. Membership‑specific helpers
+  // 2. Membership‑specific helpers
   // ------------------------------------------------------------------
   function updateMembershipPrices() {
     document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
@@ -1111,7 +732,7 @@
     });
   }
   function updateMembershipText() {
-    const t = translations[currentLang] || translations.en;
+    const t = window.translations[currentLang] || window.translations.en;
     const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t[id] || fallback; };
     const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t[id] || fallback; };
     setText('membershipTitle', '✨ Choose Your Membership');
@@ -1143,7 +764,7 @@
   }
   function updateMembershipButtons() {
     const cart = getCart();
-    const t = translations[currentLang] || translations.en;
+    const t = window.translations[currentLang] || window.translations.en;
     for (let tier = 1; tier <= 5; tier++) {
       const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
       if (!card) continue;
@@ -1160,7 +781,7 @@
     const input = document.getElementById('discordId');
     if (!input) return null;
     const id = input.value.trim();
-    const t = translations[currentLang] || translations.en;
+    const t = window.translations[currentLang] || window.translations.en;
     if (!id) { showSnackbar(t.errorDiscordMissing || 'Please enter your Discord ID', true); return null; }
     if (!/^\d{17,19}$/.test(id)) { showSnackbar(t.errorDiscordInvalid || 'Invalid Discord ID format', true); return null; }
     return id;
@@ -1168,7 +789,7 @@
   window.handleSinglePurchase = async function(tierNumber) {
     const discordId = validateDiscordId();
     if (!discordId) return;
-    const t = translations[currentLang] || translations.en;
+    const t = window.translations[currentLang] || window.translations.en;
     const tierPrices = {1:5,2:15,3:30,4:50,5:75};
     const tierTitles = {1:'BRONZE',2:'COPPER',3:'SILVER',4:'GOLD',5:'PLATINUM'};
     let cart = getCart();
@@ -1203,7 +824,7 @@
     const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
     const planId = PLAN_IDS[tierNumber];
     if (!planId) {
-      const t = translations[currentLang] || translations.en;
+      const t = window.translations[currentLang] || window.translations.en;
       showSnackbar(t.errorPlanNotConfigured || 'Plan not configured for this tier', true);
       return;
     }
@@ -1215,66 +836,22 @@
   };
 
   // ------------------------------------------------------------------
-  // 4. Event listeners & initialisation
+  // 3. Event listeners & initialisation
   // ------------------------------------------------------------------
   document.addEventListener('DOMContentLoaded', () => {
-    // Theme
-    const themeBtn = document.getElementById('themeBtn');
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-      });
-    }
-    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
-
     // Cart drawer
-    const cartBtn = document.getElementById('cartBtn');
     const floatCartBtn = document.getElementById('floatingCartBtn');
     const cartDrawer = document.getElementById('cartDrawer');
     const cartOverlay = document.getElementById('cartOverlay');
     const cartClose = document.getElementById('cartClose');
-    const openCart = () => { cartDrawer.classList.add('open'); if (cartOverlay) cartOverlay.classList.add('active'); document.body.classList.add('drawer-open'); };
-    const closeCart = () => { cartDrawer.classList.remove('open'); if (cartOverlay) cartOverlay.classList.remove('active'); document.body.classList.remove('drawer-open'); };
-    cartBtn?.addEventListener('click', openCart);
+    const openCart = () => { cartDrawer.classList.add('open'); cartOverlay.classList.add('active'); document.body.classList.add('drawer-open'); };
+    const closeCart = () => { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('active'); document.body.classList.remove('drawer-open'); };
     floatCartBtn?.addEventListener('click', openCart);
     cartClose?.addEventListener('click', closeCart);
     cartOverlay?.addEventListener('click', closeCart);
     document.addEventListener('click', (e) => {
-      if (cartDrawer?.classList.contains('open') && !cartDrawer.contains(e.target) && !cartBtn?.contains(e.target) && !floatCartBtn?.contains(e.target)) closeCart();
+      if (cartDrawer?.classList.contains('open') && !cartDrawer.contains(e.target) && !floatCartBtn?.contains(e.target)) closeCart();
     });
-
-    // Sidebar
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const sidebarMenuToggle = document.getElementById('sidebarMenuToggle');
-    const openSidebar = () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
-    const closeSidebar = () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); document.body.style.overflow = ''; };
-    menuToggle?.addEventListener('click', openSidebar);
-    sidebarMenuToggle?.addEventListener('click', closeSidebar);
-    sidebarOverlay?.addEventListener('click', closeSidebar);
-
-    // Language popover
-    const langBtn = document.getElementById('langBtn');
-    const langPopover = document.getElementById('languagePopover');
-    langBtn?.addEventListener('click', (e) => { e.stopPropagation(); langPopover.classList.toggle('show'); });
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const newLang = item.dataset.lang;
-        if (newLang) {
-          currentLang = newLang;
-          localStorage.setItem('language', newLang);
-          currentCurrency = newLang === 'en' ? 'USD' : (newLang === 'ja' ? 'JPY' : (newLang === 'zh' ? 'CNY' : 'MXN'));
-          updateMembershipText();
-          updateMembershipPrices();
-          updateMembershipButtons();
-          updateCartUI();
-        }
-        langPopover.classList.remove('show');
-      });
-    });
-    document.addEventListener('click', (e) => { if (langPopover && !langPopover.contains(e.target) && e.target !== langBtn) langPopover.classList.remove('show'); });
 
     // Discord help toggle
     const helpToggle = document.getElementById('discordHelpToggle');
@@ -1283,7 +860,7 @@
       helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
     }
 
-    // Initialise
+    // Initialise translations & prices (English only)
     updateMembershipText();
     updateMembershipPrices();
     updateMembershipButtons();
