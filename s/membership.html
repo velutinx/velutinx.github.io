@@ -4,237 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
-  <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
-  <!-- Membership-specific styles -->
   <style>
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
+    /* (all styles unchanged – same as before) */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
-    .membership-title {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    .membership-description {
-      color: var(--text);
-      text-align: center;
-      margin-bottom: 32px;
-      font-size: 1.2rem;
-    }
-    .carousel-container {
-      position: relative;
-      margin: 40px 0;
-    }
-    .carousel-scroll {
-      display: flex;
-      overflow-x: auto;
-      gap: 2rem;
-      padding: 20px 0;
-      scroll-behavior: smooth;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
+    .membership-title { font-size: 2.5rem; font-weight: 800; color: var(--text); margin-bottom: 16px; text-align: center; }
+    .membership-description { color: var(--text); text-align: center; margin-bottom: 32px; font-size: 1.2rem; }
+    .carousel-container { position: relative; margin: 40px 0; }
+    .carousel-scroll { display: flex; overflow-x: auto; gap: 2rem; padding: 20px 0; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; }
     .carousel-scroll::-webkit-scrollbar { display: none; }
-    .tier-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2rem;
-      width: 300px;
-      flex-shrink: 0;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s;
-    }
+    .tier-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; width: 300px; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; transition: transform 0.2s; }
     .tier-card:hover { transform: translateY(-4px); }
-    .tier-card h3 {
-      font-size: 1.8rem;
-      margin: 0 0 0.5rem;
-      color: var(--text);
-    }
-    .tier-price {
-      color: #ef4444;
-      font-weight: 800;
-      font-size: 2rem;
-      text-align: center;
-      margin: 0.5rem 0;
-    }
+    .tier-card h3 { font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--text); }
+    .tier-price { color: #ef4444; font-weight: 800; font-size: 2rem; text-align: center; margin: 0.5rem 0; }
     .price-value { font-size: inherit; font-weight: inherit; }
-    .per-month {
-      font-size: 1rem;
-      font-weight: normal;
-      color: var(--text-light);
-    }
-    .tier-perks {
-      list-style: none;
-      padding: 0;
-      margin: 1.5rem 0;
-      flex: 1;
-    }
-    .tier-perks li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 1rem;
-      line-height: 1.4;
-    }
+    .per-month { font-size: 1rem; font-weight: normal; color: var(--text-light); }
+    .tier-perks { list-style: none; padding: 0; margin: 1.5rem 0; flex: 1; }
+    .tier-perks li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); font-size: 1rem; line-height: 1.4; }
     .tier-perks li:last-child { border-bottom: none; }
-    .tier-perks li::before {
-      content: "✓";
-      color: var(--success);
-      font-weight: bold;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-    .tier-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-    .tier-star {
-      width: 40px;
-      height: 40px;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 10px;
-    }
+    .tier-perks li::before { content: "✓"; color: var(--success); font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
+    .tier-header { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .tier-star { width: 40px; height: 40px; display: inline-block; vertical-align: middle; margin-right: 10px; }
     .tier-star svg { width: 100%; height: 100%; }
     .tier-title { font-size: 1.8rem; margin: 0; }
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 1.5rem;
-    }
-    .tier-btn {
-      flex: 1;
-      padding: 10px 0;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      color: white;
-      text-align: center;
-    }
+    .button-row { display: flex; gap: 10px; margin-top: 1.5rem; }
+    .tier-btn { flex: 1; padding: 10px 0; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; text-align: center; }
     .btn-single { background: #3b82f6; }
     .btn-single:hover { background: #2563eb; }
     .btn-recurring { background: #10b981; }
     .btn-recurring:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
-    .carousel-arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      font-size: 1.8rem;
-      font-weight: 400;
-      color: var(--text);
-      transition: all 0.2s;
-      line-height: 1;
-    }
-    .carousel-arrow:hover {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
+    .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: var(--card); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 1.8rem; font-weight: 400; color: var(--text); transition: all 0.2s; line-height: 1; }
+    .carousel-arrow:hover { background: var(--accent); color: white; border-color: var(--accent); }
     .arrow-left { left: -20px; }
     .arrow-right { right: -20px; }
-    @media (max-width: 700px) {
-      .arrow-left { left: -10px; }
-      .arrow-right { right: -10px; }
-    }
-    .discord-section {
-      max-width: 1100px;
-      margin: 0 auto 40px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .discord-input label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .discord-input input {
-      width: 100%;
-      padding: 14px;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-    .discord-input input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    .discord-hint {
-      font-size: 0.9rem;
-      color: #000000 !important;
-      margin-top: 8px;
-    }
+    @media (max-width: 700px) { .arrow-left { left: -10px; } .arrow-right { right: -10px; } }
+    .discord-section { max-width: 1100px; margin: 0 auto 40px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+    .discord-input label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
+    .discord-input input { width: 100%; padding: 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; transition: border-color 0.2s; }
+    .discord-input input:focus { outline: none; border-color: var(--accent); }
+    .discord-hint { font-size: 0.9rem; color: #000000 !important; margin-top: 8px; }
     body.dark .discord-hint { color: #ffffff !important; }
-    .discord-help-link {
-      color: #000000 !important;
-      font-weight: bold !important;
-      text-decoration: underline;
-      cursor: pointer;
-      margin-top: 12px;
-      display: inline-block;
-    }
+    .discord-help-link { color: #000000 !important; font-weight: bold !important; text-decoration: underline; cursor: pointer; margin-top: 12px; display: inline-block; }
     body.dark .discord-help-link { color: #ffffff !important; }
-    .discord-help-content {
-      display: none;
-      margin-top: 16px;
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
+    .discord-help-content { display: none; margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
     .discord-help-content.show { display: block; }
     .discord-help-content p { margin-bottom: 12px; }
-    .discord-help-content img {
-      max-width: 100%;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    .note-box {
-      background: rgba(170,158,118,0.1);
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      margin: 24px 0 0;
-      border-radius: 8px;
-      font-size: 0.95rem;
-    }
-    /* Ensure cart drawer displays membership items correctly */
+    .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+    .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
     .cart-item-price { font-weight: 700; }
   </style>
 </head>
