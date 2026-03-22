@@ -4,195 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
+  <!-- Shared header CSS -->
+  <link rel="stylesheet" href="/assets/css/shared.css">
+  <!-- Membership-specific styles (carousel, discord section, etc.) -->
   <style>
-    /* ==================== BASE STYLES ==================== */
-    :root {
-      --bg: #d3d0c1;
-      --card: #e8e5d8;
-      --darker: #c0bcaa;
-      --text: #3a3528;
-      --text-light: #e8e5d8;
-      --accent: #aa9e76;
-      --success: #22c55e;
-      --red-discount: #a64a5c;
-      --gray: #8a7b6f;
-      --border: #aa9e76;
-      --overlay: rgba(170,158,118,0.25);
-      --btn-cart: #3a3528;
-      --btn-cart-hover: #4a4538;
-    }
-    body.dark {
-      --bg: #0f0f12;
-      --card: #1a1a20;
-      --darker: #121216;
-      --text: #e6e3d8;
-      --text-light: #e6e3d8;
-      --accent: #d4c08a;
-      --success: #8b8a5e;
-      --red-discount: #a64a5c;
-      --gray: #b8b3a5;
-      --border: #6f6a4e;
-      --overlay: rgba(15,15,18,0.75);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      transition: background 0.4s, color 0.4s;
-    }
-    body.drawer-open::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: var(--overlay);
-      z-index: 1190;
-      pointer-events: none;
-    }
-    body.drawer-open .floating-cart { display: none; }
-
-    /* floating cart */
-    .floating-cart {
-      position: fixed !important;
-      bottom: 24px !important;
-      right: 24px !important;
-      width: 64px !important;
-      height: 64px !important;
-      background: var(--accent) !important;
-      border-radius: 9999px !important;
-      border: none !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      cursor: pointer !important;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.25) !important;
-      z-index: 1150 !important;
-      transition: 0.2s !important;
-    }
-    .floating-cart:hover { transform: scale(1.08) !important; background: #38aae8 !important; }
-    .cart-badge, .floating-badge {
-      position: absolute !important;
-      top: 0 !important;
-      right: 0 !important;
-      transform: translate(50%, -50%) !important;
-      background: #ef4444 !important;
-      color: white !important;
-      font-size: 0.75rem !important;
-      font-weight: bold !important;
-      min-width: 22px !important;
-      height: 22px !important;
-      line-height: 22px !important;
-      border-radius: 50% !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      padding: 0 6px !important;
-      border: 2px solid var(--darker) !important;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
-    }
-
-    /* cart drawer */
-    .cart-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(5px);
-      z-index: 1249;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    .cart-overlay.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .cart-drawer {
-      position: fixed;
-      top: 0;
-      right: -400px;
-      width: 400px;
-      height: 100%;
-      background: var(--accent);
-      border-left: 1px solid var(--border);
-      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-      z-index: 1250;
-      transition: right 0.35s ease;
-      display: flex;
-      flex-direction: column;
-      color: #1f1a12;
-    }
-    .cart-drawer.open { right: 0; }
-    .cart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.4rem 1.6rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .cart-header h5 { margin: 0; font-size: 1.45rem; }
-    .cart-close { background: none; border: none; color: #1f1a12; font-size: 1.8rem; cursor: pointer; }
-    .cart-items { flex: 1; overflow-y: auto; padding: 1.2rem; }
-    .cart-item {
-      display: flex;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .cart-item img { width: 85px; height: 85px; object-fit: cover; border-radius: 8px; }
-    .cart-item-info { flex: 1; }
-    .cart-item-title { font-weight: 600; margin-bottom: 6px; }
-    .cart-item-price { color: #1f1a12; font-weight: 700; }
-    .cart-item-remove { background: none; border: none; color: var(--red-discount); font-size: 1.4rem; cursor: pointer; align-self: flex-start; }
-    .cart-total { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); }
-    .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.15rem; }
-
-    /* snackbar */
-    #snackbar {
-      position: fixed;
-      top: 28px;
-      right: 28px;
-      background: var(--success);
-      color: white;
-      padding: 14px 22px;
-      border-radius: 10px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      z-index: 1300;
-      transform: translateY(-120px);
-      opacity: 0;
-      transition: all 0.45s ease;
-      font-weight: 500;
-    }
-    #snackbar.show { transform: translateY(0); opacity: 1; }
-    #snackbar[style*="background: #ef4444"] { background: #ef4444 !important; }
-    #snackbar svg { min-width: 20px; }
-
-    /* cart button (on product cards) */
-    .cart-btn {
-      width: 44px;
-      height: 44px;
-      background: var(--btn-cart);
-      border: none;
-      border-radius: 50%;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .cart-btn:hover { background: var(--btn-cart-hover); transform: scale(1.08); }
-    .cart-btn.added { background: #22c55e; }
-    .cart-btn svg { transition: transform 0.2s; }
-    .cart-btn.added svg { transform: scale(1.15); }
-
-    /* ==================== MEMBERSHIP STYLES ==================== */
+    /* Additional styles for membership page */
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -421,63 +237,14 @@
       border-radius: 8px;
       font-size: 0.95rem;
     }
-    #statusMessage {
-      text-align: center;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 16px 0;
-      display: none;
-    }
-    #statusMessage.success {
-      background: rgba(34,197,94,0.2);
-      color: var(--success);
-      border: 1px solid var(--success);
-      display: block;
-    }
-    #statusMessage.error {
-      background: rgba(239,68,68,0.2);
-      color: #ef4444;
-      border: 1px solid #ef4444;
-      display: block;
-    }
-    #snackbar.error { background: #ef4444 !important; }
-    #snackbar.error svg { stroke: white; }
+    #snackbar { display: none; } /* We'll use our own snackbar? Actually shared.js already provides one */
+    /* Hide duplicate snackbar if any */
   </style>
 </head>
 <body>
 
-<button class="floating-cart" id="floatingCartBtn" title="Shopping Cart">
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-    <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-    <path d="M17 17h-11v-14h-2"></path>
-    <path d="M6 5l14 1l-1 7h-13"></path>
-  </svg>
-  <span class="floating-badge" id="floatingCartCount">0</span>
-</button>
-
-<div class="cart-overlay" id="cartOverlay"></div>
-<div class="cart-drawer" id="cartDrawer">
-  <div class="cart-header">
-    <h5 id="cartTitle">Shopping Cart</h5>
-    <button class="cart-close" id="cartClose">×</button>
-  </div>
-  <div class="cart-items" id="cartItems"></div>
-  <div class="cart-total">
-    <div class="cart-total-row">
-      <span id="totalLabel">Total</span>
-      <span id="cartTotal">US$0.00</span>
-    </div>
-    <div id="paypal-button-container"></div>
-  </div>
-</div>
-
-<div id="snackbar">
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-    <path d="M20 6L9 17l-5-5"></path>
-  </svg>
-  <span id="snackText">Success</span>
-</div>
+<!-- Placeholder for shared header -->
+<div id="header-placeholder"></div>
 
 <main class="container">
   <h1 class="membership-title" id="membershipTitle">✨ Choose Your Membership</h1>
@@ -624,117 +391,58 @@
   </div>
 </main>
 
+<!-- Shared header JS -->
+<script src="/assets/js/shared.js"></script>
+
+<!-- Membership translations and logic -->
 <script src="/s/js/translations.js"></script>
 <script>
-  // ------------------------------------------------------------------
-  // 1. Language & price helpers (English only, since UI toggles removed)
-  // ------------------------------------------------------------------
-  let currentLang = 'en';
-  let currentCurrency = 'USD';
-  const tierMap = { 1.5: { JPY: 250, CNY: 10.5, MXN: 25 }, 3.0: { JPY: 500, CNY: 21.0, MXN: 50 }, 10.0: { JPY: 1500, CNY: 69.0, MXN: 175 } };
-  const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+  // ============================================================
+  // Membership-specific code (adapted to work with shared header)
+  // ============================================================
+  let currentLang = localStorage.getItem('language') || 'en';
+  let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
 
-  function formatPrice(value, currency = currentCurrency) {
-    const num = Number(value);
-    if (isNaN(num)) return '?';
-    if (currency === 'USD') return `US$${num.toFixed(2)}`;
-    const rounded = Math.round(num * 100) / 100;
-    if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-      const converted = tierMap[rounded][currency];
-      const sym = currency === 'JPY' ? '円' : currency === 'CNY' ? '元' : 'MXN$';
-      return `${sym}${converted}`;
-    }
-    let converted = num * (approxRates[currency] || 1);
-    converted = (currency === 'JPY' || currency === 'MXN') ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-    const sym = currency === 'JPY' ? '円' : currency === 'CNY' ? '元' : 'MXN$';
-    return `${sym}${converted}`;
-  }
-
+  // Helper to get cart from localStorage (same key as shared.js)
   function getCart() {
     try {
-      const saved = localStorage.getItem('velutinx_cart');
-      return saved ? JSON.parse(saved) : [];
+      return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
     } catch { return []; }
   }
+
   function saveCart(cart) {
     localStorage.setItem('velutinx_cart', JSON.stringify(cart || []));
+    // Update shared header cart UI (call shared's internal update if possible, else we'll implement our own)
+    if (window.updateSharedCartUI) window.updateSharedCartUI();
   }
-  function showSnackbar(message, isRemove = false) {
-    const sb = document.getElementById('snackbar');
-    const text = document.getElementById('snackText');
-    if (!sb || !text) return;
-    sb.style.background = isRemove ? '#ef4444' : '#22c55e';
-    text.textContent = message;
-    sb.classList.add('show');
-    setTimeout(() => sb.classList.remove('show'), 2000);
-  }
-  function updateCartUI() {
-    const cart = getCart();
-    const count = cart.length;
-    const total = cart.reduce((s,i) => s + (i.price || 0), 0);
-    document.querySelectorAll('#floatingCartCount').forEach(el => { if(el) el.textContent = count; });
-    const container = document.getElementById('cartItems');
-    if (container) {
-      container.innerHTML = count === 0 ? '<p style="padding:1rem;">Your cart is empty</p>' : '';
-      cart.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${item.title}</div><div class="cart-item-price">${formatPrice(item.price)}</div></div><button class="cart-item-remove" data-idx="${idx}">×</button>`;
-        container.appendChild(div);
-      });
-      document.querySelectorAll('.cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          let cart = getCart();
-          cart.splice(idx,1);
-          saveCart(cart);
-          updateCartUI();
-          updateMembershipButtons();
-        });
-      });
-      document.getElementById('cartTotal').innerText = formatPrice(total);
-    }
-  }
-  window.addOrToggleCart = function(pack) {
-    let cart = getCart();
-    const idx = cart.findIndex(i => String(i.id) === String(pack.id));
-    const t = window.translations[currentLang] || window.translations.en;
-    if (idx > -1) {
-      cart.splice(idx,1);
-      showSnackbar(t.removedFromCart || 'Removed from cart', true);
-    } else {
-      cart.push({
-        id: pack.id,
-        title: pack.title,
-        price: pack.price,
-        image: pack.image || `https://www.velutinx.com/i/pack${String(pack.id).padStart(3,'0')}-1.jpg`,
-        type: pack.type,
-        tier: pack.tier,
-        discordId: pack.discordId
-      });
-      showSnackbar(t.addedToCart || 'Added to cart', false);
-    }
-    saveCart(cart);
-    updateCartUI();
-    updateMembershipButtons();
-  };
 
-  // ------------------------------------------------------------------
-  // 2. Membership‑specific helpers
-  // ------------------------------------------------------------------
-  function updateMembershipPrices() {
-    document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-      const usd = parseFloat(el.dataset.priceUsd);
-      if (!isNaN(usd)) {
-        const priceSpan = el.querySelector('.price-value');
-        if (priceSpan) priceSpan.textContent = formatPrice(usd);
-      }
-    });
+  // Format price using shared.js's formatPrice if available, else fallback
+  function formatPrice(usd) {
+    if (window.formatPrice) return window.formatPrice(usd);
+    // fallback
+    return `US$${usd.toFixed(2)}`;
   }
+
+  function showSnackbar(message, isRemove = false) {
+    // Use shared snackbar if available
+    const sb = document.querySelector('#snackbar');
+    if (sb) {
+      sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+      const textSpan = sb.querySelector('#snackText');
+      if (textSpan) textSpan.innerText = message;
+      sb.classList.add('show');
+      setTimeout(() => sb.classList.remove('show'), 2000);
+    } else {
+      alert(message); // fallback
+    }
+  }
+
+  // Update membership UI text based on current language
   function updateMembershipText() {
     const t = window.translations[currentLang] || window.translations.en;
     const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t[id] || fallback; };
     const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t[id] || fallback; };
+
     setText('membershipTitle', '✨ Choose Your Membership');
     setText('membershipDescription', 'Support my work and unlock exclusive perks');
     setHTML('discordIdLabel', (t.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
@@ -746,11 +454,13 @@
     setHTML('discordHelpStep4', t.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
     setHTML('noteBox', (t.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
       '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
+
     for (let i = 1; i <= 5; i++) {
       const titleEl = document.getElementById(`tier${i}Title`);
       const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
       if (titleEl && t[key]) titleEl.textContent = t[key];
     }
+
     const perkIds = [
       'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
       'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
@@ -758,10 +468,24 @@
       'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
     ];
     perkIds.forEach(id => { const el = document.getElementById(id); if (el && t[id]) el.textContent = t[id]; });
+
     document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t.btnSingle || 'Single Purchase');
     document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t.btnRecurring || 'Recurring Membership');
     document.querySelectorAll('.per-month').forEach(el => el.textContent = t.perMonth || '/ month');
+
+    updateMembershipPrices();
   }
+
+  function updateMembershipPrices() {
+    document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+      const usd = parseFloat(el.dataset.priceUsd);
+      if (!isNaN(usd)) {
+        const priceSpan = el.querySelector('.price-value');
+        if (priceSpan) priceSpan.textContent = formatPrice(usd);
+      }
+    });
+  }
+
   function updateMembershipButtons() {
     const cart = getCart();
     const t = window.translations[currentLang] || window.translations.en;
@@ -777,6 +501,7 @@
       }
     }
   }
+
   function validateDiscordId() {
     const input = document.getElementById('discordId');
     if (!input) return null;
@@ -786,7 +511,25 @@
     if (!/^\d{17,19}$/.test(id)) { showSnackbar(t.errorDiscordInvalid || 'Invalid Discord ID format', true); return null; }
     return id;
   }
-  window.handleSinglePurchase = async function(tierNumber) {
+
+  // Override shared's addOrToggleCart with our membership version
+  window.addOrToggleCart = function(product) {
+    // product is expected to have { id, title, price, image, type, tier, discordId? }
+    let cart = getCart();
+    const idx = cart.findIndex(i => String(i.id) === String(product.id));
+    const t = window.translations[currentLang] || window.translations.en;
+    if (idx > -1) {
+      cart.splice(idx, 1);
+      showSnackbar(t.removedFromCart || 'Removed from cart', true);
+    } else {
+      cart.push(product);
+      showSnackbar(t.addedToCart || 'Added to cart', false);
+    }
+    saveCart(cart);
+    updateMembershipButtons();
+  };
+
+  window.handleSinglePurchase = function(tierNumber) {
     const discordId = validateDiscordId();
     if (!discordId) return;
     const t = window.translations[currentLang] || window.translations.en;
@@ -796,7 +539,6 @@
     const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
     if (alreadyInCart) {
       window.addOrToggleCart({ id: `membership-${tierNumber}` });
-      showSnackbar(t.removedFromCart || 'Removed from cart', true);
     } else {
       const membershipItems = cart.filter(item => item.type === 'membership');
       const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
@@ -814,10 +556,9 @@
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
-      showSnackbar(t.addedToCart || 'Added to cart', false);
     }
-    updateMembershipButtons();
   };
+
   window.handleRecurring = async function(tierNumber) {
     const discordId = validateDiscordId();
     if (!discordId) return;
@@ -830,41 +571,74 @@
     }
     alert(`Recurring subscription for Tier ${tierNumber} would start.`);
   };
+
   window.scrollCarousel = function(direction) {
     const container = document.getElementById('tierCarousel');
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
 
-  // ------------------------------------------------------------------
-  // 3. Event listeners & initialisation
-  // ------------------------------------------------------------------
-  document.addEventListener('DOMContentLoaded', () => {
-    // Cart drawer
-    const floatCartBtn = document.getElementById('floatingCartBtn');
-    const cartDrawer = document.getElementById('cartDrawer');
-    const cartOverlay = document.getElementById('cartOverlay');
-    const cartClose = document.getElementById('cartClose');
-    const openCart = () => { cartDrawer.classList.add('open'); cartOverlay.classList.add('active'); document.body.classList.add('drawer-open'); };
-    const closeCart = () => { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('active'); document.body.classList.remove('drawer-open'); };
-    floatCartBtn?.addEventListener('click', openCart);
-    cartClose?.addEventListener('click', closeCart);
-    cartOverlay?.addEventListener('click', closeCart);
-    document.addEventListener('click', (e) => {
-      if (cartDrawer?.classList.contains('open') && !cartDrawer.contains(e.target) && !floatCartBtn?.contains(e.target)) closeCart();
-    });
+  // Custom function to update shared cart drawer UI (since shared.js doesn't expose its update)
+  window.updateSharedCartUI = function() {
+    const cart = getCart();
+    const container = document.getElementById('cartItems');
+    const totalSpan = document.getElementById('cartTotal');
+    const t = window.translations[currentLang] || window.translations.en;
+    if (container) {
+      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart || 'Your cart is empty'}</div>` : '';
+      cart.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${item.title}</div><div class="cart-item-price">${formatPrice(item.price)}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
+        container.appendChild(div);
+      });
+      document.querySelectorAll('.cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          let cart = getCart();
+          cart.splice(idx, 1);
+          saveCart(cart);
+          updateMembershipButtons();
+        });
+      });
+      const total = cart.reduce((sum, i) => sum + (i.price || 0), 0);
+      if (totalSpan) totalSpan.innerText = formatPrice(total);
+    }
+    // Update cart count badge
+    const count = cart.length;
+    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
+  };
 
-    // Discord help toggle
+  // Wait for shared header to be ready
+  document.addEventListener('headerReady', function() {
+    // Override shared.js's addOrToggleCart to use our version
+    window.addOrToggleCart = window.addOrToggleCart; // already set above, but ensure it's not overwritten
+    // Replace the demo checkout button action if needed
+    const demoBtn = document.getElementById('demoCheckoutBtn');
+    if (demoBtn) {
+      demoBtn.onclick = () => alert("Checkout is a demo. Your cart items are stored locally.");
+    }
+    // Initial UI sync
+    updateSharedCartUI();
+    updateMembershipButtons();
+    // Listen for language changes from shared header
+    document.addEventListener('languageChanged', function(e) {
+      currentLang = e.detail.language;
+      currentCurrency = e.detail.currency;
+      updateMembershipText();
+      updateMembershipButtons();
+      updateSharedCartUI();
+    });
+    // Initial translation
+    updateMembershipText();
+  });
+
+  // Discord help toggle
+  document.addEventListener('DOMContentLoaded', function() {
     const helpToggle = document.getElementById('discordHelpToggle');
     const helpContent = document.getElementById('discordHelpContent');
     if (helpToggle && helpContent) {
       helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
     }
-
-    // Initialise translations & prices (English only)
-    updateMembershipText();
-    updateMembershipPrices();
-    updateMembershipButtons();
-    updateCartUI();
   });
 </script>
 </body>
