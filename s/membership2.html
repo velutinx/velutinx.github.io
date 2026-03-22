@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/assets/css/shared2.css">
 
   <style>
+    /* Your existing membership styles here - unchanged */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -60,7 +61,6 @@
 </head>
 <body>
 
-  <!-- Header should be injected here by shared2.js -->
   <div id="header-placeholder"></div>
 
   <main class="container">
@@ -70,8 +70,8 @@
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
-        <!-- Autofill test ID -->
-        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" value="1475213827737129182" required>
+        <!-- Autofill your test ID -->
+        <input type="text" id="discordId" value="1475213827737129182" placeholder="e.g., 123456789012345678" required>
         <div class="discord-hint" id="discordHint">
           <span id="discordHintText">How to find your Discord ID:</span>
           <span class="discord-help-link" id="discordHelpToggle">
@@ -100,6 +100,7 @@
 
     <div class="carousel-container">
       <div class="carousel-scroll" id="tierCarousel">
+        <!-- Tier cards (Bronze to Platinum) - unchanged from your working version -->
         <div class="tier-card" data-tier="1">
           <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
           <div class="tier-header">
@@ -117,91 +118,9 @@
           </div>
         </div>
 
-        <div class="tier-card" data-tier="2">
-          <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"/></g></svg></span>
-            <h3>COPPER</h3>
-          </div>
-          <div class="tier-price" data-price-usd="15"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 20 images per request.</li>
-            <li>Single character, official/creator-selected outfit.</li>
-            <li>Some character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(2)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(2)">Recurring Membership</button>
-          </div>
-        </div>
+        <!-- Copper, Silver, Gold, Platinum tiers here - keep your existing HTML for them -->
+        <!-- ... paste the other 4 tier-card divs from your current file ... -->
 
-        <div class="tier-card" data-tier="3">
-          <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"/></g></svg></span>
-            <h3>SILVER</h3>
-          </div>
-          <div class="tier-price" data-price-usd="30"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) custom image request per billing cycle.</li>
-            <li>Approx. 40 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: ~1 day (queue order).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(3)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(3)">Recurring Membership</button>
-          </div>
-        </div>
-
-        <div class="tier-card" data-tier="4">
-          <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"/></g></svg></span>
-            <h3>GOLD</h3>
-          </div>
-          <div class="tier-price" data-price-usd="50"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>Typical turnaround: 3-7 days (queue order).</li>
-            <li>Special/expanded requests may be discussed.</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(4)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(4)">Recurring Membership</button>
-          </div>
-        </div>
-
-        <div class="tier-card" data-tier="5">
-          <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-          <div class="tier-header">
-            <span class="tier-star"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"/></g></svg></span>
-            <h3>PLATINUM</h3>
-          </div>
-          <div class="tier-price" data-price-usd="75"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-          <ul class="tier-perks">
-            <li>Everything in Bronze, plus:</li>
-            <li>One (1) large custom image request per billing cycle.</li>
-            <li>Approx. 80 images per request.</li>
-            <li>Single character, custom outfit allowed.</li>
-            <li>Character customization allowed.</li>
-            <li>⚡ Priority: worked on first after current tasks.</li>
-            <li>Typical turnaround: 3-7 days (once started).</li>
-          </ul>
-          <div class="button-row">
-            <button class="tier-btn btn-single" onclick="handleSinglePurchase(5)">Single Purchase</button>
-            <button class="tier-btn btn-recurring" onclick="handleRecurring(5)">Recurring Membership</button>
-          </div>
-        </div>
       </div>
 
       <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
@@ -209,9 +128,10 @@
     </div>
   </main>
 
-  <!-- IMPORTANT: this path matches your current directory structure -->
+  <!-- This MUST match your actual file location -->
   <script src="/s/js/shared2.js"></script>
 
+  <!-- Your working membership logic (unchanged) -->
   <script>
     let membershipInitialised = false;
 
