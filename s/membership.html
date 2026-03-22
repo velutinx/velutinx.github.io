@@ -6,6 +6,8 @@
   <title>VELUTINX — Membership</title>
   <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
+  <!-- PayPal SDK (needed for checkout) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <!-- Membership-specific styles -->
   <style>
     .container {
@@ -232,13 +234,12 @@
       border-radius: 8px;
       font-size: 0.95rem;
     }
-    /* Ensure cart drawer displays membership items correctly */
+    /* Ensure cart drawer displays items correctly */
     .cart-item-price { font-weight: 700; }
   </style>
 </head>
 <body>
 
-<!-- Header will be injected here by shared.js -->
 <div id="header-placeholder"></div>
 
 <main class="container">
@@ -381,35 +382,38 @@
   </div>
 </main>
 
-<!-- Shared header JS (injects header, sidebar, cart, etc.) -->
 <script src="/assets/js/shared.js"></script>
+<script src="/assets/js/price.js" type="module"></script>
 <!-- Membership translations -->
 <script src="/s/js/translations.js"></script>
 
 <script>
   // --------------------------------------------------------------
-  // Membership‑specific cart logic (overrides shared.js)
+  // Membership‑specific logic (using the shared store cart)
   // --------------------------------------------------------------
   let currentLang = localStorage.getItem('language') || 'en';
-  const TIER_PRICES = {1:5, 2:15, 3:30, 4:50, 5:75};
+
+  // Mapping from tier number to priceKey (must exist in price_keys table)
+  const TIER_PRICE_KEYS = {
+    1: 'MEMBER_1', // 5 USD
+    2: 'MEMBER_2', // 15 USD
+    3: 'MEMBER_3', // 30 USD
+    4: 'MEMBER_4', // 50 USD
+    5: 'MEMBER_5'  // 75 USD
+  };
   const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
-  // Helper to get cart from localStorage (shared.js uses same key)
+  // Helper to get store cart (velutinx_store_cart)
   function getCart() {
     try {
-      return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
+      return JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
     } catch { return []; }
   }
 
   function saveCart(cart) {
-    localStorage.setItem('velutinx_cart', JSON.stringify(cart));
-    updateCartUI();      // our version
+    localStorage.setItem('velutinx_store_cart', JSON.stringify(cart));
+    if (window.updateStoreCartUI) window.updateStoreCartUI();
     updateMembershipButtons();
-  }
-
-  // Format price (simple USD for membership)
-  function formatPrice(usd) {
-    return `US$${usd.toFixed(2)}`;
   }
 
   // Override shared.js snackbar (use its element)
@@ -426,58 +430,24 @@
     }
   }
 
-  // Custom cart drawer renderer (overrides shared.js)
-  function updateCartUI() {
+  // Update membership buttons to reflect cart state
+  function updateMembershipButtons() {
     const cart = getCart();
-    const container = document.getElementById('cartItems');
-    const totalSpan = document.getElementById('cartTotal');
     const t = window.translations?.[currentLang] || window.translations?.en;
-
-    if (container) {
-      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t?.emptyCart || 'Your cart is empty'}</div>` : '';
-      cart.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${item.title}</div>
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
-          </div>
-          <button class="cart-item-remove" data-idx="${idx}">✕</button>
-        `;
-        container.appendChild(div);
-      });
-      document.querySelectorAll('.cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          const cart = getCart();
-          cart.splice(idx, 1);
-          saveCart(cart);
-        });
-      });
-      const total = cart.reduce((sum, i) => sum + (i.price || 0), 0);
-      if (totalSpan) totalSpan.innerText = formatPrice(total);
+    for (let tier = 1; tier <= 5; tier++) {
+      const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+      if (!card) continue;
+      const inCart = cart.some(item => item.id === `membership-${tier}`);
+      const btn = card.querySelector('.btn-single, .btn-remove');
+      if (btn) {
+        btn.textContent = inCart ? (t?.removeFromCart || 'Remove from Cart') : (t?.btnSingle || 'Single Purchase');
+        btn.classList.toggle('btn-single', !inCart);
+        btn.classList.toggle('btn-remove', inCart);
+      }
     }
-    const count = cart.length;
-    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
   }
 
-  // Main add/remove function (replaces shared.js version)
-  window.addOrToggleCart = function(product) {
-    let cart = getCart();
-    const idx = cart.findIndex(i => String(i.id) === String(product.id));
-    const t = window.translations?.[currentLang] || window.translations?.en;
-    if (idx > -1) {
-      cart.splice(idx, 1);
-      showSnackbar(t?.removedFromCart || 'Removed from cart', true);
-    } else {
-      cart.push(product);
-      showSnackbar(t?.addedToCart || 'Added to cart', false);
-    }
-    saveCart(cart);
-  };
-
+  // Validate Discord ID
   function validateDiscordId() {
     const input = document.getElementById('discordId');
     if (!input) return null;
@@ -488,6 +458,7 @@
     return id;
   }
 
+  // Add a membership tier to the store cart
   window.handleSinglePurchase = function(tierNumber) {
     const discordId = validateDiscordId();
     if (!discordId) return;
@@ -495,27 +466,39 @@
     let cart = getCart();
     const alreadyInCart = cart.some(item => item.id === `membership-${tierNumber}`);
     if (alreadyInCart) {
-      window.addOrToggleCart({ id: `membership-${tierNumber}` });
+      // Remove it
+      const idx = cart.findIndex(item => item.id === `membership-${tierNumber}`);
+      if (idx !== -1) cart.splice(idx, 1);
+      saveCart(cart);
+      showSnackbar(t?.removedFromCart || 'Removed from cart', true);
       return;
     }
+
+    // Check if there's already another membership in the cart
     const membershipItems = cart.filter(item => item.type === 'membership');
-    const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
-    if (highestTier !== null && tierNumber < highestTier) {
-      showSnackbar(t?.errorOnlyHighest || 'Only the highest tier can be added.', true);
+    if (membershipItems.length > 0) {
+      showSnackbar(t?.errorOnlyHighest || 'Only one membership can be added at a time.', true);
       return;
     }
-    // Remove existing membership(s)
-    membershipItems.forEach(item => window.addOrToggleCart({ id: item.id }));
-    // Add new one
-    window.addOrToggleCart({
+
+    // Add the new membership
+    const priceKey = TIER_PRICE_KEYS[tierNumber];
+    if (!priceKey) {
+      showSnackbar('Invalid tier', true);
+      return;
+    }
+
+    cart.push({
       id: `membership-${tierNumber}`,
       title: `${TIER_TITLES[tierNumber]} (30 days)`,
-      price: TIER_PRICES[tierNumber],
-      type: 'membership',
+      priceKey: priceKey,
+      type: 'store',   // store cart handles it
       tier: tierNumber,
       discordId: discordId,
       image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
     });
+    saveCart(cart);
+    showSnackbar(t?.addedToCart || 'Added to cart', false);
   };
 
   window.handleRecurring = function(tierNumber) {
@@ -536,28 +519,12 @@
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
 
-  function updateMembershipButtons() {
-    const cart = getCart();
-    const t = window.translations?.[currentLang] || window.translations?.en;
-    for (let tier = 1; tier <= 5; tier++) {
-      const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-      if (!card) continue;
-      const inCart = cart.some(item => item.id === `membership-${tier}`);
-      const btn = card.querySelector('.btn-single, .btn-remove');
-      if (btn) {
-        btn.textContent = inCart ? (t?.removeFromCart || 'Remove from Cart') : (t?.btnSingle || 'Single Purchase');
-        btn.classList.toggle('btn-single', !inCart);
-        btn.classList.toggle('btn-remove', inCart);
-      }
-    }
-  }
-
+  // Update membership text and prices (using translations)
   function updateMembershipText() {
     const t = window.translations?.[currentLang] || window.translations?.en;
     const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
     const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
 
-    // Remove sparkle from all languages
     let title = t?.membershipTitle || '✨ Choose Your Membership';
     title = title.replace(/✨\s*/, '');
     const titleEl = document.getElementById('membershipTitle');
@@ -592,36 +559,63 @@
     document.querySelectorAll('.btn-recurring-text').forEach(el => el.textContent = t?.btnRecurring || 'Recurring Membership');
     document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
 
-    updateMembershipPrices();
-  }
-
-  function updateMembershipPrices() {
+    // Update prices (using price.js)
     document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
       const usd = parseFloat(el.dataset.priceUsd);
-      if (!isNaN(usd)) {
+      if (!isNaN(usd) && window.formatPrice) {
         const priceSpan = el.querySelector('.price-value');
-        if (priceSpan) priceSpan.textContent = formatPrice(usd);
+        if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
       }
     });
   }
 
-  // Wait for shared header to be injected, then override cart functions and apply translations
-  document.addEventListener('headerReady', () => {
-    // Override cart drawer rendering and add/remove
-    updateCartUI();
-    // Replace shared.js's addOrToggleCart with our version
-    window.addOrToggleCart = window.addOrToggleCart;
-    // Reapply membership translations (header translations are handled by shared.js)
+  // Ensure the store cart UI is updated when the membership page loads
+  function syncCartUI() {
+    if (window.updateStoreCartUI) window.updateStoreCartUI();
+    updateMembershipButtons();
+  }
+
+  // Listen for language changes from shared.js
+  document.addEventListener('languageChanged', (e) => {
+    currentLang = e.detail.language;
     updateMembershipText();
     updateMembershipButtons();
+    syncCartUI();
+  });
 
-    // Listen for language changes from shared.js
-    document.addEventListener('languageChanged', (e) => {
-      currentLang = e.detail.language;
-      updateMembershipText();
-      updateMembershipButtons();
-      updateCartUI();
-    });
+  // Override shared.js cart functions to use our membership logic (they won't be used)
+  window.addOrToggleCart = window.addOrToggleCart; // keep existing (store version) – but we need to prevent conflicts
+  // Actually the store's addOrToggleCart is already defined by price.js? No, store.html defines it in its own script.
+  // To avoid conflicts, we'll rely on the store's cart functions already loaded (if any).
+  // But on membership page, we need to ensure the store cart functions are present.
+  // Since store.html is not loaded, we'll define them here if missing.
+  if (!window.addOrToggleCart) {
+    window.addOrToggleCart = function(product) {
+      let cart = getCart();
+      const idx = cart.findIndex(i => String(i.id) === String(product.id));
+      const t = window.translations?.[currentLang] || window.translations?.en;
+      if (idx > -1) {
+        cart.splice(idx, 1);
+        showSnackbar(t?.removedFromCart || 'Removed from cart', true);
+      } else {
+        cart.push(product);
+        showSnackbar(t?.addedToCart || 'Added to cart', false);
+      }
+      saveCart(cart);
+    };
+  }
+
+  // Initialise when header is ready
+  document.addEventListener('headerReady', () => {
+    // Wait for price.js to load
+    const checkPrice = setInterval(() => {
+      if (window.priceKeyMap && window.priceUsdMap) {
+        clearInterval(checkPrice);
+        updateMembershipText();
+        updateMembershipButtons();
+        syncCartUI();
+      }
+    }, 100);
   });
 
   // Discord help toggle
