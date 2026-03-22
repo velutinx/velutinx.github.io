@@ -198,28 +198,36 @@ const storeTranslations = {
     catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
     sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
     latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
-    addedMsg: "Added to cart", removedMsg: "Removed from cart"
+    addedMsg: "Added to cart", removedMsg: "Removed from cart",
+    membershipTitle: "Requests & Membership",
+    membershipLearnMore: "Learn More"
   },
   ja: {
     filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
     catFemale: "婦人", catFemboy: "男の娘", catMembership: "メンバーシップ",
     sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
     latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
-    addedMsg: "カートに追加しました", removedMsg: "カートから削除しました"
+    addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
+    membershipTitle: "リクエスト＆メンバーシップ",
+    membershipLearnMore: "詳細を見る"
   },
   zh: {
     filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
     catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
     sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
     latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
-    addedMsg: "已添加到购物车", removedMsg: "已从购物车移除"
+    addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
+    membershipTitle: "请求与会员资格",
+    membershipLearnMore: "了解更多"
   },
   es: {
     filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
     catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
     sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
     latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
-    addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito"
+    addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito",
+    membershipTitle: "Solicitudes y Membresía",
+    membershipLearnMore: "Más información"
   }
 };
 
@@ -335,7 +343,6 @@ function getFilteredSorted() {
   }
   if (currentSort === "newest") {
     filtered.sort((a, b) => {
-      // Special item "membership" always first
       if (a.id === 'membership') return -1;
       if (b.id === 'membership') return 1;
       return parseInt(b.id) - parseInt(a.id);
@@ -372,25 +379,26 @@ function renderStoreGrid() {
     card.className = 'product-card';
     card.dataset.id = p.id;
 
-if (p.id === 'membership') {
-  card.innerHTML = `
-    <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
-    <div class="card-content">
-      <div class="card-title">${escapeHtml(p.title)}</div>
-      <div class="price-row" style="justify-content: center;">
-        <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;">Learn More</a>
-      </div>
-    </div>
-  `;
-  card.onclick = () => { window.location.href = '/s/membership'; };
-}    else {
+    if (p.id === 'membership') {
+      const t = storeTranslations[currentLang];
+      card.innerHTML = `
+        <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
+        <div class="card-content">
+          <div class="card-title">${escapeHtml(t.membershipTitle)}</div>
+          <div class="price-row" style="justify-content: center;">
+            <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;">${escapeHtml(t.membershipLearnMore)}</a>
+          </div>
+        </div>
+      `;
+      card.onclick = () => { window.location.href = '/s/membership'; };
+    } else {
       const imgUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
       const priceString = window.getFormattedPrice(p.priceKey);
       const inCart = storeCart.some(i => String(i.id) === String(p.id));
       const cartButtonSvg = inCart
         ? `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#e74c3c"/><path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`
         : `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#2ecc71"/><path d="M18 5V9M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-      card.innerHTML = `<img src="${imgUrl}" class="card-image" onerror="this.src='https://www.velutinx.com/i/packmembership-1-1.jpg'"><div class="card-content"><div class="card-title">${escapeHtml(p.title)}</div><div class="price-row"><div class="price">${priceString}</div><button class="cart-btn ${inCart ? 'added' : ''}">${cartButtonSvg}</button></div></div>`;
+      card.innerHTML = `<img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'"><div class="card-content"><div class="card-title">${escapeHtml(p.title)}</div><div class="price-row"><div class="price">${priceString}</div><button class="cart-btn ${inCart ? 'added' : ''}">${cartButtonSvg}</button></div></div>`;
       const btn = card.querySelector('.cart-btn');
       btn.onclick = (e) => {
         e.stopPropagation();
@@ -544,7 +552,7 @@ function initStore() {
   // Add membership item as the first product (newest)
   const membershipItem = {
     id: "membership",
-    title: "Requests & Membership",
+    title: "Requests & Membership", // fallback, will be replaced by translation
     category: 3, // membership category
     priceKey: null,
     isLink: true
