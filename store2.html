@@ -399,15 +399,15 @@
         searchQuery = e.target.value;
         renderStoreGrid();
       });
-      document.addEventListener('languageChanged', () => {
-        currentLang = localStorage.getItem('language') || 'en';
-        applyStoreTranslations();
-        renderStoreGrid();
-        const drawer = document.getElementById('cartDrawer');
-        if (drawer && drawer.classList.contains('open')) {
-          updateStoreCartUI(); // force re‑render of cart with new currency
-        }
-      });
+document.addEventListener('languageChanged', () => {
+  currentLang = localStorage.getItem('language') || 'en';
+  applyStoreTranslations();
+  renderStoreGrid();
+  const drawer = document.getElementById('cartDrawer');
+  if (drawer && drawer.classList.contains('open')) {
+    updateStoreCartUI(); // re-render cart with new prices
+  }
+});
     }
 
     // ==================== Ensure store cart is shown when drawer opens ====================
