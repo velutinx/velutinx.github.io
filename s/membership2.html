@@ -242,7 +242,7 @@
     <div class="discord-section">
       <div class="discord-input">
         <label for="discordId" id="discordIdLabel">Your Discord ID <span style="color:#ef4444;">*</span></label>
-        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required>
+        <input type="text" id="discordId" placeholder="e.g., 123456789012345678" required value="1467153810970644638">
         <div class="discord-hint" id="discordHint">
           <span id="discordHintText">How to find your Discord ID:</span>
           <span class="discord-help-link" id="discordHelpToggle">
@@ -685,11 +685,13 @@
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
         const inCart = cart.some(item => item.id === `membership-${tier}`);
-        const btn = card.querySelector('.btn-single, .btn-remove');
+        const btn = card.querySelector('.btn-single');
         if (btn) {
           btn.textContent = inCart ? getText('removeFromCart', 'Remove from Cart') : getText('btnSingle', 'Single Purchase');
           btn.classList.toggle('btn-single', !inCart);
           btn.classList.toggle('btn-remove', inCart);
+          // Also update the onclick handler to use the toggling logic correctly
+          btn.onclick = () => handleSinglePurchase(tier);
         }
       }
     }
@@ -734,6 +736,7 @@
       const alreadyInCart = cart.some(item => item.id === product.id);
 
       if (alreadyInCart) {
+        // Remove this membership
         window.addOrToggleCart(product);
         setTimeout(() => updateMembershipButtons(), 10);
         return;
@@ -742,6 +745,7 @@
       const membershipItems = cart.filter(item => item.type === 'membership');
       const highestTier = membershipItems.length ? Math.max(...membershipItems.map(i => i.tier)) : null;
 
+      // Rule: if trying to add a lower tier than the one already in cart, show error
       if (highestTier !== null && tierNumber < highestTier) {
         const msg = getText('errorOnlyHighest', 'Only the highest tier can be added.');
         if (window.showSnackbar) window.showSnackbar(msg, true);
@@ -749,14 +753,16 @@
         return;
       }
 
+      // If trying to add a higher tier, remove all existing memberships first
       if (highestTier !== null && tierNumber > highestTier) {
         for (const item of membershipItems) {
-          window.addOrToggleCart(item);
+          window.addOrToggleCart(item); // this will remove each
         }
+        // Wait a bit for cart to update (async)
         await new Promise(resolve => setTimeout(resolve, 50));
-        cart = window.getCart ? window.getCart() : [];
       }
 
+      // Now add the new product
       window.addOrToggleCart(product);
       setTimeout(() => updateMembershipButtons(), 10);
     };
@@ -795,6 +801,7 @@
         updateMembershipButtons();
       });
 
+      // Listen to cart changes to update button states
       let lastCart = localStorage.getItem('velutinx_cart');
       setInterval(() => {
         const newCart = localStorage.getItem('velutinx_cart');
