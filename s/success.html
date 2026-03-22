@@ -92,8 +92,9 @@ async function recordAndFetch(orderId, retries = 3) {
 }
 
     recordAndFetch(orderId, 3)
-        .then(data => {
-            if (data.items && data.items.length > 0) {
+.then(data => {
+    console.log('[DEBUG] Items received:', data.items);
+    if (data.items && data.items.length > 0) {
                 let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
                 data.items.forEach(item => {
                     if (item.type === 'pack' && item.link) {
