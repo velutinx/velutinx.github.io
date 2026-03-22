@@ -5,84 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Commissions</title>
   <!-- Shared header CSS -->
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+  <link rel="stylesheet" href="/assets/css/shared.css">
   <!-- Page‑specific CSS (commission box styles are in format.css) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Override header background to match page flat background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
-    }
-    /* Hide Website button, cart wrapper, and floating cart on commissions page */
+    /* Hide cart and website button on commissions page */
     .commissions-page .login-btn,
     .commissions-page .cart-wrapper,
     .commissions-page .floating-cart {
       display: none !important;
     }
+    /* Adjust top‑nav background to match page background */
+    .commissions-page .top-nav {
+      background: var(--bg) !important;
+      border-bottom: 1px solid var(--border);
+    }
   </style>
 </head>
 <body class="commissions-page">
 
-  <div class="lang-swipe" id="langSwipe"></div>
+  <!-- Header will be injected here by shared.js -->
+  <div id="header-placeholder"></div>
 
-  <div id="page">
-    <!-- Header will be injected here by header.js -->
-    <div id="navContainer"></div>
-    <div class="divider"></div>
+  <div class="divider"></div>
 
-    <section class="commission-wrap">
-      <div class="commission-box" id="commissionBox">
-        <h2 id="comTitle">COMMISSIONS</h2>
-        <p id="comInfo">Commission information will be added here soon.</p>
-        <p class="placeholder" id="comList">
-          ✦ Prices<br>
-          ✦ Examples<br>
-          ✦ Terms of Service<br>
-          ✦ Queue Status<br><br>
-          (Placeholder content — coming soon ♡)
-        </p>
-      </div>
-    </section>
+  <section class="commission-wrap">
+    <div class="commission-box" id="commissionBox">
+      <h2 id="comTitle">COMMISSIONS</h2>
+      <p id="comInfo">Commission information will be added here soon.</p>
+      <p class="placeholder" id="comList">
+        ✦ Prices<br>
+        ✦ Examples<br>
+        ✦ Terms of Service<br>
+        ✦ Queue Status<br><br>
+        (Placeholder content — coming soon ♡)
+      </p>
+    </div>
+  </section>
 
-    <div class="divider"></div>
-  </div>
+  <div class="divider"></div>
 
-  <!-- Scripts -->
+  <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
+  <script src="/assets/js/shared.js"></script>
+  <!-- Page‑specific scripts -->
   <script src="/assets/js/translt.js"></script>
-  <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply commissions translations on load
-    if (typeof window.applyTranslations === 'function') {
-      window.applyTranslations('commissions');
-    }
-
-    // Apply sidebar translations (menu items)
-    function applySidebarTranslations() {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = window.translations?.header?.[lang];
-      if (!t) return;
-      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) el.textContent = t[id];
-      });
-    }
-    applySidebarTranslations();
-
-    // Re-apply when language changes
-    document.addEventListener('languageChanged', () => {
+    // Apply commissions translations using translt.js
+    function applyCommissionsTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('commissions');
       }
-      applySidebarTranslations();
+    }
+
+    // Initial apply (when page loads)
+    applyCommissionsTranslations();
+
+    // When language changes via shared header, update translt.js and reapply
+    document.addEventListener('languageChanged', (e) => {
+      const newLang = e.detail.language;
+      if (newLang && typeof window.setLanguage === 'function') {
+        window.setLanguage(newLang);
+      } else if (newLang) {
+        window.currentLanguage = newLang;
+      }
+      applyCommissionsTranslations();
     });
 
-    // Dark mode from localStorage
+    // Ensure dark mode from localStorage is applied
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
