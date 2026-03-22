@@ -372,19 +372,19 @@ function renderStoreGrid() {
     card.className = 'product-card';
     card.dataset.id = p.id;
 
-    if (p.id === 'membership') {
-      // Special membership link card
-      card.innerHTML = `
-        <img src="https://www.velutinx.com/images/membership-card.jpg" class="card-image" onerror="this.src='https://www.velutinx.com/i/packmembership-1-1.jpg'">
-        <div class="card-content">
-          <div class="card-title">${escapeHtml(p.title)}</div>
-          <div class="price-row" style="justify-content: center;">
-            <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;">Learn More</a>
-          </div>
-        </div>
-      `;
-      card.onclick = () => { window.location.href = '/s/membership'; };
-    } else {
+if (p.id === 'membership') {
+  // Special membership link card
+  card.innerHTML = `
+    <img src="https://www.velutinx.com/images/membership-card.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
+    <div class="card-content">
+      <div class="card-title">${escapeHtml(p.title)}</div>
+      <div class="price-row" style="justify-content: center;">
+        <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;">Learn More</a>
+      </div>
+    </div>
+  `;
+  card.onclick = () => { window.location.href = '/s/membership'; };
+}     else {
       const imgUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
       const priceString = window.getFormattedPrice(p.priceKey);
       const inCart = storeCart.some(i => String(i.id) === String(p.id));
