@@ -5,32 +5,30 @@
   <title>VELUTINX</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Shared header CSS -->
-  <link rel="stylesheet" href="https://velutinx.com/assets/css/header.css">
+  <link rel="stylesheet" href="/assets/css/shared.css">
   <!-- Shared page styles (hero, divider, sparkles, etc.) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Override header background to match page flat background */
-    .top-nav {
-      background: var(--bg) !important;
-      backdrop-filter: none !important;
-      border-bottom: 1px solid var(--border);
-    }
     /* Hide Website button, cart wrapper, and floating cart on index page */
     .index-page .login-btn,
     .index-page .cart-wrapper,
     .index-page .floating-cart {
       display: none !important;
     }
+    /* Adjust top‑nav background to match page background */
+    .index-page .top-nav {
+      background: var(--bg) !important;
+      border-bottom: 1px solid var(--border);
+    }
   </style>
 </head>
 <body class="index-page">
 
-  <div class="lang-swipe" id="langSwipe"></div>
+  <!-- Header will be injected here by shared.js -->
+  <div id="header-placeholder"></div>
 
   <div id="mainWebsite" style="opacity:0; transition:opacity 0.8s ease;">
     <div id="page">
-      <!-- Header will be injected here by header.js -->
-      <div id="navContainer"></div>
       <div class="divider"></div>
 
       <section class="hero">
@@ -41,7 +39,7 @@
         <div class="hero-text">
           <div class="hero-name">VELUTINX</div>
           <div class="hero-sub" id="heroSub">♡ Freelance Illustrator ♡</div>
-          <div class="hero-sub">🇺🇸 / 🇯🇵 / 🇪🇸 = OK!</div>
+          <div class="hero-sub" id="heroSubExtra">🇺🇸 / 🇯🇵 / 🇪🇸 = OK!</div>
           <div class="divider"></div>
 
           <a class="discord-link" href="https://discord.gg/XF363uYfSh" target="_blank">
@@ -54,38 +52,34 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
+  <script src="/assets/js/shared.js"></script>
+  <!-- Page‑specific scripts -->
   <script src="/assets/js/translt.js"></script>
-  <script src="https://velutinx.com/assets/js/header.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/intro-loader.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply index translations on load
-    if (typeof window.applyTranslations === 'function') {
-      window.applyTranslations('index');
-    }
-
-    // Apply sidebar translations (menu items)
-    function applySidebarTranslations() {
-      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
-      const t = window.translations?.header?.[lang];
-      if (!t) return;
-      const ids = ['menuHome', 'menuCommissions', 'menuArtwork', 'menuPoll', 'menuStore', 'menuContact'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) el.textContent = t[id];
-      });
-    }
-    applySidebarTranslations();
-
-    // Re-apply when language changes
-    document.addEventListener('languageChanged', () => {
+    // Apply index translations using translt.js
+    function applyIndexTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('index');
       }
-      applySidebarTranslations();
+    }
+
+    // Initial apply (when page loads, after translt.js is ready)
+    applyIndexTranslations();
+
+    // When language changes via shared header, update translt.js and reapply
+    document.addEventListener('languageChanged', (e) => {
+      const newLang = e.detail.language;
+      if (newLang && typeof window.setLanguage === 'function') {
+        window.setLanguage(newLang);
+      } else if (newLang) {
+        window.currentLanguage = newLang;
+      }
+      applyIndexTranslations();
     });
 
     // Dark mode from localStorage
@@ -93,7 +87,7 @@
       document.body.classList.add('dark');
     }
 
-    // Social-star sparkles inside hero image (same as original)
+    // Social‑star sparkles inside hero image (same as original)
     const heroImage = document.getElementById('heroImage');
     if (heroImage) {
       setInterval(() => {
@@ -105,6 +99,14 @@
         heroImage.appendChild(star);
         setTimeout(() => star.remove(), 6000);
       }, 700);
+    }
+
+    // Fade in main content (same as original intro-loader)
+    const mainDiv = document.getElementById('mainWebsite');
+    if (mainDiv) {
+      setTimeout(() => {
+        mainDiv.style.opacity = '1';
+      }, 100);
     }
   </script>
 </body>
