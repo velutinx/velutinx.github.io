@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (all styles unchanged – same as before) */
+    /* (styles unchanged – same as before) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -98,7 +98,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 (same as before) -->
+      <!-- Tiers 1–5 (unchanged) -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -212,6 +212,7 @@
   // Membership logic (using the store cart for checkout)
   // --------------------------------------------------------------
   let currentLang = localStorage.getItem('language') || 'en';
+  let priceMapReady = false;
 
   // Map tier numbers to existing price keys from Supabase
   const TIER_PRICE_KEYS = {
@@ -386,11 +387,29 @@
   let isRendering = false;
 
   function renderPayPalButton() {
+    console.log('[DEBUG] renderPayPalButton called');
     const container = document.getElementById('paypal-button-container');
-    if (!container || !document.body.contains(container)) return;
+    if (!container) {
+      console.log('[DEBUG] Container not found');
+      return;
+    }
+    if (!document.body.contains(container)) {
+      console.log('[DEBUG] Container not in DOM');
+      return;
+    }
     const cartDrawer = document.getElementById('cartDrawer');
-    if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
-    if (isRendering) return;
+    if (!cartDrawer || !cartDrawer.classList.contains('open')) {
+      console.log('[DEBUG] Drawer not open');
+      return;
+    }
+    if (isRendering) {
+      console.log('[DEBUG] Already rendering');
+      return;
+    }
+    if (!window.priceKeyMap || !window.priceUsdMap) {
+      console.log('[DEBUG] Price map not ready, waiting...');
+      return;
+    }
     isRendering = true;
 
     const cart = storeCart;
@@ -430,7 +449,8 @@
       }
     }).render(container).then(() => {
       isRendering = false;
-    }).catch(() => {
+    }).catch((err) => {
+      console.error('PayPal render error:', err);
       isRendering = false;
     });
   }
@@ -451,6 +471,7 @@
         drawer.classList.add('open');
         overlay.classList.add('active');
         document.body.classList.add('drawer-open');
+        console.log('[DEBUG] Drawer opened, calling renderPayPalButton');
         renderPayPalButton();
       }
     };
@@ -494,7 +515,10 @@
     document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
 
     const cartDrawer = document.getElementById('cartDrawer');
-    if (cartDrawer && cartDrawer.classList.contains('open')) renderPayPalButton();
+    if (cartDrawer && cartDrawer.classList.contains('open')) {
+      console.log('[DEBUG] Cart UI updated, drawer open, re‑rendering button');
+      renderPayPalButton();
+    }
   }
 
   function escapeHtml(str) {
@@ -507,6 +531,7 @@
     const checkPrice = setInterval(() => {
       if (window.priceKeyMap && window.priceUsdMap) {
         clearInterval(checkPrice);
+        priceMapReady = true;
         updateMembershipText();
         updateMembershipButtons();
         updateStoreCartUI();
@@ -516,8 +541,24 @@
         window.updateStoreCartUI = updateStoreCartUI;
         window.getFormattedPrice = window.getFormattedPrice;
         window.formatPrice = window.formatPrice;
+
+        // If drawer is already open, render button
+        const drawer = document.getElementById('cartDrawer');
+        if (drawer && drawer.classList.contains('open')) {
+          console.log('[DEBUG] Drawer already open at init, rendering button');
+          renderPayPalButton();
+        }
       }
     }, 100);
+  });
+
+  // Re-render button if price map loads after drawer is already open
+  document.addEventListener('priceMapReady', () => {
+    const drawer = document.getElementById('cartDrawer');
+    if (drawer && drawer.classList.contains('open')) {
+      console.log('[DEBUG] priceMapReady event, drawer open, rendering button');
+      renderPayPalButton();
+    }
   });
 
   // Discord help toggle
