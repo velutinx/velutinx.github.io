@@ -266,9 +266,15 @@ async function castVote(id) {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
         .subscribe();
 
-      sb.channel('leaderboard-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'final_votes' }, fetchLeaderboard)
-        .subscribe();
+// This listens specifically for when the Bot updates the scores
+sb.channel('website-leaderboard-live') 
+  .on('postgres_changes', 
+      { event: 'UPDATE', schema: 'public', table: 'final_votes' }, 
+      (payload) => {
+        console.log('Real-time update received:', payload);
+        fetchLeaderboard(); // Automatically runs your refresh function
+      })
+  .subscribe();
     }
 
     // Visual helpers
