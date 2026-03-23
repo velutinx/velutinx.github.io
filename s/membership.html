@@ -238,7 +238,7 @@
 <script>
   // Wait for header to be injected
   document.addEventListener('headerReady', () => {
-    // Remove shared cart elements and any leftover badges
+    // Remove shared cart elements
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
     const sharedDrawer = document.getElementById('cartDrawer');
@@ -309,16 +309,15 @@
     // Cart state (store cart)
     // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
-    
-function saveStoreCart() {
-  localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-  updateCartUI();                         // Re‑render the cart drawer
-  // Force a UI refresh of the membership buttons, even if the cart drawer is closed
-  updateMembershipButtons();
-}
+
+    function saveStoreCart() {
+      localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
+      updateCartUI();          // Re‑render the cart drawer
+      updateMembershipButtons(); // Force refresh of membership buttons
+    }
 
     function getMonthlyPriceForTier(tier) {
-      const key = `PRICE_${tier + 2}`; // tier1 -> PRICE_3 (5), tier2 -> PRICE_4 (9), etc.
+      const key = `PRICE_${tier + 2}`;
       return window.priceKeyMap?.[key] || 0;
     }
 
@@ -342,7 +341,6 @@ function saveStoreCart() {
         let priceValue = 0;
 
         if (item.type === 'membership' && !item.isAnnual && item.months) {
-          // Monthly bundle with quantity discount
           const monthlyPrice = getMonthlyPriceForTier(item.tier);
           const discountFactor = getDiscountFactor(item.months);
           const totalPrice = monthlyPrice * item.months * discountFactor;
@@ -358,10 +356,9 @@ function saveStoreCart() {
             priceHtml = formatPrice(totalPrice);
           }
         } else if (item.type === 'membership' && item.isAnnual) {
-          // Annual membership
           const monthlyPrice = getMonthlyPriceForTier(item.tier);
           const originalAnnual = monthlyPrice * 12;
-          const discountedAnnual = originalAnnual * 0.7; // 30% off
+          const discountedAnnual = originalAnnual * 0.7;
           priceValue = discountedAnnual;
           priceHtml = `
             <span class="original-price">${formatPrice(originalAnnual)}</span>
@@ -403,21 +400,18 @@ function saveStoreCart() {
 
       // Attach quantity handlers
       document.querySelectorAll('.decrease-monthly').forEach(btn => {
-btn.addEventListener('click', (e) => {
-  const idx = parseInt(btn.dataset.idx);
-  const item = storeCart[idx];
-  if (item && item.type === 'membership' && !item.isAnnual) {
-    let newMonths = Math.max(1, item.months - 1);
-    item.months = newMonths;
-    saveStoreCart();
-    updateMembershipButtons();   // <--- ADD THIS
-  }
-});
-
-
-
-        
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const item = storeCart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = Math.max(1, item.months - 1);
+            item.months = newMonths;
+            saveStoreCart();
+            updateMembershipButtons(); // Extra safety
+          }
+        });
       });
+
       document.querySelectorAll('.increase-monthly').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
@@ -426,9 +420,11 @@ btn.addEventListener('click', (e) => {
             let newMonths = Math.min(12, item.months + 1);
             item.months = newMonths;
             saveStoreCart();
+            updateMembershipButtons();
           }
         });
       });
+
       document.querySelectorAll('.monthly-quantity').forEach(input => {
         input.addEventListener('change', (e) => {
           const idx = parseInt(input.dataset.idx);
@@ -439,47 +435,37 @@ btn.addEventListener('click', (e) => {
             newMonths = Math.min(12, Math.max(1, newMonths));
             item.months = newMonths;
             saveStoreCart();
+            updateMembershipButtons();
           }
         });
       });
 
-document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    const idx = parseInt(btn.dataset.idx);
-    storeCart.splice(idx, 1);
-    saveStoreCart();   // This already calls updateMembershipButtons()
-    // Add a direct call as a fallback:
-    updateMembershipButtons();
-  });
-});
+      document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          storeCart.splice(idx, 1);
+          saveStoreCart();
+          updateMembershipButtons();
+        });
+      });
 
       if (ourCartTotal) {
         ourCartTotal.innerText = formatPrice(total);
       }
-  const count = storeCart.length;
-  document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
-    if (el) el.textContent = count;
-  });
+      const count = storeCart.length;
+      document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
+        if (el) el.textContent = count;
+      });
 
-  updateMembershipButtons();   // <--- ADD THIS LINE
+      updateMembershipButtons(); // Final refresh after rendering
     }
 
-
-
-
-
-
-
-
-
-    
     function openCart() {
       ourDrawer.classList.add('open');
       ourOverlay.classList.add('active');
       document.body.classList.add('drawer-open');
       renderPayPalButton();
-      // Also update button states in case cart changed while drawer was closed
-      setTimeout(() => updateMembershipButtons(), 0);
+      updateMembershipButtons(); // Ensure buttons are up‑to‑date when cart opens
     }
 
     function closeCart() {
@@ -545,34 +531,25 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
     }
 
     // --------------------------------------------------------------
-    // Membership logic (with monthly and annual options, and tier disabling)
+    // Membership logic
     // --------------------------------------------------------------
     let currentLang = localStorage.getItem('language') || 'en';
 
-    // Price keys: monthly and annual
     const MONTHLY_PRICE_KEYS = {
-      1: 'PRICE_3',  // 5 USD
-      2: 'PRICE_4',  // 9 USD
-      3: 'PRICE_5',  // 14 USD
-      4: 'PRICE_6',  // 29 USD
-      5: 'PRICE_7'   // 39 USD
+      1: 'PRICE_3', 2: 'PRICE_4', 3: 'PRICE_5', 4: 'PRICE_6', 5: 'PRICE_7'
     };
     const ANNUAL_PRICE_KEYS = {
-      1: 'MEMBER_1_ANNUAL', // 42 USD
-      2: 'MEMBER_2_ANNUAL', // 76 USD
-      3: 'MEMBER_3_ANNUAL', // 118 USD
-      4: 'MEMBER_4_ANNUAL', // 244 USD
-      5: 'MEMBER_5_ANNUAL'  // 328 USD
+      1: 'MEMBER_1_ANNUAL', 2: 'MEMBER_2_ANNUAL', 3: 'MEMBER_3_ANNUAL',
+      4: 'MEMBER_4_ANNUAL', 5: 'MEMBER_5_ANNUAL'
     };
     const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
-    // Rank: higher = better. Annual > monthly for same tier.
     function getMembershipRank(tier, isAnnual) {
       return tier * 2 + (isAnnual ? 1 : 0);
     }
 
     function updateMembershipButtons() {
-      // Find the highest rank among memberships in cart
+      // Find highest rank in cart
       let highestRank = -1;
       for (const item of storeCart) {
         if (item.type === 'membership') {
@@ -581,7 +558,6 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         }
       }
 
-      // Loop through all tiers and buttons
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
@@ -590,7 +566,6 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         const btnMonthly = card.querySelector('.btn-monthly');
         const btnAnnual = card.querySelector('.btn-annual');
 
-        // Update button text/class for the current tier (in‑cart status)
         if (btnMonthly) {
           btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
@@ -602,23 +577,15 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
           btnAnnual.classList.toggle('btn-annual', !annualInCart);
         }
 
-        // Determine if this tier/option should be disabled (lower rank than highest)
         const monthlyRank = getMembershipRank(tier, false);
         const annualRank = getMembershipRank(tier, true);
 
         if (highestRank !== -1) {
-          if (btnMonthly && monthlyRank < highestRank) {
-            btnMonthly.classList.add('disabled');
-          } else if (btnMonthly) {
-            btnMonthly.classList.remove('disabled');
-          }
-          if (btnAnnual && annualRank < highestRank) {
-            btnAnnual.classList.add('disabled');
-          } else if (btnAnnual) {
-            btnAnnual.classList.remove('disabled');
-          }
+          if (btnMonthly && monthlyRank < highestRank) btnMonthly.classList.add('disabled');
+          else if (btnMonthly) btnMonthly.classList.remove('disabled');
+          if (btnAnnual && annualRank < highestRank) btnAnnual.classList.add('disabled');
+          else if (btnAnnual) btnAnnual.classList.remove('disabled');
         } else {
-          // No membership in cart – enable all
           if (btnMonthly) btnMonthly.classList.remove('disabled');
           if (btnAnnual) btnAnnual.classList.remove('disabled');
         }
@@ -645,7 +612,6 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
       return id;
     }
 
-    // Unified membership addition (handles both monthly and annual)
     function addMembership(tierNumber, isAnnual, months = 1) {
       const discordId = validateDiscordId();
       if (!discordId) return;
@@ -653,30 +619,27 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
       const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
       const newRank = getMembershipRank(tierNumber, isAnnual);
 
-      // Find existing membership in cart
       const existingIndex = storeCart.findIndex(item => item.type === 'membership');
       const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
 
-      // If the same item is already in cart, remove it (toggle)
+      // Toggle if same item
       if (existingItem && existingItem.id === newId) {
         storeCart.splice(existingIndex, 1);
         saveStoreCart();
+        updateMembershipButtons(); // immediate refresh
         showSnackbar('Removed from cart', true);
         return;
       }
 
-      // If there's an existing membership, compare ranks
       if (existingItem) {
         const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
         if (newRank <= existingRank) {
           showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
           return;
         }
-        // Remove the old one (upgrade)
-        storeCart.splice(existingIndex, 1);
+        storeCart.splice(existingIndex, 1); // remove old (upgrade)
       }
 
-      // Add the new item
       const priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
       if (!priceKey) {
         showSnackbar('Invalid tier', true);
@@ -699,18 +662,18 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
       saveStoreCart();
+      updateMembershipButtons(); // immediate refresh
       showSnackbar('Added to cart', false);
     }
 
     window.addMonthly = function(tierNumber) {
       addMembership(tierNumber, false, 1);
     };
-
     window.addAnnual = function(tierNumber) {
       addMembership(tierNumber, true, 12);
     };
 
-    // Attach event listeners to monthly and annual buttons (since they are created dynamically)
+    // Attach event listeners to membership buttons (they exist statically)
     document.querySelectorAll('.btn-monthly').forEach(btn => {
       const tier = btn.getAttribute('data-tier');
       if (tier) {
@@ -759,8 +722,7 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
       ];
       perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
-      document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
-      document.querySelectorAll('.btn-annual').forEach(el => el.textContent = 'Annual (Save 30%)');
+      // Do NOT reset button texts here – they will be set by updateMembershipButtons later
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
       document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
         const usd = parseFloat(el.dataset.priceUsd);
@@ -769,6 +731,7 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
           if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
         }
       });
+      updateMembershipButtons(); // Ensure buttons reflect cart after translation
     }
 
     function escapeHtml(str) {
@@ -791,12 +754,12 @@ document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
     }, 100);
 
     // Listen for language changes
-document.addEventListener('languageChanged', (e) => {
-  currentLang = e.detail.language;
-  updateMembershipText();
-  updateMembershipButtons();   // Re‑apply cart state after translation
-  updateCartUI();
-});
+    document.addEventListener('languageChanged', (e) => {
+      currentLang = e.detail.language;
+      updateMembershipText();
+      updateMembershipButtons();
+      updateCartUI();
+    });
   });
 
   // Discord help toggle
