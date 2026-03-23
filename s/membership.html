@@ -654,6 +654,7 @@
       document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
         if (el) el.textContent = count;
       });
+        if (ourDrawer.classList.contains('open')) renderPayPalButton();
     }
 
     function openCart() {
@@ -775,6 +776,7 @@ function renderPayPalButton() {
 
     function updateMembershipButtons() {
       const cart = getCart();
+        console.log('🛒 PayPal button cart:', JSON.parse(JSON.stringify(cart))); // deep copy to log
       let highestRank = -1;
       for (const item of cart) {
         if (item.type === 'membership') {
@@ -852,6 +854,7 @@ function renderPayPalButton() {
       if (existingIndex !== -1) {
         cart.splice(existingIndex, 1);
         saveCart(cart);
+        console.log('📦 Cart updated, months now:', item.months);
         showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
         return;
       }
