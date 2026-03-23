@@ -439,6 +439,33 @@
     const ourPaypalContainer = document.getElementById('ourPaypalButtonContainer');
 
     // --------------------------------------------------------------
+    // Price formatting (local, to guarantee correct currency)
+    // --------------------------------------------------------------
+    const tierMap = { 3.0: { JPY: 500, CNY: 21.0, MXN: 50 } };
+    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+
+    function myFormatPrice(usd, lang) {
+      if (lang === 'en') return `US$${usd.toFixed(2)}`;
+      let currency;
+      if (lang === 'ja') currency = 'JPY';
+      else if (lang === 'zh') currency = 'CNY';
+      else if (lang === 'es') currency = 'MXN';
+      else currency = 'USD';
+
+      if (currency === 'USD') return `US$${usd.toFixed(2)}`;
+      const rounded = Math.round(usd * 100) / 100;
+      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
+        const converted = tierMap[rounded][currency];
+        const sym = currency === 'JPY' ? '円' : currency === 'CNY' ? '元' : 'MXN$';
+        return `${sym}${converted}`;
+      }
+      let converted = usd * (approxRates[currency] || 1);
+      converted = (currency === 'JPY' || currency === 'MXN') ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
+      const sym = currency === 'JPY' ? '円' : currency === 'CNY' ? '元' : 'MXN$';
+      return `${sym}${converted}`;
+    }
+
+    // --------------------------------------------------------------
     // Cart state
     // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
@@ -461,11 +488,6 @@
       return 1;
     }
 
-    function formatPrice(usd) {
-      if (window.formatPrice) return window.formatPrice(usd);
-      return `$${usd.toFixed(2)}`;
-    }
-
     function getTranslation(key, fallback = '') {
       const t = window.translations?.[currentLang] || window.translations?.en || {};
       return t[key] !== undefined ? t[key] : fallback;
@@ -477,7 +499,7 @@
       if (cartTitleSpan) cartTitleSpan.textContent = getTranslation('cartTitle', 'Shopping Cart');
       const totalLabelSpan = document.getElementById('totalLabel');
       if (totalLabelSpan) totalLabelSpan.textContent = getTranslation('totalLabel', 'Total');
-      
+
       ourCartItems.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${getTranslation('emptyCart', 'Your cart is empty')}</div>` : '';
       let total = 0;
       storeCart.forEach((item, idx) => {
@@ -497,12 +519,12 @@
           const discountText = discountKey ? getTranslation(discountKey, `${discountPercent}% OFF`) : '';
           if (discountFactor < 1) {
             priceHtml = `
-              <span class="original-price">${formatPrice(originalTotal)}</span>
+              <span class="original-price">${myFormatPrice(originalTotal, currentLang)}</span>
               ${discountText ? `<span class="discount-badge">${discountText}</span><br>` : ''}
-              <span class="current-price" style="color: var(--price-red);">${formatPrice(totalPrice)}</span>
+              <span class="current-price" style="color: var(--price-red);">${myFormatPrice(totalPrice, currentLang)}</span>
             `;
           } else {
-            priceHtml = formatPrice(totalPrice);
+            priceHtml = myFormatPrice(totalPrice, currentLang);
           }
         } else if (item.type === 'membership' && item.isAnnual) {
           const monthlyPrice = getMonthlyPriceForTier(item.tier);
@@ -510,13 +532,13 @@
           const discountedAnnual = originalAnnual * 0.7;
           priceValue = discountedAnnual;
           priceHtml = `
-            <span class="original-price">${formatPrice(originalAnnual)}</span>
+            <span class="original-price">${myFormatPrice(originalAnnual, currentLang)}</span>
             <span class="discount-badge">${getTranslation('discount_30', '30% OFF')}</span><br>
-            <span class="current-price" style="color: var(--price-red);">${formatPrice(discountedAnnual)}</span>
+            <span class="current-price" style="color: var(--price-red);">${myFormatPrice(discountedAnnual, currentLang)}</span>
           `;
         } else {
           priceValue = 0;
-          priceHtml = '$0.00';
+          priceHtml = myFormatPrice(0, currentLang);
         }
 
         total += priceValue;
@@ -601,7 +623,7 @@
       });
 
       if (ourCartTotal) {
-        ourCartTotal.innerText = formatPrice(total);
+        ourCartTotal.innerText = myFormatPrice(total, currentLang);
       }
       const count = storeCart.length;
       document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
@@ -685,12 +707,10 @@
     const TIER_TITLES = {1:'Bronze', 2:'Copper', 3:'Silver', 4:'Gold', 5:'Platinum'};
 
     function getMembershipRank(tier, isAnnual) {
-      // Annual plans are considered higher than monthly of the same tier
       return tier * 2 + (isAnnual ? 1 : 0);
     }
 
     function updateMembershipButtons() {
-      // Find highest rank in cart
       let highestRank = -1;
       for (const item of storeCart) {
         if (item.type === 'membership') {
@@ -813,7 +833,7 @@
       addMembership(tierNumber, true, 12);
     };
 
-    // Attach event listeners using data-type as well
+    // Attach event listeners
     document.querySelectorAll('[data-type="monthly"]').forEach(btn => {
       const tier = btn.getAttribute('data-tier');
       if (tier) {
@@ -856,7 +876,7 @@
       if (noteBoxText) noteBoxText.textContent = getTranslation('noteBoxText', 'After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!');
       const joinLink = document.getElementById('joinDiscordLink');
       if (joinLink) joinLink.textContent = getTranslation('joinDiscord', '→ Join Discord Server ←');
-      
+
       for (let i = 1; i <= 5; i++) {
         const titleEl = document.getElementById(`tier${i}Title`);
         const key = `tier${TIER_TITLES[i]}`;
@@ -870,16 +890,15 @@
         'perk5_1','perk5_2'
       ];
       perkIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = getTranslation(id, ''); });
-      // Button texts are updated in updateMembershipButtons()
       document.querySelectorAll('.per-month').forEach(el => el.textContent = getTranslation('perMonth', '/ month'));
       document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
         const usd = parseFloat(el.dataset.priceUsd);
-        if (!isNaN(usd) && window.formatPrice) {
+        if (!isNaN(usd)) {
           const priceSpan = el.querySelector('.price-value');
-          if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
+          if (priceSpan) priceSpan.textContent = myFormatPrice(usd, currentLang);
         }
       });
-      updateMembershipButtons(); // ensure buttons reflect cart after translation
+      updateMembershipButtons();
     }
 
     function escapeHtml(str) {
