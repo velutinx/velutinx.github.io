@@ -190,6 +190,13 @@ async function castVote(id) {
   } catch (err) { 
     console.error("Vote failed", err); 
   }
+
+  // Add this right before the sb.from('website_voting').upsert call
+console.log("Sending to Supabase:", { 
+    voter_id: visitorId, 
+    user_ip: currentIp, 
+    option_id: id 
+});
 }
 
     async function fetchGridResults() {
