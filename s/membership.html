@@ -675,37 +675,47 @@
     ourOverlay?.addEventListener('click', closeCart);
 
     // --------------------------------------------------------------
-    // PayPal integration for membership cart
+    // Direct PayPal checkout (no worker)
     // --------------------------------------------------------------
     let isRendering = false;
+
     function renderPayPalButton() {
       if (!ourPaypalContainer) return;
       if (!ourDrawer.classList.contains('open')) return;
       if (isRendering) return;
-      if (!window.priceKeyMap || !window.priceUsdMap) return;
       isRendering = true;
+
       const cart = getCart();
       if (cart.length === 0) {
         ourPaypalContainer.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
         isRendering = false;
         return;
       }
+
+      // Calculate total in USD
+      let total = 0;
+      for (const item of cart) {
+        total += item.price || 0;
+      }
+      const totalUSD = total.toFixed(2);
+
       ourPaypalContainer.innerHTML = '';
       const buttons = paypal.Buttons({
-        createOrder: async () => {
-          const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart })
+        createOrder: (data, actions) => {
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                currency_code: "USD",
+                value: totalUSD
+              }
+            }]
           });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.error || 'Order creation failed');
-          return data.orderID;
         },
         onApprove: (data, actions) => {
           return actions.order.capture().then(() => {
             // Clear membership cart after successful payment
             saveCart([]);
+            // Redirect to success page (with order ID)
             window.location.href = `/s/success.html?orderID=${data.orderID}`;
           });
         },
