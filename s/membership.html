@@ -681,14 +681,21 @@
 
 async function storeCartInKV(orderID, cart) {
   console.log('Storing cart for order', orderID, cart);
-  const response = await fetch('https://orders.velutinx.workers.dev/store-cart', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderID, cart })
-  });
-  console.log('Store cart response status:', response.status);
-  if (!response.ok) {
-    console.error('Failed to store cart:', await response.text());
+  try {
+    const response = await fetch('https://orders.velutinx.workers.dev/store-cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderID, cart })
+    });
+    console.log('Store cart response status:', response.status);
+    const text = await response.text();
+    console.log('Response body:', text);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${text}`);
+    }
+  } catch (err) {
+    console.error('storeCartInKV failed:', err);
+    alert(`Failed to save order details: ${err.message}\nPlease contact support with your order ID: ${orderID}`);
   }
 }
 
