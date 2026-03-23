@@ -431,45 +431,53 @@
       return id;
     }
 
-    window.handleSinglePurchase = function(tierNumber, isAnnual) {
-      const discordId = validateDiscordId();
-      if (!discordId) return;
-      const id = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
-      const alreadyInCart = storeCart.some(item => item.id === id);
-      if (alreadyInCart) {
-        const idx = storeCart.findIndex(item => item.id === id);
-        if (idx !== -1) storeCart.splice(idx, 1);
-        saveStoreCart();
-        showSnackbar('Removed from cart', true);
-        return;
-      }
+window.handleSinglePurchase = function(tierNumber, isAnnual) {
+  const discordId = validateDiscordId();
+  if (!discordId) return;
 
-      // Check for existing membership (any type) and enforce only one membership
-      const existingMembership = storeCart.find(item => item.type === 'membership');
-      if (existingMembership) {
-        showSnackbar('Only one membership can be added at a time.', true);
-        return;
-      }
+  const id = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
+  const alreadyInCart = storeCart.some(item => item.id === id);
 
-      const priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
-      if (!priceKey) { showSnackbar('Invalid tier', true); return; }
+  if (alreadyInCart) {
+    // Remove it
+    const idx = storeCart.findIndex(item => item.id === id);
+    if (idx !== -1) storeCart.splice(idx, 1);
+    saveStoreCart();
+    showSnackbar('Removed from cart', true);
+    return;
+  }
 
-      const expiresInDays = isAnnual ? 365 : 30;
-      const title = `${TIER_TITLES[tierNumber]} (${isAnnual ? '12 months' : '30 days'})`;
+  // Check if any membership is already in the cart (prevent multiple)
+  const existingMembership = storeCart.find(item => item.type === 'membership');
+  if (existingMembership) {
+    showSnackbar('Only one membership can be added at a time.', true);
+    return;
+  }
 
-      storeCart.push({
-        id: id,
-        title: title,
-        priceKey: priceKey,
-        type: 'membership',
-        tier: tierNumber,
-        isAnnual: isAnnual,
-        discordId: discordId,
-        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-      });
-      saveStoreCart();
-      showSnackbar('Added to cart', false);
-    };
+  const priceKey = isAnnual
+    ? ANNUAL_PRICE_KEYS[tierNumber]
+    : MONTHLY_PRICE_KEYS[tierNumber];
+  if (!priceKey) {
+    showSnackbar('Invalid tier', true);
+    return;
+  }
+
+  const expiresInDays = isAnnual ? 365 : 30;
+  const title = `${TIER_TITLES[tierNumber]} (${isAnnual ? '12 months' : '30 days'})`;
+
+  storeCart.push({
+    id: id,
+    title: title,
+    priceKey: priceKey,
+    type: 'membership',
+    tier: tierNumber,
+    isAnnual: isAnnual,
+    discordId: discordId,
+    image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+  });
+  saveStoreCart();
+  showSnackbar('Added to cart', false);
+};
 
     window.handleRecurring = function(tierNumber) {
       const discordId = validateDiscordId();
