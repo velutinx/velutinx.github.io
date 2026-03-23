@@ -310,12 +310,11 @@
     // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 
-    function saveStoreCart() {
-      localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-      updateCartUI();
-      // Use a timeout to ensure DOM is fully updated before refreshing buttons
-      setTimeout(() => updateMembershipButtons(), 0);
-    }
+function saveStoreCart() {
+  localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
+  updateCartUI();
+  updateMembershipButtons();   // No setTimeout needed
+}
 
     function getMonthlyPriceForTier(tier) {
       const key = `PRICE_${tier + 2}`; // tier1 -> PRICE_3 (5), tier2 -> PRICE_4 (9), etc.
@@ -449,10 +448,23 @@
       if (ourCartTotal) {
         ourCartTotal.innerText = formatPrice(total);
       }
-      const count = storeCart.length;
-      document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => { if (el) el.textContent = count; });
-    }
+  const count = storeCart.length;
+  document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
+    if (el) el.textContent = count;
+  });
 
+  updateMembershipButtons();   // Add this line
+}
+
+
+
+
+
+
+
+
+
+    
     function openCart() {
       ourDrawer.classList.add('open');
       ourOverlay.classList.add('active');
@@ -771,12 +783,12 @@
     }, 100);
 
     // Listen for language changes
-    document.addEventListener('languageChanged', (e) => {
-      currentLang = e.detail.language;
-      updateMembershipText();
-      updateMembershipButtons();
-      updateCartUI();
-    });
+document.addEventListener('languageChanged', (e) => {
+  currentLang = e.detail.language;
+  updateMembershipText();
+  updateMembershipButtons();   // Re‑apply cart state after translation
+  updateCartUI();
+});
   });
 
   // Discord help toggle
