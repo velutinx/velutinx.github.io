@@ -78,6 +78,17 @@
     .our-cart-item-title { font-weight: 600; }
     .our-cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #a64a5c; }
     .our-cart-total { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
+    /* Price styles */
+    .original-price {
+      text-decoration: line-through;
+      color: var(--gray);
+      margin-right: 8px;
+    }
+    .discount-badge {
+      color: #13DEB9;
+      font-weight: bold;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -272,32 +283,58 @@
       setTimeout(() => updateMembershipButtons(), 50);
     }
 
+    function getMonthlyPriceForTier(tier) {
+      const key = `PRICE_${tier + 2}`; // tier1 -> PRICE_3 (5), tier2 -> PRICE_4 (9), etc.
+      return window.priceKeyMap?.[key] || 0;
+    }
+
+    function formatPrice(usd) {
+      if (window.formatPrice) return window.formatPrice(usd);
+      return `$${usd.toFixed(2)}`;
+    }
+
     function updateCartUI() {
       if (!ourCartItems) return;
       ourCartItems.innerHTML = storeCart.length === 0 ? '<div style="padding:1rem;">Your cart is empty</div>' : '';
       let total = 0;
       storeCart.forEach((item, idx) => {
-        let priceStr;
-        if (item.priceKey && window.priceKeyMap && window.priceKeyMap[item.priceKey] !== undefined) {
-          priceStr = window.getFormattedPrice(item.priceKey);
-        } else if (item.isAnnual && item.tier) {
-          // Fallback: compute discounted annual price from monthly price
-          const monthlyKey = `PRICE_${item.tier + 2}`; // tier1 -> PRICE_3 (5), tier2 -> PRICE_4 (9), etc.
-          const monthlyPrice = window.priceKeyMap?.[monthlyKey] || 0;
-          const annualPrice = monthlyPrice * 12 * 0.7; // 30% discount
-          priceStr = window.formatPrice ? window.formatPrice(annualPrice) : `$${annualPrice.toFixed(2)}`;
+        let priceHtml = '';
+        let priceValue = 0;
+
+        if (item.type === 'membership' && item.isAnnual) {
+          // Annual membership: show original price slashed, discount badge, and actual price
+          const monthlyPrice = getMonthlyPriceForTier(item.tier);
+          const originalAnnual = monthlyPrice * 12;
+          const discountedAnnual = originalAnnual * 0.7; // 30% off
+          priceValue = discountedAnnual;
+          const formattedOriginal = formatPrice(originalAnnual);
+          const formattedDiscounted = formatPrice(discountedAnnual);
+          priceHtml = `
+            <span class="original-price">${formattedOriginal}</span>
+            <span class="discount-badge">30% OFF</span><br>
+            <span class="current-price" style="color: var(--price-red);">${formattedDiscounted}</span>
+          `;
         } else {
-          priceStr = `$${item.priceKey}`;
+          // Regular (monthly or other)
+          if (item.priceKey && window.priceKeyMap && window.priceKeyMap[item.priceKey] !== undefined) {
+            priceValue = window.priceKeyMap[item.priceKey];
+            priceHtml = formatPrice(priceValue);
+          } else if (item.priceKey && !window.priceKeyMap) {
+            priceHtml = `$${item.priceKey}`;
+          } else {
+            priceHtml = '$0.00';
+          }
         }
-        const priceValue = window.priceKeyMap?.[item.priceKey] || 0;
+
         total += priceValue;
+
         const div = document.createElement('div');
         div.className = 'our-cart-item';
         div.innerHTML = `
           <img src="${item.image}" alt="${item.title}">
           <div class="our-cart-item-info">
             <div class="our-cart-item-title">${escapeHtml(item.title)}</div>
-            <div class="our-cart-item-price">${priceStr}</div>
+            <div class="our-cart-item-price">${priceHtml}</div>
           </div>
           <button class="our-cart-item-remove" data-idx="${idx}">✕</button>
         `;
@@ -311,8 +348,16 @@
         });
       });
       if (ourCartTotal) {
-        const totalValue = storeCart.reduce((sum, item) => sum + (window.priceKeyMap?.[item.priceKey] || 0), 0);
-        ourCartTotal.innerText = window.formatPrice ? window.formatPrice(totalValue) : `$${totalValue.toFixed(2)}`;
+        const totalValue = storeCart.reduce((sum, item) => {
+          if (item.type === 'membership' && item.isAnnual) {
+            const monthlyPrice = getMonthlyPriceForTier(item.tier);
+            return sum + (monthlyPrice * 12 * 0.7);
+          } else if (item.priceKey && window.priceKeyMap) {
+            return sum + (window.priceKeyMap[item.priceKey] || 0);
+          }
+          return sum;
+        }, 0);
+        ourCartTotal.innerText = formatPrice(totalValue);
       }
       const count = storeCart.length;
       document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => { if (el) el.textContent = count; });
@@ -323,6 +368,8 @@
       ourOverlay.classList.add('active');
       document.body.classList.add('drawer-open');
       renderPayPalButton();
+      // Also update button states in case cart changed while drawer was closed
+      updateMembershipButtons();
     }
 
     function closeCart() {
