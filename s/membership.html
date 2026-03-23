@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (all existing styles – unchanged) */
+    /* (styles unchanged – same as before) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -451,7 +451,6 @@
     }
 
     function getMonthlyPriceForTier(tier) {
-      // Prices in USD (matching the data-price-usd on the tier cards)
       const prices = {1:5, 2:9, 3:14, 4:29, 5:39};
       return prices[tier] || 0;
     }
@@ -474,7 +473,6 @@
 
     function updateCartUI() {
       if (!ourCartItems) return;
-      const t = window.translations?.[currentLang] || window.translations?.en;
       const cartTitleSpan = document.getElementById('cartTitle');
       if (cartTitleSpan) cartTitleSpan.textContent = getTranslation('cartTitle', 'Shopping Cart');
       const totalLabelSpan = document.getElementById('totalLabel');
@@ -492,10 +490,15 @@
           const totalPrice = monthlyPrice * item.months * discountFactor;
           priceValue = totalPrice;
           const originalTotal = monthlyPrice * item.months;
+          let discountPercent = 0;
+          if (discountFactor === 0.9) discountPercent = 10;
+          else if (discountFactor === 0.8) discountPercent = 20;
+          const discountKey = discountPercent ? `discount_${discountPercent}` : null;
+          const discountText = discountKey ? getTranslation(discountKey, `${discountPercent}% OFF`) : '';
           if (discountFactor < 1) {
             priceHtml = `
               <span class="original-price">${formatPrice(originalTotal)}</span>
-              <span class="discount-badge">${Math.round((1-discountFactor)*100)}% OFF</span><br>
+              ${discountText ? `<span class="discount-badge">${discountText}</span><br>` : ''}
               <span class="current-price" style="color: var(--price-red);">${formatPrice(totalPrice)}</span>
             `;
           } else {
@@ -508,13 +511,11 @@
           priceValue = discountedAnnual;
           priceHtml = `
             <span class="original-price">${formatPrice(originalAnnual)}</span>
-            <span class="discount-badge">30% OFF</span><br>
+            <span class="discount-badge">${getTranslation('discount_30', '30% OFF')}</span><br>
             <span class="current-price" style="color: var(--price-red);">${formatPrice(discountedAnnual)}</span>
           `;
-        } else if (item.priceKey && window.priceKeyMap) {
-          priceValue = window.priceKeyMap[item.priceKey] || 0;
-          priceHtml = formatPrice(priceValue);
         } else {
+          priceValue = 0;
           priceHtml = '$0.00';
         }
 
@@ -523,9 +524,16 @@
         const div = document.createElement('div');
         div.className = 'our-cart-item';
         let titleText = item.title;
-        if (item.type === 'membership' && !item.isAnnual && item.months) {
-          const tierName = getTranslation(`tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`, 'Tier');
-          titleText = `${tierName} (${item.months} month${item.months > 1 ? 's' : ''})`;
+        if (item.type === 'membership') {
+          const tierNameKey = `tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`;
+          const tierName = getTranslation(tierNameKey, TIER_TITLES[item.tier]);
+          if (!item.isAnnual) {
+            const durationKey = `duration_${item.months}`;
+            const durationText = getTranslation(durationKey, `${item.months} month${item.months > 1 ? 's' : ''}`);
+            titleText = `${tierName} (${durationText})`;
+          } else {
+            titleText = `${tierName} (${getTranslation('duration_12', '12 months')})`;
+          }
         }
         div.innerHTML = `
           <img src="${item.image}" alt="${item.title}">
@@ -773,9 +781,16 @@
         storeCart.splice(existingIndex, 1);
       }
 
-      const title = isAnnual
-        ? `${getTranslation(`tier${TIER_TITLES[tierNumber]}`, TIER_TITLES[tierNumber])} (12 months)`
-        : `${getTranslation(`tier${TIER_TITLES[tierNumber]}`, TIER_TITLES[tierNumber])} (${months} month${months > 1 ? 's' : ''})`;
+      const tierNameKey = `tier${TIER_TITLES[tierNumber]}`;
+      const tierName = getTranslation(tierNameKey, TIER_TITLES[tierNumber]);
+      let title;
+      if (isAnnual) {
+        title = `${tierName} (${getTranslation('duration_12', '12 months')})`;
+      } else {
+        const durationKey = `duration_${months}`;
+        const durationText = getTranslation(durationKey, `${months} month${months > 1 ? 's' : ''}`);
+        title = `${tierName} (${durationText})`;
+      }
 
       storeCart.push({
         id: newId,
@@ -844,7 +859,7 @@
       
       for (let i = 1; i <= 5; i++) {
         const titleEl = document.getElementById(`tier${i}Title`);
-        const key = `tier${i === 1 ? 'Bronze' : i === 2 ? 'Copper' : i === 3 ? 'Silver' : i === 4 ? 'Gold' : 'Platinum'}`;
+        const key = `tier${TIER_TITLES[i]}`;
         if (titleEl) titleEl.textContent = getTranslation(key, TIER_TITLES[i].toUpperCase());
       }
       const perkIds = [
