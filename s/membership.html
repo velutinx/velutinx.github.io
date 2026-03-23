@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (existing styles, with modifications) */
+    /* All existing styles remain unchanged */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -62,7 +62,6 @@
     .tier-title { font-size: 1.8rem; margin: 0; }
     .button-row { display: flex; gap: 10px; margin-top: 1rem; flex-direction: column; }
 
-    /* ----- Base button style for membership buttons ----- */
     .membership-btn {
       padding: 12px;
       border: none;
@@ -80,7 +79,7 @@
     .btn-monthly:hover:not(.disabled) { background: #2563eb; transform: scale(1.02); }
     .btn-remove:hover:not(.disabled) { background: #dc2626 !important; transform: scale(1.02); }
     .membership-btn.disabled {
-      background: #9ca3af !important;  /* gray */
+      background: #9ca3af !important;
       opacity: 0.6;
       cursor: not-allowed;
       pointer-events: none;
@@ -153,12 +152,8 @@
       font-weight: 600;
       transition: background 0.1s;
     }
-    .month-dropdown button:last-child {
-      border-bottom: none;
-    }
-    .month-dropdown button:hover {
-      background: var(--darker);
-    }
+    .month-dropdown button:last-child { border-bottom: none; }
+    .month-dropdown button:hover { background: var(--darker); }
 
     /* Custom cart styles */
     .our-cart-btn { width: 42px; height: 42px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; position: relative; color: white; }
@@ -180,7 +175,7 @@
       font-size: 1.2em;
       display: inline-block;
       font-weight: bold;
-      color: #ef4444;  /* red */
+      color: #ef4444;  /* red for final price */
     }
     .cart-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
     .cart-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text); }
@@ -193,12 +188,7 @@
       border-radius: 16px;
       padding: 24px;
     }
-    .discord-input label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--text);
-    }
+    .discord-input label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
     .discord-input input {
       width: 100%;
       padding: 14px;
@@ -209,15 +199,8 @@
       font-size: 1rem;
       transition: border-color 0.2s;
     }
-    .discord-input input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    .discord-hint {
-      font-size: 0.9rem;
-      color: #000000 !important;
-      margin-top: 8px;
-    }
+    .discord-input input:focus { outline: none; border-color: var(--accent); }
+    .discord-hint { font-size: 0.9rem; color: #000000 !important; margin-top: 8px; }
     body.dark .discord-hint { color: #ffffff !important; }
     .discord-help-link {
       color: #000000 !important;
@@ -238,11 +221,7 @@
     }
     .discord-help-content.show { display: block; }
     .discord-help-content p { margin-bottom: 12px; }
-    .discord-help-content img {
-      max-width: 100%;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
+    .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     .note-box {
       background: rgba(170,158,118,0.1);
       border-left: 4px solid var(--accent);
@@ -254,13 +233,7 @@
       align-items: flex-start;
       gap: 10px;
     }
-    .pin-icon {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      fill: var(--accent);
-      margin-top: 2px;
-    }
+    .pin-icon { width: 20px; height: 20px; flex-shrink: 0; fill: var(--accent); margin-top: 2px; }
     .carousel-arrow {
       position: absolute;
       top: 50%;
@@ -503,7 +476,7 @@
 <script>
   // Wait for header to be ready
   document.addEventListener('headerReady', async () => {
-    // Remove shared cart elements
+    // Remove shared cart elements (unchanged)
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
     const sharedDrawer = document.getElementById('cartDrawer');
@@ -571,25 +544,21 @@
     const ourPaypalContainer = document.getElementById('ourPaypalButtonContainer');
 
     // --------------------------------------------------------------
-    // Fetch price data from Supabase worker
+    // Hardcoded monthly USD prices (source of truth)
     // --------------------------------------------------------------
-    let MONTHLY_BASE_PRICES = {1:5, 2:9, 3:14, 4:29, 5:39}; // fallback
-    let tierCurrencyMap = {}; // for precise conversions, keyed by USD amount
+    const MONTHLY_BASE_PRICES = {1:5, 2:9, 3:14, 4:29, 5:39};
 
-    async function fetchPrices() {
+    // --------------------------------------------------------------
+    // Fetch conversion data from Supabase worker (only for precise conversions)
+    // --------------------------------------------------------------
+    let tierCurrencyMap = {}; // key = USD amount, value = { JPY, CNY, MXN }
+
+    async function fetchConversions() {
       try {
         const response = await fetch('https://supabase-link.velutinx.workers.dev');
-        if (!response.ok) throw new Error('Failed to fetch prices');
+        if (!response.ok) throw new Error('Failed to fetch price data');
         const data = await response.json();
         if (data.tiers && Array.isArray(data.tiers)) {
-          // Build MONTHLY_BASE_PRICES from usd values (assume they are in tier order)
-          const usdValues = data.tiers.map(t => parseFloat(t.usd)).sort((a,b)=>a-b);
-          if (usdValues.length >= 5) {
-            for (let i = 0; i < 5; i++) {
-              MONTHLY_BASE_PRICES[i+1] = usdValues[i];
-            }
-          }
-          // Build tierCurrencyMap
           data.tiers.forEach(tier => {
             const usd = parseFloat(tier.usd);
             if (!isNaN(usd)) {
@@ -601,18 +570,17 @@
             }
           });
         }
-        console.log('Prices loaded:', MONTHLY_BASE_PRICES);
+        console.log('Conversion data loaded:', tierCurrencyMap);
       } catch (err) {
-        console.error('Error loading prices:', err);
-        // keep fallback values
+        console.error('Error loading conversion data:', err);
+        // Fallback rates (only if needed)
       }
     }
 
-    // Wait for prices before proceeding
-    await fetchPrices();
+    await fetchConversions();
 
     // --------------------------------------------------------------
-    // Currency conversion (with precise mapping for known USD)
+    // Currency conversion (uses precise mapping if available)
     // --------------------------------------------------------------
     function formatPrice(usd, lang) {
       if (lang === 'en') return `US$${usd.toFixed(2)}`;
@@ -624,7 +592,6 @@
 
       if (currency === 'USD') return `US$${usd.toFixed(2)}`;
 
-      // Check if we have precise conversion for this USD amount
       const precise = tierCurrencyMap[usd];
       if (precise && precise[currency] !== undefined) {
         const converted = precise[currency];
@@ -632,7 +599,7 @@
         return `${sym}${converted}`;
       }
 
-      // Fallback to approximate rates (only for totals not matching a tier)
+      // Fallback approximate rates (for totals not matching a tier)
       const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
       let converted = usd * (approxRates[currency] || 1);
       converted = (currency === 'JPY' || currency === 'MXN') ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
@@ -641,7 +608,7 @@
     }
 
     // --------------------------------------------------------------
-    // Membership cart (same as before, but using MONTHLY_BASE_PRICES)
+    // Cart logic (unchanged except it now uses the hardcoded MONTHLY_BASE_PRICES)
     // --------------------------------------------------------------
     const CART_KEY = 'velutinx_membership_cart';
     let currentLang = localStorage.getItem('language') || 'en';
@@ -662,9 +629,6 @@
       return t[key] !== undefined ? t[key] : fallback;
     }
 
-    // --------------------------------------------------------------
-    // Cart UI
-    // --------------------------------------------------------------
     function updateCartUI() {
       if (!ourCartItems) return;
       const cart = getCart();
@@ -770,7 +734,7 @@
     ourOverlay?.addEventListener('click', closeCart);
 
     // --------------------------------------------------------------
-    // PayPal checkout
+    // PayPal checkout (unchanged)
     // --------------------------------------------------------------
     let isRendering = false;
 
@@ -843,7 +807,7 @@
     }
 
     // --------------------------------------------------------------
-    // Membership logic (using MONTHLY_BASE_PRICES)
+    // Membership logic (uses hardcoded MONTHLY_BASE_PRICES)
     // --------------------------------------------------------------
     const TIER_TITLES = {1:'Bronze', 2:'Copper', 3:'Silver', 4:'Gold', 5:'Platinum'};
 
@@ -985,7 +949,7 @@
       };
     });
 
-    // ---------- DROPDOWN ----------
+    // ---------- DROPDOWN (unchanged) ----------
     function setupDropdowns() {
       document.querySelectorAll('.month-selector-container').forEach(container => {
         const btn = container.querySelector('.month-selector-btn');
@@ -1114,7 +1078,7 @@
       return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
 
-    // Initial sync after prices are loaded
+    // Initial setup after conversions are loaded
     setupDropdowns();
     updateCartUI();
     updateMembershipButtons();
