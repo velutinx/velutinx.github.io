@@ -675,9 +675,20 @@
     ourOverlay?.addEventListener('click', closeCart);
 
     // --------------------------------------------------------------
-    // Direct PayPal checkout (no worker)
+    // Direct PayPal checkout with cart storage in KV
     // --------------------------------------------------------------
     let isRendering = false;
+
+    async function storeCartInKV(orderID, cart) {
+      const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev/store-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderID, cart })
+      });
+      if (!response.ok) {
+        console.error('Failed to store cart in KV');
+      }
+    }
 
     function renderPayPalButton() {
       if (!ourPaypalContainer) return;
@@ -711,13 +722,13 @@
             }]
           });
         },
-        onApprove: (data, actions) => {
-          return actions.order.capture().then(() => {
-            // Clear membership cart after successful payment
-            saveCart([]);
-            // Redirect to success page (with order ID)
-            window.location.href = `/s/success.html?orderID=${data.orderID}`;
-          });
+        onApprove: async (data, actions) => {
+          // Store the cart in KV before redirecting
+          await storeCartInKV(data.orderID, cart);
+          // Clear membership cart
+          saveCart([]);
+          // Redirect to success page
+          window.location.href = `/s/success.html?orderID=${data.orderID}`;
         },
         onError: (err) => {
           console.error('PayPal error', err);
