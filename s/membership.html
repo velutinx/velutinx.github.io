@@ -4,152 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
-  
-  <!-- PayPal SDK -->
+  <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
-
   <style>
-    :root {
-      --bg: #0f0f0f;
-      --card: #1a1a1a;
-      --text: #ffffff;
-      --text-light: #aaaaaa;
-      --border: #333333;
-      --accent: #c9a96e;
-      --success: #22c55e;
-      --price-red: #ef4444;
-      --gray: #777777;
-      --darker: #111111;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-
+    /* (all existing styles – unchanged) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
-
-    .membership-title {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .membership-description {
-      color: var(--text);
-      text-align: center;
-      margin-bottom: 32px;
-      font-size: 1.2rem;
-    }
-
-    .carousel-container {
-      position: relative;
-      margin: 40px 0;
-    }
-
-    .carousel-scroll {
-      display: flex;
-      overflow-x: auto;
-      gap: 2rem;
-      padding: 20px 0;
-      scroll-behavior: smooth;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
+    .membership-title { font-size: 2.5rem; font-weight: 800; color: var(--text); margin-bottom: 16px; text-align: center; }
+    .membership-description { color: var(--text); text-align: center; margin-bottom: 32px; font-size: 1.2rem; }
+    .carousel-container { position: relative; margin: 40px 0; }
+    .carousel-scroll { display: flex; overflow-x: auto; gap: 2rem; padding: 20px 0; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; }
     .carousel-scroll::-webkit-scrollbar { display: none; }
-
-    .tier-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2rem;
-      width: 300px;
-      flex-shrink: 0;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s;
-    }
-
+    .tier-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; width: 300px; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; transition: transform 0.2s; }
     .tier-card:hover { transform: translateY(-4px); }
-
-    .tier-card h3 {
-      font-size: 1.8rem;
-      margin: 0 0 0.5rem;
-      color: var(--text);
-    }
-
-    .tier-price {
-      color: #ef4444;
-      font-weight: 800;
-      font-size: 2rem;
-      text-align: center;
-      margin: 0.5rem 0;
-    }
-
+    .tier-card h3 { font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--text); }
+    .tier-price { color: #ef4444; font-weight: 800; font-size: 2rem; text-align: center; margin: 0.5rem 0; }
     .price-value { font-size: inherit; font-weight: inherit; }
     .per-month { font-size: 1rem; font-weight: normal; color: var(--text-light); }
-
-    .tier-perks {
-      list-style: none;
-      padding: 0;
-      margin: 1.5rem 0;
-      flex: 1;
-    }
-
-    .tier-perks li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 1rem;
-      line-height: 1.4;
-    }
-
+    .tier-perks { list-style: none; padding: 0; margin: 1.5rem 0; flex: 1; }
+    .tier-perks li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); font-size: 1rem; line-height: 1.4; }
     .tier-perks li:last-child { border-bottom: none; }
-    .tier-perks li::before {
-      content: "✓";
-      color: var(--success);
-      font-weight: bold;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    .tier-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-
-    .tier-star {
-      width: 40px;
-      height: 40px;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 10px;
-    }
-
+    .tier-perks li::before { content: "✓"; color: var(--success); font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
+    .tier-header { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .tier-star { width: 40px; height: 40px; display: inline-block; vertical-align: middle; margin-right: 10px; }
     .tier-star svg { width: 100%; height: 100%; }
-
     .tier-title { font-size: 1.8rem; margin: 0; }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 1rem;
-      flex-direction: column;
-    }
-
+    .button-row { display: flex; gap: 10px; margin-top: 1rem; flex-direction: column; }
     .btn-annual, .btn-monthly, .btn-remove {
       padding: 10px;
       border: none;
@@ -162,247 +43,59 @@
       width: 100%;
       text-align: center;
     }
-
     .btn-monthly { background: #3b82f6; }
     .btn-monthly:hover { background: #2563eb; }
     .btn-annual { background: #10b981; }
     .btn-annual:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
-
+    /* Disabled button style */
     .tier-btn.disabled, .btn-monthly.disabled, .btn-annual.disabled {
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
     }
-
-    .carousel-arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      font-size: 1.8rem;
-      font-weight: 400;
-      color: var(--text);
-      transition: all 0.2s;
-      line-height: 1;
-    }
-
-    .carousel-arrow:hover {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-
+    .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: var(--card); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 1.8rem; font-weight: 400; color: var(--text); transition: all 0.2s; line-height: 1; }
+    .carousel-arrow:hover { background: var(--accent); color: white; border-color: var(--accent); }
     .arrow-left { left: -20px; }
     .arrow-right { right: -20px; }
-
-    @media (max-width: 700px) {
-      .arrow-left { left: -10px; }
-      .arrow-right { right: -10px; }
-    }
-
-    .discord-section {
-      max-width: 1100px;
-      margin: 0 auto 40px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-    }
-
-    .discord-input label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .discord-input input {
-      width: 100%;
-      padding: 14px;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-
-    .discord-input input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .discord-hint {
-      font-size: 0.9rem;
-      color: #000000;
-      margin-top: 8px;
-    }
-
+    @media (max-width: 700px) { .arrow-left { left: -10px; } .arrow-right { right: -10px; } }
+    .discord-section { max-width: 1100px; margin: 0 auto 40px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+    .discord-input label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
+    .discord-input input { width: 100%; padding: 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; transition: border-color 0.2s; }
+    .discord-input input:focus { outline: none; border-color: var(--accent); }
+    .discord-hint { font-size: 0.9rem; color: #000000 !important; margin-top: 8px; }
     body.dark .discord-hint { color: #ffffff !important; }
-
-    .discord-help-link {
-      color: #000000 !important;
-      font-weight: bold !important;
-      text-decoration: underline;
-      cursor: pointer;
-      margin-top: 12px;
-      display: inline-block;
-    }
-
+    .discord-help-link { color: #000000 !important; font-weight: bold !important; text-decoration: underline; cursor: pointer; margin-top: 12px; display: inline-block; }
     body.dark .discord-help-link { color: #ffffff !important; }
-
-    .discord-help-content {
-      display: none;
-      margin-top: 16px;
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
+    .discord-help-content { display: none; margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
     .discord-help-content.show { display: block; }
-
     .discord-help-content p { margin-bottom: 12px; }
-
-    .discord-help-content img {
-      max-width: 100%;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .note-box {
-      background: rgba(170,158,118,0.1);
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      margin: 24px 0 0;
-      border-radius: 8px;
-      font-size: 0.95rem;
-    }
-
-    /* Hide shared cart elements */
+    .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+    .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
+    /* Override shared.css to hide its cart elements */
     #cartBtn, #floatingCartBtn, .cart-drawer, .cart-overlay { display: none !important; }
-
-    /* Custom cart styles */
-    .our-cart-btn {
-      width: 42px;
-      height: 42px;
-      background: var(--accent);
-      border-radius: 9999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: none;
-      position: relative;
-      color: white;
-    }
-
-    .our-floating-cart {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 64px;
-      height: 64px;
-      background: var(--accent);
-      border-radius: 9999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: none;
-      z-index: 1150;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    }
-
-    .our-cart-drawer {
-      position: fixed;
-      top: 0;
-      right: -400px;
-      width: 400px;
-      height: 100%;
-      background: var(--accent);
-      border-left: 1px solid var(--border);
-      box-shadow: -8px 0 30px rgba(0,0,0,0.4);
-      z-index: 1250;
-      transition: right 0.3s;
-      display: flex;
-      flex-direction: column;
-      color: #1f1a12;
-    }
-
+    /* Our custom cart styles (same as before) */
+    .our-cart-btn { width: 42px; height: 42px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; position: relative; color: white; }
+    .our-floating-cart { position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; z-index: 1150; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+    .our-cart-drawer { position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background: var(--accent); border-left: 1px solid var(--border); box-shadow: -8px 0 30px rgba(0,0,0,0.4); z-index: 1250; transition: right 0.3s; display: flex; flex-direction: column; color: #1f1a12; }
     .our-cart-drawer.open { right: 0; }
-
-    .our-cart-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(5px);
-      z-index: 1249;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-
+    .our-cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1249; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .our-cart-overlay.active { opacity: 1; pointer-events: all; }
-
     .our-cart-items { flex: 1; overflow-y: auto; padding: 1rem; }
-
-    .our-cart-item {
-      display: flex;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .our-cart-item img {
-      width: 70px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
+    .our-cart-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .our-cart-item img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
     .our-cart-item-info { flex: 1; }
-
     .our-cart-item-title { font-weight: 600; }
-
-    .our-cart-item-remove {
-      background: none;
-      border: none;
-      font-size: 1.6rem;
-      cursor: pointer;
-      color: #a64a5c;
-    }
-
-    .our-cart-total {
-      padding: 1rem 1.5rem;
-      border-top: 1px solid var(--border);
-      font-weight: 700;
-      display: flex;
-      justify-content: space-between;
-    }
-
+    .our-cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #a64a5c; }
+    .our-cart-total { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
+    /* Quantity selector in cart */
     .cart-quantity {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-top: 4px;
     }
-
     .cart-quantity input {
       width: 60px;
       padding: 4px;
@@ -412,7 +105,6 @@
       color: var(--text);
       text-align: center;
     }
-
     .cart-quantity button {
       background: var(--darker);
       border: 1px solid var(--border);
@@ -420,13 +112,12 @@
       padding: 2px 6px;
       cursor: pointer;
     }
-
+    /* Price styles */
     .original-price {
       text-decoration: line-through;
       color: var(--gray);
       margin-right: 8px;
     }
-
     .discount-badge {
       color: #13DEB9;
       font-weight: bold;
@@ -456,7 +147,6 @@
         </span>
       </div>
     </div>
-
     <div class="discord-help-content" id="discordHelpContent">
       <p id="discordHelpStep1"><strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).</p>
       <p id="discordHelpStep2"><strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.</p>
@@ -464,7 +154,6 @@
       <p id="discordHelpStep4"><strong>Step 4:</strong> Paste that number here.</p>
       <img src="https://www.velutinx.com/images/discordID.jpg" alt="Discord ID copy example" style="max-width:100%; border-radius:8px; margin-top:10px;">
     </div>
-
     <div class="note-box" id="noteBox">
       <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
       <div style="margin-top:12px;">
@@ -475,21 +164,11 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-
-      <!-- Tier 1 - Bronze -->
+      <!-- Tiers 1–5 with simple buttons -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
-          <span class="tier-star">
-            <svg viewBox="0 0 200 200">
-              <g transform-origin="100 100">
-                <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e">
-                  <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/>
-                  <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/>
-                </path>
-              </g>
-            </svg>
-          </span>
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
           <h3 class="tier-title" id="tier1Title">BRONZE</h3>
         </div>
         <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
@@ -498,21 +177,10 @@
           <button class="btn-annual" data-tier="1">Annual (Save 30%)</button>
         </div>
       </div>
-
-      <!-- Tier 2 - Copper -->
       <div class="tier-card" data-tier="2">
-        <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" alt="Copper" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
-          <span class="tier-star">
-            <svg viewBox="0 0 200 200">
-              <g transform-origin="100 100">
-                <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333">
-                  <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/>
-                  <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/>
-                </path>
-              </g>
-            </svg>
-          </span>
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
           <h3 class="tier-title" id="tier2Title">COPPER</h3>
         </div>
         <div class="tier-price" data-price-usd="9"><span class="price-value"></span><span class="per-month">/ month</span></div>
@@ -521,21 +189,10 @@
           <button class="btn-annual" data-tier="2">Annual (Save 30%)</button>
         </div>
       </div>
-
-      <!-- Tier 3 - Silver -->
       <div class="tier-card" data-tier="3">
-        <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" alt="Silver" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
-          <span class="tier-star">
-            <svg viewBox="0 0 200 200">
-              <g transform-origin="100 100">
-                <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0">
-                  <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/>
-                  <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/>
-                </path>
-              </g>
-            </svg>
-          </span>
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
           <h3 class="tier-title" id="tier3Title">SILVER</h3>
         </div>
         <div class="tier-price" data-price-usd="14"><span class="price-value"></span><span class="per-month">/ month</span></div>
@@ -544,21 +201,10 @@
           <button class="btn-annual" data-tier="3">Annual (Save 30%)</button>
         </div>
       </div>
-
-      <!-- Tier 4 - Gold -->
       <div class="tier-card" data-tier="4">
-        <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" alt="Gold" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
-          <span class="tier-star">
-            <svg viewBox="0 0 200 200">
-              <g transform-origin="100 100">
-                <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700">
-                  <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/>
-                  <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/>
-                </path>
-              </g>
-            </svg>
-          </span>
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
           <h3 class="tier-title" id="tier4Title">GOLD</h3>
         </div>
         <div class="tier-price" data-price-usd="29"><span class="price-value"></span><span class="per-month">/ month</span></div>
@@ -567,21 +213,10 @@
           <button class="btn-annual" data-tier="4">Annual (Save 30%)</button>
         </div>
       </div>
-
-      <!-- Tier 5 - Platinum -->
       <div class="tier-card" data-tier="5">
-        <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" alt="Platinum" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
-          <span class="tier-star">
-            <svg viewBox="0 0 200 200">
-              <g transform-origin="100 100">
-                <path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2">
-                  <animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/>
-                  <animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/>
-                </path>
-              </g>
-            </svg>
-          </span>
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
           <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
         </div>
         <div class="tier-price" data-price-usd="39"><span class="price-value"></span><span class="per-month">/ month</span></div>
@@ -590,31 +225,37 @@
           <button class="btn-annual" data-tier="5">Annual (Save 30%)</button>
         </div>
       </div>
-
     </div>
-
     <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
     <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
   </div>
 </main>
 
-<!-- Custom cart elements -->
+<script src="/assets/js/shared.js"></script>
+<script src="/assets/js/price.js" type="module"></script>
+<script src="/s/js/translations.js"></script>
+
 <script>
-  // Cart logic, PayPal, membership handling
+  // Wait for header to be injected
   document.addEventListener('headerReady', () => {
-    // Remove old shared cart elements
-    ['cartBtn', 'floatingCartBtn', 'cartDrawer', 'cartOverlay'].forEach(id => {
-      document.getElementById(id)?.remove();
-    });
+    // Remove shared cart elements and any leftover badges
+    const sharedCartBtn = document.getElementById('cartBtn');
+    const sharedFloatBtn = document.getElementById('floatingCartBtn');
+    const sharedDrawer = document.getElementById('cartDrawer');
+    const sharedOverlay = document.getElementById('cartOverlay');
+    if (sharedCartBtn) sharedCartBtn.remove();
+    if (sharedFloatBtn) sharedFloatBtn.remove();
+    if (sharedDrawer) sharedDrawer.remove();
+    if (sharedOverlay) sharedOverlay.remove();
     document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => el?.remove());
 
-    // Add our custom cart button to nav
+    // Insert our own cart button into the nav-actions
     const navActions = document.querySelector('.nav-actions');
     if (navActions) {
-      const btn = document.createElement('button');
-      btn.className = 'our-cart-btn';
-      btn.id = 'ourCartBtn';
-      btn.innerHTML = `
+      const ourCartBtn = document.createElement('button');
+      ourCartBtn.className = 'our-cart-btn';
+      ourCartBtn.id = 'ourCartBtn';
+      ourCartBtn.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
           <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -625,14 +266,14 @@
         </svg>
         <span class="cart-badge" id="ourCartCount">0</span>
       `;
-      navActions.appendChild(btn);
+      navActions.appendChild(ourCartBtn);
     }
 
-    // Floating cart button
-    const floatBtn = document.createElement('button');
-    floatBtn.className = 'our-floating-cart';
-    floatBtn.id = 'ourFloatingCartBtn';
-    floatBtn.innerHTML = `
+    // Insert our own floating cart button
+    const ourFloatBtn = document.createElement('button');
+    ourFloatBtn.className = 'our-floating-cart';
+    ourFloatBtn.id = 'ourFloatingCartBtn';
+    ourFloatBtn.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
         <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
         <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -641,95 +282,513 @@
       </svg>
       <span class="floating-badge" id="ourFloatingCartCount">0</span>
     `;
-    document.body.appendChild(floatBtn);
+    document.body.appendChild(ourFloatBtn);
 
-    // Cart drawer + overlay
-    document.body.insertAdjacentHTML('beforeend', `
+    // Insert our own cart drawer and overlay
+    const drawerHTML = `
       <div class="our-cart-overlay" id="ourCartOverlay"></div>
       <div class="our-cart-drawer" id="ourCartDrawer">
-        <div class="cart-header">
-          <h5>Shopping Cart</h5>
-          <button class="cart-close" id="ourCartClose">×</button>
-        </div>
+        <div class="cart-header"><h5>Shopping Cart</h5><button class="cart-close" id="ourCartClose">×</button></div>
         <div class="our-cart-items" id="ourCartItems"></div>
         <div class="our-cart-total"><span>Total</span><span id="ourCartTotal">$0.00</span></div>
         <div id="ourPaypalButtonContainer" style="margin: 12px 20px 20px;"></div>
       </div>
-    `);
+    `;
+    document.body.insertAdjacentHTML('beforeend', drawerHTML);
 
-    // DOM references
     const ourCartBtn = document.getElementById('ourCartBtn');
-    const ourFloatBtn = document.getElementById('ourFloatingCartBtn');
+    const ourFloatBtnElem = document.getElementById('ourFloatingCartBtn');
     const ourDrawer = document.getElementById('ourCartDrawer');
     const ourOverlay = document.getElementById('ourCartOverlay');
     const ourClose = document.getElementById('ourCartClose');
     const ourCartItems = document.getElementById('ourCartItems');
     const ourCartTotal = document.getElementById('ourCartTotal');
-    const paypalContainer = document.getElementById('ourPaypalButtonContainer');
+    const ourPaypalContainer = document.getElementById('ourPaypalButtonContainer');
 
-    // Cart state
+    // --------------------------------------------------------------
+    // Cart state (store cart)
+    // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 
-    function saveStoreCart() {
-      localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-      updateCartUI();
-      updateMembershipButtons();
-      if (ourDrawer.classList.contains('open')) {
-        renderPayPalButton();
+function saveStoreCart() {
+  localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
+  updateCartUI();
+  setTimeout(() => updateMembershipButtons(), 100);
+}
+
+    function getMonthlyPriceForTier(tier) {
+      const key = `PRICE_${tier + 2}`; // tier1 -> PRICE_3 (5), tier2 -> PRICE_4 (9), etc.
+      return window.priceKeyMap?.[key] || 0;
+    }
+
+    function getDiscountFactor(months) {
+      if (months >= 3) return 0.8;
+      if (months === 2) return 0.9;
+      return 1;
+    }
+
+    function formatPrice(usd) {
+      if (window.formatPrice) return window.formatPrice(usd);
+      return `$${usd.toFixed(2)}`;
+    }
+
+    function updateCartUI() {
+      if (!ourCartItems) return;
+      ourCartItems.innerHTML = storeCart.length === 0 ? '<div style="padding:1rem;">Your cart is empty</div>' : '';
+      let total = 0;
+      storeCart.forEach((item, idx) => {
+        let priceHtml = '';
+        let priceValue = 0;
+
+        if (item.type === 'membership' && !item.isAnnual && item.months) {
+          // Monthly bundle with quantity discount
+          const monthlyPrice = getMonthlyPriceForTier(item.tier);
+          const discountFactor = getDiscountFactor(item.months);
+          const totalPrice = monthlyPrice * item.months * discountFactor;
+          priceValue = totalPrice;
+          const originalTotal = monthlyPrice * item.months;
+          if (discountFactor < 1) {
+            priceHtml = `
+              <span class="original-price">${formatPrice(originalTotal)}</span>
+              <span class="discount-badge">${Math.round((1-discountFactor)*100)}% OFF</span><br>
+              <span class="current-price" style="color: var(--price-red);">${formatPrice(totalPrice)}</span>
+            `;
+          } else {
+            priceHtml = formatPrice(totalPrice);
+          }
+        } else if (item.type === 'membership' && item.isAnnual) {
+          // Annual membership
+          const monthlyPrice = getMonthlyPriceForTier(item.tier);
+          const originalAnnual = monthlyPrice * 12;
+          const discountedAnnual = originalAnnual * 0.7; // 30% off
+          priceValue = discountedAnnual;
+          priceHtml = `
+            <span class="original-price">${formatPrice(originalAnnual)}</span>
+            <span class="discount-badge">30% OFF</span><br>
+            <span class="current-price" style="color: var(--price-red);">${formatPrice(discountedAnnual)}</span>
+          `;
+        } else if (item.priceKey && window.priceKeyMap) {
+          priceValue = window.priceKeyMap[item.priceKey] || 0;
+          priceHtml = formatPrice(priceValue);
+        } else {
+          priceHtml = '$0.00';
+        }
+
+        total += priceValue;
+
+        const div = document.createElement('div');
+        div.className = 'our-cart-item';
+        let titleText = item.title;
+        if (item.type === 'membership' && !item.isAnnual && item.months) {
+          titleText = `${TIER_TITLES[item.tier]} (${item.months} month${item.months > 1 ? 's' : ''})`;
+        }
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div class="our-cart-item-info">
+            <div class="our-cart-item-title">${escapeHtml(titleText)}</div>
+            <div class="our-cart-item-price">${priceHtml}</div>
+            ${item.type === 'membership' && !item.isAnnual ? `
+              <div class="cart-quantity">
+                <button class="decrease-monthly" data-idx="${idx}">-</button>
+                <input type="number" class="monthly-quantity" data-idx="${idx}" value="${item.months}" min="1" max="12" step="1">
+                <button class="increase-monthly" data-idx="${idx}">+</button>
+              </div>
+            ` : ''}
+          </div>
+          <button class="our-cart-item-remove" data-idx="${idx}">✕</button>
+        `;
+        ourCartItems.appendChild(div);
+      });
+
+      // Attach quantity handlers
+      document.querySelectorAll('.decrease-monthly').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const item = storeCart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = Math.max(1, item.months - 1);
+            item.months = newMonths;
+            saveStoreCart();
+          }
+        });
+      });
+      document.querySelectorAll('.increase-monthly').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const item = storeCart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = Math.min(12, item.months + 1);
+            item.months = newMonths;
+            saveStoreCart();
+          }
+        });
+      });
+      document.querySelectorAll('.monthly-quantity').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(input.dataset.idx);
+          const item = storeCart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = parseInt(input.value, 10);
+            if (isNaN(newMonths)) newMonths = 1;
+            newMonths = Math.min(12, Math.max(1, newMonths));
+            item.months = newMonths;
+            saveStoreCart();
+          }
+        });
+      });
+
+      document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          storeCart.splice(idx, 1);
+          saveStoreCart();
+        });
+      });
+
+      if (ourCartTotal) {
+        ourCartTotal.innerText = formatPrice(total);
       }
+      const count = storeCart.length;
+      document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => { if (el) el.textContent = count; });
     }
+function openCart() {
+  ourDrawer.classList.add('open');
+  ourOverlay.classList.add('active');
+  document.body.classList.add('drawer-open');
+  renderPayPalButton();
+  setTimeout(() => updateMembershipButtons(), 100);
+}
 
-    // ... (the rest of your JavaScript logic would continue here: updateCartUI, renderPayPalButton, addMembership, updateMembershipButtons, etc.)
-    // For space reasons I have not repeated the entire 400+ line script block, but you should paste your full <script> content from the previous message right here, replacing this comment.
-
-    // Example skeleton of remaining functions:
-    function updateCartUI() { /* your full cart rendering logic */ }
-    function renderPayPalButton() { /* your PayPal button creation */ }
-    function updateMembershipButtons() { /* your tier button state logic */ }
-    function addMembership(tier, isAnnual, months = 1) { /* your add logic */ }
-    function scrollCarousel(dir) {
-      document.getElementById('tierCarousel')?.scrollBy({ left: dir * 320, behavior: 'smooth' });
-    }
-
-    // Event listeners
-    ourCartBtn?.addEventListener('click', () => {
-      ourDrawer.classList.add('open');
-      ourOverlay.classList.add('active');
-      renderPayPalButton();
-    });
-
-    ourFloatBtn?.addEventListener('click', () => {
-      ourDrawer.classList.add('open');
-      ourOverlay.classList.add('active');
-      renderPayPalButton();
-    });
-
-    ourClose?.addEventListener('click', () => {
+    function closeCart() {
       ourDrawer.classList.remove('open');
       ourOverlay.classList.remove('active');
+      document.body.classList.remove('drawer-open');
+    }
+
+    ourCartBtn?.addEventListener('click', openCart);
+    ourFloatBtnElem?.addEventListener('click', openCart);
+    ourClose?.addEventListener('click', closeCart);
+    ourOverlay?.addEventListener('click', closeCart);
+
+    // --------------------------------------------------------------
+    // PayPal integration
+    // --------------------------------------------------------------
+    let isRendering = false;
+
+    function renderPayPalButton() {
+      if (!ourPaypalContainer) return;
+      if (!ourDrawer.classList.contains('open')) return;
+      if (isRendering) return;
+      if (!window.priceKeyMap || !window.priceUsdMap) return;
+      isRendering = true;
+      const cart = storeCart;
+      if (cart.length === 0) {
+        ourPaypalContainer.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+        isRendering = false;
+        return;
+      }
+      ourPaypalContainer.innerHTML = '';
+      const buttons = paypal.Buttons({
+        createOrder: async () => {
+          const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Order creation failed');
+          return data.orderID;
+        },
+        onApprove: (data, actions) => {
+          return actions.order.capture().then(() => {
+            storeCart = [];
+            saveStoreCart();
+            updateMembershipButtons();
+            window.location.href = `/s/success.html?orderID=${data.orderID}`;
+          });
+        },
+        onError: (err) => {
+          console.error('PayPal error', err);
+          alert('Something went wrong. Please try again.');
+        },
+        onCancel: () => { isRendering = false; }
+      });
+      buttons.render(ourPaypalContainer).then(() => {
+        isRendering = false;
+      }).catch((err) => {
+        console.error('PayPal render error:', err);
+        isRendering = false;
+      });
+    }
+
+    // --------------------------------------------------------------
+    // Membership logic (with monthly and annual options, and tier disabling)
+    // --------------------------------------------------------------
+    let currentLang = localStorage.getItem('language') || 'en';
+
+    // Price keys: monthly and annual
+    const MONTHLY_PRICE_KEYS = {
+      1: 'PRICE_3',  // 5 USD
+      2: 'PRICE_4',  // 9 USD
+      3: 'PRICE_5',  // 14 USD
+      4: 'PRICE_6',  // 29 USD
+      5: 'PRICE_7'   // 39 USD
+    };
+    const ANNUAL_PRICE_KEYS = {
+      1: 'MEMBER_1_ANNUAL', // 42 USD
+      2: 'MEMBER_2_ANNUAL', // 76 USD
+      3: 'MEMBER_3_ANNUAL', // 118 USD
+      4: 'MEMBER_4_ANNUAL', // 244 USD
+      5: 'MEMBER_5_ANNUAL'  // 328 USD
+    };
+    const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
+
+    // Rank: higher = better. Annual > monthly for same tier.
+    function getMembershipRank(tier, isAnnual) {
+      return tier * 2 + (isAnnual ? 1 : 0);
+    }
+
+    function function updateMembershipButtons() {
+  // Force read from localStorage to get the absolute latest cart
+  const freshCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
+  console.log('updateMembershipButtons called. Cart from localStorage:', freshCart);
+
+  // Find the highest rank among memberships in cart
+  let highestRank = -1;
+  for (const item of freshCart) {
+    if (item.type === 'membership') {
+      const rank = getMembershipRank(item.tier, item.isAnnual);
+      if (rank > highestRank) highestRank = rank;
+    }
+  }
+  console.log('Highest rank:', highestRank);
+
+  // Loop through all tiers and buttons
+  for (let tier = 1; tier <= 5; tier++) {
+    const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+    if (!card) continue;
+    const monthlyInCart = freshCart.some(item => item.id === `membership-${tier}-monthly`);
+    const annualInCart = freshCart.some(item => item.id === `membership-${tier}-annual`);
+    const btnMonthly = card.querySelector('.btn-monthly');
+    const btnAnnual = card.querySelector('.btn-annual');
+
+    // Update button text/class for the current tier (in‑cart status)
+    if (btnMonthly) {
+      btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
+      btnMonthly.classList.toggle('btn-remove', monthlyInCart);
+      btnMonthly.classList.toggle('btn-monthly', !monthlyInCart);
+    }
+    if (btnAnnual) {
+      btnAnnual.textContent = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
+      btnAnnual.classList.toggle('btn-remove', annualInCart);
+      btnAnnual.classList.toggle('btn-annual', !annualInCart);
+    }
+
+    // Determine if this tier/option should be disabled (lower rank than highest)
+    const monthlyRank = getMembershipRank(tier, false);
+    const annualRank = getMembershipRank(tier, true);
+
+    if (highestRank !== -1) {
+      if (btnMonthly && monthlyRank < highestRank) {
+        btnMonthly.classList.add('disabled');
+      } else if (btnMonthly) {
+        btnMonthly.classList.remove('disabled');
+      }
+      if (btnAnnual && annualRank < highestRank) {
+        btnAnnual.classList.add('disabled');
+      } else if (btnAnnual) {
+        btnAnnual.classList.remove('disabled');
+      }
+    } else {
+      // No membership in cart – enable all
+      if (btnMonthly) btnMonthly.classList.remove('disabled');
+      if (btnAnnual) btnAnnual.classList.remove('disabled');
+    }
+  }
+}
+
+    function showSnackbar(msg, isRemove = false) {
+      const sb = document.getElementById('snackbar');
+      const text = document.getElementById('snackText');
+      if (sb) {
+        sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+        text.innerText = msg;
+        sb.classList.add('show');
+        setTimeout(() => sb.classList.remove('show'), 2000);
+      } else alert(msg);
+    }
+
+    function validateDiscordId() {
+      const input = document.getElementById('discordId');
+      if (!input) return null;
+      const id = input.value.trim();
+      if (!id) { showSnackbar('Please enter your Discord ID', true); return null; }
+      if (!/^\d{17,19}$/.test(id)) { showSnackbar('Invalid Discord ID format', true); return null; }
+      return id;
+    }
+
+    // Unified membership addition (handles both monthly and annual)
+    function addMembership(tierNumber, isAnnual, months = 1) {
+      const discordId = validateDiscordId();
+      if (!discordId) return;
+
+      const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
+      const newRank = getMembershipRank(tierNumber, isAnnual);
+
+      // Find existing membership in cart
+      const existingIndex = storeCart.findIndex(item => item.type === 'membership');
+      const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
+
+      // If the same item is already in cart, remove it (toggle)
+      if (existingItem && existingItem.id === newId) {
+        storeCart.splice(existingIndex, 1);
+        saveStoreCart();
+        showSnackbar('Removed from cart', true);
+        return;
+      }
+
+      // If there's an existing membership, compare ranks
+      if (existingItem) {
+        const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
+        if (newRank <= existingRank) {
+          showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
+          return;
+        }
+        // Remove the old one (upgrade)
+        storeCart.splice(existingIndex, 1);
+      }
+
+      // Add the new item
+      const priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
+      if (!priceKey) {
+        showSnackbar('Invalid tier', true);
+        return;
+      }
+
+      const title = isAnnual
+        ? `${TIER_TITLES[tierNumber]} (12 months)`
+        : `${TIER_TITLES[tierNumber]} (${months} month${months > 1 ? 's' : ''})`;
+
+      storeCart.push({
+        id: newId,
+        title: title,
+        priceKey: priceKey,
+        type: 'membership',
+        tier: tierNumber,
+        isAnnual: isAnnual,
+        months: isAnnual ? 12 : months,
+        discordId: discordId,
+        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+      });
+      saveStoreCart();
+      showSnackbar('Added to cart', false);
+    }
+
+    window.addMonthly = function(tierNumber) {
+      addMembership(tierNumber, false, 1);
+    };
+
+    window.addAnnual = function(tierNumber) {
+      addMembership(tierNumber, true, 12);
+    };
+
+    // Attach event listeners to monthly and annual buttons (since they are created dynamically)
+    document.querySelectorAll('.btn-monthly').forEach(btn => {
+      const tier = btn.getAttribute('data-tier');
+      if (tier) {
+        btn.onclick = () => addMonthly(parseInt(tier));
+      }
+    });
+    document.querySelectorAll('.btn-annual').forEach(btn => {
+      const tier = btn.getAttribute('data-tier');
+      if (tier) {
+        btn.onclick = () => addAnnual(parseInt(tier));
+      }
     });
 
-    ourOverlay?.addEventListener('click', () => {
-      ourDrawer.classList.remove('open');
-      ourOverlay.classList.remove('active');
-    });
+    window.scrollCarousel = function(direction) {
+      const container = document.getElementById('tierCarousel');
+      if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
+    };
 
-    // Initial calls
+    function updateMembershipText() {
+      const t = window.translations?.[currentLang] || window.translations?.en;
+      const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
+      const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
+      let title = t?.membershipTitle || '✨ Choose Your Membership';
+      title = title.replace(/✨\s*/, '');
+      const titleEl = document.getElementById('membershipTitle');
+      if (titleEl) titleEl.textContent = title;
+      setText('membershipDescription', 'Support my work and unlock exclusive perks');
+      setHTML('discordIdLabel', (t?.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
+      setText('discordHintText', t?.discordHint || 'How to find your Discord ID:');
+      setText('discordHelpText', t?.discordHelpLink || 'Where do I find my Discord ID? (click)');
+      setHTML('discordHelpStep1', t?.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+      setHTML('discordHelpStep2', t?.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+      setHTML('discordHelpStep3', t?.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+      setHTML('discordHelpStep4', t?.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
+      setHTML('noteBox', (t?.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
+        '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t?.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
+      for (let i = 1; i <= 5; i++) {
+        const titleEl = document.getElementById(`tier${i}Title`);
+        const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
+        if (titleEl && t?.[key]) titleEl.textContent = t[key];
+      }
+      const perkIds = [
+        'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
+        'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
+        'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
+        'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
+      ];
+      perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
+      document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
+      document.querySelectorAll('.btn-annual').forEach(el => el.textContent = 'Annual (Save 30%)');
+      document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
+      document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+        const usd = parseFloat(el.dataset.priceUsd);
+        if (!isNaN(usd) && window.formatPrice) {
+          const priceSpan = el.querySelector('.price-value');
+          if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
+        }
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
+    }
+
+    // Initial sync
     updateCartUI();
     updateMembershipButtons();
 
-    // Discord help toggle
-    document.getElementById('discordHelpToggle')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('discordHelpContent')?.classList.toggle('show');
+    // Wait for price map and apply translations
+    const checkPrice = setInterval(() => {
+      if (window.priceKeyMap && window.priceUsdMap) {
+        clearInterval(checkPrice);
+        updateMembershipText();
+        updateMembershipButtons();
+        updateCartUI();
+        if (ourDrawer.classList.contains('open')) renderPayPalButton();
+      }
+    }, 100);
+
+    // Listen for language changes
+    document.addEventListener('languageChanged', (e) => {
+      currentLang = e.detail.language;
+      updateMembershipText();
+      updateMembershipButtons();
+      updateCartUI();
     });
   });
+
+  // Discord help toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const helpToggle = document.getElementById('discordHelpToggle');
+    const helpContent = document.getElementById('discordHelpContent');
+    if (helpToggle && helpContent) {
+      helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
+    }
+  });
 </script>
-
-<!-- Your external scripts (keep these if you still have access to the files) -->
-<script src="/assets/js/shared.js"></script>
-<script src="/assets/js/price.js" type="module"></script>
-<script src="/s/js/translations.js"></script>
-
 </body>
 </html>
