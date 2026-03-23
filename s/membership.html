@@ -467,7 +467,7 @@
     }
 
     // --------------------------------------------------------------
-    // Cart UI
+    // Cart UI with quantity picker for monthly memberships
     // --------------------------------------------------------------
     function updateCartUI() {
       if (!ourCartItems) return;
@@ -493,7 +493,7 @@
           if (discountFactor < 1) {
             priceHtml = `
               <span class="original-price">${formatPrice(originalTotal)}</span>
-              <span class="discount-badge">${discountFactor === 0.9 ? '10% OFF' : discountFactor === 0.8 ? '20% OFF' : ''}</span><br>
+              <span class="discount-badge">${discountFactor === 0.9 ? getTranslation('discount_10', '10% OFF') : getTranslation('discount_20', '20% OFF')}</span><br>
               <span class="current-price" style="color: var(--price-red);">${formatPrice(totalPrice)}</span>
             `;
           } else {
@@ -505,7 +505,7 @@
           const discountedAnnual = originalAnnual * 0.7;
           priceHtml = `
             <span class="original-price">${formatPrice(originalAnnual)}</span>
-            <span class="discount-badge">30% OFF</span><br>
+            <span class="discount-badge">${getTranslation('discount_30', '30% OFF')}</span><br>
             <span class="current-price" style="color: var(--price-red);">${formatPrice(discountedAnnual)}</span>
           `;
         } else {
@@ -514,17 +514,112 @@
 
         const div = document.createElement('div');
         div.className = 'our-cart-item';
+        let titleText = item.title;
+        if (item.type === 'membership') {
+          const tierNameKey = `tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`;
+          const tierName = getTranslation(tierNameKey, TIER_TITLES[item.tier]);
+          if (!item.isAnnual) {
+            const durationKey = `duration_${item.months}`;
+            const durationText = getTranslation(durationKey, `${item.months} month${item.months > 1 ? 's' : ''}`);
+            titleText = `${tierName} (${durationText})`;
+          } else {
+            titleText = `${tierName} (${getTranslation('duration_12', '12 months')})`;
+          }
+        }
         div.innerHTML = `
           <img src="${item.image}" alt="${item.title}">
           <div class="our-cart-item-info">
-            <div class="our-cart-item-title">${escapeHtml(item.title)}</div>
+            <div class="our-cart-item-title">${escapeHtml(titleText)}</div>
             <div class="our-cart-item-price">${priceHtml}</div>
+            ${item.type === 'membership' && !item.isAnnual ? `
+              <div class="cart-quantity">
+                <button class="decrease-monthly" data-idx="${idx}">-</button>
+                <input type="number" class="monthly-quantity" data-idx="${idx}" value="${item.months}" min="1" max="12" step="1">
+                <button class="increase-monthly" data-idx="${idx}">+</button>
+              </div>
+            ` : ''}
           </div>
           <button class="our-cart-item-remove" data-idx="${idx}">✕</button>
         `;
         ourCartItems.appendChild(div);
       });
 
+      // Quantity handlers for monthly memberships
+      document.querySelectorAll('.decrease-monthly').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const cart = getCart();
+          const item = cart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = Math.max(1, item.months - 1);
+            if (newMonths !== item.months) {
+              // Update the item in place
+              item.months = newMonths;
+              // Recalculate price
+              const monthlyPrice = MONTHLY_BASE_PRICES[item.tier];
+              const discountFactor = getDiscountFactor(newMonths);
+              item.price = monthlyPrice * newMonths * discountFactor;
+              // Update title
+              const tierNameKey = `tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`;
+              const tierName = getTranslation(tierNameKey, TIER_TITLES[item.tier]);
+              const durationKey = `duration_${newMonths}`;
+              const durationText = getTranslation(durationKey, `${newMonths} month${newMonths > 1 ? 's' : ''}`);
+              item.title = `${tierName} (${durationText})`;
+              saveCart(cart);
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('.increase-monthly').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const cart = getCart();
+          const item = cart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = Math.min(12, item.months + 1);
+            if (newMonths !== item.months) {
+              item.months = newMonths;
+              const monthlyPrice = MONTHLY_BASE_PRICES[item.tier];
+              const discountFactor = getDiscountFactor(newMonths);
+              item.price = monthlyPrice * newMonths * discountFactor;
+              const tierNameKey = `tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`;
+              const tierName = getTranslation(tierNameKey, TIER_TITLES[item.tier]);
+              const durationKey = `duration_${newMonths}`;
+              const durationText = getTranslation(durationKey, `${newMonths} month${newMonths > 1 ? 's' : ''}`);
+              item.title = `${tierName} (${durationText})`;
+              saveCart(cart);
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('.monthly-quantity').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(input.dataset.idx);
+          const cart = getCart();
+          const item = cart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = parseInt(input.value, 10);
+            if (isNaN(newMonths)) newMonths = 1;
+            newMonths = Math.min(12, Math.max(1, newMonths));
+            if (newMonths !== item.months) {
+              item.months = newMonths;
+              const monthlyPrice = MONTHLY_BASE_PRICES[item.tier];
+              const discountFactor = getDiscountFactor(newMonths);
+              item.price = monthlyPrice * newMonths * discountFactor;
+              const tierNameKey = `tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`;
+              const tierName = getTranslation(tierNameKey, TIER_TITLES[item.tier]);
+              const durationKey = `duration_${newMonths}`;
+              const durationText = getTranslation(durationKey, `${newMonths} month${newMonths > 1 ? 's' : ''}`);
+              item.title = `${tierName} (${durationText})`;
+              saveCart(cart);
+            }
+          }
+        });
+      });
+
+      // Remove buttons
       document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
@@ -700,16 +795,17 @@
       const newRank = getMembershipRank(tierNumber, isAnnual);
       let cart = getCart();
 
-      // Check if already in cart
+      // Check if already in cart (same ID)
       const existingIndex = cart.findIndex(item => item.id === newId);
       if (existingIndex !== -1) {
+        // Remove it
         cart.splice(existingIndex, 1);
         saveCart(cart);
         showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
         return;
       }
 
-      // Check for any existing membership
+      // Check for any existing membership (regardless of duration)
       const membershipItems = cart.filter(item => item.type === 'membership');
       const existingItem = membershipItems[0]; // at most one
       if (existingItem) {
