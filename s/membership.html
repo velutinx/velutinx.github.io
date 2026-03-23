@@ -44,30 +44,9 @@
       width: 100%;
     }
     .btn-annual:hover { background: #059669; }
-    .btn-remove { background: #ef4444 !important; }
-    .btn-remove:hover { background: #dc2626 !important; }
-    /* Simplified monthly selector */
-    .monthly-selector {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      background: var(--darker);
-      padding: 8px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-    }
-    .monthly-selector input {
-      flex: 1;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      text-align: center;
-    }
     .btn-monthly {
       background: #3b82f6;
-      padding: 8px 12px;
+      padding: 10px;
       border: none;
       border-radius: 6px;
       font-size: 0.9rem;
@@ -75,11 +54,11 @@
       cursor: pointer;
       color: white;
       transition: 0.2s;
-      white-space: nowrap;
+      width: 100%;
     }
     .btn-monthly:hover { background: #2563eb; }
-    .btn-monthly.btn-remove { background: #ef4444; }
-    .btn-monthly.btn-remove:hover { background: #dc2626; }
+    .btn-remove { background: #ef4444 !important; }
+    .btn-remove:hover { background: #dc2626 !important; }
     /* Disabled button style */
     .tier-btn.disabled, .btn-monthly.disabled, .btn-annual.disabled {
       opacity: 0.5;
@@ -120,6 +99,29 @@
     .our-cart-item-title { font-weight: 600; }
     .our-cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #a64a5c; }
     .our-cart-total { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
+    /* Quantity selector in cart */
+    .cart-quantity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .cart-quantity input {
+      width: 60px;
+      padding: 4px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      text-align: center;
+    }
+    .cart-quantity button {
+      background: var(--darker);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      cursor: pointer;
+    }
     /* Price styles */
     .original-price {
       text-decoration: line-through;
@@ -172,7 +174,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 with simplified monthly selector -->
+      <!-- Tiers 1–5 with simple buttons -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -181,10 +183,7 @@
         </div>
         <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-selector">
-            <input type="number" id="months-1" min="1" max="12" value="1" step="1">
-            <button class="btn-monthly" data-tier="1">Add Monthly</button>
-          </div>
+          <button class="btn-monthly" data-tier="1">Add Monthly</button>
           <button class="btn-annual" data-tier="1">Annual (Save 30%)</button>
         </div>
       </div>
@@ -196,10 +195,7 @@
         </div>
         <div class="tier-price" data-price-usd="9"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-selector">
-            <input type="number" id="months-2" min="1" max="12" value="1" step="1">
-            <button class="btn-monthly" data-tier="2">Add Monthly</button>
-          </div>
+          <button class="btn-monthly" data-tier="2">Add Monthly</button>
           <button class="btn-annual" data-tier="2">Annual (Save 30%)</button>
         </div>
       </div>
@@ -211,10 +207,7 @@
         </div>
         <div class="tier-price" data-price-usd="14"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-selector">
-            <input type="number" id="months-3" min="1" max="12" value="1" step="1">
-            <button class="btn-monthly" data-tier="3">Add Monthly</button>
-          </div>
+          <button class="btn-monthly" data-tier="3">Add Monthly</button>
           <button class="btn-annual" data-tier="3">Annual (Save 30%)</button>
         </div>
       </div>
@@ -226,10 +219,7 @@
         </div>
         <div class="tier-price" data-price-usd="29"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-selector">
-            <input type="number" id="months-4" min="1" max="12" value="1" step="1">
-            <button class="btn-monthly" data-tier="4">Add Monthly</button>
-          </div>
+          <button class="btn-monthly" data-tier="4">Add Monthly</button>
           <button class="btn-annual" data-tier="4">Annual (Save 30%)</button>
         </div>
       </div>
@@ -241,10 +231,7 @@
         </div>
         <div class="tier-price" data-price-usd="39"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-selector">
-            <input type="number" id="months-5" min="1" max="12" value="1" step="1">
-            <button class="btn-monthly" data-tier="5">Add Monthly</button>
-          </div>
+          <button class="btn-monthly" data-tier="5">Add Monthly</button>
           <button class="btn-annual" data-tier="5">Annual (Save 30%)</button>
         </div>
       </div>
@@ -410,11 +397,56 @@
           <div class="our-cart-item-info">
             <div class="our-cart-item-title">${escapeHtml(titleText)}</div>
             <div class="our-cart-item-price">${priceHtml}</div>
+            ${item.type === 'membership' && !item.isAnnual ? `
+              <div class="cart-quantity">
+                <button class="decrease-monthly" data-idx="${idx}">-</button>
+                <input type="number" class="monthly-quantity" data-idx="${idx}" value="${item.months}" min="1" max="12" step="1">
+                <button class="increase-monthly" data-idx="${idx}">+</button>
+              </div>
+            ` : ''}
           </div>
           <button class="our-cart-item-remove" data-idx="${idx}">✕</button>
         `;
         ourCartItems.appendChild(div);
       });
+
+      // Attach quantity handlers
+      document.querySelectorAll('.decrease-monthly').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const item = storeCart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = Math.max(1, item.months - 1);
+            item.months = newMonths;
+            saveStoreCart();
+          }
+        });
+      });
+      document.querySelectorAll('.increase-monthly').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          const item = storeCart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = Math.min(12, item.months + 1);
+            item.months = newMonths;
+            saveStoreCart();
+          }
+        });
+      });
+      document.querySelectorAll('.monthly-quantity').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(input.dataset.idx);
+          const item = storeCart[idx];
+          if (item && item.type === 'membership' && !item.isAnnual) {
+            let newMonths = parseInt(input.value, 10);
+            if (isNaN(newMonths)) newMonths = 1;
+            newMonths = Math.min(12, Math.max(1, newMonths));
+            item.months = newMonths;
+            saveStoreCart();
+          }
+        });
+      });
+
       document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
@@ -422,6 +454,7 @@
           saveStoreCart();
         });
       });
+
       if (ourCartTotal) {
         ourCartTotal.innerText = formatPrice(total);
       }
@@ -523,7 +556,7 @@
     const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
     // Rank: higher = better. Annual > monthly for same tier.
-    function getMembershipRank(tier, isAnnual, months = 1) {
+    function getMembershipRank(tier, isAnnual) {
       return tier * 2 + (isAnnual ? 1 : 0);
     }
 
@@ -532,7 +565,7 @@
       let highestRank = -1;
       for (const item of storeCart) {
         if (item.type === 'membership') {
-          const rank = getMembershipRank(item.tier, item.isAnnual, item.months || 1);
+          const rank = getMembershipRank(item.tier, item.isAnnual);
           if (rank > highestRank) highestRank = rank;
         }
       }
@@ -602,10 +635,6 @@
     }
 
     window.addMonthly = function(tierNumber) {
-      const monthsInput = document.getElementById(`months-${tierNumber}`);
-      let months = parseInt(monthsInput?.value, 10);
-      if (isNaN(months) || months < 1) months = 1;
-      if (months > 12) months = 12; // cap at 12
       const discordId = validateDiscordId();
       if (!discordId) return;
 
@@ -632,7 +661,7 @@
         return;
       }
 
-      const title = `${TIER_TITLES[tierNumber]} (${months} month${months > 1 ? 's' : ''})`;
+      const title = `${TIER_TITLES[tierNumber]} (1 month)`;
       storeCart.push({
         id: newId,
         title: title,
@@ -640,7 +669,7 @@
         type: 'membership',
         tier: tierNumber,
         isAnnual: false,
-        months: months,
+        months: 1,
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
