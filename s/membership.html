@@ -46,52 +46,30 @@
     .btn-annual:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
-    /* Monthly quantity selector – redesigned */
-    .monthly-group {
-      background: var(--darker);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-      transition: all 0.2s;
-    }
-    .monthly-label {
-      font-size: 0.8rem;
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: var(--text);
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-    .monthly-discount-badge {
-      background: rgba(19,222,185,0.2);
-      color: #13DEB9;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      font-weight: bold;
-    }
-    .monthly-control {
+    /* Simplified monthly selector */
+    .monthly-selector {
       display: flex;
       gap: 8px;
       align-items: center;
+      background: var(--darker);
+      padding: 8px;
+      border-radius: 12px;
+      margin-bottom: 12px;
     }
-    .monthly-control input {
+    .monthly-selector input {
       flex: 1;
       padding: 8px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid var(--border);
       background: var(--bg);
       color: var(--text);
       text-align: center;
-      font-size: 0.9rem;
     }
     .btn-monthly {
       background: #3b82f6;
       padding: 8px 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
@@ -194,7 +172,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 with redesigned monthly selector -->
+      <!-- Tiers 1–5 with simplified monthly selector -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -203,15 +181,9 @@
         </div>
         <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-group">
-            <div class="monthly-label">
-              <span>Monthly (flexible)</span>
-              <span class="monthly-discount-badge" id="discountBadge-1"></span>
-            </div>
-            <div class="monthly-control">
-              <input type="number" id="months-1" min="1" max="12" value="1" class="monthly-input">
-              <button class="btn-monthly" data-tier="1">Add Monthly</button>
-            </div>
+          <div class="monthly-selector">
+            <input type="number" id="months-1" min="1" max="12" value="1" step="1">
+            <button class="btn-monthly" data-tier="1">Add Monthly</button>
           </div>
           <button class="btn-annual" data-tier="1">Annual (Save 30%)</button>
         </div>
@@ -224,15 +196,9 @@
         </div>
         <div class="tier-price" data-price-usd="9"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-group">
-            <div class="monthly-label">
-              <span>Monthly (flexible)</span>
-              <span class="monthly-discount-badge"></span>
-            </div>
-            <div class="monthly-control">
-              <input type="number" id="months-2" min="1" max="12" value="1" class="monthly-input">
-              <button class="btn-monthly" data-tier="2">Add Monthly</button>
-            </div>
+          <div class="monthly-selector">
+            <input type="number" id="months-2" min="1" max="12" value="1" step="1">
+            <button class="btn-monthly" data-tier="2">Add Monthly</button>
           </div>
           <button class="btn-annual" data-tier="2">Annual (Save 30%)</button>
         </div>
@@ -245,15 +211,9 @@
         </div>
         <div class="tier-price" data-price-usd="14"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-group">
-            <div class="monthly-label">
-              <span>Monthly (flexible)</span>
-              <span class="monthly-discount-badge"></span>
-            </div>
-            <div class="monthly-control">
-              <input type="number" id="months-3" min="1" max="12" value="1" class="monthly-input">
-              <button class="btn-monthly" data-tier="3">Add Monthly</button>
-            </div>
+          <div class="monthly-selector">
+            <input type="number" id="months-3" min="1" max="12" value="1" step="1">
+            <button class="btn-monthly" data-tier="3">Add Monthly</button>
           </div>
           <button class="btn-annual" data-tier="3">Annual (Save 30%)</button>
         </div>
@@ -266,15 +226,9 @@
         </div>
         <div class="tier-price" data-price-usd="29"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-group">
-            <div class="monthly-label">
-              <span>Monthly (flexible)</span>
-              <span class="monthly-discount-badge"></span>
-            </div>
-            <div class="monthly-control">
-              <input type="number" id="months-4" min="1" max="12" value="1" class="monthly-input">
-              <button class="btn-monthly" data-tier="4">Add Monthly</button>
-            </div>
+          <div class="monthly-selector">
+            <input type="number" id="months-4" min="1" max="12" value="1" step="1">
+            <button class="btn-monthly" data-tier="4">Add Monthly</button>
           </div>
           <button class="btn-annual" data-tier="4">Annual (Save 30%)</button>
         </div>
@@ -287,15 +241,9 @@
         </div>
         <div class="tier-price" data-price-usd="39"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <div class="monthly-group">
-            <div class="monthly-label">
-              <span>Monthly (flexible)</span>
-              <span class="monthly-discount-badge"></span>
-            </div>
-            <div class="monthly-control">
-              <input type="number" id="months-5" min="1" max="12" value="1" class="monthly-input">
-              <button class="btn-monthly" data-tier="5">Add Monthly</button>
-            </div>
+          <div class="monthly-selector">
+            <input type="number" id="months-5" min="1" max="12" value="1" step="1">
+            <button class="btn-monthly" data-tier="5">Add Monthly</button>
           </div>
           <button class="btn-annual" data-tier="5">Annual (Save 30%)</button>
         </div>
@@ -388,8 +336,7 @@
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
       updateCartUI();
-      // Force button update after a short delay to ensure DOM is ready
-      setTimeout(() => updateMembershipButtons(), 50);
+      updateMembershipButtons(); // immediate update
     }
 
     function getMonthlyPriceForTier(tier) {
@@ -632,20 +579,6 @@
           if (btnAnnual) btnAnnual.classList.remove('disabled');
         }
       }
-
-      // Also update discount badges dynamically
-      for (let tier = 1; tier <= 5; tier++) {
-        const monthsInput = document.getElementById(`months-${tier}`);
-        if (monthsInput) {
-          const months = parseInt(monthsInput.value, 10) || 1;
-          const badge = document.querySelector(`.tier-card[data-tier="${tier}"] .monthly-discount-badge`);
-          if (badge) {
-            if (months >= 3) badge.textContent = '20% OFF for 3+ months';
-            else if (months === 2) badge.textContent = '10% OFF';
-            else badge.textContent = '';
-          }
-        }
-      }
     }
 
     function showSnackbar(msg, isRemove = false) {
@@ -806,7 +739,7 @@
       ];
       perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
       document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
-      document.querySelectorAll('.btn-annual-text').forEach(el => el.textContent = 'Annual (Save 30%)');
+      document.querySelectorAll('.btn-annual').forEach(el => el.textContent = 'Annual (Save 30%)');
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
       document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
         const usd = parseFloat(el.dataset.priceUsd);
