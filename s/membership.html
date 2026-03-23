@@ -699,62 +699,63 @@ async function storeCartInKV(orderID, cart) {
   }
 }
 
-    function renderPayPalButton() {
-      if (!ourPaypalContainer) return;
-      if (!ourDrawer.classList.contains('open')) return;
-      if (isRendering) return;
-      isRendering = true;
+function renderPayPalButton() {
+  if (!ourPaypalContainer) return;
+  if (!ourDrawer.classList.contains('open')) return;
+  if (isRendering) return;
+  isRendering = true;
 
-      const cart = getCart();
-      if (cart.length === 0) {
-        ourPaypalContainer.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
-        isRendering = false;
-        return;
-      }
-
-      // Calculate total in USD
-      let total = 0;
-      for (const item of cart) {
-        total += item.price || 0;
-      }
-      const totalUSD = total.toFixed(2);
-console.log('Creating PayPal button with cart:', cart);
-      ourPaypalContainer.innerHTML = '';
-      const buttons = paypal.Buttons({
-        createOrder: (data, actions) => {
-          return actions.order.create({
-            purchase_units: [{
-              amount: {
-                currency_code: "USD",
-                value: totalUSD
-              }
-            }]
-          });
-        },
-onApprove: async (data, actions) => {
-  console.log('PayPal onApprove called, orderID:', data.orderID);
-  try {
-    await storeCartInKV(data.orderID, cart);
-    console.log('Cart stored successfully');
-  } catch (err) {
-    console.error('storeCartInKV failed:', err);
+  const cart = getCart();
+  if (cart.length === 0) {
+    ourPaypalContainer.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
+    isRendering = false;
+    return;
   }
-  saveCart([]);
-  window.location.href = `/s/success.html?orderID=${data.orderID}`;
+
+  // Calculate total in USD
+  let total = 0;
+  for (const item of cart) {
+    total += item.price || 0;
+  }
+  const totalUSD = total.toFixed(2);
+  console.log('Creating PayPal button with cart:', cart);
+
+  ourPaypalContainer.innerHTML = '';
+  const buttons = paypal.Buttons({
+    createOrder: (data, actions) => {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            currency_code: "USD",
+            value: totalUSD
+          }
+        }]
+      });
+    },
+    onApprove: async (data, actions) => {
+      console.log('PayPal onApprove called, orderID:', data.orderID);
+      try {
+        await storeCartInKV(data.orderID, cart);
+        console.log('Cart stored successfully');
+      } catch (err) {
+        console.error('storeCartInKV failed:', err);
+      }
+      saveCart([]);
+      window.location.href = `/s/success.html?orderID=${data.orderID}`;
+    },
+    onError: (err) => {
+      console.error('PayPal error', err);
+      alert('Something went wrong. Please try again.');
+    },
+    onCancel: () => { isRendering = false; }
+  });
+  buttons.render(ourPaypalContainer).then(() => {
+    isRendering = false;
+  }).catch((err) => {
+    console.error('PayPal render error:', err);
+    isRendering = false;
+  });
 }
-        onError: (err) => {
-          console.error('PayPal error', err);
-          alert('Something went wrong. Please try again.');
-        },
-        onCancel: () => { isRendering = false; }
-      });
-      buttons.render(ourPaypalContainer).then(() => {
-        isRendering = false;
-      }).catch((err) => {
-        console.error('PayPal render error:', err);
-        isRendering = false;
-      });
-    }
 
     // --------------------------------------------------------------
     // Membership logic
