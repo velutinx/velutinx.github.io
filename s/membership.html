@@ -35,15 +35,14 @@
       padding: 0.75rem 0;
       font-size: 1rem;
       line-height: 1.4;
-      font-weight: bold; /* all perks bold */
+      font-weight: bold;
     }
-    /* No divider between perks */
-    /* SVG bullet style – only on selected perks */
+    /* SVG bullet style */
     .tier-perks svg {
       width: 20px;
       height: 20px;
       flex-shrink: 0;
-      fill: black;
+      fill: #3a3a3a;
       stroke: none;
       margin-top: 2px;
     }
@@ -176,6 +175,16 @@
       margin: 24px 0 0;
       border-radius: 8px;
       font-size: 0.95rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .pin-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      fill: var(--accent);
+      margin-top: 2px;
     }
     /* Override shared.css cart elements */
     #cartBtn, #floatingCartBtn, .cart-drawer, .cart-overlay { display: none !important; }
@@ -232,9 +241,15 @@
       <img src="https://www.velutinx.com/images/discordID.jpg" alt="Discord ID copy example" style="max-width:100%; border-radius:8px; margin-top:10px;">
     </div>
     <div class="note-box" id="noteBox">
-      <strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!
-      <div style="margin-top:12px;">
-        <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
+      <svg class="pin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a8 8 0 0 0-8 8c0 1.5.5 3 1.5 4.5L12 22l6.5-7.5c1-1.5 1.5-3 1.5-4.5a8 8 0 0 0-8-8z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+      <div>
+        <strong id="importantLabel">Important:</strong> <span id="noteBoxText">After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!</span>
+        <div style="margin-top:12px;">
+          <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
+        </div>
       </div>
     </div>
   </div>
@@ -251,12 +266,12 @@
         <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
         <ul class="tier-perks">
           <li id="perk1_1">Exclusive discord role</li>
-          <li id="perk1_2"><svg fill="black" viewBox="-2.4 -2.4 28.80 28.80" xmlns="http://www.w3.org/2000/svg"><path d="M18.942 5.556a16.299 16.299 0 0 0-4.126-1.297c-.178.321-.385.754-.529 1.097a15.175 15.175 0 0 0-4.573 0 11.583 11.583 0 0 0-.535-1.097 16.274 16.274 0 0 0-4.129 1.3c-2.611 3.946-3.319 7.794-2.965 11.587a16.494 16.494 0 0 0 5.061 2.593 12.65 12.65 0 0 0 1.084-1.785 10.689 10.689 0 0 1-1.707-.831c.143-.106.283-.217.418-.331 3.291 1.539 6.866 1.539 10.118 0 .137.114.277.225.418.331-.541.326-1.114.606-1.71.832a12.52 12.52 0 0 0 1.084 1.785 16.46 16.46 0 0 0 5.064-2.595c.415-4.396-.709-8.209-2.973-11.589zM8.678 14.813c-.988 0-1.798-.922-1.798-2.045s.793-2.047 1.798-2.047 1.815.922 1.798 2.047c.001 1.123-.793 2.045-1.798 2.045zm6.644 0c-.988 0-1.798-.922-1.798-2.045s.793-2.047 1.798-2.047 1.815.922 1.798 2.047c0 1.123-.793 2.045-1.798 2.045z"></path></svg> Full archive access immediately.</li>
+          <li id="perk1_2"><svg width="20" height="20" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g fill="#3a3a3a"><rect x="20" y="20" width="40" height="40" rx="12"/><rect x="80" y="20" width="100" height="40" rx="12"/><rect x="20" y="80" width="40" height="40" rx="12"/><rect x="80" y="80" width="100" height="40" rx="12"/><rect x="20" y="140" width="40" height="40" rx="12"/><rect x="80" y="140" width="100" height="40" rx="12"/></g></svg> Full archive access immediately.</li>
           <li id="perk1_3">Includes all past releases & paid content.</li>
-          <li id="perk1_4"><svg fill="black" viewBox="-2.4 -2.4 28.80 28.80" xmlns="http://www.w3.org/2000/svg"><path d="M18.942 5.556a16.299 16.299 0 0 0-4.126-1.297c-.178.321-.385.754-.529 1.097a15.175 15.175 0 0 0-4.573 0 11.583 11.583 0 0 0-.535-1.097 16.274 16.274 0 0 0-4.129 1.3c-2.611 3.946-3.319 7.794-2.965 11.587a16.494 16.494 0 0 0 5.061 2.593 12.65 12.65 0 0 0 1.084-1.785 10.689 10.689 0 0 1-1.707-.831c.143-.106.283-.217.418-.331 3.291 1.539 6.866 1.539 10.118 0 .137.114.277.225.418.331-.541.326-1.114.606-1.71.832a12.52 12.52 0 0 0 1.084 1.785 16.46 16.46 0 0 0 5.064-2.595c.415-4.396-.709-8.209-2.973-11.589zM8.678 14.813c-.988 0-1.798-.922-1.798-2.045s.793-2.047 1.798-2.047 1.815.922 1.798 2.047c.001 1.123-.793 2.045-1.798 2.045zm6.644 0c-.988 0-1.798-.922-1.798-2.045s.793-2.047 1.798-2.047 1.815.922 1.798 2.047c0 1.123-.793 2.045-1.798 2.045z"></path></svg> Extra voting power on polls.</li>
+          <li id="perk1_4"><svg width="20" height="20" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g fill="#3a3a3a"><rect x="20" y="20" width="40" height="40" rx="12"/><rect x="80" y="20" width="100" height="40" rx="12"/><rect x="20" y="80" width="40" height="40" rx="12"/><rect x="80" y="80" width="100" height="40" rx="12"/><rect x="20" y="140" width="40" height="40" rx="12"/><rect x="80" y="140" width="100" height="40" rx="12"/></g></svg> Extra voting power on polls.</li>
         </ul>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="1" data-type="monthly">Add Monthly</button>
+          <button class="btn-monthly" data-tier="1" data-type="monthly">Monthly (Save up to 20%)</button>
           <button class="btn-annual" data-tier="1" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
@@ -278,7 +293,7 @@
           <li id="perk2_6">Typical turnaround: ~1 day once its time on queue is up.</li>
         </ul>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="2" data-type="monthly">Add Monthly</button>
+          <button class="btn-monthly" data-tier="2" data-type="monthly">Monthly (Save up to 20%)</button>
           <button class="btn-annual" data-tier="2" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
@@ -300,7 +315,7 @@
           <li id="perk3_6">Typical turnaround: ~1 day once its time on queue is up.</li>
         </ul>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="3" data-type="monthly">Add Monthly</button>
+          <button class="btn-monthly" data-tier="3" data-type="monthly">Monthly (Save up to 20%)</button>
           <button class="btn-annual" data-tier="3" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
@@ -322,7 +337,7 @@
           <li id="perk4_6">Typical turnaround: 3-7 day once its time on queue is up.</li>
         </ul>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="4" data-type="monthly">Add Monthly</button>
+          <button class="btn-monthly" data-tier="4" data-type="monthly">Monthly (Save up to 20%)</button>
           <button class="btn-annual" data-tier="4" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
@@ -340,7 +355,7 @@
           <li id="perk5_2">Your request is worked on first after current tasks are completed.</li>
         </ul>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="5" data-type="monthly">Add Monthly</button>
+          <button class="btn-monthly" data-tier="5" data-type="monthly">Monthly (Save up to 20%)</button>
           <button class="btn-annual" data-tier="5" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
@@ -454,7 +469,6 @@
     function updateCartUI() {
       if (!ourCartItems) return;
       const t = window.translations?.[currentLang] || window.translations?.en;
-      // Update cart header and total label from translations
       const cartTitleSpan = document.getElementById('cartTitle');
       if (cartTitleSpan) cartTitleSpan.textContent = t?.cartTitle || 'Shopping Cart';
       const totalLabelSpan = document.getElementById('totalLabel');
@@ -583,7 +597,7 @@
         if (el) el.textContent = count;
       });
 
-      updateMembershipButtons(); // final refresh
+      updateMembershipButtons();
     }
 
     function openCart() {
@@ -676,6 +690,7 @@
     }
 
     function updateMembershipButtons() {
+      const t = window.translations?.[currentLang] || window.translations?.en;
       // Find highest rank in cart
       let highestRank = -1;
       for (const item of storeCart) {
@@ -696,12 +711,12 @@
         const annualInCart = storeCart.some(item => item.id === `membership-${tier}-annual`);
 
         if (btnMonthly) {
-          btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
+          btnMonthly.textContent = monthlyInCart ? (t?.removeFromCartText || 'Remove from Cart') : (t?.btnMonthlyText || 'Monthly (Save up to 20%)');
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
           btnMonthly.classList.toggle('btn-monthly', !monthlyInCart);
         }
         if (btnAnnual) {
-          btnAnnual.textContent = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
+          btnAnnual.textContent = annualInCart ? (t?.removeFromCartText || 'Remove from Cart') : (t?.btnAnnual || 'Annual (Save 30%)');
           btnAnnual.classList.toggle('btn-remove', annualInCart);
           btnAnnual.classList.toggle('btn-annual', !annualInCart);
         }
@@ -736,8 +751,9 @@
       const input = document.getElementById('discordId');
       if (!input) return null;
       const id = input.value.trim();
-      if (!id) { showSnackbar('Please enter your Discord ID', true); return null; }
-      if (!/^\d{17,19}$/.test(id)) { showSnackbar('Invalid Discord ID format', true); return null; }
+      const t = window.translations?.[currentLang] || window.translations?.en;
+      if (!id) { showSnackbar(t?.errorDiscordMissing || 'Please enter your Discord ID', true); return null; }
+      if (!/^\d{17,19}$/.test(id)) { showSnackbar(t?.errorDiscordInvalid || 'Invalid Discord ID format', true); return null; }
       return id;
     }
 
@@ -755,14 +771,16 @@
         storeCart.splice(existingIndex, 1);
         saveStoreCart();
         updateMembershipButtons();
-        showSnackbar('Removed from cart', true);
+        const t = window.translations?.[currentLang] || window.translations?.en;
+        showSnackbar(t?.removedFromCart || 'Removed from cart', true);
         return;
       }
 
       if (existingItem) {
         const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
         if (newRank <= existingRank) {
-          showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
+          const t = window.translations?.[currentLang] || window.translations?.en;
+          showSnackbar(t?.errorOnlyHighest || 'You can only upgrade to a higher tier or annual plan.', true);
           return;
         }
         storeCart.splice(existingIndex, 1);
@@ -791,7 +809,8 @@
       });
       saveStoreCart();
       updateMembershipButtons();
-      showSnackbar('Added to cart', false);
+      const t = window.translations?.[currentLang] || window.translations?.en;
+      showSnackbar(t?.addedToCart || 'Added to cart', false);
     }
 
     window.addMonthly = function(tierNumber) {
@@ -835,8 +854,14 @@
       setHTML('discordHelpStep2', t?.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
       setHTML('discordHelpStep3', t?.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
       setHTML('discordHelpStep4', t?.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
-      setHTML('noteBox', (t?.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
-        '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t?.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
+      // Note box (split into two parts)
+      const importantLabel = document.getElementById('importantLabel');
+      if (importantLabel) importantLabel.textContent = t?.importantLabel || 'Important:';
+      const noteBoxText = document.getElementById('noteBoxText');
+      if (noteBoxText) noteBoxText.textContent = t?.noteBoxText || 'After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!';
+      const joinLink = document.getElementById('joinDiscordLink');
+      if (joinLink) joinLink.textContent = t?.joinDiscord || '→ Join Discord Server ←';
+      
       for (let i = 1; i <= 5; i++) {
         const titleEl = document.getElementById(`tier${i}Title`);
         const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
@@ -850,7 +875,7 @@
         'perk5_1','perk5_2'
       ];
       perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
-      // DO NOT set button texts here – they will be set by updateMembershipButtons()
+      // Button texts are updated in updateMembershipButtons()
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
       document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
         const usd = parseFloat(el.dataset.priceUsd);
