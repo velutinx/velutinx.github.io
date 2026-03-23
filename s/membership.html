@@ -309,11 +309,12 @@
     // Cart state (store cart)
     // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
-
+    
 function saveStoreCart() {
   localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-  updateCartUI();
-  updateMembershipButtons();   // No setTimeout needed
+  updateCartUI();                         // Re‑render the cart drawer
+  // Force a UI refresh of the membership buttons, even if the cart drawer is closed
+  updateMembershipButtons();
 }
 
     function getMonthlyPriceForTier(tier) {
@@ -402,15 +403,20 @@ function saveStoreCart() {
 
       // Attach quantity handlers
       document.querySelectorAll('.decrease-monthly').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          const item = storeCart[idx];
-          if (item && item.type === 'membership' && !item.isAnnual) {
-            let newMonths = Math.max(1, item.months - 1);
-            item.months = newMonths;
-            saveStoreCart();
-          }
-        });
+btn.addEventListener('click', (e) => {
+  const idx = parseInt(btn.dataset.idx);
+  const item = storeCart[idx];
+  if (item && item.type === 'membership' && !item.isAnnual) {
+    let newMonths = Math.max(1, item.months - 1);
+    item.months = newMonths;
+    saveStoreCart();
+    updateMembershipButtons();   // <--- ADD THIS
+  }
+});
+
+
+
+        
       });
       document.querySelectorAll('.increase-monthly').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -437,13 +443,15 @@ function saveStoreCart() {
         });
       });
 
-      document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          storeCart.splice(idx, 1);
-          saveStoreCart();
-        });
-      });
+document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const idx = parseInt(btn.dataset.idx);
+    storeCart.splice(idx, 1);
+    saveStoreCart();   // This already calls updateMembershipButtons()
+    // Add a direct call as a fallback:
+    updateMembershipButtons();
+  });
+});
 
       if (ourCartTotal) {
         ourCartTotal.innerText = formatPrice(total);
@@ -453,8 +461,8 @@ function saveStoreCart() {
     if (el) el.textContent = count;
   });
 
-  updateMembershipButtons();   // Add this line
-}
+  updateMembershipButtons();   // <--- ADD THIS LINE
+    }
 
 
 
