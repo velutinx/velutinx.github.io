@@ -75,10 +75,10 @@
     .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
     /* Override shared.css to hide its cart elements */
     #cartBtn, #floatingCartBtn, .cart-drawer, .cart-overlay { display: none !important; }
-    /* Our custom cart styles (same as before) */
+    /* Our custom cart styles */
     .our-cart-btn { width: 42px; height: 42px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; position: relative; color: white; }
     .our-floating-cart { position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; z-index: 1150; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
-    .our-cart-drawer { position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background: var(--accent); border-left: 1px solid var(--border); box-shadow: -8px 0 30px rgba(0,0,0,0.4); z-index: 1250; transition: right 0.3s; display: flex; flex-direction: column; color: #1f1a12; }
+    .our-cart-drawer { position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background: var(--card); border-left: 1px solid var(--border); box-shadow: -8px 0 30px rgba(0,0,0,0.4); z-index: 1250; transition: right 0.3s; display: flex; flex-direction: column; color: var(--text); }
     .our-cart-drawer.open { right: 0; }
     .our-cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1249; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .our-cart-overlay.active { opacity: 1; pointer-events: all; }
@@ -87,42 +87,15 @@
     .our-cart-item img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
     .our-cart-item-info { flex: 1; }
     .our-cart-item-title { font-weight: 600; }
-    .our-cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #a64a5c; }
+    .our-cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #ef4444; }
     .our-cart-total { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
-    /* Quantity selector in cart */
-    .cart-quantity {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .cart-quantity input {
-      width: 60px;
-      padding: 4px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      text-align: center;
-    }
-    .cart-quantity button {
-      background: var(--darker);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 6px;
-      cursor: pointer;
-    }
-    /* Price styles */
-    .original-price {
-      text-decoration: line-through;
-      color: var(--gray);
-      margin-right: 8px;
-    }
-    .discount-badge {
-      color: #13DEB9;
-      font-weight: bold;
-      margin-left: 8px;
-    }
+    .cart-quantity { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .cart-quantity input { width: 60px; padding: 4px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); color: var(--text); text-align: center; }
+    .cart-quantity button { background: var(--darker); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+    .original-price { text-decoration: line-through; color: var(--gray); margin-right: 8px; }
+    .discount-badge { color: #13DEB9; font-weight: bold; margin-left: 8px; }
+    .cart-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .cart-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text); }
   </style>
 </head>
 <body>
@@ -164,7 +137,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 with simple buttons -->
+      <!-- Tiers 1–5 -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -238,7 +211,7 @@
 <script>
   // Wait for header to be injected
   document.addEventListener('headerReady', () => {
-    // Remove shared cart elements
+    // Remove shared cart elements and any leftover badges
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
     const sharedDrawer = document.getElementById('cartDrawer');
@@ -306,14 +279,14 @@
     const ourPaypalContainer = document.getElementById('ourPaypalButtonContainer');
 
     // --------------------------------------------------------------
-    // Cart state (store cart)
+    // Cart state
     // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-      updateCartUI();          // Re‑render the cart drawer
-      updateMembershipButtons(); // Force refresh of membership buttons
+      updateCartUI();
+      updateMembershipButtons(); // critical
     }
 
     function getMonthlyPriceForTier(tier) {
@@ -407,7 +380,7 @@
             let newMonths = Math.max(1, item.months - 1);
             item.months = newMonths;
             saveStoreCart();
-            updateMembershipButtons(); // Extra safety
+            updateMembershipButtons(); // extra safety
           }
         });
       });
@@ -457,7 +430,7 @@
         if (el) el.textContent = count;
       });
 
-      updateMembershipButtons(); // Final refresh after rendering
+      updateMembershipButtons(); // final refresh
     }
 
     function openCart() {
@@ -465,7 +438,7 @@
       ourOverlay.classList.add('active');
       document.body.classList.add('drawer-open');
       renderPayPalButton();
-      updateMembershipButtons(); // Ensure buttons are up‑to‑date when cart opens
+      updateMembershipButtons();
     }
 
     function closeCart() {
@@ -622,11 +595,10 @@
       const existingIndex = storeCart.findIndex(item => item.type === 'membership');
       const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
 
-      // Toggle if same item
       if (existingItem && existingItem.id === newId) {
         storeCart.splice(existingIndex, 1);
         saveStoreCart();
-        updateMembershipButtons(); // immediate refresh
+        updateMembershipButtons();
         showSnackbar('Removed from cart', true);
         return;
       }
@@ -637,7 +609,7 @@
           showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
           return;
         }
-        storeCart.splice(existingIndex, 1); // remove old (upgrade)
+        storeCart.splice(existingIndex, 1);
       }
 
       const priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
@@ -662,7 +634,7 @@
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
       saveStoreCart();
-      updateMembershipButtons(); // immediate refresh
+      updateMembershipButtons();
       showSnackbar('Added to cart', false);
     }
 
@@ -673,7 +645,7 @@
       addMembership(tierNumber, true, 12);
     };
 
-    // Attach event listeners to membership buttons (they exist statically)
+    // Attach event listeners to membership buttons
     document.querySelectorAll('.btn-monthly').forEach(btn => {
       const tier = btn.getAttribute('data-tier');
       if (tier) {
@@ -692,60 +664,49 @@
       if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
     };
 
-
-
-
-
-
-
-
-
-
     function updateMembershipText() {
-  const t = window.translations?.[currentLang] || window.translations?.en;
-  const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
-  const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
-  let title = t?.membershipTitle || '✨ Choose Your Membership';
-  title = title.replace(/✨\s*/, '');
-  const titleEl = document.getElementById('membershipTitle');
-  if (titleEl) titleEl.textContent = title;
-  setText('membershipDescription', 'Support my work and unlock exclusive perks');
-  setHTML('discordIdLabel', (t?.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
-  setText('discordHintText', t?.discordHint || 'How to find your Discord ID:');
-  setText('discordHelpText', t?.discordHelpLink || 'Where do I find my Discord ID? (click)');
-  setHTML('discordHelpStep1', t?.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-  setHTML('discordHelpStep2', t?.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-  setHTML('discordHelpStep3', t?.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-  setHTML('discordHelpStep4', t?.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
-  setHTML('noteBox', (t?.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
-    '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t?.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
-  for (let i = 1; i <= 5; i++) {
-    const titleEl = document.getElementById(`tier${i}Title`);
-    const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
-    if (titleEl && t?.[key]) titleEl.textContent = t[key];
-  }
-  const perkIds = [
-    'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
-    'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
-    'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
-    'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
-  ];
-  perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
-  
-  // ❗ DO NOT set button texts here – they will be set by updateMembershipButtons().
-  // document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
-  // document.querySelectorAll('.btn-annual').forEach(el => el.textContent = 'Annual (Save 30%)');
-
-  document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
-  document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-    const usd = parseFloat(el.dataset.priceUsd);
-    if (!isNaN(usd) && window.formatPrice) {
-      const priceSpan = el.querySelector('.price-value');
-      if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
+      const t = window.translations?.[currentLang] || window.translations?.en;
+      const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
+      const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
+      let title = t?.membershipTitle || '✨ Choose Your Membership';
+      title = title.replace(/✨\s*/, '');
+      const titleEl = document.getElementById('membershipTitle');
+      if (titleEl) titleEl.textContent = title;
+      setText('membershipDescription', 'Support my work and unlock exclusive perks');
+      setHTML('discordIdLabel', (t?.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
+      setText('discordHintText', t?.discordHint || 'How to find your Discord ID:');
+      setText('discordHelpText', t?.discordHelpLink || 'Where do I find my Discord ID? (click)');
+      setHTML('discordHelpStep1', t?.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+      setHTML('discordHelpStep2', t?.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+      setHTML('discordHelpStep3', t?.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+      setHTML('discordHelpStep4', t?.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
+      setHTML('noteBox', (t?.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
+        '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t?.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
+      for (let i = 1; i <= 5; i++) {
+        const titleEl = document.getElementById(`tier${i}Title`);
+        const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
+        if (titleEl && t?.[key]) titleEl.textContent = t[key];
+      }
+      const perkIds = [
+        'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
+        'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
+        'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
+        'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
+      ];
+      perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
+      // DO NOT set button texts here – they will be set by updateMembershipButtons()
+      // document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
+      // document.querySelectorAll('.btn-annual').forEach(el => el.textContent = 'Annual (Save 30%)');
+      document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
+      document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+        const usd = parseFloat(el.dataset.priceUsd);
+        if (!isNaN(usd) && window.formatPrice) {
+          const priceSpan = el.querySelector('.price-value');
+          if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
+        }
+      });
+      updateMembershipButtons(); // ensure buttons reflect cart after translation
     }
-  });
-  updateMembershipButtons(); // Ensure buttons reflect cart after translation
-}
 
     function escapeHtml(str) {
       return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
