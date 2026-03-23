@@ -149,20 +149,21 @@
     }
 
 async function castVote(id) {
+  // 1. Initialize variables outside the try blocks
+  let visitorId = 'unknown_fp';
+  let currentIp = '0.0.0.0';
+
   try {
-    // 1. Get the Fingerprint ID
-    let visitorId;
+    // 2. Try to get the Fingerprint ID
     try {
       const fp = await FingerprintJS.load();
       const result = await fp.get();
       visitorId = result.visitorId;
     } catch (e) {
       console.warn('Fingerprint failed', e);
-      visitorId = 'unknown_fp';
     }
 
-    // 2. Get the actual IP Address
-    let currentIp = '0.0.0.0';
+    // 3. Try to get the actual IP Address
     try {
       const ipRes = await fetch('https://api.ipify.org?format=json');
       const ipData = await ipRes.json();
@@ -171,9 +172,8 @@ async function castVote(id) {
       console.error("IP fetch failed", e);
     }
 
-    // 3. Send both to Supabase
-    // Note: 'user_ip' is the new column you just added
-    await sb.from('website_voting').upsert(
+    // 4. Send both to Supabase (Now both variables are defined!)
+    const { data, error } = await sb.from('website_voting').upsert(
       { 
         voter_id: visitorId, 
         user_ip: currentIp, 
@@ -183,20 +183,18 @@ async function castVote(id) {
       { onConflict: 'voter_id' }
     );
 
+    if (error) throw error;
+
     localStorage.setItem('voted_id', id);
     setVoteCookie(id);
     updateCardStyles(id);
     fetchGridResults();
-  } catch (err) { 
-    console.error("Vote failed", err); 
-  }
+    
+    console.log("Vote recorded successfully for IP:", currentIp);
 
-  // Add this right before the sb.from('website_voting').upsert call
-console.log("Sending to Supabase:", { 
-    voter_id: visitorId, 
-    user_ip: currentIp, 
-    option_id: id 
-});
+  } catch (err) { 
+    console.error("Vote failed:", err.message); 
+  }
 }
 
     async function fetchGridResults() {
