@@ -692,47 +692,60 @@
       if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
     };
 
+
+
+
+
+
+
+
+
+
     function updateMembershipText() {
-      const t = window.translations?.[currentLang] || window.translations?.en;
-      const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
-      const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
-      let title = t?.membershipTitle || '✨ Choose Your Membership';
-      title = title.replace(/✨\s*/, '');
-      const titleEl = document.getElementById('membershipTitle');
-      if (titleEl) titleEl.textContent = title;
-      setText('membershipDescription', 'Support my work and unlock exclusive perks');
-      setHTML('discordIdLabel', (t?.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
-      setText('discordHintText', t?.discordHint || 'How to find your Discord ID:');
-      setText('discordHelpText', t?.discordHelpLink || 'Where do I find my Discord ID? (click)');
-      setHTML('discordHelpStep1', t?.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-      setHTML('discordHelpStep2', t?.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-      setHTML('discordHelpStep3', t?.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-      setHTML('discordHelpStep4', t?.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
-      setHTML('noteBox', (t?.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
-        '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t?.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
-      for (let i = 1; i <= 5; i++) {
-        const titleEl = document.getElementById(`tier${i}Title`);
-        const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
-        if (titleEl && t?.[key]) titleEl.textContent = t[key];
-      }
-      const perkIds = [
-        'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
-        'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
-        'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
-        'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
-      ];
-      perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
-      // Do NOT reset button texts here – they will be set by updateMembershipButtons later
-      document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
-      document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-        const usd = parseFloat(el.dataset.priceUsd);
-        if (!isNaN(usd) && window.formatPrice) {
-          const priceSpan = el.querySelector('.price-value');
-          if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
-        }
-      });
-      updateMembershipButtons(); // Ensure buttons reflect cart after translation
+  const t = window.translations?.[currentLang] || window.translations?.en;
+  const setText = (id, fallback) => { const el = document.getElementById(id); if (el) el.textContent = t?.[id] || fallback; };
+  const setHTML = (id, fallback) => { const el = document.getElementById(id); if (el) el.innerHTML = t?.[id] || fallback; };
+  let title = t?.membershipTitle || '✨ Choose Your Membership';
+  title = title.replace(/✨\s*/, '');
+  const titleEl = document.getElementById('membershipTitle');
+  if (titleEl) titleEl.textContent = title;
+  setText('membershipDescription', 'Support my work and unlock exclusive perks');
+  setHTML('discordIdLabel', (t?.discordIdLabel || 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>');
+  setText('discordHintText', t?.discordHint || 'How to find your Discord ID:');
+  setText('discordHelpText', t?.discordHelpLink || 'Where do I find my Discord ID? (click)');
+  setHTML('discordHelpStep1', t?.discordHelpStep1 || '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+  setHTML('discordHelpStep2', t?.discordHelpStep2 || '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+  setHTML('discordHelpStep3', t?.discordHelpStep3 || '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+  setHTML('discordHelpStep4', t?.discordHelpStep4 || '<strong>Step 4:</strong> Paste that number here.');
+  setHTML('noteBox', (t?.noteBox || '<strong>📌 Important:</strong> After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!') +
+    '<div style="margin-top:12px;"><a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">' + (t?.joinDiscord || '→ Join Discord Server ←') + '</a></div>');
+  for (let i = 1; i <= 5; i++) {
+    const titleEl = document.getElementById(`tier${i}Title`);
+    const key = ['tierBronze','tierCopper','tierSilver','tierGold','tierPlatinum'][i-1];
+    if (titleEl && t?.[key]) titleEl.textContent = t[key];
+  }
+  const perkIds = [
+    'perk1_1','perk1_2','perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
+    'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
+    'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6','perk4_7',
+    'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
+  ];
+  perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
+  
+  // ❗ DO NOT set button texts here – they will be set by updateMembershipButtons().
+  // document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
+  // document.querySelectorAll('.btn-annual').forEach(el => el.textContent = 'Annual (Save 30%)');
+
+  document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
+  document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+    const usd = parseFloat(el.dataset.priceUsd);
+    if (!isNaN(usd) && window.formatPrice) {
+      const priceSpan = el.querySelector('.price-value');
+      if (priceSpan) priceSpan.textContent = window.formatPrice(usd);
     }
+  });
+  updateMembershipButtons(); // Ensure buttons reflect cart after translation
+}
 
     function escapeHtml(str) {
       return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
