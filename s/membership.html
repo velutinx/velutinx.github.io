@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (all existing styles – unchanged) */
+    /* (all styles unchanged – keep as before) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -49,7 +49,6 @@
     .btn-annual:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
-    /* Disabled button style */
     .tier-btn.disabled, .btn-monthly.disabled, .btn-annual.disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -73,9 +72,7 @@
     .discord-help-content p { margin-bottom: 12px; }
     .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
-    /* Override shared.css to hide its cart elements */
     #cartBtn, #floatingCartBtn, .cart-drawer, .cart-overlay { display: none !important; }
-    /* Our custom cart styles */
     .our-cart-btn { width: 42px; height: 42px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; position: relative; color: white; }
     .our-floating-cart { position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; z-index: 1150; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
     .our-cart-drawer { position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background: var(--card); border-left: 1px solid var(--border); box-shadow: -8px 0 30px rgba(0,0,0,0.4); z-index: 1250; transition: right 0.3s; display: flex; flex-direction: column; color: var(--text); }
@@ -211,6 +208,7 @@
 <script>
   // Wait for header to be injected
   document.addEventListener('headerReady', () => {
+    console.log('headerReady triggered');
     // Remove shared cart elements and any leftover badges
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
@@ -282,11 +280,13 @@
     // Cart state
     // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
+    console.log('Initial cart:', storeCart);
 
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
       updateCartUI();
       updateMembershipButtons(); // critical
+      console.log('Cart saved, storeCart length:', storeCart.length);
     }
 
     function getMonthlyPriceForTier(tier) {
@@ -522,6 +522,7 @@
     }
 
     function updateMembershipButtons() {
+      console.log('updateMembershipButtons called, storeCart length:', storeCart.length);
       // Find highest rank in cart
       let highestRank = -1;
       for (const item of storeCart) {
@@ -530,24 +531,40 @@
           if (rank > highestRank) highestRank = rank;
         }
       }
+      console.log('Highest rank:', highestRank);
 
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-        if (!card) continue;
+        if (!card) {
+          console.warn(`Card for tier ${tier} not found`);
+          continue;
+        }
         const monthlyInCart = storeCart.some(item => item.id === `membership-${tier}-monthly`);
         const annualInCart = storeCart.some(item => item.id === `membership-${tier}-annual`);
         const btnMonthly = card.querySelector('.btn-monthly');
         const btnAnnual = card.querySelector('.btn-annual');
 
         if (btnMonthly) {
-          btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
+          const newText = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
+          if (btnMonthly.textContent !== newText) {
+            console.log(`Tier ${tier} monthly: ${btnMonthly.textContent} -> ${newText}`);
+            btnMonthly.textContent = newText;
+          }
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
           btnMonthly.classList.toggle('btn-monthly', !monthlyInCart);
+        } else {
+          console.warn(`No monthly button for tier ${tier}`);
         }
         if (btnAnnual) {
-          btnAnnual.textContent = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
+          const newText = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
+          if (btnAnnual.textContent !== newText) {
+            console.log(`Tier ${tier} annual: ${btnAnnual.textContent} -> ${newText}`);
+            btnAnnual.textContent = newText;
+          }
           btnAnnual.classList.toggle('btn-remove', annualInCart);
           btnAnnual.classList.toggle('btn-annual', !annualInCart);
+        } else {
+          console.warn(`No annual button for tier ${tier}`);
         }
 
         const monthlyRank = getMembershipRank(tier, false);
@@ -586,6 +603,7 @@
     }
 
     function addMembership(tierNumber, isAnnual, months = 1) {
+      console.log(`addMembership called: tier ${tierNumber}, isAnnual: ${isAnnual}, months: ${months}`);
       const discordId = validateDiscordId();
       if (!discordId) return;
 
@@ -596,6 +614,7 @@
       const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
 
       if (existingItem && existingItem.id === newId) {
+        console.log('Removing existing membership');
         storeCart.splice(existingIndex, 1);
         saveStoreCart();
         updateMembershipButtons();
@@ -609,6 +628,7 @@
           showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
           return;
         }
+        console.log('Removing lower tier membership to upgrade');
         storeCart.splice(existingIndex, 1);
       }
 
@@ -633,6 +653,7 @@
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
+      console.log('Added new membership:', storeCart[storeCart.length-1]);
       saveStoreCart();
       updateMembershipButtons();
       showSnackbar('Added to cart', false);
@@ -695,8 +716,6 @@
       ];
       perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
       // DO NOT set button texts here – they will be set by updateMembershipButtons()
-      // document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
-      // document.querySelectorAll('.btn-annual').forEach(el => el.textContent = 'Annual (Save 30%)');
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
       document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
         const usd = parseFloat(el.dataset.priceUsd);
