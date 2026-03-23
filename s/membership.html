@@ -725,17 +725,10 @@ async function storeCartInKV(orderID, cart) {
           });
         },
 onApprove: async (data, actions) => {
-  console.log('Order approved, ID:', data.orderID);
-  try {
-    await storeCartInKV(data.orderID, cart);
-    console.log('Cart stored successfully');
-  } catch (err) {
-    console.error('Failed to store cart:', err);
-    alert('There was a problem saving your order details. Please contact support with your order ID: ' + data.orderID);
-  }
-  // Clear membership cart
+  console.log('PayPal approved, orderID:', data.orderID);
+  await storeCartInKV(data.orderID, cart);
+  console.log('Cart stored, redirecting...');
   saveCart([]);
-  // Redirect to success page
   window.location.href = `/s/success.html?orderID=${data.orderID}`;
 }
         onError: (err) => {
