@@ -84,6 +84,9 @@ window.translations = {
     errorOnlyHighest: "You can only upgrade to a higher tier or annual plan.",
     removedFromCart: "Removed from cart",
     addedToCart: "Added to cart",
+    btnMonthlyText: "Monthly (Save up to 20%)",
+    btnAnnual: "Annual (Save 30%)",
+    removeFromCartText: "Remove from Cart",
     errorPlanNotConfigured: "Plan not configured for this tier"
   },
   ja: {
@@ -149,6 +152,9 @@ window.translations = {
     errorOnlyHighest: "上位ティアまたは年間プランにのみアップグレードできます。",
     removedFromCart: "カートから削除しました",
     addedToCart: "カートに追加しました",
+    btnMonthlyText: "月額プラン (最大20%オフ)",
+    btnAnnual: "年間プラン (30%オフ)",
+    removeFromCartText: "カートから削除",
     errorPlanNotConfigured: "このティアのプランは設定されていません"
   },
   zh: {
@@ -214,6 +220,9 @@ window.translations = {
     errorOnlyHighest: "你只能升级到更高等级或年付计划。",
     removedFromCart: "已从购物车移除",
     addedToCart: "已加入购物车",
+    btnMonthlyText: "按月订阅 (最高节省20%)",
+    btnAnnual: "按年订阅 (节省30%)",
+    removeFromCartText: "从购物车移除",
     errorPlanNotConfigured: "该等级尚未配置订阅计划"
   },
   es: {
@@ -279,6 +288,9 @@ window.translations = {
     errorOnlyHighest: "Solo puedes actualizar a un nivel superior o plan anual.",
     removedFromCart: "Eliminado del carrito",
     addedToCart: "Añadido al carrito",
+    btnMonthlyText: "Mensual (Ahorra hasta un 20%)",
+    btnAnnual: "Anual (Ahorra 30%)",
+    removeFromCartText: "Eliminar del carrito",
     errorPlanNotConfigured: "Plan no configurado para este nivel"
   }
 };
