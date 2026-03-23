@@ -148,29 +148,49 @@
       grid.appendChild(card);
     }
 
-    async function castVote(id) {
-      try {
-        let visitorId;
-        try {
-          visitorId = await fpPromise;
-        } catch (e) {
-          console.warn('Fingerprint failed, using IP fallback', e);
-          const ipRes = await fetch('https://api.ipify.org?format=json');
-          const { ip } = await ipRes.json();
-          visitorId = ip;
-        }
-
-        await sb.from('website_voting').upsert(
-          { voter_id: visitorId, option_id: id, poll_id: POLL_ID },
-          { onConflict: 'voter_id' }
-        );
-
-        localStorage.setItem('voted_id', id);
-        setVoteCookie(id);
-        updateCardStyles(id);
-        fetchGridResults();
-      } catch (err) { console.error("Vote failed", err); }
+async function castVote(id) {
+  try {
+    // 1. Get the Fingerprint ID
+    let visitorId;
+    try {
+      const fp = await FingerprintJS.load();
+      const result = await fp.get();
+      visitorId = result.visitorId;
+    } catch (e) {
+      console.warn('Fingerprint failed', e);
+      visitorId = 'unknown_fp';
     }
+
+    // 2. Get the actual IP Address
+    let currentIp = '0.0.0.0';
+    try {
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipRes.json();
+      currentIp = ipData.ip;
+    } catch (e) {
+      console.error("IP fetch failed", e);
+    }
+
+    // 3. Send both to Supabase
+    // Note: 'user_ip' is the new column you just added
+    await sb.from('website_voting').upsert(
+      { 
+        voter_id: visitorId, 
+        user_ip: currentIp, 
+        option_id: id, 
+        poll_id: POLL_ID 
+      },
+      { onConflict: 'voter_id' }
+    );
+
+    localStorage.setItem('voted_id', id);
+    setVoteCookie(id);
+    updateCardStyles(id);
+    fetchGridResults();
+  } catch (err) { 
+    console.error("Vote failed", err); 
+  }
+}
 
     async function fetchGridResults() {
       const { data, error } = await sb.from('website_voting').select('option_id').eq('poll_id', POLL_ID);
