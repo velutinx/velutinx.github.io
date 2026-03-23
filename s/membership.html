@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (all styles unchanged – keep as before) */
+    /* (all styles unchanged) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -72,7 +72,9 @@
     .discord-help-content p { margin-bottom: 12px; }
     .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
+    /* Override shared.css cart elements */
     #cartBtn, #floatingCartBtn, .cart-drawer, .cart-overlay { display: none !important; }
+    /* Custom cart styles */
     .our-cart-btn { width: 42px; height: 42px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; position: relative; color: white; }
     .our-floating-cart { position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; z-index: 1150; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
     .our-cart-drawer { position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background: var(--card); border-left: 1px solid var(--border); box-shadow: -8px 0 30px rgba(0,0,0,0.4); z-index: 1250; transition: right 0.3s; display: flex; flex-direction: column; color: var(--text); }
@@ -134,7 +136,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 -->
+      <!-- Tier 1 -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -143,10 +145,11 @@
         </div>
         <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="1">Add Monthly</button>
-          <button class="btn-annual" data-tier="1">Annual (Save 30%)</button>
+          <button class="btn-monthly" data-tier="1" data-type="monthly">Add Monthly</button>
+          <button class="btn-annual" data-tier="1" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
+      <!-- Tier 2 -->
       <div class="tier-card" data-tier="2">
         <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -155,10 +158,11 @@
         </div>
         <div class="tier-price" data-price-usd="9"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="2">Add Monthly</button>
-          <button class="btn-annual" data-tier="2">Annual (Save 30%)</button>
+          <button class="btn-monthly" data-tier="2" data-type="monthly">Add Monthly</button>
+          <button class="btn-annual" data-tier="2" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
+      <!-- Tier 3 -->
       <div class="tier-card" data-tier="3">
         <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -167,10 +171,11 @@
         </div>
         <div class="tier-price" data-price-usd="14"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="3">Add Monthly</button>
-          <button class="btn-annual" data-tier="3">Annual (Save 30%)</button>
+          <button class="btn-monthly" data-tier="3" data-type="monthly">Add Monthly</button>
+          <button class="btn-annual" data-tier="3" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
+      <!-- Tier 4 -->
       <div class="tier-card" data-tier="4">
         <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -179,10 +184,11 @@
         </div>
         <div class="tier-price" data-price-usd="29"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="4">Add Monthly</button>
-          <button class="btn-annual" data-tier="4">Annual (Save 30%)</button>
+          <button class="btn-monthly" data-tier="4" data-type="monthly">Add Monthly</button>
+          <button class="btn-annual" data-tier="4" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
+      <!-- Tier 5 -->
       <div class="tier-card" data-tier="5">
         <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -191,8 +197,8 @@
         </div>
         <div class="tier-price" data-price-usd="39"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <div class="button-row">
-          <button class="btn-monthly" data-tier="5">Add Monthly</button>
-          <button class="btn-annual" data-tier="5">Annual (Save 30%)</button>
+          <button class="btn-monthly" data-tier="5" data-type="monthly">Add Monthly</button>
+          <button class="btn-annual" data-tier="5" data-type="annual">Annual (Save 30%)</button>
         </div>
       </div>
     </div>
@@ -208,7 +214,6 @@
 <script>
   // Wait for header to be injected
   document.addEventListener('headerReady', () => {
-    console.log('headerReady triggered');
     // Remove shared cart elements and any leftover badges
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
@@ -280,13 +285,11 @@
     // Cart state
     // --------------------------------------------------------------
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
-    console.log('Initial cart:', storeCart);
 
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
       updateCartUI();
       updateMembershipButtons(); // critical
-      console.log('Cart saved, storeCart length:', storeCart.length);
     }
 
     function getMonthlyPriceForTier(tier) {
@@ -380,7 +383,7 @@
             let newMonths = Math.max(1, item.months - 1);
             item.months = newMonths;
             saveStoreCart();
-            updateMembershipButtons(); // extra safety
+            updateMembershipButtons();
           }
         });
       });
@@ -522,7 +525,6 @@
     }
 
     function updateMembershipButtons() {
-      console.log('updateMembershipButtons called, storeCart length:', storeCart.length);
       // Find highest rank in cart
       let highestRank = -1;
       for (const item of storeCart) {
@@ -531,40 +533,27 @@
           if (rank > highestRank) highestRank = rank;
         }
       }
-      console.log('Highest rank:', highestRank);
 
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-        if (!card) {
-          console.warn(`Card for tier ${tier} not found`);
-          continue;
-        }
+        if (!card) continue;
+
+        // Use data-type to find buttons – this never changes
+        const btnMonthly = card.querySelector(`button[data-tier="${tier}"][data-type="monthly"]`);
+        const btnAnnual = card.querySelector(`button[data-tier="${tier}"][data-type="annual"]`);
+
         const monthlyInCart = storeCart.some(item => item.id === `membership-${tier}-monthly`);
         const annualInCart = storeCart.some(item => item.id === `membership-${tier}-annual`);
-        const btnMonthly = card.querySelector('.btn-monthly');
-        const btnAnnual = card.querySelector('.btn-annual');
 
         if (btnMonthly) {
-          const newText = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
-          if (btnMonthly.textContent !== newText) {
-            console.log(`Tier ${tier} monthly: ${btnMonthly.textContent} -> ${newText}`);
-            btnMonthly.textContent = newText;
-          }
+          btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
           btnMonthly.classList.toggle('btn-monthly', !monthlyInCart);
-        } else {
-          console.warn(`No monthly button for tier ${tier}`);
         }
         if (btnAnnual) {
-          const newText = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
-          if (btnAnnual.textContent !== newText) {
-            console.log(`Tier ${tier} annual: ${btnAnnual.textContent} -> ${newText}`);
-            btnAnnual.textContent = newText;
-          }
+          btnAnnual.textContent = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
           btnAnnual.classList.toggle('btn-remove', annualInCart);
           btnAnnual.classList.toggle('btn-annual', !annualInCart);
-        } else {
-          console.warn(`No annual button for tier ${tier}`);
         }
 
         const monthlyRank = getMembershipRank(tier, false);
@@ -603,7 +592,6 @@
     }
 
     function addMembership(tierNumber, isAnnual, months = 1) {
-      console.log(`addMembership called: tier ${tierNumber}, isAnnual: ${isAnnual}, months: ${months}`);
       const discordId = validateDiscordId();
       if (!discordId) return;
 
@@ -614,7 +602,6 @@
       const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
 
       if (existingItem && existingItem.id === newId) {
-        console.log('Removing existing membership');
         storeCart.splice(existingIndex, 1);
         saveStoreCart();
         updateMembershipButtons();
@@ -628,7 +615,6 @@
           showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
           return;
         }
-        console.log('Removing lower tier membership to upgrade');
         storeCart.splice(existingIndex, 1);
       }
 
@@ -653,7 +639,6 @@
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
-      console.log('Added new membership:', storeCart[storeCart.length-1]);
       saveStoreCart();
       updateMembershipButtons();
       showSnackbar('Added to cart', false);
@@ -666,14 +651,14 @@
       addMembership(tierNumber, true, 12);
     };
 
-    // Attach event listeners to membership buttons
-    document.querySelectorAll('.btn-monthly').forEach(btn => {
+    // Attach event listeners using data-type as well
+    document.querySelectorAll('[data-type="monthly"]').forEach(btn => {
       const tier = btn.getAttribute('data-tier');
       if (tier) {
         btn.onclick = () => addMonthly(parseInt(tier));
       }
     });
-    document.querySelectorAll('.btn-annual').forEach(btn => {
+    document.querySelectorAll('[data-type="annual"]').forEach(btn => {
       const tier = btn.getAttribute('data-tier');
       if (tier) {
         btn.onclick = () => addAnnual(parseInt(tier));
