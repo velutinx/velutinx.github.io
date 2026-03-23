@@ -733,17 +733,18 @@ function renderPayPalButton() {
         }]
       });
     },
-    onApprove: async (data, actions) => {
-      console.log('PayPal onApprove called, orderID:', data.orderID);
-      try {
-        await storeCartInKV(data.orderID, cart);
-        console.log('Cart stored successfully');
-      } catch (err) {
-        console.error('storeCartInKV failed:', err);
-      }
-      saveCart([]);
-      window.location.href = `/s/success.html?orderID=${data.orderID}`;
-    },
+onApprove: async (data, actions) => {
+  console.log('PayPal onApprove called, orderID:', data.orderID);
+  console.log('Cart before storing:', JSON.parse(JSON.stringify(cart)));  // <-- ADD THIS
+  try {
+    await storeCartInKV(data.orderID, cart);
+    console.log('Cart stored successfully');
+  } catch (err) {
+    console.error('storeCartInKV failed:', err);
+  }
+  saveCart([]);
+  window.location.href = `/s/success.html?orderID=${data.orderID}`;
+}
     onError: (err) => {
       console.error('PayPal error', err);
       alert('Something went wrong. Please try again.');
