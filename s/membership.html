@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (styles unchanged – same as before) */
+    /* (all existing styles – unchanged) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -439,19 +439,31 @@
     const ourPaypalContainer = document.getElementById('ourPaypalButtonContainer');
 
     // --------------------------------------------------------------
-    // Price formatting (uses shared formatPrice if available, else fallback)
+    // Helpers to work with the global cart (shared.js) while preserving our images
     // --------------------------------------------------------------
-    function myFormatPrice(usd, lang) {
-      if (window.formatPrice) {
-        // window.formatPrice uses the current global language, so we don't need to pass lang.
-        // But to be safe, we can just call it with the USD value.
-        return window.formatPrice(usd);
-      }
-      // Fallback (should never happen)
+    function getGlobalCart() {
+      try {
+        return JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
+      } catch { return []; }
+    }
+    function saveGlobalCart(cart) {
+      localStorage.setItem('velutinx_cart', JSON.stringify(cart));
+      // Tell the shared cart UI to refresh
+      if (window.updateCartDisplay) window.updateCartDisplay();
+      // Also update our own UI
+      updateOurCartUI();
+      // Update membership buttons
+      updateMembershipButtons();
+    }
+
+    // --------------------------------------------------------------
+    // Price formatting
+    // --------------------------------------------------------------
+    function myFormatPrice(usd) {
+      if (window.formatPrice) return window.formatPrice(usd);
       return `$${usd.toFixed(2)}`;
     }
 
-    // Helper to get translation from shared translations object
     let currentLang = localStorage.getItem('language') || 'en';
     function getTranslation(key, fallback = '') {
       const t = window.translations?.[currentLang] || window.translations?.en || {};
@@ -459,12 +471,11 @@
     }
 
     // --------------------------------------------------------------
-    // Cart UI using global cart
+    // Our cart UI (mirrors the shared cart but uses our own container)
     // --------------------------------------------------------------
-    function updateCartUI() {
+    function updateOurCartUI() {
       if (!ourCartItems) return;
-      const cart = window.getCart ? window.getCart() : [];
-      const t = window.translations?.[currentLang] || window.translations?.en;
+      const cart = getGlobalCart();
       const cartTitleSpan = document.getElementById('cartTitle');
       if (cartTitleSpan) cartTitleSpan.textContent = getTranslation('cartTitle', 'Shopping Cart');
       const totalLabelSpan = document.getElementById('totalLabel');
@@ -476,9 +487,9 @@
         let priceHtml = '';
         let priceValue = 0;
 
-        // Handle membership items (they have type='membership')
+        // Handle membership items
         if (item.type === 'membership' && !item.isAnnual && item.months) {
-          const monthlyPrice = getMonthlyPriceForTier(item.tier);
+          const monthlyPrice = MONTHLY_BASE_PRICES[item.tier];
           const discountFactor = getDiscountFactor(item.months);
           const totalPrice = monthlyPrice * item.months * discountFactor;
           priceValue = totalPrice;
@@ -498,7 +509,7 @@
             priceHtml = myFormatPrice(totalPrice);
           }
         } else if (item.type === 'membership' && item.isAnnual) {
-          const monthlyPrice = getMonthlyPriceForTier(item.tier);
+          const monthlyPrice = MONTHLY_BASE_PRICES[item.tier];
           const originalAnnual = monthlyPrice * 12;
           const discountedAnnual = originalAnnual * 0.7;
           priceValue = discountedAnnual;
@@ -547,93 +558,60 @@
         ourCartItems.appendChild(div);
       });
 
-      // Attach quantity handlers for monthly memberships
+      // Quantity handlers (membership items)
       document.querySelectorAll('.decrease-monthly').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
-          const cart = window.getCart();
+          const cart = getGlobalCart();
           const item = cart[idx];
           if (item && item.type === 'membership' && !item.isAnnual) {
             let newMonths = Math.max(1, item.months - 1);
-            // Remove the old one and add a new one with updated months
-            window.addOrToggleCart(item);
-            const newItem = { ...item, months: newMonths, id: `${item.id.split('-').slice(0,3).join('-')}` };
-            // We need to generate the correct ID – simpler: just remove and add new
-            // Actually, we already removed the old one. Now add the new one.
-            window.addOrToggleCart({
-              id: `membership-${item.tier}-monthly`, // ID for monthly (without months)
-              title: item.title,
-              price: getMonthlyPriceForTier(item.tier) * newMonths * getDiscountFactor(newMonths),
-              type: 'membership',
-              tier: item.tier,
-              isAnnual: false,
-              months: newMonths,
-              discordId: item.discordId,
-              image: item.image
-            });
-            // Update UI after a short delay
-            setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
+            const newItem = { ...item, months: newMonths };
+            // Replace the item
+            cart.splice(idx, 1);
+            cart.push(newItem);
+            saveGlobalCart(cart);
           }
         });
       });
-
       document.querySelectorAll('.increase-monthly').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
-          const cart = window.getCart();
+          const cart = getGlobalCart();
           const item = cart[idx];
           if (item && item.type === 'membership' && !item.isAnnual) {
             let newMonths = Math.min(12, item.months + 1);
-            window.addOrToggleCart(item);
-            window.addOrToggleCart({
-              id: `membership-${item.tier}-monthly`,
-              title: item.title,
-              price: getMonthlyPriceForTier(item.tier) * newMonths * getDiscountFactor(newMonths),
-              type: 'membership',
-              tier: item.tier,
-              isAnnual: false,
-              months: newMonths,
-              discordId: item.discordId,
-              image: item.image
-            });
-            setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
+            const newItem = { ...item, months: newMonths };
+            cart.splice(idx, 1);
+            cart.push(newItem);
+            saveGlobalCart(cart);
           }
         });
       });
-
       document.querySelectorAll('.monthly-quantity').forEach(input => {
         input.addEventListener('change', (e) => {
           const idx = parseInt(input.dataset.idx);
-          const cart = window.getCart();
+          const cart = getGlobalCart();
           const item = cart[idx];
           if (item && item.type === 'membership' && !item.isAnnual) {
             let newMonths = parseInt(input.value, 10);
             if (isNaN(newMonths)) newMonths = 1;
             newMonths = Math.min(12, Math.max(1, newMonths));
-            window.addOrToggleCart(item);
-            window.addOrToggleCart({
-              id: `membership-${item.tier}-monthly`,
-              title: item.title,
-              price: getMonthlyPriceForTier(item.tier) * newMonths * getDiscountFactor(newMonths),
-              type: 'membership',
-              tier: item.tier,
-              isAnnual: false,
-              months: newMonths,
-              discordId: item.discordId,
-              image: item.image
-            });
-            setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
+            const newItem = { ...item, months: newMonths };
+            cart.splice(idx, 1);
+            cart.push(newItem);
+            saveGlobalCart(cart);
           }
         });
       });
 
+      // Remove buttons
       document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
-          const cart = window.getCart();
-          const item = cart[idx];
-          if (item) window.addOrToggleCart(item);
-          setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
+          const cart = getGlobalCart();
+          cart.splice(idx, 1);
+          saveGlobalCart(cart);
         });
       });
 
@@ -644,8 +622,6 @@
       document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
         if (el) el.textContent = count;
       });
-
-      updateMembershipButtons();
     }
 
     function openCart() {
@@ -670,14 +646,13 @@
     // PayPal integration
     // --------------------------------------------------------------
     let isRendering = false;
-
     function renderPayPalButton() {
       if (!ourPaypalContainer) return;
       if (!ourDrawer.classList.contains('open')) return;
       if (isRendering) return;
       if (!window.priceKeyMap || !window.priceUsdMap) return;
       isRendering = true;
-      const cart = window.getCart ? window.getCart() : [];
+      const cart = getGlobalCart();
       if (cart.length === 0) {
         ourPaypalContainer.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
         isRendering = false;
@@ -698,8 +673,7 @@
         onApprove: (data, actions) => {
           return actions.order.capture().then(() => {
             // Clear cart
-            const cart = window.getCart();
-            cart.forEach(item => window.addOrToggleCart(item));
+            saveGlobalCart([]);
             window.location.href = `/s/success.html?orderID=${data.orderID}`;
           });
         },
@@ -718,14 +692,10 @@
     }
 
     // --------------------------------------------------------------
-    // Membership logic
+    // Membership logic (direct cart manipulation)
     // --------------------------------------------------------------
     const TIER_TITLES = {1:'Bronze', 2:'Copper', 3:'Silver', 4:'Gold', 5:'Platinum'};
     const MONTHLY_BASE_PRICES = {1:5, 2:9, 3:14, 4:29, 5:39};
-
-    function getMonthlyPriceForTier(tier) {
-      return MONTHLY_BASE_PRICES[tier] || 0;
-    }
 
     function getDiscountFactor(months) {
       if (months >= 3) return 0.8;
@@ -738,7 +708,7 @@
     }
 
     function updateMembershipButtons() {
-      const cart = window.getCart ? window.getCart() : [];
+      const cart = getGlobalCart();
       let highestRank = -1;
       for (const item of cart) {
         if (item.type === 'membership') {
@@ -809,20 +779,21 @@
 
       const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
       const newRank = getMembershipRank(tierNumber, isAnnual);
-      const cart = window.getCart ? window.getCart() : [];
+      let cart = getGlobalCart();
 
-      // Check if already in cart (with same ID)
+      // Check if already in cart
       const existingIndex = cart.findIndex(item => item.id === newId);
       if (existingIndex !== -1) {
         // Remove it
-        window.addOrToggleCart(cart[existingIndex]);
+        cart.splice(existingIndex, 1);
+        saveGlobalCart(cart);
         showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
         return;
       }
 
       // Check for any existing membership
       const membershipItems = cart.filter(item => item.type === 'membership');
-      const existingItem = membershipItems[0]; // There should be at most one membership
+      const existingItem = membershipItems[0]; // at most one
       if (existingItem) {
         const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
         if (newRank <= existingRank) {
@@ -830,7 +801,7 @@
           return;
         }
         // Remove the old one
-        window.addOrToggleCart(existingItem);
+        cart = cart.filter(item => item.type !== 'membership');
       }
 
       const tierNameKey = `tier${TIER_TITLES[tierNumber]}`;
@@ -844,7 +815,15 @@
         title = `${tierName} (${durationText})`;
       }
 
-      const product = {
+      // Calculate price
+      let price;
+      if (isAnnual) {
+        price = MONTHLY_BASE_PRICES[tierNumber] * 12 * 0.7;
+      } else {
+        price = MONTHLY_BASE_PRICES[tierNumber] * months * getDiscountFactor(months);
+      }
+
+      const newItem = {
         id: newId,
         title: title,
         type: 'membership',
@@ -852,14 +831,11 @@
         isAnnual: isAnnual,
         months: isAnnual ? 12 : months,
         discordId: discordId,
-        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`,
+        price: price
       };
-      if (isAnnual) {
-        product.price = getMonthlyPriceForTier(tierNumber) * 12 * 0.7;
-      } else {
-        product.price = getMonthlyPriceForTier(tierNumber) * months * getDiscountFactor(months);
-      }
-      window.addOrToggleCart(product);
+      cart.push(newItem);
+      saveGlobalCart(cart);
       showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
     }
 
@@ -870,7 +846,7 @@
       addMembership(tierNumber, true, 12);
     };
 
-    // Attach event listeners
+    // Attach event listeners to the buttons
     document.querySelectorAll('[data-type="monthly"]').forEach(btn => {
       const tier = btn.getAttribute('data-tier');
       if (tier) {
@@ -889,6 +865,7 @@
       if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
     };
 
+    // Update all static texts from translations
     function updateMembershipText() {
       const setText = (id, key, fallback) => {
         const el = document.getElementById(id);
@@ -942,8 +919,8 @@
       return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
 
-    // Initial sync and poll for cart changes (since we use global cart, we can listen to storage events)
-    updateCartUI();
+    // Initial sync
+    updateOurCartUI();
     updateMembershipButtons();
 
     // Wait for price map and apply translations
@@ -952,7 +929,7 @@
         clearInterval(checkPrice);
         updateMembershipText();
         updateMembershipButtons();
-        updateCartUI();
+        updateOurCartUI();
         if (ourDrawer.classList.contains('open')) renderPayPalButton();
       }
     }, 100);
@@ -962,33 +939,26 @@
       currentLang = e.detail.language;
       updateMembershipText();
       updateMembershipButtons();
-      updateCartUI();
+      updateOurCartUI();
     });
 
-    // Listen for storage events to update cart UI when cart changes from other tabs
+    // Listen for storage events to catch cart changes from other tabs/pages
     window.addEventListener('storage', (e) => {
       if (e.key === 'velutinx_cart') {
-        updateCartUI();
+        updateOurCartUI();
         updateMembershipButtons();
       }
     });
-
-    // Also listen for custom events (shared.js may dispatch 'cartUpdated')
-    document.addEventListener('cartUpdated', () => {
-      updateCartUI();
-      updateMembershipButtons();
-    });
-
-    // Poll for cart changes (as a fallback)
+    // Poll as a fallback (once a second)
     let lastCart = localStorage.getItem('velutinx_cart');
     setInterval(() => {
       const newCart = localStorage.getItem('velutinx_cart');
       if (newCart !== lastCart) {
         lastCart = newCart;
-        updateCartUI();
+        updateOurCartUI();
         updateMembershipButtons();
       }
-    }, 500);
+    }, 1000);
   });
 
   // Discord help toggle
