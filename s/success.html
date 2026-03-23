@@ -6,7 +6,6 @@
     <title>Purchase Successful - VELUTINX</title>
     <link rel="stylesheet" href="/assets/css/shared.css">
     <style>
-        /* (styles unchanged – same as before) */
         body { background: var(--bg); }
         .success-wrapper { max-width: 650px; margin: 60px auto; padding: 20px; }
         .success-container { background: var(--card); border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border); }
@@ -57,23 +56,16 @@ if (!orderId) {
 } else {
     document.getElementById("order-id").textContent = `#${orderId}`;
 
-    async function recordAndFetch(orderId, retries = 3) {
+    async function fetchOrderData(orderId, retries = 3) {
         let lastError;
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
-                const res = await fetch(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        orderID: orderId,
-                        language: localStorage.getItem('language') || 'en'
-                    }),
-                });
+                const res = await fetch(`${WORKER_URL}?orderID=${orderId}`);
+                if (res.status === 404) {
+                    // Order not found – likely a membership purchase without download links
+                    return { items: [{ type: 'membership' }] };
+                }
                 if (!res.ok) {
-                    if (res.status === 404 && attempt < retries) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        continue;
-                    }
                     const errText = await res.text();
                     throw new Error(`Server responded with status ${res.status}: ${errText}`);
                 }
@@ -87,22 +79,28 @@ if (!orderId) {
         throw lastError;
     }
 
-    recordAndFetch(orderId, 3)
+    fetchOrderData(orderId)
         .then(data => {
             if (data.items && data.items.length > 0) {
-                let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
-                data.items.forEach(item => {
-                    if ((item.type === 'pack' || item.type === 'store') && item.link) {
-                        html += `<a href="${item.link}" class="download-item" target="_blank">Download ${escapeHtml(item.title)} ↓</a>`;
-                    } else if (item.type === 'membership') {
-                        html += `<div class="membership-message">✅ Your membership has been activated!<br>The corresponding role will be assigned in Discord within a few minutes.</div>`;
-                    } else {
-                        html += `<p class="error-text">Missing download link for ${escapeHtml(item.title)}</p>`;
-                    }
-                });
-                section.innerHTML = html;
+                const hasMembership = data.items.some(item => item.type === 'membership');
+                const hasPacks = data.items.some(item => item.type === 'store' && item.link);
+                if (hasPacks) {
+                    let html = `<p style="margin-bottom:15px; font-weight:bold;">Your files are ready:</p>`;
+                    data.items.forEach(item => {
+                        if (item.type === 'store' && item.link) {
+                            html += `<a href="${item.link}" class="download-item" target="_blank">Download ${escapeHtml(item.title)} ↓</a>`;
+                        } else if (item.type === 'membership') {
+                            html += `<div class="membership-message">✅ Your membership has been activated!<br>The corresponding role will be assigned in Discord within a few minutes.</div>`;
+                        }
+                    });
+                    section.innerHTML = html;
+                } else if (hasMembership) {
+                    section.innerHTML = `<div class="membership-message">✅ Your membership has been activated!<br>The corresponding role will be assigned in Discord within a few minutes.</div>`;
+                } else {
+                    section.innerHTML = `<p class="error-text">No files available for this order. Contact support.</p>`;
+                }
             } else {
-                section.innerHTML = `<p class="error-text">No files available for this order. Contact support.</p>`;
+                section.innerHTML = `<div class="membership-message">✅ Your membership has been activated!<br>The corresponding role will be assigned in Discord within a few minutes.</div>`;
             }
         })
         .catch(err => {
