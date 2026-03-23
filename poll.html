@@ -256,26 +256,34 @@ async function castVote(id) {
       });
     }
 
-    async function init() {
-      fpPromise = initFingerprint().catch(() => null);
-      await Promise.all([fetchGridResults(), fetchLeaderboard()]);
-      const saved = localStorage.getItem('voted_id') || getVoteCookie();
-      if (saved) updateCardStyles(Number(saved));
+async function init() {
+  // 1. Initial Data Fetch
+  fpPromise = initFingerprint().catch(() => null);
+  await Promise.all([fetchGridResults(), fetchLeaderboard()]);
+  
+  const saved = localStorage.getItem('voted_id') || getVoteCookie();
+  if (saved) updateCardStyles(Number(saved));
 
-      sb.channel('grid-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'website_voting' }, fetchGridResults)
-        .subscribe();
+  // 2. Real-time for Progress Bars (website_voting table)
+  sb.channel('grid-live')
+    .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'website_voting' }, 
+        () => {
+          console.log('Grid update detected!');
+          fetchGridResults();
+        })
+    .subscribe();
 
-// This listens specifically for when the Bot updates the scores
-sb.channel('website-leaderboard-live') 
-  .on('postgres_changes', 
-      { event: 'UPDATE', schema: 'public', table: 'final_votes' }, 
-      (payload) => {
-        console.log('Real-time update received:', payload);
-        fetchLeaderboard(); // Automatically runs your refresh function
-      })
-  .subscribe();
-    }
+  // 3. Real-time for Leaderboard (final_votes table)
+  sb.channel('leaderboard-live')
+    .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'final_votes' }, 
+        (payload) => {
+          console.log('Leaderboard updated by Bot!', payload);
+          fetchLeaderboard(); 
+        })
+    .subscribe();
+}
 
     // Visual helpers
     let rotateIndex = 1;
