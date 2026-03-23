@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (all existing styles – unchanged) */
+    /* (existing styles, plus additions for the new dropdown) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -61,10 +61,80 @@
     .tier-star svg { width: 100%; height: 100%; }
     .tier-title { font-size: 1.8rem; margin: 0; }
     .button-row { display: flex; gap: 10px; margin-top: 1rem; flex-direction: column; }
-    .btn-annual, .btn-monthly, .btn-remove {
-      padding: 10px;
+
+    /* ----- Custom month selector button with upward dropdown ----- */
+    .month-selector-container {
+      position: relative;
+      width: 100%;
+    }
+    .month-selector-btn {
+      width: 100%;
+      padding: 12px 10px;
+      background: var(--btn-cart);
       border: none;
-      border-radius: 6px;
+      border-radius: 40px;
+      color: white;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .month-selector-btn:hover {
+      background: var(--btn-cart-hover);
+      transform: scale(1.02);
+    }
+    .month-dropdown {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+      z-index: 10;
+      overflow: hidden;
+      transform-origin: bottom;
+      transform: translateY(10px);
+      opacity: 0;
+      visibility: hidden;
+      transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
+    }
+    .month-dropdown.open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+    .month-dropdown button {
+      width: 100%;
+      padding: 10px;
+      text-align: left;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.1s;
+    }
+    .month-dropdown button:last-child {
+      border-bottom: none;
+    }
+    .month-dropdown button:hover {
+      background: var(--darker);
+    }
+
+    .btn-monthly {
+      background: #3b82f6;
+      padding: 12px;
+      border: none;
+      border-radius: 40px;
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
@@ -73,17 +143,10 @@
       width: 100%;
       text-align: center;
     }
-    .btn-monthly { background: #3b82f6; }
-    .btn-monthly:hover { background: #2563eb; }
-    .btn-annual { background: #10b981; }
-    .btn-annual:hover { background: #059669; }
+    .btn-monthly:hover { background: #2563eb; transform: scale(1.02); }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
-    .tier-btn.disabled, .btn-monthly.disabled, .btn-annual.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
+
     .carousel-arrow {
       position: absolute;
       top: 50%;
@@ -109,6 +172,7 @@
     .arrow-left { left: -20px; }
     .arrow-right { right: -20px; }
     @media (max-width: 700px) { .arrow-left { left: -10px; } .arrow-right { right: -10px; } }
+
     .discord-section {
       max-width: 1100px;
       margin: 0 auto 40px;
@@ -201,8 +265,6 @@
     .our-cart-item-title { font-weight: 600; }
     .our-cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #ef4444; }
     .our-cart-total { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
-    .month-selector { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .month-selector select { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 4px; color: var(--text); }
     .cart-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
     .cart-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text); }
   </style>
@@ -267,17 +329,20 @@
         <li id="perk1_4">• Extra voting power on polls.</li>
       </ul>
       <div class="button-row">
-        <div class="month-selector">
-          <label for="months-1">Months:</label>
-          <select id="months-1" class="months-dropdown" data-tier="1">
-            <option value="1">1 month</option>
-            <option value="3">3 months (10% off)</option>
-            <option value="6">6 months (20% off)</option>
-            <option value="12">12 months (30% off)</option>
-          </select>
+        <!-- Month selector with animated dropdown -->
+        <div class="month-selector-container">
+          <button class="month-selector-btn" data-tier="1" data-selected="1">
+            <span class="month-btn-label">1 month</span>
+            <span class="chevron">▼</span>
+          </button>
+          <div class="month-dropdown">
+            <button data-months="1">1 month</button>
+            <button data-months="3">3 months (10% OFF)</button>
+            <button data-months="6">6 months (20% OFF)</button>
+            <button data-months="12">12 months (30% OFF)</button>
+          </div>
         </div>
         <button class="btn-monthly" data-tier="1" data-type="monthly">Add to Cart</button>
-        <button class="btn-annual" data-tier="1" data-type="annual">Annual (30% off)</button>
       </div>
     </div>
 
@@ -298,17 +363,19 @@
         <li id="perk2_6">• Typical turnaround: ~1 day once its time on queue is up.</li>
       </ul>
       <div class="button-row">
-        <div class="month-selector">
-          <label for="months-2">Months:</label>
-          <select id="months-2" class="months-dropdown" data-tier="2">
-            <option value="1">1 month</option>
-            <option value="3">3 months (10% off)</option>
-            <option value="6">6 months (20% off)</option>
-            <option value="12">12 months (30% off)</option>
-          </select>
+        <div class="month-selector-container">
+          <button class="month-selector-btn" data-tier="2" data-selected="1">
+            <span class="month-btn-label">1 month</span>
+            <span class="chevron">▼</span>
+          </button>
+          <div class="month-dropdown">
+            <button data-months="1">1 month</button>
+            <button data-months="3">3 months (10% OFF)</button>
+            <button data-months="6">6 months (20% OFF)</button>
+            <button data-months="12">12 months (30% OFF)</button>
+          </div>
         </div>
         <button class="btn-monthly" data-tier="2" data-type="monthly">Add to Cart</button>
-        <button class="btn-annual" data-tier="2" data-type="annual">Annual (30% off)</button>
       </div>
     </div>
 
@@ -329,17 +396,19 @@
         <li id="perk3_6">• Typical turnaround: ~1 day once its time on queue is up.</li>
       </ul>
       <div class="button-row">
-        <div class="month-selector">
-          <label for="months-3">Months:</label>
-          <select id="months-3" class="months-dropdown" data-tier="3">
-            <option value="1">1 month</option>
-            <option value="3">3 months (10% off)</option>
-            <option value="6">6 months (20% off)</option>
-            <option value="12">12 months (30% off)</option>
-          </select>
+        <div class="month-selector-container">
+          <button class="month-selector-btn" data-tier="3" data-selected="1">
+            <span class="month-btn-label">1 month</span>
+            <span class="chevron">▼</span>
+          </button>
+          <div class="month-dropdown">
+            <button data-months="1">1 month</button>
+            <button data-months="3">3 months (10% OFF)</button>
+            <button data-months="6">6 months (20% OFF)</button>
+            <button data-months="12">12 months (30% OFF)</button>
+          </div>
         </div>
         <button class="btn-monthly" data-tier="3" data-type="monthly">Add to Cart</button>
-        <button class="btn-annual" data-tier="3" data-type="annual">Annual (30% off)</button>
       </div>
     </div>
 
@@ -360,17 +429,19 @@
         <li id="perk4_6">• Typical turnaround: 3-7 day once its time on queue is up.</li>
       </ul>
       <div class="button-row">
-        <div class="month-selector">
-          <label for="months-4">Months:</label>
-          <select id="months-4" class="months-dropdown" data-tier="4">
-            <option value="1">1 month</option>
-            <option value="3">3 months (10% off)</option>
-            <option value="6">6 months (20% off)</option>
-            <option value="12">12 months (30% off)</option>
-          </select>
+        <div class="month-selector-container">
+          <button class="month-selector-btn" data-tier="4" data-selected="1">
+            <span class="month-btn-label">1 month</span>
+            <span class="chevron">▼</span>
+          </button>
+          <div class="month-dropdown">
+            <button data-months="1">1 month</button>
+            <button data-months="3">3 months (10% OFF)</button>
+            <button data-months="6">6 months (20% OFF)</button>
+            <button data-months="12">12 months (30% OFF)</button>
+          </div>
         </div>
         <button class="btn-monthly" data-tier="4" data-type="monthly">Add to Cart</button>
-        <button class="btn-annual" data-tier="4" data-type="annual">Annual (30% off)</button>
       </div>
     </div>
 
@@ -387,17 +458,19 @@
         <li id="perk5_2">• Your request is worked on first after current tasks are completed.</li>
       </ul>
       <div class="button-row">
-        <div class="month-selector">
-          <label for="months-5">Months:</label>
-          <select id="months-5" class="months-dropdown" data-tier="5">
-            <option value="1">1 month</option>
-            <option value="3">3 months (10% off)</option>
-            <option value="6">6 months (20% off)</option>
-            <option value="12">12 months (30% off)</option>
-          </select>
+        <div class="month-selector-container">
+          <button class="month-selector-btn" data-tier="5" data-selected="1">
+            <span class="month-btn-label">1 month</span>
+            <span class="chevron">▼</span>
+          </button>
+          <div class="month-dropdown">
+            <button data-months="1">1 month</button>
+            <button data-months="3">3 months (10% OFF)</button>
+            <button data-months="6">6 months (20% OFF)</button>
+            <button data-months="12">12 months (30% OFF)</button>
+          </div>
         </div>
         <button class="btn-monthly" data-tier="5" data-type="monthly">Add to Cart</button>
-        <button class="btn-annual" data-tier="5" data-type="annual">Annual (30% off)</button>
       </div>
     </div>
   </div>
@@ -530,7 +603,7 @@
     }
 
     // --------------------------------------------------------------
-    // Cart UI (simpler – no quantity picker)
+    // Cart UI
     // --------------------------------------------------------------
     function updateCartUI() {
       if (!ourCartItems) return;
@@ -600,7 +673,6 @@
         ourCartItems.appendChild(div);
       });
 
-      // Remove buttons
       document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
@@ -676,7 +748,6 @@
         return;
       }
 
-      // Calculate total in USD
       let total = 0;
       for (const item of cart) {
         total += item.price || 0;
@@ -724,15 +795,15 @@
     }
 
     // --------------------------------------------------------------
-    // Membership logic (with months dropdown)
+    // Membership logic
     // --------------------------------------------------------------
     const TIER_TITLES = {1:'Bronze', 2:'Copper', 3:'Silver', 4:'Gold', 5:'Platinum'};
     const MONTHLY_BASE_PRICES = {1:5, 2:9, 3:14, 4:29, 5:39};
 
     function getDiscountFactor(months) {
-      if (months >= 3 && months <= 5) return 0.9;   // 10% off for 3–5 months
-      if (months >= 6 && months <= 11) return 0.8; // 20% off for 6–11 months
-      if (months === 12) return 0.7;                // 30% off for 12 months
+      if (months >= 3 && months <= 5) return 0.9;
+      if (months >= 6 && months <= 11) return 0.8;
+      if (months === 12) return 0.7;
       return 1;
     }
 
@@ -754,34 +825,22 @@
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
 
-        const btnMonthly = card.querySelector(`button[data-type="monthly"]`);
-        const btnAnnual = card.querySelector(`button[data-type="annual"]`);
-
+        const btnMonthly = card.querySelector(`.btn-monthly[data-tier="${tier}"]`);
         const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
-        const annualInCart = cart.some(item => item.id === `membership-${tier}-annual`);
 
         if (btnMonthly) {
           btnMonthly.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('addToCart', 'Add to Cart');
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
           btnMonthly.classList.toggle('btn-monthly', !monthlyInCart);
         }
-        if (btnAnnual) {
-          btnAnnual.textContent = annualInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('btnAnnual', 'Annual (Save 30%)');
-          btnAnnual.classList.toggle('btn-remove', annualInCart);
-          btnAnnual.classList.toggle('btn-annual', !annualInCart);
-        }
 
         const monthlyRank = getMembershipRank(tier, false);
-        const annualRank = getMembershipRank(tier, true);
 
         if (highestRank !== -1) {
           if (btnMonthly && monthlyRank < highestRank) btnMonthly.classList.add('disabled');
           else if (btnMonthly) btnMonthly.classList.remove('disabled');
-          if (btnAnnual && annualRank < highestRank) btnAnnual.classList.add('disabled');
-          else if (btnAnnual) btnAnnual.classList.remove('disabled');
         } else {
           if (btnMonthly) btnMonthly.classList.remove('disabled');
-          if (btnAnnual) btnAnnual.classList.remove('disabled');
         }
       }
     }
@@ -806,12 +865,12 @@
       return id;
     }
 
-    function addMembership(tierNumber, isAnnual, months) {
+    function addMembership(tierNumber, months) {
       const discordId = validateDiscordId();
       if (!discordId) return;
 
-      const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
-      const newRank = getMembershipRank(tierNumber, isAnnual);
+      const newId = `membership-${tierNumber}-monthly`;
+      const newRank = getMembershipRank(tierNumber, false);
       let cart = getCart();
 
       // Check if already in cart (same ID)
@@ -837,31 +896,20 @@
 
       const tierNameKey = `tier${TIER_TITLES[tierNumber]}`;
       const tierName = getTranslation(tierNameKey, TIER_TITLES[tierNumber]);
-      let title;
-      if (isAnnual) {
-        title = `${tierName} (${getTranslation('duration_12', '12 months')})`;
-      } else {
-        const durationKey = `duration_${months}`;
-        const durationText = getTranslation(durationKey, `${months} month${months > 1 ? 's' : ''}`);
-        title = `${tierName} (${durationText})`;
-      }
+      const durationKey = `duration_${months}`;
+      const durationText = getTranslation(durationKey, `${months} month${months > 1 ? 's' : ''}`);
+      const title = `${tierName} (${durationText})`;
 
-      // Calculate price
-      let price;
-      if (isAnnual) {
-        price = MONTHLY_BASE_PRICES[tierNumber] * 12 * 0.7;
-      } else {
-        const discountFactor = getDiscountFactor(months);
-        price = MONTHLY_BASE_PRICES[tierNumber] * months * discountFactor;
-      }
+      const discountFactor = getDiscountFactor(months);
+      const price = MONTHLY_BASE_PRICES[tierNumber] * months * discountFactor;
 
       const newItem = {
         id: newId,
         title: title,
         type: 'membership',
         tier: tierNumber,
-        isAnnual: isAnnual,
-        months: isAnnual ? 12 : months,
+        isAnnual: false,
+        months: months,
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`,
         price: price
@@ -871,20 +919,91 @@
       showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
     }
 
-    // Attach event listeners to monthly buttons (get months from dropdown)
+    // Attach event listeners to monthly buttons (read months from the selector button's data-selected)
     document.querySelectorAll('.btn-monthly').forEach(btn => {
       const card = btn.closest('.tier-card');
       const tier = parseInt(card.getAttribute('data-tier'));
-      const dropdown = card.querySelector('.months-dropdown');
+      const monthSelectorBtn = card.querySelector('.month-selector-btn');
       btn.onclick = () => {
-        const months = parseInt(dropdown.value);
-        addMembership(tier, false, months);
+        const months = parseInt(monthSelectorBtn.getAttribute('data-selected'));
+        addMembership(tier, months);
       };
     });
-    document.querySelectorAll('.btn-annual').forEach(btn => {
-      const tier = parseInt(btn.closest('.tier-card').getAttribute('data-tier'));
-      btn.onclick = () => addMembership(tier, true, 12);
+
+    // ---------- DROPDOWN ANIMATION ----------
+    function setupDropdowns() {
+      document.querySelectorAll('.month-selector-container').forEach(container => {
+        const btn = container.querySelector('.month-selector-btn');
+        const dropdown = container.querySelector('.month-dropdown');
+        const options = dropdown.querySelectorAll('button');
+
+        // Open/close on button click
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Close any other open dropdowns
+          document.querySelectorAll('.month-dropdown.open').forEach(d => {
+            if (d !== dropdown) d.classList.remove('open');
+          });
+          dropdown.classList.toggle('open');
+        });
+
+        // Select an option
+        options.forEach(opt => {
+          opt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const months = parseInt(opt.getAttribute('data-months'));
+            const discountFactor = getDiscountFactor(months);
+            let discountText = '';
+            if (months === 3) discountText = getTranslation('discount_10', '10% OFF');
+            else if (months === 6) discountText = getTranslation('discount_20', '20% OFF');
+            else if (months === 12) discountText = getTranslation('discount_30', '30% OFF');
+
+            let label = getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`);
+            if (discountText) label += ` (${discountText})`;
+            btn.querySelector('.month-btn-label').textContent = label;
+            btn.setAttribute('data-selected', months);
+            dropdown.classList.remove('open');
+          });
+        });
+      });
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.month-selector-container')) {
+        document.querySelectorAll('.month-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
     });
+
+    // Update month button labels when language changes
+    function updateMonthButtonLabels() {
+      document.querySelectorAll('.month-selector-container').forEach(container => {
+        const btn = container.querySelector('.month-selector-btn');
+        const selectedMonths = parseInt(btn.getAttribute('data-selected'));
+        const discountFactor = getDiscountFactor(selectedMonths);
+        let discountText = '';
+        if (selectedMonths === 3) discountText = getTranslation('discount_10', '10% OFF');
+        else if (selectedMonths === 6) discountText = getTranslation('discount_20', '20% OFF');
+        else if (selectedMonths === 12) discountText = getTranslation('discount_30', '30% OFF');
+
+        let label = getTranslation(`duration_${selectedMonths}`, `${selectedMonths} month${selectedMonths>1?'s':''}`);
+        if (discountText) label += ` (${discountText})`;
+        btn.querySelector('.month-btn-label').textContent = label;
+
+        // Also update the dropdown options text
+        const dropdown = container.querySelector('.month-dropdown');
+        dropdown.querySelectorAll('button').forEach(opt => {
+          const months = parseInt(opt.getAttribute('data-months'));
+          let optDiscount = '';
+          if (months === 3) optDiscount = getTranslation('discount_10', '10% OFF');
+          else if (months === 6) optDiscount = getTranslation('discount_20', '20% OFF');
+          else if (months === 12) optDiscount = getTranslation('discount_30', '30% OFF');
+          let optLabel = getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`);
+          if (optDiscount) optLabel += ` (${optDiscount})`;
+          opt.textContent = optLabel;
+        });
+      });
+    }
 
     window.scrollCarousel = function(direction) {
       const container = document.getElementById('tierCarousel');
@@ -938,6 +1057,7 @@
           if (priceSpan) priceSpan.textContent = formatPrice(usd, currentLang);
         }
       });
+      updateMonthButtonLabels();
       updateMembershipButtons();
     }
 
@@ -946,6 +1066,7 @@
     }
 
     // Initial sync
+    setupDropdowns();
     updateCartUI();
     updateMembershipButtons();
 
