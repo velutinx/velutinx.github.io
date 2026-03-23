@@ -30,42 +30,80 @@
     .tier-star { width: 40px; height: 40px; display: inline-block; vertical-align: middle; margin-right: 10px; }
     .tier-star svg { width: 100%; height: 100%; }
     .tier-title { font-size: 1.8rem; margin: 0; }
-    .button-row { display: flex; gap: 10px; margin-top: 1rem; }
-    .tier-btn { flex: 1; padding: 10px 0; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; text-align: center; }
-    .btn-annual { background: #10b981; }
-    .btn-annual:hover { background: #059669; }
-    .btn-remove { background: #ef4444 !important; }
-    .btn-remove:hover { background: #dc2626 !important; }
-    /* Monthly quantity selector */
-    .monthly-control {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .monthly-control input {
-      width: 70px;
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      text-align: center;
-    }
-    .btn-monthly {
-      background: #3b82f6;
-      flex: 1;
-      padding: 10px 0;
+    .button-row { display: flex; gap: 10px; margin-top: 1rem; flex-direction: column; }
+    .btn-annual {
+      background: #10b981;
+      padding: 10px;
       border: none;
       border-radius: 6px;
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       color: white;
+      transition: 0.2s;
+      width: 100%;
+    }
+    .btn-annual:hover { background: #059669; }
+    .btn-remove { background: #ef4444 !important; }
+    .btn-remove:hover { background: #dc2626 !important; }
+    /* Monthly quantity selector – redesigned */
+    .monthly-group {
+      background: var(--darker);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .monthly-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .monthly-discount-badge {
+      background: rgba(19,222,185,0.2);
+      color: #13DEB9;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    .monthly-control {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .monthly-control input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .btn-monthly {
+      background: #3b82f6;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+      transition: 0.2s;
+      white-space: nowrap;
     }
     .btn-monthly:hover { background: #2563eb; }
+    .btn-monthly.btn-remove { background: #ef4444; }
+    .btn-monthly.btn-remove:hover { background: #dc2626; }
     /* Disabled button style */
-    .tier-btn.disabled, .btn-monthly.disabled {
+    .tier-btn.disabled, .btn-monthly.disabled, .btn-annual.disabled {
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
@@ -156,7 +194,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 with monthly quantity selector + annual button -->
+      <!-- Tiers 1–5 with redesigned monthly selector -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -164,12 +202,18 @@
           <h3 class="tier-title" id="tier1Title">BRONZE</h3>
         </div>
         <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-        <div class="button-row" style="flex-direction: column;">
-          <div class="monthly-control">
-            <input type="number" id="months-1" min="1" max="12" value="1">
-            <button class="btn-monthly" onclick="addMonthly(1)">Add Monthly</button>
+        <div class="button-row">
+          <div class="monthly-group">
+            <div class="monthly-label">
+              <span>Monthly (flexible)</span>
+              <span class="monthly-discount-badge" id="discountBadge-1"></span>
+            </div>
+            <div class="monthly-control">
+              <input type="number" id="months-1" min="1" max="12" value="1" class="monthly-input">
+              <button class="btn-monthly" data-tier="1">Add Monthly</button>
+            </div>
           </div>
-          <button class="tier-btn btn-annual" onclick="addAnnual(1)">Annual (Save 30%)</button>
+          <button class="btn-annual" data-tier="1">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="2">
@@ -179,12 +223,18 @@
           <h3 class="tier-title" id="tier2Title">COPPER</h3>
         </div>
         <div class="tier-price" data-price-usd="9"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row" style="flex-direction: column;">
-          <div class="monthly-control">
-            <input type="number" id="months-2" min="1" max="12" value="1">
-            <button class="btn-monthly" onclick="addMonthly(2)">Add Monthly</button>
+        <div class="button-row">
+          <div class="monthly-group">
+            <div class="monthly-label">
+              <span>Monthly (flexible)</span>
+              <span class="monthly-discount-badge"></span>
+            </div>
+            <div class="monthly-control">
+              <input type="number" id="months-2" min="1" max="12" value="1" class="monthly-input">
+              <button class="btn-monthly" data-tier="2">Add Monthly</button>
+            </div>
           </div>
-          <button class="tier-btn btn-annual" onclick="addAnnual(2)">Annual (Save 30%)</button>
+          <button class="btn-annual" data-tier="2">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="3">
@@ -194,12 +244,18 @@
           <h3 class="tier-title" id="tier3Title">SILVER</h3>
         </div>
         <div class="tier-price" data-price-usd="14"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row" style="flex-direction: column;">
-          <div class="monthly-control">
-            <input type="number" id="months-3" min="1" max="12" value="1">
-            <button class="btn-monthly" onclick="addMonthly(3)">Add Monthly</button>
+        <div class="button-row">
+          <div class="monthly-group">
+            <div class="monthly-label">
+              <span>Monthly (flexible)</span>
+              <span class="monthly-discount-badge"></span>
+            </div>
+            <div class="monthly-control">
+              <input type="number" id="months-3" min="1" max="12" value="1" class="monthly-input">
+              <button class="btn-monthly" data-tier="3">Add Monthly</button>
+            </div>
           </div>
-          <button class="tier-btn btn-annual" onclick="addAnnual(3)">Annual (Save 30%)</button>
+          <button class="btn-annual" data-tier="3">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="4">
@@ -209,12 +265,18 @@
           <h3 class="tier-title" id="tier4Title">GOLD</h3>
         </div>
         <div class="tier-price" data-price-usd="29"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row" style="flex-direction: column;">
-          <div class="monthly-control">
-            <input type="number" id="months-4" min="1" max="12" value="1">
-            <button class="btn-monthly" onclick="addMonthly(4)">Add Monthly</button>
+        <div class="button-row">
+          <div class="monthly-group">
+            <div class="monthly-label">
+              <span>Monthly (flexible)</span>
+              <span class="monthly-discount-badge"></span>
+            </div>
+            <div class="monthly-control">
+              <input type="number" id="months-4" min="1" max="12" value="1" class="monthly-input">
+              <button class="btn-monthly" data-tier="4">Add Monthly</button>
+            </div>
           </div>
-          <button class="tier-btn btn-annual" onclick="addAnnual(4)">Annual (Save 30%)</button>
+          <button class="btn-annual" data-tier="4">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="5">
@@ -224,12 +286,18 @@
           <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
         </div>
         <div class="tier-price" data-price-usd="39"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row" style="flex-direction: column;">
-          <div class="monthly-control">
-            <input type="number" id="months-5" min="1" max="12" value="1">
-            <button class="btn-monthly" onclick="addMonthly(5)">Add Monthly</button>
+        <div class="button-row">
+          <div class="monthly-group">
+            <div class="monthly-label">
+              <span>Monthly (flexible)</span>
+              <span class="monthly-discount-badge"></span>
+            </div>
+            <div class="monthly-control">
+              <input type="number" id="months-5" min="1" max="12" value="1" class="monthly-input">
+              <button class="btn-monthly" data-tier="5">Add Monthly</button>
+            </div>
           </div>
-          <button class="tier-btn btn-annual" onclick="addAnnual(5)">Annual (Save 30%)</button>
+          <button class="btn-annual" data-tier="5">Annual (Save 30%)</button>
         </div>
       </div>
     </div>
@@ -509,8 +577,6 @@
 
     // Rank: higher = better. Annual > monthly for same tier.
     function getMembershipRank(tier, isAnnual, months = 1) {
-      // For monthly bundles, higher rank for larger months? Actually we treat any monthly as same rank (monthly) regardless of months.
-      // So we just use the tier * 2 for monthly, +1 for annual.
       return tier * 2 + (isAnnual ? 1 : 0);
     }
 
@@ -564,6 +630,20 @@
           // No membership in cart – enable all
           if (btnMonthly) btnMonthly.classList.remove('disabled');
           if (btnAnnual) btnAnnual.classList.remove('disabled');
+        }
+      }
+
+      // Also update discount badges dynamically
+      for (let tier = 1; tier <= 5; tier++) {
+        const monthsInput = document.getElementById(`months-${tier}`);
+        if (monthsInput) {
+          const months = parseInt(monthsInput.value, 10) || 1;
+          const badge = document.querySelector(`.tier-card[data-tier="${tier}"] .monthly-discount-badge`);
+          if (badge) {
+            if (months >= 3) badge.textContent = '20% OFF for 3+ months';
+            else if (months === 2) badge.textContent = '10% OFF';
+            else badge.textContent = '';
+          }
         }
       }
     }
@@ -675,6 +755,20 @@
       saveStoreCart();
       showSnackbar('Added to cart', false);
     };
+
+    // Attach event listeners to monthly and annual buttons (since they are created dynamically)
+    document.querySelectorAll('.btn-monthly').forEach(btn => {
+      const tier = btn.getAttribute('data-tier');
+      if (tier) {
+        btn.onclick = () => addMonthly(parseInt(tier));
+      }
+    });
+    document.querySelectorAll('.btn-annual').forEach(btn => {
+      const tier = btn.getAttribute('data-tier');
+      if (tier) {
+        btn.onclick = () => addAnnual(parseInt(tier));
+      }
+    });
 
     window.scrollCarousel = function(direction) {
       const container = document.getElementById('tierCarousel');
