@@ -1,13 +1,13 @@
 // velutinx.github.io/s/js/translations.js
 window.translations = {
   en: {
-    // Cart translations
+    // Cart
     cartTitle: "Shopping Cart",
     emptyCart: "Your cart is empty",
     totalLabel: "Total",
     addItemsCheckout: "Add items to checkout",
 
-    // Snackbar and general
+    // General
     snackText: "Added successfully",
     loginBtn: "Website",
     disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
@@ -29,7 +29,8 @@ window.translations = {
     discordHelpStep2: "<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.",
     discordHelpStep3: "<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.",
     discordHelpStep4: "<strong>Step 4:</strong> Paste that number here.",
-    noteBox: "<strong>📌 Important:</strong> After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
+    importantLabel: "Important:",
+    noteBoxText: "After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!",
     joinDiscord: "→ Join Discord Server ←",
     perMonth: "/ month",
 
@@ -41,8 +42,9 @@ window.translations = {
     tierPlatinum: "PLATINUM",
 
     // Button texts
-    btnMonthly: "Add Monthly",
+    btnMonthlyText: "Monthly (Save up to 20%)",
     btnAnnual: "Annual (Save 30%)",
+    removeFromCartText: "Remove from Cart",
 
     // Bronze perks (4)
     perk1_1: "Exclusive discord role",
@@ -84,9 +86,6 @@ window.translations = {
     errorOnlyHighest: "You can only upgrade to a higher tier or annual plan.",
     removedFromCart: "Removed from cart",
     addedToCart: "Added to cart",
-    btnMonthlyText: "Monthly (Save up to 20%)",
-    btnAnnual: "Annual (Save 30%)",
-    removeFromCartText: "Remove from Cart",
     errorPlanNotConfigured: "Plan not configured for this tier"
   },
   ja: {
@@ -113,7 +112,8 @@ window.translations = {
     discordHelpStep2: "<strong>手順2:</strong> <strong>アプリ設定</strong>の<strong>高度な設定</strong>で<strong>開発者モード</strong>を有効に。",
     discordHelpStep3: "<strong>手順3:</strong> 自分のユーザー名を右クリックし、<strong>IDをコピー</strong>。",
     discordHelpStep4: "<strong>手順4:</strong> その番号をここに貼り付け。",
-    noteBox: "<strong>📌 重要:</strong> 支払い完了後、対応するロールがDiscordサーバーで自動的に付与されます。事前にサーバーに参加してください！",
+    importantLabel: "重要：",
+    noteBoxText: "支払い完了後、対応するロールがDiscordサーバーで自動的に付与されます。事前にサーバーに参加してください！",
     joinDiscord: "→ Discordサーバーに参加 ←",
     perMonth: "/月",
     tierBronze: "ブロンズ",
@@ -121,8 +121,9 @@ window.translations = {
     tierSilver: "シルバー",
     tierGold: "ゴールド",
     tierPlatinum: "プラチナ",
-    btnMonthly: "月額プランを追加",
+    btnMonthlyText: "月額プラン (最大20%オフ)",
     btnAnnual: "年間プラン (30%オフ)",
+    removeFromCartText: "カートから削除",
     perk1_1: "限定Discordロール",
     perk1_2: "アーカイブへの即時フルアクセス。",
     perk1_3: "過去の全リリースと有料コンテンツを含む。",
@@ -152,9 +153,6 @@ window.translations = {
     errorOnlyHighest: "上位ティアまたは年間プランにのみアップグレードできます。",
     removedFromCart: "カートから削除しました",
     addedToCart: "カートに追加しました",
-    btnMonthlyText: "月額プラン (最大20%オフ)",
-    btnAnnual: "年間プラン (30%オフ)",
-    removeFromCartText: "カートから削除",
     errorPlanNotConfigured: "このティアのプランは設定されていません"
   },
   zh: {
@@ -181,7 +179,8 @@ window.translations = {
     discordHelpStep2: "<strong>步骤2：</strong> 在<strong>应用设置</strong>下，选择<strong>高级</strong>并启用<strong>开发者模式</strong>。",
     discordHelpStep3: "<strong>步骤3：</strong> 右键单击你的用户名，选择<strong>复制 ID</strong>。",
     discordHelpStep4: "<strong>步骤4：</strong> 将号码粘贴在此处。",
-    noteBox: "<strong>📌 重要：</strong> 支付成功后，你将自动在我们的 Discord 服务器中获得对应的角色。请确保你已加入服务器！",
+    importantLabel: "重要：",
+    noteBoxText: "支付成功后，你将自动在我们的 Discord 服务器中获得对应的角色。请确保你已加入服务器！",
     joinDiscord: "→ 加入 Discord 服务器 ←",
     perMonth: "/月",
     tierBronze: "青铜",
@@ -189,8 +188,9 @@ window.translations = {
     tierSilver: "银",
     tierGold: "金",
     tierPlatinum: "铂金",
-    btnMonthly: "按月添加",
+    btnMonthlyText: "按月订阅 (最高节省20%)",
     btnAnnual: "按年订阅 (节省30%)",
+    removeFromCartText: "从购物车移除",
     perk1_1: "专属 Discord 身份",
     perk1_2: "立即获得完整档案访问权限。",
     perk1_3: "包含所有过往发布及付费内容。",
@@ -220,9 +220,6 @@ window.translations = {
     errorOnlyHighest: "你只能升级到更高等级或年付计划。",
     removedFromCart: "已从购物车移除",
     addedToCart: "已加入购物车",
-    btnMonthlyText: "按月订阅 (最高节省20%)",
-    btnAnnual: "按年订阅 (节省30%)",
-    removeFromCartText: "从购物车移除",
     errorPlanNotConfigured: "该等级尚未配置订阅计划"
   },
   es: {
@@ -249,7 +246,8 @@ window.translations = {
     discordHelpStep2: "<strong>Paso 2:</strong> En <strong>Ajustes de la App</strong>, selecciona <strong>Avanzado</strong> y activa <strong>Modo Desarrollador</strong>.",
     discordHelpStep3: "<strong>Paso 3:</strong> Haz clic derecho en tu nombre de usuario y selecciona <strong>Copiar ID</strong>.",
     discordHelpStep4: "<strong>Paso 4:</strong> Pega ese número aquí.",
-    noteBox: "<strong>📌 Importante:</strong> Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
+    importantLabel: "Importante:",
+    noteBoxText: "Después del pago exitoso, recibirás el rol correspondiente en nuestro servidor de Discord automáticamente. ¡Asegúrate de haber entrado al servidor primero!",
     joinDiscord: "→ Unirse al Servidor de Discord ←",
     perMonth: "/ mes",
     tierBronze: "Bronce",
@@ -257,8 +255,9 @@ window.translations = {
     tierSilver: "Plata",
     tierGold: "Oro",
     tierPlatinum: "Platino",
-    btnMonthly: "Añadir Mensual",
+    btnMonthlyText: "Mensual (Ahorra hasta un 20%)",
     btnAnnual: "Anual (Ahorra 30%)",
+    removeFromCartText: "Eliminar del carrito",
     perk1_1: "Rol exclusivo de Discord",
     perk1_2: "Acceso inmediato al archivo completo.",
     perk1_3: "Incluye todos los lanzamientos anteriores y contenido de pago.",
@@ -288,9 +287,6 @@ window.translations = {
     errorOnlyHighest: "Solo puedes actualizar a un nivel superior o plan anual.",
     removedFromCart: "Eliminado del carrito",
     addedToCart: "Añadido al carrito",
-    btnMonthlyText: "Mensual (Ahorra hasta un 20%)",
-    btnAnnual: "Anual (Ahorra 30%)",
-    removeFromCartText: "Eliminar del carrito",
     errorPlanNotConfigured: "Plan no configurado para este nivel"
   }
 };
