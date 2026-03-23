@@ -32,14 +32,40 @@
     .tier-title { font-size: 1.8rem; margin: 0; }
     .button-row { display: flex; gap: 10px; margin-top: 1rem; }
     .tier-btn { flex: 1; padding: 10px 0; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; text-align: center; }
-    .btn-single { background: #3b82f6; }
-    .btn-single:hover { background: #2563eb; }
     .btn-annual { background: #10b981; }
     .btn-annual:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
+    /* Monthly quantity selector */
+    .monthly-control {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .monthly-control input {
+      width: 70px;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      text-align: center;
+    }
+    .btn-monthly {
+      background: #3b82f6;
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+    }
+    .btn-monthly:hover { background: #2563eb; }
     /* Disabled button style */
-    .tier-btn.disabled {
+    .tier-btn.disabled, .btn-monthly.disabled {
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
@@ -130,7 +156,7 @@
 
   <div class="carousel-container">
     <div class="carousel-scroll" id="tierCarousel">
-      <!-- Tiers 1–5 with both monthly and annual buttons -->
+      <!-- Tiers 1–5 with monthly quantity selector + annual button -->
       <div class="tier-card" data-tier="1">
         <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
         <div class="tier-header">
@@ -138,9 +164,12 @@
           <h3 class="tier-title" id="tier1Title">BRONZE</h3>
         </div>
         <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(1, false)"><span class="btn-single-text">Single Month</span></button>
-          <button class="tier-btn btn-annual" onclick="handleSinglePurchase(1, true)"><span class="btn-annual-text">Annual (Save 30%)</span></button>
+        <div class="button-row" style="flex-direction: column;">
+          <div class="monthly-control">
+            <input type="number" id="months-1" min="1" max="12" value="1">
+            <button class="btn-monthly" onclick="addMonthly(1)">Add Monthly</button>
+          </div>
+          <button class="tier-btn btn-annual" onclick="addAnnual(1)">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="2">
@@ -150,9 +179,12 @@
           <h3 class="tier-title" id="tier2Title">COPPER</h3>
         </div>
         <div class="tier-price" data-price-usd="9"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(2, false)"><span class="btn-single-text">Single Month</span></button>
-          <button class="tier-btn btn-annual" onclick="handleSinglePurchase(2, true)"><span class="btn-annual-text">Annual (Save 30%)</span></button>
+        <div class="button-row" style="flex-direction: column;">
+          <div class="monthly-control">
+            <input type="number" id="months-2" min="1" max="12" value="1">
+            <button class="btn-monthly" onclick="addMonthly(2)">Add Monthly</button>
+          </div>
+          <button class="tier-btn btn-annual" onclick="addAnnual(2)">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="3">
@@ -162,9 +194,12 @@
           <h3 class="tier-title" id="tier3Title">SILVER</h3>
         </div>
         <div class="tier-price" data-price-usd="14"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(3, false)"><span class="btn-single-text">Single Month</span></button>
-          <button class="tier-btn btn-annual" onclick="handleSinglePurchase(3, true)"><span class="btn-annual-text">Annual (Save 30%)</span></button>
+        <div class="button-row" style="flex-direction: column;">
+          <div class="monthly-control">
+            <input type="number" id="months-3" min="1" max="12" value="1">
+            <button class="btn-monthly" onclick="addMonthly(3)">Add Monthly</button>
+          </div>
+          <button class="tier-btn btn-annual" onclick="addAnnual(3)">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="4">
@@ -174,9 +209,12 @@
           <h3 class="tier-title" id="tier4Title">GOLD</h3>
         </div>
         <div class="tier-price" data-price-usd="29"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(4, false)"><span class="btn-single-text">Single Month</span></button>
-          <button class="tier-btn btn-annual" onclick="handleSinglePurchase(4, true)"><span class="btn-annual-text">Annual (Save 30%)</span></button>
+        <div class="button-row" style="flex-direction: column;">
+          <div class="monthly-control">
+            <input type="number" id="months-4" min="1" max="12" value="1">
+            <button class="btn-monthly" onclick="addMonthly(4)">Add Monthly</button>
+          </div>
+          <button class="tier-btn btn-annual" onclick="addAnnual(4)">Annual (Save 30%)</button>
         </div>
       </div>
       <div class="tier-card" data-tier="5">
@@ -186,9 +224,12 @@
           <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
         </div>
         <div class="tier-price" data-price-usd="39"><span class="price-value"></span><span class="per-month">/ month</span></div>
-        <div class="button-row">
-          <button class="tier-btn btn-single" onclick="handleSinglePurchase(5, false)"><span class="btn-single-text">Single Month</span></button>
-          <button class="tier-btn btn-annual" onclick="handleSinglePurchase(5, true)"><span class="btn-annual-text">Annual (Save 30%)</span></button>
+        <div class="button-row" style="flex-direction: column;">
+          <div class="monthly-control">
+            <input type="number" id="months-5" min="1" max="12" value="1">
+            <button class="btn-monthly" onclick="addMonthly(5)">Add Monthly</button>
+          </div>
+          <button class="tier-btn btn-annual" onclick="addAnnual(5)">Annual (Save 30%)</button>
         </div>
       </div>
     </div>
@@ -288,6 +329,12 @@
       return window.priceKeyMap?.[key] || 0;
     }
 
+    function getDiscountFactor(months) {
+      if (months >= 3) return 0.8;
+      if (months === 2) return 0.9;
+      return 1;
+    }
+
     function formatPrice(usd) {
       if (window.formatPrice) return window.formatPrice(usd);
       return `$${usd.toFixed(2)}`;
@@ -301,39 +348,52 @@
         let priceHtml = '';
         let priceValue = 0;
 
-        if (item.type === 'membership' && item.isAnnual) {
-          // Annual membership: show original price slashed, discount badge, and actual price
+        if (item.type === 'membership' && !item.isAnnual && item.months) {
+          // Monthly bundle with quantity discount
+          const monthlyPrice = getMonthlyPriceForTier(item.tier);
+          const discountFactor = getDiscountFactor(item.months);
+          const totalPrice = monthlyPrice * item.months * discountFactor;
+          priceValue = totalPrice;
+          const originalTotal = monthlyPrice * item.months;
+          if (discountFactor < 1) {
+            priceHtml = `
+              <span class="original-price">${formatPrice(originalTotal)}</span>
+              <span class="discount-badge">${Math.round((1-discountFactor)*100)}% OFF</span><br>
+              <span class="current-price" style="color: var(--price-red);">${formatPrice(totalPrice)}</span>
+            `;
+          } else {
+            priceHtml = formatPrice(totalPrice);
+          }
+        } else if (item.type === 'membership' && item.isAnnual) {
+          // Annual membership
           const monthlyPrice = getMonthlyPriceForTier(item.tier);
           const originalAnnual = monthlyPrice * 12;
           const discountedAnnual = originalAnnual * 0.7; // 30% off
           priceValue = discountedAnnual;
-          const formattedOriginal = formatPrice(originalAnnual);
-          const formattedDiscounted = formatPrice(discountedAnnual);
           priceHtml = `
-            <span class="original-price">${formattedOriginal}</span>
+            <span class="original-price">${formatPrice(originalAnnual)}</span>
             <span class="discount-badge">30% OFF</span><br>
-            <span class="current-price" style="color: var(--price-red);">${formattedDiscounted}</span>
+            <span class="current-price" style="color: var(--price-red);">${formatPrice(discountedAnnual)}</span>
           `;
+        } else if (item.priceKey && window.priceKeyMap) {
+          priceValue = window.priceKeyMap[item.priceKey] || 0;
+          priceHtml = formatPrice(priceValue);
         } else {
-          // Regular (monthly or other)
-          if (item.priceKey && window.priceKeyMap && window.priceKeyMap[item.priceKey] !== undefined) {
-            priceValue = window.priceKeyMap[item.priceKey];
-            priceHtml = formatPrice(priceValue);
-          } else if (item.priceKey && !window.priceKeyMap) {
-            priceHtml = `$${item.priceKey}`;
-          } else {
-            priceHtml = '$0.00';
-          }
+          priceHtml = '$0.00';
         }
 
         total += priceValue;
 
         const div = document.createElement('div');
         div.className = 'our-cart-item';
+        let titleText = item.title;
+        if (item.type === 'membership' && !item.isAnnual && item.months) {
+          titleText = `${TIER_TITLES[item.tier]} (${item.months} month${item.months > 1 ? 's' : ''})`;
+        }
         div.innerHTML = `
           <img src="${item.image}" alt="${item.title}">
           <div class="our-cart-item-info">
-            <div class="our-cart-item-title">${escapeHtml(item.title)}</div>
+            <div class="our-cart-item-title">${escapeHtml(titleText)}</div>
             <div class="our-cart-item-price">${priceHtml}</div>
           </div>
           <button class="our-cart-item-remove" data-idx="${idx}">✕</button>
@@ -348,16 +408,7 @@
         });
       });
       if (ourCartTotal) {
-        const totalValue = storeCart.reduce((sum, item) => {
-          if (item.type === 'membership' && item.isAnnual) {
-            const monthlyPrice = getMonthlyPriceForTier(item.tier);
-            return sum + (monthlyPrice * 12 * 0.7);
-          } else if (item.priceKey && window.priceKeyMap) {
-            return sum + (window.priceKeyMap[item.priceKey] || 0);
-          }
-          return sum;
-        }, 0);
-        ourCartTotal.innerText = formatPrice(totalValue);
+        ourCartTotal.innerText = formatPrice(total);
       }
       const count = storeCart.length;
       document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => { if (el) el.textContent = count; });
@@ -457,7 +508,9 @@
     const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
     // Rank: higher = better. Annual > monthly for same tier.
-    function getMembershipRank(tier, isAnnual) {
+    function getMembershipRank(tier, isAnnual, months = 1) {
+      // For monthly bundles, higher rank for larger months? Actually we treat any monthly as same rank (monthly) regardless of months.
+      // So we just use the tier * 2 for monthly, +1 for annual.
       return tier * 2 + (isAnnual ? 1 : 0);
     }
 
@@ -466,7 +519,7 @@
       let highestRank = -1;
       for (const item of storeCart) {
         if (item.type === 'membership') {
-          const rank = getMembershipRank(item.tier, item.isAnnual);
+          const rank = getMembershipRank(item.tier, item.isAnnual, item.months || 1);
           if (rank > highestRank) highestRank = rank;
         }
       }
@@ -477,14 +530,14 @@
         if (!card) continue;
         const monthlyInCart = storeCart.some(item => item.id === `membership-${tier}-monthly`);
         const annualInCart = storeCart.some(item => item.id === `membership-${tier}-annual`);
-        const btnMonthly = card.querySelector('.btn-single');
+        const btnMonthly = card.querySelector('.btn-monthly');
         const btnAnnual = card.querySelector('.btn-annual');
 
         // Update button text/class for the current tier (in‑cart status)
         if (btnMonthly) {
-          btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Single Month';
+          btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Add Monthly';
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
-          btnMonthly.classList.toggle('btn-single', !monthlyInCart);
+          btnMonthly.classList.toggle('btn-monthly', !monthlyInCart);
         }
         if (btnAnnual) {
           btnAnnual.textContent = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
@@ -535,53 +588,46 @@
       return id;
     }
 
-    window.handleSinglePurchase = function(tierNumber, isAnnual) {
+    window.addMonthly = function(tierNumber) {
+      const monthsInput = document.getElementById(`months-${tierNumber}`);
+      let months = parseInt(monthsInput?.value, 10);
+      if (isNaN(months) || months < 1) months = 1;
+      if (months > 12) months = 12; // cap at 12
       const discordId = validateDiscordId();
       if (!discordId) return;
 
-      const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
-      const newRank = getMembershipRank(tierNumber, isAnnual);
-
-      // Find existing membership in cart (any membership)
-      const existingIndex = storeCart.findIndex(item => item.type === 'membership');
-      const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
-
-      // If the same item is already in cart, remove it (toggle)
-      if (existingItem && existingItem.id === newId) {
+      const newId = `membership-${tierNumber}-monthly`;
+      const existingIndex = storeCart.findIndex(item => item.type === 'membership' && item.id === newId);
+      if (existingIndex !== -1) {
+        // Remove existing monthly bundle
         storeCart.splice(existingIndex, 1);
         saveStoreCart();
         showSnackbar('Removed from cart', true);
         return;
       }
 
-      // If there's an existing membership, compare ranks
-      if (existingItem) {
-        const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
-        if (newRank <= existingRank) {
-          showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
-          return;
-        }
-        // Remove the old one (upgrade)
-        storeCart.splice(existingIndex, 1);
+      // Check if there's an annual membership already
+      const existingAnnual = storeCart.find(item => item.type === 'membership' && item.isAnnual);
+      if (existingAnnual) {
+        showSnackbar('You cannot have both monthly and annual memberships. Remove the annual first.', true);
+        return;
       }
 
-      // Add the new item
-      let priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
-      // Fallback if annual price key missing (compute from monthly)
-      if (isAnnual && (!window.priceKeyMap || !window.priceKeyMap[priceKey])) {
-        const monthlyKey = MONTHLY_PRICE_KEYS[tierNumber];
-        const monthlyPrice = window.priceKeyMap?.[monthlyKey] || 0;
-        console.warn(`Annual price key ${priceKey} missing, will use computed price.`);
+      const priceKey = MONTHLY_PRICE_KEYS[tierNumber];
+      if (!priceKey) {
+        showSnackbar('Invalid tier', true);
+        return;
       }
-      const title = `${TIER_TITLES[tierNumber]} (${isAnnual ? '12 months' : '30 days'})`;
 
+      const title = `${TIER_TITLES[tierNumber]} (${months} month${months > 1 ? 's' : ''})`;
       storeCart.push({
         id: newId,
         title: title,
         priceKey: priceKey,
         type: 'membership',
         tier: tierNumber,
-        isAnnual: isAnnual,
+        isAnnual: false,
+        months: months,
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
@@ -589,13 +635,45 @@
       showSnackbar('Added to cart', false);
     };
 
-    window.handleRecurring = function(tierNumber) {
+    window.addAnnual = function(tierNumber) {
       const discordId = validateDiscordId();
       if (!discordId) return;
-      const PLAN_IDS = {1:'P-BRONZE_PLAN_ID',2:'P-COPPER_PLAN_ID',3:'P-SILVER_PLAN_ID',4:'P-GOLD_PLAN_ID',5:'P-PLATINUM_PLAN_ID'};
-      const planId = PLAN_IDS[tierNumber];
-      if (!planId) { showSnackbar('Plan not configured for this tier', true); return; }
-      alert(`Recurring subscription for Tier ${tierNumber} would start.`);
+
+      const newId = `membership-${tierNumber}-annual`;
+      const existingIndex = storeCart.findIndex(item => item.type === 'membership' && item.id === newId);
+      if (existingIndex !== -1) {
+        storeCart.splice(existingIndex, 1);
+        saveStoreCart();
+        showSnackbar('Removed from cart', true);
+        return;
+      }
+
+      // Check if there's a monthly membership already
+      const existingMonthly = storeCart.find(item => item.type === 'membership' && !item.isAnnual);
+      if (existingMonthly) {
+        showSnackbar('You cannot have both monthly and annual memberships. Remove the monthly first.', true);
+        return;
+      }
+
+      const priceKey = ANNUAL_PRICE_KEYS[tierNumber];
+      if (!priceKey) {
+        showSnackbar('Invalid tier', true);
+        return;
+      }
+
+      const title = `${TIER_TITLES[tierNumber]} (12 months)`;
+      storeCart.push({
+        id: newId,
+        title: title,
+        priceKey: priceKey,
+        type: 'membership',
+        tier: tierNumber,
+        isAnnual: true,
+        discordId: discordId,
+        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
+      });
+      saveStoreCart();
+      showSnackbar('Added to cart', false);
     };
 
     window.scrollCarousel = function(direction) {
@@ -633,7 +711,7 @@
         'perk5_1','perk5_2','perk5_3','perk5_4','perk5_5','perk5_6','perk5_7'
       ];
       perkIds.forEach(id => { const el = document.getElementById(id); if (el && t?.[id]) el.textContent = t[id]; });
-      document.querySelectorAll('.btn-single-text').forEach(el => el.textContent = t?.btnSingle || 'Single Month');
+      document.querySelectorAll('.btn-monthly').forEach(el => el.textContent = t?.btnMonthly || 'Add Monthly');
       document.querySelectorAll('.btn-annual-text').forEach(el => el.textContent = 'Annual (Save 30%)');
       document.querySelectorAll('.per-month').forEach(el => el.textContent = t?.perMonth || '/ month');
       document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
