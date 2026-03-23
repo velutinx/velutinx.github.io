@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (all existing styles – same as before) */
+    /* (all existing styles – unchanged) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -57,9 +57,7 @@
     .discord-help-content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     .note-box { background: rgba(170,158,118,0.1); border-left: 4px solid var(--accent); padding: 16px; margin: 24px 0 0; border-radius: 8px; font-size: 0.95rem; }
     /* Override shared.css to hide its cart elements */
-    #cartBtn, #floatingCartBtn, .cart-drawer, .cart-overlay {
-      display: none !important;
-    }
+    #cartBtn, #floatingCartBtn, .cart-drawer, .cart-overlay { display: none !important; }
     /* Our custom cart styles (same as before) */
     .our-cart-btn { width: 42px; height: 42px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; position: relative; color: white; }
     .our-floating-cart { position: fixed; bottom: 24px; right: 24px; width: 64px; height: 64px; background: var(--accent); border-radius: 9999px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; z-index: 1150; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
@@ -264,7 +262,8 @@
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
       updateCartUI();
-      updateMembershipButtons();
+      // Force a re-render of membership buttons after a short delay to ensure DOM is updated
+      setTimeout(() => updateMembershipButtons(), 0);
     }
 
     function updateCartUI() {
@@ -272,8 +271,20 @@
       ourCartItems.innerHTML = storeCart.length === 0 ? '<div style="padding:1rem;">Your cart is empty</div>' : '';
       let total = 0;
       storeCart.forEach((item, idx) => {
-        const priceStr = window.getFormattedPrice ? window.getFormattedPrice(item.priceKey) : `$${item.priceKey}`;
-        total += window.priceKeyMap ? (window.priceKeyMap[item.priceKey] || 0) : 0;
+        let priceStr;
+        if (item.priceKey && window.priceKeyMap && window.priceKeyMap[item.priceKey] !== undefined) {
+          priceStr = window.getFormattedPrice(item.priceKey);
+        } else if (item.isAnnual && item.tier) {
+          // Fallback: compute discounted annual price from monthly price
+          const monthlyKey = `PRICE_${item.tier + 2}`; // tier1 -> PRICE_3 (5), tier2 -> PRICE_4 (9), etc.
+          const monthlyPrice = window.priceKeyMap?.[monthlyKey] || 0;
+          const annualPrice = monthlyPrice * 12 * 0.7; // 30% discount
+          priceStr = window.formatPrice ? window.formatPrice(annualPrice) : `$${annualPrice.toFixed(2)}`;
+        } else {
+          priceStr = `$${item.priceKey}`;
+        }
+        const priceValue = window.priceKeyMap?.[item.priceKey] || 0;
+        total += priceValue;
         const div = document.createElement('div');
         div.className = 'our-cart-item';
         div.innerHTML = `
@@ -291,10 +302,12 @@
           const idx = parseInt(btn.dataset.idx);
           storeCart.splice(idx, 1);
           saveStoreCart();
-          updateMembershipButtons();
         });
       });
-      if (ourCartTotal) ourCartTotal.innerText = window.formatPrice ? window.formatPrice(total) : `$${total.toFixed(2)}`;
+      if (ourCartTotal) {
+        const totalValue = storeCart.reduce((sum, item) => sum + (window.priceKeyMap?.[item.priceKey] || 0), 0);
+        ourCartTotal.innerText = window.formatPrice ? window.formatPrice(totalValue) : `$${totalValue.toFixed(2)}`;
+      }
       const count = storeCart.length;
       document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => { if (el) el.textContent = count; });
     }
@@ -390,6 +403,10 @@
     };
     const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
+    function getMembershipRank(tier, isAnnual) {
+      return tier * 2 + (isAnnual ? 1 : 0);
+    }
+
     function updateMembershipButtons() {
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
@@ -436,7 +453,7 @@
       if (!discordId) return;
 
       const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
-      const newTier = tierNumber;
+      const newRank = getMembershipRank(tierNumber, isAnnual);
 
       // Find existing membership in cart (any membership)
       const existingIndex = storeCart.findIndex(item => item.type === 'membership');
@@ -450,25 +467,27 @@
         return;
       }
 
-      // If there's an existing membership, check if we can replace it
+      // If there's an existing membership, compare ranks
       if (existingItem) {
-        const existingTier = existingItem.tier;
-        if (newTier < existingTier) {
-          showSnackbar('You can only upgrade to a higher tier.', true);
+        const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
+        if (newRank <= existingRank) {
+          showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
           return;
         }
-        // Allow replacing if new tier >= existing tier (upgrade or same tier with different duration)
-        // Remove the old one
+        // Remove the old one (upgrade)
         storeCart.splice(existingIndex, 1);
       }
 
       // Add the new item
-      const priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
-      if (!priceKey) {
-        showSnackbar('Invalid tier', true);
-        return;
+      let priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
+      // Fallback if annual price key missing (compute from monthly)
+      if (isAnnual && (!window.priceKeyMap || !window.priceKeyMap[priceKey])) {
+        const monthlyKey = MONTHLY_PRICE_KEYS[tierNumber];
+        const monthlyPrice = window.priceKeyMap?.[monthlyKey] || 0;
+        // We'll store the priceKey as a string, but the cart UI will detect the fallback
+        // For now, we keep the intended key; the UI will use fallback
+        console.warn(`Annual price key ${priceKey} missing, will use computed price.`);
       }
-
       const title = `${TIER_TITLES[tierNumber]} (${isAnnual ? '12 months' : '30 days'})`;
 
       storeCart.push({
