@@ -38,6 +38,12 @@
     .btn-annual:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
+    /* Disabled button style */
+    .tier-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
     .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: var(--card); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 1.8rem; font-weight: 400; color: var(--text); transition: all 0.2s; line-height: 1; }
     .carousel-arrow:hover { background: var(--accent); color: white; border-color: var(--accent); }
     .arrow-left { left: -20px; }
@@ -262,8 +268,8 @@
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
       updateCartUI();
-      // Force a re-render of membership buttons after a short delay to ensure DOM is updated
-      setTimeout(() => updateMembershipButtons(), 0);
+      // Force button update after a short delay to ensure DOM is ready
+      setTimeout(() => updateMembershipButtons(), 50);
     }
 
     function updateCartUI() {
@@ -382,7 +388,7 @@
     }
 
     // --------------------------------------------------------------
-    // Membership logic (with monthly and annual options)
+    // Membership logic (with monthly and annual options, and tier disabling)
     // --------------------------------------------------------------
     let currentLang = localStorage.getItem('language') || 'en';
 
@@ -403,11 +409,22 @@
     };
     const TIER_TITLES = {1:'BRONZE', 2:'COPPER', 3:'SILVER', 4:'GOLD', 5:'PLATINUM'};
 
+    // Rank: higher = better. Annual > monthly for same tier.
     function getMembershipRank(tier, isAnnual) {
       return tier * 2 + (isAnnual ? 1 : 0);
     }
 
     function updateMembershipButtons() {
+      // Find the highest rank among memberships in cart
+      let highestRank = -1;
+      for (const item of storeCart) {
+        if (item.type === 'membership') {
+          const rank = getMembershipRank(item.tier, item.isAnnual);
+          if (rank > highestRank) highestRank = rank;
+        }
+      }
+
+      // Loop through all tiers and buttons
       for (let tier = 1; tier <= 5; tier++) {
         const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
         if (!card) continue;
@@ -415,6 +432,8 @@
         const annualInCart = storeCart.some(item => item.id === `membership-${tier}-annual`);
         const btnMonthly = card.querySelector('.btn-single');
         const btnAnnual = card.querySelector('.btn-annual');
+
+        // Update button text/class for the current tier (in‑cart status)
         if (btnMonthly) {
           btnMonthly.textContent = monthlyInCart ? 'Remove from Cart' : 'Single Month';
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
@@ -424,6 +443,27 @@
           btnAnnual.textContent = annualInCart ? 'Remove from Cart' : 'Annual (Save 30%)';
           btnAnnual.classList.toggle('btn-remove', annualInCart);
           btnAnnual.classList.toggle('btn-annual', !annualInCart);
+        }
+
+        // Determine if this tier/option should be disabled (lower rank than highest)
+        const monthlyRank = getMembershipRank(tier, false);
+        const annualRank = getMembershipRank(tier, true);
+
+        if (highestRank !== -1) {
+          if (btnMonthly && monthlyRank < highestRank) {
+            btnMonthly.classList.add('disabled');
+          } else if (btnMonthly) {
+            btnMonthly.classList.remove('disabled');
+          }
+          if (btnAnnual && annualRank < highestRank) {
+            btnAnnual.classList.add('disabled');
+          } else if (btnAnnual) {
+            btnAnnual.classList.remove('disabled');
+          }
+        } else {
+          // No membership in cart – enable all
+          if (btnMonthly) btnMonthly.classList.remove('disabled');
+          if (btnAnnual) btnAnnual.classList.remove('disabled');
         }
       }
     }
@@ -484,8 +524,6 @@
       if (isAnnual && (!window.priceKeyMap || !window.priceKeyMap[priceKey])) {
         const monthlyKey = MONTHLY_PRICE_KEYS[tierNumber];
         const monthlyPrice = window.priceKeyMap?.[monthlyKey] || 0;
-        // We'll store the priceKey as a string, but the cart UI will detect the fallback
-        // For now, we keep the intended key; the UI will use fallback
         console.warn(`Annual price key ${priceKey} missing, will use computed price.`);
       }
       const title = `${TIER_TITLES[tierNumber]} (${isAnnual ? '12 months' : '30 days'})`;
