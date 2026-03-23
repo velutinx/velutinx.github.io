@@ -31,8 +31,7 @@
     .tier-star svg { width: 100%; height: 100%; }
     .tier-title { font-size: 1.8rem; margin: 0; }
     .button-row { display: flex; gap: 10px; margin-top: 1rem; flex-direction: column; }
-    .btn-annual {
-      background: #10b981;
+    .btn-annual, .btn-monthly, .btn-remove {
       padding: 10px;
       border: none;
       border-radius: 6px;
@@ -42,21 +41,12 @@
       color: white;
       transition: 0.2s;
       width: 100%;
+      text-align: center;
     }
-    .btn-annual:hover { background: #059669; }
-    .btn-monthly {
-      background: #3b82f6;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: white;
-      transition: 0.2s;
-      width: 100%;
-    }
+    .btn-monthly { background: #3b82f6; }
     .btn-monthly:hover { background: #2563eb; }
+    .btn-annual { background: #10b981; }
+    .btn-annual:hover { background: #059669; }
     .btn-remove { background: #ef4444 !important; }
     .btn-remove:hover { background: #dc2626 !important; }
     /* Disabled button style */
@@ -634,88 +624,69 @@
       return id;
     }
 
-    window.addMonthly = function(tierNumber) {
+    // Unified membership addition (handles both monthly and annual)
+    function addMembership(tierNumber, isAnnual, months = 1) {
       const discordId = validateDiscordId();
       if (!discordId) return;
 
-      const newId = `membership-${tierNumber}-monthly`;
-      const existingIndex = storeCart.findIndex(item => item.type === 'membership' && item.id === newId);
-      if (existingIndex !== -1) {
-        // Remove existing monthly bundle
+      const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
+      const newRank = getMembershipRank(tierNumber, isAnnual);
+
+      // Find existing membership in cart
+      const existingIndex = storeCart.findIndex(item => item.type === 'membership');
+      const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
+
+      // If the same item is already in cart, remove it (toggle)
+      if (existingItem && existingItem.id === newId) {
         storeCart.splice(existingIndex, 1);
         saveStoreCart();
         showSnackbar('Removed from cart', true);
         return;
       }
 
-      // Check if there's an annual membership already
-      const existingAnnual = storeCart.find(item => item.type === 'membership' && item.isAnnual);
-      if (existingAnnual) {
-        showSnackbar('You cannot have both monthly and annual memberships. Remove the annual first.', true);
-        return;
+      // If there's an existing membership, compare ranks
+      if (existingItem) {
+        const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
+        if (newRank <= existingRank) {
+          showSnackbar('You can only upgrade to a higher tier or annual plan.', true);
+          return;
+        }
+        // Remove the old one (upgrade)
+        storeCart.splice(existingIndex, 1);
       }
 
-      const priceKey = MONTHLY_PRICE_KEYS[tierNumber];
+      // Add the new item
+      const priceKey = isAnnual ? ANNUAL_PRICE_KEYS[tierNumber] : MONTHLY_PRICE_KEYS[tierNumber];
       if (!priceKey) {
         showSnackbar('Invalid tier', true);
         return;
       }
 
-      const title = `${TIER_TITLES[tierNumber]} (1 month)`;
+      const title = isAnnual
+        ? `${TIER_TITLES[tierNumber]} (12 months)`
+        : `${TIER_TITLES[tierNumber]} (${months} month${months > 1 ? 's' : ''})`;
+
       storeCart.push({
         id: newId,
         title: title,
         priceKey: priceKey,
         type: 'membership',
         tier: tierNumber,
-        isAnnual: false,
-        months: 1,
+        isAnnual: isAnnual,
+        months: isAnnual ? 12 : months,
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
       });
       saveStoreCart();
       showSnackbar('Added to cart', false);
+    }
+
+    window.addMonthly = function(tierNumber) {
+      addMembership(tierNumber, false, 1);
     };
 
     window.addAnnual = function(tierNumber) {
-      const discordId = validateDiscordId();
-      if (!discordId) return;
-
-      const newId = `membership-${tierNumber}-annual`;
-      const existingIndex = storeCart.findIndex(item => item.type === 'membership' && item.id === newId);
-      if (existingIndex !== -1) {
-        storeCart.splice(existingIndex, 1);
-        saveStoreCart();
-        showSnackbar('Removed from cart', true);
-        return;
-      }
-
-      // Check if there's a monthly membership already
-      const existingMonthly = storeCart.find(item => item.type === 'membership' && !item.isAnnual);
-      if (existingMonthly) {
-        showSnackbar('You cannot have both monthly and annual memberships. Remove the monthly first.', true);
-        return;
-      }
-
-      const priceKey = ANNUAL_PRICE_KEYS[tierNumber];
-      if (!priceKey) {
-        showSnackbar('Invalid tier', true);
-        return;
-      }
-
-      const title = `${TIER_TITLES[tierNumber]} (12 months)`;
-      storeCart.push({
-        id: newId,
-        title: title,
-        priceKey: priceKey,
-        type: 'membership',
-        tier: tierNumber,
-        isAnnual: true,
-        discordId: discordId,
-        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-      });
-      saveStoreCart();
-      showSnackbar('Added to cart', false);
+      addMembership(tierNumber, true, 12);
     };
 
     // Attach event listeners to monthly and annual buttons (since they are created dynamically)
