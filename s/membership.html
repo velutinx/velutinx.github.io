@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* (existing styles, plus additions for the new dropdown) */
+    /* (existing styles, with modifications) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -70,7 +70,7 @@
     .month-selector-btn {
       width: 100%;
       padding: 12px 10px;
-      background: var(--btn-cart);
+      background: #aa9e76; /* lighter brown (original accent) – changed from dark brown */
       border: none;
       border-radius: 40px;
       color: white;
@@ -84,8 +84,14 @@
       gap: 8px;
       font-weight: 700;
     }
-    .month-selector-btn:hover {
-      background: var(--btn-cart-hover);
+    .month-selector-btn.disabled {
+      background: var(--gray);
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .month-selector-btn:hover:not(.disabled) {
+      background: #b8ab83;
       transform: scale(1.02);
     }
     .month-dropdown {
@@ -100,13 +106,13 @@
       z-index: 10;
       overflow: hidden;
       transform-origin: bottom;
-      transform: translateY(10px);
+      transform: scaleY(0);
       opacity: 0;
       visibility: hidden;
       transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
     }
     .month-dropdown.open {
-      transform: translateY(0);
+      transform: scaleY(1);
       opacity: 1;
       visibility: visible;
     }
@@ -143,9 +149,15 @@
       width: 100%;
       text-align: center;
     }
-    .btn-monthly:hover { background: #2563eb; transform: scale(1.02); }
+    .btn-monthly:hover:not(.disabled) { background: #2563eb; transform: scale(1.02); }
     .btn-remove { background: #ef4444 !important; }
-    .btn-remove:hover { background: #dc2626 !important; }
+    .btn-remove:hover:not(.disabled) { background: #dc2626 !important; }
+    .btn-monthly.disabled, .btn-remove.disabled {
+      background: var(--gray);
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
 
     .carousel-arrow {
       position: absolute;
@@ -265,6 +277,10 @@
     .our-cart-item-title { font-weight: 600; }
     .our-cart-item-remove { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #ef4444; }
     .our-cart-total { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
+    /* Cart price styling */
+    .original-price { text-decoration: line-through; color: var(--gray); margin-right: 8px; }
+    .discount-badge { color: #13DEB9; font-weight: bold; margin-left: 8px; }
+    .current-price { font-size: 1.2em; display: inline-block; }  /* 1.2 times larger than surrounding text */
     .cart-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
     .cart-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text); }
   </style>
@@ -329,7 +345,6 @@
         <li id="perk1_4">• Extra voting power on polls.</li>
       </ul>
       <div class="button-row">
-        <!-- Month selector with animated dropdown -->
         <div class="month-selector-container">
           <button class="month-selector-btn" data-tier="1" data-selected="1">
             <span class="month-btn-label">1 month</span>
@@ -826,8 +841,10 @@
         if (!card) continue;
 
         const btnMonthly = card.querySelector(`.btn-monthly[data-tier="${tier}"]`);
+        const monthSelectorBtn = card.querySelector('.month-selector-btn');
         const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
 
+        // Update the "Add to Cart" button
         if (btnMonthly) {
           btnMonthly.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('addToCart', 'Add to Cart');
           btnMonthly.classList.toggle('btn-remove', monthlyInCart);
@@ -835,12 +852,22 @@
         }
 
         const monthlyRank = getMembershipRank(tier, false);
+        const isDisabled = (highestRank !== -1 && monthlyRank < highestRank);
 
-        if (highestRank !== -1) {
-          if (btnMonthly && monthlyRank < highestRank) btnMonthly.classList.add('disabled');
-          else if (btnMonthly) btnMonthly.classList.remove('disabled');
-        } else {
-          if (btnMonthly) btnMonthly.classList.remove('disabled');
+        // Disable both the month selector button and the "Add to Cart" button if a higher tier exists
+        if (btnMonthly) {
+          if (isDisabled) {
+            btnMonthly.classList.add('disabled');
+          } else {
+            btnMonthly.classList.remove('disabled');
+          }
+        }
+        if (monthSelectorBtn) {
+          if (isDisabled) {
+            monthSelectorBtn.classList.add('disabled');
+          } else {
+            monthSelectorBtn.classList.remove('disabled');
+          }
         }
       }
     }
@@ -940,6 +967,7 @@
         // Open/close on button click
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
+          if (btn.classList.contains('disabled')) return; // don't open if disabled
           // Close any other open dropdowns
           document.querySelectorAll('.month-dropdown.open').forEach(d => {
             if (d !== dropdown) d.classList.remove('open');
