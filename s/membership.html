@@ -369,7 +369,7 @@
 <script src="/s/js/translations.js"></script>
 
 <script>
-  // Wait for header to be injected
+  // Wait for header to be ready
   document.addEventListener('headerReady', () => {
     // Remove shared cart elements and any leftover badges
     const sharedCartBtn = document.getElementById('cartBtn');
@@ -439,73 +439,44 @@
     const ourPaypalContainer = document.getElementById('ourPaypalButtonContainer');
 
     // --------------------------------------------------------------
-    // Price formatting (local, to guarantee correct currency)
+    // Price formatting (uses shared formatPrice if available, else fallback)
     // --------------------------------------------------------------
-    const tierMap = { 3.0: { JPY: 500, CNY: 21.0, MXN: 50 } };
-    const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
-
     function myFormatPrice(usd, lang) {
-      if (lang === 'en') return `US$${usd.toFixed(2)}`;
-      let currency;
-      if (lang === 'ja') currency = 'JPY';
-      else if (lang === 'zh') currency = 'CNY';
-      else if (lang === 'es') currency = 'MXN';
-      else currency = 'USD';
-
-      if (currency === 'USD') return `US$${usd.toFixed(2)}`;
-      const rounded = Math.round(usd * 100) / 100;
-      if (tierMap[rounded] && tierMap[rounded][currency] !== undefined) {
-        const converted = tierMap[rounded][currency];
-        const sym = currency === 'JPY' ? '円' : currency === 'CNY' ? '元' : 'MXN$';
-        return `${sym}${converted}`;
+      if (window.formatPrice) {
+        // window.formatPrice uses the current global language, so we don't need to pass lang.
+        // But to be safe, we can just call it with the USD value.
+        return window.formatPrice(usd);
       }
-      let converted = usd * (approxRates[currency] || 1);
-      converted = (currency === 'JPY' || currency === 'MXN') ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-      const sym = currency === 'JPY' ? '円' : currency === 'CNY' ? '元' : 'MXN$';
-      return `${sym}${converted}`;
+      // Fallback (should never happen)
+      return `$${usd.toFixed(2)}`;
     }
 
-    // --------------------------------------------------------------
-    // Cart state
-    // --------------------------------------------------------------
-    let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
+    // Helper to get translation from shared translations object
     let currentLang = localStorage.getItem('language') || 'en';
-
-    function saveStoreCart() {
-      localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-      updateCartUI();
-      updateMembershipButtons();
-    }
-
-    function getMonthlyPriceForTier(tier) {
-      const prices = {1:5, 2:9, 3:14, 4:29, 5:39};
-      return prices[tier] || 0;
-    }
-
-    function getDiscountFactor(months) {
-      if (months >= 3) return 0.8;
-      if (months === 2) return 0.9;
-      return 1;
-    }
-
     function getTranslation(key, fallback = '') {
       const t = window.translations?.[currentLang] || window.translations?.en || {};
       return t[key] !== undefined ? t[key] : fallback;
     }
 
+    // --------------------------------------------------------------
+    // Cart UI using global cart
+    // --------------------------------------------------------------
     function updateCartUI() {
       if (!ourCartItems) return;
+      const cart = window.getCart ? window.getCart() : [];
+      const t = window.translations?.[currentLang] || window.translations?.en;
       const cartTitleSpan = document.getElementById('cartTitle');
       if (cartTitleSpan) cartTitleSpan.textContent = getTranslation('cartTitle', 'Shopping Cart');
       const totalLabelSpan = document.getElementById('totalLabel');
       if (totalLabelSpan) totalLabelSpan.textContent = getTranslation('totalLabel', 'Total');
 
-      ourCartItems.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${getTranslation('emptyCart', 'Your cart is empty')}</div>` : '';
+      ourCartItems.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${getTranslation('emptyCart', 'Your cart is empty')}</div>` : '';
       let total = 0;
-      storeCart.forEach((item, idx) => {
+      cart.forEach((item, idx) => {
         let priceHtml = '';
         let priceValue = 0;
 
+        // Handle membership items (they have type='membership')
         if (item.type === 'membership' && !item.isAnnual && item.months) {
           const monthlyPrice = getMonthlyPriceForTier(item.tier);
           const discountFactor = getDiscountFactor(item.months);
@@ -519,12 +490,12 @@
           const discountText = discountKey ? getTranslation(discountKey, `${discountPercent}% OFF`) : '';
           if (discountFactor < 1) {
             priceHtml = `
-              <span class="original-price">${myFormatPrice(originalTotal, currentLang)}</span>
+              <span class="original-price">${myFormatPrice(originalTotal)}</span>
               ${discountText ? `<span class="discount-badge">${discountText}</span><br>` : ''}
-              <span class="current-price" style="color: var(--price-red);">${myFormatPrice(totalPrice, currentLang)}</span>
+              <span class="current-price" style="color: var(--price-red);">${myFormatPrice(totalPrice)}</span>
             `;
           } else {
-            priceHtml = myFormatPrice(totalPrice, currentLang);
+            priceHtml = myFormatPrice(totalPrice);
           }
         } else if (item.type === 'membership' && item.isAnnual) {
           const monthlyPrice = getMonthlyPriceForTier(item.tier);
@@ -532,13 +503,14 @@
           const discountedAnnual = originalAnnual * 0.7;
           priceValue = discountedAnnual;
           priceHtml = `
-            <span class="original-price">${myFormatPrice(originalAnnual, currentLang)}</span>
+            <span class="original-price">${myFormatPrice(originalAnnual)}</span>
             <span class="discount-badge">${getTranslation('discount_30', '30% OFF')}</span><br>
-            <span class="current-price" style="color: var(--price-red);">${myFormatPrice(discountedAnnual, currentLang)}</span>
+            <span class="current-price" style="color: var(--price-red);">${myFormatPrice(discountedAnnual)}</span>
           `;
         } else {
-          priceValue = 0;
-          priceHtml = myFormatPrice(0, currentLang);
+          // Pack item – price is numeric USD
+          priceValue = item.price || 0;
+          priceHtml = myFormatPrice(priceValue);
         }
 
         total += priceValue;
@@ -575,15 +547,32 @@
         ourCartItems.appendChild(div);
       });
 
-      // Attach quantity handlers
+      // Attach quantity handlers for monthly memberships
       document.querySelectorAll('.decrease-monthly').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
-          const item = storeCart[idx];
+          const cart = window.getCart();
+          const item = cart[idx];
           if (item && item.type === 'membership' && !item.isAnnual) {
             let newMonths = Math.max(1, item.months - 1);
-            item.months = newMonths;
-            saveStoreCart();
+            // Remove the old one and add a new one with updated months
+            window.addOrToggleCart(item);
+            const newItem = { ...item, months: newMonths, id: `${item.id.split('-').slice(0,3).join('-')}` };
+            // We need to generate the correct ID – simpler: just remove and add new
+            // Actually, we already removed the old one. Now add the new one.
+            window.addOrToggleCart({
+              id: `membership-${item.tier}-monthly`, // ID for monthly (without months)
+              title: item.title,
+              price: getMonthlyPriceForTier(item.tier) * newMonths * getDiscountFactor(newMonths),
+              type: 'membership',
+              tier: item.tier,
+              isAnnual: false,
+              months: newMonths,
+              discordId: item.discordId,
+              image: item.image
+            });
+            // Update UI after a short delay
+            setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
           }
         });
       });
@@ -591,11 +580,23 @@
       document.querySelectorAll('.increase-monthly').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
-          const item = storeCart[idx];
+          const cart = window.getCart();
+          const item = cart[idx];
           if (item && item.type === 'membership' && !item.isAnnual) {
             let newMonths = Math.min(12, item.months + 1);
-            item.months = newMonths;
-            saveStoreCart();
+            window.addOrToggleCart(item);
+            window.addOrToggleCart({
+              id: `membership-${item.tier}-monthly`,
+              title: item.title,
+              price: getMonthlyPriceForTier(item.tier) * newMonths * getDiscountFactor(newMonths),
+              type: 'membership',
+              tier: item.tier,
+              isAnnual: false,
+              months: newMonths,
+              discordId: item.discordId,
+              image: item.image
+            });
+            setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
           }
         });
       });
@@ -603,13 +604,25 @@
       document.querySelectorAll('.monthly-quantity').forEach(input => {
         input.addEventListener('change', (e) => {
           const idx = parseInt(input.dataset.idx);
-          const item = storeCart[idx];
+          const cart = window.getCart();
+          const item = cart[idx];
           if (item && item.type === 'membership' && !item.isAnnual) {
             let newMonths = parseInt(input.value, 10);
             if (isNaN(newMonths)) newMonths = 1;
             newMonths = Math.min(12, Math.max(1, newMonths));
-            item.months = newMonths;
-            saveStoreCart();
+            window.addOrToggleCart(item);
+            window.addOrToggleCart({
+              id: `membership-${item.tier}-monthly`,
+              title: item.title,
+              price: getMonthlyPriceForTier(item.tier) * newMonths * getDiscountFactor(newMonths),
+              type: 'membership',
+              tier: item.tier,
+              isAnnual: false,
+              months: newMonths,
+              discordId: item.discordId,
+              image: item.image
+            });
+            setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
           }
         });
       });
@@ -617,15 +630,17 @@
       document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
-          storeCart.splice(idx, 1);
-          saveStoreCart();
+          const cart = window.getCart();
+          const item = cart[idx];
+          if (item) window.addOrToggleCart(item);
+          setTimeout(() => { updateCartUI(); updateMembershipButtons(); }, 10);
         });
       });
 
       if (ourCartTotal) {
-        ourCartTotal.innerText = myFormatPrice(total, currentLang);
+        ourCartTotal.innerText = myFormatPrice(total);
       }
-      const count = storeCart.length;
+      const count = cart.length;
       document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
         if (el) el.textContent = count;
       });
@@ -662,7 +677,7 @@
       if (isRendering) return;
       if (!window.priceKeyMap || !window.priceUsdMap) return;
       isRendering = true;
-      const cart = storeCart;
+      const cart = window.getCart ? window.getCart() : [];
       if (cart.length === 0) {
         ourPaypalContainer.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
         isRendering = false;
@@ -682,8 +697,9 @@
         },
         onApprove: (data, actions) => {
           return actions.order.capture().then(() => {
-            storeCart = [];
-            saveStoreCart();
+            // Clear cart
+            const cart = window.getCart();
+            cart.forEach(item => window.addOrToggleCart(item));
             window.location.href = `/s/success.html?orderID=${data.orderID}`;
           });
         },
@@ -705,14 +721,26 @@
     // Membership logic
     // --------------------------------------------------------------
     const TIER_TITLES = {1:'Bronze', 2:'Copper', 3:'Silver', 4:'Gold', 5:'Platinum'};
+    const MONTHLY_BASE_PRICES = {1:5, 2:9, 3:14, 4:29, 5:39};
+
+    function getMonthlyPriceForTier(tier) {
+      return MONTHLY_BASE_PRICES[tier] || 0;
+    }
+
+    function getDiscountFactor(months) {
+      if (months >= 3) return 0.8;
+      if (months === 2) return 0.9;
+      return 1;
+    }
 
     function getMembershipRank(tier, isAnnual) {
       return tier * 2 + (isAnnual ? 1 : 0);
     }
 
     function updateMembershipButtons() {
+      const cart = window.getCart ? window.getCart() : [];
       let highestRank = -1;
-      for (const item of storeCart) {
+      for (const item of cart) {
         if (item.type === 'membership') {
           const rank = getMembershipRank(item.tier, item.isAnnual);
           if (rank > highestRank) highestRank = rank;
@@ -726,8 +754,8 @@
         const btnMonthly = card.querySelector(`button[data-tier="${tier}"][data-type="monthly"]`);
         const btnAnnual = card.querySelector(`button[data-tier="${tier}"][data-type="annual"]`);
 
-        const monthlyInCart = storeCart.some(item => item.id === `membership-${tier}-monthly`);
-        const annualInCart = storeCart.some(item => item.id === `membership-${tier}-annual`);
+        const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
+        const annualInCart = cart.some(item => item.id === `membership-${tier}-annual`);
 
         if (btnMonthly) {
           btnMonthly.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('btnMonthlyText', 'Monthly (Save up to 20%)');
@@ -781,24 +809,28 @@
 
       const newId = `membership-${tierNumber}-${isAnnual ? 'annual' : 'monthly'}`;
       const newRank = getMembershipRank(tierNumber, isAnnual);
+      const cart = window.getCart ? window.getCart() : [];
 
-      const existingIndex = storeCart.findIndex(item => item.type === 'membership');
-      const existingItem = existingIndex !== -1 ? storeCart[existingIndex] : null;
-
-      if (existingItem && existingItem.id === newId) {
-        storeCart.splice(existingIndex, 1);
-        saveStoreCart();
+      // Check if already in cart (with same ID)
+      const existingIndex = cart.findIndex(item => item.id === newId);
+      if (existingIndex !== -1) {
+        // Remove it
+        window.addOrToggleCart(cart[existingIndex]);
         showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
         return;
       }
 
+      // Check for any existing membership
+      const membershipItems = cart.filter(item => item.type === 'membership');
+      const existingItem = membershipItems[0]; // There should be at most one membership
       if (existingItem) {
         const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
         if (newRank <= existingRank) {
           showSnackbar(getTranslation('errorOnlyHighest', 'You can only upgrade to a higher tier or annual plan.'), true);
           return;
         }
-        storeCart.splice(existingIndex, 1);
+        // Remove the old one
+        window.addOrToggleCart(existingItem);
       }
 
       const tierNameKey = `tier${TIER_TITLES[tierNumber]}`;
@@ -812,7 +844,7 @@
         title = `${tierName} (${durationText})`;
       }
 
-      storeCart.push({
+      const product = {
         id: newId,
         title: title,
         type: 'membership',
@@ -821,8 +853,13 @@
         months: isAnnual ? 12 : months,
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`
-      });
-      saveStoreCart();
+      };
+      if (isAnnual) {
+        product.price = getMonthlyPriceForTier(tierNumber) * 12 * 0.7;
+      } else {
+        product.price = getMonthlyPriceForTier(tierNumber) * months * getDiscountFactor(months);
+      }
+      window.addOrToggleCart(product);
       showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
     }
 
@@ -895,7 +932,7 @@
         const usd = parseFloat(el.dataset.priceUsd);
         if (!isNaN(usd)) {
           const priceSpan = el.querySelector('.price-value');
-          if (priceSpan) priceSpan.textContent = myFormatPrice(usd, currentLang);
+          if (priceSpan) priceSpan.textContent = myFormatPrice(usd);
         }
       });
       updateMembershipButtons();
@@ -905,7 +942,7 @@
       return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
 
-    // Initial sync
+    // Initial sync and poll for cart changes (since we use global cart, we can listen to storage events)
     updateCartUI();
     updateMembershipButtons();
 
@@ -927,6 +964,31 @@
       updateMembershipButtons();
       updateCartUI();
     });
+
+    // Listen for storage events to update cart UI when cart changes from other tabs
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'velutinx_cart') {
+        updateCartUI();
+        updateMembershipButtons();
+      }
+    });
+
+    // Also listen for custom events (shared.js may dispatch 'cartUpdated')
+    document.addEventListener('cartUpdated', () => {
+      updateCartUI();
+      updateMembershipButtons();
+    });
+
+    // Poll for cart changes (as a fallback)
+    let lastCart = localStorage.getItem('velutinx_cart');
+    setInterval(() => {
+      const newCart = localStorage.getItem('velutinx_cart');
+      if (newCart !== lastCart) {
+        lastCart = newCart;
+        updateCartUI();
+        updateMembershipButtons();
+      }
+    }, 500);
   });
 
   // Discord help toggle
