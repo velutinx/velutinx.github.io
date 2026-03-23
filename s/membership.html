@@ -260,6 +260,7 @@
     .arrow-right { right: -20px; }
     @media (max-width: 700px) { .arrow-left { left: -10px; } .arrow-right { right: -10px; } }
   </style>
+  <meta name="referrer" content="origin">
 </head>
 <body>
 
@@ -567,7 +568,7 @@
             }
           }
         }
-        console.log('Local monthly prices loaded:', localMonthlyPrice);
+  //      console.log('Local monthly prices loaded:', localMonthlyPrice);
       } catch (err) {
         console.error('Failed to load conversions', err);
         // fallback approximate rates (will produce non‑round numbers)
