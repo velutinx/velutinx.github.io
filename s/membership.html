@@ -313,7 +313,8 @@
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
       updateCartUI();
-      updateMembershipButtons(); // update immediately
+      // Use a timeout to ensure DOM is fully updated before refreshing buttons
+      setTimeout(() => updateMembershipButtons(), 0);
     }
 
     function getMonthlyPriceForTier(tier) {
@@ -458,7 +459,7 @@
       document.body.classList.add('drawer-open');
       renderPayPalButton();
       // Also update button states in case cart changed while drawer was closed
-      updateMembershipButtons();
+      setTimeout(() => updateMembershipButtons(), 0);
     }
 
     function closeCart() {
