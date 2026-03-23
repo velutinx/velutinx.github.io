@@ -722,14 +722,20 @@
             }]
           });
         },
-        onApprove: async (data, actions) => {
-          // Store the cart in KV before redirecting
-          await storeCartInKV(data.orderID, cart);
-          // Clear membership cart
-          saveCart([]);
-          // Redirect to success page
-          window.location.href = `/s/success.html?orderID=${data.orderID}`;
-        },
+onApprove: async (data, actions) => {
+  console.log('Order approved, ID:', data.orderID);
+  try {
+    await storeCartInKV(data.orderID, cart);
+    console.log('Cart stored successfully');
+  } catch (err) {
+    console.error('Failed to store cart:', err);
+    alert('There was a problem saving your order details. Please contact support with your order ID: ' + data.orderID);
+  }
+  // Clear membership cart
+  saveCart([]);
+  // Redirect to success page
+  window.location.href = `/s/success.html?orderID=${data.orderID}`;
+}
         onError: (err) => {
           console.error('PayPal error', err);
           alert('Something went wrong. Please try again.');
