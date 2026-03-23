@@ -711,7 +711,7 @@ async function storeCartInKV(orderID, cart) {
         total += item.price || 0;
       }
       const totalUSD = total.toFixed(2);
-
+console.log('Creating PayPal button with cart:', cart);
       ourPaypalContainer.innerHTML = '';
       const buttons = paypal.Buttons({
         createOrder: (data, actions) => {
@@ -725,9 +725,13 @@ async function storeCartInKV(orderID, cart) {
           });
         },
 onApprove: async (data, actions) => {
-  console.log('PayPal approved, orderID:', data.orderID);
-  await storeCartInKV(data.orderID, cart);
-  console.log('Cart stored, redirecting...');
+  console.log('PayPal onApprove called, orderID:', data.orderID);
+  try {
+    await storeCartInKV(data.orderID, cart);
+    console.log('Cart stored successfully');
+  } catch (err) {
+    console.error('storeCartInKV failed:', err);
+  }
   saveCart([]);
   window.location.href = `/s/success.html?orderID=${data.orderID}`;
 }
