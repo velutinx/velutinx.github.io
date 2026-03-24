@@ -9,8 +9,9 @@
   --border: #aa9e76;
   --overlay: rgba(170,158,118,0.25);
   --btn-cart: #3a3528;
-  --price-red: #dc2626;
+  --red-discount: #dc2626;
 }
+
 body.dark {
   --bg: #0f0f12;
   --card: #1a1a20;
@@ -19,8 +20,9 @@ body.dark {
   --accent: #d4c08a;
   --success: #8b8a5e;
   --border: #6f6a4e;
-  --price-red: #f87171;
+  --red-discount: #f87171;
 }
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
