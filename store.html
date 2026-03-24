@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* store-specific styles – unchanged */
+    /* store-specific styles */
     .main-container {
       display: flex;
       max-width: 1400px;
@@ -95,8 +95,22 @@
     }
     .product-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      grid-template-columns: repeat(5, 1fr);  /* always 5 columns on large screens */
       gap: 1.8rem;
+    }
+    @media (max-width: 1200px) {
+      .product-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 1000px) {
+      .product-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 780px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); }
+      .main-container { flex-direction: column; }
+      .store-filter-sidebar { width: 100%; }
+    }
+    @media (max-width: 500px) {
+      .product-grid { grid-template-columns: 1fr; }
     }
     .product-card {
       background: var(--card);
@@ -143,10 +157,6 @@
     }
     .cart-btn svg { width: 26px; height: 26px; }
     .cart-btn.added { background: var(--success); }
-    @media (max-width: 780px) {
-      .main-container { flex-direction: column; }
-      .store-filter-sidebar { width: 100%; }
-    }
   </style>
 </head>
 <body>
