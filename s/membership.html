@@ -75,7 +75,7 @@
       text-align: center;
     }
     .btn-monthly { background: #3b82f6; }
-    .btn-subscribe { background: #10b981; } /* new subscription button color */
+    .btn-subscribe { background: #10b981; }
     .btn-remove { background: #ef4444 !important; }
     .btn-monthly:hover:not(.disabled), .btn-subscribe:hover:not(.disabled) { transform: scale(1.02); }
     .btn-monthly:hover:not(.disabled) { background: #2563eb; }
@@ -178,7 +178,7 @@
       font-size: 1.2em;
       display: inline-block;
       font-weight: bold;
-      color: #ef4444;  /* red for final price */
+      color: #ef4444;
     }
     .cart-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
     .cart-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text); }
@@ -483,8 +483,613 @@
 <script src="/s/js/translations.js"></script>
 
 <script>
+  // --------------------------------------------------------------------
+  // Fix: Clear old cart data from shared.js to prevent conflicts
+  // --------------------------------------------------------------------
+  localStorage.removeItem('cart');          // likely used by shared script
+  localStorage.removeItem('velutinx_cart'); // another possible key
+
+  // --------------------------------------------------------------------
+  // Helper: get translation with fallback
+  // --------------------------------------------------------------------
+  function getTranslation(key, fallback = '') {
+    const lang = localStorage.getItem('language') || 'en';
+    const t = window.translations?.[lang] || window.translations?.en || {};
+    return t[key] !== undefined ? t[key] : fallback;
+  }
+
+  // --------------------------------------------------------------------
+  // Helper: format local price (safe)
+  // --------------------------------------------------------------------
+  function formatLocalPrice(amount, lang) {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      console.warn('formatLocalPrice called with invalid amount:', amount);
+      return '0.00';
+    }
+    if (lang === 'en') return `US$${amount.toFixed(2)}`;
+    let currency, sym;
+    if (lang === 'ja') { currency = 'JPY'; sym = '円'; }
+    else if (lang === 'zh') { currency = 'CNY'; sym = '元'; }
+    else if (lang === 'es') { currency = 'MXN'; sym = 'MXN$'; }
+    else { currency = 'USD'; sym = 'US$'; }
+    if (currency === 'USD') return `US$${amount.toFixed(2)}`;
+    const formatted = (currency === 'JPY' || currency === 'MXN') ? Math.round(amount) : amount.toFixed(2);
+    return `${sym}${formatted}`;
+  }
+
+  // --------------------------------------------------------------------
+  // Global variables
+  // --------------------------------------------------------------------
+  const USD_MONTHLY = {1:5, 2:9, 3:14, 4:29, 5:39};
+  let localMonthlyPrice = {}; // { tier: { JPY, CNY, MXN } }
+
+  // --------------------------------------------------------------------
+  // Fetch currency conversions
+  // --------------------------------------------------------------------
+  async function fetchConversions() {
+    try {
+      const resp = await fetch('https://supabase-link.velutinx.workers.dev');
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+      const data = await resp.json();
+      if (data.tiers && Array.isArray(data.tiers)) {
+        for (const tier of data.tiers) {
+          const usd = parseFloat(tier.usd);
+          if (!isNaN(usd)) {
+            const tierNum = Object.keys(USD_MONTHLY).find(k => USD_MONTHLY[k] === usd);
+            if (tierNum) {
+              localMonthlyPrice[tierNum] = {
+                JPY: tier.jpy,
+                CNY: tier.cny,
+                MXN: tier.mxn
+              };
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load conversions', err);
+      const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
+      for (let t=1; t<=5; t++) {
+        localMonthlyPrice[t] = {
+          JPY: Math.round(USD_MONTHLY[t] * approx.JPY),
+          CNY: USD_MONTHLY[t] * approx.CNY,
+          MXN: USD_MONTHLY[t] * approx.MXN
+        };
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------
+  // Get local monthly price for a tier
+  // --------------------------------------------------------------------
+  function getLocalMonthlyPrice(tier, lang) {
+    const prices = localMonthlyPrice[tier];
+    if (!prices) return USD_MONTHLY[tier] * 18; // fallback MXN
+    if (lang === 'ja') return prices.JPY;
+    if (lang === 'zh') return prices.CNY;
+    if (lang === 'es') return prices.MXN;
+    return USD_MONTHLY[tier];
+  }
+
+  // --------------------------------------------------------------------
+  // Discount factor for multi-month purchases
+  // --------------------------------------------------------------------
+  function getDiscountFactor(months) {
+    if (months >= 3 && months <= 5) return 0.9;
+    if (months >= 6 && months <= 11) return 0.8;
+    if (months === 12) return 0.7;
+    return 1;
+  }
+
+  // --------------------------------------------------------------------
+  // Rank calculation: monthly = tier*2, subscription = tier*2+1
+  // --------------------------------------------------------------------
+  function getMembershipRank(tier, type) {
+    const base = tier * 2;
+    if (type === 'subscription') return base + 1;
+    return base; // monthly
+  }
+
+  // --------------------------------------------------------------------
+  // Cart management (key: 'velutinx_membership_cart')
+  // --------------------------------------------------------------------
+  const CART_KEY = 'velutinx_membership_cart';
+
+  function getCart() {
+    try {
+      return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    updateCartUI();
+    updateMembershipButtons();
+  }
+
+  // --------------------------------------------------------------------
+  // Validate Discord ID
+  // --------------------------------------------------------------------
+  function validateDiscordId() {
+    const input = document.getElementById('discordId');
+    if (!input) return null;
+    const id = input.value.trim();
+    if (!id) {
+      showSnackbar(getTranslation('errorDiscordMissing', 'Please enter your Discord ID'), true);
+      return null;
+    }
+    if (!/^\d{17,19}$/.test(id)) {
+      showSnackbar(getTranslation('errorDiscordInvalid', 'Invalid Discord ID format'), true);
+      return null;
+    }
+    return id;
+  }
+
+  function showSnackbar(msg, isRemove = false) {
+    const sb = document.getElementById('snackbar');
+    const text = document.getElementById('snackText');
+    if (sb) {
+      sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+      text.innerText = msg;
+      sb.classList.add('show');
+      setTimeout(() => sb.classList.remove('show'), 2000);
+    } else {
+      alert(msg);
+    }
+  }
+
+  // --------------------------------------------------------------------
+  // Add or remove a membership item (monthly or subscription)
+  // --------------------------------------------------------------------
+  function toggleMembership(tierNumber, type, months = 1) {
+    const discordId = validateDiscordId();
+    if (!discordId) return;
+
+    const itemId = `membership-${tierNumber}-${type}`;
+    let cart = getCart();
+
+    // If already in cart, remove it
+    const existingIndex = cart.findIndex(item => item.id === itemId);
+    if (existingIndex !== -1) {
+      cart.splice(existingIndex, 1);
+      saveCart(cart);
+      showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
+      return;
+    }
+
+    // Calculate rank of new item
+    const newRank = getMembershipRank(tierNumber, type);
+
+    // Check for existing membership items
+    const existingItems = cart.filter(item => item.type === 'membership' || item.type === 'subscription');
+    if (existingItems.length > 0) {
+      const highestRank = Math.max(...existingItems.map(item => getMembershipRank(item.tier, item.type)));
+      if (newRank <= highestRank) {
+        showSnackbar(getTranslation('errorOnlyHigher', 'You can only add a higher tier or a subscription.'), true);
+        return;
+      }
+      // Remove all existing membership items (they are lower rank)
+      cart = cart.filter(item => !(item.type === 'membership' || item.type === 'subscription'));
+    }
+
+    // Build the new item
+    const tierNameKey = `tier${['Bronze','Copper','Silver','Gold','Platinum'][tierNumber-1]}`;
+    const tierName = getTranslation(tierNameKey, ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][tierNumber-1]);
+
+    const currentLang = localStorage.getItem('language') || 'en';
+    const localMonthly = getLocalMonthlyPrice(tierNumber, currentLang);
+
+    let priceUSD, displayPrice, displayOriginal, discountPercent = 0;
+
+    if (type === 'subscription') {
+      discountPercent = 10;
+      const discountFactor = 0.9;
+      priceUSD = USD_MONTHLY[tierNumber] * discountFactor;
+      displayOriginal = localMonthly;
+      displayPrice = localMonthly * discountFactor;
+      months = 1; // not used in subscription, but keep for consistency
+    } else {
+      const discountFactor = getDiscountFactor(months);
+      discountPercent = discountFactor === 0.9 ? 10 : discountFactor === 0.8 ? 20 : discountFactor === 0.7 ? 30 : 0;
+      priceUSD = USD_MONTHLY[tierNumber] * months * discountFactor;
+      displayOriginal = localMonthly * months;
+      displayPrice = localMonthly * months * discountFactor;
+    }
+
+    const title = type === 'subscription'
+      ? `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`
+      : `${tierName} (${getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`)}${discountPercent ? ` - ${discountPercent}% OFF` : ''})`;
+
+    const newItem = {
+      id: itemId,
+      title: title,
+      type: type,
+      tier: tierNumber,
+      months: months,
+      discordId: discordId,
+      image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`,
+      priceUSD: priceUSD,
+      displayPrice: displayPrice,
+      displayOriginal: displayOriginal,
+      discountPercent: discountPercent
+    };
+    cart.push(newItem);
+    saveCart(cart);
+    showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
+  }
+
+  // --------------------------------------------------------------------
+  // Update cart UI (drawer)
+  // --------------------------------------------------------------------
+  function updateCartUI() {
+    const ourCartItems = document.getElementById('ourCartItems');
+    const ourCartTotal = document.getElementById('ourCartTotal');
+    if (!ourCartItems) return;
+
+    const cart = getCart();
+    const currentLang = localStorage.getItem('language') || 'en';
+
+    document.getElementById('cartTitle').textContent = getTranslation('cartTitle', 'Shopping Cart');
+    document.getElementById('totalLabel').textContent = getTranslation('totalLabel', 'Total');
+
+    ourCartItems.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${getTranslation('emptyCart', 'Your cart is empty')}</div>` : '';
+    let totalLocal = 0;
+
+    cart.forEach((item, idx) => {
+      let priceHtml = '';
+      const displayPrice = item.displayPrice;
+      const displayOriginal = item.displayOriginal;
+      const discountPercent = item.discountPercent;
+
+      if (discountPercent === 10) {
+        priceHtml = `
+          <span class="original-price">${formatLocalPrice(displayOriginal, currentLang)}</span>
+          <span class="discount-badge">${getTranslation('discount_10', '10% OFF')}</span><br>
+          <span class="current-price">${formatLocalPrice(displayPrice, currentLang)}</span>
+        `;
+      } else if (discountPercent === 20) {
+        priceHtml = `
+          <span class="original-price">${formatLocalPrice(displayOriginal, currentLang)}</span>
+          <span class="discount-badge">${getTranslation('discount_20', '20% OFF')}</span><br>
+          <span class="current-price">${formatLocalPrice(displayPrice, currentLang)}</span>
+        `;
+      } else if (discountPercent === 30) {
+        priceHtml = `
+          <span class="original-price">${formatLocalPrice(displayOriginal, currentLang)}</span>
+          <span class="discount-badge">${getTranslation('discount_30', '30% OFF')}</span><br>
+          <span class="current-price">${formatLocalPrice(displayPrice, currentLang)}</span>
+        `;
+      } else {
+        priceHtml = formatLocalPrice(displayPrice, currentLang);
+      }
+
+      totalLocal += displayPrice;
+
+      const div = document.createElement('div');
+      div.className = 'our-cart-item';
+      let titleText = item.title;
+      if (item.type === 'subscription') {
+        const tierNameKey = `tier${['Bronze','Copper','Silver','Gold','Platinum'][item.tier-1]}`;
+        const tierName = getTranslation(tierNameKey, ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][item.tier-1]);
+        titleText = `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`;
+      }
+      div.innerHTML = `
+        <img src="${item.image}" alt="${item.title}">
+        <div class="our-cart-item-info">
+          <div class="our-cart-item-title">${escapeHtml(titleText)}</div>
+          <div class="our-cart-item-price">${priceHtml}</div>
+        </div>
+        <button class="our-cart-item-remove" data-idx="${idx}">✕</button>
+      `;
+      ourCartItems.appendChild(div);
+    });
+
+    document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(btn.dataset.idx);
+        const cart = getCart();
+        cart.splice(idx, 1);
+        saveCart(cart);
+      });
+    });
+
+    if (ourCartTotal) {
+      ourCartTotal.innerText = formatLocalPrice(totalLocal, currentLang);
+    }
+
+    const count = cart.length;
+    document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
+      if (el) el.textContent = count;
+    });
+
+    const ourDrawer = document.getElementById('ourCartDrawer');
+    if (ourDrawer && ourDrawer.classList.contains('open')) renderPayPalButton();
+  }
+
+  // --------------------------------------------------------------------
+  // PayPal rendering (simplified, same as before)
+  // --------------------------------------------------------------------
+  async function storeCartInKV(orderID, cart) {
+    try {
+      const resp = await fetch('https://orders.velutinx.workers.dev/store-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderID, cart })
+      });
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+    } catch (err) {
+      console.error(err);
+      alert(`Failed to save order details: ${err.message}\nPlease contact support with your order ID: ${orderID}`);
+    }
+  }
+
+  let isRendering = false;
+  function renderPayPalButton() {
+    const container = document.getElementById('ourPaypalButtonContainer');
+    if (!container) return;
+    const drawer = document.getElementById('ourCartDrawer');
+    if (!drawer || !drawer.classList.contains('open')) return;
+    if (isRendering) return;
+    isRendering = true;
+
+    const cart = getCart();
+    if (cart.length === 0) {
+      container.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
+      isRendering = false;
+      return;
+    }
+
+    let totalUSD = 0;
+    for (const item of cart) {
+      totalUSD += item.priceUSD || 0;
+    }
+    const totalUSDfixed = totalUSD.toFixed(2);
+    container.innerHTML = '';
+
+    const buttons = paypal.Buttons({
+      createOrder: (data, actions) => {
+        return actions.order.create({
+          purchase_units: [{
+            amount: { currency_code: "USD", value: totalUSDfixed }
+          }]
+        });
+      },
+      onApprove: async (data, actions) => {
+        const currentCart = getCart();
+        try { await storeCartInKV(data.orderID, currentCart); } catch(e) { console.error(e); }
+        saveCart([]);
+        window.location.href = `/s/success.html?orderID=${data.orderID}`;
+      },
+      onError: (err) => { console.error(err); alert('Something went wrong. Please try again.'); },
+      onCancel: () => { isRendering = false; }
+    });
+    buttons.render(container).then(() => { isRendering = false; })
+      .catch(err => { console.error(err); isRendering = false; });
+  }
+
+  // --------------------------------------------------------------------
+  // Update membership buttons based on cart
+  // --------------------------------------------------------------------
+  function updateMembershipButtons() {
+    const cart = getCart();
+    let highestRank = -1;
+    for (const item of cart) {
+      if (item.type === 'membership' || item.type === 'subscription') {
+        const rank = getMembershipRank(item.tier, item.type);
+        if (rank > highestRank) highestRank = rank;
+      }
+    }
+
+    for (let tier = 1; tier <= 5; tier++) {
+      const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+      if (!card) continue;
+
+      const monthlyBtn = card.querySelector(`.membership-btn[data-type="monthly"]`);
+      const subBtn = card.querySelector(`.membership-btn[data-type="subscription"]`);
+      const monthSelector = card.querySelector('.month-selector-btn');
+
+      const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
+      const subInCart = cart.some(item => item.id === `membership-${tier}-subscription`);
+
+      if (monthlyBtn) {
+        monthlyBtn.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('addToCart', 'Add to Cart');
+        monthlyBtn.classList.remove('btn-monthly', 'btn-remove');
+        monthlyBtn.classList.add(monthlyInCart ? 'btn-remove' : 'btn-monthly');
+      }
+      if (subBtn) {
+        subBtn.textContent = subInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('subscribeBtn', 'Subscribe 10% OFF');
+        subBtn.classList.remove('btn-subscribe', 'btn-remove');
+        subBtn.classList.add(subInCart ? 'btn-remove' : 'btn-subscribe');
+      }
+
+      const monthlyRank = getMembershipRank(tier, 'monthly');
+      const subRank = getMembershipRank(tier, 'subscription');
+      const disableMonthly = (highestRank !== -1 && monthlyRank < highestRank);
+      const disableSub = (highestRank !== -1 && subRank < highestRank);
+
+      if (monthlyBtn) {
+        if (disableMonthly && !monthlyInCart) monthlyBtn.classList.add('disabled');
+        else monthlyBtn.classList.remove('disabled');
+      }
+      if (subBtn) {
+        if (disableSub && !subInCart) subBtn.classList.add('disabled');
+        else subBtn.classList.remove('disabled');
+      }
+      if (monthSelector) {
+        if (disableMonthly && !monthlyInCart) monthSelector.classList.add('disabled');
+        else monthSelector.classList.remove('disabled');
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------
+  // Attach button listeners
+  // --------------------------------------------------------------------
+  function attachButtonListeners() {
+    document.querySelectorAll('.membership-btn[data-type="monthly"]').forEach(btn => {
+      btn.onclick = () => {
+        const card = btn.closest('.tier-card');
+        const tier = parseInt(card.getAttribute('data-tier'));
+        const monthSelector = card.querySelector('.month-selector-btn');
+        const months = parseInt(monthSelector.getAttribute('data-selected'));
+        toggleMembership(tier, 'monthly', months);
+      };
+    });
+    document.querySelectorAll('.membership-btn[data-type="subscription"]').forEach(btn => {
+      btn.onclick = () => {
+        const card = btn.closest('.tier-card');
+        const tier = parseInt(card.getAttribute('data-tier'));
+        toggleMembership(tier, 'subscription');
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------
+  // Dropdown setup
+  // --------------------------------------------------------------------
+  function setupDropdowns() {
+    document.querySelectorAll('.month-selector-container').forEach(container => {
+      const btn = container.querySelector('.month-selector-btn');
+      const dropdown = container.querySelector('.month-dropdown');
+      const options = dropdown.querySelectorAll('button');
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (btn.classList.contains('disabled')) return;
+        document.querySelectorAll('.month-dropdown.open').forEach(d => {
+          if (d !== dropdown) d.classList.remove('open');
+        });
+        dropdown.classList.toggle('open');
+      });
+
+      options.forEach(opt => {
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const months = parseInt(opt.getAttribute('data-months'));
+          let discountText = '';
+          if (months === 3) discountText = getTranslation('discount_10', '10% OFF');
+          else if (months === 6) discountText = getTranslation('discount_20', '20% OFF');
+          else if (months === 12) discountText = getTranslation('discount_30', '30% OFF');
+          let label = getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`);
+          if (discountText) label += ` (${discountText})`;
+          btn.querySelector('.month-btn-label').textContent = label;
+          btn.setAttribute('data-selected', months);
+          dropdown.classList.remove('open');
+        });
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.month-selector-container')) {
+        document.querySelectorAll('.month-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
+    });
+  }
+
+  function updateMonthButtonLabels() {
+    document.querySelectorAll('.month-selector-container').forEach(container => {
+      const btn = container.querySelector('.month-selector-btn');
+      const selectedMonths = parseInt(btn.getAttribute('data-selected'));
+      let discountText = '';
+      if (selectedMonths === 3) discountText = getTranslation('discount_10', '10% OFF');
+      else if (selectedMonths === 6) discountText = getTranslation('discount_20', '20% OFF');
+      else if (selectedMonths === 12) discountText = getTranslation('discount_30', '30% OFF');
+      let label = getTranslation(`duration_${selectedMonths}`, `${selectedMonths} month${selectedMonths>1?'s':''}`);
+      if (discountText) label += ` (${discountText})`;
+      btn.querySelector('.month-btn-label').textContent = label;
+
+      const dropdown = container.querySelector('.month-dropdown');
+      dropdown.querySelectorAll('button').forEach(opt => {
+        const months = parseInt(opt.getAttribute('data-months'));
+        let optDiscount = '';
+        if (months === 3) optDiscount = getTranslation('discount_10', '10% OFF');
+        else if (months === 6) optDiscount = getTranslation('discount_20', '20% OFF');
+        else if (months === 12) optDiscount = getTranslation('discount_30', '30% OFF');
+        let optLabel = getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`);
+        if (optDiscount) optLabel += ` (${optDiscount})`;
+        opt.textContent = optLabel;
+      });
+    });
+  }
+
+  function updateMembershipText() {
+    const setText = (id, key, fallback) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = getTranslation(key, fallback);
+    };
+    setText('membershipTitle', 'membershipTitle', 'Choose Your Membership');
+    setText('membershipDescription', 'membershipDescription', 'Support my work and unlock exclusive perks');
+    const discordLabel = document.getElementById('discordIdLabel');
+    if (discordLabel) discordLabel.innerHTML = getTranslation('discordIdLabel', 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>';
+    setText('discordHintText', 'discordHint', 'How to find your Discord ID:');
+    setText('discordHelpText', 'discordHelpLink', 'Where do I find my Discord ID? (click)');
+    document.getElementById('discordHelpStep1').innerHTML = getTranslation('discordHelpStep1', '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+    document.getElementById('discordHelpStep2').innerHTML = getTranslation('discordHelpStep2', '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+    document.getElementById('discordHelpStep3').innerHTML = getTranslation('discordHelpStep3', '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+    document.getElementById('discordHelpStep4').innerHTML = getTranslation('discordHelpStep4', '<strong>Step 4:</strong> Paste that number here.');
+    const importantLabel = document.getElementById('importantLabel');
+    if (importantLabel) importantLabel.textContent = getTranslation('importantLabel', 'Important:');
+    const noteBoxText = document.getElementById('noteBoxText');
+    if (noteBoxText) noteBoxText.textContent = getTranslation('noteBoxText', 'After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!');
+    const joinLink = document.getElementById('joinDiscordLink');
+    if (joinLink) joinLink.textContent = getTranslation('joinDiscord', '→ Join Discord Server ←');
+
+    for (let i = 1; i <= 5; i++) {
+      const titleEl = document.getElementById(`tier${i}Title`);
+      const key = `tier${['Bronze','Copper','Silver','Gold','Platinum'][i-1]}`;
+      if (titleEl) titleEl.textContent = getTranslation(key, ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][i-1]);
+    }
+
+    const perkIds = [
+      'perk1_1','perk1_2','perk1_3','perk1_4',
+      'perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
+      'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
+      'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6',
+      'perk5_1','perk5_2'
+    ];
+    perkIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = getTranslation(id, '');
+    });
+
+    document.querySelectorAll('.per-month').forEach(el => el.textContent = getTranslation('perMonth', '/ month'));
+
+    document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+      const usd = parseFloat(el.dataset.priceUsd);
+      if (!isNaN(usd)) {
+        const priceSpan = el.querySelector('.price-value');
+        if (priceSpan) {
+          const tierNum = Object.keys(USD_MONTHLY).find(k => USD_MONTHLY[k] === usd);
+          if (tierNum) {
+            const local = getLocalMonthlyPrice(parseInt(tierNum), localStorage.getItem('language') || 'en');
+            priceSpan.textContent = formatLocalPrice(local, localStorage.getItem('language') || 'en');
+          } else {
+            priceSpan.textContent = formatLocalPrice(usd, localStorage.getItem('language') || 'en');
+          }
+        }
+      }
+    });
+
+    updateMonthButtonLabels();
+    updateMembershipButtons();
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
+  }
+
+  window.scrollCarousel = function(direction) {
+    const container = document.getElementById('tierCarousel');
+    if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
+  };
+
+  // --------------------------------------------------------------------
+  // Main initialization after header is ready
+  // --------------------------------------------------------------------
   document.addEventListener('headerReady', async () => {
-    // --- remove shared cart elements (same as before) ---
+    // Remove old shared cart elements
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
     const sharedDrawer = document.getElementById('cartDrawer');
@@ -495,7 +1100,7 @@
     if (sharedOverlay) sharedOverlay.remove();
     document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => el?.remove());
 
-    // --- add custom cart button, floating button, drawer (same as before) ---
+    // Build our custom cart UI
     const navActions = document.querySelector('.nav-actions');
     if (navActions) {
       const ourCartBtn = document.createElement('button');
@@ -545,597 +1150,53 @@
     const ourDrawer = document.getElementById('ourCartDrawer');
     const ourOverlay = document.getElementById('ourCartOverlay');
     const ourClose = document.getElementById('ourCartClose');
-    const ourCartItems = document.getElementById('ourCartItems');
-    const ourCartTotal = document.getElementById('ourCartTotal');
-    const ourPaypalContainer = document.getElementById('ourPaypalButtonContainer');
 
-    // --- HARDCODED USD PRICES (source of truth for PayPal) ---
-    const USD_MONTHLY = {1:5, 2:9, 3:14, 4:29, 5:39};
-
-    // --- fetch conversion map from Supabase ---
-    let localMonthlyPrice = {};   // { tier: { JPY: number, CNY: number, MXN: number } }
-    async function fetchConversions() {
-      try {
-        const resp = await fetch('https://supabase-link.velutinx.workers.dev');
-        if (!resp.ok) throw new Error('HTTP '+resp.status);
-        const data = await resp.json();
-        if (data.tiers && Array.isArray(data.tiers)) {
-          // map USD value -> local prices
-          for (const tier of data.tiers) {
-            const usd = parseFloat(tier.usd);
-            if (!isNaN(usd)) {
-              // find which tier number this USD corresponds to
-              const tierNum = Object.keys(USD_MONTHLY).find(k => USD_MONTHLY[k] === usd);
-              if (tierNum) {
-                localMonthlyPrice[tierNum] = {
-                  JPY: tier.jpy,
-                  CNY: tier.cny,
-                  MXN: tier.mxn
-                };
-              }
-            }
-          }
-        }
-  //      console.log('Local monthly prices loaded:', localMonthlyPrice);
-      } catch (err) {
-        console.error('Failed to load conversions', err);
-        // fallback approximate rates (will produce non‑round numbers)
-        const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
-        for (let t=1; t<=5; t++) {
-          localMonthlyPrice[t] = {
-            JPY: Math.round(USD_MONTHLY[t] * approx.JPY),
-            CNY: USD_MONTHLY[t] * approx.CNY,
-            MXN: USD_MONTHLY[t] * approx.MXN
-          };
-        }
-      }
-    }
-    await fetchConversions();
-
-    // --- helper: get local monthly price for a tier in current language ---
-    function getLocalMonthlyPrice(tier, lang) {
-      const prices = localMonthlyPrice[tier];
-      if (!prices) return USD_MONTHLY[tier] * 18; // fallback MXN
-      if (lang === 'ja') return prices.JPY;
-      if (lang === 'zh') return prices.CNY;
-      if (lang === 'es') return prices.MXN;
-      return USD_MONTHLY[tier]; // fallback USD
-    }
-
-    // --- format a price in local currency (used for display) ---
-    function formatLocalPrice(amount, lang) {
-      if (lang === 'en') return `US$${amount.toFixed(2)}`;
-      let currency, sym;
-      if (lang === 'ja') { currency = 'JPY'; sym = '円'; }
-      else if (lang === 'zh') { currency = 'CNY'; sym = '元'; }
-      else if (lang === 'es') { currency = 'MXN'; sym = 'MXN$'; }
-      else { currency = 'USD'; sym = 'US$'; }
-      if (currency === 'USD') return `US$${amount.toFixed(2)}`;
-      // amount is already in local units (integer for JPY/MXN, possibly decimal for CNY)
-      const formatted = (currency === 'JPY' || currency === 'MXN') ? Math.round(amount) : amount.toFixed(2);
-      return `${sym}${formatted}`;
-    }
-
-    // --- discount factor for monthly purchases (multi-month) ---
-    function getDiscountFactor(months) {
-      if (months >= 3 && months <= 5) return 0.9;
-      if (months >= 6 && months <= 11) return 0.8;
-      if (months === 12) return 0.7;
-      return 1;
-    }
-
-    // --- NEW rank function (type: 'monthly', 'subscription', 'annual') ---
-    function getMembershipRank(tier, type) {
-      const base = tier * 2;
-      if (type === 'subscription') return base + 1;
-      if (type === 'annual') return base + 2;
-      return base; // monthly
-    }
-
-    // --- cart management ---
-    const CART_KEY = 'velutinx_membership_cart';
-    let currentLang = localStorage.getItem('language') || 'en';
-
-    function getCart() {
-      try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
-    }
-    function saveCart(cart) {
-      localStorage.setItem(CART_KEY, JSON.stringify(cart));
-      updateCartUI();
-      updateMembershipButtons();
-    }
-
-    function getTranslation(key, fallback = '') {
-      const t = window.translations?.[currentLang] || window.translations?.en || {};
-      return t[key] !== undefined ? t[key] : fallback;
-    }
-
-    // --- update cart drawer ---
-    function updateCartUI() {
-      if (!ourCartItems) return;
-      const cart = getCart();
-      document.getElementById('cartTitle').textContent = getTranslation('cartTitle', 'Shopping Cart');
-      document.getElementById('totalLabel').textContent = getTranslation('totalLabel', 'Total');
-
-      ourCartItems.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${getTranslation('emptyCart', 'Your cart is empty')}</div>` : '';
-      let totalLocal = 0; // total in local currency for display
-      cart.forEach((item, idx) => {
-        // use stored local price if available (for membership items)
-        let displayPrice = item.displayPrice;
-        let displayOriginal = item.displayOriginal;
-        let discountPercent = item.discountPercent;
-        let priceHtml = '';
-        if (item.type === 'membership' || item.type === 'subscription') {
-          if (discountPercent === 10) {
-            priceHtml = `
-              <span class="original-price">${formatLocalPrice(displayOriginal, currentLang)}</span>
-              <span class="discount-badge">${getTranslation('discount_10', '10% OFF')}</span><br>
-              <span class="current-price">${formatLocalPrice(displayPrice, currentLang)}</span>
-            `;
-          } else if (discountPercent === 20) {
-            priceHtml = `
-              <span class="original-price">${formatLocalPrice(displayOriginal, currentLang)}</span>
-              <span class="discount-badge">${getTranslation('discount_20', '20% OFF')}</span><br>
-              <span class="current-price">${formatLocalPrice(displayPrice, currentLang)}</span>
-            `;
-          } else if (discountPercent === 30) {
-            priceHtml = `
-              <span class="original-price">${formatLocalPrice(displayOriginal, currentLang)}</span>
-              <span class="discount-badge">${getTranslation('discount_30', '30% OFF')}</span><br>
-              <span class="current-price">${formatLocalPrice(displayPrice, currentLang)}</span>
-            `;
-          } else {
-            priceHtml = formatLocalPrice(displayPrice, currentLang);
-          }
-          totalLocal += displayPrice;
-        } else {
-          // fallback for other items (if any)
-          priceHtml = formatLocalPrice(item.price, currentLang);
-          totalLocal += item.price;
-        }
-
-        const div = document.createElement('div');
-        div.className = 'our-cart-item';
-        let titleText = item.title;
-        if (item.type === 'membership' || item.type === 'subscription') {
-          const tierNameKey = `tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`;
-          const tierName = getTranslation(tierNameKey, TIER_TITLES[item.tier]);
-          if (item.type === 'subscription') {
-            titleText = `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`;
-          } else if (item.isAnnual) {
-            titleText = `${tierName} (${getTranslation('duration_12', '12 months')})`;
-          } else {
-            const durationKey = `duration_${item.months}`;
-            const durationText = getTranslation(durationKey, `${item.months} month${item.months > 1 ? 's' : ''}`);
-            titleText = `${tierName} (${durationText})`;
-          }
-        }
-        div.innerHTML = `
-          <img src="${item.image}" alt="${item.title}">
-          <div class="our-cart-item-info">
-            <div class="our-cart-item-title">${escapeHtml(titleText)}</div>
-            <div class="our-cart-item-price">${priceHtml}</div>
-          </div>
-          <button class="our-cart-item-remove" data-idx="${idx}">✕</button>
-        `;
-        ourCartItems.appendChild(div);
-      });
-
-      document.querySelectorAll('.our-cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          const cart = getCart();
-          cart.splice(idx, 1);
-          saveCart(cart);
-        });
-      });
-
-      if (ourCartTotal) {
-        ourCartTotal.innerText = formatLocalPrice(totalLocal, currentLang);
-      }
-      const count = cart.length;
-      document.querySelectorAll('#ourCartCount, #ourFloatingCartCount').forEach(el => {
-        if (el) el.textContent = count;
-      });
-      if (ourDrawer.classList.contains('open')) renderPayPalButton();
-    }
-
-    function openCart() {
+    const openCart = () => {
       ourDrawer.classList.add('open');
       ourOverlay.classList.add('active');
       document.body.classList.add('drawer-open');
       renderPayPalButton();
-    }
-    function closeCart() {
+    };
+    const closeCart = () => {
       ourDrawer.classList.remove('open');
       ourOverlay.classList.remove('active');
       document.body.classList.remove('drawer-open');
-    }
+    };
     ourCartBtn?.addEventListener('click', openCart);
     ourFloatBtnElem?.addEventListener('click', openCart);
     ourClose?.addEventListener('click', closeCart);
     ourOverlay?.addEventListener('click', closeCart);
 
-    // --- PayPal (uses USD price) ---
-    let isRendering = false;
-    async function storeCartInKV(orderID, cart) {
-      try {
-        const resp = await fetch('https://orders.velutinx.workers.dev/store-cart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderID, cart })
-        });
-        if (!resp.ok) throw new Error('HTTP '+resp.status);
-      } catch (err) {
-        console.error(err);
-        alert(`Failed to save order details: ${err.message}\nPlease contact support with your order ID: ${orderID}`);
-      }
-    }
-    function renderPayPalButton() {
-      if (!ourPaypalContainer) return;
-      if (!ourDrawer.classList.contains('open')) return;
-      if (isRendering) return;
-      isRendering = true;
-      const cart = getCart();
-      if (cart.length === 0) {
-        ourPaypalContainer.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
-        isRendering = false;
-        return;
-      }
-      let totalUSD = 0;
-      for (const item of cart) {
-        totalUSD += item.priceUSD || 0;
-      }
-      const totalUSDfixed = totalUSD.toFixed(2);
-      ourPaypalContainer.innerHTML = '';
-      const buttons = paypal.Buttons({
-        createOrder: (data, actions) => {
-          return actions.order.create({
-            purchase_units: [{
-              amount: { currency_code: "USD", value: totalUSDfixed }
-            }]
-          });
-        },
-        onApprove: async (data, actions) => {
-          const currentCart = getCart();
-          try { await storeCartInKV(data.orderID, currentCart); } catch(e) { console.error(e); }
-          saveCart([]);
-          window.location.href = `/s/success.html?orderID=${data.orderID}`;
-        },
-        onError: (err) => { console.error(err); alert('Something went wrong. Please try again.'); },
-        onCancel: () => { isRendering = false; }
-      });
-      buttons.render(ourPaypalContainer).then(() => { isRendering = false; })
-        .catch(err => { console.error(err); isRendering = false; });
-    }
+    // Load conversions
+    await fetchConversions();
 
-    // --- membership logic (TIER_TITLES, add/remove functions) ---
-    const TIER_TITLES = {1:'Bronze', 2:'Copper', 3:'Silver', 4:'Gold', 5:'Platinum'};
-
-    // Generic function to add or remove a membership item (monthly or subscription)
-    function toggleMembership(tierNumber, type, months = 1, isAnnual = false) {
-      const discordId = validateDiscordId();
-      if (!discordId) return;
-
-      const itemId = `membership-${tierNumber}-${type}`;
-      let cart = getCart();
-
-      // If item already exists, remove it
-      const existingIndex = cart.findIndex(item => item.id === itemId);
-      if (existingIndex !== -1) {
-        cart.splice(existingIndex, 1);
-        saveCart(cart);
-        showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
-        return;
-      }
-
-      // Calculate rank of new item
-      const newRank = getMembershipRank(tierNumber, type);
-
-      // Find any existing membership items (both monthly and subscription)
-      const existingItems = cart.filter(item => item.type === 'membership' || item.type === 'subscription');
-      if (existingItems.length > 0) {
-        // If there is already an item with rank >= newRank, block addition
-        const highestRank = Math.max(...existingItems.map(item => getMembershipRank(item.tier, item.type)));
-        if (newRank <= highestRank) {
-          showSnackbar(getTranslation('errorOnlyHigher', 'You can only add a higher tier or a subscription.'), true);
-          return;
-        }
-        // Remove all existing membership items (they are lower rank)
-        cart = cart.filter(item => !(item.type === 'membership' || item.type === 'subscription'));
-      }
-
-      // Build the new item
-      const tierNameKey = `tier${TIER_TITLES[tierNumber]}`;
-      const tierName = getTranslation(tierNameKey, TIER_TITLES[tierNumber]);
-
-      // Determine price and discount
-      let priceUSD, displayPrice, displayOriginal, discountPercent = 0;
-      const localMonthly = getLocalMonthlyPrice(tierNumber, currentLang);
-
-      if (type === 'subscription') {
-        // 10% off monthly
-        discountPercent = 10;
-        const discountFactor = 0.9;
-        priceUSD = USD_MONTHLY[tierNumber] * discountFactor;
-        displayOriginal = localMonthly;
-        displayPrice = localMonthly * discountFactor;
-        // months is not relevant for subscription, but we'll store 1 for consistency
-        months = 1;
-      } else {
-        // monthly (one-time purchase) with possible multi-month discount
-        const discountFactor = getDiscountFactor(months);
-        discountPercent = discountFactor === 0.9 ? 10 : discountFactor === 0.8 ? 20 : discountFactor === 0.7 ? 30 : 0;
-        priceUSD = USD_MONTHLY[tierNumber] * months * discountFactor;
-        displayOriginal = localMonthly * months;
-        displayPrice = localMonthly * months * discountFactor;
-      }
-
-      const title = type === 'subscription'
-        ? `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`
-        : `${tierName} (${getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`)}${discountPercent ? ` - ${discountPercent}% OFF` : ''})`;
-
-      const newItem = {
-        id: itemId,
-        title: title,
-        type: type,           // 'membership' or 'subscription'
-        tier: tierNumber,
-        months: months,
-        discordId: discordId,
-        image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`,
-        priceUSD: priceUSD,
-        displayPrice: displayPrice,
-        displayOriginal: displayOriginal,
-        discountPercent: discountPercent
-      };
-      cart.push(newItem);
-      saveCart(cart);
-      showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
-    }
-
-    function validateDiscordId() {
-      const input = document.getElementById('discordId');
-      if (!input) return null;
-      const id = input.value.trim();
-      if (!id) { showSnackbar(getTranslation('errorDiscordMissing', 'Please enter your Discord ID'), true); return null; }
-      if (!/^\d{17,19}$/.test(id)) { showSnackbar(getTranslation('errorDiscordInvalid', 'Invalid Discord ID format'), true); return null; }
-      return id;
-    }
-
-    function showSnackbar(msg, isRemove = false) {
-      const sb = document.getElementById('snackbar');
-      const text = document.getElementById('snackText');
-      if (sb) {
-        sb.style.background = isRemove ? '#ef4444' : '#22c55e';
-        text.innerText = msg;
-        sb.classList.add('show');
-        setTimeout(() => sb.classList.remove('show'), 2000);
-      } else alert(msg);
-    }
-
-    // --- update buttons based on cart ---
-    function updateMembershipButtons() {
-      const cart = getCart();
-      // Determine highest rank among all membership items in cart
-      let highestRank = -1;
-      for (const item of cart) {
-        if (item.type === 'membership' || item.type === 'subscription') {
-          const rank = getMembershipRank(item.tier, item.type);
-          if (rank > highestRank) highestRank = rank;
-        }
-      }
-
-      // Update all buttons per tier
-      for (let tier = 1; tier <= 5; tier++) {
-        const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-        if (!card) continue;
-
-        // Monthly button
-        const monthlyBtn = card.querySelector(`.membership-btn[data-tier="${tier}"][data-type="monthly"]`);
-        const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
-        if (monthlyBtn) {
-          monthlyBtn.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('addToCart', 'Add to Cart');
-          monthlyBtn.classList.remove('btn-monthly', 'btn-remove');
-          monthlyBtn.classList.add(monthlyInCart ? 'btn-remove' : 'btn-monthly');
-        }
-
-        // Subscription button
-        const subBtn = card.querySelector(`.membership-btn[data-tier="${tier}"][data-type="subscription"]`);
-        const subInCart = cart.some(item => item.id === `membership-${tier}-subscription`);
-        if (subBtn) {
-          subBtn.textContent = subInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('subscribeBtn', 'Subscribe 10% OFF');
-          subBtn.classList.remove('btn-subscribe', 'btn-remove');
-          subBtn.classList.add(subInCart ? 'btn-remove' : 'btn-subscribe');
-        }
-
-        // Disable both buttons if a higher rank item exists
-        const monthlyRank = getMembershipRank(tier, 'monthly');
-        const subRank = getMembershipRank(tier, 'subscription');
-        const isMonthlyDisabled = (highestRank !== -1 && monthlyRank < highestRank);
-        const isSubDisabled = (highestRank !== -1 && subRank < highestRank);
-
-        if (monthlyBtn) {
-          if (isMonthlyDisabled && !monthlyInCart) monthlyBtn.classList.add('disabled');
-          else monthlyBtn.classList.remove('disabled');
-        }
-        if (subBtn) {
-          if (isSubDisabled && !subInCart) subBtn.classList.add('disabled');
-          else subBtn.classList.remove('disabled');
-        }
-
-        // Disable month selector if monthly button is disabled
-        const monthSelectorBtn = card.querySelector('.month-selector-btn');
-        if (monthSelectorBtn) {
-          if (isMonthlyDisabled && !monthlyInCart) monthSelectorBtn.classList.add('disabled');
-          else monthSelectorBtn.classList.remove('disabled');
-        }
-      }
-    }
-
-    // --- attach event listeners for monthly and subscription buttons ---
-    function attachButtonListeners() {
-      document.querySelectorAll('.membership-btn[data-type="monthly"]').forEach(btn => {
-        btn.onclick = () => {
-          const card = btn.closest('.tier-card');
-          const tier = parseInt(card.getAttribute('data-tier'));
-          const monthSelectorBtn = card.querySelector('.month-selector-btn');
-          const months = parseInt(monthSelectorBtn.getAttribute('data-selected'));
-          toggleMembership(tier, 'monthly', months, false);
-        };
-      });
-
-      document.querySelectorAll('.membership-btn[data-type="subscription"]').forEach(btn => {
-        btn.onclick = () => {
-          const card = btn.closest('.tier-card');
-          const tier = parseInt(card.getAttribute('data-tier'));
-          toggleMembership(tier, 'subscription');
-        };
-      });
-    }
-
-    // --- dropdown setup (unchanged) ---
-    function setupDropdowns() {
-      document.querySelectorAll('.month-selector-container').forEach(container => {
-        const btn = container.querySelector('.month-selector-btn');
-        const dropdown = container.querySelector('.month-dropdown');
-        const options = dropdown.querySelectorAll('button');
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (btn.classList.contains('disabled')) return;
-          document.querySelectorAll('.month-dropdown.open').forEach(d => { if (d !== dropdown) d.classList.remove('open'); });
-          dropdown.classList.toggle('open');
-        });
-        options.forEach(opt => {
-          opt.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const months = parseInt(opt.getAttribute('data-months'));
-            let discountText = '';
-            if (months === 3) discountText = getTranslation('discount_10', '10% OFF');
-            else if (months === 6) discountText = getTranslation('discount_20', '20% OFF');
-            else if (months === 12) discountText = getTranslation('discount_30', '30% OFF');
-            let label = getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`);
-            if (discountText) label += ` (${discountText})`;
-            btn.querySelector('.month-btn-label').textContent = label;
-            btn.setAttribute('data-selected', months);
-            dropdown.classList.remove('open');
-          });
-        });
-      });
-    }
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.month-selector-container')) {
-        document.querySelectorAll('.month-dropdown.open').forEach(d => d.classList.remove('open'));
-      }
-    });
-    function updateMonthButtonLabels() {
-      document.querySelectorAll('.month-selector-container').forEach(container => {
-        const btn = container.querySelector('.month-selector-btn');
-        const selectedMonths = parseInt(btn.getAttribute('data-selected'));
-        let discountText = '';
-        if (selectedMonths === 3) discountText = getTranslation('discount_10', '10% OFF');
-        else if (selectedMonths === 6) discountText = getTranslation('discount_20', '20% OFF');
-        else if (selectedMonths === 12) discountText = getTranslation('discount_30', '30% OFF');
-        let label = getTranslation(`duration_${selectedMonths}`, `${selectedMonths} month${selectedMonths>1?'s':''}`);
-        if (discountText) label += ` (${discountText})`;
-        btn.querySelector('.month-btn-label').textContent = label;
-        const dropdown = container.querySelector('.month-dropdown');
-        dropdown.querySelectorAll('button').forEach(opt => {
-          const months = parseInt(opt.getAttribute('data-months'));
-          let optDiscount = '';
-          if (months === 3) optDiscount = getTranslation('discount_10', '10% OFF');
-          else if (months === 6) optDiscount = getTranslation('discount_20', '20% OFF');
-          else if (months === 12) optDiscount = getTranslation('discount_30', '30% OFF');
-          let optLabel = getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`);
-          if (optDiscount) optLabel += ` (${optDiscount})`;
-          opt.textContent = optLabel;
-        });
-      });
-    }
-    window.scrollCarousel = function(direction) {
-      const container = document.getElementById('tierCarousel');
-      if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
-    };
-    function updateMembershipText() {
-      const setText = (id, key, fallback) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = getTranslation(key, fallback);
-      };
-      const setHTML = (id, key, fallback) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = getTranslation(key, fallback);
-      };
-      setText('membershipTitle', 'membershipTitle', 'Choose Your Membership');
-      setText('membershipDescription', 'membershipDescription', 'Support my work and unlock exclusive perks');
-      setHTML('discordIdLabel', 'discordIdLabel', 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>';
-      setText('discordHintText', 'discordHint', 'How to find your Discord ID:');
-      setText('discordHelpText', 'discordHelpLink', 'Where do I find my Discord ID? (click)');
-      setHTML('discordHelpStep1', 'discordHelpStep1', '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
-      setHTML('discordHelpStep2', 'discordHelpStep2', '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
-      setHTML('discordHelpStep3', 'discordHelpStep3', '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
-      setHTML('discordHelpStep4', 'discordHelpStep4', '<strong>Step 4:</strong> Paste that number here.');
-      const importantLabel = document.getElementById('importantLabel');
-      if (importantLabel) importantLabel.textContent = getTranslation('importantLabel', 'Important:');
-      const noteBoxText = document.getElementById('noteBoxText');
-      if (noteBoxText) noteBoxText.textContent = getTranslation('noteBoxText', 'After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!');
-      const joinLink = document.getElementById('joinDiscordLink');
-      if (joinLink) joinLink.textContent = getTranslation('joinDiscord', '→ Join Discord Server ←');
-
-      for (let i = 1; i <= 5; i++) {
-        const titleEl = document.getElementById(`tier${i}Title`);
-        const key = `tier${TIER_TITLES[i]}`;
-        if (titleEl) titleEl.textContent = getTranslation(key, TIER_TITLES[i].toUpperCase());
-      }
-      const perkIds = [
-        'perk1_1','perk1_2','perk1_3','perk1_4',
-        'perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
-        'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
-        'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6',
-        'perk5_1','perk5_2'
-      ];
-      perkIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = getTranslation(id, ''); });
-      document.querySelectorAll('.per-month').forEach(el => el.textContent = getTranslation('perMonth', '/ month'));
-      document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-        const usd = parseFloat(el.dataset.priceUsd);
-        if (!isNaN(usd)) {
-          const priceSpan = el.querySelector('.price-value');
-          if (priceSpan) {
-            const tierNum = Object.keys(USD_MONTHLY).find(k => USD_MONTHLY[k] === usd);
-            if (tierNum) {
-              const local = getLocalMonthlyPrice(parseInt(tierNum), currentLang);
-              priceSpan.textContent = formatLocalPrice(local, currentLang);
-            } else {
-              priceSpan.textContent = formatLocalPrice(usd, currentLang);
-            }
-          }
-        }
-      });
-      updateMonthButtonLabels();
-      updateMembershipButtons();
-    }
-    function escapeHtml(str) {
-      return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
-    }
-
-    // initialise
+    // Setup dropdowns and buttons
     setupDropdowns();
     attachButtonListeners();
+
+    // Initial UI updates
     updateCartUI();
     updateMembershipButtons();
     updateMembershipText();
 
+    // Listen for language changes
     document.addEventListener('languageChanged', (e) => {
-      currentLang = e.detail.language;
+      localStorage.setItem('language', e.detail.language);
       updateMembershipText();
       updateMembershipButtons();
       updateCartUI();
     });
   });
 
+  // Discord help toggle
   document.addEventListener('DOMContentLoaded', () => {
     const helpToggle = document.getElementById('discordHelpToggle');
     const helpContent = document.getElementById('discordHelpContent');
     if (helpToggle && helpContent) {
-      helpToggle.addEventListener('click', (e) => { e.preventDefault(); helpContent.classList.toggle('show'); });
+      helpToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        helpContent.classList.toggle('show');
+      });
     }
   });
 </script>
