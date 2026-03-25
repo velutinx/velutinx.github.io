@@ -75,8 +75,11 @@
       text-align: center;
     }
     .btn-monthly { background: #3b82f6; }
+    .btn-subscribe { background: #10b981; } /* new subscription button color */
     .btn-remove { background: #ef4444 !important; }
-    .btn-monthly:hover:not(.disabled) { background: #2563eb; transform: scale(1.02); }
+    .btn-monthly:hover:not(.disabled), .btn-subscribe:hover:not(.disabled) { transform: scale(1.02); }
+    .btn-monthly:hover:not(.disabled) { background: #2563eb; }
+    .btn-subscribe:hover:not(.disabled) { background: #059669; }
     .btn-remove:hover:not(.disabled) { background: #dc2626 !important; transform: scale(1.02); }
     .membership-btn.disabled {
       background: #9ca3af !important;
@@ -335,6 +338,7 @@
           </div>
         </div>
         <button class="membership-btn btn-monthly" data-tier="1" data-type="monthly">Add to Cart</button>
+        <button class="membership-btn btn-subscribe" data-tier="1" data-type="subscription">Subscribe 10% OFF</button>
       </div>
     </div>
 
@@ -368,6 +372,7 @@
           </div>
         </div>
         <button class="membership-btn btn-monthly" data-tier="2" data-type="monthly">Add to Cart</button>
+        <button class="membership-btn btn-subscribe" data-tier="2" data-type="subscription">Subscribe 10% OFF</button>
       </div>
     </div>
 
@@ -401,6 +406,7 @@
           </div>
         </div>
         <button class="membership-btn btn-monthly" data-tier="3" data-type="monthly">Add to Cart</button>
+        <button class="membership-btn btn-subscribe" data-tier="3" data-type="subscription">Subscribe 10% OFF</button>
       </div>
     </div>
 
@@ -434,6 +440,7 @@
           </div>
         </div>
         <button class="membership-btn btn-monthly" data-tier="4" data-type="monthly">Add to Cart</button>
+        <button class="membership-btn btn-subscribe" data-tier="4" data-type="subscription">Subscribe 10% OFF</button>
       </div>
     </div>
 
@@ -463,6 +470,7 @@
           </div>
         </div>
         <button class="membership-btn btn-monthly" data-tier="5" data-type="monthly">Add to Cart</button>
+        <button class="membership-btn btn-subscribe" data-tier="5" data-type="subscription">Subscribe 10% OFF</button>
       </div>
     </div>
   </div>
@@ -608,12 +616,20 @@
       return `${sym}${formatted}`;
     }
 
-    // --- discount factor ---
+    // --- discount factor for monthly purchases (multi-month) ---
     function getDiscountFactor(months) {
       if (months >= 3 && months <= 5) return 0.9;
       if (months >= 6 && months <= 11) return 0.8;
       if (months === 12) return 0.7;
       return 1;
+    }
+
+    // --- NEW rank function (type: 'monthly', 'subscription', 'annual') ---
+    function getMembershipRank(tier, type) {
+      const base = tier * 2;
+      if (type === 'subscription') return base + 1;
+      if (type === 'annual') return base + 2;
+      return base; // monthly
     }
 
     // --- cart management ---
@@ -649,7 +665,7 @@
         let displayOriginal = item.displayOriginal;
         let discountPercent = item.discountPercent;
         let priceHtml = '';
-        if (item.type === 'membership') {
+        if (item.type === 'membership' || item.type === 'subscription') {
           if (discountPercent === 10) {
             priceHtml = `
               <span class="original-price">${formatLocalPrice(displayOriginal, currentLang)}</span>
@@ -681,15 +697,17 @@
         const div = document.createElement('div');
         div.className = 'our-cart-item';
         let titleText = item.title;
-        if (item.type === 'membership') {
+        if (item.type === 'membership' || item.type === 'subscription') {
           const tierNameKey = `tier${item.tier === 1 ? 'Bronze' : item.tier === 2 ? 'Copper' : item.tier === 3 ? 'Silver' : item.tier === 4 ? 'Gold' : 'Platinum'}`;
           const tierName = getTranslation(tierNameKey, TIER_TITLES[item.tier]);
-          if (!item.isAnnual) {
+          if (item.type === 'subscription') {
+            titleText = `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`;
+          } else if (item.isAnnual) {
+            titleText = `${tierName} (${getTranslation('duration_12', '12 months')})`;
+          } else {
             const durationKey = `duration_${item.months}`;
             const durationText = getTranslation(durationKey, `${item.months} month${item.months > 1 ? 's' : ''}`);
             titleText = `${tierName} (${durationText})`;
-          } else {
-            titleText = `${tierName} (${getTranslation('duration_12', '12 months')})`;
           }
         }
         div.innerHTML = `
@@ -791,108 +809,77 @@
         .catch(err => { console.error(err); isRendering = false; });
     }
 
-    // --- membership logic (TIER_TITLES, getMembershipRank, etc.) ---
+    // --- membership logic (TIER_TITLES, add/remove functions) ---
     const TIER_TITLES = {1:'Bronze', 2:'Copper', 3:'Silver', 4:'Gold', 5:'Platinum'};
 
-    function getMembershipRank(tier, isAnnual) {
-      return tier * 2 + (isAnnual ? 1 : 0);
-    }
-
-    function updateMembershipButtons() {
-      const cart = getCart();
-      let highestRank = -1;
-      for (const item of cart) {
-        if (item.type === 'membership') {
-          const rank = getMembershipRank(item.tier, item.isAnnual);
-          if (rank > highestRank) highestRank = rank;
-        }
-      }
-      for (let tier = 1; tier <= 5; tier++) {
-        const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-        if (!card) continue;
-        const btnMonthly = card.querySelector(`.membership-btn[data-tier="${tier}"]`);
-        const monthSelectorBtn = card.querySelector('.month-selector-btn');
-        const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
-        if (btnMonthly) {
-          btnMonthly.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('addToCart', 'Add to Cart');
-          btnMonthly.classList.remove('btn-monthly', 'btn-remove');
-          btnMonthly.classList.add(monthlyInCart ? 'btn-remove' : 'btn-monthly');
-        }
-        const monthlyRank = getMembershipRank(tier, false);
-        const isDisabled = (highestRank !== -1 && monthlyRank < highestRank);
-        if (btnMonthly) isDisabled ? btnMonthly.classList.add('disabled') : btnMonthly.classList.remove('disabled');
-        if (monthSelectorBtn) isDisabled ? monthSelectorBtn.classList.add('disabled') : monthSelectorBtn.classList.remove('disabled');
-      }
-    }
-
-    function showSnackbar(msg, isRemove = false) {
-      const sb = document.getElementById('snackbar');
-      const text = document.getElementById('snackText');
-      if (sb) {
-        sb.style.background = isRemove ? '#ef4444' : '#22c55e';
-        text.innerText = msg;
-        sb.classList.add('show');
-        setTimeout(() => sb.classList.remove('show'), 2000);
-      } else alert(msg);
-    }
-
-    function validateDiscordId() {
-      const input = document.getElementById('discordId');
-      if (!input) return null;
-      const id = input.value.trim();
-      if (!id) { showSnackbar(getTranslation('errorDiscordMissing', 'Please enter your Discord ID'), true); return null; }
-      if (!/^\d{17,19}$/.test(id)) { showSnackbar(getTranslation('errorDiscordInvalid', 'Invalid Discord ID format'), true); return null; }
-      return id;
-    }
-
-    function addMembership(tierNumber, months) {
+    // Generic function to add or remove a membership item (monthly or subscription)
+    function toggleMembership(tierNumber, type, months = 1, isAnnual = false) {
       const discordId = validateDiscordId();
       if (!discordId) return;
-      const newId = `membership-${tierNumber}-monthly`;
-      const newRank = getMembershipRank(tierNumber, false);
+
+      const itemId = `membership-${tierNumber}-${type}`;
       let cart = getCart();
-      const existingIndex = cart.findIndex(item => item.id === newId);
+
+      // If item already exists, remove it
+      const existingIndex = cart.findIndex(item => item.id === itemId);
       if (existingIndex !== -1) {
         cart.splice(existingIndex, 1);
         saveCart(cart);
         showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
         return;
       }
-      const membershipItems = cart.filter(item => item.type === 'membership');
-      const existingItem = membershipItems[0];
-      if (existingItem) {
-        const existingRank = getMembershipRank(existingItem.tier, existingItem.isAnnual);
-        if (newRank <= existingRank) {
-          showSnackbar(getTranslation('errorOnlyHighest', 'You can only upgrade to a higher tier or annual plan.'), true);
+
+      // Calculate rank of new item
+      const newRank = getMembershipRank(tierNumber, type);
+
+      // Find any existing membership items (both monthly and subscription)
+      const existingItems = cart.filter(item => item.type === 'membership' || item.type === 'subscription');
+      if (existingItems.length > 0) {
+        // If there is already an item with rank >= newRank, block addition
+        const highestRank = Math.max(...existingItems.map(item => getMembershipRank(item.tier, item.type)));
+        if (newRank <= highestRank) {
+          showSnackbar(getTranslation('errorOnlyHigher', 'You can only add a higher tier or a subscription.'), true);
           return;
         }
-        cart = cart.filter(item => item.type !== 'membership');
+        // Remove all existing membership items (they are lower rank)
+        cart = cart.filter(item => !(item.type === 'membership' || item.type === 'subscription'));
       }
 
+      // Build the new item
       const tierNameKey = `tier${TIER_TITLES[tierNumber]}`;
       const tierName = getTranslation(tierNameKey, TIER_TITLES[tierNumber]);
-      const durationKey = `duration_${months}`;
-      const durationText = getTranslation(durationKey, `${months} month${months > 1 ? 's' : ''}`);
-      const title = `${tierName} (${durationText})`;
 
-      const discountFactor = getDiscountFactor(months);
-      const discountPercent = discountFactor === 0.9 ? 10 : discountFactor === 0.8 ? 20 : discountFactor === 0.7 ? 30 : 0;
-
-      // local monthly price for this tier and language
+      // Determine price and discount
+      let priceUSD, displayPrice, displayOriginal, discountPercent = 0;
       const localMonthly = getLocalMonthlyPrice(tierNumber, currentLang);
-      const displayOriginal = localMonthly * months;
-      const displayPrice = localMonthly * months * discountFactor;
 
-      // USD price for PayPal
-      const usdMonthly = USD_MONTHLY[tierNumber];
-      const priceUSD = usdMonthly * months * discountFactor;
+      if (type === 'subscription') {
+        // 10% off monthly
+        discountPercent = 10;
+        const discountFactor = 0.9;
+        priceUSD = USD_MONTHLY[tierNumber] * discountFactor;
+        displayOriginal = localMonthly;
+        displayPrice = localMonthly * discountFactor;
+        // months is not relevant for subscription, but we'll store 1 for consistency
+        months = 1;
+      } else {
+        // monthly (one-time purchase) with possible multi-month discount
+        const discountFactor = getDiscountFactor(months);
+        discountPercent = discountFactor === 0.9 ? 10 : discountFactor === 0.8 ? 20 : discountFactor === 0.7 ? 30 : 0;
+        priceUSD = USD_MONTHLY[tierNumber] * months * discountFactor;
+        displayOriginal = localMonthly * months;
+        displayPrice = localMonthly * months * discountFactor;
+      }
+
+      const title = type === 'subscription'
+        ? `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`
+        : `${tierName} (${getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`)}${discountPercent ? ` - ${discountPercent}% OFF` : ''})`;
 
       const newItem = {
-        id: newId,
+        id: itemId,
         title: title,
-        type: 'membership',
+        type: type,           // 'membership' or 'subscription'
         tier: tierNumber,
-        isAnnual: false,
         months: months,
         discordId: discordId,
         image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`,
@@ -906,16 +893,105 @@
       showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
     }
 
-    // attach add to cart events
-    document.querySelectorAll('.membership-btn').forEach(btn => {
-      const card = btn.closest('.tier-card');
-      const tier = parseInt(card.getAttribute('data-tier'));
-      const monthSelectorBtn = card.querySelector('.month-selector-btn');
-      btn.onclick = () => {
-        const months = parseInt(monthSelectorBtn.getAttribute('data-selected'));
-        addMembership(tier, months);
-      };
-    });
+    function validateDiscordId() {
+      const input = document.getElementById('discordId');
+      if (!input) return null;
+      const id = input.value.trim();
+      if (!id) { showSnackbar(getTranslation('errorDiscordMissing', 'Please enter your Discord ID'), true); return null; }
+      if (!/^\d{17,19}$/.test(id)) { showSnackbar(getTranslation('errorDiscordInvalid', 'Invalid Discord ID format'), true); return null; }
+      return id;
+    }
+
+    function showSnackbar(msg, isRemove = false) {
+      const sb = document.getElementById('snackbar');
+      const text = document.getElementById('snackText');
+      if (sb) {
+        sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+        text.innerText = msg;
+        sb.classList.add('show');
+        setTimeout(() => sb.classList.remove('show'), 2000);
+      } else alert(msg);
+    }
+
+    // --- update buttons based on cart ---
+    function updateMembershipButtons() {
+      const cart = getCart();
+      // Determine highest rank among all membership items in cart
+      let highestRank = -1;
+      for (const item of cart) {
+        if (item.type === 'membership' || item.type === 'subscription') {
+          const rank = getMembershipRank(item.tier, item.type);
+          if (rank > highestRank) highestRank = rank;
+        }
+      }
+
+      // Update all buttons per tier
+      for (let tier = 1; tier <= 5; tier++) {
+        const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+        if (!card) continue;
+
+        // Monthly button
+        const monthlyBtn = card.querySelector(`.membership-btn[data-tier="${tier}"][data-type="monthly"]`);
+        const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
+        if (monthlyBtn) {
+          monthlyBtn.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('addToCart', 'Add to Cart');
+          monthlyBtn.classList.remove('btn-monthly', 'btn-remove');
+          monthlyBtn.classList.add(monthlyInCart ? 'btn-remove' : 'btn-monthly');
+        }
+
+        // Subscription button
+        const subBtn = card.querySelector(`.membership-btn[data-tier="${tier}"][data-type="subscription"]`);
+        const subInCart = cart.some(item => item.id === `membership-${tier}-subscription`);
+        if (subBtn) {
+          subBtn.textContent = subInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('subscribeBtn', 'Subscribe 10% OFF');
+          subBtn.classList.remove('btn-subscribe', 'btn-remove');
+          subBtn.classList.add(subInCart ? 'btn-remove' : 'btn-subscribe');
+        }
+
+        // Disable both buttons if a higher rank item exists
+        const monthlyRank = getMembershipRank(tier, 'monthly');
+        const subRank = getMembershipRank(tier, 'subscription');
+        const isMonthlyDisabled = (highestRank !== -1 && monthlyRank < highestRank);
+        const isSubDisabled = (highestRank !== -1 && subRank < highestRank);
+
+        if (monthlyBtn) {
+          if (isMonthlyDisabled && !monthlyInCart) monthlyBtn.classList.add('disabled');
+          else monthlyBtn.classList.remove('disabled');
+        }
+        if (subBtn) {
+          if (isSubDisabled && !subInCart) subBtn.classList.add('disabled');
+          else subBtn.classList.remove('disabled');
+        }
+
+        // Disable month selector if monthly button is disabled
+        const monthSelectorBtn = card.querySelector('.month-selector-btn');
+        if (monthSelectorBtn) {
+          if (isMonthlyDisabled && !monthlyInCart) monthSelectorBtn.classList.add('disabled');
+          else monthSelectorBtn.classList.remove('disabled');
+        }
+      }
+    }
+
+    // --- attach event listeners for monthly and subscription buttons ---
+    function attachButtonListeners() {
+      document.querySelectorAll('.membership-btn[data-type="monthly"]').forEach(btn => {
+        btn.onclick = () => {
+          const card = btn.closest('.tier-card');
+          const tier = parseInt(card.getAttribute('data-tier'));
+          const monthSelectorBtn = card.querySelector('.month-selector-btn');
+          const months = parseInt(monthSelectorBtn.getAttribute('data-selected'));
+          toggleMembership(tier, 'monthly', months, false);
+        };
+      });
+
+      document.querySelectorAll('.membership-btn[data-type="subscription"]').forEach(btn => {
+        btn.onclick = () => {
+          const card = btn.closest('.tier-card');
+          const tier = parseInt(card.getAttribute('data-tier'));
+          toggleMembership(tier, 'subscription');
+        };
+      });
+    }
 
     // --- dropdown setup (unchanged) ---
     function setupDropdowns() {
@@ -1042,6 +1118,7 @@
 
     // initialise
     setupDropdowns();
+    attachButtonListeners();
     updateCartUI();
     updateMembershipButtons();
     updateMembershipText();
