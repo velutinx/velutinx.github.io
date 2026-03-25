@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
   <style>
     /* styles unchanged from previous version */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
@@ -1205,7 +1205,6 @@ function renderSubscriptionButtons() {
 
     const planId = planIds[tier];
     if (!planId) {
-      console.warn(`No plan ID for tier ${tier}`);
       container.innerHTML = '<button class="membership-btn btn-subscribe disabled">Plan not ready</button>';
       continue;
     }
@@ -1215,10 +1214,16 @@ function renderSubscriptionButtons() {
       continue;
     }
 
-    // Clear container and render the real button
+    // Clear container and render the real PayPal button
     container.innerHTML = '';
     paypal.Buttons({
-      style: { label: 'subscribe', color: 'blue', shape: 'rect' },
+      style: {
+        label: 'subscribe',
+        color: 'blue',
+        shape: 'rect',
+        layout: 'vertical',
+        height: 40
+      },
       createSubscription: function(data, actions) {
         return actions.subscription.create({
           plan_id: planId,
