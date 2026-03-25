@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/assets/css/shared.css">
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
   <style>
-    /* all styles unchanged (same as before) */
+    /* styles unchanged from previous version */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -483,27 +483,38 @@
 <script src="/s/js/translations.js"></script>
 
 <script>
-  // --------------------------------------------------------------------
-  // Fix: Clear old cart data from shared.js to prevent conflicts
-  // --------------------------------------------------------------------
-  localStorage.removeItem('cart');          // likely used by shared script
-  localStorage.removeItem('velutinx_cart'); // another possible key
+  // ============================================================================
+  // CLEANUP: Remove old cart data that might interfere
+  // ============================================================================
+  localStorage.removeItem('cart');
+  localStorage.removeItem('velutinx_cart');
+  // Also clear our own cart if it contains invalid items (old structure)
+  const ourCartKey = 'velutinx_membership_cart';
+  let currentCart = JSON.parse(localStorage.getItem(ourCartKey) || '[]');
+  // If any item is missing required fields, clear the whole cart
+  const isValid = currentCart.every(item => 
+    item.type && (item.type === 'monthly' || item.type === 'subscription') && 
+    typeof item.tier === 'number' && 
+    typeof item.priceUSD === 'number'
+  );
+  if (!isValid) {
+    localStorage.removeItem(ourCartKey);
+  }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Helper: get translation with fallback
-  // --------------------------------------------------------------------
+  // ============================================================================
   function getTranslation(key, fallback = '') {
     const lang = localStorage.getItem('language') || 'en';
     const t = window.translations?.[lang] || window.translations?.en || {};
     return t[key] !== undefined ? t[key] : fallback;
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Helper: format local price (safe)
-  // --------------------------------------------------------------------
+  // ============================================================================
   function formatLocalPrice(amount, lang) {
     if (amount === undefined || amount === null || isNaN(amount)) {
-      console.warn('formatLocalPrice called with invalid amount:', amount);
       return '0.00';
     }
     if (lang === 'en') return `US$${amount.toFixed(2)}`;
@@ -517,15 +528,15 @@
     return `${sym}${formatted}`;
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Global variables
-  // --------------------------------------------------------------------
+  // ============================================================================
   const USD_MONTHLY = {1:5, 2:9, 3:14, 4:29, 5:39};
   let localMonthlyPrice = {}; // { tier: { JPY, CNY, MXN } }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Fetch currency conversions
-  // --------------------------------------------------------------------
+  // ============================================================================
   async function fetchConversions() {
     try {
       const resp = await fetch('https://supabase-link.velutinx.workers.dev');
@@ -559,9 +570,9 @@
     }
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Get local monthly price for a tier
-  // --------------------------------------------------------------------
+  // ============================================================================
   function getLocalMonthlyPrice(tier, lang) {
     const prices = localMonthlyPrice[tier];
     if (!prices) return USD_MONTHLY[tier] * 18; // fallback MXN
@@ -571,9 +582,9 @@
     return USD_MONTHLY[tier];
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Discount factor for multi-month purchases
-  // --------------------------------------------------------------------
+  // ============================================================================
   function getDiscountFactor(months) {
     if (months >= 3 && months <= 5) return 0.9;
     if (months >= 6 && months <= 11) return 0.8;
@@ -581,18 +592,18 @@
     return 1;
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Rank calculation: monthly = tier*2, subscription = tier*2+1
-  // --------------------------------------------------------------------
+  // ============================================================================
   function getMembershipRank(tier, type) {
     const base = tier * 2;
     if (type === 'subscription') return base + 1;
     return base; // monthly
   }
 
-  // --------------------------------------------------------------------
-  // Cart management (key: 'velutinx_membership_cart')
-  // --------------------------------------------------------------------
+  // ============================================================================
+  // Cart management
+  // ============================================================================
   const CART_KEY = 'velutinx_membership_cart';
 
   function getCart() {
@@ -609,9 +620,9 @@
     updateMembershipButtons();
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Validate Discord ID
-  // --------------------------------------------------------------------
+  // ============================================================================
   function validateDiscordId() {
     const input = document.getElementById('discordId');
     if (!input) return null;
@@ -640,9 +651,9 @@
     }
   }
 
-  // --------------------------------------------------------------------
-  // Add or remove a membership item (monthly or subscription)
-  // --------------------------------------------------------------------
+  // ============================================================================
+  // Add or remove a membership item
+  // ============================================================================
   function toggleMembership(tierNumber, type, months = 1) {
     const discordId = validateDiscordId();
     if (!discordId) return;
@@ -663,20 +674,23 @@
     const newRank = getMembershipRank(tierNumber, type);
 
     // Check for existing membership items
-    const existingItems = cart.filter(item => item.type === 'membership' || item.type === 'subscription');
+    const existingItems = cart.filter(item => item.type === 'monthly' || item.type === 'subscription');
     if (existingItems.length > 0) {
+      // Find highest rank among existing items
       const highestRank = Math.max(...existingItems.map(item => getMembershipRank(item.tier, item.type)));
+      // If new item is not strictly higher, block
       if (newRank <= highestRank) {
         showSnackbar(getTranslation('errorOnlyHigher', 'You can only add a higher tier or a subscription.'), true);
         return;
       }
-      // Remove all existing membership items (they are lower rank)
-      cart = cart.filter(item => !(item.type === 'membership' || item.type === 'subscription'));
+      // Otherwise, remove all existing membership items (they are lower rank)
+      cart = cart.filter(item => !(item.type === 'monthly' || item.type === 'subscription'));
     }
 
     // Build the new item
-    const tierNameKey = `tier${['Bronze','Copper','Silver','Gold','Platinum'][tierNumber-1]}`;
-    const tierName = getTranslation(tierNameKey, ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][tierNumber-1]);
+    const tierNames = ['Bronze','Copper','Silver','Gold','Platinum'];
+    const tierNameKey = `tier${tierNames[tierNumber-1]}`;
+    const tierName = getTranslation(tierNameKey, tierNames[tierNumber-1].toUpperCase());
 
     const currentLang = localStorage.getItem('language') || 'en';
     const localMonthly = getLocalMonthlyPrice(tierNumber, currentLang);
@@ -720,9 +734,9 @@
     showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Update cart UI (drawer)
-  // --------------------------------------------------------------------
+  // ============================================================================
   function updateCartUI() {
     const ourCartItems = document.getElementById('ourCartItems');
     const ourCartTotal = document.getElementById('ourCartTotal');
@@ -771,8 +785,9 @@
       div.className = 'our-cart-item';
       let titleText = item.title;
       if (item.type === 'subscription') {
-        const tierNameKey = `tier${['Bronze','Copper','Silver','Gold','Platinum'][item.tier-1]}`;
-        const tierName = getTranslation(tierNameKey, ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][item.tier-1]);
+        const tierNames = ['Bronze','Copper','Silver','Gold','Platinum'];
+        const tierNameKey = `tier${tierNames[item.tier-1]}`;
+        const tierName = getTranslation(tierNameKey, tierNames[item.tier-1].toUpperCase());
         titleText = `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`;
       }
       div.innerHTML = `
@@ -808,9 +823,9 @@
     if (ourDrawer && ourDrawer.classList.contains('open')) renderPayPalButton();
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // PayPal rendering (simplified, same as before)
-  // --------------------------------------------------------------------
+  // ============================================================================
   async function storeCartInKV(orderID, cart) {
     try {
       const resp = await fetch('https://orders.velutinx.workers.dev/store-cart', {
@@ -869,14 +884,15 @@
       .catch(err => { console.error(err); isRendering = false; });
   }
 
-  // --------------------------------------------------------------------
-  // Update membership buttons based on cart
-  // --------------------------------------------------------------------
+  // ============================================================================
+  // Update membership buttons based on cart (gray out lower ranks)
+  // ============================================================================
   function updateMembershipButtons() {
     const cart = getCart();
+    // Find the highest rank among all membership items (monthly or subscription)
     let highestRank = -1;
     for (const item of cart) {
-      if (item.type === 'membership' || item.type === 'subscription') {
+      if (item.type === 'monthly' || item.type === 'subscription') {
         const rank = getMembershipRank(item.tier, item.type);
         if (rank > highestRank) highestRank = rank;
       }
@@ -893,6 +909,7 @@
       const monthlyInCart = cart.some(item => item.id === `membership-${tier}-monthly`);
       const subInCart = cart.some(item => item.id === `membership-${tier}-subscription`);
 
+      // Update button text and classes
       if (monthlyBtn) {
         monthlyBtn.textContent = monthlyInCart ? getTranslation('removeFromCartText', 'Remove from Cart') : getTranslation('addToCart', 'Add to Cart');
         monthlyBtn.classList.remove('btn-monthly', 'btn-remove');
@@ -904,6 +921,7 @@
         subBtn.classList.add(subInCart ? 'btn-remove' : 'btn-subscribe');
       }
 
+      // Determine if the buttons should be disabled (if a higher rank exists)
       const monthlyRank = getMembershipRank(tier, 'monthly');
       const subRank = getMembershipRank(tier, 'subscription');
       const disableMonthly = (highestRank !== -1 && monthlyRank < highestRank);
@@ -924,9 +942,9 @@
     }
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Attach button listeners
-  // --------------------------------------------------------------------
+  // ============================================================================
   function attachButtonListeners() {
     document.querySelectorAll('.membership-btn[data-type="monthly"]').forEach(btn => {
       btn.onclick = () => {
@@ -946,9 +964,9 @@
     });
   }
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Dropdown setup
-  // --------------------------------------------------------------------
+  // ============================================================================
   function setupDropdowns() {
     document.querySelectorAll('.month-selector-container').forEach(container => {
       const btn = container.querySelector('.month-selector-btn');
@@ -1036,10 +1054,11 @@
     const joinLink = document.getElementById('joinDiscordLink');
     if (joinLink) joinLink.textContent = getTranslation('joinDiscord', '→ Join Discord Server ←');
 
+    const tierNames = ['Bronze','Copper','Silver','Gold','Platinum'];
     for (let i = 1; i <= 5; i++) {
       const titleEl = document.getElementById(`tier${i}Title`);
-      const key = `tier${['Bronze','Copper','Silver','Gold','Platinum'][i-1]}`;
-      if (titleEl) titleEl.textContent = getTranslation(key, ['BRONZE','COPPER','SILVER','GOLD','PLATINUM'][i-1]);
+      const key = `tier${tierNames[i-1]}`;
+      if (titleEl) titleEl.textContent = getTranslation(key, tierNames[i-1].toUpperCase());
     }
 
     const perkIds = [
@@ -1085,9 +1104,9 @@
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
 
-  // --------------------------------------------------------------------
+  // ============================================================================
   // Main initialization after header is ready
-  // --------------------------------------------------------------------
+  // ============================================================================
   document.addEventListener('headerReady', async () => {
     // Remove old shared cart elements
     const sharedCartBtn = document.getElementById('cartBtn');
