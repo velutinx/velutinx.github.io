@@ -31,6 +31,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const tierParam = parseInt(urlParams.get('tier')) || 1;
     const discordIdParam = urlParams.get('discordId');
+    const langParam = urlParams.get('lang');
+    if (langParam) {
+      localStorage.setItem('language', langParam);
+    }
 
     // Plan IDs for each tier
     const PLAN_IDS = {
@@ -68,6 +72,9 @@
     const discordLabelText = getTranslation('discordIdLabel', 'Your Discord ID');
     const placeholderText = getTranslation('discordIdPlaceholder', '123456789012345678');
     const enterIdFirstText = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
+    const successText = getTranslation('subscriptionStarted', '✅ Subscription started! Your role will be assigned shortly.');
+    const errorText = getTranslation('subscriptionError', '❌ Error recording subscription. Contact support.');
+    const failedText = getTranslation('subscriptionFailed', '❌ Subscription failed. Try again.');
 
     document.getElementById('title').textContent = titleText;
     document.getElementById('price').textContent = priceText;
@@ -144,16 +151,16 @@
           });
           
           if (orderResponse.ok) {
-            showMessage(getTranslation('subscriptionSuccess', '✅ Subscription started! Your role will be assigned shortly.'));
+            showMessage(successText);
           } else {
-            const errorText = await orderResponse.text();
-            console.error(errorText);
-            showMessage(getTranslation('subscriptionError', '❌ Error recording subscription. Contact support.'), true);
+            const errorTextResp = await orderResponse.text();
+            console.error(errorTextResp);
+            showMessage(errorText, true);
           }
         },
         onError: function(err) {
           console.error(err);
-          showMessage(getTranslation('subscriptionFailed', '❌ Subscription failed. Try again.'), true);
+          showMessage(failedText, true);
         }
       }).render(container);
     }
