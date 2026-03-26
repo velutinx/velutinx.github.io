@@ -43,8 +43,8 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
 </head>
 <body>
-  <h3>Subscribe to ✨ Bronze</h3>
-  <p>$4.50/month (10% off)</p>
+  <h3 id="title">Subscribe to ✨ Bronze</h3>
+  <p id="price">$4.50/month (10% off)</p>
   <div class="discord-input">
     <label for="discordId">Your Discord ID</label>
     <input type="text" id="discordId" placeholder="123456789012345678" required>
@@ -54,11 +54,33 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const tierParam = urlParams.get('tier');
+    const tierParam = parseInt(urlParams.get('tier')) || 1;
     const discordIdParam = urlParams.get('discordId');
 
-    // Use the new plan ID created via API
-    const PLAN_ID = 'P-9FK1452173617351CNHCLMCY'; // Bronze plan
+    // Plan IDs for each tier (update with your actual IDs)
+    const PLAN_IDS = {
+      1: 'P-9FK1452173617351CNHCLMCY', // Bronze
+      2: 'P-54683954NF222724GNHCQP5A', // Copper (replace with your actual ID)
+      3: 'P-8T774319PM556621XNHCQQXI', // Silver (replace with your actual ID)
+      4: 'P-7LM27833GL5858822NHCQRDY', // Gold (replace with your actual ID)
+      5: 'P-03654939S5820235JNHCQRNA'  // Platinum (replace with your actual ID)
+    };
+
+    const TIER_NAMES = { 1: 'Bronze', 2: 'Copper', 3: 'Silver', 4: 'Gold', 5: 'Platinum' };
+    const PRICES = { 1: 4.50, 2: 8.10, 3: 12.60, 4: 26.10, 5: 35.10 };
+
+    const tier = tierParam;
+    const planId = PLAN_IDS[tier];
+    const tierName = TIER_NAMES[tier];
+    const price = PRICES[tier];
+
+    if (!planId) {
+      document.body.innerHTML = '<h3>Invalid tier selected</h3><p>Please go back and choose a valid membership.</p>';
+      throw new Error('Invalid tier');
+    }
+
+    document.getElementById('title').textContent = `Subscribe to ✨ ${tierName}`;
+    document.getElementById('price').textContent = `$${price.toFixed(2)}/month (10% off)`;
 
     const discordInput = document.getElementById('discordId');
     const container = document.getElementById('paypal-button-container');
@@ -99,8 +121,8 @@
         style: { label: 'subscribe', color: 'blue', shape: 'pill', height: 40 },
         createSubscription: function(data, actions) {
           return actions.subscription.create({
-            plan_id: PLAN_ID,
-            custom_id: JSON.stringify({ discordId: discordId, tier: 1 })
+            plan_id: planId,
+            custom_id: JSON.stringify({ discordId: discordId, tier: tier })
           });
         },
         onApprove: async function(data, actions) {
@@ -111,8 +133,8 @@
             body: JSON.stringify({
               discordId: discordId,
               subscriptionId: subscriptionId,
-              tier: 1,
-              planId: PLAN_ID,
+              tier: tier,
+              planId: planId,
               recurring: true
             })
           });
