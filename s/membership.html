@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Load PayPal SDK first with vault=true for subscriptions -->
+  <!-- Load PayPal SDK with vault=true for subscriptions (one time, at the top) -->
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
   <style>
     /* ========== ALL STYLES (unchanged) ========== */
@@ -359,7 +359,7 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly" data-tier="1" data-type="monthly">Add to Cart</button>
-      <!-- Subscription button container -->
+      <!-- Container for the PayPal subscription button -->
       <div id="paypal-subscribe-container-1" class="paypal-subscribe-container" data-tier="1"></div>
     </div>
   </div>
@@ -1131,7 +1131,7 @@
     const planResponse = await fetch('https://subscription-worker.velutinx.workers.dev/api/subscription-plans');
     const planIds = await planResponse.json();
 
-    // Function to render subscription buttons (native PayPal)
+    // Function to render subscription buttons (direct PayPal button)
     function renderSubscriptionButtons() {
       const discordId = document.getElementById('discordId')?.value.trim();
       const isValidId = discordId && /^\d{17,19}$/.test(discordId);
@@ -1157,7 +1157,7 @@
           continue;
         }
 
-        // Render native PayPal subscription button
+        // Render the PayPal subscription button directly
         paypal.Buttons({
           style: {
             label: 'subscribe',
