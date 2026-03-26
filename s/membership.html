@@ -1190,8 +1190,19 @@
         e.preventDefault();
         helpContent.classList.toggle('show');
       });
-    }
-  });
+
+  // Force initial button state update (brute force)
+window.addEventListener('load', () => {
+  const discordInput = document.getElementById('discordId');
+  if (discordInput) {
+    // Trigger an input event to force updateButtonsState
+    // Setting a space and clearing it ensures the event fires and the value is empty
+    discordInput.value = ' ';
+    discordInput.dispatchEvent(new Event('input', { bubbles: true }));
+    discordInput.value = '';
+    discordInput.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+});
 </script>
 </body>
 </html>
