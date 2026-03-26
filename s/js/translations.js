@@ -108,7 +108,15 @@ window.translations = {
     removedFromCart: "Removed from cart",
     addedToCart: "Added to cart",
     errorPlanNotConfigured: "Plan not configured for this tier",
-    enterDiscordFirst: "Enter Discord ID first"
+    enterDiscordFirst: "Enter Discord ID first",
+    
+    subscribeTitle: "Subscribe to ✨ {tier}",
+    priceMonthly: "${price}/month (10% off)",
+    discordIdPlaceholder: "123456789012345678",
+    subscriptionLabel: "Subscription (10% off)",
+    subscriptionSuccess: "✅ Subscription started! Your role will be assigned shortly.",
+    subscriptionError: "❌ Error recording subscription. Contact support.",
+    subscriptionFailed: "❌ Subscription failed. Try again."
   },
   ja: {
     cartTitle: "ショッピングカート",
