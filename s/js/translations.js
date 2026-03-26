@@ -117,7 +117,7 @@ window.translations = {
     subscribeTitle: "Subscribe to ✨ {tier}",
     priceMonthly: "${price}/month (10% off)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "Subscription (10% off)",
+    subscriptionLabel: "Subscription (10% off)"
   },
   ja: {
     cartTitle: "ショッピングカート",
@@ -210,8 +210,8 @@ window.translations = {
     subscribeTitle: "サブスクライブ ✨ {tier}",
     priceMonthly: "${price}/月 (10%オフ)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "サブスクリプション (10%オフ)",
-  },
+    subscriptionLabel: "サブスクリプション (10%オフ)"
+  
   },
   zh: {
     cartTitle: "购物车",
@@ -304,7 +304,7 @@ window.translations = {
     subscribeTitle: "订阅 ✨ {tier}",
     priceMonthly: "${price}/月 (9折)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "订阅 (9折)",
+    subscriptionLabel: "订阅 (9折)"
   },
   es: {
     cartTitle: "Carrito de Compras",
@@ -397,6 +397,6 @@ window.translations = {
     subscribeTitle: "Suscríbete a ✨ {tier}",
     priceMonthly: "${price}/mes (10% de descuento)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "Suscripción (10% de descuento)",
+    subscriptionLabel: "Suscripción (10% de descuento)"
   }
 };
