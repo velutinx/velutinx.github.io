@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Load PayPal SDK with namespace to avoid conflict with shared.js -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true&data-namespace=paypalSub"></script>
+  <!-- No static PayPal script; we'll load dynamically -->
   <style>
-    /* ========== ALL STYLES (unchanged) ========== */
+    /* All styles from before (unchanged) */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -774,56 +773,77 @@
   }
 
   // ============================================================================
-  // PayPal rendering (for cart)
+  // PayPal rendering (for cart) - will be defined after SDK loads
   // ============================================================================
-  async function storeCartInKV(orderID, cart) {
-    try {
-      const resp = await fetch('https://orders.velutinx.workers.dev/store-cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderID, cart })
-      });
-      if (!resp.ok) throw new Error('HTTP '+resp.status);
-    } catch (err) {
-      console.error(err);
-      alert(`Failed to save order details: ${err.message}\nPlease contact support with your order ID: ${orderID}`);
-    }
-  }
-
   let isRendering = false;
-  function renderPayPalButton() {
-    const container = document.getElementById('ourPaypalButtonContainer');
-    if (!container) return;
-    const drawer = document.getElementById('ourCartDrawer');
-    if (!drawer || !drawer.classList.contains('open')) return;
-    if (isRendering) return;
-    isRendering = true;
+  let renderPayPalButton = () => {}; // placeholder, will be overwritten after SDK loads
+  let storeCartInKV;
 
-    const cart = getCart();
-    if (cart.length === 0) {
-      container.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
-      isRendering = false;
-      return;
-    }
-    let totalUSD = 0;
-    for (const item of cart) totalUSD += item.priceUSD || 0;
-    const totalUSDfixed = totalUSD.toFixed(2);
-    container.innerHTML = '';
-    const buttons = paypal.Buttons({
-      createOrder: (data, actions) => actions.order.create({
-        purchase_units: [{ amount: { currency_code: "USD", value: totalUSDfixed } }]
-      }),
-      onApprove: async (data, actions) => {
-        const currentCart = getCart();
-        try { await storeCartInKV(data.orderID, currentCart); } catch(e) { console.error(e); }
-        saveCart([]);
-        window.location.href = `/s/success.html?orderID=${data.orderID}`;
-      },
-      onError: (err) => { console.error(err); alert('Something went wrong. Please try again.'); },
-      onCancel: () => { isRendering = false; }
+  // ============================================================================
+  // Dynamic PayPal SDK loader
+  // ============================================================================
+  function loadPayPalSDK() {
+    return new Promise((resolve, reject) => {
+      // Remove any existing PayPal SDK scripts to ensure clean load
+      const existingScripts = document.querySelectorAll('script[src*="paypal.com/sdk/js"]');
+      existingScripts.forEach(script => script.remove());
+
+      const script = document.createElement('script');
+      script.src = 'https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true';
+      script.onload = () => {
+        // Now define the cart PayPal button function
+        storeCartInKV = async function(orderID, cart) {
+          try {
+            const resp = await fetch('https://orders.velutinx.workers.dev/store-cart', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderID, cart })
+            });
+            if (!resp.ok) throw new Error('HTTP '+resp.status);
+          } catch (err) {
+            console.error(err);
+            alert(`Failed to save order details: ${err.message}\nPlease contact support with your order ID: ${orderID}`);
+          }
+        };
+        renderPayPalButton = function() {
+          const container = document.getElementById('ourPaypalButtonContainer');
+          if (!container) return;
+          const drawer = document.getElementById('ourCartDrawer');
+          if (!drawer || !drawer.classList.contains('open')) return;
+          if (isRendering) return;
+          isRendering = true;
+
+          const cart = getCart();
+          if (cart.length === 0) {
+            container.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
+            isRendering = false;
+            return;
+          }
+          let totalUSD = 0;
+          for (const item of cart) totalUSD += item.priceUSD || 0;
+          const totalUSDfixed = totalUSD.toFixed(2);
+          container.innerHTML = '';
+          const buttons = paypal.Buttons({
+            createOrder: (data, actions) => actions.order.create({
+              purchase_units: [{ amount: { currency_code: "USD", value: totalUSDfixed } }]
+            }),
+            onApprove: async (data, actions) => {
+              const currentCart = getCart();
+              try { await storeCartInKV(data.orderID, currentCart); } catch(e) { console.error(e); }
+              saveCart([]);
+              window.location.href = `/s/success.html?orderID=${data.orderID}`;
+            },
+            onError: (err) => { console.error(err); alert('Something went wrong. Please try again.'); },
+            onCancel: () => { isRendering = false; }
+          });
+          buttons.render(container).then(() => { isRendering = false; })
+            .catch(err => { console.error(err); isRendering = false; });
+        };
+        resolve();
+      };
+      script.onerror = () => reject(new Error('Failed to load PayPal SDK'));
+      document.head.appendChild(script);
     });
-    buttons.render(container).then(() => { isRendering = false; })
-      .catch(err => { console.error(err); isRendering = false; });
   }
 
   // ============================================================================
@@ -1107,11 +1127,14 @@
     // Load conversions
     await fetchConversions();
 
+    // Load PayPal SDK dynamically (removes any existing scripts)
+    await loadPayPalSDK();
+
     // Fetch plan IDs from your worker
     const planResponse = await fetch('https://subscription-worker.velutinx.workers.dev/api/subscription-plans');
     const planIds = await planResponse.json();
 
-    // Function to render custom subscription buttons (using paypalSub namespace)
+    // Function to render custom subscription buttons
     function renderSubscriptionButtons() {
       const discordId = document.getElementById('discordId')?.value.trim();
       const isValidId = discordId && /^\d{17,19}$/.test(discordId);
@@ -1154,8 +1177,7 @@
             tempDiv.style.display = 'none';
             document.body.appendChild(tempDiv);
 
-            // Use paypalSub (the isolated namespace)
-            const buttons = paypalSub.Buttons({
+            const buttons = paypal.Buttons({
               style: { layout: 'horizontal', label: 'subscribe' },
               createSubscription: function(data, actions) {
                 return actions.subscription.create({
