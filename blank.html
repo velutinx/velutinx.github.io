@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Subscription</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .discord-input {
+            margin: 20px 0;
+        }
+        input {
+            padding: 10px;
+            width: 80%;
+            font-size: 16px;
+        }
+        button {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #059669;
+            transform: scale(1.02);
+        }
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .error {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Subscription</h1>
+    <p>Subscribe to Bronze for $4.50/month (10% off)</p>
+
+    <div class="discord-input">
+        <label for="discordId">Your Discord ID (required):</label><br>
+        <input type="text" id="discordId" placeholder="123456789012345678" required>
+    </div>
+
+    <div id="button-container"></div>
+    <div id="message" class="message"></div>
+
+    <!-- Load PayPal SDK with vault=true -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
+
+    <script>
+        // Plan ID for Bronze
+        const PLAN_ID = 'P-37M89451YE788052ENG3FYDQ';
+
+        // Helper: validate Discord ID
+        function isValidDiscordId(id) {
+            return /^\d{17,19}$/.test(id);
+        }
+
+        // Get Discord ID input
+        const discordInput = document.getElementById('discordId');
+        const container = document.getElementById('button-container');
+        const messageDiv = document.getElementById('message');
+
+        // Function to render or update the subscription button
+        function renderButton() {
+            const discordId = discordInput.value.trim();
+            const isValid = isValidDiscordId(discordId);
+
+            // Clear container
+            container.innerHTML = '';
+
+            if (!isValid) {
+                // Show disabled placeholder
+                const placeholder = document.createElement('button');
+                placeholder.textContent = 'Enter Discord ID first';
+                placeholder.disabled = true;
+                container.appendChild(placeholder);
+                return;
+            }
+
+            // Render real PayPal subscription button
+            paypal.Buttons({
+                style: {
+                    label: 'subscribe',
+                    color: 'blue',   // will be overridden by CSS if needed
+                    shape: 'pill',
+                    height: 40
+                },
+                createSubscription: function(data, actions) {
+                    return actions.subscription.create({
+                        plan_id: PLAN_ID,
+                        custom_id: JSON.stringify({ discordId: discordId, tier: 1 })
+                    });
+                },
+                onApprove: function(data, actions) {
+                    const subscriptionId = data.subscriptionID;
+                    messageDiv.innerHTML = `<div class="success">Subscription started! ID: ${subscriptionId}</div>`;
+                    // Here you would call your worker to store the subscription
+                    // fetch('https://your-worker.workers.dev/api/store-subscription', { ... });
+                    console.log('Subscription ID:', subscriptionId);
+                },
+                onError: function(err) {
+                    console.error(err);
+                    messageDiv.innerHTML = `<div class="error">Error: ${err.message || 'Could not start subscription'}</div>`;
+                }
+            }).render(container);
+        }
+
+        // Initial render
+        renderButton();
+
+        // Re-render when Discord ID changes
+        discordInput.addEventListener('input', renderButton);
+    </script>
+</body>
+</html>
