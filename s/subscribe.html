@@ -34,6 +34,19 @@
         .paypal-button:hover {
             background-color: #059669 !important;
         }
+        #message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
     </style>
     <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
 </head>
@@ -45,18 +58,28 @@
         <input type="text" id="discordId" placeholder="123456789012345678" required>
     </div>
     <div id="paypal-button-container"></div>
-    <div id="message" style="margin-top: 1rem;"></div>
+    <div id="message"></div>
 
     <script>
-        const PLAN_ID = 'P-9FK1452173617351CNHCLMCY'; // your new plan ID
+        // Get tier and Discord ID from URL parameters (if any)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tierParam = urlParams.get('tier');
+        const discordIdParam = urlParams.get('discordId');
+
+        const PLAN_ID = 'P-9FK1452173617351CNHCLMCY'; // Bronze plan
         const discordInput = document.getElementById('discordId');
         const container = document.getElementById('paypal-button-container');
         const messageDiv = document.getElementById('message');
 
+        // Prefill Discord ID if passed in URL
+        if (discordIdParam && /^\d{17,19}$/.test(discordIdParam)) {
+            discordInput.value = discordIdParam;
+        }
+
         function showMessage(text, isError = false) {
             messageDiv.textContent = text;
-            messageDiv.style.color = isError ? '#dc2626' : '#065f46';
-            setTimeout(() => { messageDiv.textContent = ''; }, 5000);
+            messageDiv.className = isError ? 'error' : 'success';
+            setTimeout(() => { messageDiv.textContent = ''; messageDiv.className = ''; }, 5000);
         }
 
         function isValidDiscordId(id) {
@@ -98,6 +121,8 @@
                     if (response.ok) {
                         showMessage('✅ Subscription started! Role will be assigned soon.');
                     } else {
+                        const errorText = await response.text();
+                        console.error(errorText);
                         showMessage('❌ Error storing subscription. Contact support.', true);
                     }
                 },
@@ -111,14 +136,5 @@
         renderButton();
         discordInput.addEventListener('input', renderButton);
     </script>
-    <style>
-        .paypal-button {
-            background-color: #10b981 !important;
-            border-radius: 40px !important;
-        }
-        .paypal-button:hover {
-            background-color: #059669 !important;
-        }
-    </style>
 </body>
 </html>
