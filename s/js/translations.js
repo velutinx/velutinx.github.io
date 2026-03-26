@@ -117,7 +117,7 @@ window.translations = {
     subscribeTitle: "Subscribe to ✨ {tier}",
     priceMonthly: "${price}/month (10% off)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "Subscription (10% off)"
+    subscriptionLabel: "Subscription (10% off)",
   },
   ja: {
     cartTitle: "ショッピングカート",
@@ -203,14 +203,13 @@ window.translations = {
     addedToCart: "カートに追加しました",
     errorPlanNotConfigured: "このティアのプランは設定されていません",
     enterDiscordFirst: "Discord IDを先に入力してください",
-
     subscriptionSuccess: "✅ サブスクリプションを開始しました！ロールはまもなく割り当てられます。",
     subscriptionError: "❌ サブスクリプションの記録中にエラーが発生しました。サポートにお問い合わせください。",
     subscriptionFailed: "❌ サブスクリプションに失敗しました。もう一度お試しください。",
     subscribeTitle: "サブスクライブ ✨ {tier}",
     priceMonthly: "${price}/月 (10%オフ)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "サブスクリプション (10%オフ)"
+    subscriptionLabel: "サブスクリプション (10%オフ)",
   
   },
   zh: {
@@ -297,14 +296,13 @@ window.translations = {
     addedToCart: "已加入购物车",
     errorPlanNotConfigured: "该等级尚未配置订阅计划",
     enterDiscordFirst: "请先输入 Discord ID",
-
     subscriptionSuccess: "✅ 订阅已开始！角色将很快分配。",
     subscriptionError: "❌ 记录订阅出错。请联系客服。",
     subscriptionFailed: "❌ 订阅失败。请重试。",
     subscribeTitle: "订阅 ✨ {tier}",
     priceMonthly: "${price}/月 (9折)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "订阅 (9折)"
+    subscriptionLabel: "订阅 (9折)",
   },
   es: {
     cartTitle: "Carrito de Compras",
@@ -390,13 +388,12 @@ window.translations = {
     addedToCart: "Añadido al carrito",
     errorPlanNotConfigured: "Plan no configurado para este nivel",
     enterDiscordFirst: "Ingresa tu ID de Discord primero",
-
     subscriptionSuccess: "✅ ¡Suscripción iniciada! Tu rol se asignará en breve.",
     subscriptionError: "❌ Error al registrar la suscripción. Contacta a soporte.",
     subscriptionFailed: "❌ Suscripción fallida. Inténtalo de nuevo.",
     subscribeTitle: "Suscríbete a ✨ {tier}",
     priceMonthly: "${price}/mes (10% de descuento)",
     discordIdPlaceholder: "123456789012345678",
-    subscriptionLabel: "Suscripción (10% de descuento)"
+    subscriptionLabel: "Suscripción (10% de descuento)",
   }
 };
