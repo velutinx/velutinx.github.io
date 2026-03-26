@@ -109,7 +109,8 @@ window.translations = {
     addedToCart: "Added to cart",
     errorPlanNotConfigured: "Plan not configured for this tier",
     enterDiscordFirst: "Enter Discord ID first",
-    
+
+    // Subscription modal
     subscribeTitle: "Subscribe to ✨ {tier}",
     priceMonthly: "${price}/month (10% off)",
     discordIdPlaceholder: "123456789012345678",
@@ -203,15 +204,13 @@ window.translations = {
     errorPlanNotConfigured: "このティアのプランは設定されていません",
     enterDiscordFirst: "Discord IDを先に入力してください",
 
-    subscribeTitle: "Suscríbete a ✨ {tier}",
-    subscribePrice: "${price}/mes (10% de descuento)",
-    discordIdLabel: "Tu ID de Discord",
-    discordPlaceholder: "123456789012345678",
-    enterDiscordFirst: "Ingresa un ID de Discord válido primero",
-    subscriptionStarted: "✅ ¡Suscripción iniciada! Tu rol se asignará en breve.",
-    errorRecording: "❌ Error al registrar la suscripción. Contacta a soporte.",
-    subscriptionFailed: "❌ Suscripción fallida. Inténtalo de nuevo."
-
+    subscribeTitle: "サブスクライブ ✨ {tier}",
+    priceMonthly: "${price}/月 (10%オフ)",
+    discordIdPlaceholder: "123456789012345678",
+    subscriptionLabel: "サブスクリプション (10%オフ)",
+    subscriptionSuccess: "✅ サブスクリプションを開始しました！ロールはまもなく割り当てられます。",
+    subscriptionError: "❌ サブスクリプションの記録中にエラーが発生しました。サポートにお問い合わせください。",
+    subscriptionFailed: "❌ サブスクリプションに失敗しました。もう一度お試しください。"
   },
   zh: {
     cartTitle: "购物车",
@@ -299,14 +298,12 @@ window.translations = {
     enterDiscordFirst: "请先输入 Discord ID",
 
     subscribeTitle: "订阅 ✨ {tier}",
-    subscribePrice: "${price}/月 (9折)",
-    discordIdLabel: "你的 Discord ID",
-    discordPlaceholder: "123456789012345678",
-    enterDiscordFirst: "请先输入有效的 Discord ID",
-    subscriptionStarted: "✅ 订阅已开始！角色将很快分配。",
-    errorRecording: "❌ 记录订阅出错。请联系客服。",
+    priceMonthly: "${price}/月 (9折)",
+    discordIdPlaceholder: "123456789012345678",
+    subscriptionLabel: "订阅 (9折)",
+    subscriptionSuccess: "✅ 订阅已开始！角色将很快分配。",
+    subscriptionError: "❌ 记录订阅出错。请联系客服。",
     subscriptionFailed: "❌ 订阅失败。请重试。"
-
   },
   es: {
     cartTitle: "Carrito de Compras",
@@ -394,13 +391,11 @@ window.translations = {
     enterDiscordFirst: "Ingresa tu ID de Discord primero",
 
     subscribeTitle: "Suscríbete a ✨ {tier}",
-    subscribePrice: "${price}/mes (10% de descuento)",
-    discordIdLabel: "Tu ID de Discord",
-    discordPlaceholder: "123456789012345678",
-    enterDiscordFirst: "Ingresa un ID de Discord válido primero",
-    subscriptionStarted: "✅ ¡Suscripción iniciada! Tu rol se asignará en breve.",
-    errorRecording: "❌ Error al registrar la suscripción. Contacta a soporte.",
+    priceMonthly: "${price}/mes (10% de descuento)",
+    discordIdPlaceholder: "123456789012345678",
+    subscriptionLabel: "Suscripción (10% de descuento)",
+    subscriptionSuccess: "✅ ¡Suscripción iniciada! Tu rol se asignará en breve.",
+    subscriptionError: "❌ Error al registrar la suscripción. Contacta a soporte.",
     subscriptionFailed: "❌ Suscripción fallida. Inténtalo de nuevo."
-
   }
 };
