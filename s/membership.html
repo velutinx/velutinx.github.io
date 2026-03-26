@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- No static PayPal script here – we'll load it dynamically -->
   <style>
-    /* ========== ALL STYLES (same as before) ========== */
+    /* ========== ALL STYLES (unchanged) ========== */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -351,7 +350,6 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly" data-tier="1" data-type="monthly">Add to Cart</button>
-      <!-- Container for PayPal subscription button -->
       <div id="paypal-subscribe-container-1" class="paypal-subscribe-container" data-tier="1"></div>
     </div>
   </div>
@@ -1168,11 +1166,11 @@
           continue;
         }
 
-        // Render native PayPal subscription button
+        // Render native PayPal subscription button with valid color
         paypal.Buttons({
           style: {
             label: 'subscribe',
-            color: 'green',
+            color: 'blue',        // valid: gold, blue, silver, black, white
             shape: 'pill',
             height: 40
           },
