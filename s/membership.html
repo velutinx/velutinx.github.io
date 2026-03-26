@@ -1200,16 +1200,17 @@ function updateButtonsState() {
     const iframe = document.getElementById('subscribeIframe');
 
     if (modal && closeModalBtn && iframe) {
-      window.openSubscriptionModal = function(tier) {
-        const discordId = document.getElementById('discordId').value.trim();
-        if (!discordId || !/^\d{17,19}$/.test(discordId)) {
-          alert('Please enter a valid Discord ID first.');
-          return;
-        }
-        const url = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}`;
-        iframe.src = url;
-        modal.style.display = 'flex';
-      };
+window.openSubscriptionModal = function(tier) {
+  const discordId = document.getElementById('discordId').value.trim();
+  if (!discordId || !/^\d{17,19}$/.test(discordId)) {
+    alert('Please enter a valid Discord ID first.');
+    return;
+  }
+  const lang = localStorage.getItem('language') || 'en';
+  const url = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}&lang=${lang}`;
+  iframe.src = url;
+  modal.style.display = 'flex';
+};
 
       closeModalBtn.addEventListener('click', () => {
         modal.style.display = 'none';
