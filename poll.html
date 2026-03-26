@@ -313,5 +313,26 @@ async function init() {
       document.body.classList.add('dark');
     }
   </script>
+
+  <style>
+  /* Force winner cross to be visible in dark mode */
+  body.dark .card.winner::after {
+    display: block !important;      /* ensure it's not hidden */
+    filter: invert(1);              /* invert colours – if cross is dark, it becomes light */
+  }
+
+  /* Optional: ensure cross is properly positioned */
+  .card.winner::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://www.velutinx.com/images/cross.png') center / contain no-repeat;
+    pointer-events: none;
+    z-index: 10;
+  }
+</style>
 </body>
 </html>
