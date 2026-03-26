@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
+  <!-- No static PayPal script here – we'll load it dynamically -->
   <style>
-    /* ========== ALL STYLES (unchanged from your version) ========== */
+    /* ========== ALL STYLES (same as before) ========== */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -1118,6 +1118,25 @@
 
     // Load conversions
     await fetchConversions();
+
+    // ============================================================================
+    // DYNAMICALLY LOAD PAYPAL SDK (ensures vault=true)
+    // ============================================================================
+    function loadPayPalSDK() {
+      return new Promise((resolve, reject) => {
+        if (window.paypal && window.paypal.Buttons) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load PayPal SDK'));
+        document.head.appendChild(script);
+      });
+    }
+
+    await loadPayPalSDK();
 
     // Fetch plan IDs from your worker
     const planResponse = await fetch('https://subscription-worker.velutinx.workers.dev/api/subscription-plans');
