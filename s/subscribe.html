@@ -14,12 +14,14 @@
     .error { background: #fee2e2; color: #dc2626; }
   </style>
   <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
+  <!-- Load translations from the same file used by the main page -->
+  <script src="/s/js/translations.js"></script>
 </head>
 <body>
   <h3 id="title">Subscribe to ✨ Bronze</h3>
   <p id="price">$4.50/month (10% off)</p>
   <div class="discord-input">
-    <label for="discordId">Your Discord ID</label>
+    <label for="discordId" id="discordIdLabel">Your Discord ID</label>
     <input type="text" id="discordId" placeholder="123456789012345678" required>
   </div>
   <div id="paypal-button-container"></div>
@@ -30,6 +32,7 @@
     const tierParam = parseInt(urlParams.get('tier')) || 1;
     const discordIdParam = urlParams.get('discordId');
 
+    // Plan IDs for each tier
     const PLAN_IDS = {
       1: 'P-9FK1452173617351CNHCLMCY', // Bronze
       2: 'P-54683954NF222724GNHCQP5A', // Copper
@@ -41,6 +44,13 @@
     const TIER_NAMES = { 1: 'Bronze', 2: 'Copper', 3: 'Silver', 4: 'Gold', 5: 'Platinum' };
     const PRICES = { 1: 4.50, 2: 8.10, 3: 12.60, 4: 26.10, 5: 35.10 };
 
+    // Translation helper
+    function getTranslation(key, fallback = '') {
+      const lang = localStorage.getItem('language') || 'en';
+      const t = window.translations?.[lang] || window.translations?.en || {};
+      return t[key] !== undefined ? t[key] : fallback;
+    }
+
     const tier = tierParam;
     const planId = PLAN_IDS[tier];
     const tierName = TIER_NAMES[tier];
@@ -51,8 +61,18 @@
       throw new Error('Invalid tier');
     }
 
-    document.getElementById('title').textContent = `Subscribe to ✨ ${tierName}`;
-    document.getElementById('price').textContent = `$${price.toFixed(2)}/month (10% off)`;
+    // Get translated tier name (if available)
+    const translatedTierName = getTranslation(`tier${tierName}`, tierName.toUpperCase());
+    const titleText = getTranslation('subscribeTitle', 'Subscribe to ✨ {tier}').replace('{tier}', translatedTierName);
+    const priceText = getTranslation('priceMonthly', '${price}/month (10% off)').replace('${price}', price.toFixed(2));
+    const discordLabelText = getTranslation('discordIdLabel', 'Your Discord ID');
+    const placeholderText = getTranslation('discordIdPlaceholder', '123456789012345678');
+    const enterIdFirstText = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
+
+    document.getElementById('title').textContent = titleText;
+    document.getElementById('price').textContent = priceText;
+    document.getElementById('discordIdLabel').textContent = discordLabelText;
+    document.getElementById('discordId').placeholder = placeholderText;
 
     const discordInput = document.getElementById('discordId');
     const container = document.getElementById('paypal-button-container');
@@ -78,7 +98,7 @@
       container.innerHTML = '';
       if (!isValid) {
         const btn = document.createElement('button');
-        btn.textContent = 'Enter a valid Discord ID first';
+        btn.textContent = enterIdFirstText;
         btn.disabled = true;
         btn.style.background = '#9ca3af';
         btn.style.borderRadius = '40px';
@@ -105,11 +125,11 @@
             type: 'subscription',
             tier: tier,
             discordId: discordId,
-            title: `${tierName} Subscription (10% off)`,
+            title: `${translatedTierName} ${getTranslation('subscriptionLabel', 'Subscription (10% off)')}`,
             id: `M-${tier}`,
             months: 1,
             priceUSD: price,
-            recurring: true,  // important for the orders worker
+            recurring: true,
             planId: planId
           };
           
@@ -118,22 +138,22 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              orderID: subscriptionId,  // use subscription ID as order ID
+              orderID: subscriptionId,
               cart: [cartItem]
             })
           });
           
           if (orderResponse.ok) {
-            showMessage('✅ Subscription started! Your role will be assigned shortly.');
+            showMessage(getTranslation('subscriptionSuccess', '✅ Subscription started! Your role will be assigned shortly.'));
           } else {
             const errorText = await orderResponse.text();
             console.error(errorText);
-            showMessage('❌ Error recording subscription. Contact support.', true);
+            showMessage(getTranslation('subscriptionError', '❌ Error recording subscription. Contact support.'), true);
           }
         },
         onError: function(err) {
           console.error(err);
-          showMessage('❌ Subscription failed. Try again.', true);
+          showMessage(getTranslation('subscriptionFailed', '❌ Subscription failed. Try again.'), true);
         }
       }).render(container);
     }
