@@ -315,11 +315,12 @@ async function init() {
   </script>
 
   <style>
-  /* Force winner cross to be visible in dark mode */
-  body.dark .card.winner::after {
-    display: block !important;      /* ensure it's not hidden */
-    filter: invert(1);              /* invert colours – if cross is dark, it becomes light */
-  }
+/* Ensure cross appears in dark mode and is red */
+body.dark .card.winner::after {
+  display: block !important;
+  filter: brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5772%) hue-rotate(356deg) brightness(100%) contrast(118%);
+  /* This turns any black/white image into red */
+}
 
   /* Optional: ensure cross is properly positioned */
   .card.winner::after {
