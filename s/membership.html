@@ -634,19 +634,19 @@
     } else alert(msg);
   }
 
-  function toggleMembership(tierNumber, type, months = 1) {
-    const discordId = validateDiscordId();
-    if (!discordId) return;
+function toggleMembership(tierNumber, type, months = 1) {
+  const discordId = validateDiscordId();
+  if (!discordId) return;
 
-    const itemId = `M-${tierNumber}`;   // <-- change here
-    let cart = getCart();
-    const existingIndex = cart.findIndex(item => item.id === itemId);
-    if (existingIndex !== -1) {
-      cart.splice(existingIndex, 1);
-      saveCart(cart);
-      showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
-      return;
-    }
+  const itemId = `M-${tierNumber}`;
+  let cart = getCart();
+  const existingIndex = cart.findIndex(item => item.id === itemId);
+  if (existingIndex !== -1) {
+    cart.splice(existingIndex, 1);
+    saveCart(cart);
+    showSnackbar(getTranslation('removedFromCart', 'Removed from cart'), true);
+    return;
+  }
 
     const newRank = getMembershipRank(tierNumber, type);
     const existingItems = cart.filter(item => item.type === 'monthly' || item.type === 'subscription');
@@ -684,23 +684,23 @@
       ? `${tierName} (${getTranslation('subscriptionLabel', 'Subscription - 10% OFF')})`
       : `${tierName} (${getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`)}${discountPercent ? ` - ${discountPercent}% OFF` : ''})`;
 
-    const newItem = {
-      id: itemId,
-      title: title,
-      type: type,
-      tier: tierNumber,
-      months: months,
-      discordId: discordId,
-      image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`,
-      priceUSD: priceUSD,
-      displayPrice: displayPrice,
-      displayOriginal: displayOriginal,
-      discountPercent: discountPercent
-    };
-    cart.push(newItem);
-    saveCart(cart);
-    showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
-  }
+  const newItem = {
+    id: itemId,
+    title: title,
+    type: type === 'subscription' ? 'subscription' : 'membership', // <-- change here
+    tier: tierNumber,
+    months: months,
+    discordId: discordId,
+    image: `https://www.velutinx.com/i/packmembership-${tierNumber}-1.jpg`,
+    priceUSD: priceUSD,
+    displayPrice: displayPrice,
+    displayOriginal: displayOriginal,
+    discountPercent: discountPercent
+  };
+  cart.push(newItem);
+  saveCart(cart);
+  showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
+}
 
   // ============================================================================
   // Update cart UI (drawer)
