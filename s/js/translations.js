@@ -107,7 +107,8 @@ window.translations = {
     errorOnlyHighest: "You can only upgrade to a higher tier or annual plan.",
     removedFromCart: "Removed from cart",
     addedToCart: "Added to cart",
-    errorPlanNotConfigured: "Plan not configured for this tier"
+    errorPlanNotConfigured: "Plan not configured for this tier",
+    enterDiscordFirst: "Enter Discord ID first"
   },
   ja: {
     cartTitle: "ショッピングカート",
@@ -191,7 +192,9 @@ window.translations = {
     errorOnlyHighest: "上位ティアまたは年間プランにのみアップグレードできます。",
     removedFromCart: "カートから削除しました",
     addedToCart: "カートに追加しました",
-    errorPlanNotConfigured: "このティアのプランは設定されていません"
+    errorPlanNotConfigured: "このティアのプランは設定されていません",
+    enterDiscordFirst: "Discord IDを先に入力してください"
+
   },
   zh: {
     cartTitle: "购物车",
@@ -275,7 +278,9 @@ window.translations = {
     errorOnlyHighest: "你只能升级到更高等级或年付计划。",
     removedFromCart: "已从购物车移除",
     addedToCart: "已加入购物车",
-    errorPlanNotConfigured: "该等级尚未配置订阅计划"
+    errorPlanNotConfigured: "该等级尚未配置订阅计划",
+    enterDiscordFirst: "请先输入 Discord ID"
+
   },
   es: {
     cartTitle: "Carrito de Compras",
@@ -359,6 +364,8 @@ window.translations = {
     errorOnlyHighest: "Solo puedes actualizar a un nivel superior o plan anual.",
     removedFromCart: "Eliminado del carrito",
     addedToCart: "Añadido al carrito",
-    errorPlanNotConfigured: "Plan no configurado para este nivel"
+    errorPlanNotConfigured: "Plan no configurado para este nivel",
+    enterDiscordFirst: "Ingresa tu ID de Discord primero"
+
   }
 };
