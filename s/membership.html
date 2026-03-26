@@ -630,7 +630,7 @@
     const discordId = validateDiscordId();
     if (!discordId) return;
 
-    const itemId = `membership-${tierNumber}-${type}`;
+    const itemId = `M-${tierNumber}`;   // <-- change here
     let cart = getCart();
     const existingIndex = cart.findIndex(item => item.id === itemId);
     if (existingIndex !== -1) {
@@ -1027,11 +1027,50 @@
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
 
+// ============================================================================
+// Update button states based on Discord ID
+// ============================================================================
+function updateButtonsState() {
+  const discordId = document.getElementById('discordId')?.value.trim();
+  const isValidId = discordId && /^\d{17,19}$/.test(discordId);
+  const monthlyBtnText = getTranslation('addToCart', 'Add to Cart');
+  const subscribeBtnText = getTranslation('subscribeBtn', 'Recurring Membership, 10% OFF');
+  const disabledText = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
+
+  for (let tier = 1; tier <= 5; tier++) {
+    const monthlyBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="monthly"]`);
+    if (monthlyBtn) {
+      if (!isValidId) {
+        monthlyBtn.textContent = disabledText;
+        monthlyBtn.classList.add('disabled');
+        monthlyBtn.disabled = true;
+      } else {
+        monthlyBtn.textContent = monthlyBtnText;
+        monthlyBtn.classList.remove('disabled');
+        monthlyBtn.disabled = false;
+      }
+    }
+
+    const subBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="subscription"]`);
+    if (subBtn) {
+      if (!isValidId) {
+        subBtn.textContent = disabledText;
+        subBtn.classList.add('disabled');
+        subBtn.disabled = true;
+      } else {
+        subBtn.textContent = subscribeBtnText;
+        subBtn.classList.remove('disabled');
+        subBtn.disabled = false;
+      }
+    }
+  }
+}
+  
   // ============================================================================
   // Main initialization after header is ready
   // ============================================================================
-  document.addEventListener('headerReady', async () => {
-    // Remove old shared cart elements
+   document.addEventListener('headerReady', async () => {
+  // Remove old shared cart elements
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
     const sharedDrawer = document.getElementById('cartDrawer');
@@ -1135,35 +1174,44 @@
       }
     }
 
-    // Initial render
-    updateMonthlyButtonsState();
 
-    // Re‑render when Discord ID changes
-    const discordInput = document.getElementById('discordId');
-    if (discordInput) {
-      discordInput.addEventListener('input', () => {
-        updateMonthlyButtonsState();
-      });
-    }
 
-    // Setup dropdowns and button listeners
-    setupDropdowns();
-    attachButtonListeners();
 
-    // Initial UI updates
-    updateCartUI();
-    updateMembershipButtons();
-    updateMembershipText();
 
-    // Listen for language changes
-    document.addEventListener('languageChanged', (e) => {
-      localStorage.setItem('language', e.detail.language);
-      updateMembershipText();
-      updateMembershipButtons();
-      updateCartUI();
-      updateMonthlyButtonsState();
+
+     
+  // Load conversions
+  await fetchConversions();
+
+  // Initial button state
+  updateButtonsState();
+
+  // Re‑render when Discord ID changes
+  const discordInput = document.getElementById('discordId');
+  if (discordInput) {
+    discordInput.addEventListener('input', () => {
+      updateButtonsState();
     });
+  }
+
+  // Setup dropdowns and button listeners
+  setupDropdowns();
+  attachButtonListeners();
+
+  // Initial UI updates
+  updateCartUI();
+  updateMembershipButtons();
+  updateMembershipText();
+
+  // Listen for language changes
+  document.addEventListener('languageChanged', (e) => {
+    localStorage.setItem('language', e.detail.language);
+    updateMembershipText();
+    updateMembershipButtons();
+    updateCartUI();
+    updateButtonsState(); // update button texts after language change
   });
+});
 
   // Discord help toggle
   document.addEventListener('DOMContentLoaded', () => {
