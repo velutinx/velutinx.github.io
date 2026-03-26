@@ -271,7 +271,7 @@
 <div id="header-placeholder"></div>
 
 <main class="container">
-  <h1 class="membership-title" id="membershipTitle">Choose Your Membership</h1>
+  <h1 class="membership-title" id="membershipTitle">✨ Choose Your Membership</h1>
   <p class="membership-description" id="membershipDescription">Support my work and unlock exclusive perks</p>
 
   <div class="discord-section">
@@ -630,7 +630,7 @@
     const discordId = validateDiscordId();
     if (!discordId) return;
 
-    const itemId = `M-${tierNumber}`;
+    const itemId = `M-${tierNumber}`;   // <-- change here
     let cart = getCart();
     const existingIndex = cart.findIndex(item => item.id === itemId);
     if (existingIndex !== -1) {
@@ -1151,11 +1151,16 @@
     // Load conversions
     await fetchConversions();
 
+    // Clear any autofilled Discord ID (to keep buttons disabled initially)
+    const discordInput = document.getElementById('discordId');
+    if (discordInput && discordInput.value.trim() !== '') {
+      discordInput.value = '';
+    }
+
     // Initial button state
     updateButtonsState();
 
     // Re‑render when Discord ID changes
-    const discordInput = document.getElementById('discordId');
     if (discordInput) {
       discordInput.addEventListener('input', () => {
         updateButtonsState();
@@ -1190,8 +1195,8 @@
         e.preventDefault();
         helpContent.classList.toggle('show');
       });
-  }
-});
+    }
+  });
 </script>
 </body>
 </html>
