@@ -110,6 +110,7 @@
             months: 1,
             priceUSD: price,
             recurring: true  // important for the orders worker
+            planId: planId   // <-- add this line
           };
           
           // Send to orders worker to record the order and membership
