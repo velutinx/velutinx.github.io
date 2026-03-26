@@ -339,7 +339,7 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly disabled" data-tier="1" data-type="monthly" disabled>Enter Discord ID first</button>
-      <button class="membership-btn btn-subscribe disabled" data-tier="1" data-type="subscription" disabled>Enter Discord ID first</button>
+      <button class="membership-btn btn-subscribe" data-tier="1" onclick="openSubscriptionModal(1)">Recurring Membership, 10% OFF</button>
     </div>
   </div>
 
@@ -1208,6 +1208,41 @@ window.addEventListener('load', () => {
   }
   updateButtonsState();
 });
+
+// Modal handling
+const modal = document.getElementById('subscribeModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const iframe = document.getElementById('subscribeIframe');
+
+function openSubscriptionModal(tier) {
+  const discordId = document.getElementById('discordId').value.trim();
+  if (!discordId || !/^\d{17,19}$/.test(discordId)) {
+    alert('Please enter a valid Discord ID first.');
+    return;
+  }
+  // Build the URL with the Discord ID and tier (currently only tier 1 is used, but you can extend)
+  const url = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}`;
+  iframe.src = url;
+  modal.style.display = 'flex';
+}
+
+function closeModal() {
+  modal.style.display = 'none';
+  iframe.src = ''; // reset
+}
+
+closeModalBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  
 </script>
+
+<div id="subscribeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90%; overflow: auto; padding: 20px; position: relative;">
+    <button id="closeModalBtn" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+    <iframe id="subscribeIframe" src="" style="width: 100%; height: 500px; border: none;"></iframe>
+  </div>
+</div>
+
+  
 </body>
 </html>
