@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Verify PayPal Plan</title>
+    <title>Check PayPal Plan</title>
     <style>body { font-family: monospace; white-space: pre-wrap; }</style>
 </head>
 <body>
-    <h2>Checking PayPal Plan</h2>
+    <h2>Checking if plan P-37M89451YE788052ENG3FYDQ exists</h2>
     <pre id="result">Loading...</pre>
     <script>
         const CLIENT_ID = 'AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3';
-        const SECRET = 'ENwoPkJPp9NOdFlVCpM4GIgrwTowUZW6gAFJ4E8-757iN1mQfYIaEBWSuTQusn-ejFoGbICP-GaCRIU5'; // ← replace with your actual secret (you can find it in the PayPal dashboard under "Secret key 1")
+        const SECRET = 'ENwoPkJPp9NOdFlVCpM4GIgrwTowUZW6gAFJ4E8-757iN1mQfYIaEBWSuTQusn-ejFoGbICP-GaCRIU5';  // <-- REPLACE WITH YOUR ACTUAL SECRET
         const PLAN_ID = 'P-37M89451YE788052ENG3FYDQ';
 
         async function getAccessToken() {
@@ -22,6 +22,7 @@
                 body: 'grant_type=client_credentials'
             });
             const data = await response.json();
+            if (!response.ok) throw new Error(data.error_description || 'Failed to get token');
             return data.access_token;
         }
 
@@ -30,7 +31,8 @@
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                const error = await response.text();
+                throw new Error(`HTTP ${response.status}: ${error}`);
             }
             return await response.json();
         }
