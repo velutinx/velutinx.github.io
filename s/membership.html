@@ -1197,6 +1197,16 @@
       });
     }
   });
+
+  // Force initial button state after everything is loaded
+window.addEventListener('load', () => {
+  // Clear any autofilled value to start disabled
+  const discordInput = document.getElementById('discordId');
+  if (discordInput && discordInput.value.trim() !== '') {
+    discordInput.value = '';
+  }
+  updateButtonsState();
+});
 </script>
 </body>
 </html>
