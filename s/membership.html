@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Load PayPal SDK only for cart (vault=true not needed for cart, but harmless) -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD"></script>
+  <!-- Load PayPal SDK for cart (no need for subscription here) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
   <style>
-    /* ========== ALL STYLES (unchanged) ========== */
+    /* ========== ALL STYLES (unchanged from your original) ========== */
+    /* Keep all existing CSS – we only add modal styles */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -88,6 +89,44 @@
       cursor: not-allowed;
       pointer-events: none;
       transform: none;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90%;
+      overflow: auto;
+      padding: 20px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .modal iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
     }
 
     .month-selector-container {
@@ -339,8 +378,8 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly" data-tier="1" data-type="monthly">Add to Cart</button>
-      <!-- Subscription link -->
-      <a href="#" class="membership-btn btn-subscribe subscribe-link" data-tier="1" target="_blank">Subscribe 10% OFF</a>
+      <!-- Subscription button: opens modal with subscription page -->
+      <button class="membership-btn btn-subscribe" data-tier="1" onclick="openSubscribeModal(this)">Subscribe 10% OFF</button>
     </div>
   </div>
 
@@ -374,7 +413,7 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly" data-tier="2" data-type="monthly">Add to Cart</button>
-      <a href="#" class="membership-btn btn-subscribe subscribe-link" data-tier="2" target="_blank">Subscribe 10% OFF</a>
+      <button class="membership-btn btn-subscribe" data-tier="2" onclick="openSubscribeModal(this)">Subscribe 10% OFF</button>
     </div>
   </div>
 
@@ -408,7 +447,7 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly" data-tier="3" data-type="monthly">Add to Cart</button>
-      <a href="#" class="membership-btn btn-subscribe subscribe-link" data-tier="3" target="_blank">Subscribe 10% OFF</a>
+      <button class="membership-btn btn-subscribe" data-tier="3" onclick="openSubscribeModal(this)">Subscribe 10% OFF</button>
     </div>
   </div>
 
@@ -442,7 +481,7 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly" data-tier="4" data-type="monthly">Add to Cart</button>
-      <a href="#" class="membership-btn btn-subscribe subscribe-link" data-tier="4" target="_blank">Subscribe 10% OFF</a>
+      <button class="membership-btn btn-subscribe" data-tier="4" onclick="openSubscribeModal(this)">Subscribe 10% OFF</button>
     </div>
   </div>
 
@@ -472,7 +511,7 @@
         </div>
       </div>
       <button class="membership-btn btn-monthly" data-tier="5" data-type="monthly">Add to Cart</button>
-      <a href="#" class="membership-btn btn-subscribe subscribe-link" data-tier="5" target="_blank">Subscribe 10% OFF</a>
+      <button class="membership-btn btn-subscribe" data-tier="5" onclick="openSubscribeModal(this)">Subscribe 10% OFF</button>
     </div>
   </div>
 </div>
@@ -480,6 +519,14 @@
   <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
 </div>
 </main>
+
+<!-- Modal for subscription -->
+<div id="subscribeModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <iframe id="subscribeIframe" src="" style="width:100%; height:500px; border:none;"></iframe>
+  </div>
+</div>
 
 <script src="/assets/js/shared.js"></script>
 <script src="/s/js/translations.js"></script>
@@ -889,7 +936,7 @@
         toggleMembership(tier, 'monthly', months);
       };
     });
-    // No subscription button listener – they are simple links
+    // No subscription button listener – they open the modal
   }
 
   // ============================================================================
@@ -1023,50 +1070,32 @@
   };
 
   // ============================================================================
-  // Subscription link handling (opens standalone page with Discord ID and tier)
+  // Modal functions
   // ============================================================================
-  function updateSubscribeLinks() {
+  const modal = document.getElementById('subscribeModal');
+  const iframe = document.getElementById('subscribeIframe');
+
+  window.openSubscribeModal = function(button) {
+    const tier = button.getAttribute('data-tier');
     const discordId = document.getElementById('discordId').value.trim();
-    const isValidId = discordId && /^\d{17,19}$/.test(discordId);
-    const subscribeLinks = document.querySelectorAll('.subscribe-link');
-    subscribeLinks.forEach(link => {
-      if (isValidId) {
-        const tier = link.getAttribute('data-tier');
-        link.href = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}`;
-        link.classList.remove('disabled');
-        link.style.pointerEvents = 'auto';
-      } else {
-        link.href = '#';
-        link.classList.add('disabled');
-        link.style.pointerEvents = 'none';
-      }
-    });
-  }
-
-  // ============================================================================
-  // Monthly button state (disable when no Discord ID)
-  // ============================================================================
-  function updateMonthlyButtonsState() {
-    const discordId = document.getElementById('discordId')?.value.trim();
-    const isValidId = discordId && /^\d{17,19}$/.test(discordId);
-    const monthlyBtnText = getTranslation('addToCart', 'Add to Cart');
-    const disabledText = getTranslation('enterDiscordFirstMonthly', 'Enter Discord ID first');
-
-    for (let tier = 1; tier <= 5; tier++) {
-      const monthlyBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="monthly"]`);
-      if (!monthlyBtn) continue;
-
-      if (!isValidId) {
-        monthlyBtn.textContent = disabledText;
-        monthlyBtn.classList.add('disabled');
-        monthlyBtn.disabled = true;
-      } else {
-        monthlyBtn.textContent = monthlyBtnText;
-        monthlyBtn.classList.remove('disabled');
-        monthlyBtn.disabled = false;
-      }
+    if (!discordId || !/^\d{17,19}$/.test(discordId)) {
+      alert('Please enter a valid Discord ID first.');
+      return;
     }
-  }
+    const url = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}`;
+    iframe.src = url;
+    modal.style.display = 'flex';
+  };
+
+  window.closeModal = function() {
+    modal.style.display = 'none';
+    iframe.src = ''; // reset
+  };
+
+  // Close modal when clicking outside the content
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
 
   // ============================================================================
   // Main initialization after header is ready
@@ -1083,7 +1112,7 @@
     if (sharedOverlay) sharedOverlay.remove();
     document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => el?.remove());
 
-    // Build custom cart UI (same as before)
+    // Build custom cart UI
     const navActions = document.querySelector('.nav-actions');
     if (navActions) {
       const ourCartBtn = document.createElement('button');
@@ -1153,6 +1182,40 @@
     // Load conversions
     await fetchConversions();
 
+    // Function to enable/disable monthly buttons based on Discord ID
+    function updateMonthlyButtonsState() {
+      const discordId = document.getElementById('discordId')?.value.trim();
+      const isValidId = discordId && /^\d{17,19}$/.test(discordId);
+      const monthlyBtnText = getTranslation('addToCart', 'Add to Cart');
+      const disabledText = getTranslation('enterDiscordFirstMonthly', 'Enter Discord ID first');
+
+      for (let tier = 1; tier <= 5; tier++) {
+        const monthlyBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="monthly"]`);
+        if (!monthlyBtn) continue;
+
+        if (!isValidId) {
+          monthlyBtn.textContent = disabledText;
+          monthlyBtn.classList.add('disabled');
+          monthlyBtn.disabled = true;
+        } else {
+          monthlyBtn.textContent = monthlyBtnText;
+          monthlyBtn.classList.remove('disabled');
+          monthlyBtn.disabled = false;
+        }
+      }
+    }
+
+    // Initial render
+    updateMonthlyButtonsState();
+
+    // Re‑render when Discord ID changes
+    const discordInput = document.getElementById('discordId');
+    if (discordInput) {
+      discordInput.addEventListener('input', () => {
+        updateMonthlyButtonsState();
+      });
+    }
+
     // Setup dropdowns and monthly button listeners
     setupDropdowns();
     attachButtonListeners();
@@ -1162,26 +1225,12 @@
     updateMembershipButtons();
     updateMembershipText();
 
-    // Update subscription links and monthly buttons state based on Discord ID
-    updateSubscribeLinks();
-    updateMonthlyButtonsState();
-
-    // Listen for Discord ID changes
-    const discordInput = document.getElementById('discordId');
-    if (discordInput) {
-      discordInput.addEventListener('input', () => {
-        updateSubscribeLinks();
-        updateMonthlyButtonsState();
-      });
-    }
-
     // Listen for language changes
     document.addEventListener('languageChanged', (e) => {
       localStorage.setItem('language', e.detail.language);
       updateMembershipText();
       updateMembershipButtons();
       updateCartUI();
-      updateSubscribeLinks(); // re-evaluate text for subscription links (they might use translation)
       updateMonthlyButtonsState();
     });
   });
