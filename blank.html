@@ -4,7 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Subscription</title>
-    <style>
+    <style><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Subscription</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .discord-input {
+      margin-bottom: 20px;
+    }
+    .discord-input input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .btn-subscribe {
+      background-color: #10b981;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s;
+    }
+    .btn-subscribe:hover {
+      background-color: #059669;
+      transform: scale(1.02);
+    }
+    .disabled {
+      background-color: #9ca3af !important;
+      cursor: not-allowed !important;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    #message {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test Subscription</h1>
+  <p>Subscribe to Bronze for $4.50/month (10% off)</p>
+
+  <div class="discord-input">
+    <label for="discordId">Your Discord ID (required)</label>
+    <input type="text" id="discordId" placeholder="e.g., 123456789012345678" value="1467153810970644638" required>
+  </div>
+
+  <div id="paypal-button-container"></div>
+
+  <div id="message"></div>
+
+  <!-- Load PayPal SDK with vault=true for subscriptions -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true"></script>
+
+  <script>
+    // IMPORTANT: Verify this plan ID is correct and active in your PayPal sandbox
+    // The plan ID should be for the Bronze tier with 10% discount ($4.50)
+    const PLAN_ID = 'P-37M89451YE788052ENG3FYDQ'; // ← double-check this is the correct ID
+
+    const discordInput = document.getElementById('discordId');
+    const container = document.getElementById('paypal-button-container');
+    const messageDiv = document.getElementById('message');
+
+    function showMessage(text, isError = false) {
+      messageDiv.textContent = text;
+      messageDiv.className = isError ? 'error' : 'success';
+      messageDiv.style.display = 'block';
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    function renderButton() {
+      const discordId = discordInput.value.trim();
+      const isValid = discordId && /^\d{17,19}$/.test(discordId);
+
+      if (!isValid) {
+        container.innerHTML = '<button class="btn-subscribe disabled" disabled>Enter a valid Discord ID first</button>';
+        return;
+      }
+
+      container.innerHTML = '';
+      paypal.Buttons({
+        style: {
+          label: 'subscribe',
+          color: 'blue',
+          shape: 'pill',
+          height: 40
+        },
+        createSubscription: function(data, actions) {
+          console.log('Creating subscription with plan ID:', PLAN_ID);
+          return actions.subscription.create({
+            plan_id: PLAN_ID,
+            custom_id: JSON.stringify({ discordId: discordId, tier: 1 })
+          });
+        },
+        onApprove: function(data, actions) {
+          const subscriptionId = data.subscriptionID;
+          showMessage(`✅ Subscription created! ID: ${subscriptionId}`);
+          console.log('Subscription approved:', subscriptionId);
+        },
+        onError: function(err) {
+          console.error('Subscription error:', err);
+          showMessage('❌ Subscription failed. Check console for details.', true);
+        }
+      }).render(container);
+    }
+
+    // Wait for the PayPal SDK to load (it's async)
+    window.addEventListener('load', () => {
+      // Small delay to ensure paypal object is ready
+      setTimeout(() => {
+        renderButton();
+      }, 500);
+    });
+
+    discordInput.addEventListener('input', renderButton);
+  </script>
+
+  <style>
+    /* Override PayPal button color to green */
+    .paypal-button {
+      background-color: #10b981 !important;
+      border-radius: 40px !important;
+    }
+    .paypal-button:hover {
+      background-color: #059669 !important;
+    }
+  </style>
+</body>
+</html>
         body {
             font-family: Arial, sans-serif;
             max-width: 600px;
