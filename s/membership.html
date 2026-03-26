@@ -490,6 +490,7 @@
 
 
   
+<script>
   // ============================================================================
   // CLEANUP: Remove old cart data that might interfere
   // ============================================================================
@@ -756,7 +757,7 @@
   }
 
   // ============================================================================
-  // Store cart in KV
+  // PayPal rendering (for cart)
   // ============================================================================
   async function storeCartInKV(orderID, cart) {
     try {
@@ -773,7 +774,6 @@
   }
 
   let isRendering = false;
-
   function renderPayPalButton() {
     const container = document.getElementById('ourPaypalButtonContainer');
     if (!container) return;
@@ -781,7 +781,6 @@
     if (!drawer || !drawer.classList.contains('open')) return;
     if (isRendering) return;
     isRendering = true;
-
     const cart = getCart();
     if (cart.length === 0) {
       container.innerHTML = `<p style="text-align:center; margin-top:1rem;">${getTranslation('addItemsCheckout', 'Add items to checkout')}</p>`;
@@ -791,9 +790,7 @@
     let totalUSD = 0;
     for (const item of cart) totalUSD += item.priceUSD || 0;
     const totalUSDfixed = totalUSD.toFixed(2);
-
     container.innerHTML = '';
-
     const buttons = paypal.Buttons({
       createOrder: (data, actions) => actions.order.create({
         purchase_units: [{ amount: { currency_code: "USD", value: totalUSDfixed } }]
@@ -807,13 +804,12 @@
       onError: (err) => { console.error(err); alert('Something went wrong. Please try again.'); },
       onCancel: () => { isRendering = false; }
     });
-
     buttons.render(container).then(() => { isRendering = false; })
       .catch(err => { console.error(err); isRendering = false; });
   }
 
   // ============================================================================
-  // Update membership buttons based on cart
+  // Update membership buttons based on cart (gray out lower ranks)
   // ============================================================================
   function updateMembershipButtons() {
     const cart = getCart();
@@ -861,6 +857,9 @@
     }
   }
 
+  // ============================================================================
+  // Attach button listeners (only monthly)
+  // ============================================================================
   function attachButtonListeners() {
     document.querySelectorAll('.membership-btn[data-type="monthly"]').forEach(btn => {
       btn.onclick = () => {
@@ -873,8 +872,10 @@
     });
   }
 
+  // ============================================================================
+  // Dropdown setup
+  // ============================================================================
   function setupDropdowns() {
-    // ... your existing dropdown code (unchanged) ...
     document.querySelectorAll('.month-selector-container').forEach(container => {
       const btn = container.querySelector('.month-selector-btn');
       const dropdown = container.querySelector('.month-dropdown');
@@ -909,11 +910,86 @@
   }
 
   function updateMonthButtonLabels() {
-    // ... your existing function (unchanged) ...
+    document.querySelectorAll('.month-selector-container').forEach(container => {
+      const btn = container.querySelector('.month-selector-btn');
+      const selectedMonths = parseInt(btn.getAttribute('data-selected'));
+      let discountText = '';
+      if (selectedMonths === 3) discountText = getTranslation('discount_10', '10% OFF');
+      else if (selectedMonths === 6) discountText = getTranslation('discount_20', '20% OFF');
+      else if (selectedMonths === 12) discountText = getTranslation('discount_30', '30% OFF');
+      let label = getTranslation(`duration_${selectedMonths}`, `${selectedMonths} month${selectedMonths>1?'s':''}`);
+      if (discountText) label += ` (${discountText})`;
+      btn.querySelector('.month-btn-label').textContent = label;
+      const dropdown = container.querySelector('.month-dropdown');
+      dropdown.querySelectorAll('button').forEach(opt => {
+        const months = parseInt(opt.getAttribute('data-months'));
+        let optDiscount = '';
+        if (months === 3) optDiscount = getTranslation('discount_10', '10% OFF');
+        else if (months === 6) optDiscount = getTranslation('discount_20', '20% OFF');
+        else if (months === 12) optDiscount = getTranslation('discount_30', '30% OFF');
+        let optLabel = getTranslation(`duration_${months}`, `${months} month${months>1?'s':''}`);
+        if (optDiscount) optLabel += ` (${optDiscount})`;
+        opt.textContent = optLabel;
+      });
+    });
   }
 
   function updateMembershipText() {
-    // ... your existing function (unchanged) ...
+    const setText = (id, key, fallback) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = getTranslation(key, fallback);
+    };
+    setText('membershipTitle', 'membershipTitle', 'Choose Your Membership');
+    setText('membershipDescription', 'membershipDescription', 'Support my work and unlock exclusive perks');
+    const discordLabel = document.getElementById('discordIdLabel');
+    if (discordLabel) discordLabel.innerHTML = getTranslation('discordIdLabel', 'Your Discord ID') + ' <span style="color:#ef4444;">*</span>';
+    setText('discordHintText', 'discordHint', 'How to find your Discord ID:');
+    setText('discordHelpText', 'discordHelpLink', 'Where do I find my Discord ID? (click)');
+    document.getElementById('discordHelpStep1').innerHTML = getTranslation('discordHelpStep1', '<strong>Step 1:</strong> Open Discord and go to <strong>User Settings</strong> (gear icon).');
+    document.getElementById('discordHelpStep2').innerHTML = getTranslation('discordHelpStep2', '<strong>Step 2:</strong> Under <strong>App Settings</strong>, select <strong>Advanced</strong> and enable <strong>Developer Mode</strong>.');
+    document.getElementById('discordHelpStep3').innerHTML = getTranslation('discordHelpStep3', '<strong>Step 3:</strong> Right‑click your username anywhere and select <strong>Copy ID</strong>.');
+    document.getElementById('discordHelpStep4').innerHTML = getTranslation('discordHelpStep4', '<strong>Step 4:</strong> Paste that number here.');
+    const importantLabel = document.getElementById('importantLabel');
+    if (importantLabel) importantLabel.textContent = getTranslation('importantLabel', 'Important:');
+    const noteBoxText = document.getElementById('noteBoxText');
+    if (noteBoxText) noteBoxText.textContent = getTranslation('noteBoxText', 'After successful payment, you\'ll receive the corresponding role in our Discord server automatically. Make sure you\'ve joined the server first!');
+    const joinLink = document.getElementById('joinDiscordLink');
+    if (joinLink) joinLink.textContent = getTranslation('joinDiscord', '→ Join Discord Server ←');
+    const tierNames = ['Bronze','Copper','Silver','Gold','Platinum'];
+    for (let i = 1; i <= 5; i++) {
+      const titleEl = document.getElementById(`tier${i}Title`);
+      const key = `tier${tierNames[i-1]}`;
+      if (titleEl) titleEl.textContent = getTranslation(key, tierNames[i-1].toUpperCase());
+    }
+    const perkIds = [
+      'perk1_1','perk1_2','perk1_3','perk1_4',
+      'perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
+      'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
+      'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6',
+      'perk5_1','perk5_2'
+    ];
+    perkIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = getTranslation(id, '');
+    });
+    document.querySelectorAll('.per-month').forEach(el => el.textContent = getTranslation('perMonth', '/ month'));
+    document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
+      const usd = parseFloat(el.dataset.priceUsd);
+      if (!isNaN(usd)) {
+        const priceSpan = el.querySelector('.price-value');
+        if (priceSpan) {
+          const tierNum = Object.keys(USD_MONTHLY).find(k => USD_MONTHLY[k] === usd);
+          if (tierNum) {
+            const local = getLocalMonthlyPrice(parseInt(tierNum), localStorage.getItem('language') || 'en');
+            priceSpan.textContent = formatLocalPrice(local, localStorage.getItem('language') || 'en');
+          } else {
+            priceSpan.textContent = formatLocalPrice(usd, localStorage.getItem('language') || 'en');
+          }
+        }
+      }
+    });
+    updateMonthButtonLabels();
+    updateMembershipButtons();
   }
 
   function escapeHtml(str) {
@@ -924,6 +1000,134 @@
     const container = document.getElementById('tierCarousel');
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
+
+  // ============================================================================
+  // CUSTOM GREEN "Subscribe 10% OFF" BUTTON (exactly what you asked for)
+  // ============================================================================
+  function renderSubscriptionButtons() {
+    const discordId = document.getElementById('discordId')?.value.trim();
+    const isValidId = discordId && /^\d{17,19}$/.test(discordId);
+    const subscribeBtnText = getTranslation('subscribeBtn', 'Subscribe 10% OFF');
+
+    for (let tier = 1; tier <= 5; tier++) {
+      const container = document.getElementById(`subscribe-container-${tier}`);
+      if (!container) continue;
+
+      const planId = planIds[tier];
+      if (!planId) {
+        container.innerHTML = '<button class="membership-btn btn-subscribe disabled" disabled>Plan not ready</button>';
+        continue;
+      }
+
+      container.innerHTML = '';
+
+      if (!isValidId) {
+        const placeholderBtn = document.createElement('button');
+        placeholderBtn.className = 'membership-btn btn-subscribe disabled';
+        placeholderBtn.textContent = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
+        placeholderBtn.disabled = true;
+        container.appendChild(placeholderBtn);
+        continue;
+      }
+
+      // GREEN CUSTOM BUTTON YOU WANTED
+      const customButton = document.createElement('button');
+      customButton.className = 'membership-btn btn-subscribe';
+      customButton.textContent = subscribeBtnText;
+
+      customButton.addEventListener('click', async () => {
+        customButton.disabled = true;
+        customButton.textContent = 'Processing...';
+
+        try {
+          const tempDiv = document.createElement('div');
+          tempDiv.style.display = 'none';
+          document.body.appendChild(tempDiv);
+
+          const buttons = paypal.Buttons({
+            style: { layout: 'horizontal', label: 'subscribe' },
+            createSubscription: function(data, actions) {
+              return actions.subscription.create({
+                plan_id: planId,
+                custom_id: JSON.stringify({ discordId: discordId, tier: tier })
+              });
+            },
+            onApprove: async function(data, actions) {
+              const subscriptionId = data.subscriptionID;
+              const response = await fetch('https://subscription-worker.velutinx.workers.dev/api/store-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  discordId: discordId,
+                  subscriptionId: subscriptionId,
+                  tier: tier,
+                  planId: planId
+                })
+              });
+              if (response.ok) {
+                alert('✅ Subscription started! Your role will be added shortly.');
+              } else {
+                alert('There was an error. Please contact support.');
+              }
+              tempDiv.remove();
+              customButton.disabled = false;
+              customButton.textContent = subscribeBtnText;
+            },
+            onError: function(err) {
+              console.error(err);
+              alert('Could not start subscription. Please try again.');
+              tempDiv.remove();
+              customButton.disabled = false;
+              customButton.textContent = subscribeBtnText;
+            }
+          });
+
+          await buttons.render(tempDiv);
+          setTimeout(() => {
+            const paypalButton = tempDiv.querySelector('iframe, [data-paypal-button], button');
+            if (paypalButton) {
+              paypalButton.click();
+            } else {
+              alert('Could not open PayPal. Please try again.');
+              tempDiv.remove();
+              customButton.disabled = false;
+              customButton.textContent = subscribeBtnText;
+            }
+          }, 200);
+        } catch (err) {
+          console.error(err);
+          alert('Could not start subscription. Please try again.');
+          customButton.disabled = false;
+          customButton.textContent = subscribeBtnText;
+        }
+      });
+
+      container.appendChild(customButton);
+    }
+  }
+
+  // ============================================================================
+  // Enable/Disable monthly buttons
+  // ============================================================================
+  function updateMonthlyButtonsState() {
+    const discordId = document.getElementById('discordId')?.value.trim();
+    const isValidId = discordId && /^\d{17,19}$/.test(discordId);
+    const monthlyBtnText = getTranslation('addToCart', 'Add to Cart');
+    const disabledText = getTranslation('enterDiscordFirstMonthly', 'Enter Discord ID first');
+    for (let tier = 1; tier <= 5; tier++) {
+      const monthlyBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="monthly"]`);
+      if (!monthlyBtn) continue;
+      if (!isValidId) {
+        monthlyBtn.textContent = disabledText;
+        monthlyBtn.classList.add('disabled');
+        monthlyBtn.disabled = true;
+      } else {
+        monthlyBtn.textContent = monthlyBtnText;
+        monthlyBtn.classList.remove('disabled');
+        monthlyBtn.disabled = false;
+      }
+    }
+  }
 
   // ============================================================================
   // Main initialization after header is ready
@@ -946,13 +1150,31 @@
       const ourCartBtn = document.createElement('button');
       ourCartBtn.className = 'our-cart-btn';
       ourCartBtn.id = 'ourCartBtn';
-      ourCartBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg><span class="cart-badge" id="ourCartCount">0</span>`;
+      ourCartBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+          <path d="M17 17h-11v-14h-2"></path>
+          <path d="M6 5l14 1l-.86 6.017m-2.64 .983h-10.5"></path>
+          <path d="M16 19h6"></path>
+          <path d="M19 16v6"></path>
+        </svg>
+        <span class="cart-badge" id="ourCartCount">0</span>
+      `;
       navActions.appendChild(ourCartBtn);
     }
     const ourFloatBtn = document.createElement('button');
     ourFloatBtn.className = 'our-floating-cart';
     ourFloatBtn.id = 'ourFloatingCartBtn';
-    ourFloatBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M17 17h-11v-14h-2"></path><path d="M6 5l14 1l-1 7h-13"></path></svg><span class="floating-badge" id="ourFloatingCartCount">0</span>`;
+    ourFloatBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+        <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+        <path d="M17 17h-11v-14h-2"></path>
+        <path d="M6 5l14 1l-1 7h-13"></path>
+      </svg>
+      <span class="floating-badge" id="ourFloatingCartCount">0</span>
+    `;
     document.body.appendChild(ourFloatBtn);
 
     const drawerHTML = `
@@ -989,88 +1211,25 @@
     ourClose?.addEventListener('click', closeCart);
     ourOverlay?.addEventListener('click', closeCart);
 
+    // Load conversions
     await fetchConversions();
-
-    // === SUBSCRIPTION BUTTONS (clean & direct) ===
-    function renderSubscriptionButtons() {
-      const discordId = document.getElementById('discordId')?.value.trim();
-      const isValidId = discordId && /^\d{17,19}$/.test(discordId);
-      const subscribeBtnText = getTranslation('subscribeBtn', 'Subscribe 10% OFF');
-
-      for (let tier = 1; tier <= 5; tier++) {
-        const container = document.getElementById(`subscribe-container-${tier}`);
-        if (!container) continue;
-
-        const planId = planIds[tier];
-        if (!planId) {
-          container.innerHTML = '<button class="membership-btn btn-subscribe disabled" disabled>Plan not ready</button>';
-          continue;
-        }
-
-        container.innerHTML = '';
-
-        if (!isValidId) {
-          const placeholderBtn = document.createElement('button');
-          placeholderBtn.className = 'membership-btn btn-subscribe disabled';
-          placeholderBtn.textContent = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
-          placeholderBtn.disabled = true;
-          container.appendChild(placeholderBtn);
-          continue;
-        }
-
-        const paypalButtons = paypal.Buttons({
-          style: { layout: 'horizontal', label: 'subscribe', shape: 'rect', height: 45 },
-          createSubscription: function(data, actions) {
-            return actions.subscription.create({
-              plan_id: planId,
-              custom_id: JSON.stringify({ discordId: discordId, tier: tier })
-            });
-          },
-          onApprove: async function(data, actions) {
-            const subscriptionId = data.subscriptionID;
-            try {
-              const response = await fetch('https://subscription-worker.velutinx.workers.dev/api/store-subscription', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ discordId, subscriptionId, tier, planId })
-              });
-              if (response.ok) {
-                alert('✅ Subscription started successfully!\nYour Discord role will be added shortly.');
-              } else {
-                alert('⚠️ Subscription created but failed to save. Contact support.');
-              }
-            } catch (err) {
-              console.error(err);
-              alert('Network error. Please contact support.');
-            }
-          },
-          onError: function(err) {
-            console.error(err);
-            alert('Could not start subscription. Please try again.');
-          }
-        });
-
-        paypalButtons.render(container).catch(err => {
-          console.error('Render failed for tier', tier, err);
-          container.innerHTML = '<button class="membership-btn btn-subscribe disabled">PayPal unavailable – refresh page</button>';
-        });
-      }
-    }
 
     // Fetch plan IDs
     const planResponse = await fetch('https://subscription-worker.velutinx.workers.dev/api/subscription-plans');
     const planIds = await planResponse.json();
 
-    // Render everything
+    // Render the green custom subscribe buttons
     renderSubscriptionButtons();
     updateMonthlyButtonsState();
+
+    // Setup the rest
     setupDropdowns();
     attachButtonListeners();
     updateCartUI();
     updateMembershipButtons();
     updateMembershipText();
 
-    // Live update when Discord ID changes
+    // Re-render on Discord ID change
     const discordInput = document.getElementById('discordId');
     if (discordInput) {
       discordInput.addEventListener('input', () => {
@@ -1085,6 +1244,7 @@
       updateMembershipText();
       updateMembershipButtons();
       updateCartUI();
+      updateMonthlyButtonsState();
       renderSubscriptionButtons();
     });
   });
@@ -1100,27 +1260,4 @@
       });
     }
   });
-
-  // Missing function (added so it doesn't throw error)
-  function updateMonthlyButtonsState() {
-    const discordId = document.getElementById('discordId')?.value.trim();
-    const isValidId = discordId && /^\d{17,19}$/.test(discordId);
-    const monthlyBtnText = getTranslation('addToCart', 'Add to Cart');
-    const disabledText = getTranslation('enterDiscordFirstMonthly', 'Enter Discord ID first');
-    for (let tier = 1; tier <= 5; tier++) {
-      const monthlyBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="monthly"]`);
-      if (!monthlyBtn) continue;
-      if (!isValidId) {
-        monthlyBtn.textContent = disabledText;
-        monthlyBtn.classList.add('disabled');
-        monthlyBtn.disabled = true;
-      } else {
-        monthlyBtn.textContent = monthlyBtnText;
-        monthlyBtn.classList.remove('disabled');
-        monthlyBtn.disabled = false;
-      }
-    }
-  }
 </script>
-</body>
-</html>
