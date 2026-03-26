@@ -1305,13 +1305,42 @@ function renderSubscriptionButtons() {
   }
 }
 
+// Function to enable/disable monthly buttons based on Discord ID
+function updateMonthlyButtonsState() {
+  const discordId = document.getElementById('discordId')?.value.trim();
+  const isValidId = discordId && /^\d{17,19}$/.test(discordId);
+  const monthlyBtnText = getTranslation('addToCart', 'Add to Cart');
+  const disabledText = getTranslation('enterDiscordFirstMonthly', 'Enter Discord ID first');
+
+  for (let tier = 1; tier <= 5; tier++) {
+    const monthlyBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="monthly"]`);
+    if (!monthlyBtn) continue;
+
+    if (!isValidId) {
+      monthlyBtn.textContent = disabledText;
+      monthlyBtn.classList.add('disabled');
+      monthlyBtn.disabled = true; // optional, CSS handles pointer events
+    } else {
+      monthlyBtn.textContent = monthlyBtnText;
+      monthlyBtn.classList.remove('disabled');
+      monthlyBtn.disabled = false;
+    }
+  }
+}
+
+
+    
 // Initial render
 renderSubscriptionButtons();
+updateMonthlyButtonsState();   // add this
 
 // Re‑render when Discord ID changes
 const discordInput = document.getElementById('discordId');
 if (discordInput) {
-  discordInput.addEventListener('input', renderSubscriptionButtons);
+  discordInput.addEventListener('input', () => {
+    renderSubscriptionButtons();
+    updateMonthlyButtonsState();   // add this
+  });
 }
 
     
@@ -1330,6 +1359,7 @@ if (discordInput) {
       updateMembershipText();
       updateMembershipButtons();
       updateCartUI();
+      updateMonthlyButtonsState();   // add this
     });
   });
 
