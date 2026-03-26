@@ -201,7 +201,16 @@ window.translations = {
     removedFromCart: "カートから削除しました",
     addedToCart: "カートに追加しました",
     errorPlanNotConfigured: "このティアのプランは設定されていません",
-    enterDiscordFirst: "Discord IDを先に入力してください"
+    enterDiscordFirst: "Discord IDを先に入力してください",
+
+    subscribeTitle: "Suscríbete a ✨ {tier}",
+    subscribePrice: "${price}/mes (10% de descuento)",
+    discordIdLabel: "Tu ID de Discord",
+    discordPlaceholder: "123456789012345678",
+    enterDiscordFirst: "Ingresa un ID de Discord válido primero",
+    subscriptionStarted: "✅ ¡Suscripción iniciada! Tu rol se asignará en breve.",
+    errorRecording: "❌ Error al registrar la suscripción. Contacta a soporte.",
+    subscriptionFailed: "❌ Suscripción fallida. Inténtalo de nuevo."
 
   },
   zh: {
@@ -287,7 +296,16 @@ window.translations = {
     removedFromCart: "已从购物车移除",
     addedToCart: "已加入购物车",
     errorPlanNotConfigured: "该等级尚未配置订阅计划",
-    enterDiscordFirst: "请先输入 Discord ID"
+    enterDiscordFirst: "请先输入 Discord ID",
+
+    subscribeTitle: "订阅 ✨ {tier}",
+    subscribePrice: "${price}/月 (9折)",
+    discordIdLabel: "你的 Discord ID",
+    discordPlaceholder: "123456789012345678",
+    enterDiscordFirst: "请先输入有效的 Discord ID",
+    subscriptionStarted: "✅ 订阅已开始！角色将很快分配。",
+    errorRecording: "❌ 记录订阅出错。请联系客服。",
+    subscriptionFailed: "❌ 订阅失败。请重试。"
 
   },
   es: {
@@ -373,7 +391,16 @@ window.translations = {
     removedFromCart: "Eliminado del carrito",
     addedToCart: "Añadido al carrito",
     errorPlanNotConfigured: "Plan no configurado para este nivel",
-    enterDiscordFirst: "Ingresa tu ID de Discord primero"
+    enterDiscordFirst: "Ingresa tu ID de Discord primero",
+
+    subscribeTitle: "Suscríbete a ✨ {tier}",
+    subscribePrice: "${price}/mes (10% de descuento)",
+    discordIdLabel: "Tu ID de Discord",
+    discordPlaceholder: "123456789012345678",
+    enterDiscordFirst: "Ingresa un ID de Discord válido primero",
+    subscriptionStarted: "✅ ¡Suscripción iniciada! Tu rol se asignará en breve.",
+    errorRecording: "❌ Error al registrar la suscripción. Contacta a soporte.",
+    subscriptionFailed: "❌ Suscripción fallida. Inténtalo de nuevo."
 
   }
 };
