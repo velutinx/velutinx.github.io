@@ -1108,19 +1108,24 @@
     // ============================================================================
     // DYNAMICALLY LOAD PAYPAL SDK (ensures vault=true)
     // ============================================================================
-    function loadPayPalSDK() {
-      return new Promise((resolve, reject) => {
-        if (window.paypal && window.paypal.Buttons) {
-          resolve();
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load PayPal SDK'));
-        document.head.appendChild(script);
-      });
+function loadPayPalSDK() {
+  return new Promise((resolve, reject) => {
+    // Remove any existing PayPal SDK scripts (they might lack vault=true)
+    const existingScripts = document.querySelectorAll('script[src*="paypal.com/sdk/js"]');
+    existingScripts.forEach(script => script.remove());
+
+    // Also, if the global paypal object already exists, delete it to force a fresh load
+    if (window.paypal) {
+      delete window.paypal;
     }
+
+    const script = document.createElement('script');
+    script.src = 'https://www.paypal.com/sdk/js?client-id=AR7igvBzCZr6spSQ8DswwyQ28fU5U9hY0JwFGHcQmI7NZ5M8kvgPAqqQEN9xPPo5E1UNl-om-OWnscI3&currency=USD&vault=true';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load PayPal SDK'));
+    document.head.appendChild(script);
+  });
+}
 
     await loadPayPalSDK();
 
