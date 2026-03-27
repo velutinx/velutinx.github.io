@@ -546,7 +546,7 @@ async function fetchConversions() {
     const data = await resp.json();
     if (data.tiers && Array.isArray(data.tiers)) {
       for (const tier of data.tiers) {
-        const tierNum = tier.tier; // now provided by the database
+        const tierNum = tier.tier;
         if (tierNum >= 1 && tierNum <= 5) {
           usdMonthly[tierNum] = parseFloat(tier.usd);
           localMonthlyPrice[tierNum] = {
@@ -559,7 +559,7 @@ async function fetchConversions() {
     }
   } catch (err) {
     console.error('Failed to load conversions', err);
-    // Fallback with approximate rates (keep the hardcoded USD values as a safety net)
+    // Fallback: use approximate rates (still uses the correct USD values for each tier)
     const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
     const usdValues = {1:5, 2:9, 3:14, 4:29, 5:39};
     for (let t=1; t<=5; t++) {
