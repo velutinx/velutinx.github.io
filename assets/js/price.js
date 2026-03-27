@@ -16,25 +16,31 @@ async function fetchPriceData() {
     return data;
   } catch (err) {
     console.warn('Failed to fetch from worker, using fallback data', err);
-    // Fallback – only for development, remove in production
+    // Updated fallback with new prices
     return {
       keys: [
         { key: 'PRICE_1', usd: 1.50 },
         { key: 'PRICE_2', usd: 3.00 },
         { key: 'PRICE_3', usd: 5.00 },
-        { key: 'PRICE_4', usd: 9.00 },
-        { key: 'PRICE_5', usd: 14.00 },
-        { key: 'PRICE_6', usd: 29.00 },
-        { key: 'PRICE_7', usd: 39.00 }
+        { key: 'PRICE_4', usd: 10.00 },
+        { key: 'PRICE_5', usd: 15.00 },
+        { key: 'PRICE_6', usd: 30.00 },
+        { key: 'PRICE_7', usd: 40.00 },
+        // Annual membership keys (if used later)
+        { key: 'MEMBER_1_ANNUAL', usd: 54.00 },
+        { key: 'MEMBER_2_ANNUAL', usd: 108.00 },
+        { key: 'MEMBER_3_ANNUAL', usd: 162.00 },
+        { key: 'MEMBER_4_ANNUAL', usd: 324.00 },
+        { key: 'MEMBER_5_ANNUAL', usd: 432.00 }
       ],
       tiers: [
-        { usd: 1.50, cny: 10.00, jpy: 250, mxn: 25 },
-        { usd: 3.00, cny: 20.00, jpy: 500, mxn: 50 },
+        { usd: 1.50, cny: 10.00, jpy: 250, mxn: 30 },
+        { usd: 3.00, cny: 20.00, jpy: 500, mxn: 60 },
         { usd: 5.00, cny: 35.00, jpy: 800, mxn: 100 },
-        { usd: 9.00, cny: 60.00, jpy: 1500, mxn: 150 },
-        { usd: 14.00, cny: 95.00, jpy: 2000, mxn: 250 },
-        { usd: 29.00, cny: 200.00, jpy: 4500, mxn: 500 },
-        { usd: 39.00, cny: 270.00, jpy: 6000, mxn: 700 }
+        { usd: 10.00, cny: 70.00, jpy: 1500, mxn: 200 },
+        { usd: 15.00, cny: 105.00, jpy: 2500, mxn: 300 },
+        { usd: 30.00, cny: 210.00, jpy: 4800, mxn: 550 },
+        { usd: 40.00, cny: 280.00, jpy: 6250, mxn: 750 }
       ]
     };
   }
