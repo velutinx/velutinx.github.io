@@ -539,43 +539,39 @@
   // ============================================================================
   // Fetch currency conversions and USD prices
   // ============================================================================
-  async function fetchConversions() {
-    try {
-      const resp = await fetch('https://supabase-link.velutinx.workers.dev');
-      if (!resp.ok) throw new Error('HTTP '+resp.status);
-      const data = await resp.json();
-      if (data.tiers && Array.isArray(data.tiers)) {
-        // Map USD values to tier numbers (must match actual prices)
-        const USD_TO_TIER = {0.1:1, 9:2, 14:3, 29:4, 39:5};
-        for (const tier of data.tiers) {
-          const usd = parseFloat(tier.usd);
-          const tierNum = USD_TO_TIER[usd];
-          if (tierNum) {
-            usdMonthly[tierNum] = usd;
-            localMonthlyPrice[tierNum] = {
-              JPY: tier.jpy,
-              CNY: tier.cny,
-              MXN: tier.mxn
-            };
-          }
+async function fetchConversions() {
+  try {
+    const resp = await fetch('https://supabase-link.velutinx.workers.dev');
+    if (!resp.ok) throw new Error('HTTP '+resp.status);
+    const data = await resp.json();
+    if (data.tiers && Array.isArray(data.tiers)) {
+      for (const tier of data.tiers) {
+        const tierNum = tier.tier; // now provided by the database
+        if (tierNum >= 1 && tierNum <= 5) {
+          usdMonthly[tierNum] = parseFloat(tier.usd);
+          localMonthlyPrice[tierNum] = {
+            JPY: tier.jpy,
+            CNY: tier.cny,
+            MXN: tier.mxn
+          };
         }
       }
-    } catch (err) {
-      console.error('Failed to load conversions', err);
-      // Fallback: use approximate rates based on actual USD prices
-      const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
-      const usdValues = {1:5, 2:9, 3:14, 4:29, 5:39};
-      for (let t=1; t<=5; t++) {
-        const usd = usdValues[t];
-        usdMonthly[t] = usd;
-        localMonthlyPrice[t] = {
-          JPY: Math.round(usd * approx.JPY),
-          CNY: usd * approx.CNY,
-          MXN: usd * approx.MXN
-        };
-      }
+    }
+  } catch (err) {
+    console.error('Failed to load conversions', err);
+    // Fallback with approximate rates (keep the hardcoded USD values as a safety net)
+    const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
+    const usdValues = {1:5, 2:9, 3:14, 4:29, 5:39};
+    for (let t=1; t<=5; t++) {
+      usdMonthly[t] = usdValues[t];
+      localMonthlyPrice[t] = {
+        JPY: Math.round(usdValues[t] * approx.JPY),
+        CNY: usdValues[t] * approx.CNY,
+        MXN: usdValues[t] * approx.MXN
+      };
     }
   }
+}
 
   function getLocalMonthlyPrice(tier, lang) {
     const prices = localMonthlyPrice[tier];
