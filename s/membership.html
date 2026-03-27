@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-<script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
   <style>
-    /* ========== ALL STYLES (unchanged from your original) ========== */
+    /* ========== ALL STYLES (unchanged) ========== */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
     @media (min-width: 600px) { .container { padding: 0 24px; } }
     main { padding: 40px 0; }
@@ -533,11 +533,11 @@
   // ============================================================================
   // Global variables
   // ============================================================================
-const USD_MONTHLY = {1:0.01, 2:9, 3:14, 4:29, 5:39};
-  let localMonthlyPrice = {};
+  let localMonthlyPrice = {}; // { tier: { JPY, CNY, MXN } }
+  let usdMonthly = {};        // { tier: USD }
 
   // ============================================================================
-  // Fetch currency conversions
+  // Fetch currency conversions and USD prices
   // ============================================================================
   async function fetchConversions() {
     try {
@@ -545,28 +545,33 @@ const USD_MONTHLY = {1:0.01, 2:9, 3:14, 4:29, 5:39};
       if (!resp.ok) throw new Error('HTTP '+resp.status);
       const data = await resp.json();
       if (data.tiers && Array.isArray(data.tiers)) {
+        // Map USD values to tier numbers (must match actual prices)
+        const USD_TO_TIER = {5:1, 9:2, 14:3, 29:4, 39:5};
         for (const tier of data.tiers) {
           const usd = parseFloat(tier.usd);
-          if (!isNaN(usd)) {
-            const tierNum = Object.keys(USD_MONTHLY).find(k => USD_MONTHLY[k] === usd);
-            if (tierNum) {
-              localMonthlyPrice[tierNum] = {
-                JPY: tier.jpy,
-                CNY: tier.cny,
-                MXN: tier.mxn
-              };
-            }
+          const tierNum = USD_TO_TIER[usd];
+          if (tierNum) {
+            usdMonthly[tierNum] = usd;
+            localMonthlyPrice[tierNum] = {
+              JPY: tier.jpy,
+              CNY: tier.cny,
+              MXN: tier.mxn
+            };
           }
         }
       }
     } catch (err) {
       console.error('Failed to load conversions', err);
+      // Fallback: use approximate rates based on actual USD prices
       const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
+      const usdValues = {1:5, 2:9, 3:14, 4:29, 5:39};
       for (let t=1; t<=5; t++) {
+        const usd = usdValues[t];
+        usdMonthly[t] = usd;
         localMonthlyPrice[t] = {
-          JPY: Math.round(USD_MONTHLY[t] * approx.JPY),
-          CNY: USD_MONTHLY[t] * approx.CNY,
-          MXN: USD_MONTHLY[t] * approx.MXN
+          JPY: Math.round(usd * approx.JPY),
+          CNY: usd * approx.CNY,
+          MXN: usd * approx.MXN
         };
       }
     }
@@ -574,11 +579,11 @@ const USD_MONTHLY = {1:0.01, 2:9, 3:14, 4:29, 5:39};
 
   function getLocalMonthlyPrice(tier, lang) {
     const prices = localMonthlyPrice[tier];
-    if (!prices) return USD_MONTHLY[tier] * 18;
+    if (!prices) return 100; // fallback
     if (lang === 'ja') return prices.JPY;
     if (lang === 'zh') return prices.CNY;
     if (lang === 'es') return prices.MXN;
-    return USD_MONTHLY[tier];
+    return usdMonthly[tier] || 5; // USD
   }
 
   function getDiscountFactor(months) {
@@ -604,7 +609,7 @@ const USD_MONTHLY = {1:0.01, 2:9, 3:14, 4:29, 5:39};
   function saveCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     updateCartUI();
-    refreshButtonsState(); // combined state update
+    refreshButtonsState();
   }
 
   function validateDiscordId() {
@@ -676,7 +681,8 @@ const USD_MONTHLY = {1:0.01, 2:9, 3:14, 4:29, 5:39};
     const localMonthly = getLocalMonthlyPrice(tierNumber, currentLang);
     const discountFactor = getDiscountFactor(months);
     const discountPercent = discountFactor === 0.9 ? 10 : discountFactor === 0.8 ? 20 : discountFactor === 0.7 ? 30 : 0;
-    const priceUSD = USD_MONTHLY[tierNumber] * months * discountFactor;
+    const usdPrice = usdMonthly[tierNumber]; // fetched USD price
+    const priceUSD = usdPrice * months * discountFactor;
     const displayOriginal = localMonthly * months;
     const displayPrice = localMonthly * months * discountFactor;
 
@@ -1032,22 +1038,23 @@ const USD_MONTHLY = {1:0.01, 2:9, 3:14, 4:29, 5:39};
     });
     document.querySelectorAll('.per-month').forEach(el => el.textContent = getTranslation('perMonth', '/ month'));
     document.querySelectorAll('.tier-price[data-price-usd]').forEach(el => {
-      const usd = parseFloat(el.dataset.priceUsd);
-      if (!isNaN(usd)) {
+      const usdAttr = parseFloat(el.dataset.priceUsd);
+      if (!isNaN(usdAttr)) {
         const priceSpan = el.querySelector('.price-value');
         if (priceSpan) {
-          const tierNum = Object.keys(USD_MONTHLY).find(k => USD_MONTHLY[k] === usd);
+          // Find tier number by USD value
+          const tierNum = Object.keys(usdMonthly).find(k => Math.abs(usdMonthly[k] - usdAttr) < 0.01);
           if (tierNum) {
             const local = getLocalMonthlyPrice(parseInt(tierNum), localStorage.getItem('language') || 'en');
             priceSpan.textContent = formatLocalPrice(local, localStorage.getItem('language') || 'en');
           } else {
-            priceSpan.textContent = formatLocalPrice(usd, localStorage.getItem('language') || 'en');
+            priceSpan.textContent = formatLocalPrice(usdAttr, localStorage.getItem('language') || 'en');
           }
         }
       }
     });
     updateMonthButtonLabels();
-    refreshButtonsState(); // after text updates, ensure button texts are correct
+    refreshButtonsState();
   }
 
   function escapeHtml(str) {
