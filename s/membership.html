@@ -499,7 +499,7 @@
   const ourCartKey = 'velutinx_membership_cart';
   let currentCart = JSON.parse(localStorage.getItem(ourCartKey) || '[]');
   const isValid = currentCart.every(item => 
-    item.type && (item.type === 'monthly' || item.type === 'subscription') && 
+    item.type && (item.type === 'membership' || item.type === 'subscription') && 
     typeof item.tier === 'number' && 
     typeof item.priceUSD === 'number'
   );
@@ -546,7 +546,7 @@
       const data = await resp.json();
       if (data.tiers && Array.isArray(data.tiers)) {
         // Map USD values to tier numbers (must match actual prices)
-        const USD_TO_TIER = {0.01:1, 9:2, 14:3, 29:4, 39:5};
+        const USD_TO_TIER = {5:1, 9:2, 14:3, 29:4, 39:5};
         for (const tier of data.tiers) {
           const usd = parseFloat(tier.usd);
           const tierNum = USD_TO_TIER[usd];
@@ -645,7 +645,7 @@
     const discordId = validateDiscordId();
     if (!discordId) return;
 
-    const itemId = `M-${tierNumber}-${type}`;
+    const itemId = `M-${tierNumber}-monthly`;
     let cart = getCart();
 
     // If exact same item already in cart → remove it (toggle off)
@@ -658,7 +658,7 @@
     }
 
     // Check existing membership items (both monthly and subscription)
-    const existingMembership = cart.filter(item => item.type === 'monthly' || item.type === 'subscription');
+    const existingMembership = cart.filter(item => item.type === 'membership' || item.type === 'subscription');
     const highestRank = existingMembership.length > 0 
       ? Math.max(...existingMembership.map(item => getMembershipRank(item.tier, item.type)))
       : -1;
@@ -672,7 +672,7 @@
     }
 
     // Remove all existing membership items (they are lower rank)
-    cart = cart.filter(item => !(item.type === 'monthly' || item.type === 'subscription'));
+    cart = cart.filter(item => !(item.type === 'membership' || item.type === 'subscription'));
 
     // Build the new item
     const tierNames = ['Bronze','Copper','Silver','Gold','Platinum'];
@@ -691,7 +691,7 @@
     const newItem = {
       id: itemId,
       title: title,
-      type: 'monthly',
+      type: 'membership',   // <-- changed from 'monthly' to 'membership'
       tier: tierNumber,
       months: months,
       discordId: discordId,
@@ -843,7 +843,7 @@
     // Calculate highest rank among membership items in cart
     let highestRank = -1;
     for (const item of cart) {
-      if (item.type === 'monthly' || item.type === 'subscription') {
+      if (item.type === 'membership' || item.type === 'subscription') {
         const rank = getMembershipRank(item.tier, item.type);
         if (rank > highestRank) highestRank = rank;
       }
@@ -856,7 +856,7 @@
       // Monthly button
       const monthlyBtn = card.querySelector(`.membership-btn[data-type="monthly"]`);
       const monthSelector = card.querySelector('.month-selector-btn');
-      const monthlyRank = getMembershipRank(tier, 'monthly');
+      const monthlyRank = getMembershipRank(tier, 'membership'); // note: type is now 'membership'
       const isMonthlyInCart = cart.some(item => item.id === `M-${tier}-monthly`);
 
       if (monthlyBtn) {
@@ -930,7 +930,7 @@
         const tier = parseInt(card.getAttribute('data-tier'));
         const monthSelector = card.querySelector('.month-selector-btn');
         const months = parseInt(monthSelector.getAttribute('data-selected'));
-        toggleMembership(tier, 'monthly', months);
+        toggleMembership(tier, 'membership', months);
       };
     });
   }
