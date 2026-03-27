@@ -604,7 +604,7 @@
   function saveCart(cart) {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     updateCartUI();
-    updateMembershipButtons();
+    refreshButtonsState(); // combined state update
   }
 
   function validateDiscordId() {
@@ -637,14 +637,13 @@
   // toggleMembership – only for monthly (single purchase) items
   // ============================================================================
   function toggleMembership(tierNumber, type, months = 1) {
-    // type should be 'monthly'
     const discordId = validateDiscordId();
     if (!discordId) return;
 
-    const itemId = `M-${tierNumber}-${type}`; // e.g., M-1-monthly
+    const itemId = `M-${tierNumber}-${type}`;
     let cart = getCart();
 
-    // 1. If exact same item already in cart → remove it (toggle off)
+    // If exact same item already in cart → remove it (toggle off)
     const existingIndex = cart.findIndex(item => item.id === itemId);
     if (existingIndex !== -1) {
       cart.splice(existingIndex, 1);
@@ -653,7 +652,7 @@
       return;
     }
 
-    // 2. Check existing membership items (both monthly and subscription)
+    // Check existing membership items (both monthly and subscription)
     const existingMembership = cart.filter(item => item.type === 'monthly' || item.type === 'subscription');
     const highestRank = existingMembership.length > 0 
       ? Math.max(...existingMembership.map(item => getMembershipRank(item.tier, item.type)))
@@ -667,10 +666,10 @@
       return;
     }
 
-    // 3. Remove all existing membership items (they are lower rank)
+    // Remove all existing membership items (they are lower rank)
     cart = cart.filter(item => !(item.type === 'monthly' || item.type === 'subscription'));
 
-    // 4. Build the new item
+    // Build the new item
     const tierNames = ['Bronze','Copper','Silver','Gold','Platinum'];
     const tierName = getTranslation(`tier${tierNames[tierNumber-1]}`, tierNames[tierNumber-1].toUpperCase());
     const currentLang = localStorage.getItem('language') || 'en';
@@ -686,7 +685,7 @@
     const newItem = {
       id: itemId,
       title: title,
-      type: 'monthly',        // store as 'monthly' for filtering
+      type: 'monthly',
       tier: tierNumber,
       months: months,
       discordId: discordId,
@@ -828,10 +827,14 @@
   }
 
   // ============================================================================
-  // Update membership buttons based on cart (gray out lower ranks, change text)
+  // Combined button state refresh (Discord ID + rank)
   // ============================================================================
-  function updateMembershipButtons() {
+  function refreshButtonsState() {
+    const discordId = document.getElementById('discordId')?.value.trim();
+    const isValidId = discordId && /^\d{17,19}$/.test(discordId);
     const cart = getCart();
+
+    // Calculate highest rank among membership items in cart
     let highestRank = -1;
     for (const item of cart) {
       if (item.type === 'monthly' || item.type === 'subscription') {
@@ -847,48 +850,62 @@
       // Monthly button
       const monthlyBtn = card.querySelector(`.membership-btn[data-type="monthly"]`);
       const monthSelector = card.querySelector('.month-selector-btn');
-
       const monthlyRank = getMembershipRank(tier, 'monthly');
       const isMonthlyInCart = cart.some(item => item.id === `M-${tier}-monthly`);
 
       if (monthlyBtn) {
-        // Update text
-        if (isMonthlyInCart) {
-          monthlyBtn.textContent = getTranslation('removeFromCartText', 'Remove from Cart');
-          monthlyBtn.classList.remove('btn-monthly');
-          monthlyBtn.classList.add('btn-remove');
-        } else {
-          monthlyBtn.textContent = getTranslation('addToCart', 'Add to Cart');
-          monthlyBtn.classList.remove('btn-remove');
-          monthlyBtn.classList.add('btn-monthly');
-        }
-
-        // Disable if there's a higher rank already in cart
-        if (highestRank !== -1 && monthlyRank < highestRank) {
+        if (!isValidId) {
+          // No valid Discord ID
+          monthlyBtn.textContent = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
           monthlyBtn.classList.add('disabled');
           monthlyBtn.disabled = true;
+          monthlyBtn.classList.remove('btn-monthly', 'btn-remove');
+          monthlyBtn.classList.add('btn-monthly'); // default style
         } else {
-          monthlyBtn.classList.remove('disabled');
-          monthlyBtn.disabled = false;
+          // Valid ID: decide based on cart
+          if (isMonthlyInCart) {
+            monthlyBtn.textContent = getTranslation('removeFromCartText', 'Remove from Cart');
+            monthlyBtn.classList.remove('btn-monthly');
+            monthlyBtn.classList.add('btn-remove');
+            monthlyBtn.disabled = false;
+            monthlyBtn.classList.remove('disabled');
+          } else if (highestRank !== -1 && monthlyRank < highestRank) {
+            monthlyBtn.textContent = getTranslation('addToCart', 'Add to Cart');
+            monthlyBtn.classList.add('disabled');
+            monthlyBtn.disabled = true;
+            monthlyBtn.classList.remove('btn-remove');
+            monthlyBtn.classList.add('btn-monthly');
+          } else {
+            monthlyBtn.textContent = getTranslation('addToCart', 'Add to Cart');
+            monthlyBtn.classList.remove('disabled');
+            monthlyBtn.disabled = false;
+            monthlyBtn.classList.remove('btn-remove');
+            monthlyBtn.classList.add('btn-monthly');
+          }
         }
       }
 
+      // Month selector disabled state matches monthly button disabled
       if (monthSelector) {
-        if (highestRank !== -1 && monthlyRank < highestRank) {
-          monthSelector.classList.add('disabled');
-        } else {
-          monthSelector.classList.remove('disabled');
-        }
+        const isDisabled = monthlyBtn ? (monthlyBtn.disabled || monthlyBtn.classList.contains('disabled')) : false;
+        if (isDisabled) monthSelector.classList.add('disabled');
+        else monthSelector.classList.remove('disabled');
       }
 
-      // Subscription button (modal) – we don't change its text, only disable if lower rank
+      // Subscription button
       const subBtn = card.querySelector(`.membership-btn.btn-subscribe`);
       if (subBtn) {
         const subRank = getMembershipRank(tier, 'subscription');
-        if (highestRank !== -1 && subRank < highestRank) {
+        if (!isValidId) {
+          subBtn.textContent = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
+          subBtn.classList.add('disabled');
+          subBtn.disabled = true;
+        } else if (highestRank !== -1 && subRank < highestRank) {
+          subBtn.textContent = getTranslation('subscribeBtn', 'Recurring Membership, 10% OFF');
           subBtn.classList.add('disabled');
           subBtn.disabled = true;
         } else {
+          subBtn.textContent = getTranslation('subscribeBtn', 'Recurring Membership, 10% OFF');
           subBtn.classList.remove('disabled');
           subBtn.disabled = false;
         }
@@ -901,6 +918,7 @@
   // ============================================================================
   function attachButtonListeners() {
     document.querySelectorAll('.membership-btn[data-type="monthly"]').forEach(btn => {
+      // Remove any previous listener to avoid duplicates
       btn.onclick = () => {
         const card = btn.closest('.tier-card');
         const tier = parseInt(card.getAttribute('data-tier'));
@@ -1029,7 +1047,7 @@
       }
     });
     updateMonthButtonLabels();
-    updateMembershipButtons();
+    refreshButtonsState(); // after text updates, ensure button texts are correct
   }
 
   function escapeHtml(str) {
@@ -1040,47 +1058,6 @@
     const container = document.getElementById('tierCarousel');
     if (container) container.scrollBy({ left: direction * 320, behavior: 'smooth' });
   };
-
-  // ============================================================================
-  // Update button states based on Discord ID
-  // ============================================================================
-  function updateButtonsState() {
-    const discordId = document.getElementById('discordId')?.value.trim();
-    const isValidId = discordId && /^\d{17,19}$/.test(discordId);
-    const monthlyBtnText = getTranslation('addToCart', 'Add to Cart');
-    const subscribeBtnText = getTranslation('subscribeBtn', 'Recurring Membership, 10% OFF');
-    const disabledText = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
-
-    for (let tier = 1; tier <= 5; tier++) {
-      const monthlyBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn[data-type="monthly"]`);
-      if (monthlyBtn) {
-        if (!isValidId) {
-          monthlyBtn.textContent = disabledText;
-          monthlyBtn.classList.add('disabled');
-          monthlyBtn.disabled = true;
-        } else {
-          // The text will be set correctly by updateMembershipButtons later, but we need to enable if valid
-          monthlyBtn.classList.remove('disabled');
-          monthlyBtn.disabled = false;
-        }
-      }
-
-      const modalBtn = document.querySelector(`.tier-card[data-tier="${tier}"] .membership-btn.btn-subscribe`);
-      if (modalBtn) {
-        if (!isValidId) {
-          modalBtn.textContent = disabledText;
-          modalBtn.classList.add('disabled');
-          modalBtn.disabled = true;
-        } else {
-          modalBtn.textContent = subscribeBtnText;
-          modalBtn.classList.remove('disabled');
-          modalBtn.disabled = false;
-        }
-      }
-    }
-    // After enabling buttons, re-run the rank-based disabling
-    updateMembershipButtons();
-  }
 
   // ============================================================================
   // Main initialization after header is ready
@@ -1173,33 +1150,26 @@
       discordInput.value = '';
     }
 
-    // Initial button state
-    updateButtonsState();
-
-    // Re‑render when Discord ID changes
-    if (discordInput) {
-      discordInput.addEventListener('input', () => {
-        updateButtonsState();
-      });
-    }
-
     // Setup dropdowns and monthly button listeners
     setupDropdowns();
     attachButtonListeners();
 
     // Initial UI updates
     updateCartUI();
-    updateMembershipButtons();
-    updateMembershipText();
-    updateButtonsState(); // Force after text update
+    updateMembershipText(); // This will call refreshButtonsState
+    refreshButtonsState(); // extra call to be safe
+
+    // Re‑evaluate when Discord ID changes
+    if (discordInput) {
+      discordInput.addEventListener('input', () => {
+        refreshButtonsState();
+      });
+    }
 
     // Listen for language changes
     document.addEventListener('languageChanged', (e) => {
       localStorage.setItem('language', e.detail.language);
-      updateMembershipText();
-      updateMembershipButtons();
-      updateCartUI();
-      updateButtonsState();
+      updateMembershipText(); // updates translations and calls refreshButtonsState
     });
   });
 
@@ -1226,7 +1196,7 @@
 
       closeModalBtn.addEventListener('click', () => {
         modal.style.display = 'none';
-        iframe.src = ''; // reset
+        iframe.src = '';
       });
 
       modal.addEventListener('click', (e) => {
