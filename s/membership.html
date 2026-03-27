@@ -546,7 +546,7 @@
       const data = await resp.json();
       if (data.tiers && Array.isArray(data.tiers)) {
         // Map USD values to tier numbers (must match actual prices)
-        const USD_TO_TIER = {5:1, 9:2, 14:3, 29:4, 39:5};
+        const USD_TO_TIER = {0.01:1, 9:2, 14:3, 29:4, 39:5};
         for (const tier of data.tiers) {
           const usd = parseFloat(tier.usd);
           const tierNum = USD_TO_TIER[usd];
