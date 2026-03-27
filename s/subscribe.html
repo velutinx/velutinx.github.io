@@ -27,103 +27,111 @@
   <div id="paypal-button-container"></div>
   <div id="message"></div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const tierParam = parseInt(urlParams.get('tier')) || 1;
-    const discordIdParam = urlParams.get('discordId');
-    const lang = localStorage.getItem('language') || 'en';
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const tierParam = parseInt(urlParams.get('tier')) || 1;
+  const discordIdParam = urlParams.get('discordId');
+  const lang = localStorage.getItem('language') || 'en';
 
-    // Plan IDs for each tier (USD plans)
-const PLAN_IDS = {
-  1: 'P-26U13678G4534693YNHC7I3Y',   // Bronze
-  2: 'P-79P38435MN077911JNHDDQDQ',   // Copper
-  3: 'P-6CR14535JT482713LNHDDQDQ',   // Silver
-  4: 'P-4BC07846FC390260HNHDDQDY',   // Gold
-  5: 'P-45P87011TD4756018NHDDQDY'    // Platinum
-};
+  // Plan IDs for each tier (USD plans – these are the discounted prices)
+  const PLAN_IDS = {
+    1: 'P-26U13678G4534693YNHC7I3Y',   // Bronze
+    2: 'P-79P38435MN077911JNHDDQDQ',   // Copper
+    3: 'P-6CR14535JT482713LNHDDQDQ',   // Silver
+    4: 'P-4BC07846FC390260HNHDDQDY',   // Gold
+    5: 'P-45P87011TD4756018NHDDQDY'    // Platinum
+  };
 
-    const TIER_NAMES = { 1: 'Bronze', 2: 'Copper', 3: 'Silver', 4: 'Gold', 5: 'Platinum' };
-    const USD_PRICES = { 1: 4.50, 2: 9.00, 3: 16.20, 4: 27.00, 5: 36.00 };
+  // Original prices before discount (used for currency conversion)
+  const ORIGINAL_PRICES = { 1: 5, 2: 10, 3: 18, 4: 30, 5: 40 };
+  // Discounted prices (actual charged USD amount)
+  const USD_PRICES = { 1: 4.50, 2: 9.00, 3: 16.20, 4: 27.00, 5: 36.00 };
+  const TIER_NAMES = { 1: 'Bronze', 2: 'Copper', 3: 'Silver', 4: 'Gold', 5: 'Platinum' };
 
-    const tier = tierParam;
-    const planId = PLAN_IDS[tier];
-    const tierName = TIER_NAMES[tier];
-    const usdPrice = USD_PRICES[tier];
+  const tier = tierParam;
+  const planId = PLAN_IDS[tier];
+  const tierName = TIER_NAMES[tier];
+  const usdPrice = USD_PRICES[tier];
+  const originalUsd = ORIGINAL_PRICES[tier];
 
-    if (!planId) {
-      document.body.innerHTML = '<h3>Invalid tier selected</h3><p>Please go back and choose a valid membership.</p>';
-      throw new Error('Invalid tier');
+  if (!planId) {
+    document.body.innerHTML = '<h3>Invalid tier selected</h3><p>Please go back and choose a valid membership.</p>';
+    throw new Error('Invalid tier');
+  }
+
+  // Translation helper
+  function getTranslation(key, fallback = '') {
+    const t = window.translations?.[lang] || window.translations?.en || {};
+    return t[key] !== undefined ? t[key] : fallback;
+  }
+
+  // Format price in local currency (handles both USD and converted currencies)
+  function formatLocalPrice(amount, lang) {
+    if (amount === undefined || amount === null || isNaN(amount)) return '0.00';
+    if (lang === 'en') return `US$${amount.toFixed(2)}`;
+    let currency, sym;
+    if (lang === 'ja') { currency = 'JPY'; sym = '円'; }
+    else if (lang === 'zh') { currency = 'CNY'; sym = '元'; }
+    else if (lang === 'es') { currency = 'MXN'; sym = 'MXN$'; }
+    else { currency = 'USD'; sym = 'US$'; }
+    if (currency === 'USD') return `US$${amount.toFixed(2)}`;
+    const formatted = (currency === 'JPY' || currency === 'MXN') ? Math.round(amount) : amount.toFixed(2);
+    return `${sym}${formatted}`;
+  }
+
+  // Fetch local prices from the conversion worker
+  async function fetchLocalPrices() {
+    try {
+      const resp = await fetch('https://supabase-link.velutinx.workers.dev');
+      if (!resp.ok) throw new Error('Failed to fetch conversions');
+      const data = await resp.json();
+      return data.tiers;
+    } catch (err) {
+      console.error('Failed to load conversions', err);
+      // Fallback approximate rates
+      const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
+      return [
+        { usd: 5, jpy: Math.round(5 * approx.JPY), cny: 5 * approx.CNY, mxn: 5 * approx.MXN },
+        { usd: 10, jpy: Math.round(10 * approx.JPY), cny: 10 * approx.CNY, mxn: 10 * approx.MXN },
+        { usd: 18, jpy: Math.round(18 * approx.JPY), cny: 18 * approx.CNY, mxn: 18 * approx.MXN },
+        { usd: 30, jpy: Math.round(30 * approx.JPY), cny: 30 * approx.CNY, mxn: 30 * approx.MXN },
+        { usd: 40, jpy: Math.round(40 * approx.JPY), cny: 40 * approx.CNY, mxn: 40 * approx.MXN }
+      ];
     }
+  }
 
-    // Translation helper
-    function getTranslation(key, fallback = '') {
-      const t = window.translations?.[lang] || window.translations?.en || {};
-      return t[key] !== undefined ? t[key] : fallback;
-    }
+  // Get local price for a given USD amount (must match an entry in tiers)
+  function getLocalPrice(tiers, usdAmount, lang) {
+    const tierData = tiers.find(t => Math.abs(t.usd - usdAmount) < 0.01);
+    if (!tierData) return usdAmount;
+    if (lang === 'ja') return tierData.jpy;
+    if (lang === 'zh') return tierData.cny;
+    if (lang === 'es') return tierData.mxn;
+    return usdAmount;
+  }
 
-    // Format price in local currency
-    function formatLocalPrice(amount, lang) {
-      if (lang === 'en') return `US$${amount.toFixed(2)}`;
-      let currency, sym;
-      if (lang === 'ja') { currency = 'JPY'; sym = '円'; }
-      else if (lang === 'zh') { currency = 'CNY'; sym = '元'; }
-      else if (lang === 'es') { currency = 'MXN'; sym = 'MXN$'; }
-      else { currency = 'USD'; sym = 'US$'; }
-      if (currency === 'USD') return `US$${amount.toFixed(2)}`;
-      const formatted = (currency === 'JPY' || currency === 'MXN') ? Math.round(amount) : amount.toFixed(2);
-      return `${sym}${formatted}`;
-    }
+  // Set translated title and price (now using original price for conversion, then apply discount)
+  async function setLocalizedContent() {
+    const tiers = await fetchLocalPrices();
+    // Get local price for the original USD amount
+    const localOriginal = getLocalPrice(tiers, originalUsd, lang);
+    // Apply 10% discount to the local price
+    const discountFactor = 0.9;
+    const localDiscounted = localOriginal * discountFactor;
+    const formattedPrice = formatLocalPrice(localDiscounted, lang);
+    
+    const translatedTierName = getTranslation(`tier${tierName}`, tierName.toUpperCase());
+    const titleText = getTranslation('subscribeTitle', 'Subscribe to ✨ {tier}').replace('{tier}', translatedTierName);
+    const priceText = getTranslation('priceMonthly', '${price}/month (10% off)').replace('${price}', formattedPrice);
+    const discordLabelText = getTranslation('discordIdLabel', 'Your Discord ID');
+    const placeholderText = getTranslation('discordIdPlaceholder', '123456789012345678');
 
-    // Fetch local prices from the conversion worker
-    async function fetchLocalPrices() {
-      try {
-        const resp = await fetch('https://supabase-link.velutinx.workers.dev');
-        if (!resp.ok) throw new Error('Failed to fetch conversions');
-        const data = await resp.json();
-        return data.tiers;
-      } catch (err) {
-        console.error('Failed to load conversions', err);
-        // Fallback approximate rates
-        const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
-        return [
-          { usd: 5, jpy: Math.round(5 * approx.JPY), cny: 5 * approx.CNY, mxn: 5 * approx.MXN },
-          { usd: 10, jpy: Math.round(10 * approx.JPY), cny: 10 * approx.CNY, mxn: 10 * approx.MXN },
-          { usd: 18, jpy: Math.round(18 * approx.JPY), cny: 18 * approx.CNY, mxn: 18 * approx.MXN },
-          { usd: 30, jpy: Math.round(30 * approx.JPY), cny: 30 * approx.CNY, mxn: 30 * approx.MXN },
-          { usd: 40, jpy: Math.round(40 * approx.JPY), cny: 40 * approx.CNY, mxn: 40 * approx.MXN }
-        ];
-      }
-    }
-
-    // Find local price for the tier
-    function getLocalPrice(tiers, usdPrice, lang) {
-      const tierData = tiers.find(t => Math.abs(t.usd - usdPrice) < 0.01);
-      if (!tierData) return usdPrice;
-      if (lang === 'ja') return tierData.jpy;
-      if (lang === 'zh') return tierData.cny;
-      if (lang === 'es') return tierData.mxn;
-      return usdPrice;
-    }
-
-    // Set translated title and price
-    async function setLocalizedContent() {
-      const tiers = await fetchLocalPrices();
-      const localPrice = getLocalPrice(tiers, usdPrice, lang);
-      const formattedPrice = formatLocalPrice(localPrice, lang);
-      
-      const translatedTierName = getTranslation(`tier${tierName}`, tierName.toUpperCase());
-      const titleText = getTranslation('subscribeTitle', 'Subscribe to ✨ {tier}').replace('{tier}', translatedTierName);
-      const priceText = getTranslation('priceMonthly', '${price}/month (10% off)').replace('${price}', formattedPrice);
-      const discordLabelText = getTranslation('discordIdLabel', 'Your Discord ID');
-      const placeholderText = getTranslation('discordIdPlaceholder', '123456789012345678');
-
-      document.getElementById('title').textContent = titleText;
-      document.getElementById('price').textContent = priceText;
-      document.getElementById('discordIdLabel').textContent = discordLabelText;
-      document.getElementById('discordId').placeholder = placeholderText;
-      document.getElementById('price').classList.remove('loading');
-    }
-
+    document.getElementById('title').textContent = titleText;
+    document.getElementById('price').textContent = priceText;
+    document.getElementById('discordIdLabel').textContent = discordLabelText;
+    document.getElementById('discordId').placeholder = placeholderText;
+    document.getElementById('price').classList.remove('loading');
+  }
     // Run after page loads
     setLocalizedContent();
 
