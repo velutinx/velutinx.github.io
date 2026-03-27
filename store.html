@@ -10,7 +10,7 @@
     /* store-specific styles */
     .main-container {
       display: flex;
-      max-width: 1600px;  /* increased by 200px (100px left + 100px right) */
+      max-width: 1600px;
       margin: 0 auto;
       padding: 1.5rem 2rem 2rem;
       gap: 2rem;
@@ -95,7 +95,7 @@
     }
     .product-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);  /* always 5 columns on large screens */
+      grid-template-columns: repeat(5, 1fr);
       gap: 1.8rem;
     }
     @media (max-width: 1200px) {
@@ -498,14 +498,33 @@ function renderPayPalButton() {
       if (!response.ok) throw new Error(data.error || 'Order creation failed');
       return data.orderID;
     },
-    onApprove: (data, actions) => {
-      return actions.order.capture().then(() => {
+    onApprove: async (data, actions) => {
+      try {
+        const capture = await actions.order.capture();
+        const orderID = capture.id;
+
+        // Send cart to orders worker to store in Supabase
+        const storeResponse = await fetch('https://orders.velutinx.workers.dev/store-cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderID, cart })
+        });
+        if (!storeResponse.ok) {
+          const errorText = await storeResponse.text();
+          console.error('Failed to store order in Supabase:', errorText);
+          alert('Payment succeeded but there was an issue recording your order. Please contact support with your order ID: ' + orderID);
+        }
+
+        // Clear cart and redirect
         storeCart = [];
         saveStoreCart();
         updateStoreCartUI();
         renderStoreGrid();
-        window.location.href = `/s/success.html?orderID=${data.orderID}`;
-      });
+        window.location.href = `/s/success.html?orderID=${orderID}`;
+      } catch (err) {
+        console.error('Error in onApprove:', err);
+        alert('Something went wrong after payment. Please contact support.');
+      }
     },
     onError: (err) => {
       console.error('PayPal error', err);
@@ -538,7 +557,7 @@ function interceptCartButtons() {
       drawer.classList.add('open');
       overlay.classList.add('active');
       document.body.classList.add('drawer-open');
-      renderPayPalButton(); // our render
+      renderPayPalButton();
     }
   };
 
