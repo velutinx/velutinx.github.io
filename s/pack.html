@@ -538,55 +538,67 @@
     // ==================== PayPal integration (same as store.html) ====================
     let isRendering = false;
 
-    function renderPayPalButton() {
-      const container = document.getElementById('paypal-button-container');
-      if (!container || !document.body.contains(container)) return;
-      const cartDrawer = document.getElementById('cartDrawer');
-      if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
-      if (isRendering) return;
-      isRendering = true;
+function renderPayPalButton() {
+  const container = document.getElementById('paypal-button-container');
+  if (!container) return;
+  if (!cartDrawer.classList.contains('open')) return;
+  if (isRendering) return;
+  isRendering = true;
 
-      const cart = storeCart;
-      if (cart.length === 0) {
-        container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
-        isRendering = false;
-        return;
-      }
+  const cart = storeCart;
+  if (cart.length === 0) {
+    container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+    isRendering = false;
+    return;
+  }
 
-      container.innerHTML = '';
-      paypal.Buttons({
-        createOrder: async () => {
-          const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart })
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.error || 'Order creation failed');
-          return data.orderID;
-        },
-        onApprove: (data, actions) => {
-          return actions.order.capture().then(() => {
-            storeCart = [];
-            saveStoreCart();
-            updateStoreCartUI();
-            updateCartButton(); // refresh button on pack page
-            window.location.href = `/s/success.html?orderID=${data.orderID}`;
-          });
-        },
-        onError: (err) => {
-          console.error('PayPal error', err);
-          alert('Something went wrong. Please try again.');
-        },
-        onCancel: () => {
-          isRendering = false;
-        }
-      }).render(container).then(() => {
-        isRendering = false;
-      }).catch(() => {
-        isRendering = false;
+  container.innerHTML = '';
+  paypal.Buttons({
+    createOrder: async () => {
+      const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cart })
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Order creation failed');
+      return data.orderID;
+    },
+    onApprove: async (data, actions) => {
+      // Capture the order (this completes the payment)
+      const capture = await actions.order.capture();
+      const orderID = capture.id;
+      
+      // Now send the cart to the orders worker to store in Supabase
+      const storeResponse = await fetch('https://orders.velutinx.workers.dev/store-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderID, cart })
+      });
+      if (!storeResponse.ok) {
+        console.error('Failed to store order in Supabase');
+      }
+      
+      // Clear cart and redirect
+      storeCart = [];
+      saveStoreCart();
+      updateStoreCartUI();
+      updateCartButton(); // refresh button on pack page
+      window.location.href = `/s/success.html?orderID=${orderID}`;
+    },
+    onError: (err) => {
+      console.error('PayPal error', err);
+      alert('Something went wrong. Please try again.');
+    },
+    onCancel: () => {
+      isRendering = false;
     }
+  }).render(container).then(() => {
+    isRendering = false;
+  }).catch(() => {
+    isRendering = false;
+  });
+}
 
     window.setupStoreCheckout = () => renderPayPalButton();
 
