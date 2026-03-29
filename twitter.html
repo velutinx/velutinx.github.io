@@ -199,19 +199,36 @@
     });
 
     // 6. Mock Posting
-    function sendToWorker(id) {
-        const status = document.getElementById(`status-${id}`);
-        const text = document.getElementById(`post-${id}`).value;
-        const images = window.accountImages[id];
+async function sendToWorker(id) {
+    const status = document.getElementById(`status-${id}`);
+    const text = document.getElementById(`post-${id}`).value;
+    const images = window.accountImages[id];
 
-        if (!text && images.length === 0) return alert("Box is empty!");
+    status.innerText = "⏳ Processing Account " + id + "...";
+    
+    const formData = new FormData();
+    formData.append('accId', id); // Sends 1, 2, or 3
+    formData.append('text', text);
+    images.forEach(img => formData.append('images', img));
+
+    try {
+        const res = await fetch('https://YOUR_WORKER_URL_HERE.workers.dev', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
         
-        status.innerText = "⏳ Sending to Worker...";
-        status.style.color = "#1da1f2";
-        
-        console.log(`Sending post for Account ${id}:`, { text, images });
-        // After Worker is set up, use fetch() here
+        if (data.data && data.data.id) {
+            status.innerText = "✅ Posted to Twitter!";
+            status.style.color = "#4CAF50";
+        } else {
+            status.innerText = "❌ Error: " + (data.error || "Check Console");
+            console.log(data);
+        }
+    } catch (e) {
+        status.innerText = "❌ Connection Failed";
     }
+}
 </script>
 
 </body>
