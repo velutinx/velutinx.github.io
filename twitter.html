@@ -113,44 +113,49 @@
     }
 
     // 4. Drag and Drop for Reordering
-    function renderThumbnails(id) {
-        const container = document.getElementById(`container-${id}`);
-        container.innerHTML = '';
-        
-        window.accountImages[id].forEach((file, index) => {
+// Replace your current renderThumbnails with this "Order-Safe" version
+async function renderThumbnails(id) {
+    const container = document.getElementById(`container-${id}`);
+    container.innerHTML = '';
+    
+    const files = window.accountImages[id];
+
+    // Use a for...of loop to ensure they render in the exact array order
+    for (let index = 0; index < files.length; index++) {
+        const file = files[index];
+        const dataUrl = await new Promise(resolve => {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const item = document.createElement('div');
-                item.className = 'thumbnail-item';
-                item.draggable = true;
-                item.dataset.index = index;
-                item.dataset.accId = id;
-
-                // Drag Events
-                item.addEventListener('dragstart', handleDragStart);
-                item.addEventListener('dragover', handleDragOver);
-                item.addEventListener('drop', handleDrop);
-                item.addEventListener('dragend', handleDragEnd);
-
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                item.appendChild(img);
-
-                const remove = document.createElement('button');
-                remove.className = 'remove-btn';
-                remove.innerHTML = '✕';
-                remove.onclick = (ev) => {
-                    ev.stopPropagation();
-                    window.accountImages[id].splice(index, 1);
-                    renderThumbnails(id);
-                };
-                item.appendChild(remove);
-
-                container.appendChild(item);
-            };
+            reader.onload = (e) => resolve(e.target.result);
             reader.readAsDataURL(file);
         });
+
+        const item = document.createElement('div');
+        item.className = 'thumbnail-item';
+        item.draggable = true;
+        item.dataset.index = index;
+        item.dataset.accId = id;
+
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        item.appendChild(img);
+
+        const remove = document.createElement('button');
+        remove.className = 'remove-btn';
+        remove.innerHTML = '✕';
+        remove.onclick = (ev) => {
+            ev.stopPropagation();
+            window.accountImages[id].splice(index, 1);
+            renderThumbnails(id);
+        };
+        item.appendChild(remove);
+        container.appendChild(item);
     }
+}
 
     function handleDragStart(e) {
         dragSourceElement = this;
