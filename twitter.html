@@ -218,7 +218,7 @@ async function sendToWorker(id) {
     images.forEach(img => formData.append('images', img));
 
     try {
-        const res = await fetch('https://YOUR_WORKER_URL_HERE.workers.dev', {
+        const res = await fetch('https://twitter-post.velutinx.workers.dev', {
             method: 'POST',
             body: formData
         });
