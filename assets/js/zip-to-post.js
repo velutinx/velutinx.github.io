@@ -1,5 +1,6 @@
 // /assets/js/zip-to-post.js
 // Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
+// v2: automatically removes (number) suffix from filenames (e.g., "(1)" before parsing)
 
 (function() {
     // ----- Toast notification (global, reusable) -----
@@ -77,8 +78,18 @@
         if (e.target.files.length) handleFile(e.target.files[0]);
     });
 
+    // Clean filename: remove trailing (number) and any extra spaces
+    function cleanFilename(rawName) {
+        let name = rawName.replace(/\.zip$/i, '');
+        // Remove (1), (2), (123) etc. at the end (including possible space before)
+        name = name.replace(/\s*\(\d+\)\s*$/, '');
+        // Also remove any standalone (number) anywhere (but keep it simple: just trailing)
+        // If there are multiple, this will clean the last one; good enough for duplicates.
+        return name.trim();
+    }
+
     function parseFilename(filename) {
-        const base = filename.replace(/\.zip$/i, '');
+        const base = cleanFilename(filename);
         const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
         const match = base.match(regex);
         if (!match) return null;
@@ -102,7 +113,7 @@
 
         const parsed = parseFilename(file.name);
         if (!parsed) {
-            const errMsg = '❌ Filename format not recognized.\nExpected: [Pack 123] Character - SERIES.zip';
+            const errMsg = '❌ Filename format not recognized.\nExpected: [Pack 123] Character - SERIES.zip\n(Optional (number) suffix is ignored)';
             subscriberOutput.value = errMsg;
             publicOutput.value = errMsg;
             patreonSubOutput.value = errMsg;
