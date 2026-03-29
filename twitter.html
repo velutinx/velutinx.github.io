@@ -149,7 +149,8 @@ async function renderThumbnails(id) {
         remove.innerHTML = '✕';
         remove.onclick = (ev) => {
             ev.stopPropagation();
-            window.accountImages[id].splice(index, 1);
+const currentFiles = window.accountImages[id];
+currentFiles.splice(currentFiles.indexOf(file), 1);
             renderThumbnails(id);
         };
         item.appendChild(remove);
