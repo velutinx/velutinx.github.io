@@ -135,7 +135,7 @@
                 publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
 
                 // Patreon posts
-                patreonSubOutput.value = `[DOWNLOAD] ${character} — Pack #${pack} — Full Explicit Set\n\nPack #${pack} is Now Available!\n\n${fileCount} Total Images\nFull Explicit Variants included\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
+                patreonSubOutput.value = `[DOWNLOAD] ${character} — Pack #${pack} — Full Explicit Set\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
                 patreonPublicOutput.value = `Preview: ${character} — ${series} — Pack ${pack}\n\nTotal Set Size: ${fileCount} High-Res Images\n\n🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
 
                 filenameHint.textContent = `✅ Found ${fileCount} files in zip. | Patreon posts ready.`;
