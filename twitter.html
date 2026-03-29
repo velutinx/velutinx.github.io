@@ -3,130 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitter Multi-Account Dashboard</title>
+    <title>Twitter Dashboard - Velutinx</title>
     <style>
-        body { font-family: sans-serif; background: #15202b; color: white; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #15202b; color: white; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         
-        /* Master Post Area */
-        .master-section { background: #192734; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #38444d; }
-        textarea { width: 100%; background: #253341; color: white; border: 1px solid #38444d; border-radius: 8px; padding: 10px; resize: vertical; min-height: 80px; box-sizing: border-box; }
+        /* Master Input Section */
+        .master-section { background: #192734; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #38444d; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .master-section label { display: block; margin-bottom: 10px; color: #8899a6; font-weight: bold; }
         
-        /* Grid for 3 Accounts */
+        textarea { width: 100%; background: #253341; color: white; border: 1px solid #38444d; border-radius: 8px; padding: 12px; resize: vertical; min-height: 100px; box-sizing: border-box; font-size: 15px; outline: none; transition: border 0.2s; }
+        textarea:focus { border-color: #1da1f2; }
+        
+        /* Account Grid */
         .accounts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .account-card { background: #192734; padding: 15px; border-radius: 12px; border: 1px solid #38444d; }
-        .account-header { font-weight: bold; margin-bottom: 10px; color: #1da1f2; border-bottom: 1px solid #38444d; padding-bottom: 5px; }
+        .account-card { background: #192734; padding: 15px; border-radius: 12px; border: 1px solid #38444d; position: relative; }
+        .account-header { font-weight: bold; margin-bottom: 15px; color: #1da1f2; border-bottom: 1px solid #38444d; padding-bottom: 8px; display: flex; justify-content: space-between; }
 
-        /* Dropzone & Thumbnails */
-        .dropzone { border: 2px dashed #38444d; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; margin: 10px 0; transition: 0.2s; }
-        .dropzone:hover { border-color: #1da1f2; background: #253341; }
+        /* Dropzone */
+        .dropzone { border: 2px dashed #38444d; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; margin: 10px 0; color: #8899a6; font-size: 13px; transition: 0.2s; }
+        .dropzone:hover { border-color: #1da1f2; background: #253341; color: white; }
         
-        .thumbnail-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; min-height: 100px; }
-        .thumbnail-item { position: relative; border-radius: 4px; overflow: hidden; aspect-ratio: 1/1; background: #253341; cursor: move; }
-        .thumbnail-item img { width: 100%; height: 100%; object-fit: cover; }
-        .thumbnail-item.dragging { opacity: 0.5; border: 2px solid #1da1f2; }
+        /* Thumbnails & Dragging */
+        .thumbnail-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; min-height: 100px; }
+        .thumbnail-item { position: relative; border-radius: 6px; overflow: hidden; aspect-ratio: 1/1; background: #253341; cursor: grab; border: 2px solid transparent; }
+        .thumbnail-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        .thumbnail-item.dragging { opacity: 0.4; transform: scale(0.95); border: 2px solid #1da1f2; }
         
-        .remove-btn { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; }
+        .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .remove-btn:hover { background: #f44336; }
 
-        /* Buttons */
-        .post-btn { width: 100%; padding: 12px; margin-top: 15px; background: #1da1f2; color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        /* Actions */
+        .post-btn { width: 100%; padding: 12px; margin-top: 15px; background: #1da1f2; color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .post-btn:hover { background: #1a91da; }
-        .status-msg { margin-top: 8px; font-size: 12px; text-align: center; }
+        .status-msg { margin-top: 10px; font-size: 12px; text-align: center; height: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Twitter Post Manager</h2>
-
     <div class="master-section">
-        <label><strong>Step 1: Write Master Post (Mirrors to all 3)</strong></label>
-        <textarea id="masterPost" placeholder="Type your tweet here..."></textarea>
+        <label>MASTER POST (Mirrors to all boxes below)</label>
+        <textarea id="masterPost" placeholder="Write your main set description here..."></textarea>
     </div>
 
     <div class="accounts-grid">
-        <div class="account-card" data-account="1">
-            <div class="account-header">Twitter Account @1</div>
-            <textarea id="post1" class="acc-post" placeholder="Individual edit for Acct 1..."></textarea>
-            <div class="dropzone" id="dropzone1">Click or Drop 4 Images</div>
-            <div class="thumbnail-container" id="container1" data-account="1"></div>
-            <button class="post-btn" onclick="postToTwitter(1)">🚀 Post Tweet</button>
-            <div id="status1" class="status-msg"></div>
+        <div class="account-card" id="card-1">
+            <div class="account-header"><span>@TwitterAcct_1</span></div>
+            <textarea id="post-1" placeholder="Edit for Acct 1..."></textarea>
+            <div class="dropzone" onclick="triggerInput(1)" id="dz-1">Drop images or Click</div>
+            <div class="thumbnail-container" id="container-1"></div>
+            <button class="post-btn" onclick="sendToWorker(1)">🚀 Post to Acct 1</button>
+            <div id="status-1" class="status-msg"></div>
         </div>
 
-        <div class="account-card" data-account="2">
-            <div class="account-header">Twitter Account @2</div>
-            <textarea id="post2" class="acc-post" placeholder="Individual edit for Acct 2..."></textarea>
-            <div class="dropzone" id="dropzone2">Click or Drop 4 Images</div>
-            <div class="thumbnail-container" id="container2" data-account="2"></div>
-            <button class="post-btn" onclick="postToTwitter(2)">🚀 Post Tweet</button>
-            <div id="status2" class="status-msg"></div>
+        <div class="account-card" id="card-2">
+            <div class="account-header"><span>@TwitterAcct_2</span></div>
+            <textarea id="post-2" placeholder="Edit for Acct 2..."></textarea>
+            <div class="dropzone" onclick="triggerInput(2)" id="dz-2">Drop images or Click</div>
+            <div class="thumbnail-container" id="container-2"></div>
+            <button class="post-btn" onclick="sendToWorker(2)">🚀 Post to Acct 2</button>
+            <div id="status-2" class="status-msg"></div>
         </div>
 
-        <div class="account-card" data-account="3">
-            <div class="account-header">Twitter Account @3</div>
-            <textarea id="post3" class="acc-post" placeholder="Individual edit for Acct 3..."></textarea>
-            <div class="dropzone" id="dropzone3">Click or Drop 4 Images</div>
-            <div class="thumbnail-container" id="container3" data-account="3"></div>
-            <button class="post-btn" onclick="postToTwitter(3)">🚀 Post Tweet</button>
-            <div id="status3" class="status-msg"></div>
+        <div class="account-card" id="card-3">
+            <div class="account-header"><span>@TwitterAcct_3</span></div>
+            <textarea id="post-3" placeholder="Edit for Acct 3..."></textarea>
+            <div class="dropzone" onclick="triggerInput(3)" id="dz-3">Drop images or Click</div>
+            <div class="thumbnail-container" id="container-3"></div>
+            <button class="post-btn" onclick="sendToWorker(3)">🚀 Post to Acct 3</button>
+            <div id="status-3" class="status-msg"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // Store images for each account
+    // 1. Data Store
     window.accountImages = { 1: [], 2: [], 3: [] };
-    let dragSource = null;
+    let dragSourceElement = null;
 
-    // --- Syncing Logic ---
+    // 2. Real-time Mirroring Logic
     const master = document.getElementById('masterPost');
-    const childPosts = [document.getElementById('post1'), document.getElementById('post2'), document.getElementById('post3')];
+    const childTextareas = [
+        document.getElementById('post-1'),
+        document.getElementById('post-2'),
+        document.getElementById('post-3')
+    ];
 
     master.addEventListener('input', () => {
-        childPosts.forEach(p => p.value = master.value);
+        childTextareas.forEach(ta => {
+            ta.value = master.value;
+        });
     });
 
-    // --- Drag & Drop Rendering ---
-    window.renderThumbnails = function(accId) {
-        const container = document.getElementById(`container${accId}`);
-        const files = window.accountImages[accId];
-        container.innerHTML = '';
+    // 3. File Input Helper
+    function triggerInput(id) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = 'image/*';
+        input.onchange = (e) => handleFiles(e.target.files, id);
+        input.click();
+    }
 
-        files.forEach((file, idx) => {
+    function handleFiles(files, id) {
+        const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+        window.accountImages[id].push(...newFiles);
+        renderThumbnails(id);
+    }
+
+    // 4. Drag and Drop for Reordering
+    function renderThumbnails(id) {
+        const container = document.getElementById(`container-${id}`);
+        container.innerHTML = '';
+        
+        window.accountImages[id].forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const div = document.createElement('div');
-                div.className = 'thumbnail-item';
-                div.draggable = true;
-                div.dataset.index = idx;
-                div.dataset.account = accId;
+                const item = document.createElement('div');
+                item.className = 'thumbnail-item';
+                item.draggable = true;
+                item.dataset.index = index;
+                item.dataset.accId = id;
+
+                // Drag Events
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
 
                 const img = document.createElement('img');
                 img.src = e.target.result;
-                div.appendChild(img);
+                item.appendChild(img);
 
-                const btn = document.createElement('button');
-                btn.className = 'remove-btn';
-                btn.innerHTML = '✕';
-                btn.onclick = (ev) => {
+                const remove = document.createElement('button');
+                remove.className = 'remove-btn';
+                remove.innerHTML = '✕';
+                remove.onclick = (ev) => {
                     ev.stopPropagation();
-                    window.accountImages[accId].splice(idx, 1);
-                    renderThumbnails(accId);
+                    window.accountImages[id].splice(index, 1);
+                    renderThumbnails(id);
                 };
-                div.appendChild(btn);
+                item.appendChild(remove);
 
-                // Re-order drag events
-                div.addEventListener('dragstart', (e) => { dragSource = div; div.classList.add('dragging'); });
-                div.addEventListener('dragover', (e) => e.preventDefault());
-                div.addEventListener('drop', handleDrop);
-                div.addEventListener('dragend', () => div.classList.remove('dragging'));
-
-                container.appendChild(div);
+                container.appendChild(item);
             };
             reader.readAsDataURL(file);
         });
-    };
+    }
+
+    function handleDragStart(e) {
+        dragSourceElement = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) e.preventDefault();
+        return false;
+    }
 
     function handleDrop(e) {
+        e.stopPropagation();
         e.preventDefault();
+
+        if (dragSourceElement !== this) {
+            const accId = this.dataset.accId;
+            const fromIdx = parseInt(dragSourceElement.dataset.index);
+            const toIdx = parseInt(this.dataset.index);
+
+            // Reorder the actual array
+            const files = window.accountImages[accId];
+            const movedItem = files.splice(fromIdx, 1)[0];
+            files.splice(toIdx, 0, movedItem);
+
+            renderThumbnails(accId);
+        }
+        return false;
+    }
+
+    function handleDragEnd() {
+        this.classList.remove('dragging');
+    }
+
+    // 5. Global Dropzones for File Upload
+    [1, 2, 3].forEach(id => {
+        const dz = document.getElementById(`dz-${id}`);
+        dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = '#1da1f2'; });
+        dz.addEventListener('dragleave', () => dz.style.borderColor = '#38444d');
+        dz.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dz.style.borderColor = '#38444d';
+            handleFiles(e.dataTransfer.files, id);
+        });
+    });
+
+    // 6. Mock Posting
+    function sendToWorker(id) {
+        const status = document.getElementById(`status-${id}`);
+        const text = document.getElementById(`post-${id}`).value;
+        const images = window.accountImages[id];
+
+        if (!text && images.length === 0) return alert("Box is empty!");
+        
+        status.innerText = "⏳ Sending to Worker...";
+        status.style.color = "#1da1f2";
+        
+        console.log(`Sending post for Account ${id}:`, { text, images });
+        // After Worker is set up, use fetch() here
+    }
+</script>
+
+</body>
+</html>
