@@ -277,8 +277,25 @@ if (!SUPPORTED_LANGUAGES.includes(currentLanguage)) {
   localStorage.setItem('language', DEFAULT_LANG);
 }
 
+/**
+ * Synchronize the internal language without dispatching an event.
+ * This is used by the header (shared.js) to keep translations in sync.
+ */
+function syncLanguage(lang) {
+  if (!SUPPORTED_LANGUAGES.includes(lang)) lang = DEFAULT_LANG;
+  if (lang === currentLanguage) return;
+  currentLanguage = lang;
+  window.currentLanguage = lang;
+  localStorage.setItem('language', lang);
+}
+
+/**
+ * Public setLanguage – updates the language and dispatches an event.
+ * Only dispatches if the language actually changes.
+ */
 function setLanguage(lang) {
   if (!SUPPORTED_LANGUAGES.includes(lang)) lang = DEFAULT_LANG;
+  if (lang === currentLanguage) return; // no change
   currentLanguage = lang;
   window.currentLanguage = lang;
   localStorage.setItem('language', lang);
@@ -376,6 +393,7 @@ function applyTranslations(pageKey) {
 
 // Expose globally
 window.translations = translations;
+window.syncLanguage = syncLanguage;   // <-- added
 window.setLanguage = setLanguage;
 window.applyTranslations = applyTranslations;
 window.currentLanguage = currentLanguage;
