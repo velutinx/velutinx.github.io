@@ -1,6 +1,6 @@
 // /assets/js/zip-to-post.js
 // Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
-// v3: added Pixiv post generation with pack ID lookup from packs-data.js
+// v4: match pack by character name + image count instead of series
 
 (function() {
     // ----- Toast notification (global, reusable) -----
@@ -56,7 +56,7 @@
     const publicOutput = document.getElementById('publicOutput');
     const patreonSubOutput = document.getElementById('patreonSubOutput');
     const patreonPublicOutput = document.getElementById('patreonPublicOutput');
-    const pixivOutput = document.getElementById('pixivOutput');      // new
+    const pixivOutput = document.getElementById('pixivOutput');
     const filenameHint = document.getElementById('filenameHint');
 
     if (!dropZone || !fileInput) return; // exit if not on Subscribestar tab
@@ -82,7 +82,6 @@
     // Clean filename: remove trailing (number) and any extra spaces
     function cleanFilename(rawName) {
         let name = rawName.replace(/\.zip$/i, '');
-        // Remove (1), (2), (123) etc. at the end (including possible space before)
         name = name.replace(/\s*\(\d+\)\s*$/, '');
         return name.trim();
     }
@@ -99,23 +98,27 @@
         };
     }
 
-    // ----- Helper: load packs data and find matching pack ID -----
-    async function findPackId(character, series, fileCount) {
+    // Normalize string for comparison: lowercase, remove punctuation and spaces
+    function normalize(str) {
+        return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    // ----- Helper: load packs data and find matching pack by character name + image count -----
+    async function findPackId(character, fileCount) {
         try {
             const module = await import('/assets/js/packs-data.js');
-            const packs = module.default; // array of pack objects
+            const packs = module.default;
+            const normalizedChar = normalize(character);
             for (const pack of packs) {
-                // Extract character & series from pack.title using same regex
+                // Extract character name from pack.title
                 const match = pack.title.match(/^\[Pack \d+\]\s+(.+?)\s*-\s*(.+)$/i);
                 if (!match) continue;
                 const packChar = match[1].trim();
-                const packSeries = match[2].trim().toUpperCase();
-                if (packChar === character && packSeries === series) {
-                    // Optional: also compare illustrationCount if needed
-                    return pack.id; // e.g., "001"
+                if (normalize(packChar) === normalizedChar && pack.illustrationCount === fileCount) {
+                    return pack.id;
                 }
             }
-            return null; // no match
+            return null;
         } catch (err) {
             console.warn('Failed to load packs-data.js', err);
             return null;
@@ -132,7 +135,7 @@
         publicOutput.value = 'Reading zip...';
         patreonSubOutput.value = 'Reading zip...';
         patreonPublicOutput.value = 'Reading zip...';
-        if (pixivOutput) pixivOutput.value = 'Reading zip...';          // new
+        if (pixivOutput) pixivOutput.value = 'Reading zip...';
 
         const parsed = parseFilename(file.name);
         if (!parsed) {
@@ -162,8 +165,8 @@
             patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
             patreonPublicOutput.value = `Preview: ${character} — ${series} — Pack ${pack}\n\nTotal Set Size: ${fileCount} High-Res Images\n\n🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
 
-            // ---- Pixiv post generation ----
-            const packId = await findPackId(character, series, fileCount);
+            // ---- Pixiv post generation (match by character name + image count) ----
+            const packId = await findPackId(character, fileCount);
             const link = packId ? `https://velutinx.com/s/pack?id=${packId}` : 'https://velutinx.com/store';
             const pixivText = `${character} - ${series}\n全${fileCount}枚 / Full set: ${fileCount} images\n${link}\n\n📌 もっと私の作品を見たい方はこちら ♡  \nFind more of my work & social links:  \n🔗 https://velutinx.com/\n\n免責事項：本イラストに登場するキャラクターは、18歳以上として描写されています。  \nDisclaimer: This illustration depicts a fictional character who is portrayed as being 18 years of age or older.`;
             if (pixivOutput) pixivOutput.value = pixivText;
