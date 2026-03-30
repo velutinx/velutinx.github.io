@@ -229,52 +229,48 @@
         <button class="tab-button" data-tab="bluesky">🦋 Bluesky Composer</button>
     </div>
 
-    <!-- Subscribestar + Patreon Tab (logic moved to external JS) -->
-    <div id="subscribestar" class="tab-content active">
-        <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 4 posts (Subscribestar + Patreon)</p>
-        <div class="upload-area" id="dropZone">
-            <input type="file" id="fileInput" accept=".zip">
-            <div class="upload-label">📂 Drag & drop zip or click</div>
-        </div>
-        <div class="columns">
-            <div class="column"><h2>📌 Subscriber (Subscribestar)</h2><textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea><button class="copy-btn" data-copy="subscriberOutput">Copy</button></div>
-            <div class="column"><h2>⚠️ Public Teaser (Subscribestar)</h2><textarea id="publicOutput" class="output" readonly>Waiting...</textarea><button class="copy-btn" data-copy="publicOutput">Copy</button></div>
-        </div>
-        <div class="columns" style="margin-top: 20px;">
-            <div class="column"><h2>🎯 Patreon Subscriber</h2><textarea id="patreonSubOutput" class="output" readonly>Waiting...</textarea><button class="copy-btn" data-copy="patreonSubOutput">Copy</button></div>
-            <div class="column"><h2>🔓 Patreon Public Teaser</h2><textarea id="patreonPublicOutput" class="output" readonly>Waiting...</textarea><button class="copy-btn" data-copy="patreonPublicOutput">Copy</button></div>
-        </div>
-        <div class="filename-hint" id="filenameHint"></div>
-        <div class="footer">⚡ JSZip · no server upload · all local</div>
+<div id="subscribestar" class="tab-content active">
+    <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
+    <div class="upload-area" id="dropZone">
+        <input type="file" id="fileInput" accept=".zip">
+        <div class="upload-label">📂 Drag & drop zip or click</div>
     </div>
 
-    <!-- Bluesky Tab (kept here for active development) -->
-    <div id="bluesky" class="tab-content">
-        <h2>🦋 Dual‑account composer</h2>
-        <textarea id="masterPost" class="master-post" rows="3" placeholder="Write once → populates both posts, but you can edit individually."></textarea>
-        <div class="accounts-grid">
-            <div class="account-card" data-account="1">
-                <h3>🔵 SFW Account</h3>
-                <textarea class="account-post" id="post1" rows="2"></textarea>
-                <div class="dropzone" data-account="1">📸 Drop images or click</div>
-                <div class="thumbnail-container" data-account="1"></div>
-            </div>
-            <div class="account-card" data-account="2">
-                <h3>🔴 NSFW Account</h3>
-                <textarea class="account-post" id="post2" rows="2"></textarea>
-                <div class="dropzone" data-account="2">📸 Drop images or click</div>
-                <div class="thumbnail-container" data-account="2"></div>
-            </div>
+    <!-- First row: three columns, Pixiv on the left -->
+    <div class="columns">
+        <div class="column">
+            <h2>🎨 Pixiv Post (JP/EN)</h2>
+            <textarea id="pixivOutput" class="output" readonly>Waiting...</textarea>
+            <button class="copy-btn" data-copy="pixivOutput">Copy</button>
+        </div>
+        <div class="column">
+            <h2>📌 Subscriber (Subscribestar)</h2>
+            <textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea>
+            <button class="copy-btn" data-copy="subscriberOutput">Copy</button>
+        </div>
+        <div class="column">
+            <h2>⚠️ Public Teaser (Subscribestar)</h2>
+            <textarea id="publicOutput" class="output" readonly>Waiting...</textarea>
+            <button class="copy-btn" data-copy="publicOutput">Copy</button>
         </div>
     </div>
-</div>
 
-<div class="columns" style="margin-top: 20px;">
-    <div class="column">
-        <h2>🎨 Pixiv Post (JP/EN)</h2>
-        <textarea id="pixivOutput" class="output" readonly>Waiting...</textarea>
-        <button class="copy-btn" data-copy="pixivOutput">Copy</button>
+    <!-- Second row: two columns -->
+    <div class="columns" style="margin-top: 20px;">
+        <div class="column">
+            <h2>🎯 Patreon Subscriber</h2>
+            <textarea id="patreonSubOutput" class="output" readonly>Waiting...</textarea>
+            <button class="copy-btn" data-copy="patreonSubOutput">Copy</button>
+        </div>
+        <div class="column">
+            <h2>🔓 Patreon Public Teaser</h2>
+            <textarea id="patreonPublicOutput" class="output" readonly>Waiting...</textarea>
+            <button class="copy-btn" data-copy="patreonPublicOutput">Copy</button>
+        </div>
     </div>
+
+    <div class="filename-hint" id="filenameHint"></div>
+    <div class="footer">⚡ JSZip · no server upload · all local</div>
 </div>
     
 <script>
