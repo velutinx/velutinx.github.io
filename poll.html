@@ -194,14 +194,15 @@ const { data, error } = await sb.from('website_voting').upsert(
     updateCardStyles(id);
     fetchGridResults();
 
-  } catch (err) { 
+} catch (err) { 
     console.error("Vote failed:", err.message); 
     
-    // This is the new part that handles your SQL velocity trigger
-    if (err.message.includes("too many votes")) {
-        alert("Slow down! Too many people in your network are voting for this specific character right now. Please try again in an hour.");
+    if (err.message.includes("Browser fingerprint required")) {
+        alert("Security Check: Please disable any aggressive ad-blockers and refresh the page to vote.");
+    } else if (err.message.includes("too many votes")) {
+        alert("Slow down! Too many people in your network are voting for this specific character. Try again in an hour.");
     } else {
-        alert("Something went wrong with your vote. Please try again.");
+        alert("Something went wrong. Please try again.");
     }
   }
 }
