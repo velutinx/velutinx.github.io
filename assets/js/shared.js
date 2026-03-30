@@ -430,6 +430,9 @@
         renderPayPalButton();
       }
     };
+
+  document.dispatchEvent(new CustomEvent('headerReady'));
+  window.headerReady = true;
   }
 
   if (document.readyState === 'loading') {
