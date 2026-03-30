@@ -172,7 +172,9 @@ async function castVote(id) {
       console.error("IP fetch failed", e);
     }
 
-    // 4. Send both to Supabase (Now both variables are defined!)
+// 4. Send both to Supabase 
+    // We now use 'poll_id, user_ip' to ensure one vote per IP, 
+    // but still allow the user to change their mind/choice.
     const { data, error } = await sb.from('website_voting').upsert(
       { 
         voter_id: visitorId, 
@@ -180,7 +182,7 @@ async function castVote(id) {
         option_id: id, 
         poll_id: POLL_ID 
       },
-      { onConflict: 'voter_id' }
+      { onConflict: 'poll_id, user_ip' } 
     );
 
     if (error) throw error;
