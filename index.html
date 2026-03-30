@@ -72,15 +72,15 @@
     applyIndexTranslations();
 
     // When language changes via shared header, update translt.js and reapply
-    document.addEventListener('languageChanged', (e) => {
-      const newLang = e.detail.language;
+document.addEventListener('languageChanged', (e) => {
+  const newLang = e.detail.language;
       if (newLang && typeof window.setLanguage === 'function') {
         window.setLanguage(newLang);
       } else if (newLang) {
         window.currentLanguage = newLang;
       }
-      applyIndexTranslations();
-    });
+  applyIndexTranslations();
+});
 
     // Dark mode from localStorage
     if (localStorage.getItem('darkMode') === 'true') {
