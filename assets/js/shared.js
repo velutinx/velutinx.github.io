@@ -180,21 +180,25 @@
     updateCartUI();
   }
 
-  // Inside shared.js, around where setLanguage is defined
-function setLanguage(lang) {
-  if (lang === currentLang) return; // optional early return
-  currentLang = lang;
-  localStorage.setItem('language', lang);
-  currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
-  applyHeaderTranslations();
-  updateCartUI();
+  // Corrected setLanguage function – properly closed, dispatches event
+  function setLanguage(lang) {
+    if (lang === currentLang) return;
+    currentLang = lang;
+    localStorage.setItem('language', lang);
+    currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
+    applyHeaderTranslations();
+    updateCartUI();
 
-  // NEW: sync with translt.js
-  if (typeof window.syncLanguage === 'function') {
-    window.syncLanguage(lang);
+    // Sync with translt.js
+    if (typeof window.syncLanguage === 'function') {
+      window.syncLanguage(lang);
+    }
+
+    // Dispatch event for the whole page
+    document.dispatchEvent(new CustomEvent('languageChanged', {
+      detail: { language: lang, currency: currentCurrency }
+    }));
   }
-
-
 
   function initTheme() {
     const themeBtn = document.getElementById('themeBtn');
@@ -281,163 +285,152 @@ function setLanguage(lang) {
   // --------------------------------------------------------------
   // 5. Inject header and set up event listeners
   // --------------------------------------------------------------
- function injectHeader() {
-  const placeholder = document.getElementById('header-placeholder');
-  if (!placeholder) {
-    console.error('Header placeholder missing: add <div id="header-placeholder"></div> to your page.');
-    return;
-  }
-  placeholder.innerHTML = headerHTML;
-
-  // Now the DOM elements exist, so we can attach event listeners
-  applyHeaderTranslations();
-  updateCartUI();
-
-  // Sidebar toggle
-  const menuToggle = document.getElementById('menuToggle');
-  const sidebar = document.getElementById('sidebar');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  const sidebarClose = document.getElementById('sidebarMenuToggle');
-  if (menuToggle && sidebar && sidebarOverlay) {
-    menuToggle.onclick = () => {
-      sidebar.classList.add('open');
-      sidebarOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    };
-    const closeSide = () => {
-      sidebar.classList.remove('open');
-      sidebarOverlay.classList.remove('active');
-      document.body.style.overflow = '';
-    };
-    sidebarClose?.addEventListener('click', closeSide);
-    sidebarOverlay.addEventListener('click', closeSide);
-  }
-
-  // Cart drawer
-  const cartBtn = document.getElementById('cartBtn');
-  const floatCartBtn = document.getElementById('floatingCartBtn');
-  const cartDrawer = document.getElementById('cartDrawer');
-  const cartOverlay = document.getElementById('cartOverlay');
-  const cartClose = document.getElementById('cartClose');
-
-  const openCart = () => {
-    cartDrawer.classList.add('open');
-    cartOverlay.classList.add('active');
-    document.body.classList.add('drawer-open');
-    // Render PayPal button only when drawer opens
-    renderPayPalButton();
-  };
-  const closeCart = () => {
-    cartDrawer.classList.remove('open');
-    cartOverlay.classList.remove('active');
-    document.body.classList.remove('drawer-open');
-  };
-
-  cartBtn?.addEventListener('click', openCart);
-  floatCartBtn?.addEventListener('click', openCart);
-  cartClose?.addEventListener('click', closeCart);
-  cartOverlay?.addEventListener('click', closeCart);
-
-  // Language popover
-  const langBtn = document.getElementById('langBtn');
-  const pop = document.getElementById('languagePopover');
-  if (langBtn && pop) {
-    langBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      pop.classList.toggle('show');
-    });
-    document.querySelectorAll('.lang-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const lang = item.dataset.lang;
-        if (lang) setLanguage(lang);
-        pop.classList.remove('show');
-      });
-    });
-    document.addEventListener('click', (e) => {
-      if (!pop.contains(e.target) && e.target !== langBtn) pop.classList.remove('show');
-    });
-  }
-
-  initTheme();
-
-  // ----- PayPal checkout support -----
-  window.setupStoreCheckout = function(getCartItems, onSuccess) {
-    window._storeGetCartItems = getCartItems;
-    window._storeOnSuccess = onSuccess;
-    // If cart drawer is already open, render immediately
-    if (cartDrawer.classList.contains('open')) {
-      renderPayPalButton();
-    }
-  };
-
-  function renderPayPalButton() {
-    const container = document.getElementById('paypal-button-container');
-    if (!container) return;
-    // Clear previous button
-    container.innerHTML = '';
-
-    // Determine which cart to use
-    const getItems = window._storeGetCartItems || (() => cart.map(item => ({ priceKey: item.priceKey, quantity: 1 })));
-    const items = getItems();
-    if (items.length === 0) {
-      container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+  function injectHeader() {
+    const placeholder = document.getElementById('header-placeholder');
+    if (!placeholder) {
+      console.error('Header placeholder missing: add <div id="header-placeholder"></div> to your page.');
       return;
     }
+    placeholder.innerHTML = headerHTML;
 
-    // Create order via worker
-    async function createOrder() {
-      const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart: items })
+    // Now the DOM elements exist, so we can attach event listeners
+    applyHeaderTranslations();
+    updateCartUI();
+
+    // Sidebar toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebarClose = document.getElementById('sidebarMenuToggle');
+    if (menuToggle && sidebar && sidebarOverlay) {
+      menuToggle.onclick = () => {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+      const closeSide = () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      };
+      sidebarClose?.addEventListener('click', closeSide);
+      sidebarOverlay.addEventListener('click', closeSide);
+    }
+
+    // Cart drawer
+    const cartBtn = document.getElementById('cartBtn');
+    const floatCartBtn = document.getElementById('floatingCartBtn');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartOverlay = document.getElementById('cartOverlay');
+    const cartClose = document.getElementById('cartClose');
+
+    const openCart = () => {
+      cartDrawer.classList.add('open');
+      cartOverlay.classList.add('active');
+      document.body.classList.add('drawer-open');
+      renderPayPalButton();
+    };
+    const closeCart = () => {
+      cartDrawer.classList.remove('open');
+      cartOverlay.classList.remove('active');
+      document.body.classList.remove('drawer-open');
+    };
+
+    cartBtn?.addEventListener('click', openCart);
+    floatCartBtn?.addEventListener('click', openCart);
+    cartClose?.addEventListener('click', closeCart);
+    cartOverlay?.addEventListener('click', closeCart);
+
+    // Language popover
+    const langBtn = document.getElementById('langBtn');
+    const pop = document.getElementById('languagePopover');
+    if (langBtn && pop) {
+      langBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        pop.classList.toggle('show');
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Order creation failed');
-      return data.orderID;
-    }
-
-    paypal.Buttons({
-      createOrder,
-      onApprove: (data, actions) => {
-        return actions.order.capture().then(() => {
-          if (window._storeOnSuccess) window._storeOnSuccess();
-          updateCartUI(); // refresh cart display
-          alert('Payment successful! Your order will be processed.');
+      document.querySelectorAll('.lang-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const lang = item.dataset.lang;
+          if (lang) setLanguage(lang);
+          pop.classList.remove('show');
         });
-      },
-      onError: (err) => {
-        console.error('PayPal error', err);
-        alert('Something went wrong. Please try again.');
+      });
+      document.addEventListener('click', (e) => {
+        if (!pop.contains(e.target) && e.target !== langBtn) pop.classList.remove('show');
+      });
+    }
+
+    initTheme();
+
+    // ----- PayPal checkout support -----
+    window.setupStoreCheckout = function(getCartItems, onSuccess) {
+      window._storeGetCartItems = getCartItems;
+      window._storeOnSuccess = onSuccess;
+      if (cartDrawer.classList.contains('open')) {
+        renderPayPalButton();
       }
-    }).render(container);
+    };
+
+    function renderPayPalButton() {
+      const container = document.getElementById('paypal-button-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const getItems = window._storeGetCartItems || (() => cart.map(item => ({ priceKey: item.priceKey, quantity: 1 })));
+      const items = getItems();
+      if (items.length === 0) {
+        container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+        return;
+      }
+
+      async function createOrder() {
+        const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cart: items })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Order creation failed');
+        return data.orderID;
+      }
+
+      paypal.Buttons({
+        createOrder,
+        onApprove: (data, actions) => {
+          return actions.order.capture().then(() => {
+            if (window._storeOnSuccess) window._storeOnSuccess();
+            updateCartUI();
+            alert('Payment successful! Your order will be processed.');
+          });
+        },
+        onError: (err) => {
+          console.error('PayPal error', err);
+          alert('Something went wrong. Please try again.');
+        }
+      }).render(container);
+    }
+
+    // Re-render PayPal button on language change only if drawer is open
+    const originalSetLanguage = setLanguage;
+    window.setLanguage = function(lang) {
+      originalSetLanguage(lang);
+      if (cartDrawer.classList.contains('open')) {
+        renderPayPalButton();
+      }
+    };
+    // Expose setLanguage globally (already done above, but keep for clarity)
+    window.setLanguage = setLanguage;
+
+    // Update cart UI and refresh PayPal if drawer is open
+    const originalUpdateCartUI = updateCartUI;
+    updateCartUI = function() {
+      originalUpdateCartUI();
+      if (cartDrawer.classList.contains('open')) {
+        renderPayPalButton();
+      }
+    };
   }
-
-  // Re-render PayPal button on language change only if drawer is open
-  const originalSetLanguage = setLanguage;
-  window.setLanguage = function(lang) {
-    originalSetLanguage(lang);
-    if (cartDrawer.classList.contains('open')) {
-      renderPayPalButton();
-    }
-  };
-  // (We need to expose setLanguage globally for other pages to call)
-  window.setLanguage = setLanguage;
-
-  // We also need to ensure that when the cart updates (add/remove), the button refreshes if drawer is open.
-  // We can override updateCartUI to trigger a re-render only when drawer is open.
-  const originalUpdateCartUI = updateCartUI;
-  updateCartUI = function() {
-    originalUpdateCartUI();
-    if (cartDrawer.classList.contains('open')) {
-      renderPayPalButton();
-    }
-  };
-
-  // NEW: dispatch event for other parts of the site
-  document.dispatchEvent(new CustomEvent('languageChanged', {
-    detail: { language: lang, currency: currentCurrency }
-  }));
-}
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', injectHeader);
