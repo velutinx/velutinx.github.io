@@ -821,7 +821,7 @@ body.dark .shop-title {
 .checkbox:checked ~ .kofi {  transform: translate(70px, 70px);}
 .checkbox:checked ~ .instagram {  transform: translateY(95px);}
 .checkbox:checked ~ .substar {  transform: translate(-70px, 70px);}
-
+.checkbox:checked ~ .patreon {  transform: translate(70px, 0);}
 
 /* ==================== STAR EFFECTS ==================== */
 .star {
