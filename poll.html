@@ -172,10 +172,12 @@ async function castVote(id) {
       console.error("IP fetch failed", e);
     }
 
+
+    
 // 4. Send both to Supabase 
     // We now use 'poll_id, user_ip' to ensure one vote per IP, 
     // but still allow the user to change their mind/choice.
-    const { data, error } = await sb.from('website_voting').upsert(
+const { data, error } = await sb.from('website_voting').upsert(
       { 
         voter_id: visitorId, 
         user_ip: currentIp, 
@@ -191,11 +193,16 @@ async function castVote(id) {
     setVoteCookie(id);
     updateCardStyles(id);
     fetchGridResults();
-    
-//    console.log("Vote recorded successfully for IP:", currentIp);
 
   } catch (err) { 
     console.error("Vote failed:", err.message); 
+    
+    // This is the new part that handles your SQL velocity trigger
+    if (err.message.includes("too many votes")) {
+        alert("Slow down! Too many people in your network are voting for this specific character right now. Please try again in an hour.");
+    } else {
+        alert("Something went wrong with your vote. Please try again.");
+    }
   }
 }
 
