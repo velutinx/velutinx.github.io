@@ -1,6 +1,6 @@
 // /assets/js/zip-to-post.js
 // Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
-// v2: automatically removes (number) suffix from filenames (e.g., "(1)" before parsing)
+// v3: added Pixiv post generation with pack ID lookup from packs-data.js
 
 (function() {
     // ----- Toast notification (global, reusable) -----
@@ -56,6 +56,7 @@
     const publicOutput = document.getElementById('publicOutput');
     const patreonSubOutput = document.getElementById('patreonSubOutput');
     const patreonPublicOutput = document.getElementById('patreonPublicOutput');
+    const pixivOutput = document.getElementById('pixivOutput');      // new
     const filenameHint = document.getElementById('filenameHint');
 
     if (!dropZone || !fileInput) return; // exit if not on Subscribestar tab
@@ -83,8 +84,6 @@
         let name = rawName.replace(/\.zip$/i, '');
         // Remove (1), (2), (123) etc. at the end (including possible space before)
         name = name.replace(/\s*\(\d+\)\s*$/, '');
-        // Also remove any standalone (number) anywhere (but keep it simple: just trailing)
-        // If there are multiple, this will clean the last one; good enough for duplicates.
         return name.trim();
     }
 
@@ -100,7 +99,30 @@
         };
     }
 
-    function handleFile(file) {
+    // ----- Helper: load packs data and find matching pack ID -----
+    async function findPackId(character, series, fileCount) {
+        try {
+            const module = await import('/assets/js/packs-data.js');
+            const packs = module.default; // array of pack objects
+            for (const pack of packs) {
+                // Extract character & series from pack.title using same regex
+                const match = pack.title.match(/^\[Pack \d+\]\s+(.+?)\s*-\s*(.+)$/i);
+                if (!match) continue;
+                const packChar = match[1].trim();
+                const packSeries = match[2].trim().toUpperCase();
+                if (packChar === character && packSeries === series) {
+                    // Optional: also compare illustrationCount if needed
+                    return pack.id; // e.g., "001"
+                }
+            }
+            return null; // no match
+        } catch (err) {
+            console.warn('Failed to load packs-data.js', err);
+            return null;
+        }
+    }
+
+    async function handleFile(file) {
         if (!file.name.toLowerCase().endsWith('.zip')) {
             showToast('❌ Please select a .zip file', 'error');
             return;
@@ -110,6 +132,7 @@
         publicOutput.value = 'Reading zip...';
         patreonSubOutput.value = 'Reading zip...';
         patreonPublicOutput.value = 'Reading zip...';
+        if (pixivOutput) pixivOutput.value = 'Reading zip...';          // new
 
         const parsed = parseFilename(file.name);
         if (!parsed) {
@@ -118,6 +141,7 @@
             publicOutput.value = errMsg;
             patreonSubOutput.value = errMsg;
             patreonPublicOutput.value = errMsg;
+            if (pixivOutput) pixivOutput.value = errMsg;
             filenameHint.textContent = 'Error: invalid filename format';
             showToast('Invalid filename format', 'error');
             return;
@@ -125,30 +149,36 @@
 
         const { series, character, pack } = parsed;
 
-        JSZip.loadAsync(file)
-            .then(zip => {
-                let fileCount = 0;
-                zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
+        try {
+            const zip = await JSZip.loadAsync(file);
+            let fileCount = 0;
+            zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
 
-                // Subscribestar posts
-                subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
-                publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
+            // Subscribestar posts
+            subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
+            publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
 
-                // Patreon posts
-                patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
-                patreonPublicOutput.value = `Preview: ${character} — ${series} — Pack ${pack}\n\nTotal Set Size: ${fileCount} High-Res Images\n\n🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
+            // Patreon posts
+            patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
+            patreonPublicOutput.value = `Preview: ${character} — ${series} — Pack ${pack}\n\nTotal Set Size: ${fileCount} High-Res Images\n\n🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
 
-                filenameHint.textContent = `✅ Found ${fileCount} files in zip. | Patreon posts ready.`;
-                showToast(`✅ Processed ${fileCount} images`, 'success');
-            })
-            .catch(err => {
-                console.error(err);
-                subscriberOutput.value = '❌ Error reading zip file.';
-                publicOutput.value = '❌ Error reading zip file.';
-                patreonSubOutput.value = '❌ Error reading zip file.';
-                patreonPublicOutput.value = '❌ Error reading zip file.';
-                filenameHint.textContent = 'Error: could not read zip contents.';
-                showToast('❌ Failed to read zip file', 'error');
-            });
+            // ---- Pixiv post generation ----
+            const packId = await findPackId(character, series, fileCount);
+            const link = packId ? `https://velutinx.com/s/pack?id=${packId}` : 'https://velutinx.com/store';
+            const pixivText = `${character} - ${series}\n全${fileCount}枚 / Full set: ${fileCount} images\n${link}\n\n📌 もっと私の作品を見たい方はこちら ♡  \nFind more of my work & social links:  \n🔗 https://velutinx.com/\n\n免責事項：本イラストに登場するキャラクターは、18歳以上として描写されています。  \nDisclaimer: This illustration depicts a fictional character who is portrayed as being 18 years of age or older.`;
+            if (pixivOutput) pixivOutput.value = pixivText;
+
+            filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
+            showToast(`✅ Processed ${fileCount} images`, 'success');
+        } catch (err) {
+            console.error(err);
+            subscriberOutput.value = '❌ Error reading zip file.';
+            publicOutput.value = '❌ Error reading zip file.';
+            patreonSubOutput.value = '❌ Error reading zip file.';
+            patreonPublicOutput.value = '❌ Error reading zip file.';
+            if (pixivOutput) pixivOutput.value = '❌ Error reading zip file.';
+            filenameHint.textContent = 'Error: could not read zip contents.';
+            showToast('❌ Failed to read zip file', 'error');
+        }
     }
 })();
