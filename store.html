@@ -600,6 +600,11 @@ function initStore() {
   window.renderPayPalButton = function() {};
   window.updateCartUI = function() {};
   window.saveCart = function() {};
+
+  if (window.headerReady) {
+  initStore();
+} else {
+  document.addEventListener('headerReady', initStore);
 }
 
 document.addEventListener('headerReady', () => {
