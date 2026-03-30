@@ -180,15 +180,21 @@
     updateCartUI();
   }
 
-  function setLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem('language', lang);
-    currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
-    applyHeaderTranslations();
-    document.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang, currency: currentCurrency } }));
-    updateCartUI();
-    if (window.updateAllPrices) window.updateAllPrices();
+  // Inside shared.js, around where setLanguage is defined
+function setLanguage(lang) {
+  if (lang === currentLang) return; // optional early return
+  currentLang = lang;
+  localStorage.setItem('language', lang);
+  currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
+  applyHeaderTranslations();
+  updateCartUI();
+
+  // NEW: sync with translt.js
+  if (typeof window.syncLanguage === 'function') {
+    window.syncLanguage(lang);
   }
+
+
 
   function initTheme() {
     const themeBtn = document.getElementById('themeBtn');
@@ -427,8 +433,10 @@
     }
   };
 
-  // Dispatch event to let page know header is ready
-  document.dispatchEvent(new CustomEvent('headerReady'));
+  // NEW: dispatch event for other parts of the site
+  document.dispatchEvent(new CustomEvent('languageChanged', {
+    detail: { language: lang, currency: currentCurrency }
+  }));
 }
 
   if (document.readyState === 'loading') {
