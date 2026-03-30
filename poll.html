@@ -197,10 +197,13 @@ const { data, error } = await sb.from('website_voting').upsert(
 } catch (err) { 
     console.error("Vote failed:", err.message); 
     
-    if (err.message.includes("Browser fingerprint required")) {
-        alert("Security Check: Please disable any aggressive ad-blockers and refresh the page to vote.");
-    } else if (err.message.includes("too many votes")) {
-        alert("Slow down! Too many people in your network are voting for this specific character. Try again in an hour.");
+    if (err.message.includes("voting quota")) {
+        alert("This network range (VPN/Proxy) is restricted to 1 vote total. Your vote was not counted.");
+    } else if (err.message.includes("fingerprint")) {
+        alert("Security check failed. Please refresh or disable ad-blockers.");
+    } else if (err.message.includes("unique_ip_per_poll")) {
+        // This handles the "Exact Duplicate IP" if the upsert fails
+        alert("You have already voted from this IP address.");
     } else {
         alert("Something went wrong. Please try again.");
     }
