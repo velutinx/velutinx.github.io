@@ -14,7 +14,6 @@
     .error { background: #fee2e2; color: #dc2626; }
     .loading { background: #e0e7ff; color: #3730a3; }
   </style>
-<script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD&vault=true"></script>
   <script src="/s/js/translations.js"></script>
 </head>
 <body>
@@ -28,44 +27,22 @@
   <div id="message"></div>
 
 <script>
+  const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
   const urlParams = new URLSearchParams(window.location.search);
   const tierParam = parseInt(urlParams.get('tier')) || 1;
   const discordIdParam = urlParams.get('discordId');
   const lang = localStorage.getItem('language') || 'en';
 
-  // Plan IDs for each tier (USD plans – these are the discounted prices)
-  const PLAN_IDS = {
-    1: 'P-26U13678G4534693YNHC7I3Y',   // Bronze
-    2: 'P-79P38435MN077911JNHDDQDQ',   // Copper
-    3: 'P-6CR14535JT482713LNHDDQDQ',   // Silver
-    4: 'P-4BC07846FC390260HNHDDQDY',   // Gold
-    5: 'P-45P87011TD4756018NHDDQDY'    // Platinum
-  };
+  let planIds = null;
+  let paypalLoaded = false;
 
-  // Original prices before discount (used for currency conversion)
-  const ORIGINAL_PRICES = { 1: 5, 2: 10, 3: 18, 4: 30, 5: 40 };
-  // Discounted prices (actual charged USD amount)
-  const USD_PRICES = { 1: 4.50, 2: 9.00, 3: 16.20, 4: 27.00, 5: 36.00 };
-  const TIER_NAMES = { 1: 'Bronze', 2: 'Copper', 3: 'Silver', 4: 'Gold', 5: 'Platinum' };
-
-  const tier = tierParam;
-  const planId = PLAN_IDS[tier];
-  const tierName = TIER_NAMES[tier];
-  const usdPrice = USD_PRICES[tier];
-  const originalUsd = ORIGINAL_PRICES[tier];
-
-  if (!planId) {
-    document.body.innerHTML = '<h3>Invalid tier selected</h3><p>Please go back and choose a valid membership.</p>';
-    throw new Error('Invalid tier');
-  }
-
-  // Translation helper
+  // Translation helper (same as before)
   function getTranslation(key, fallback = '') {
     const t = window.translations?.[lang] || window.translations?.en || {};
     return t[key] !== undefined ? t[key] : fallback;
   }
 
-  // Format price in local currency (handles both USD and converted currencies)
+  // Format price in local currency
   function formatLocalPrice(amount, lang) {
     if (amount === undefined || amount === null || isNaN(amount)) return '0.00';
     if (lang === 'en') return `US$${amount.toFixed(2)}`;
@@ -79,10 +56,10 @@
     return `${sym}${formatted}`;
   }
 
-  // Fetch local prices from the conversion worker
+  // Fetch local prices from the combined worker's /api/price
   async function fetchLocalPrices() {
     try {
-      const resp = await fetch('https://supabase-link.velutinx.workers.dev');
+      const resp = await fetch(`${WORKER_URL}/api/price`);
       if (!resp.ok) throw new Error('Failed to fetch conversions');
       const data = await resp.json();
       return data.tiers;
@@ -110,12 +87,17 @@
     return usdAmount;
   }
 
-  // Set translated title and price (now using original price for conversion, then apply discount)
+  // Set translated title and price
   async function setLocalizedContent() {
     const tiers = await fetchLocalPrices();
-    // Get local price for the original USD amount
+    // Original USD prices for each tier (before discount)
+    const ORIGINAL_PRICES = { 1: 5, 2: 10, 3: 18, 4: 30, 5: 40 };
+    const TIER_NAMES = { 1: 'Bronze', 2: 'Copper', 3: 'Silver', 4: 'Gold', 5: 'Platinum' };
+    const tier = tierParam;
+    const tierName = TIER_NAMES[tier];
+    const originalUsd = ORIGINAL_PRICES[tier];
+
     const localOriginal = getLocalPrice(tiers, originalUsd, lang);
-    // Apply 10% discount to the local price
     const discountFactor = 0.9;
     const localDiscounted = localOriginal * discountFactor;
     const formattedPrice = formatLocalPrice(localDiscounted, lang);
@@ -132,109 +114,157 @@
     document.getElementById('discordId').placeholder = placeholderText;
     document.getElementById('price').classList.remove('loading');
   }
-    // Run after page loads
-    setLocalizedContent();
 
+  // Load configuration from worker (client ID + plan IDs)
+  async function loadConfig() {
+    try {
+      const resp = await fetch(`${WORKER_URL}/api/config`);
+      if (!resp.ok) throw new Error('Config fetch failed');
+      const config = await resp.json();
+      planIds = config.planIds;
+      return config.paypalClientId;
+    } catch (err) {
+      console.error('Failed to load config', err);
+      throw err;
+    }
+  }
+
+  // Dynamically load PayPal SDK with the correct client ID
+  async function loadPayPalSDK() {
+    if (paypalLoaded) return;
+    const clientId = await loadConfig();
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&vault=true&currency=USD`;
+    document.head.appendChild(script);
+    script.onload = () => { paypalLoaded = true; };
+  }
+
+  // Main logic after config and SDK are ready
+  let isRendering = false;
+  let currentPlanId = null;
+
+  async function renderButton() {
     const discordInput = document.getElementById('discordId');
     const container = document.getElementById('paypal-button-container');
     const messageDiv = document.getElementById('message');
     const enterIdFirstText = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
 
+    if (!planIds) return;
+    currentPlanId = planIds[tierParam];
+    if (!currentPlanId) {
+      document.body.innerHTML = '<h3>Invalid tier selected</h3><p>Please go back and choose a valid membership.</p>';
+      return;
+    }
+
+    const discordId = discordInput.value.trim();
+    const isValid = /^\d{17,19}$/.test(discordId);
+    container.innerHTML = '';
+    if (!isValid) {
+      const btn = document.createElement('button');
+      btn.textContent = enterIdFirstText;
+      btn.disabled = true;
+      btn.style.background = '#9ca3af';
+      btn.style.borderRadius = '40px';
+      btn.style.padding = '12px';
+      btn.style.width = '100%';
+      btn.style.border = 'none';
+      btn.style.color = 'white';
+      container.appendChild(btn);
+      return;
+    }
+
+    if (!window.paypal) {
+      container.innerHTML = '<p>Loading PayPal...</p>';
+      return;
+    }
+
+    if (isRendering) return;
+    isRendering = true;
+
+    const TIER_NAMES = { 1: 'Bronze', 2: 'Copper', 3: 'Silver', 4: 'Gold', 5: 'Platinum' };
+    const tierName = TIER_NAMES[tierParam];
+    const usdPrice = { 1: 4.50, 2: 9.00, 3: 16.20, 4: 27.00, 5: 36.00 }[tierParam];
+
+    paypal.Buttons({
+      style: { label: 'subscribe', color: 'blue', shape: 'pill', height: 40 },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({
+          plan_id: currentPlanId,
+          custom_id: JSON.stringify({ discordId: discordId, tier: tierParam })
+        });
+      },
+      onApprove: async function(data, actions) {
+        const subscriptionId = data.subscriptionID;
+        const discordId = discordInput.value.trim();
+
+        // Store membership via combined worker
+        const membershipResponse = await fetch(`${WORKER_URL}/api/store-subscription`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            discordId: discordId,
+            subscriptionId: subscriptionId,
+            tier: tierParam,
+            planId: currentPlanId,
+            recurring: true
+          })
+        });
+
+        // Also record in successs table via combined worker
+        const cartItem = {
+          type: 'subscription',
+          tier: tierParam,
+          discordId: discordId,
+          title: `${tierName} ${getTranslation('subscriptionLabel', 'Subscription (10% off)')}`,
+          id: `M-${tierParam}`,
+          months: 1,
+          priceUSD: usdPrice,
+          recurring: true,
+          planId: currentPlanId
+        };
+        const orderResponse = await fetch(`${WORKER_URL}/store-cart`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderID: subscriptionId,
+            cart: [cartItem],
+            language: lang   // send current language
+          })
+        });
+
+        if (membershipResponse.ok && orderResponse.ok) {
+          showMessage(getTranslation('subscriptionSuccess', '✅ Subscription started! Your role will be assigned shortly.'));
+        } else {
+          const errorText = await (membershipResponse.ok ? orderResponse.text() : membershipResponse.text());
+          console.error(errorText);
+          showMessage(getTranslation('subscriptionError', '❌ Error recording subscription. Contact support.'), true);
+        }
+      },
+      onError: function(err) {
+        console.error(err);
+        showMessage(getTranslation('subscriptionFailed', '❌ Subscription failed. Try again.'), true);
+      }
+    }).render(container).finally(() => { isRendering = false; });
+  }
+
+  function showMessage(text, isError = false) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = text;
+    messageDiv.className = isError ? 'error' : 'success';
+  }
+
+  async function init() {
+    await loadPayPalSDK();
+    await setLocalizedContent();
+    const discordInput = document.getElementById('discordId');
     if (discordIdParam && /^\d{17,19}$/.test(discordIdParam)) {
       discordInput.value = discordIdParam;
     }
-
-    function showMessage(text, isError = false) {
-      messageDiv.textContent = text;
-      messageDiv.className = isError ? 'error' : 'success';
-  //    setTimeout(() => { messageDiv.textContent = ''; messageDiv.className = ''; }, 5000);
-    }
-
-    function isValidDiscordId(id) {
-      return /^\d{17,19}$/.test(id);
-    }
-
-    function renderButton() {
-      const discordId = discordInput.value.trim();
-      const isValid = isValidDiscordId(discordId);
-      container.innerHTML = '';
-      if (!isValid) {
-        const btn = document.createElement('button');
-        btn.textContent = enterIdFirstText;
-        btn.disabled = true;
-        btn.style.background = '#9ca3af';
-        btn.style.borderRadius = '40px';
-        btn.style.padding = '12px';
-        btn.style.width = '100%';
-        btn.style.border = 'none';
-        btn.style.color = 'white';
-        container.appendChild(btn);
-        return;
-      }
-      paypal.Buttons({
-        style: { label: 'subscribe', color: 'blue', shape: 'pill', height: 40 },
-        createSubscription: function(data, actions) {
-          return actions.subscription.create({
-            plan_id: planId,
-            custom_id: JSON.stringify({ discordId: discordId, tier: tier })
-          });
-        },
-onApprove: async function(data, actions) {
-  const subscriptionId = data.subscriptionID;
-  const discordId = discordInput.value.trim();
-  
-  // Store membership
-  const membershipResponse = await fetch('https://subscription-worker.velutinx.workers.dev/api/store-subscription', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      discordId: discordId,
-      subscriptionId: subscriptionId,
-      tier: tier,
-      planId: planId,
-      recurring: true
-    })
-  });
-  
-  // Also record in successs table via orders worker
-  const cartItem = {
-    type: 'subscription',
-    tier: tier,
-    discordId: discordId,
-    title: `${tierName} ${getTranslation('subscriptionLabel', 'Subscription (10% off)')}`,
-    id: `M-${tier}`,
-    months: 1,
-    priceUSD: usdPrice,
-    recurring: true,
-    planId: planId
-  };
-  const orderResponse = await fetch('https://orders.velutinx.workers.dev/store-cart', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      orderID: subscriptionId,
-      cart: [cartItem],
-      language: lang   // <-- add this line
-    })
-  });
-  
-  if (membershipResponse.ok && orderResponse.ok) {
-    showMessage(getTranslation('subscriptionSuccess', '✅ Subscription started! Your role will be assigned shortly.'));
-  } else {
-            const errorText = await response.text();
-            console.error(errorText);
-            showMessage(getTranslation('subscriptionError', '❌ Error recording subscription. Contact support.'), true);
-          }
-        },
-        onError: function(err) {
-          console.error(err);
-          showMessage(getTranslation('subscriptionFailed', '❌ Subscription failed. Try again.'), true);
-        }
-      }).render(container);
-    }
-
     renderButton();
     discordInput.addEventListener('input', renderButton);
-  </script>
+  }
+
+  init();
+</script>
 </body>
 </html>
