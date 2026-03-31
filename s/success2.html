@@ -65,7 +65,7 @@ function getTranslation(key, lang, fallback = '') {
 
 // Update page texts with the given language
 function setPageLanguage(lang) {
-  console.log(`Applying language: ${lang}`);
+//  console.log(`Applying language: ${lang}`);
   // Update heading
   const h1 = document.querySelector('h1');
   if (h1) h1.textContent = getTranslation('purchaseConfirmed', lang, h1.textContent);
@@ -130,7 +130,7 @@ if (!orderId) {
       return res.json();
     })
     .then(async data => {
-      console.log('Worker response:', data);
+//      console.log('Worker response:', data);
       let language = data.language || null;
       const items = data.items || [];
 
