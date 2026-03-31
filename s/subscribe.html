@@ -213,7 +213,8 @@ onApprove: async function(data, actions) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       orderID: subscriptionId,
-      cart: [cartItem]
+      cart: [cartItem],
+      language: lang   // <-- add this line
     })
   });
   
