@@ -18,7 +18,7 @@
 
     async function initBanner() {
         const show = await shouldShowBanner();
-        console.log('Banner should show:', show); // helpful debug
+//        console.log('Banner should show:', show); // helpful debug
         const banner = document.querySelector('.sandbox-banner');
         if (!banner) {
             console.warn('Banner element not found');
@@ -27,7 +27,7 @@
 
         if (!show) {
             banner.remove();
-            console.log('Banner removed');
+  //          console.log('Banner removed');
             return;
         }
 
