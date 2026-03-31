@@ -7,10 +7,11 @@
 
   <!-- Shared CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
+  <!-- Translations -->
+  <script src="/s/js/translations.js"></script>
 
   <style>
-    /* ========== ALL STYLES (unchanged from your version) ========== */
+    /* ========== ALL STYLES (unchanged) ========== */
     .container {
       max-width: 1100px;
       margin: 0 auto;
@@ -251,14 +252,13 @@
   <script type="module">
     import packsData from '/assets/js/packs-data.js';
 
+    // ==================== Constants ====================
+    const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08';
+
     // ==================== Helper functions ====================
     function escapeHtml(str) {
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      });
+      return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
 
     // ==================== Store‑specific translations ====================
@@ -322,7 +322,7 @@
           storeCart.splice(idx, 1);
           saveStoreCart();
           showSnackbar(t.removedMsg, true);
-          updateCartButton(); // update the button on pack page
+          updateCartButton();
         });
       });
       if (totalSpan) totalSpan.innerText = window.formatPrice(total);
@@ -354,10 +354,10 @@
         showSnackbar(t.addedMsg, false);
       }
       saveStoreCart();
-      updateCartButton(); // refresh the button on pack page
+      updateCartButton();
     };
 
-    // ==================== Pack‑specific logic ====================
+    // ==================== Pack‑specific translations ====================
     const packTranslations = {
       en: {
         catFemale: "Female",
@@ -535,7 +535,33 @@
       refreshAllTranslations();
     }
 
-    // ==================== PayPal integration ====================
+    // ==================== Dynamic PayPal SDK loading ====================
+    let paypalLoaded = false;
+    let paypalConfig = null;
+
+    async function loadPayPalConfig() {
+      try {
+        const resp = await fetch(`${WORKER_URL}/api/config`);
+        if (!resp.ok) throw new Error('Failed to load PayPal config');
+        paypalConfig = await resp.json();
+        return paypalConfig;
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+    }
+
+    async function loadPayPalSDK() {
+      if (paypalLoaded) return;
+      const config = await loadPayPalConfig();
+      if (!config) return;
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=${config.paypalClientId}&vault=true&currency=USD`;
+      document.head.appendChild(script);
+      script.onload = () => { paypalLoaded = true; };
+    }
+
+    // ==================== PayPal integration (store checkout) ====================
     let isRendering = false;
 
     function renderPayPalButton() {
@@ -554,9 +580,15 @@
       }
 
       container.innerHTML = '';
+      if (!window.paypal) {
+        container.innerHTML = '<p>Loading PayPal...</p>';
+        isRendering = false;
+        return;
+      }
+
       paypal.Buttons({
         createOrder: async () => {
-          const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+          const response = await fetch(`${WORKER_URL}/create-order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ cart })
@@ -566,32 +598,27 @@
           return data.orderID;
         },
         onApprove: async (data, actions) => {
-          try {
-            const capture = await actions.order.capture();
-            const orderID = capture.id;
+          const orderID = data.orderID;
+          const currentCart = storeCart;
+          const lang = localStorage.getItem('language') || 'en';
 
-            // Send cart to orders worker to store in Supabase
-            const storeResponse = await fetch('https://orders.velutinx.workers.dev/store-cart', {
+          // Store cart in KV via combined worker
+          try {
+            const storeResponse = await fetch(`${WORKER_URL}/store-cart`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ orderID, cart })
+              body: JSON.stringify({ orderID, cart: currentCart, language: lang })
             });
-            if (!storeResponse.ok) {
-              const errorText = await storeResponse.text();
-              console.error('Failed to store order in Supabase:', errorText);
-              alert('Payment succeeded but there was an issue recording your order. Please contact support with your order ID: ' + orderID);
-            }
-
-            // Clear cart and redirect
-            storeCart = [];
-            saveStoreCart();
-            updateStoreCartUI();
-            updateCartButton();
-            window.location.href = `/s/success.html?orderID=${orderID}`;
+            if (!storeResponse.ok) throw new Error('Store cart failed');
           } catch (err) {
-            console.error('Error in onApprove:', err);
-            alert('Something went wrong after payment. Please contact support.');
+            console.error('Failed to store cart:', err);
+            alert('Payment succeeded but we could not record your order. Please contact support with order ID: ' + orderID);
           }
+
+          // Clear local cart and redirect
+          storeCart = [];
+          saveStoreCart();
+          window.location.href = `/s/success2.html?orderID=${orderID}`;
         },
         onError: (err) => {
           console.error('PayPal error', err);
@@ -606,8 +633,6 @@
         isRendering = false;
       });
     }
-
-    window.setupStoreCheckout = () => renderPayPalButton();
 
     // ==================== Intercept cart button clicks ====================
     function interceptCartButtons() {
@@ -649,6 +674,7 @@
       updateStoreCartUI();
       interceptCartButtons();
       overrideSharedCart();
+      loadPayPalSDK(); // load PayPal SDK dynamically
 
       // Listen for language changes
       document.addEventListener('languageChanged', () => {
