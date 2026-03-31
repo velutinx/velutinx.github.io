@@ -118,6 +118,19 @@ window.translations = {
     priceMonthly: "${price}/month (10% off)",
     discordIdPlaceholder: "123456789012345678",
     subscriptionLabel: "Subscription (10% off)",
+
+    // Success page translations
+    purchaseConfirmed: "Purchase Confirmed!",
+    orderNumber: "Order Number:",
+    membershipActivated: "✅ Your membership has been activated!<br>The corresponding role will be assigned in Discord within a few minutes.",
+    noFiles: "No files available for this order. Contact support.",
+    errorLoading: "Failed to load your order ({error}).<br>Please contact support on Discord (velutinxx) and provide this order ID: <strong>{orderId}</strong>",
+    preparingOrder: "Preparing your order...",
+    yourFilesReady: "Your files are ready:",
+    download: "Download {title} ↓",
+    support: "Support: If you have any issues, please message me on Discord (velutinxx) or email support@velutinx.com.",
+    identification: "Identification: When contacting support, please include your Order Number and your PayPal Email address. This helps me verify your transaction quickly.",
+    notice: "Notice: Download links are valid for 24 hours. Please do not share these links with others.",
   },
   ja: {
     cartTitle: "ショッピングカート",
@@ -210,7 +223,19 @@ window.translations = {
     priceMonthly: "${price}/月 (10%オフ)",
     discordIdPlaceholder: "123456789012345678",
     subscriptionLabel: "サブスクリプション (10%オフ)",
-  
+
+    // Success page translations
+    purchaseConfirmed: "購入確定！",
+    orderNumber: "注文番号：",
+    membershipActivated: "✅ メンバーシップが有効になりました！<br>対応するロールがDiscordで数分以内に付与されます。",
+    noFiles: "この注文には利用可能なファイルがありません。サポートにお問い合わせください。",
+    errorLoading: "注文の読み込みに失敗しました ({error})。<br>Discord (velutinxx) までご連絡いただき、この注文IDをお伝えください： <strong>{orderId}</strong>",
+    preparingOrder: "注文を準備中...",
+    yourFilesReady: "ファイルの準備ができました：",
+    download: "{title} をダウンロード ↓",
+    support: "サポート：ご不明な点がございましたら、Discord (velutinxx) または support@velutinx.com までご連絡ください。",
+    identification: "お問い合わせの際は、注文番号とPayPalのメールアドレスを必ずお知らせください。迅速に取引を確認できます。",
+    notice: "注意：ダウンロードリンクの有効期限は24時間です。これらのリンクを他の人と共有しないでください。",
   },
   zh: {
     cartTitle: "购物车",
@@ -303,6 +328,19 @@ window.translations = {
     priceMonthly: "${price}/月 (9折)",
     discordIdPlaceholder: "123456789012345678",
     subscriptionLabel: "订阅 (9折)",
+
+    // Success page translations
+    purchaseConfirmed: "购买确认！",
+    orderNumber: "订单号：",
+    membershipActivated: "✅ 您的会员资格已激活！<br>对应角色将在几分钟内在 Discord 中分配。",
+    noFiles: "此订单没有可用文件。请联系客服。",
+    errorLoading: "加载订单失败 ({error})。<br>请通过 Discord (velutinxx) 联系我们，并提供此订单号： <strong>{orderId}</strong>",
+    preparingOrder: "正在准备您的订单...",
+    yourFilesReady: "您的文件已准备好：",
+    download: "下载 {title} ↓",
+    support: "支持：如有任何问题，请通过 Discord (velutinxx) 或邮箱 support@velutinx.com 联系我。",
+    identification: "联系支持时，请提供您的订单号和 PayPal 邮箱地址。这有助于我快速核实交易。",
+    notice: "注意：下载链接有效期为24小时。请勿与他人分享这些链接。",
   },
   es: {
     cartTitle: "Carrito de Compras",
@@ -395,5 +433,18 @@ window.translations = {
     priceMonthly: "${price}/mes (10% de descuento)",
     discordIdPlaceholder: "123456789012345678",
     subscriptionLabel: "Suscripción (10% de descuento)",
+
+    // Success page translations
+    purchaseConfirmed: "¡Compra Confirmada!",
+    orderNumber: "Número de pedido:",
+    membershipActivated: "✅ ¡Tu membresía ha sido activada!<br>El rol correspondiente se asignará en Discord en unos minutos.",
+    noFiles: "No hay archivos disponibles para este pedido. Contacta con soporte.",
+    errorLoading: "Error al cargar tu pedido ({error}).<br>Por favor contacta con soporte en Discord (velutinxx) y proporciona este ID de pedido: <strong>{orderId}</strong>",
+    preparingOrder: "Preparando tu pedido...",
+    yourFilesReady: "Tus archivos están listos:",
+    download: "Descargar {title} ↓",
+    support: "Soporte: Si tienes algún problema, envíame un mensaje en Discord (velutinxx) o por correo a support@velutinx.com.",
+    identification: "Identificación: Al contactar con soporte, incluye tu Número de Pedido y tu dirección de correo de PayPal. Esto me ayudará a verificar tu transacción rápidamente.",
+    notice: "Aviso: Los enlaces de descarga son válidos por 24 horas. Por favor, no compartas estos enlaces con otras personas.",
   }
 };
