@@ -1,9 +1,33 @@
-// Sandbox Mode Banner – scrolls, pauses at center, then continues
+// Sandbox Mode Banner – shows only when PAYPAL_ENVIRONMENT = 'sandbox'
+// It fetches the config from the combined worker, then if sandbox, runs the ticker animation.
+// Otherwise, it removes the banner from the DOM.
+
 (function() {
-    function initBanner() {
+    const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
+
+    async function shouldShowBanner() {
+        try {
+            const res = await fetch(`${WORKER_URL}/api/config`);
+            if (!res.ok) return false;
+            const config = await res.json();
+            return config.environment === 'sandbox';
+        } catch (err) {
+            console.warn('Failed to fetch config, hiding banner:', err);
+            return false; // if config fetch fails, assume live and hide banner
+        }
+    }
+
+    async function initBanner() {
+        const show = await shouldShowBanner();
         const banner = document.querySelector('.sandbox-banner');
         if (!banner) return;
 
+        if (!show) {
+            banner.remove(); // remove banner completely
+            return;
+        }
+
+        // Banner should be shown – run the animation
         const ticker = banner.querySelector('.ticker');
         const messageSpan = banner.querySelector('.text');
         if (!ticker || !messageSpan) return;
