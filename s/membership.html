@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
-<script src="https://www.paypal.com/sdk/js?client-id=AarYGoVTnq3s7nZoCb7D8P39_k6ScybQQrLBkZ6YWN39lhIRj521sJDxana7gWLi2jYbdHfXhGB63a6v&currency=USD"></script>
+  <link rel="stylesheet" href="/s/css/sandbox-banner.css">
+<script src="/s/js/sandbox-banner.js"></script>
   <style>
     /* ========== ALL STYLES (unchanged) ========== */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
@@ -492,18 +493,12 @@
 
 <script>
   // ============================================================================
-  // CLEANUP: Remove old cart data that might interfere
+  // Global variables
   // ============================================================================
-  localStorage.removeItem('cart');
-  localStorage.removeItem('velutinx_cart');
-  const ourCartKey = 'velutinx_membership_cart';
-  let currentCart = JSON.parse(localStorage.getItem(ourCartKey) || '[]');
-  const isValid = currentCart.every(item => 
-    item.type && (item.type === 'membership' || item.type === 'subscription') && 
-    typeof item.tier === 'number' && 
-    typeof item.priceUSD === 'number'
-  );
-  if (!isValid) localStorage.removeItem(ourCartKey);
+  const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
+
+  let localMonthlyPrice = {}; // { tier: { JPY, CNY, MXN } }
+  let usdMonthly = {};        // { tier: USD }
 
   // ============================================================================
   // Helper: get translation with fallback
@@ -531,47 +526,41 @@
   }
 
   // ============================================================================
-  // Global variables
+  // Fetch currency conversions and USD prices from the combined worker
   // ============================================================================
-  let localMonthlyPrice = {}; // { tier: { JPY, CNY, MXN } }
-  let usdMonthly = {};        // { tier: USD }
-
-  // ============================================================================
-  // Fetch currency conversions and USD prices
-  // ============================================================================
-async function fetchConversions() {
-  try {
-    const resp = await fetch('https://supabase-link.velutinx.workers.dev');
-    if (!resp.ok) throw new Error('HTTP '+resp.status);
-    const data = await resp.json();
-    if (data.tiers && Array.isArray(data.tiers)) {
-      for (const tier of data.tiers) {
-        const tierNum = tier.tier;
-        if (tierNum >= 1 && tierNum <= 5) {
-          usdMonthly[tierNum] = parseFloat(tier.usd);
-          localMonthlyPrice[tierNum] = {
-            JPY: tier.jpy,
-            CNY: tier.cny,
-            MXN: tier.mxn
-          };
+  async function fetchConversions() {
+    try {
+      const resp = await fetch(`${WORKER_URL}/api/price`);
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+      const data = await resp.json();
+      if (data.tiers && Array.isArray(data.tiers)) {
+        for (const tier of data.tiers) {
+          const tierNum = tier.tier;
+          if (tierNum >= 1 && tierNum <= 5) {
+            usdMonthly[tierNum] = parseFloat(tier.usd);
+            localMonthlyPrice[tierNum] = {
+              JPY: tier.jpy,
+              CNY: tier.cny,
+              MXN: tier.mxn
+            };
+          }
         }
       }
-    }
-  } catch (err) {
-    console.error('Failed to load conversions', err);
-    // Fallback: use approximate rates (still uses the correct USD values for each tier)
-    const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
-    const usdValues = {1:5, 2:10, 3:15, 4:30, 5:40};
-    for (let t=1; t<=5; t++) {
-      usdMonthly[t] = usdValues[t];
-      localMonthlyPrice[t] = {
-        JPY: Math.round(usdValues[t] * approx.JPY),
-        CNY: usdValues[t] * approx.CNY,
-        MXN: usdValues[t] * approx.MXN
-      };
+    } catch (err) {
+      console.error('Failed to load conversions', err);
+      // Fallback: use approximate rates (still uses the correct USD values for each tier)
+      const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
+      const usdValues = {1:5, 2:10, 3:15, 4:30, 5:40};
+      for (let t=1; t<=5; t++) {
+        usdMonthly[t] = usdValues[t];
+        localMonthlyPrice[t] = {
+          JPY: Math.round(usdValues[t] * approx.JPY),
+          CNY: usdValues[t] * approx.CNY,
+          MXN: usdValues[t] * approx.MXN
+        };
+      }
     }
   }
-}
 
   function getLocalMonthlyPrice(tier, lang) {
     const prices = localMonthlyPrice[tier];
@@ -776,14 +765,15 @@ async function fetchConversions() {
   }
 
   // ============================================================================
-  // PayPal rendering (for cart)
+  // Store cart in KV via combined worker (with language)
   // ============================================================================
   async function storeCartInKV(orderID, cart) {
+    const lang = localStorage.getItem('language') || 'en';
     try {
-      const resp = await fetch('https://orders.velutinx.workers.dev/store-cart', {
+      const resp = await fetch(`${WORKER_URL}/store-cart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderID, cart })
+        body: JSON.stringify({ orderID, cart, language: lang })
       });
       if (!resp.ok) throw new Error('HTTP '+resp.status);
     } catch (err) {
@@ -792,7 +782,35 @@ async function fetchConversions() {
     }
   }
 
+  // ============================================================================
+  // PayPal rendering (for cart) – uses dynamic client ID from config
+  // ============================================================================
   let isRendering = false;
+  let paypalLoaded = false;
+  let paypalConfig = null;
+
+  async function loadPayPalConfig() {
+    try {
+      const resp = await fetch(`${WORKER_URL}/api/config`);
+      if (!resp.ok) throw new Error('Failed to load PayPal config');
+      paypalConfig = await resp.json();
+      return paypalConfig;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async function loadPayPalSDK() {
+    if (paypalLoaded) return;
+    const config = await loadPayPalConfig();
+    if (!config) return;
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${config.paypalClientId}&vault=true&currency=USD`;
+    document.head.appendChild(script);
+    script.onload = () => { paypalLoaded = true; };
+  }
+
   function renderPayPalButton() {
     const container = document.getElementById('ourPaypalButtonContainer');
     if (!container) return;
@@ -811,6 +829,13 @@ async function fetchConversions() {
     for (const item of cart) totalUSD += item.priceUSD || 0;
     const totalUSDfixed = totalUSD.toFixed(2);
     container.innerHTML = '';
+
+    if (!window.paypal) {
+      container.innerHTML = '<p>Loading PayPal...</p>';
+      isRendering = false;
+      return;
+    }
+
     const buttons = paypal.Buttons({
       createOrder: (data, actions) => actions.order.create({
         purchase_units: [{ amount: { currency_code: "USD", value: totalUSDfixed } }]
@@ -1144,7 +1169,8 @@ async function fetchConversions() {
     ourClose?.addEventListener('click', closeCart);
     ourOverlay?.addEventListener('click', closeCart);
 
-    // Load conversions
+    // Load PayPal SDK and fetch conversions in parallel
+    await loadPayPalSDK();
     await fetchConversions();
 
     // Clear any autofilled Discord ID (to keep buttons disabled initially)
@@ -1192,6 +1218,8 @@ async function fetchConversions() {
           return;
         }
         const lang = localStorage.getItem('language') || 'en';
+        // Use the new combined worker URL for the subscription page (if you have subscribe.html)
+        // For now, point to the existing subscribe.html but you should create subscribe.html later.
         const url = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}&lang=${lang}`;
         iframe.src = url;
         modal.style.display = 'flex';
@@ -1226,5 +1254,11 @@ async function fetchConversions() {
   });
 </script>
 
+<div class="sandbox-banner">
+    <div class="ticker">
+        <span class="text">CURRENTLY OPERATING ON SANDMODE, PLEASE STANDBY</span>
+    </div>
+</div>
+  
 </body>
 </html>
