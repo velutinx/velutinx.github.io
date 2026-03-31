@@ -1,7 +1,4 @@
-// Sandbox Mode Banner – shows only when PAYPAL_ENVIRONMENT = 'sandbox'
-// It fetches the config from the combined worker, then if sandbox, runs the ticker animation.
-// Otherwise, it removes the banner from the DOM.
-
+// Sandbox Mode Banner – shows only when environment is sandbox or sandmode
 (function() {
     const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
 
@@ -10,20 +7,27 @@
             const res = await fetch(`${WORKER_URL}/api/config`);
             if (!res.ok) return false;
             const config = await res.json();
-            return config.environment === 'sandbox';
+            const env = config.environment;
+            // Accept 'sandbox' or 'sandmode' (typo in some setups)
+            return env === 'sandbox' || env === 'sandmode';
         } catch (err) {
             console.warn('Failed to fetch config, hiding banner:', err);
-            return false; // if config fetch fails, assume live and hide banner
+            return false;
         }
     }
 
     async function initBanner() {
         const show = await shouldShowBanner();
+        console.log('Banner should show:', show); // helpful debug
         const banner = document.querySelector('.sandbox-banner');
-        if (!banner) return;
+        if (!banner) {
+            console.warn('Banner element not found');
+            return;
+        }
 
         if (!show) {
-            banner.remove(); // remove banner completely
+            banner.remove();
+            console.log('Banner removed');
             return;
         }
 
@@ -52,18 +56,15 @@
                 pos -= speed;
             }
 
-            // Center pause logic
             if (!hasPausedThisCycle && pos <= centerPoint) {
                 pos = centerPoint;
                 isPaused = true;
                 hasPausedThisCycle = true;
-
                 setTimeout(() => {
                     isPaused = false;
                 }, 3000);
             }
 
-            // Reset when text completely off left edge
             if (pos <= -textWidth) {
                 pos = screenWidth;
                 hasPausedThisCycle = false;
@@ -75,20 +76,16 @@
 
         function onResize() {
             updateDimensions();
-            // Reset position to avoid weird state
             pos = screenWidth;
             hasPausedThisCycle = false;
             isPaused = false;
         }
 
-        // Start animation
         updateDimensions();
         animate();
 
-        // Listen for resize
         window.addEventListener('resize', onResize);
 
-        // Optional: stop animation when page is hidden to save resources
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 if (animationId) cancelAnimationFrame(animationId);
