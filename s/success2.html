@@ -35,12 +35,12 @@
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
         <h1>Purchase Confirmed!</h1>
-        <p>Order Number: <span class="order-number" id="order-id">#00001</span></p>
+        <p><span id="order-id-label">Order Number:</span> <span class="order-number" id="order-id">#00001</span></p>
         <div id="download-section"><p class="loading-dots">Preparing your order...</p></div>
         <div class="disclaimer-box">
-            <p><strong>Support:</strong> If you have any issues, please message me on <strong>Discord (velutinxx)</strong> or email <strong>support@velutinx.com</strong>.</p>
-            <p class="id-note" id="support-note"><strong>Identification:</strong> When contacting support, please include your <strong>Order Number</strong> and your <strong>PayPal Email</strong> address. This helps me verify your transaction quickly.</p>
-            <p id="notice-text"><strong>Notice:</strong> Download links are valid for 24 hours. Please do not share these links with others.</p>
+            <p class="support-text"><strong>Support:</strong> If you have any issues, please message me on <strong>Discord (velutinxx)</strong> or email <strong>support@velutinx.com</strong>.</p>
+            <p class="identification-text id-note" id="support-note"><strong>Identification:</strong> When contacting support, please include your <strong>Order Number</strong> and your <strong>PayPal Email</strong> address. This helps me verify your transaction quickly.</p>
+            <p class="notice-text" id="notice-text"><strong>Notice:</strong> Download links are valid for 24 hours. Please do not share these links with others.</p>
         </div>
     </div>
 </div>
@@ -70,7 +70,7 @@ function setPageLanguage(lang) {
     const el = document.querySelector(selector);
     if (el) el.textContent = getTranslation(key, lang, el.textContent);
   }
-  // The support-note and notice-text are separate paragraphs; we handle them later.
+  // The support-note and notice-text are also directly updated (they have the classes now, but this is optional)
   document.getElementById('support-note').innerHTML = getTranslation('identification', lang, '');
   document.getElementById('notice-text').innerHTML = getTranslation('notice', lang, '');
 }
