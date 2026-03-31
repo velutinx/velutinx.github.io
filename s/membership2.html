@@ -842,7 +842,7 @@
         const currentCart = getCart();
         try { await storeCartInKV(data.orderID, currentCart); } catch(e) { console.error(e); }
         saveCart([]);
-        window.location.href = `/s/success.html?orderID=${data.orderID}`;
+        window.location.href = `/s/success2.html?orderID=${data.orderID}`;
       },
       onError: (err) => { console.error(err); alert('Something went wrong. Please try again.'); },
       onCancel: () => { isRendering = false; }
