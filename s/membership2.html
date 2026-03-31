@@ -1218,7 +1218,7 @@
         const lang = localStorage.getItem('language') || 'en';
         // Use the new combined worker URL for the subscription page (if you have subscribe2.html)
         // For now, point to the existing subscribe.html but you should create subscribe2.html later.
-        const url = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}&lang=${lang}`;
+        const url = `/s/subscribe2.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}&lang=${lang}`;
         iframe.src = url;
         modal.style.display = 'flex';
       };
