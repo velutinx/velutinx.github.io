@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Purchase Successful - VELUTINX</title>
     <link rel="stylesheet" href="/assets/css/shared.css">
+    <!-- Translations file -->
+    <script src="/s/js/translations.js"></script>
     <style>
         body { background: var(--bg); }
         .success-wrapper { max-width: 650px; margin: 60px auto; padding: 20px; }
@@ -58,21 +60,35 @@ function getTranslation(key, lang, fallback = '') {
 }
 
 function setPageLanguage(lang) {
-  // Update all static text elements
-  const elements = {
-    'h1': 'purchaseConfirmed',
-    '#order-id-label': 'orderNumber',
-    '.support-text': 'support',
-    '.identification-text': 'identification',
-    '.notice-text': 'notice',
-  };
-  for (const [selector, key] of Object.entries(elements)) {
-    const el = document.querySelector(selector);
-    if (el) el.textContent = getTranslation(key, lang, el.textContent);
+  // Update heading
+  const h1 = document.querySelector('h1');
+  if (h1) h1.textContent = getTranslation('purchaseConfirmed', lang, h1.textContent);
+
+  // Update order number label
+  const orderLabel = document.getElementById('order-id-label');
+  if (orderLabel) orderLabel.textContent = getTranslation('orderNumber', lang, orderLabel.textContent);
+
+  // Update support paragraph (preserve bold if needed)
+  const supportP = document.querySelector('.support-text');
+  if (supportP) {
+    const supportText = getTranslation('support', lang, '');
+    // If the translation contains HTML, we could set innerHTML; but here it's plain text
+    supportP.innerHTML = supportText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // optional bold conversion
   }
-  // The support-note and notice-text are also directly updated (they have the classes now, but this is optional)
-  document.getElementById('support-note').innerHTML = getTranslation('identification', lang, '');
-  document.getElementById('notice-text').innerHTML = getTranslation('notice', lang, '');
+
+  // Update identification paragraph (id= support-note also)
+  const identP = document.getElementById('support-note');
+  if (identP) {
+    const identText = getTranslation('identification', lang, '');
+    identP.innerHTML = identText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  }
+
+  // Update notice paragraph
+  const noticeP = document.getElementById('notice-text');
+  if (noticeP) {
+    const noticeText = getTranslation('notice', lang, '');
+    noticeP.innerHTML = noticeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  }
 }
 
 if (!orderId) {
