@@ -229,51 +229,84 @@
         <button class="tab-button" data-tab="bluesky">🦋 Bluesky Composer</button>
     </div>
 
-<div id="subscribestar" class="tab-content active">
-    <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
-    <div class="upload-area" id="dropZone">
-        <input type="file" id="fileInput" accept=".zip">
-        <div class="upload-label">📂 Drag & drop zip or click</div>
+    <div id="subscribestar" class="tab-content active">
+        <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
+        <div class="upload-area" id="dropZone">
+            <input type="file" id="fileInput" accept=".zip">
+            <div class="upload-label">📂 Drag & drop zip or click</div>
+        </div>
+
+        <!-- First row: three columns, Pixiv on the left -->
+        <div class="columns">
+            <div class="column">
+                <h2>🎨 Pixiv Post (JP/EN)</h2>
+                <textarea id="pixivOutput" class="output" readonly>Waiting...</textarea>
+                <button class="copy-btn" data-copy="pixivOutput">Copy</button>
+            </div>
+            <div class="column">
+                <h2>📌 Subscriber (Subscribestar)</h2>
+                <textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea>
+                <button class="copy-btn" data-copy="subscriberOutput">Copy</button>
+            </div>
+            <div class="column">
+                <h2>⚠️ Public Teaser (Subscribestar)</h2>
+                <textarea id="publicOutput" class="output" readonly>Waiting...</textarea>
+                <button class="copy-btn" data-copy="publicOutput">Copy</button>
+            </div>
+        </div>
+
+        <!-- Second row: two columns -->
+        <div class="columns" style="margin-top: 20px;">
+            <div class="column">
+                <h2>🎯 Patreon Subscriber</h2>
+                <textarea id="patreonSubOutput" class="output" readonly>Waiting...</textarea>
+                <button class="copy-btn" data-copy="patreonSubOutput">Copy</button>
+            </div>
+            <div class="column">
+                <h2>🔓 Patreon Public Teaser</h2>
+                <textarea id="patreonPublicOutput" class="output" readonly>Waiting...</textarea>
+                <button class="copy-btn" data-copy="patreonPublicOutput">Copy</button>
+            </div>
+        </div>
+
+        <div class="filename-hint" id="filenameHint"></div>
+        <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- First row: three columns, Pixiv on the left -->
-    <div class="columns">
-        <div class="column">
-            <h2>🎨 Pixiv Post (JP/EN)</h2>
-            <textarea id="pixivOutput" class="output" readonly>Waiting...</textarea>
-            <button class="copy-btn" data-copy="pixivOutput">Copy</button>
+    <!-- Bluesky Composer Tab Content (added to fix missing elements) -->
+    <div id="bluesky" class="tab-content">
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (syncs to both accounts)</label>
+            <textarea id="masterPost" class="master-post" rows="3" placeholder="Write your post here... It will be copied to both SFW and NSFW accounts."></textarea>
         </div>
-        <div class="column">
-            <h2>📌 Subscriber (Subscribestar)</h2>
-            <textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea>
-            <button class="copy-btn" data-copy="subscriberOutput">Copy</button>
+        <div class="accounts-grid">
+            <div class="account-card" data-account="1">
+                <h3>🌸 SFW Account</h3>
+                <textarea id="post1" class="account-post" rows="3" placeholder="SFW post content (synced from master)"></textarea>
+                <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
+                <div class="thumbnail-container" data-account="1"></div>
+            </div>
+            <div class="account-card" data-account="2">
+                <h3>🔥 NSFW Account</h3>
+                <textarea id="post2" class="account-post" rows="3" placeholder="NSFW post content (synced from master)"></textarea>
+                <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
+                <div class="thumbnail-container" data-account="2"></div>
+            </div>
         </div>
-        <div class="column">
-            <h2>⚠️ Public Teaser (Subscribestar)</h2>
-            <textarea id="publicOutput" class="output" readonly>Waiting...</textarea>
-            <button class="copy-btn" data-copy="publicOutput">Copy</button>
-        </div>
+        <div class="footer">🖼️ Images are stored locally. Click "Post to Bluesky" to send via worker.</div>
     </div>
-
-    <!-- Second row: two columns -->
-    <div class="columns" style="margin-top: 20px;">
-        <div class="column">
-            <h2>🎯 Patreon Subscriber</h2>
-            <textarea id="patreonSubOutput" class="output" readonly>Waiting...</textarea>
-            <button class="copy-btn" data-copy="patreonSubOutput">Copy</button>
-        </div>
-        <div class="column">
-            <h2>🔓 Patreon Public Teaser</h2>
-            <textarea id="patreonPublicOutput" class="output" readonly>Waiting...</textarea>
-            <button class="copy-btn" data-copy="patreonPublicOutput">Copy</button>
-        </div>
-    </div>
-
-    <div class="filename-hint" id="filenameHint"></div>
-    <div class="footer">⚡ JSZip · no server upload · all local</div>
 </div>
-    
+
 <script>
+    // ========== GLOBAL TOAST FUNCTION ==========
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
     // ========== BLUESKY TAB FUNCTIONALITY (self-contained) ==========
     (function() {
         // tab switching
@@ -289,17 +322,25 @@
             });
         });
 
+        // master sync
         const master = document.getElementById('masterPost');
         const post1 = document.getElementById('post1');
         const post2 = document.getElementById('post2');
-        const syncPosts = () => { post1.value = master.value; post2.value = master.value; };
-        master.addEventListener('input', syncPosts);
-        syncPosts();
+        if (master && post1 && post2) {
+            const syncPosts = () => { post1.value = master.value; post2.value = master.value; };
+            master.addEventListener('input', syncPosts);
+            syncPosts();
+        } else {
+            console.warn("Bluesky elements missing? Check IDs.");
+        }
 
+        // image storage per account
         window.accountImages = { 1: [], 2: [] };
 
+        // thumbnail rendering
         function renderThumbnails(acc) {
             const container = document.querySelector(`.thumbnail-container[data-account="${acc}"]`);
+            if (!container) return;
             const files = window.accountImages[acc];
             container.innerHTML = '';
             files.forEach((file, idx) => {
@@ -320,7 +361,7 @@
                         ev.stopPropagation();
                         window.accountImages[acc].splice(idx, 1);
                         renderThumbnails(acc);
-                        showToast?.('Image removed', 'info');
+                        showToast('Image removed', 'info');
                     };
                     div.appendChild(rm);
                     div.addEventListener('dragstart', handleDragStart);
@@ -355,9 +396,10 @@
             const [moved] = files.splice(srcIdx, 1);
             files.splice(tgtIdx, 0, moved);
             renderThumbnails(srcAcc);
-            showToast?.('Order updated', 'info');
+            showToast('Order updated', 'info');
         }
 
+        // dropzone listeners
         document.querySelectorAll('.dropzone').forEach(dz => {
             const acc = dz.dataset.account;
             dz.addEventListener('click', () => {
@@ -369,7 +411,7 @@
                     if(inp.files.length) {
                         window.accountImages[acc].push(...Array.from(inp.files));
                         renderThumbnails(acc);
-                        showToast?.(`+${inp.files.length} images added`, 'success');
+                        showToast(`+${inp.files.length} images added`, 'success');
                     }
                 };
                 inp.click();
@@ -383,7 +425,7 @@
                 if(files.length) {
                     window.accountImages[acc].push(...files);
                     renderThumbnails(acc);
-                    showToast?.(`${files.length} dropped`, 'success');
+                    showToast(`${files.length} dropped`, 'success');
                 }
             });
         });
@@ -392,17 +434,18 @@
 
         async function postToBluesky(accountId) {
             const postEl = document.getElementById(`post${accountId}`);
+            if (!postEl) return;
             const text = postEl.value.trim();
             const images = window.accountImages[accountId] || [];
-            if(!text && images.length === 0) { showToast?.('Add text or image first', 'error'); return; }
-            const statusDiv = document.getElementById(`post-status-${accountId}`) || (() => {
-                const d = document.createElement('div');
-                d.id = `post-status-${accountId}`;
-                d.style.marginTop = '8px';
-                d.style.fontSize = '12px';
-                postEl.parentNode.appendChild(d);
-                return d;
-            })();
+            if(!text && images.length === 0) { showToast('Add text or image first', 'error'); return; }
+            let statusDiv = document.getElementById(`post-status-${accountId}`);
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.id = `post-status-${accountId}`;
+                statusDiv.style.marginTop = '8px';
+                statusDiv.style.fontSize = '12px';
+                postEl.parentNode.appendChild(statusDiv);
+            }
             statusDiv.textContent = '⏳ Posting...';
             statusDiv.style.color = '#aaa';
             try {
@@ -415,20 +458,21 @@
                 if(res.ok) {
                     statusDiv.textContent = '✅ Posted!';
                     statusDiv.style.color = '#4caf50';
-                    showToast?.(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+                    showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
                     window.accountImages[accountId] = [];
                     renderThumbnails(accountId);
                     setTimeout(() => statusDiv.textContent = '', 2500);
                 } else {
                     statusDiv.textContent = `❌ ${data.error || 'failed'}`;
-                    showToast?.(`Error: ${data.error || 'server error'}`, 'error');
+                    showToast(`Error: ${data.error || 'server error'}`, 'error');
                 }
             } catch(err) {
                 statusDiv.textContent = `❌ ${err.message}`;
-                showToast?.(`Network error: ${err.message}`, 'error');
+                showToast(`Network error: ${err.message}`, 'error');
             }
         }
 
+        // add post buttons to each account card
         document.querySelectorAll('.account-card').forEach(card => {
             const acc = card.dataset.account;
             const btn = document.createElement('button');
