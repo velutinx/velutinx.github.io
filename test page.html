@@ -422,7 +422,7 @@
             });
             const data = await res.json();
             if (res.ok) {
-                showToast(`✅ Uploaded ${data.urls.length} images to /i2/`, 'success');
+                showToast(`✅ Uploaded ${data.urls.length} images to /i/`, 'success');
                 console.log('Uploaded URLs:', data.urls);
                 return true;
             } else {
