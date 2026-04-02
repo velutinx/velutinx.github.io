@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>VELUTINX | Pack Details</title>
+
+  <!-- Shared CSS -->
+  <link rel="stylesheet" href="/assets/css/shared.css">
+  <link rel="stylesheet" href="/s/css/sandbox-banner.css">
+  <script src="/s/js/sandbox-banner.js"></script>
+  <!-- Translations -->
+  <script src="/s/js/translations.js"></script>
+
+  <style>
+    /* ========== ALL STYLES (unchanged) ========== */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    @media (min-width: 600px) {
+      .container {
+        padding: 0 24px;
+      }
+    }
+    main {
+      padding: 40px 0;
+    }
+    .product {
+      display: grid;
+      gap: 40px;
+    }
+    @media (min-width: 992px) {
+      .product {
+        grid-template-columns: 1fr 2fr;
+      }
+    }
+    .gallery-card, .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .carousel {
+      position: relative;
+      overflow: hidden;
+    }
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      width: 100%;
+    }
+    .slide {
+      flex: 0 0 100%;
+      width: 100%;
+    }
+    .slide img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.4);
+      color: white;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .arrow:hover {
+      background: rgba(0,0,0,0.6);
+    }
+    .arrow.prev {
+      left: 16px;
+    }
+    .arrow.next {
+      right: 16px;
+    }
+    .thumbnails {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0,0,0,0.03);
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .thumb {
+      width: 90px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: 0.8;
+    }
+    .thumb.active, .thumb:hover {
+      border-color: #5D87FF;
+      opacity: 1;
+      transform: scale(1.04);
+    }
+    .info {
+      padding: 28px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .category-info {
+      font-size: 1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .female {
+      color: #ec4899;
+    }
+    .femboy {
+      color: #3b82f6;
+    }
+    .category-icon {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+    .contents-section {
+      margin: 20px 0 8px 0;
+      text-align: left;
+    }
+    .contents-title {
+      font-weight: bold;
+      font-size: 1.4rem;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .contents-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .contents-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .bullet-svg {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+    }
+    .divider {
+      border-top: 1px solid var(--border);
+      margin: 16px 0 16px 0;
+    }
+    .price-section {
+      margin: 28px 0;
+      padding: 20px;
+      background: rgba(250,137,107,0.08);
+      border-radius: 12px;
+      border: 1px solid rgba(250,137,107,0.25);
+    }
+    .price-label {
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .old-price {
+      text-decoration: line-through;
+      color: var(--text-light);
+      margin-left: 12px;
+    }
+    .current-price {
+      color: var(--red-discount);
+      font-size: 2.2rem;
+      font-weight: bold;
+    }
+    .save {
+      color: #13DEB9;
+      font-weight: bold;
+      margin-top: 8px;
+      display: inline-block;
+    }
+    .buttons {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 160px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-cart {
+      background: #49BEFF;
+      color: white;
+    }
+    .btn-cart.remove-mode {
+      background: #ef4444;
+    }
+    .btn-cart:hover {
+      filter: brightness(0.9);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header-placeholder"></div>
+
+  <main class="container">
+    <div class="product">
+      <div class="gallery-card" id="gallery"><p>Loading pack...</p></div>
+      <div class="info-card">
+        <div class="info" id="info">
+          <h1 id="title">Loading...</h1>
+          <div class="category-info" id="categoryInfo"></div>
+          <div class="price-section" id="priceSection"></div>
+          <div class="buttons" id="buttons"></div>
+          <div class="contents-section" id="contentsSection">
+            <div class="contents-title" id="contentsTitle">Contents:</div>
+            <ul class="contents-list" id="contentsList"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assets/js/shared.js"></script>
+  <script src="/assets/js/price.js" type="module"></script>
+
+  <script type="module">
+    import packsData from '/assets/js/packs-data.js';
+
+    // ==================== Constants ====================
+    const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
+
+    // ==================== Helper functions ====================
+    function escapeHtml(str) {
+      return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
+    }
+
+    // ==================== Store‑specific translations ====================
+    const storeTranslations = {
+      en: {
+        filterTitle: "Filter by Category", sortTitle: "Sort by", catAll: "All Products",
+        catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
+        sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
+        latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
+        addedMsg: "Added to cart", removedMsg: "Removed from cart"
+      },
+      ja: {
+        filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
+        catFemale: "婦人", catFemboy: "男の娘", catMembership: "メンバーシップ",
+        sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
+        latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
+        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました"
+      },
+      zh: {
+        filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
+        catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
+        sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
+        latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
+        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除"
+      },
+      es: {
+        filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
+        catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
+        sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
+        latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
+        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito"
+      }
+    };
+
+    // ==================== Custom cart ====================
+    let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
+
+    function saveStoreCart() {
+      localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
+      updateStoreCartUI();
+    }
+
+    function updateStoreCartUI() {
+      const container = document.getElementById('cartItems');
+      const totalSpan = document.getElementById('cartTotal');
+      if (!container) return;
+      const t = storeTranslations[window.currentLanguage || 'en'];
+      container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
+      let total = 0;
+      storeCart.forEach((item, idx) => {
+        const priceStr = window.getFormattedPrice(item.priceKey);
+        total += window.priceKeyMap[item.priceKey] || 0;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
+        container.appendChild(div);
+      });
+      document.querySelectorAll('.cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          storeCart.splice(idx, 1);
+          saveStoreCart();
+          showSnackbar(t.removedMsg, true);
+          updateCartButton();
+        });
+      });
+      if (totalSpan) totalSpan.innerText = window.formatPrice(total);
+      document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
+
+      const cartDrawer = document.getElementById('cartDrawer');
+      if (cartDrawer && cartDrawer.classList.contains('open')) renderPayPalButton();
+    }
+
+    function showSnackbar(msg, isRemove) {
+      const sb = document.getElementById('snackbar');
+      if (sb) {
+        sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+        const textSpan = sb.querySelector('#snackText');
+        if (textSpan) textSpan.innerText = msg;
+        sb.classList.add('show');
+        setTimeout(() => sb.classList.remove('show'), 2000);
+      } else alert(msg);
+    }
+
+    window.addOrToggleCart = function(product) {
+      const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
+      const t = storeTranslations[window.currentLanguage || 'en'];
+      if (idx > -1) {
+        storeCart.splice(idx, 1);
+        showSnackbar(t.removedMsg, true);
+      } else {
+        storeCart.push({ id: product.id, title: product.title, priceKey: product.priceKey, image: product.image, type: 'store' });
+        showSnackbar(t.addedMsg, false);
+      }
+      saveStoreCart();
+      updateCartButton();
+    };
+
+    // ==================== Pack‑specific translations ====================
+    const packTranslations = {
+      en: {
+        catFemale: "Female",
+        catFemboy: "Femboy",
+        currentPrice: "Current Price",
+        contentsTitle: "Contents:",
+        contentsDesc: "ZIP file containing {count} AI-generated illustrations",
+        disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+        disclaimerRefund: "Digital products are non-refundable after purchase.",
+        addToCart: "Add to Cart",
+        removeFromCart: "Remove from Cart"
+      },
+      ja: {
+        catFemale: "婦人",
+        catFemboy: "男の娘",
+        currentPrice: "現在の価格",
+        contentsTitle: "内容：",
+        contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
+        disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+        disclaimerRefund: "デジタル商品は購入後の返金はできません。",
+        addToCart: "カートに追加",
+        removeFromCart: "カートから削除"
+      },
+      zh: {
+        catFemale: "女性模型",
+        catFemboy: "伪娘模型",
+        currentPrice: "现价",
+        contentsTitle: "内容：",
+        contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
+        disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
+        disclaimerRefund: "数字产品购买后不可退款。",
+        addToCart: "加入购物车",
+        removeFromCart: "从购物车移除"
+      },
+      es: {
+        catFemale: "Femeninos",
+        catFemboy: "Femboy",
+        currentPrice: "Precio actual",
+        contentsTitle: "Contenido:",
+        contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
+        disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
+        disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
+        addToCart: "Añadir al carrito",
+        removeFromCart: "Eliminar del carrito"
+      }
+    };
+
+    let currentPack = null;
+    let currentLang = localStorage.getItem('language') || 'en';
+
+    const bulletSVG = `<svg class="bullet-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><filter id="glowBullet"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <g filter="url(#glowBullet)"><polygon points="50,10 90,85 10,85" fill="#ffcc00" stroke="#333" stroke-width="4"><animateTransform attributeName="transform" type="rotate" values="-1 50 50; 1 50 50; -1 50 50" dur="2s" repeatCount="indefinite"/></polygon></g>
+      <rect x="47" y="35" width="6" height="25" rx="2" fill="#333"><animate attributeName="height" values="25;28;25" dur="1.2s" repeatCount="indefinite"/></rect>
+      <circle cx="50" cy="70" r="4" fill="#333"><animate attributeName="r" values="4;5;4" dur="1.2s" repeatCount="indefinite"/></circle>
+    </svg>`;
+
+    function getPackText(key, fallback) {
+      const t = packTranslations[currentLang] || packTranslations.en;
+      return t[key] !== undefined ? t[key] : fallback;
+    }
+
+    function updateCategoryDisplay() {
+      const catInfo = document.getElementById('categoryInfo');
+      if (!catInfo || !currentPack) return;
+      const category = currentPack.category;
+      if (category === 3 || category === undefined) {
+        catInfo.style.display = 'none';
+        return;
+      }
+
+      let iconSVG = '';
+      let textClass = '';
+      let text = '';
+      if (category === 1) {
+        iconSVG = `<svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="7" r="4"/><line x1="12" y1="11" x2="12" y2="21"/><line x1="8" y1="17" x2="16" y2="17"/></svg>`;
+        textClass = 'female';
+        text = getPackText('catFemale', 'Female');
+      } else if (category === 2) {
+        iconSVG = `<svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="15" r="5"/><line x1="12.5" y1="11.5" x2="20" y2="4"/><polyline points="16,4 20,4 20,8"/></svg>`;
+        textClass = 'femboy';
+        text = getPackText('catFemboy', 'Femboy');
+      }
+      catInfo.innerHTML = `${iconSVG} <span class="${textClass}">${text.toUpperCase()}</span>`;
+      catInfo.style.display = 'flex';
+    }
+
+    function updatePriceDisplay() {
+      const priceSection = document.getElementById('priceSection');
+      if (!priceSection || !currentPack) return;
+      const priceNum = currentPack.price; // symbolic key like "PRICE_2"
+      const priceFormatted = window.getFormattedPrice(priceNum);
+      const currentPriceLabel = getPackText('currentPrice', 'Current Price');
+      priceSection.innerHTML = `<div><span class="price-label">${currentPriceLabel}:</span><span style="color: var(--gray); margin: 0 8px;">│</span><span class="current-price">${priceFormatted}</span></div>`;
+    }
+
+    function updateCartButton() {
+      const container = document.getElementById('buttons');
+      if (!container || !currentPack) return;
+      const isInCart = storeCart.some(item => item.id === currentPack.id);
+      const btnText = isInCart ? getPackText('removeFromCart', 'Remove from Cart') : getPackText('addToCart', 'Add to Cart');
+      container.innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
+      document.getElementById('addCartBtn').onclick = () => {
+        window.addOrToggleCart({
+          id: currentPack.id,
+          title: currentPack.title,
+          priceKey: currentPack.price,
+          image: `https://www.velutinx.com/i/pack${String(currentPack.id).padStart(3, '0')}-1.jpg`,
+          type: 'store'
+        });
+      };
+    }
+
+    function updateContents() {
+      const contentsTitle = document.getElementById('contentsTitle');
+      const contentsList = document.getElementById('contentsList');
+      if (!contentsTitle || !contentsList || !currentPack) return;
+
+      contentsTitle.textContent = getPackText('contentsTitle', 'Contents:');
+      const countText = getPackText('contentsDesc', 'ZIP file containing {count} AI-generated illustrations')
+        .replace('{count}', currentPack.illustrationCount || '?');
+      const ageText = getPackText('disclaimerAge', '');
+      const refundText = getPackText('disclaimerRefund', '');
+
+      contentsList.innerHTML = `
+        <li>${bulletSVG} <span>${countText}</span></li>
+        <div class="divider"></div>
+        <li>${bulletSVG} <span>${ageText}</span></li>
+        <li>${bulletSVG} <span>${refundText}</span></li>
+      `;
+    }
+
+    function refreshAllTranslations() {
+      updateCategoryDisplay();
+      updatePriceDisplay();
+      updateCartButton();
+      updateContents();
+    }
+
+    // ==================== DYNAMIC IMAGE GALLERY ====================
+// Fetch image list from worker instead of probing
+async function fetchImageUrls(packId) {
+  try {
+    const resp = await fetch(`https://www.velutinx.com/api/images?pack=${packId}`);
+    if (!resp.ok) throw new Error('Failed to fetch image list');
+    const data = await resp.json();
+    return data.images;
+  } catch (err) {
+    console.error('Error fetching images:', err);
+    return [];
+  }
+}
+
+// Render carousel with fetched images
+async function renderGallery(packId) {
+  const galleryDiv = document.getElementById('gallery');
+  if (!galleryDiv) return;
+
+  const images = await fetchImageUrls(packId);
+  if (images.length === 0) {
+    galleryDiv.innerHTML = '<p>No images available</p>';
+    return;
+  }
+
+      // Build HTML
+      galleryDiv.innerHTML = `
+        <div class="carousel">
+          <div class="slides" id="slides">
+            ${images.map(img => `<div class="slide"><img src="${img}" onerror="this.src='https://placehold.co/800x600?text=Image+Error'"></div>`).join('')}
+          </div>
+          ${images.length > 1 ? `
+            <button class="arrow prev" id="prevBtn">❮</button>
+            <button class="arrow next" id="nextBtn">❯</button>
+          ` : ''}
+        </div>
+        ${images.length > 1 ? `
+          <div class="thumbnails" id="thumbnails">
+            ${images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" data-index="${i}" onerror="this.src='https://placehold.co/90x120?text=Thumb+Error'">`).join('')}
+          </div>
+        ` : ''}
+      `;
+
+      if (images.length === 1) return; // no controls needed
+
+      // Carousel logic
+      const slides = document.getElementById('slides');
+      const prev = document.getElementById('prevBtn');
+      const next = document.getElementById('nextBtn');
+      const thumbs = document.querySelectorAll('.thumb');
+      let current = 0;
+      const total = images.length;
+
+      const update = () => {
+        slides.style.transform = `translateX(-${current * 100}%)`;
+        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
+      };
+
+      prev.onclick = () => { current = (current - 1 + total) % total; update(); };
+      next.onclick = () => { current = (current + 1) % total; update(); };
+      thumbs.forEach((t, i) => t.onclick = () => { current = i; update(); });
+    }
+
+    // ==================== Initialise pack ====================
+    async function initPack() {
+      const id = new URLSearchParams(window.location.search).get('id') || '001';
+      const pack = packsData.find(p => p.id === id);
+      if (!pack) {
+        document.getElementById('title').textContent = 'Pack not found';
+        return;
+      }
+      currentPack = pack;
+      document.getElementById('title').textContent = pack.title;
+      await renderGallery(pack.id);
+      refreshAllTranslations();
+    }
+
+    // ==================== Dynamic PayPal SDK loading ====================
+    let paypalLoaded = false;
+    let paypalConfig = null;
+
+    async function loadPayPalConfig() {
+      try {
+        const resp = await fetch(`${WORKER_URL}/api/config`);
+        if (!resp.ok) throw new Error('Failed to load PayPal config');
+        paypalConfig = await resp.json();
+        return paypalConfig;
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+    }
+
+    async function loadPayPalSDK() {
+      if (paypalLoaded) return;
+      const config = await loadPayPalConfig();
+      if (!config) return;
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=${config.paypalClientId}&vault=true&currency=USD`;
+      document.head.appendChild(script);
+      script.onload = () => { paypalLoaded = true; };
+    }
+
+    // ==================== PayPal integration (store checkout) ====================
+    let isRendering = false;
+
+    function renderPayPalButton() {
+      const container = document.getElementById('paypal-button-container');
+      if (!container) return;
+      const cartDrawer = document.getElementById('cartDrawer');
+      if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
+      if (isRendering) return;
+      isRendering = true;
+
+      const cart = storeCart;
+      if (cart.length === 0) {
+        container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+        isRendering = false;
+        return;
+      }
+
+      container.innerHTML = '';
+      if (!window.paypal) {
+        container.innerHTML = '<p>Loading PayPal...</p>';
+        isRendering = false;
+        return;
+      }
+
+      paypal.Buttons({
+        createOrder: async () => {
+          const response = await fetch(`${WORKER_URL}/create-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Order creation failed');
+          return data.orderID;
+        },
+        onApprove: async (data, actions) => {
+          const orderID = data.orderID;
+          const currentCart = storeCart;
+          const lang = localStorage.getItem('language') || 'en';
+
+          try {
+            const storeResponse = await fetch(`${WORKER_URL}/store-cart`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderID, cart: currentCart, language: lang })
+            });
+            if (!storeResponse.ok) throw new Error('Store cart failed');
+          } catch (err) {
+            console.error('Failed to store cart:', err);
+            alert('Payment succeeded but we could not record your order. Please contact support with order ID: ' + orderID);
+          }
+
+          storeCart = [];
+          saveStoreCart();
+          window.location.href = `/s/success2.html?orderID=${orderID}`;
+        },
+        onError: (err) => {
+          console.error('PayPal error', err);
+          alert('Something went wrong. Please try again.');
+        },
+        onCancel: () => {
+          isRendering = false;
+        }
+      }).render(container).then(() => {
+        isRendering = false;
+      }).catch(() => {
+        isRendering = false;
+      });
+    }
+
+    // ==================== Intercept cart button clicks ====================
+    function interceptCartButtons() {
+      const cartBtn = document.getElementById('cartBtn');
+      const floatCartBtn = document.getElementById('floatingCartBtn');
+      if (!cartBtn && !floatCartBtn) return;
+
+      const openOurCart = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const drawer = document.getElementById('cartDrawer');
+        const overlay = document.getElementById('cartOverlay');
+        if (drawer && !drawer.classList.contains('open')) {
+          drawer.classList.add('open');
+          overlay.classList.add('active');
+          document.body.classList.add('drawer-open');
+          renderPayPalButton();
+        }
+      };
+
+      if (cartBtn) cartBtn.addEventListener('click', openOurCart, true);
+      if (floatCartBtn) floatCartBtn.addEventListener('click', openOurCart, true);
+    }
+
+    // ==================== Override shared.js functions ====================
+    function overrideSharedCart() {
+      window.renderPayPalButton = function() {};
+      window.updateCartUI = function() {};
+      window.saveCart = function() {};
+    }
+
+    // ==================== Initialisation ====================
+    async function init() {
+      if (!window.priceKeyMap || !window.priceUsdMap) {
+        setTimeout(init, 200);
+        return;
+      }
+      await initPack();
+      updateStoreCartUI();
+      interceptCartButtons();
+      overrideSharedCart();
+      loadPayPalSDK();
+
+      document.addEventListener('languageChanged', () => {
+        currentLang = localStorage.getItem('language') || 'en';
+        refreshAllTranslations();
+        updateStoreCartUI();
+      });
+    }
+
+    document.addEventListener('headerReady', () => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    });
+  </script>
+
+  <div class="sandbox-banner">
+    <div class="ticker">
+      <span class="text">CURRENTLY OPERATING ON SANDMODE, PLEASE STANDBY</span>
+    </div>
+  </div>
+</body>
+</html>
