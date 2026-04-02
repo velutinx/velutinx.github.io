@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZIP Image Selector + Download</title>
+    <title>ZIP Image Selector + Pack‑numbered Downloads</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             background: #0a0c10;
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -39,12 +37,8 @@
             transition: border 0.2s;
             margin-bottom: 30px;
         }
-        .dropzone:hover {
-            border-color: #5a6e3c;
-        }
-        .dropzone input {
-            display: none;
-        }
+        .dropzone:hover { border-color: #5a6e3c; }
+        .dropzone input { display: none; }
         .status {
             margin: 12px 0;
             font-size: 0.9rem;
@@ -92,9 +86,7 @@
             border: 2px solid #2c6e2c;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        .selected-thumb:active {
-            cursor: grabbing;
-        }
+        .selected-thumb:active { cursor: grabbing; }
         .selected-item {
             position: relative;
             display: inline-block;
@@ -129,26 +121,38 @@
             margin-top: 20px;
             transition: background 0.2s;
         }
-        .btn-download:hover {
-            background: #3e8e3e;
+        .btn-download:hover { background: #3e8e3e; }
+        /* Toast container */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
             background: #1e2a1e;
             color: #d4ffd4;
             padding: 10px 18px;
             border-radius: 40px;
             font-size: 13px;
-            z-index: 1000;
+            font-weight: 500;
             box-shadow: 0 4px 12px black;
             border-left: 4px solid #4caf50;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.2s, transform 0.2s;
         }
         .toast.error {
             background: #2c1a1a;
             border-left-color: #f44336;
             color: #ffc9c9;
+        }
+        .toast.info {
+            background: #1a2530;
+            border-left-color: #2196F3;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -156,7 +160,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>📦 ZIP Image Selector & Download</h1>
+    <h1>📦 ZIP Image Selector → Pack‑numbered Downloads</h1>
     <div class="dropzone" id="dropzone">
         <input type="file" id="fileInput" accept=".zip">
         <div>📂 Drag & drop a ZIP file here, or click to select</div>
@@ -169,14 +173,62 @@
     <div class="section-title">✅ Selected images (drag to reorder)</div>
     <div id="selectedGrid" class="thumb-grid" style="min-height: 120px;"></div>
 
-    <button id="downloadBtn" class="btn-download">⬇️ Download Selected as ZIP</button>
+    <button id="downloadBtn" class="btn-download">⬇️ Download Selected as Individual Files</button>
 </div>
 
 <script>
-    // Global state
-    let allImages = [];      // array of { blob, url, name, originalName, selected }
-    let selectedIndices = new Set(); // indices into allImages that are selected
-    let sortable = null;     // Sortable instance for selectedGrid
+    // ========== TOAST SYSTEM ==========
+    let toastContainer = null;
+    function ensureToastContainer() {
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        return toastContainer;
+    }
+    function showToast(message, type = 'success') {
+        const container = ensureToastContainer();
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        // animate in
+        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
+        // remove after 2.5s
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 200);
+        }, 2500);
+    }
+
+    // ========== FILENAME PARSING (reused from original code) ==========
+    function cleanFilename(rawName) {
+        let name = rawName.replace(/\.zip$/i, '');
+        name = name.replace(/\s*\(\d+\)\s*$/, '');
+        return name.trim();
+    }
+    function parseFilename(filename) {
+        const base = cleanFilename(filename);
+        const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
+        const match = base.match(regex);
+        if (!match) return null;
+        return {
+            pack: match[1],
+            character: match[2].trim(),
+            series: match[3].trim().toUpperCase()
+        };
+    }
+
+    // ========== GLOBAL STATE ==========
+    let allImages = [];           // { blob, url, name, originalName }
+    let selectedIndices = new Set();   // indices into allImages
+    let selectedOrder = [];             // ordered list of indices (drag order)
+    let packNumber = null;              // extracted from ZIP filename
+    let sortable = null;
 
     // DOM elements
     const dropzone = document.getElementById('dropzone');
@@ -186,29 +238,20 @@
     const selectedGrid = document.getElementById('selectedGrid');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // Helper: show toast
-    function showToast(message, isError = false) {
-        const toast = document.createElement('div');
-        toast.className = 'toast' + (isError ? ' error' : '');
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    // Helper: extract numeric value from filename (for sorting)
+    // Helper: extract numeric value from filename for sorting
     function extractNumber(filename) {
         const match = filename.match(/\d+/);
         return match ? parseInt(match[0], 10) : Infinity;
     }
 
-    // Clean up object URLs when no longer needed
+    // Clean up object URLs
     function revokeAllURLs() {
         allImages.forEach(img => {
             if (img.url) URL.revokeObjectURL(img.url);
         });
     }
 
-    // Render original thumbnails (only first 10, with selection highlighting)
+    // Render original thumbnails (first 10)
     function renderOriginal() {
         originalGrid.innerHTML = '';
         const toShow = allImages.slice(0, 10);
@@ -224,19 +267,10 @@
         });
     }
 
-    // Render selected grid (using Sortable)
+    // Render selected grid (Sortable)
     function renderSelected() {
-        // We need to reorder based on selectedIndices order? Actually we store selectedIndices as a Set,
-        // but we need to preserve the order. We'll keep an array `selectedOrder` that reflects the drag order.
-        // For simplicity, we maintain selectedIndices and also an array `selectedOrder` that is the sorted list of indices.
-        // When we toggle selection, we add/remove from selectedOrder accordingly (append new selection at end).
-        // Sortable will reorder the DOM elements, and we'll update selectedOrder accordingly on end event.
-
-        if (!window.selectedOrder) window.selectedOrder = [];
-
         selectedGrid.innerHTML = '';
-        const order = window.selectedOrder; // list of indices in order
-        for (let idx of order) {
+        for (let idx of selectedOrder) {
             const img = allImages[idx];
             if (!img) continue;
             const wrapper = document.createElement('div');
@@ -261,52 +295,46 @@
             selectedGrid.appendChild(wrapper);
         }
 
-        // Re-initialize Sortable if needed
         if (sortable) sortable.destroy();
         sortable = new Sortable(selectedGrid, {
             animation: 150,
-            onEnd: (evt) => {
-                // Update selectedOrder to match new DOM order
+            onEnd: () => {
+                // update selectedOrder to match new DOM order
                 const newOrder = [];
                 Array.from(selectedGrid.children).forEach(child => {
                     const idx = parseInt(child.dataset.index, 10);
                     if (!isNaN(idx)) newOrder.push(idx);
                 });
-                window.selectedOrder = newOrder;
+                selectedOrder = newOrder;
             }
         });
     }
 
-    // Toggle selection of an image (by its index in allImages)
     function toggleSelection(idx) {
         if (selectedIndices.has(idx)) {
             // remove
             selectedIndices.delete(idx);
-            // remove from order
-            const pos = window.selectedOrder.indexOf(idx);
-            if (pos !== -1) window.selectedOrder.splice(pos, 1);
+            const pos = selectedOrder.indexOf(idx);
+            if (pos !== -1) selectedOrder.splice(pos, 1);
         } else {
-            // add
             selectedIndices.add(idx);
-            window.selectedOrder.push(idx);
+            selectedOrder.push(idx);
         }
-        // update both grids
-        renderOriginal();      // to update border
+        renderOriginal();
         renderSelected();
     }
 
-    // Remove from selection (called by X button)
     function removeFromSelection(idx) {
         if (selectedIndices.has(idx)) {
             selectedIndices.delete(idx);
-            const pos = window.selectedOrder.indexOf(idx);
-            if (pos !== -1) window.selectedOrder.splice(pos, 1);
+            const pos = selectedOrder.indexOf(idx);
+            if (pos !== -1) selectedOrder.splice(pos, 1);
             renderOriginal();
             renderSelected();
         }
     }
 
-    // Process the uploaded ZIP file
+    // Process ZIP file
     async function processZip(file) {
         statusDiv.textContent = '📂 Reading ZIP...';
         try {
@@ -317,32 +345,31 @@
                     imageEntries.push(entry);
                 }
             });
-
             if (imageEntries.length === 0) {
                 statusDiv.textContent = '❌ No images found in ZIP.';
-                showToast('No images found', true);
+                showToast('No images found', 'error');
                 return;
             }
 
-            statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 10...`;
+            // Extract pack number from filename
+            const parsed = parseFilename(file.name);
+            if (!parsed) {
+                statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
+                showToast('Invalid filename format', 'error');
+                return;
+            }
+            packNumber = parsed.pack;
+            statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 10... (Pack #${packNumber})`;
 
-            // Sort entries numerically by filename
-            imageEntries.sort((a, b) => {
-                const numA = extractNumber(a.name);
-                const numB = extractNumber(b.name);
-                return numA - numB;
-            });
-
-            // Limit to first 10
+            // Sort entries numerically
+            imageEntries.sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
             const firstTen = imageEntries.slice(0, 10);
 
-            // Clear previous data
             revokeAllURLs();
             allImages = [];
             selectedIndices.clear();
-            window.selectedOrder = [];
+            selectedOrder = [];
 
-            // Process each entry
             for (let i = 0; i < firstTen.length; i++) {
                 const entry = firstTen[i];
                 const blob = await entry.async('blob');
@@ -351,55 +378,57 @@
                     blob,
                     url,
                     name: entry.name,
-                    originalName: entry.name,
-                    selected: false
+                    originalName: entry.name
                 });
             }
 
             renderOriginal();
             renderSelected();
-            statusDiv.textContent = `✅ Loaded ${allImages.length} images. Click on thumbnails to select.`;
-            showToast('ZIP loaded successfully');
+            statusDiv.textContent = `✅ Loaded ${allImages.length} images. Click to select, drag to reorder.`;
+            showToast(`ZIP loaded. Pack #${packNumber}`, 'success');
         } catch (err) {
             console.error(err);
             statusDiv.textContent = '❌ Error reading ZIP file.';
-            showToast('Failed to read ZIP', true);
+            showToast('Failed to read ZIP', 'error');
         }
     }
 
-    // Download selected images as ZIP with renamed files
+    // Download each selected image individually with pack‑numbered names
     async function downloadSelected() {
-        const order = window.selectedOrder;
-        if (order.length === 0) {
-            showToast('No images selected', true);
+        if (selectedOrder.length === 0) {
+            showToast('No images selected', 'error');
+            return;
+        }
+        if (!packNumber) {
+            showToast('Pack number missing – please load a valid ZIP first', 'error');
             return;
         }
 
-        const zip = new JSZip();
-        for (let i = 0; i < order.length; i++) {
-            const idx = order[i];
+        let successCount = 0;
+        for (let i = 0; i < selectedOrder.length; i++) {
+            const idx = selectedOrder[i];
             const img = allImages[idx];
             if (!img) continue;
-            const ext = img.originalName.split('.').pop().toLowerCase();
-            const newName = `image-${i+1}.${ext}`;
-            zip.file(newName, img.blob);
-        }
 
-        statusDiv.textContent = '📦 Creating ZIP...';
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(content);
-        link.href = url;
-        link.download = 'selected_images.zip';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        statusDiv.textContent = '✅ Download started.';
-        showToast('ZIP created');
+            const ext = img.originalName.split('.').pop().toLowerCase();
+            const newName = `pack${packNumber}-${i+1}.${ext}`;
+
+            // Create a download link and click it
+            const a = document.createElement('a');
+            a.href = img.url;
+            a.download = newName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            successCount++;
+            // small delay to avoid browser pop-up blocking
+            await new Promise(r => setTimeout(r, 100));
+        }
+        showToast(`Downloaded ${successCount} file(s)`, 'success');
+        statusDiv.textContent = `✅ ${successCount} files downloaded.`;
     }
 
-    // Setup drag & drop
+    // ========== SETUP DRAG & DROP ==========
     dropzone.addEventListener('click', () => fileInput.click());
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -415,13 +444,13 @@
         if (file && file.name.toLowerCase().endsWith('.zip')) {
             processZip(file);
         } else {
-            showToast('Please drop a .zip file', true);
+            showToast('Please drop a .zip file', 'error');
         }
     });
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
             processZip(e.target.files[0]);
-            fileInput.value = ''; // allow re-upload of same file
+            fileInput.value = ''; // allow re-upload
         }
     });
 
