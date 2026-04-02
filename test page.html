@@ -3,178 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZIP Image Selector → Download + Upload to /i/</title>
+    <title>Hashtag Validator – Twitter Format</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
-            background: #0a0c10;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 24px;
-            color: #e0e0e0;
+        * {
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #11151c;
-            border-radius: 20px;
-            padding: 24px;
-            border: 1px solid #2a2f38;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        body {
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #0f172ad9;
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+            padding: 2rem;
+            width: 100%;
+            max-width: 550px;
+            border: 1px solid #334155;
+            transition: all 0.2s;
         }
         h1 {
             margin-top: 0;
-            font-weight: 500;
-            letter-spacing: -0.3px;
-        }
-        .dropzone {
-            border: 2px dashed #3a4050;
-            border-radius: 14px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            background: #0f131a;
-            transition: border 0.2s;
-            margin-bottom: 30px;
-        }
-        .dropzone:hover { border-color: #5a6e3c; }
-        .dropzone input { display: none; }
-        .status {
-            margin: 12px 0;
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-        .section-title {
-            font-size: 1.2rem;
-            margin: 20px 0 12px 0;
-            border-bottom: 1px solid #2a2f38;
-            padding-bottom: 8px;
-        }
-        .thumb-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-top: 16px;
-            min-height: 120px;
-            background: #0c1017;
-            border-radius: 14px;
-            padding: 16px;
-            border: 1px solid #252b33;
-        }
-        .thumbnail {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            border: 2px solid transparent;
-        }
-        .thumbnail:hover {
-            transform: scale(3);
-            z-index: 10;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            border-color: #5a6e3c;
-        }
-        .selected-thumb {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 6px;
-            cursor: grab;
-            border: 2px solid #2c6e2c;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .selected-thumb:active { cursor: grabbing; }
-        .selected-item {
-            position: relative;
-            display: inline-block;
-            margin: 8px;
-        }
-        .remove-btn {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            cursor: pointer;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #f1f5f9;
             display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 20;
+            gap: 0.5rem;
         }
-        .btn-download {
-            background: #2c6e2c;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background 0.2s;
+        h1 span {
+            font-size: 2rem;
         }
-        .btn-download:hover { background: #3e8e3e; }
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .sub {
+            color: #94a3b8;
+            margin-bottom: 1.8rem;
+            font-size: 0.9rem;
+            border-left: 3px solid #3b82f6;
+            padding-left: 0.75rem;
         }
-        .toast {
-            background: #1e2a1e;
-            color: #d4ffd4;
-            padding: 10px 18px;
-            border-radius: 40px;
-            font-size: 13px;
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
             font-weight: 500;
-            box-shadow: 0 4px 12px black;
-            border-left: 4px solid #4caf50;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: opacity 0.2s, transform 0.2s;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
         }
-        .toast.error {
-            background: #2c1a1a;
-            border-left-color: #f44336;
-            color: #ffc9c9;
+        input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            font-size: 1rem;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 1rem;
+            color: #f8fafc;
+            transition: 0.2s;
+            font-family: monospace;
         }
-        .toast.info {
-            background: #1a2530;
-            border-left-color: #2196F3;
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
+        }
+        button {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.8rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        button:hover {
+            background: #2563eb;
+            transform: scale(0.98);
+        }
+        .result {
+            margin-top: 1.8rem;
+            padding: 1rem 1.2rem;
+            border-radius: 1.2rem;
+            font-weight: 500;
+            background: #0f172a;
+            border-left: 6px solid;
+            transition: 0.2s;
+        }
+        .result.valid {
+            border-left-color: #22c55e;
+            background: #14532d20;
+            color: #bbf7d0;
+        }
+        .result.invalid {
+            border-left-color: #ef4444;
+            background: #7f1d1d20;
+            color: #fecaca;
+        }
+        .rule-list {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #64748b;
+            background: #0f172a80;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1rem;
+        }
+        .rule-list p {
+            margin: 0.3rem 0;
+        }
+        .rule-list code {
+            background: #1e293b;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.4rem;
+            font-family: monospace;
+        }
+        hr {
+            border-color: #334155;
+            margin: 1.5rem 0 1rem;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-<div class="container">
-    <h1>📦 ZIP Image Selector → Download + Upload to /i/</h1>
-    <div class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" accept=".zip">
-        <div>📂 Drag & drop a ZIP file here, or click to select</div>
+<div class="card">
+    <h1>
+        <span>#️⃣</span> Hashtag Validator
+    </h1>
+    <div class="sub">Check if a hashtag follows Twitter/X official format</div>
+
+    <div class="input-group">
+        <label>Enter one hashtag (with or without <code>#</code>)</label>
+        <input type="text" id="hashtagInput" placeholder="e.g., FateGrandOrder  or  #クロエ・フォン・アインツベルン" autocomplete="off">
     </div>
-    <div id="status" class="status"></div>
 
-    <div class="section-title">🖼️ First 10 images (click to select)</div>
-    <div id="originalGrid" class="thumb-grid"></div>
+    <button id="checkBtn">✓ Validate</button>
 
-    <div class="section-title">✅ Selected images (drag to reorder)</div>
-    <div id="selectedGrid" class="thumb-grid" style="min-height: 120px;"></div>
+    <div id="resultArea" class="result" style="display: none;"></div>
 
-    <button id="downloadBtn" class="btn-download">⬇️ Download & Upload Selected</button>
+    <hr>
+    <div class="rule-list">
+        <p><strong>✅ Twitter hashtag rules (syntax):</strong></p>
+        <p>• Must start with <code>#</code> (if missing, we add it)</p>
+        <p>• Contains only letters, numbers, underscores, and <strong>Unicode letters</strong> (e.g. あ, カ, 中文, é)</p>
+        <p>• No spaces, punctuation, or special symbols (<code>! @ $ % & * ( ) + = ?</code>)</p>
+        <p>• Must include at least one letter (cannot be only numbers)</p>
+        <p>• Maximum length <strong>140 characters</strong> (including <code>#</code>)</p>
+        <p>• Valid example: <code>#FateGrandOrder</code> , <code>#クロエ・フォン・アインツベルン</code> , <code>#ChloeVonEinzbern</code></p>
+        <p>• Invalid: <code>#123</code> (no letter), <code>#hello!world</code> (exclamation mark), <code>#hashtag with space</code></p>
+    </div>
 </div>
 
-<script src="/assets/js/cloudflare-upload.js"></script>
+<script>
+    (function() {
+        const inputField = document.getElementById('hashtagInput');
+        const checkBtn = document.getElementById('checkBtn');
+        const resultDiv = document.getElementById('resultArea');
+
+        // Twitter's official hashtag pattern (simplified but accurate for most cases)
+        // Allows alphanumeric, underscore, and Unicode letters (including Japanese, accented chars)
+        // Must contain at least one letter (not just numbers/underscore)
+        // The regex is based on Twitter's "twitter-text" library.
+        // For safety: we also enforce length (including #) <= 140.
+        function isValidHashtagFormat(rawTag) {
+            let tag = rawTag.trim();
+            if (tag.length === 0) return false;
+            // Add leading # if missing
+            if (!tag.startsWith('#')) {
+                tag = '#' + tag;
+            }
+            // Length check (including #)
+            if (tag.length > 140) return false;
+
+            // Regex breakdown:
+            // ^#                 - starts with #
+            // (?!\d+$)           - not only digits (must have at least one letter)
+            // [\p{L}\p{N}_]+     - one or more letters (any script), numbers, underscore
+            // $                  - end
+            // 'u' flag for Unicode property support
+            const regex = /^#(?!\d+$)[\p{L}\p{N}_]+$/u;
+            if (!regex.test(tag)) return false;
+
+            // Additional: ensure there is at least one letter (Unicode letter property)
+            // The regex already excludes pure digits, but let's double-check.
+            const hasLetter = /[\p{L}]/u.test(tag);
+            return hasLetter;
+        }
+
+        function showResult(isValid, rawInput, normalizedTag) {
+            resultDiv.style.display = 'block';
+            if (isValid) {
+                resultDiv.className = 'result valid';
+                resultDiv.innerHTML = `
+                    ✅ <strong>VALID hashtag</strong><br>
+                    <span style="font-size:0.9rem;">“${escapeHtml(normalizedTag)}” follows Twitter’s format rules.</span>
+                    <div style="margin-top: 8px; font-size:0.8rem; opacity:0.8;">You can safely use this hashtag.</div>
+                `;
+            } else {
+                let reason = '';
+                const tagWithHash = rawInput.startsWith('#') ? rawInput : '#' + rawInput;
+                if (tagWithHash.length > 140) {
+                    reason = '• Hashtag exceeds 140 characters (including #).';
+                } else if (!/[\p{L}]/u.test(tagWithHash)) {
+                    reason = '• Hashtag must contain at least one letter (not just numbers/symbols).';
+                } else if (!/^#[\p{L}\p{N}_]+$/u.test(tagWithHash)) {
+                    reason = '• Contains invalid characters. Only letters, numbers, and underscores are allowed. No spaces, punctuation, or symbols (!@#$%^&* etc.).';
+                } else {
+                    reason = '• Does not meet Twitter’s syntax rules (e.g., starts with #, no spaces, at least one letter).';
+                }
+                resultDiv.className = 'result invalid';
+                resultDiv.innerHTML = `
+                    ❌ <strong>INVALID hashtag</strong><br>
+                    <span style="font-size:0.9rem;">“${escapeHtml(rawInput)}” is not a valid Twitter hashtag.</span>
+                    <div style="margin-top: 8px; font-size:0.8rem; color:#fda4af;">${reason}</div>
+                `;
+            }
+        }
+
+        // simple escape to avoid XSS
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function validate() {
+            let raw = inputField.value.trim();
+            if (raw === '') {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result invalid';
+                resultDiv.innerHTML = `⚠️ Please enter a hashtag.`;
+                return;
+            }
+            const normalized = raw.startsWith('#') ? raw : '#' + raw;
+            const valid = isValidHashtagFormat(raw);
+            showResult(valid, raw, normalized);
+        }
+
+        // Trigger on button click
+        checkBtn.addEventListener('click', validate);
+        // Also allow Enter key
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validate();
+        });
+    })();
+</script>
 </body>
 </html>
