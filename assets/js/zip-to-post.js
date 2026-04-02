@@ -1,6 +1,4 @@
-// /assets/js/zip-to-post.js
-// Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
-// v4: match pack by character name + image count instead of series
+// zip-to-post.js – Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
 
 (function() {
     // ----- Toast notification (global, reusable) -----
@@ -110,7 +108,6 @@
             const packs = module.default;
             const normalizedChar = normalize(character);
             for (const pack of packs) {
-                // Extract character name from pack.title
                 const match = pack.title.match(/^\[Pack \d+\]\s+(.+?)\s*-\s*(.+)$/i);
                 if (!match) continue;
                 const packChar = match[1].trim();
@@ -165,7 +162,7 @@
             patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
             patreonPublicOutput.value = `Preview: ${character} — ${series} — Pack ${pack}\n\nTotal Set Size: ${fileCount} High-Res Images\n\n🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
 
-            // ---- Pixiv post generation (match by character name + image count) ----
+            // Pixiv post generation (match by character name + image count)
             const packId = await findPackId(character, fileCount);
             const link = packId ? `https://velutinx.com/s/pack?id=${packId}` : 'https://velutinx.com/store';
             const pixivText = `${character} - ${series}\n全${fileCount}枚 / Full set: ${fileCount} images\n${link}\n\n📌 もっと私の作品を見たい方はこちら ♡  \nFind more of my work & social links:  \n🔗 https://velutinx.com/\n\n免責事項：本イラストに登場するキャラクターは、18歳以上として描写されています。  \nDisclaimer: This illustration depicts a fictional character who is portrayed as being 18 years of age or older.`;
