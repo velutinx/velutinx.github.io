@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZIP Image Selector + Pack‑numbered Downloads</title>
+    <title>ZIP Image Selector → Download + Upload to /i2/</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -160,7 +160,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>📦 ZIP Image Selector → Pack‑numbered Downloads</h1>
+    <h1>📦 ZIP Image Selector → Download + Upload to /i2/</h1>
     <div class="dropzone" id="dropzone">
         <input type="file" id="fileInput" accept=".zip">
         <div>📂 Drag & drop a ZIP file here, or click to select</div>
@@ -173,10 +173,14 @@
     <div class="section-title">✅ Selected images (drag to reorder)</div>
     <div id="selectedGrid" class="thumb-grid" style="min-height: 120px;"></div>
 
-    <button id="downloadBtn" class="btn-download">⬇️ Download Selected as Individual Files</button>
+    <button id="downloadBtn" class="btn-download">⬇️ Download & Upload Selected</button>
 </div>
 
 <script>
+    // ========== CONFIGURATION ==========
+    // Replace with your actual Cloudflare Worker URL
+    const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
+
     // ========== TOAST SYSTEM ==========
     let toastContainer = null;
     function ensureToastContainer() {
@@ -193,9 +197,7 @@
         toast.className = `toast ${type}`;
         toast.textContent = message;
         container.appendChild(toast);
-        // animate in
         setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
-        // remove after 2.5s
         setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(20px)';
@@ -299,7 +301,6 @@
         sortable = new Sortable(selectedGrid, {
             animation: 150,
             onEnd: () => {
-                // update selectedOrder to match new DOM order
                 const newOrder = [];
                 Array.from(selectedGrid.children).forEach(child => {
                     const idx = parseInt(child.dataset.index, 10);
@@ -312,7 +313,6 @@
 
     function toggleSelection(idx) {
         if (selectedIndices.has(idx)) {
-            // remove
             selectedIndices.delete(idx);
             const pos = selectedOrder.indexOf(idx);
             if (pos !== -1) selectedOrder.splice(pos, 1);
@@ -351,7 +351,6 @@
                 return;
             }
 
-            // Extract pack number from filename
             const parsed = parseFilename(file.name);
             if (!parsed) {
                 statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
@@ -361,7 +360,6 @@
             packNumber = parsed.pack;
             statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 10... (Pack #${packNumber})`;
 
-            // Sort entries numerically
             imageEntries.sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
             const firstTen = imageEntries.slice(0, 10);
 
@@ -393,15 +391,59 @@
         }
     }
 
-    // Download each selected image individually with pack‑numbered names
-    async function downloadSelected() {
-        if (selectedOrder.length === 0) {
-            showToast('No images selected', 'error');
-            return;
-        }
+    // ========== UPLOAD SELECTED IMAGES TO CLOUDFLARE WORKER ==========
+    async function uploadSelectedToR2() {
         if (!packNumber) {
             showToast('Pack number missing – please load a valid ZIP first', 'error');
-            return;
+            return false;
+        }
+        if (selectedOrder.length === 0) {
+            showToast('No images selected to upload', 'error');
+            return false;
+        }
+
+        const formData = new FormData();
+        formData.append('packNumber', packNumber);
+        for (let i = 0; i < selectedOrder.length; i++) {
+            const idx = selectedOrder[i];
+            const img = allImages[idx];
+            if (img) {
+                // Convert blob to a File object (required for FormData)
+                const file = new File([img.blob], img.originalName, { type: img.blob.type });
+                formData.append('images', file);
+            }
+        }
+
+        showToast('📡 Uploading to Cloudflare...', 'info');
+        try {
+            const res = await fetch(UPLOAD_WORKER_URL, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`✅ Uploaded ${data.urls.length} images to /i2/`, 'success');
+                console.log('Uploaded URLs:', data.urls);
+                return true;
+            } else {
+                throw new Error(data.error || 'Upload failed');
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            showToast(`❌ Upload failed: ${err.message}`, 'error');
+            return false;
+        }
+    }
+
+    // ========== DOWNLOAD SELECTED IMAGES LOCALLY ==========
+    async function downloadSelectedLocally() {
+        if (!packNumber) {
+            showToast('Pack number missing – please load a valid ZIP first', 'error');
+            return false;
+        }
+        if (selectedOrder.length === 0) {
+            showToast('No images selected to download', 'error');
+            return false;
         }
 
         let successCount = 0;
@@ -412,8 +454,6 @@
 
             const ext = img.originalName.split('.').pop().toLowerCase();
             const newName = `pack${packNumber}-${i+1}.${ext}`;
-
-            // Create a download link and click it
             const a = document.createElement('a');
             a.href = img.url;
             a.download = newName;
@@ -421,11 +461,30 @@
             a.click();
             document.body.removeChild(a);
             successCount++;
-            // small delay to avoid browser pop-up blocking
             await new Promise(r => setTimeout(r, 100));
         }
-        showToast(`Downloaded ${successCount} file(s)`, 'success');
+        showToast(`📥 Downloaded ${successCount} file(s)`, 'success');
         statusDiv.textContent = `✅ ${successCount} files downloaded.`;
+        return true;
+    }
+
+    // ========== MAIN ACTION: DOWNLOAD + UPLOAD ==========
+    async function handleAction() {
+        if (!packNumber) {
+            showToast('Please load a ZIP file first', 'error');
+            return;
+        }
+        if (selectedOrder.length === 0) {
+            showToast('No images selected', 'error');
+            return;
+        }
+
+        // Start both operations concurrently, but don't block the UI
+        const downloadPromise = downloadSelectedLocally();
+        const uploadPromise = uploadSelectedToR2();
+
+        // We'll wait for both to finish only to avoid overlapping toast messages, but we don't need to block.
+        await Promise.allSettled([downloadPromise, uploadPromise]);
     }
 
     // ========== SETUP DRAG & DROP ==========
@@ -450,11 +509,11 @@
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
             processZip(e.target.files[0]);
-            fileInput.value = ''; // allow re-upload
+            fileInput.value = '';
         }
     });
 
-    downloadBtn.addEventListener('click', downloadSelected);
+    downloadBtn.addEventListener('click', handleAction);
 </script>
 </body>
 </html>
