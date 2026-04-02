@@ -165,8 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const packId = await findPackId(character, fileCount);
             const link = packId ? `https://velutinx.com/s/pack?id=${packId}` : 'https://velutinx.com/store';
-            const pixivText = `${character} - ${series}\n全${fileCount}枚 / Full set: ${fileCount} images\n${link}\n\n📌 もっと私の作品を見たい方はこちら ♡  \nFind more of my work & social links:  \n🔗 https://velutinx.com/\n\n免責事項：本イラストに登場するキャラクターは、18歳以上として描写されています。  \nDisclaimer: This illustration depicts a fictional character who is portrayed as being 18 years of age or older.`;
-            if (pixivOutput) pixivOutput.value = pixivText;
+            const pixivText = `全${fileCount}枚 / Full set: ${fileCount} images\n${link}\n\n📌 もっと私の作品を見たい方はこちら ♡  \nFind more of my work & social links:  \n🔗 https://velutinx.com/\n\n免責事項：本イラストに登場するキャラクターは、18歳以上として描写されています。  \nDisclaimer: This illustration depicts a fictional character who is portrayed as being 18 years of age or older.`;            if (pixivOutput) pixivOutput.value = pixivText;
 
             filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
             showToast(`✅ Processed ${fileCount} images`, 'success');
