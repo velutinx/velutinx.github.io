@@ -279,11 +279,18 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
             outputCode.textContent = JSON.stringify(packEntry, null, 2);
 
             // Send to worker
-            const response = await fetch(WORKER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(packEntry)
-            });
+// Send to worker using FormData (not JSON)
+const formData = new FormData();
+formData.append('id', packEntry.id);
+formData.append('title', packEntry.title);
+formData.append('category', packEntry.category);
+formData.append('price', packEntry.price);
+formData.append('illustrationCount', packEntry.illustrationCount);
+
+const response = await fetch(WORKER_URL, {
+  method: 'POST',
+  body: formData,  // no Content-Type header needed – browser sets it automatically
+});
 
             if (response.ok) {
                 const result = await response.json();
