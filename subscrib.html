@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zip to Post + Bluesky Composer (Nightmode)</title>
+    <title>Zip to Post + Bluesky Composer + Cloudflare Upload (Nightmode)</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -32,6 +32,7 @@
             margin-bottom: 24px;
             border-bottom: 1px solid #2a2f38;
             padding-bottom: 10px;
+            flex-wrap: wrap;
         }
         .tab-button {
             background: #1e2430;
@@ -51,6 +52,8 @@
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* Subscribestar / Patreon styles */
         .upload-area {
             border: 2px dashed #3a4050;
             border-radius: 14px;
@@ -110,6 +113,8 @@
         .copy-btn:hover { background: #3e8e3e; }
         .filename-hint { font-size: 0.85rem; color: #888; margin-top: 12px; }
         .footer { margin-top: 20px; color: #6a6f78; font-size: 0.8rem; text-align: center; }
+
+        /* Bluesky styles */
         .master-post {
             width: 100%;
             padding: 12px;
@@ -216,19 +221,152 @@
         }
         .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
         .toast-notification.info { background: #1a2530; border-left-color: #2196F3; }
+
+        /* Cloudflare tab specific styles */
+        .cf-dropzone {
+            border: 2px dashed #3a4050;
+            border-radius: 14px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #0f131a;
+            transition: border 0.2s;
+            margin-bottom: 30px;
+        }
+        .cf-dropzone:hover { border-color: #5a6e3c; }
+        .cf-dropzone input { display: none; }
+        .cf-status {
+            margin: 12px 0;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .cf-section-title {
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            border-bottom: 1px solid #2a2f38;
+            padding-bottom: 8px;
+        }
+        .cf-thumb-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+            min-height: 120px;
+            background: #0c1017;
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px solid #252b33;
+        }
+        .cf-thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 2px solid transparent;
+        }
+        .cf-thumbnail:hover {
+            transform: scale(3);
+            z-index: 10;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            border-color: #5a6e3c;
+        }
+        .cf-selected-thumb {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: grab;
+            border: 2px solid #2c6e2c;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .cf-selected-thumb:active { cursor: grabbing; }
+        .cf-selected-item {
+            position: relative;
+            display: inline-block;
+            margin: 8px;
+        }
+        .cf-remove-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+        .cf-btn-download {
+            background: #2c6e2c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+        .cf-btn-download:hover { background: #3e8e3e; }
+        .cf-toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cf-toast {
+            background: #1e2a1e;
+            color: #d4ffd4;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px black;
+            border-left: 4px solid #4caf50;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .cf-toast.error {
+            background: #2c1a1a;
+            border-left-color: #f44336;
+            color: #ffc9c9;
+        }
+        .cf-toast.info {
+            background: #1a2530;
+            border-left-color: #2196F3;
+        }
+
         button, textarea { font-family: inherit; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="/assets/js/zip-to-post.js" defer></script>
+    <script src="/assets/js/cloudflare-upload.js" defer></script>
 </head>
 <body>
 <div class="container">
-    <h1>🌙 Zip to Post · Patreon + Bluesky</h1>
+    <h1>🌙 Zip to Post · Patreon + Bluesky + Cloudflare</h1>
     <div class="tab-bar">
         <button class="tab-button active" data-tab="subscribestar">📦 Subscribestar / Patreon</button>
         <button class="tab-button" data-tab="bluesky">🦋 Bluesky Composer</button>
+        <button class="tab-button" data-tab="cloudflare">☁️ Upload to Cloudflare</button>
     </div>
 
+    <!-- Subscribestar / Patreon Tab -->
     <div id="subscribestar" class="tab-content active">
         <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
         <div class="upload-area" id="dropZone">
@@ -236,7 +374,6 @@
             <div class="upload-label">📂 Drag & drop zip or click</div>
         </div>
 
-        <!-- First row: three columns, Pixiv on the left -->
         <div class="columns">
             <div class="column">
                 <h2>🎨 Pixiv Post (JP/EN)</h2>
@@ -255,7 +392,6 @@
             </div>
         </div>
 
-        <!-- Second row: two columns -->
         <div class="columns" style="margin-top: 20px;">
             <div class="column">
                 <h2>🎯 Patreon Subscriber</h2>
@@ -273,7 +409,7 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- Bluesky Composer Tab Content (added to fix missing elements) -->
+    <!-- Bluesky Composer Tab -->
     <div id="bluesky" class="tab-content">
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (syncs to both accounts)</label>
@@ -295,10 +431,28 @@
         </div>
         <div class="footer">🖼️ Images are stored locally. Click "Post to Bluesky" to send via worker.</div>
     </div>
+
+    <!-- Cloudflare Upload Tab -->
+    <div id="cloudflare" class="tab-content">
+        <div class="cf-dropzone" id="cfDropzone">
+            <input type="file" id="cfFileInput" accept=".zip">
+            <div>📂 Drag & drop a ZIP file here, or click to select</div>
+        </div>
+        <div id="cfStatus" class="cf-status"></div>
+
+        <div class="cf-section-title">🖼️ First 10 images (click to select)</div>
+        <div id="cfOriginalGrid" class="cf-thumb-grid"></div>
+
+        <div class="cf-section-title">✅ Selected images (drag to reorder)</div>
+        <div id="cfSelectedGrid" class="cf-thumb-grid" style="min-height: 120px;"></div>
+
+        <button id="cfDownloadBtn" class="cf-btn-download">⬇️ Download & Upload Selected</button>
+    </div>
 </div>
 
+<!-- Combined script for all tabs -->
 <script>
-    // ========== GLOBAL TOAST FUNCTION ==========
+    // ========== GLOBAL TOAST FUNCTION (for Subscribestar & Bluesky) ==========
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
@@ -307,9 +461,8 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // ========== BLUESKY TAB FUNCTIONALITY (self-contained) ==========
+    // ========== BLUESKY TAB FUNCTIONALITY (unchanged) ==========
     (function() {
-        // tab switching
         const tabBtns = document.querySelectorAll('.tab-button');
         const tabs = document.querySelectorAll('.tab-content');
         tabBtns.forEach(btn => {
@@ -322,7 +475,6 @@
             });
         });
 
-        // master sync
         const master = document.getElementById('masterPost');
         const post1 = document.getElementById('post1');
         const post2 = document.getElementById('post2');
@@ -334,10 +486,8 @@
             console.warn("Bluesky elements missing? Check IDs.");
         }
 
-        // image storage per account
         window.accountImages = { 1: [], 2: [] };
 
-        // thumbnail rendering
         function renderThumbnails(acc) {
             const container = document.querySelector(`.thumbnail-container[data-account="${acc}"]`);
             if (!container) return;
@@ -399,7 +549,6 @@
             showToast('Order updated', 'info');
         }
 
-        // dropzone listeners
         document.querySelectorAll('.dropzone').forEach(dz => {
             const acc = dz.dataset.account;
             dz.addEventListener('click', () => {
@@ -472,7 +621,6 @@
             }
         }
 
-        // add post buttons to each account card
         document.querySelectorAll('.account-card').forEach(card => {
             const acc = card.dataset.account;
             const btn = document.createElement('button');
@@ -482,6 +630,23 @@
             card.appendChild(btn);
         });
     })();
+
+    // ========== CLOUDFLARE UPLOADER INITIALIZATION ==========
+    // Wait for the external script to load
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.initCloudflareUploader === 'function') {
+            window.initCloudflareUploader({
+                dropzone: 'cfDropzone',
+                fileInput: 'cfFileInput',
+                status: 'cfStatus',
+                originalGrid: 'cfOriginalGrid',
+                selectedGrid: 'cfSelectedGrid',
+                downloadBtn: 'cfDownloadBtn'
+            });
+        } else {
+            console.error('initCloudflareUploader not found. Make sure cloudflare-upload.js is loaded.');
+        }
+    });
 </script>
 </body>
 </html>
