@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pack Manager → KV Table + Auto-store</title>
+    <title>Pack Manager → with Download Links</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -35,6 +35,23 @@
         }
         .dropzone:hover { border-color: #5a6e3c; }
         .dropzone input { display: none; }
+        .url-input {
+            margin: 20px 0;
+        }
+        .url-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .url-input input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: #0f131a;
+            border: 1px solid #3a4050;
+            color: white;
+            font-size: 0.9rem;
+        }
         .status {
             margin: 12px 0;
             font-size: 0.9rem;
@@ -90,7 +107,6 @@
         input:checked + .slider { background-color: #ec4899; }
         input:checked + .slider:before { transform: translateX(36px); }
         
-        /* Table styles */
         .table-section {
             margin-top: 30px;
             background: #0c1017;
@@ -179,16 +195,29 @@
             vertical-align: middle;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        a.download-link {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        a.download-link:hover {
+            text-decoration: underline;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 <div class="container">
-    <h1>📦 Pack Manager → KV Table + Auto‑store</h1>
+    <h1>📦 Pack Manager → with Download Links</h1>
     <div class="dropzone" id="dropzone">
         <input type="file" id="fileInput" accept=".zip">
         <div>📂 Drag & drop a ZIP file here, or click to select</div>
     </div>
+
+    <div class="url-input">
+        <label for="downloadUrl">🔗 Download link (Mega, Google Drive, etc.)</label>
+        <input type="url" id="downloadUrl" placeholder="https://mega.nz/file/..." autocomplete="off">
+    </div>
+
     <div id="status" class="status"></div>
 
     <div class="toggle-container">
@@ -208,10 +237,10 @@
         <div style="overflow-x: auto;">
             <table id="packsTable">
                 <thead>
-                    <tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Illustrations</th></tr>
+                    <tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Illustrations</th><th>Download</th></tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr class="empty-row"><td colspan="5">Loading packs...</td></tr>
+                    <tr class="empty-row"><td colspan="6">Loading packs...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -220,7 +249,7 @@
 
 <script>
     // ======================== CONFIGURATION ========================
-const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
+    const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
     
     // ======================== UTILITIES ========================
     let toastContainer = null;
@@ -246,7 +275,6 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
         }, 2500);
     }
 
-    // Filename parsing (same as before)
     function cleanFilename(rawName) {
         let name = rawName.replace(/\.zip$/i, '');
         name = name.replace(/\s*\(\d+\)\s*$/, '');
@@ -263,19 +291,27 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
             series: match[3].trim().toUpperCase()
         };
     }
+    function escapeHtml(str) { 
+        return String(str).replace(/[&<>]/g, function(m){ 
+            if(m==='&') return '&amp;'; 
+            if(m==='<') return '&lt;'; 
+            if(m==='>') return '&gt;'; 
+            return m;
+        }); 
+    }
 
     // ======================== FETCH & DISPLAY ALL PACKS ========================
     async function loadAllPacks() {
         const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="5"><span class="loading"></span> Fetching packs...</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><span class="loading"></span> Fetching packs...</td></tr>';
         try {
             const response = await fetch(WORKER_URL);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const packs = await response.json();  // expects array of pack objects
+            const packs = await response.json();
             renderTable(packs);
         } catch (err) {
             console.error(err);
-            tbody.innerHTML = `<tr class="empty-row"><td colspan="5">⚠️ Failed to load packs: ${err.message}</td></tr>`;
+            tbody.innerHTML = `<tr class="empty-row"><td colspan="6">⚠️ Failed to load packs: ${err.message}</td></tr>`;
             showToast('Could not fetch pack list', 'error');
         }
     }
@@ -283,14 +319,16 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
     function renderTable(packs) {
         const tbody = document.getElementById('tableBody');
         if (!packs.length) {
-            tbody.innerHTML = '<tr class="empty-row"><td colspan="5">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
             return;
         }
-        // sort by ID numerically
         packs.sort((a,b) => parseInt(a.id) - parseInt(b.id));
         tbody.innerHTML = packs.map(pack => {
             const categoryText = pack.category === 1 ? 'Female' : 'Femboy';
             const categoryClass = pack.category === 1 ? 'cat-female' : 'cat-femboy';
+            const downloadCell = pack.downloadUrl && pack.downloadUrl.trim() !== ''
+                ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>`
+                : '—';
             return `
                 <tr>
                     <td><code>${escapeHtml(pack.id)}</code></td>
@@ -298,12 +336,11 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
                     <td><span class="category-badge ${categoryClass}">${categoryText}</span></td>
                     <td>${escapeHtml(pack.price)}</td>
                     <td>${pack.illustrationCount}</td>
+                    <td>${downloadCell}</td>
                 </tr>
             `;
         }).join('');
     }
-
-    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
     // ======================== STORE PACK (POST) ========================
     async function storePack(packEntry) {
@@ -313,6 +350,7 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
         formData.append('category', packEntry.category);
         formData.append('price', packEntry.price);
         formData.append('illustrationCount', packEntry.illustrationCount);
+        formData.append('downloadUrl', packEntry.downloadUrl || '');
         
         const response = await fetch(WORKER_URL, {
             method: 'POST',
@@ -361,17 +399,21 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
             const title = cleanFilename(file.name);
             const id = String(packNumber).padStart(3, '0');
 
+            const downloadUrlInput = document.getElementById('downloadUrl');
+            const downloadUrl = downloadUrlInput.value.trim();
+
             const packEntry = {
                 id: id,
                 title: title,
                 category: category,
                 price: price,
-                illustrationCount: illustrationCount
+                illustrationCount: illustrationCount,
+                downloadUrl: downloadUrl || null
             };
 
             statusDiv.textContent = `⏳ Sending pack #${packNumber}...`;
             const result = await storePack(packEntry);
-            statusDiv.textContent = `✅ Pack #${packNumber} stored (index ${result.index}) | ${illustrationCount} images | ${price} | ${isFemale ? 'Female' : 'Femboy'}`;
+            statusDiv.textContent = `✅ Pack #${packNumber} stored (index ${result.index}) | ${illustrationCount} images | ${price} | ${isFemale ? 'Female' : 'Femboy'} | ${downloadUrl ? 'link saved' : 'no link'}`;
             showToast(`Pack ${packNumber} saved to KV`, 'success');
             
             // Refresh the table to show updated list
@@ -388,6 +430,7 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
     const fileInput = document.getElementById('fileInput');
     const categoryToggle = document.getElementById('categoryToggle');
     const refreshBtn = document.getElementById('refreshTableBtn');
+    const downloadUrlInput = document.getElementById('downloadUrl');
 
     dropzone.addEventListener('click', () => fileInput.click());
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#5a6e3c'; });
@@ -414,7 +457,7 @@ const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
     });
     refreshBtn.addEventListener('click', () => loadAllPacks());
 
-    // Load existing packs on page load
+    // Optional: keep download URL field when re-uploading same file? not needed
     loadAllPacks();
 </script>
 </body>
