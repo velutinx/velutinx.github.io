@@ -397,27 +397,28 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- Bluesky Composer Tab -->
+    <!-- Bluesky Composer Tab (updated) -->
     <div id="bluesky" class="tab-content">
         <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (syncs to both accounts)</label>
-            <textarea id="masterPost" class="master-post" rows="3" placeholder="Write your post here... It will be copied to both SFW and NSFW accounts."></textarea>
+            <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
+            <textarea id="masterPost" class="master-post" rows="5" placeholder="Paste your post content here... The last line will be converted to hashtags and the disclaimer will be removed."></textarea>
+            <button id="transformBtn" style="background: #2c6e2c; color: white; border: none; padding: 8px 16px; border-radius: 30px; margin-top: 8px; cursor: pointer;">✨ Transform & Sync to Both Accounts</button>
         </div>
         <div class="accounts-grid">
             <div class="account-card" data-account="1">
                 <h3>🌸 SFW Account</h3>
-                <textarea id="post1" class="account-post" rows="3" placeholder="SFW post content (synced from master)"></textarea>
+                <textarea id="post1" class="account-post" rows="6" placeholder="SFW post content (will be auto‑filled)"></textarea>
                 <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
                 <div class="thumbnail-container" data-account="1"></div>
             </div>
             <div class="account-card" data-account="2">
                 <h3>🔥 NSFW Account</h3>
-                <textarea id="post2" class="account-post" rows="3" placeholder="NSFW post content (synced from master)"></textarea>
+                <textarea id="post2" class="account-post" rows="6" placeholder="NSFW post content (will be auto‑filled)"></textarea>
                 <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
                 <div class="thumbnail-container" data-account="2"></div>
             </div>
         </div>
-        <div class="footer">🖼️ Images are stored locally. Click "Post to Bluesky" to send via worker.</div>
+        <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
     </div>
 
     <!-- Cloudflare Upload Tab -->
@@ -448,8 +449,38 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
+    // ========== HELPER: convert concatenated words into hashtags ==========
+    function textToHashtags(text) {
+        // Split on transitions between Latin/ASCII and non‑Latin (CJK, Katakana, etc.)
+        // Example: "FateGrandOrderクロエ・フォン・アインツベルンChloe Von EinzbernクロエChloe"
+        // becomes ["FateGrandOrder", "クロエ・フォン・アインツベルン", "Chloe Von Einzbern", "クロエ", "Chloe"]
+        const segments = [];
+        let current = '';
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            const isLatin = /[a-zA-Z0-9\s]/.test(ch);
+            const isSpace = /\s/.test(ch);
+            if (i === 0) {
+                current += ch;
+                continue;
+            }
+            const prevIsLatin = /[a-zA-Z0-9\s]/.test(text[i-1]);
+            if (isLatin !== prevIsLatin && !isSpace) {
+                // boundary change
+                if (current.trim()) segments.push(current.trim());
+                current = ch;
+            } else {
+                current += ch;
+            }
+        }
+        if (current.trim()) segments.push(current.trim());
+        // Join with " #" prefix (first one also gets #)
+        return segments.map(s => `#${s}`).join(' ');
+    }
+
     // ========== BLUESKY TAB FUNCTIONALITY ==========
     (function() {
+        // tab switching
         const tabBtns = document.querySelectorAll('.tab-button');
         const tabs = document.querySelectorAll('.tab-content');
         tabBtns.forEach(btn => {
@@ -462,17 +493,60 @@
             });
         });
 
+        // Elements
         const master = document.getElementById('masterPost');
         const post1 = document.getElementById('post1');
         const post2 = document.getElementById('post2');
-        if (master && post1 && post2) {
-            const syncPosts = () => { post1.value = master.value; post2.value = master.value; };
-            master.addEventListener('input', syncPosts);
-            syncPosts();
-        } else {
-            console.warn("Bluesky elements missing? Check IDs.");
+        const transformBtn = document.getElementById('transformBtn');
+
+        // Transform function
+        function transformAndSync() {
+            let content = master.value;
+            if (!content.trim()) {
+                showToast('Master post is empty', 'error');
+                return;
+            }
+
+            // Split into lines
+            let lines = content.split(/\r?\n/);
+            // Remove the disclaimer lines (both Japanese and English)
+            lines = lines.filter(line => {
+                const lower = line.toLowerCase();
+                return !lower.includes('免責事項') && !lower.includes('disclaimer:');
+            });
+            // Trim empty lines at the end
+            while (lines.length && lines[lines.length-1].trim() === '') lines.pop();
+
+            if (lines.length === 0) {
+                showToast('No content left after removing disclaimer', 'error');
+                return;
+            }
+
+            // The last line contains the concatenated words
+            let lastLine = lines.pop() || '';
+            // Convert last line to hashtags
+            const hashtags = textToHashtags(lastLine);
+            // Rebuild the final text: all previous lines + hashtag line
+            let finalText = lines.join('\n');
+            if (finalText && !finalText.endsWith('\n')) finalText += '\n';
+            finalText += hashtags;
+
+            // Set both account posts
+            post1.value = finalText;
+            post2.value = finalText;
+            showToast('Transformed and synced to both accounts', 'success');
         }
 
+        if (transformBtn) {
+            transformBtn.addEventListener('click', transformAndSync);
+        } else {
+            console.warn("Transform button not found");
+        }
+
+        // Optional: keep manual sync for master post changes (if user wants to copy without transform)
+        // But we'll keep the button as the primary method.
+
+        // Image storage per account (unchanged)
         window.accountImages = { 1: [], 2: [] };
 
         function renderThumbnails(acc) {
@@ -536,6 +610,7 @@
             showToast('Order updated', 'info');
         }
 
+        // dropzone listeners
         document.querySelectorAll('.dropzone').forEach(dz => {
             const acc = dz.dataset.account;
             dz.addEventListener('click', () => {
@@ -608,6 +683,7 @@
             }
         }
 
+        // add post buttons to each account card
         document.querySelectorAll('.account-card').forEach(card => {
             const acc = card.dataset.account;
             const btn = document.createElement('button');
