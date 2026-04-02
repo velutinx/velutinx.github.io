@@ -76,7 +76,7 @@
         function renderOriginal() {
             originalGrid.innerHTML = '';
             // Show first 20 images (previously 10)
-            const toShow = allImages.slice(0, 20);
+            const toShow = allImages.slice(0, 30);
             toShow.forEach((img, idx) => {
                 const isSelected = selectedIndices.has(idx);
                 const thumb = document.createElement('img');
@@ -195,16 +195,16 @@
                     return;
                 }
                 packNumber = parsed.pack;
-                statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 20... (Pack #${packNumber})`;
+                statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 30... (Pack #${packNumber})`;
                 imageEntries.sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
                 // Extract first 20 images (previously 10)
-                const firstTwenty = imageEntries.slice(0, 20);
+                const firstThirty = imageEntries.slice(0, 30);
                 revokeAllURLs();
                 allImages = [];
                 selectedIndices.clear();
                 selectedOrder = [];
-                for (let i = 0; i < firstTwenty.length; i++) {
-                    const entry = firstTwenty[i];
+                for (let i = 0; i < firstThirty.length; i++) {
+                    const entry = firstThirty[i];
                     const blob = await entry.async('blob');
                     const url = URL.createObjectURL(blob);
                     allImages.push({
