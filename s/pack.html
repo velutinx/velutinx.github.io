@@ -256,7 +256,6 @@
 
     // ==================== Constants ====================
     const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08';
 
     // ==================== Helper functions ====================
     function escapeHtml(str) {
@@ -499,41 +498,87 @@
       updateContents();
     }
 
-    function renderGallery(images) {
+    // ==================== DYNAMIC IMAGE GALLERY ====================
+    // Discover all existing images for a pack (stops at first 404)
+    async function discoverImageUrls(packId, maxAttempts = 20) {
+      const baseUrl = `https://www.velutinx.com/i/pack${packId.padStart(3, '0')}`;
+      const urls = [];
+      for (let i = 1; i <= maxAttempts; i++) {
+        const url = `${baseUrl}-${i}.jpg`;
+        try {
+          const resp = await fetch(url, { method: 'HEAD' });
+          if (resp.ok) {
+            urls.push(url);
+          } else {
+            break; // stop at first missing image
+          }
+        } catch {
+          break;
+        }
+      }
+      return urls;
+    }
+
+    // Render carousel with discovered images
+    async function renderGallery(packId) {
       const galleryDiv = document.getElementById('gallery');
       if (!galleryDiv) return;
-      const total = images.length;
-      if (total === 0) { galleryDiv.innerHTML = '<p>No images available</p>'; return; }
 
+      const images = await discoverImageUrls(packId);
+      if (images.length === 0) {
+        galleryDiv.innerHTML = '<p>No images available</p>';
+        return;
+      }
+
+      // Build HTML
       galleryDiv.innerHTML = `
         <div class="carousel">
-          <div class="slides" id="slides">${images.map(img => `<div class="slide"><img src="${img}" onerror="this.src='https://placehold.co/800x600?text=Image+Error'"></div>`).join('')}</div>
-          <button class="arrow prev" id="prevBtn">❮</button><button class="arrow next" id="nextBtn">❯</button>
+          <div class="slides" id="slides">
+            ${images.map(img => `<div class="slide"><img src="${img}" onerror="this.src='https://placehold.co/800x600?text=Image+Error'"></div>`).join('')}
+          </div>
+          ${images.length > 1 ? `
+            <button class="arrow prev" id="prevBtn">❮</button>
+            <button class="arrow next" id="nextBtn">❯</button>
+          ` : ''}
         </div>
-        <div class="thumbnails" id="thumbnails">${images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" data-index="${i}" onerror="this.src='https://placehold.co/90x120?text=Thumb+Error'">`).join('')}</div>
+        ${images.length > 1 ? `
+          <div class="thumbnails" id="thumbnails">
+            ${images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" data-index="${i}" onerror="this.src='https://placehold.co/90x120?text=Thumb+Error'">`).join('')}
+          </div>
+        ` : ''}
       `;
+
+      if (images.length === 1) return; // no controls needed
+
+      // Carousel logic
       const slides = document.getElementById('slides');
       const prev = document.getElementById('prevBtn');
       const next = document.getElementById('nextBtn');
       const thumbs = document.querySelectorAll('.thumb');
       let current = 0;
+      const total = images.length;
+
       const update = () => {
-        slides.style.transform = `translateX(-${current*100}%)`;
-        thumbs.forEach((t,i)=>t.classList.toggle('active', i===current));
+        slides.style.transform = `translateX(-${current * 100}%)`;
+        thumbs.forEach((t, i) => t.classList.toggle('active', i === current));
       };
-      prev.onclick = () => { current = (current-1+total)%total; update(); };
-      next.onclick = () => { current = (current+1)%total; update(); };
-      thumbs.forEach((t,i)=>t.onclick = () => { current=i; update(); });
+
+      prev.onclick = () => { current = (current - 1 + total) % total; update(); };
+      next.onclick = () => { current = (current + 1) % total; update(); };
+      thumbs.forEach((t, i) => t.onclick = () => { current = i; update(); });
     }
 
-    function initPack() {
+    // ==================== Initialise pack ====================
+    async function initPack() {
       const id = new URLSearchParams(window.location.search).get('id') || '001';
       const pack = packsData.find(p => p.id === id);
-      if (!pack) { document.getElementById('title').textContent = 'Pack not found'; return; }
+      if (!pack) {
+        document.getElementById('title').textContent = 'Pack not found';
+        return;
+      }
       currentPack = pack;
       document.getElementById('title').textContent = pack.title;
-      const images = Array.from({ length: 4 }, (_,i)=>`https://www.velutinx.com/i/pack${pack.id.padStart(3,'0')}-${i+1}.jpg`);
-      renderGallery(images);
+      await renderGallery(pack.id);
       refreshAllTranslations();
     }
 
@@ -604,7 +649,6 @@
           const currentCart = storeCart;
           const lang = localStorage.getItem('language') || 'en';
 
-          // Store cart in KV via combined worker
           try {
             const storeResponse = await fetch(`${WORKER_URL}/store-cart`, {
               method: 'POST',
@@ -617,7 +661,6 @@
             alert('Payment succeeded but we could not record your order. Please contact support with order ID: ' + orderID);
           }
 
-          // Clear local cart and redirect
           storeCart = [];
           saveStoreCart();
           window.location.href = `/s/success2.html?orderID=${orderID}`;
@@ -667,18 +710,17 @@
     }
 
     // ==================== Initialisation ====================
-    function init() {
+    async function init() {
       if (!window.priceKeyMap || !window.priceUsdMap) {
         setTimeout(init, 200);
         return;
       }
-      initPack();
+      await initPack();
       updateStoreCartUI();
       interceptCartButtons();
       overrideSharedCart();
-      loadPayPalSDK(); // load PayPal SDK dynamically
+      loadPayPalSDK();
 
-      // Listen for language changes
       document.addEventListener('languageChanged', () => {
         currentLang = localStorage.getItem('language') || 'en';
         refreshAllTranslations();
@@ -695,6 +737,10 @@
     });
   </script>
 
-  <div class="sandbox-banner">    <div class="ticker">        <span class="text">CURRENTLY OPERATING ON SANDMODE, PLEASE STANDBY</span>    </div> </div>
+  <div class="sandbox-banner">
+    <div class="ticker">
+      <span class="text">CURRENTLY OPERATING ON SANDMODE, PLEASE STANDBY</span>
+    </div>
+  </div>
 </body>
 </html>
