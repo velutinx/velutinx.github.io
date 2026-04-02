@@ -3,7 +3,7 @@
 (function() {
     const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
 
-    // ========== TOAST SYSTEM ==========
+    // Toast system (same as before)
     let toastContainer = null;
     function ensureToastContainer() {
         if (!toastContainer) {
@@ -23,13 +23,11 @@
         setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(20px)';
-            setTimeout(() => {
-                if (toast.parentNode) toast.parentNode.removeChild(toast);
-            }, 200);
+            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 200);
         }, 2500);
     }
 
-    // ========== HELPER FUNCTIONS ==========
+    // Helper functions (cleanFilename, parseFilename, extractNumber) same as before
     function cleanFilename(rawName) {
         let name = rawName.replace(/\.zip$/i, '');
         name = name.replace(/\s*\(\d+\)\s*$/, '');
@@ -51,7 +49,6 @@
         return match ? parseInt(match[0], 10) : Infinity;
     }
 
-    // ========== MAIN COMPONENT ==========
     window.initCloudflareUploader = function(elementIds) {
         const dropzone = document.getElementById(elementIds.dropzone);
         const fileInput = document.getElementById(elementIds.fileInput);
@@ -71,6 +68,7 @@
         let packNumber = null;
         let sortable = null;
 
+        // ----- Functions to render and manipulate UI -----
         function revokeAllURLs() {
             allImages.forEach(img => { if (img.url) URL.revokeObjectURL(img.url); });
         }
@@ -138,6 +136,11 @@
             }
             renderOriginal();
             renderSelected();
+            // Update shared state
+            if (window.sharedZipData) {
+                window.sharedZipData.selectedIndices = new Set(selectedIndices);
+                window.sharedZipData.selectedOrder = [...selectedOrder];
+            }
         }
 
         function removeFromSelection(idx) {
@@ -147,9 +150,28 @@
                 if (pos !== -1) selectedOrder.splice(pos, 1);
                 renderOriginal();
                 renderSelected();
+                if (window.sharedZipData) {
+                    window.sharedZipData.selectedIndices = new Set(selectedIndices);
+                    window.sharedZipData.selectedOrder = [...selectedOrder];
+                }
             }
         }
 
+        // Load shared data into the Cloudflare UI
+        function loadSharedData(sharedData) {
+            if (!sharedData || !sharedData.allImages) return;
+            revokeAllURLs();
+            allImages = sharedData.allImages.map(img => ({ ...img })); // shallow copy
+            packNumber = sharedData.packNumber;
+            selectedIndices = sharedData.selectedIndices ? new Set(sharedData.selectedIndices) : new Set();
+            selectedOrder = sharedData.selectedOrder ? [...sharedData.selectedOrder] : [];
+            renderOriginal();
+            renderSelected();
+            statusDiv.textContent = `✅ Loaded ${allImages.length} images from shared ZIP. Pack #${packNumber}`;
+            showToast(`Cloudflare tab synced with Pack #${packNumber}`, 'info');
+        }
+
+        // Process ZIP file (local drag/drop) and also update shared state
         async function processZip(file) {
             statusDiv.textContent = '📂 Reading ZIP...';
             try {
@@ -194,6 +216,23 @@
                 renderSelected();
                 statusDiv.textContent = `✅ Loaded ${allImages.length} images. Click to select, drag to reorder.`;
                 showToast(`ZIP loaded. Pack #${packNumber}`, 'success');
+
+                // Update shared state
+                if (window.sharedZipData) {
+                    window.sharedZipData.allImages = allImages;
+                    window.sharedZipData.packNumber = packNumber;
+                    window.sharedZipData.selectedIndices = selectedIndices;
+                    window.sharedZipData.selectedOrder = selectedOrder;
+                    window.sharedZipData.source = 'cloudflare';
+                } else {
+                    window.sharedZipData = {
+                        packNumber: packNumber,
+                        allImages: allImages,
+                        selectedIndices: new Set(selectedIndices),
+                        selectedOrder: [...selectedOrder],
+                        source: 'cloudflare'
+                    };
+                }
             } catch (err) {
                 console.error(err);
                 statusDiv.textContent = '❌ Error reading ZIP file.';
@@ -201,6 +240,7 @@
             }
         }
 
+        // Upload and download functions (unchanged)
         async function uploadSelectedToR2() {
             if (!packNumber) {
                 showToast('Pack number missing – please load a valid ZIP first', 'error');
@@ -285,7 +325,7 @@
             await Promise.allSettled([downloadPromise, uploadPromise]);
         }
 
-        // Event listeners
+        // Event listeners for this tab
         dropzone.addEventListener('click', () => fileInput.click());
         dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -311,5 +351,23 @@
             }
         });
         downloadBtn.addEventListener('click', handleAction);
+
+        // Listen for shared data updates from other tab
+        window.addEventListener('zipDataUpdated', (event) => {
+            const data = event.detail;
+            if (data && data.allImages && data.source !== 'cloudflare') {
+                loadSharedData(data);
+                // Also update local selections from shared data
+                selectedIndices = data.selectedIndices ? new Set(data.selectedIndices) : new Set();
+                selectedOrder = data.selectedOrder ? [...data.selectedOrder] : [];
+                renderOriginal();
+                renderSelected();
+            }
+        });
+
+        // If shared data already exists (e.g., after page load if Subscribestar tab loaded a ZIP first), load it
+        if (window.sharedZipData && window.sharedZipData.allImages) {
+            loadSharedData(window.sharedZipData);
+        }
     };
 })();
