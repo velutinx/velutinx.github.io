@@ -57,7 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const pixivOutput = document.getElementById('pixivOutput');
     const filenameHint = document.getElementById('filenameHint');
 
-    if (!dropZone || !fileInput) return; // exit if not on Subscribestar tab
+    if (!dropZone || !fileInput) return;
+
+    // ----- Helper: update shared state and notify Cloudflare tab -----
+    function updateSharedState(zipData) {
+        window.sharedZipData = zipData;
+        // Dispatch a custom event so Cloudflare tab can react
+        window.dispatchEvent(new CustomEvent('zipDataUpdated', { detail: zipData }));
+    }
 
     dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', (e) => {
@@ -75,16 +82,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) handleFile(e.target.files[0]);
-        fileInput.value = ''; // allow re-upload of same file
+        fileInput.value = '';
     });
 
-    // Clean filename: remove trailing (number) and any extra spaces
+    // Clean filename, parseFilename, normalize, findPackId same as before...
     function cleanFilename(rawName) {
         let name = rawName.replace(/\.zip$/i, '');
         name = name.replace(/\s*\(\d+\)\s*$/, '');
         return name.trim();
     }
-
     function parseFilename(filename) {
         const base = cleanFilename(filename);
         const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
@@ -96,13 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
             series: match[3].trim().toUpperCase()
         };
     }
-
-    // Normalize string for comparison: lowercase, remove punctuation and spaces
     function normalize(str) {
         return str.toLowerCase().replace(/[^a-z0-9]/g, '');
     }
-
-    // ----- Helper: load packs data and find matching pack by character name + image count -----
     async function findPackId(character, fileCount) {
         try {
             const module = await import('/assets/js/packs-data.js');
@@ -155,15 +157,12 @@ document.addEventListener('DOMContentLoaded', function() {
             let fileCount = 0;
             zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
 
-            // Subscribestar posts
+            // Generate posts (same as before)
             subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
             publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
-
-            // Patreon posts
             patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
             patreonPublicOutput.value = `Preview: ${character} — ${series} — Pack ${pack}\n\nTotal Set Size: ${fileCount} High-Res Images\n\n🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
 
-            // Pixiv post generation (match by character name + image count)
             const packId = await findPackId(character, fileCount);
             const link = packId ? `https://velutinx.com/s/pack?id=${packId}` : 'https://velutinx.com/store';
             const pixivText = `${character} - ${series}\n全${fileCount}枚 / Full set: ${fileCount} images\n${link}\n\n📌 もっと私の作品を見たい方はこちら ♡  \nFind more of my work & social links:  \n🔗 https://velutinx.com/\n\n免責事項：本イラストに登場するキャラクターは、18歳以上として描写されています。  \nDisclaimer: This illustration depicts a fictional character who is portrayed as being 18 years of age or older.`;
@@ -171,6 +170,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
             filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
             showToast(`✅ Processed ${fileCount} images`, 'success');
+
+            // ----- Extract first 10 images for shared state -----
+            const imageEntries = [];
+            zip.forEach((path, entry) => {
+                if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
+                    imageEntries.push(entry);
+                }
+            });
+            imageEntries.sort((a, b) => {
+                const numA = (a.name.match(/\d+/) || [0])[0];
+                const numB = (b.name.match(/\d+/) || [0])[0];
+                return parseInt(numA, 10) - parseInt(numB, 10);
+            });
+            const firstTen = imageEntries.slice(0, 10);
+            const allImages = [];
+            for (let entry of firstTen) {
+                const blob = await entry.async('blob');
+                const url = URL.createObjectURL(blob);
+                allImages.push({
+                    blob,
+                    url,
+                    name: entry.name,
+                    originalName: entry.name
+                });
+            }
+            updateSharedState({
+                packNumber: pack,
+                allImages: allImages,
+                selectedIndices: new Set(),
+                selectedOrder: [],
+                source: 'subscribestar'
+            });
         } catch (err) {
             console.error(err);
             subscriberOutput.value = '❌ Error reading zip file.';
