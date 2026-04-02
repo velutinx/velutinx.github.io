@@ -480,7 +480,7 @@
 
 // ========== BLUESKY TAB FUNCTIONALITY ==========
 (function() {
-    // tab switching (unchanged)
+    // tab switching
     const tabBtns = document.querySelectorAll('.tab-button');
     const tabs = document.querySelectorAll('.tab-content');
     tabBtns.forEach(btn => {
@@ -498,35 +498,45 @@
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
 
-    // Helper: convert concatenated words into hashtags, removing spaces inside each segment
+    // Helper: convert concatenated words into hashtags, keeping spaces within a segment (then removing them)
     function textToHashtags(text) {
-        // Split on transitions between Latin/ASCII and non‑Latin (CJK, Katakana, etc.)
-        // Example: "FateGrandOrderクロエ・フォン・アインツベルンChloe Von EinzbernクロエChloe"
-        // becomes ["FateGrandOrder", "クロエ・フォン・アインツベルン", "Chloe Von Einzbern", "クロエ", "Chloe"]
         const segments = [];
         let current = '';
+        let lastType = null; // 'latin' or 'nonlatin'
+
         for (let i = 0; i < text.length; i++) {
             const ch = text[i];
-            const isLatin = /[a-zA-Z0-9]/.test(ch);  // letters and numbers only, spaces are not included
             const isSpace = /\s/.test(ch);
-            if (i === 0) {
+            const isLatin = /[a-zA-Z0-9]/.test(ch);
+            let type = null;
+            if (isSpace) {
+                type = 'space';
+            } else {
+                type = isLatin ? 'latin' : 'nonlatin';
+            }
+
+            if (type === 'space') {
                 current += ch;
                 continue;
             }
-            const prevIsLatin = /[a-zA-Z0-9]/.test(text[i-1]);
-            // boundary when switching between Latin and non-Latin, ignoring spaces
-            if (isLatin !== prevIsLatin && !isSpace) {
+
+            if (lastType === null) {
+                current += ch;
+                lastType = type;
+            } else if (type === lastType) {
+                current += ch;
+            } else {
+                // boundary: type changed (e.g., latin → nonlatin or vice versa)
                 if (current.trim()) segments.push(current.trim());
                 current = ch;
-            } else {
-                current += ch;
+                lastType = type;
             }
         }
         if (current.trim()) segments.push(current.trim());
 
-        // Remove spaces inside each segment and then prepend '#'
+        // Remove all spaces inside each segment, then prepend '#'
         return segments.map(seg => {
-            let cleaned = seg.replace(/\s+/g, '');  // remove all spaces
+            const cleaned = seg.replace(/\s+/g, '');
             return `#${cleaned}`;
         }).join(' ');
     }
@@ -570,11 +580,10 @@
         post2.value = finalText;
     }
 
-    // Attach event listener to master post (input event for live sync)
+    // Attach event listener to master post (live sync)
     if (master) {
         master.addEventListener('input', transformMaster);
-        // Run once in case there's pre‑filled content
-        transformMaster();
+        transformMaster(); // initial run
     } else {
         console.warn("Master post element not found");
     }
@@ -643,7 +652,7 @@
         showToast('Order updated', 'info');
     }
 
-    // dropzone listeners (unchanged)
+    // dropzone listeners
     document.querySelectorAll('.dropzone').forEach(dz => {
         const acc = dz.dataset.account;
         dz.addEventListener('click', () => {
