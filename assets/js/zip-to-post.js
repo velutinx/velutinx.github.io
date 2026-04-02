@@ -1,6 +1,6 @@
 // zip-to-post.js – Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
 
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // ----- Toast notification (global, reusable) -----
     function showToast(message, type = 'info') {
         let container = document.getElementById('toast-container');
@@ -75,6 +75,7 @@
     });
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) handleFile(e.target.files[0]);
+        fileInput.value = ''; // allow re-upload of same file
     });
 
     // Clean filename: remove trailing (number) and any extra spaces
@@ -181,4 +182,4 @@
             showToast('❌ Failed to read zip file', 'error');
         }
     }
-})();
+});
