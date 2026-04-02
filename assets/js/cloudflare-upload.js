@@ -1,14 +1,13 @@
-// cloudflare-upload.js – ZIP image selector + upload to Cloudflare R2
+// cloudflare-upload.js – reusable ZIP image selector + upload to Cloudflare R2
 
-// ========== CONFIGURATION ==========
-const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev'; // replace if different
+const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
 
-// ========== TOAST SYSTEM ==========
+// ========== TOAST SYSTEM (shared) ==========
 let toastContainer = null;
 function ensureToastContainer() {
     if (!toastContainer) {
         toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container';
+        toastContainer.className = 'cf-toast-container';
         document.body.appendChild(toastContainer);
     }
     return toastContainer;
@@ -16,7 +15,7 @@ function ensureToastContainer() {
 function showToast(message, type = 'success') {
     const container = ensureToastContainer();
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    toast.className = `cf-toast ${type}`;
     toast.textContent = message;
     container.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
@@ -29,7 +28,7 @@ function showToast(message, type = 'success') {
     }, 2500);
 }
 
-// ========== FILENAME PARSING (reused from original code) ==========
+// ========== HELPER FUNCTIONS ==========
 function cleanFilename(rawName) {
     let name = rawName.replace(/\.zip$/i, '');
     name = name.replace(/\s*\(\d+\)\s*$/, '');
@@ -46,275 +45,247 @@ function parseFilename(filename) {
         series: match[3].trim().toUpperCase()
     };
 }
-
-// ========== GLOBAL STATE ==========
-let allImages = [];           // { blob, url, name, originalName }
-let selectedIndices = new Set();   // indices into allImages
-let selectedOrder = [];             // ordered list of indices (drag order)
-let packNumber = null;              // extracted from ZIP filename
-let sortable = null;
-
-// DOM elements (will be assigned in init)
-let dropzone, fileInput, statusDiv, originalGrid, selectedGrid, downloadBtn;
-
-// Helper: extract numeric value from filename for sorting
 function extractNumber(filename) {
     const match = filename.match(/\d+/);
     return match ? parseInt(match[0], 10) : Infinity;
 }
 
-// Clean up object URLs
-function revokeAllURLs() {
-    allImages.forEach(img => {
-        if (img.url) URL.revokeObjectURL(img.url);
-    });
-}
-
-// Render original thumbnails (first 10)
-function renderOriginal() {
-    originalGrid.innerHTML = '';
-    const toShow = allImages.slice(0, 10);
-    toShow.forEach((img, idx) => {
-        const isSelected = selectedIndices.has(idx);
-        const thumb = document.createElement('img');
-        thumb.className = 'thumbnail';
-        thumb.src = img.url;
-        thumb.title = img.originalName;
-        thumb.style.border = isSelected ? '3px solid #2c6e2c' : '2px solid transparent';
-        thumb.onclick = () => toggleSelection(idx);
-        originalGrid.appendChild(thumb);
-    });
-}
-
-// Render selected grid (Sortable)
-function renderSelected() {
-    selectedGrid.innerHTML = '';
-    for (let idx of selectedOrder) {
-        const img = allImages[idx];
-        if (!img) continue;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'selected-item';
-        wrapper.dataset.index = idx;
-
-        const thumb = document.createElement('img');
-        thumb.className = 'selected-thumb';
-        thumb.src = img.url;
-        thumb.title = img.originalName;
-
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-btn';
-        removeBtn.textContent = '✕';
-        removeBtn.onclick = (e) => {
-            e.stopPropagation();
-            removeFromSelection(idx);
-        };
-
-        wrapper.appendChild(thumb);
-        wrapper.appendChild(removeBtn);
-        selectedGrid.appendChild(wrapper);
-    }
-
-    if (sortable) sortable.destroy();
-    sortable = new Sortable(selectedGrid, {
-        animation: 150,
-        onEnd: () => {
-            const newOrder = [];
-            Array.from(selectedGrid.children).forEach(child => {
-                const idx = parseInt(child.dataset.index, 10);
-                if (!isNaN(idx)) newOrder.push(idx);
-            });
-            selectedOrder = newOrder;
-        }
-    });
-}
-
-function toggleSelection(idx) {
-    if (selectedIndices.has(idx)) {
-        selectedIndices.delete(idx);
-        const pos = selectedOrder.indexOf(idx);
-        if (pos !== -1) selectedOrder.splice(pos, 1);
-    } else {
-        selectedIndices.add(idx);
-        selectedOrder.push(idx);
-    }
-    renderOriginal();
-    renderSelected();
-}
-
-function removeFromSelection(idx) {
-    if (selectedIndices.has(idx)) {
-        selectedIndices.delete(idx);
-        const pos = selectedOrder.indexOf(idx);
-        if (pos !== -1) selectedOrder.splice(pos, 1);
-        renderOriginal();
-        renderSelected();
-    }
-}
-
-// Process ZIP file
-async function processZip(file) {
-    statusDiv.textContent = '📂 Reading ZIP...';
-    try {
-        const zip = await JSZip.loadAsync(file);
-        const imageEntries = [];
-        zip.forEach((path, entry) => {
-            if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
-                imageEntries.push(entry);
-            }
-        });
-        if (imageEntries.length === 0) {
-            statusDiv.textContent = '❌ No images found in ZIP.';
-            showToast('No images found', 'error');
-            return;
-        }
-
-        const parsed = parseFilename(file.name);
-        if (!parsed) {
-            statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
-            showToast('Invalid filename format', 'error');
-            return;
-        }
-        packNumber = parsed.pack;
-        statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 10... (Pack #${packNumber})`;
-
-        imageEntries.sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
-        const firstTen = imageEntries.slice(0, 10);
-
-        revokeAllURLs();
-        allImages = [];
-        selectedIndices.clear();
-        selectedOrder = [];
-
-        for (let i = 0; i < firstTen.length; i++) {
-            const entry = firstTen[i];
-            const blob = await entry.async('blob');
-            const url = URL.createObjectURL(blob);
-            allImages.push({
-                blob,
-                url,
-                name: entry.name,
-                originalName: entry.name
-            });
-        }
-
-        renderOriginal();
-        renderSelected();
-        statusDiv.textContent = `✅ Loaded ${allImages.length} images. Click to select, drag to reorder.`;
-        showToast(`ZIP loaded. Pack #${packNumber}`, 'success');
-    } catch (err) {
-        console.error(err);
-        statusDiv.textContent = '❌ Error reading ZIP file.';
-        showToast('Failed to read ZIP', 'error');
-    }
-}
-
-// ========== UPLOAD SELECTED IMAGES TO CLOUDFLARE WORKER ==========
-async function uploadSelectedToR2() {
-    if (!packNumber) {
-        showToast('Pack number missing – please load a valid ZIP first', 'error');
-        return false;
-    }
-    if (selectedOrder.length === 0) {
-        showToast('No images selected to upload', 'error');
-        return false;
-    }
-
-    const formData = new FormData();
-    formData.append('packNumber', packNumber);
-    for (let i = 0; i < selectedOrder.length; i++) {
-        const idx = selectedOrder[i];
-        const img = allImages[idx];
-        if (img) {
-            const file = new File([img.blob], img.originalName, { type: img.blob.type });
-            formData.append('images', file);
-        }
-    }
-
-    showToast('📡 Uploading to Cloudflare...', 'info');
-    try {
-        const res = await fetch(UPLOAD_WORKER_URL, {
-            method: 'POST',
-            body: formData
-        });
-        const data = await res.json();
-        if (res.ok) {
-            showToast(`✅ Uploaded ${data.urls.length} images to /i/`, 'success');
-            console.log('Uploaded URLs:', data.urls);
-            return true;
-        } else {
-            throw new Error(data.error || 'Upload failed');
-        }
-    } catch (err) {
-        console.error('Upload error:', err);
-        showToast(`❌ Upload failed: ${err.message}`, 'error');
-        return false;
-    }
-}
-
-// ========== DOWNLOAD SELECTED IMAGES LOCALLY ==========
-async function downloadSelectedLocally() {
-    if (!packNumber) {
-        showToast('Pack number missing – please load a valid ZIP first', 'error');
-        return false;
-    }
-    if (selectedOrder.length === 0) {
-        showToast('No images selected to download', 'error');
-        return false;
-    }
-
-    let successCount = 0;
-    for (let i = 0; i < selectedOrder.length; i++) {
-        const idx = selectedOrder[i];
-        const img = allImages[idx];
-        if (!img) continue;
-
-        const ext = img.originalName.split('.').pop().toLowerCase();
-        const newName = `pack${packNumber}-${i+1}.${ext}`;
-        const a = document.createElement('a');
-        a.href = img.url;
-        a.download = newName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        successCount++;
-        await new Promise(r => setTimeout(r, 100));
-    }
-    showToast(`📥 Downloaded ${successCount} file(s)`, 'success');
-    statusDiv.textContent = `✅ ${successCount} files downloaded.`;
-    return true;
-}
-
-// ========== MAIN ACTION: DOWNLOAD + UPLOAD ==========
-async function handleAction() {
-    if (!packNumber) {
-        showToast('Please load a ZIP file first', 'error');
-        return;
-    }
-    if (selectedOrder.length === 0) {
-        showToast('No images selected', 'error');
-        return;
-    }
-
-    const downloadPromise = downloadSelectedLocally();
-    const uploadPromise = uploadSelectedToR2();
-
-    await Promise.allSettled([downloadPromise, uploadPromise]);
-}
-
-// ========== SETUP DRAG & DROP ==========
-function initDragAndDrop() {
-    dropzone = document.getElementById('dropzone');
-    fileInput = document.getElementById('fileInput');
-    statusDiv = document.getElementById('status');
-    originalGrid = document.getElementById('originalGrid');
-    selectedGrid = document.getElementById('selectedGrid');
-    downloadBtn = document.getElementById('downloadBtn');
+// ========== MAIN COMPONENT ==========
+export function initCloudflareUploader(elementIds) {
+    // elementIds: { dropzone, fileInput, status, originalGrid, selectedGrid, downloadBtn }
+    const dropzone = document.getElementById(elementIds.dropzone);
+    const fileInput = document.getElementById(elementIds.fileInput);
+    const statusDiv = document.getElementById(elementIds.status);
+    const originalGrid = document.getElementById(elementIds.originalGrid);
+    const selectedGrid = document.getElementById(elementIds.selectedGrid);
+    const downloadBtn = document.getElementById(elementIds.downloadBtn);
 
     if (!dropzone || !fileInput || !statusDiv || !originalGrid || !selectedGrid || !downloadBtn) {
-        console.error('Missing required DOM elements');
+        console.error('Cloudflare uploader: missing required DOM elements', elementIds);
         return;
     }
 
+    let allImages = [];           // { blob, url, name, originalName }
+    let selectedIndices = new Set();
+    let selectedOrder = [];
+    let packNumber = null;
+    let sortable = null;
+
+    function revokeAllURLs() {
+        allImages.forEach(img => { if (img.url) URL.revokeObjectURL(img.url); });
+    }
+
+    function renderOriginal() {
+        originalGrid.innerHTML = '';
+        const toShow = allImages.slice(0, 10);
+        toShow.forEach((img, idx) => {
+            const isSelected = selectedIndices.has(idx);
+            const thumb = document.createElement('img');
+            thumb.className = 'cf-thumbnail';
+            thumb.src = img.url;
+            thumb.title = img.originalName;
+            thumb.style.border = isSelected ? '3px solid #2c6e2c' : '2px solid transparent';
+            thumb.onclick = () => toggleSelection(idx);
+            originalGrid.appendChild(thumb);
+        });
+    }
+
+    function renderSelected() {
+        selectedGrid.innerHTML = '';
+        for (let idx of selectedOrder) {
+            const img = allImages[idx];
+            if (!img) continue;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'cf-selected-item';
+            wrapper.dataset.index = idx;
+            const thumb = document.createElement('img');
+            thumb.className = 'cf-selected-thumb';
+            thumb.src = img.url;
+            thumb.title = img.originalName;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'cf-remove-btn';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = (e) => {
+                e.stopPropagation();
+                removeFromSelection(idx);
+            };
+            wrapper.appendChild(thumb);
+            wrapper.appendChild(removeBtn);
+            selectedGrid.appendChild(wrapper);
+        }
+        if (sortable) sortable.destroy();
+        sortable = new Sortable(selectedGrid, {
+            animation: 150,
+            onEnd: () => {
+                const newOrder = [];
+                Array.from(selectedGrid.children).forEach(child => {
+                    const idx = parseInt(child.dataset.index, 10);
+                    if (!isNaN(idx)) newOrder.push(idx);
+                });
+                selectedOrder = newOrder;
+            }
+        });
+    }
+
+    function toggleSelection(idx) {
+        if (selectedIndices.has(idx)) {
+            selectedIndices.delete(idx);
+            const pos = selectedOrder.indexOf(idx);
+            if (pos !== -1) selectedOrder.splice(pos, 1);
+        } else {
+            selectedIndices.add(idx);
+            selectedOrder.push(idx);
+        }
+        renderOriginal();
+        renderSelected();
+    }
+
+    function removeFromSelection(idx) {
+        if (selectedIndices.has(idx)) {
+            selectedIndices.delete(idx);
+            const pos = selectedOrder.indexOf(idx);
+            if (pos !== -1) selectedOrder.splice(pos, 1);
+            renderOriginal();
+            renderSelected();
+        }
+    }
+
+    async function processZip(file) {
+        statusDiv.textContent = '📂 Reading ZIP...';
+        try {
+            const zip = await JSZip.loadAsync(file);
+            const imageEntries = [];
+            zip.forEach((path, entry) => {
+                if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
+                    imageEntries.push(entry);
+                }
+            });
+            if (imageEntries.length === 0) {
+                statusDiv.textContent = '❌ No images found in ZIP.';
+                showToast('No images found', 'error');
+                return;
+            }
+            const parsed = parseFilename(file.name);
+            if (!parsed) {
+                statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
+                showToast('Invalid filename format', 'error');
+                return;
+            }
+            packNumber = parsed.pack;
+            statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 10... (Pack #${packNumber})`;
+            imageEntries.sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
+            const firstTen = imageEntries.slice(0, 10);
+            revokeAllURLs();
+            allImages = [];
+            selectedIndices.clear();
+            selectedOrder = [];
+            for (let i = 0; i < firstTen.length; i++) {
+                const entry = firstTen[i];
+                const blob = await entry.async('blob');
+                const url = URL.createObjectURL(blob);
+                allImages.push({
+                    blob,
+                    url,
+                    name: entry.name,
+                    originalName: entry.name
+                });
+            }
+            renderOriginal();
+            renderSelected();
+            statusDiv.textContent = `✅ Loaded ${allImages.length} images. Click to select, drag to reorder.`;
+            showToast(`ZIP loaded. Pack #${packNumber}`, 'success');
+        } catch (err) {
+            console.error(err);
+            statusDiv.textContent = '❌ Error reading ZIP file.';
+            showToast('Failed to read ZIP', 'error');
+        }
+    }
+
+    async function uploadSelectedToR2() {
+        if (!packNumber) {
+            showToast('Pack number missing – please load a valid ZIP first', 'error');
+            return false;
+        }
+        if (selectedOrder.length === 0) {
+            showToast('No images selected to upload', 'error');
+            return false;
+        }
+        const formData = new FormData();
+        formData.append('packNumber', packNumber);
+        for (let i = 0; i < selectedOrder.length; i++) {
+            const idx = selectedOrder[i];
+            const img = allImages[idx];
+            if (img) {
+                const file = new File([img.blob], img.originalName, { type: img.blob.type });
+                formData.append('images', file);
+            }
+        }
+        showToast('📡 Uploading to Cloudflare...', 'info');
+        try {
+            const res = await fetch(UPLOAD_WORKER_URL, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`✅ Uploaded ${data.urls.length} images to /i/`, 'success');
+                console.log('Uploaded URLs:', data.urls);
+                return true;
+            } else {
+                throw new Error(data.error || 'Upload failed');
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            showToast(`❌ Upload failed: ${err.message}`, 'error');
+            return false;
+        }
+    }
+
+    async function downloadSelectedLocally() {
+        if (!packNumber) {
+            showToast('Pack number missing – please load a valid ZIP first', 'error');
+            return false;
+        }
+        if (selectedOrder.length === 0) {
+            showToast('No images selected to download', 'error');
+            return false;
+        }
+        let successCount = 0;
+        for (let i = 0; i < selectedOrder.length; i++) {
+            const idx = selectedOrder[i];
+            const img = allImages[idx];
+            if (!img) continue;
+            const ext = img.originalName.split('.').pop().toLowerCase();
+            const newName = `pack${packNumber}-${i+1}.${ext}`;
+            const a = document.createElement('a');
+            a.href = img.url;
+            a.download = newName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            successCount++;
+            await new Promise(r => setTimeout(r, 100));
+        }
+        showToast(`📥 Downloaded ${successCount} file(s)`, 'success');
+        statusDiv.textContent = `✅ ${successCount} files downloaded.`;
+        return true;
+    }
+
+    async function handleAction() {
+        if (!packNumber) {
+            showToast('Please load a ZIP file first', 'error');
+            return;
+        }
+        if (selectedOrder.length === 0) {
+            showToast('No images selected', 'error');
+            return;
+        }
+        const downloadPromise = downloadSelectedLocally();
+        const uploadPromise = uploadSelectedToR2();
+        await Promise.allSettled([downloadPromise, uploadPromise]);
+    }
+
+    // Event listeners
     dropzone.addEventListener('click', () => fileInput.click());
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -339,9 +310,5 @@ function initDragAndDrop() {
             fileInput.value = '';
         }
     });
-
     downloadBtn.addEventListener('click', handleAction);
 }
-
-// Initialize everything when DOM is ready
-document.addEventListener('DOMContentLoaded', initDragAndDrop);
