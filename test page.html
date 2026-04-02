@@ -264,57 +264,7 @@
     let currentPackData = null;
 
     // Process ZIP file
-    async function processZip(file) {
-        const statusDiv = document.getElementById('status');
-        statusDiv.textContent = '📂 Reading ZIP...';
-        try {
-            const zip = await JSZip.loadAsync(file);
-            const imageEntries = [];
-            zip.forEach((path, entry) => {
-                if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
-                    imageEntries.push(entry);
-                }
-            });
-            if (imageEntries.length === 0) {
-                statusDiv.textContent = '❌ No images found in ZIP.';
-                showToast('No images found', 'error');
-                return;
-            }
 
-            const parsed = parseFilename(file.name);
-            if (!parsed) {
-                statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
-                showToast('Invalid filename format', 'error');
-                return;
-            }
-
-            const packNumber = parsed.pack;
-            const illustrationCount = imageEntries.length;
-            // Determine price based on count
-            const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
-
-            // Get category from toggle: checkbox unchecked = Femboy (category 2), checked = Female (category 1)
-            const categoryToggle = document.getElementById('categoryToggle');
-            const isFemale = categoryToggle.checked;
-            const category = isFemale ? 1 : 2;
-
-            // Reconstruct the full title exactly as in the filename (without .zip)
-            const title = cleanFilename(file.name); // e.g., "[Pack 025] Eris Boreas Greyrat - Mushoku Tensei"
-
-            const entryLine = generateEntry(packNumber, title, category, price, illustrationCount);
-            document.getElementById('outputCode').textContent = entryLine;
-            currentPackData = entryLine;
-
-            statusDiv.textContent = `✅ Pack #${packNumber} | ${illustrationCount} images | ${price} | ${isFemale ? 'Female' : 'Femboy'}`;
-            showToast(`Ready: Pack ${packNumber}`, 'success');
-        } catch (err) {
-            console.error(err);
-            statusDiv.textContent = '❌ Error reading ZIP file.';
-            showToast('Failed to read ZIP', 'error');
-        }
-    }
-
-    // Copy to clipboard
     function copyToClipboard() {
         if (!currentPackData) {
             showToast('No data to copy – load a ZIP first', 'error');
