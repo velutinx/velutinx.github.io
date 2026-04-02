@@ -499,36 +499,29 @@
     }
 
     // ==================== DYNAMIC IMAGE GALLERY ====================
-    // Discover all existing images for a pack (stops at first 404)
-    async function discoverImageUrls(packId, maxAttempts = 20) {
-      const baseUrl = `https://www.velutinx.com/i/pack${packId.padStart(3, '0')}`;
-      const urls = [];
-      for (let i = 1; i <= maxAttempts; i++) {
-        const url = `${baseUrl}-${i}.jpg`;
-        try {
-          const resp = await fetch(url, { method: 'HEAD' });
-          if (resp.ok) {
-            urls.push(url);
-          } else {
-            break; // stop at first missing image
-          }
-        } catch {
-          break;
-        }
-      }
-      return urls;
-    }
+// Fetch image list from worker instead of probing
+async function fetchImageUrls(packId) {
+  try {
+    const resp = await fetch(`https://www.velutinx.com/api/images?pack=${packId}`);
+    if (!resp.ok) throw new Error('Failed to fetch image list');
+    const data = await resp.json();
+    return data.images;
+  } catch (err) {
+    console.error('Error fetching images:', err);
+    return [];
+  }
+}
 
-    // Render carousel with discovered images
-    async function renderGallery(packId) {
-      const galleryDiv = document.getElementById('gallery');
-      if (!galleryDiv) return;
+// Render carousel with fetched images
+async function renderGallery(packId) {
+  const galleryDiv = document.getElementById('gallery');
+  if (!galleryDiv) return;
 
-      const images = await discoverImageUrls(packId);
-      if (images.length === 0) {
-        galleryDiv.innerHTML = '<p>No images available</p>';
-        return;
-      }
+  const images = await fetchImageUrls(packId);
+  if (images.length === 0) {
+    galleryDiv.innerHTML = '<p>No images available</p>';
+    return;
+  }
 
       // Build HTML
       galleryDiv.innerHTML = `
