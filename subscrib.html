@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zip to Post + Bluesky Composer + Cloudflare Upload (Nightmode)</title>
     <style>
+        /* (same CSS as before – keep it unchanged) */
         * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -53,7 +54,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* ===== Subscribestar / Patreon styles ===== */
+        /* Subscribestar / Patreon styles */
         .upload-area {
             border: 2px dashed #3a4050;
             border-radius: 14px;
@@ -114,7 +115,7 @@
         .filename-hint { font-size: 0.85rem; color: #888; margin-top: 12px; }
         .footer { margin-top: 20px; color: #6a6f78; font-size: 0.8rem; text-align: center; }
 
-        /* ===== Bluesky styles ===== */
+        /* Bluesky styles */
         .master-post {
             width: 100%;
             padding: 12px;
@@ -222,7 +223,7 @@
         .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
         .toast-notification.info { background: #1a2530; border-left-color: #2196F3; }
 
-        /* ===== Cloudflare tab specific styles ===== */
+        /* Cloudflare tab specific styles */
         .cf-status {
             margin: 12px 0;
             font-size: 0.9rem;
@@ -341,6 +342,8 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="/assets/js/zip-to-post.js"></script>
+    <script src="/assets/js/cloudflare-upload.js"></script>
 </head>
 <body>
 <div class="container">
@@ -351,7 +354,7 @@
         <button class="tab-button" data-tab="cloudflare">☁️ Upload to Cloudflare</button>
     </div>
 
-    <!-- ========== Subscribestar / Patreon Tab ========== -->
+    <!-- Subscribestar / Patreon Tab -->
     <div id="subscribestar" class="tab-content active">
         <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
         <div class="upload-area" id="dropZone">
@@ -394,7 +397,7 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- ========== Bluesky Composer Tab ========== -->
+    <!-- Bluesky Composer Tab -->
     <div id="bluesky" class="tab-content">
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (syncs to both accounts)</label>
@@ -417,7 +420,7 @@
         <div class="footer">🖼️ Images are stored locally. Click "Post to Bluesky" to send via worker.</div>
     </div>
 
-    <!-- ========== Cloudflare Upload Tab ========== -->
+    <!-- Cloudflare Upload Tab -->
     <div id="cloudflare" class="tab-content">
         <div class="upload-area" id="cfDropzone">
             <input type="file" id="cfFileInput" accept=".zip">
@@ -436,7 +439,7 @@
 </div>
 
 <script>
-    // ========== GLOBAL TOAST FUNCTION (for Subscribestar & Bluesky) ==========
+    // ========== GLOBAL TOAST FUNCTION (for Bluesky) ==========
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
@@ -444,123 +447,6 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
-
-    // ========== SUBSCRIBESTAR / PATREON FUNCTIONALITY (zip-to-post.js) ==========
-    // Inline version of zip-to-post.js (simplified for clarity – adapt if needed)
-    (function() {
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const subscriberOutput = document.getElementById('subscriberOutput');
-        const publicOutput = document.getElementById('publicOutput');
-        const patreonSubOutput = document.getElementById('patreonSubOutput');
-        const patreonPublicOutput = document.getElementById('patreonPublicOutput');
-        const pixivOutput = document.getElementById('pixivOutput');
-        const filenameHint = document.getElementById('filenameHint');
-
-        if (!dropZone || !fileInput) return;
-
-        // Helper: copy buttons
-        document.querySelectorAll('.copy-btn').forEach(btn => {
-            const targetId = btn.getAttribute('data-copy');
-            if (targetId) {
-                btn.addEventListener('click', () => {
-                    const textarea = document.getElementById(targetId);
-                    if (textarea) {
-                        textarea.select();
-                        textarea.setSelectionRange(0, 99999);
-                        document.execCommand('copy');
-                        showToast('📋 Copied to clipboard!', 'success');
-                    }
-                });
-            }
-        });
-
-        function cleanFilename(rawName) {
-            let name = rawName.replace(/\.zip$/i, '');
-            name = name.replace(/\s*\(\d+\)\s*$/, '');
-            return name.trim();
-        }
-        function parseFilename(filename) {
-            const base = cleanFilename(filename);
-            const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
-            const match = base.match(regex);
-            if (!match) return null;
-            return {
-                pack: match[1],
-                character: match[2].trim(),
-                series: match[3].trim().toUpperCase()
-            };
-        }
-
-        async function handleFile(file) {
-            if (!file.name.toLowerCase().endsWith('.zip')) {
-                showToast('❌ Please select a .zip file', 'error');
-                return;
-            }
-            filenameHint.textContent = `Processing: ${file.name}`;
-            subscriberOutput.value = 'Reading zip...';
-            publicOutput.value = 'Reading zip...';
-            patreonSubOutput.value = 'Reading zip...';
-            patreonPublicOutput.value = 'Reading zip...';
-            if (pixivOutput) pixivOutput.value = 'Reading zip...';
-
-            const parsed = parseFilename(file.name);
-            if (!parsed) {
-                const errMsg = '❌ Filename format not recognized.\nExpected: [Pack 123] Name - SERIES.zip\n(Optional (number) suffix is ignored)';
-                subscriberOutput.value = errMsg;
-                publicOutput.value = errMsg;
-                patreonSubOutput.value = errMsg;
-                patreonPublicOutput.value = errMsg;
-                if (pixivOutput) pixivOutput.value = errMsg;
-                filenameHint.textContent = 'Error: invalid filename format';
-                showToast('Invalid filename format', 'error');
-                return;
-            }
-
-            const { series, character, pack } = parsed;
-
-            try {
-                const zip = await JSZip.loadAsync(file);
-                let fileCount = 0;
-                zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
-
-                subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
-                publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
-                patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
-                patreonPublicOutput.value = `Preview: ${character} — ${series} — Pack ${pack}\n\nTotal Set Size: ${fileCount} High-Res Images\n\n🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
-                const packId = null; // simplified – you can implement pack-data lookup if needed
-                const link = packId ? `https://velutinx.com/s/pack?id=${packId}` : 'https://velutinx.com/store';
-                const pixivText = `${character} - ${series}\n全${fileCount}枚 / Full set: ${fileCount} images\n${link}\n\n📌 もっと私の作品を見たい方はこちら ♡  \nFind more of my work & social links:  \n🔗 https://velutinx.com/\n\n免責事項：本イラストに登場するキャラクターは、18歳以上として描写されています。  \nDisclaimer: This illustration depicts a fictional character who is portrayed as being 18 years of age or older.`;
-                if (pixivOutput) pixivOutput.value = pixivText;
-
-                filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
-                showToast(`✅ Processed ${fileCount} images`, 'success');
-            } catch (err) {
-                console.error(err);
-                subscriberOutput.value = '❌ Error reading zip file.';
-                publicOutput.value = '❌ Error reading zip file.';
-                patreonSubOutput.value = '❌ Error reading zip file.';
-                patreonPublicOutput.value = '❌ Error reading zip file.';
-                if (pixivOutput) pixivOutput.value = '❌ Error reading zip file.';
-                filenameHint.textContent = 'Error: could not read zip contents.';
-                showToast('❌ Failed to read zip file', 'error');
-            }
-        }
-
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#5a6e3c'; });
-        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = '#3a4050'; });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#3a4050';
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
-        });
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) handleFile(e.target.files[0]);
-            fileInput.value = '';
-        });
-    })();
 
     // ========== BLUESKY TAB FUNCTIONALITY ==========
     (function() {
@@ -732,312 +618,21 @@
         });
     })();
 
-    // ========== CLOUDFLARE UPLOADER (inline, classic script) ==========
-    (function() {
-        const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
-
-        // Toast container for Cloudflare tab
-        let cfToastContainer = null;
-        function cfShowToast(message, type = 'success') {
-            if (!cfToastContainer) {
-                cfToastContainer = document.createElement('div');
-                cfToastContainer.className = 'cf-toast-container';
-                document.body.appendChild(cfToastContainer);
-            }
-            const toast = document.createElement('div');
-            toast.className = `cf-toast ${type}`;
-            toast.textContent = message;
-            cfToastContainer.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(20px)';
-                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 200);
-            }, 2500);
-        }
-
-        // Helper functions
-        function cleanFilename(rawName) {
-            let name = rawName.replace(/\.zip$/i, '');
-            name = name.replace(/\s*\(\d+\)\s*$/, '');
-            return name.trim();
-        }
-        function parseFilename(filename) {
-            const base = cleanFilename(filename);
-            const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
-            const match = base.match(regex);
-            if (!match) return null;
-            return {
-                pack: match[1],
-                character: match[2].trim(),
-                series: match[3].trim().toUpperCase()
-            };
-        }
-        function extractNumber(filename) {
-            const match = filename.match(/\d+/);
-            return match ? parseInt(match[0], 10) : Infinity;
-        }
-
-        // DOM elements
-        const dropzone = document.getElementById('cfDropzone');
-        const fileInput = document.getElementById('cfFileInput');
-        const statusDiv = document.getElementById('cfStatus');
-        const originalGrid = document.getElementById('cfOriginalGrid');
-        const selectedGrid = document.getElementById('cfSelectedGrid');
-        const downloadBtn = document.getElementById('cfDownloadBtn');
-
-        if (!dropzone || !fileInput || !statusDiv || !originalGrid || !selectedGrid || !downloadBtn) {
-            console.error('Cloudflare uploader: missing required DOM elements');
-            return;
-        }
-
-        let allImages = [];
-        let selectedIndices = new Set();
-        let selectedOrder = [];
-        let packNumber = null;
-        let sortable = null;
-
-        function revokeAllURLs() {
-            allImages.forEach(img => { if (img.url) URL.revokeObjectURL(img.url); });
-        }
-
-        function renderOriginal() {
-            originalGrid.innerHTML = '';
-            const toShow = allImages.slice(0, 10);
-            toShow.forEach((img, idx) => {
-                const isSelected = selectedIndices.has(idx);
-                const thumb = document.createElement('img');
-                thumb.className = 'cf-thumbnail';
-                thumb.src = img.url;
-                thumb.title = img.originalName;
-                thumb.style.border = isSelected ? '3px solid #2c6e2c' : '2px solid transparent';
-                thumb.onclick = () => toggleSelection(idx);
-                originalGrid.appendChild(thumb);
+    // ========== CLOUDFLARE UPLOADER INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.initCloudflareUploader === 'function') {
+            window.initCloudflareUploader({
+                dropzone: 'cfDropzone',
+                fileInput: 'cfFileInput',
+                status: 'cfStatus',
+                originalGrid: 'cfOriginalGrid',
+                selectedGrid: 'cfSelectedGrid',
+                downloadBtn: 'cfDownloadBtn'
             });
+        } else {
+            console.error('initCloudflareUploader not found. Make sure cloudflare-upload.js is loaded.');
         }
-
-        function renderSelected() {
-            selectedGrid.innerHTML = '';
-            for (let idx of selectedOrder) {
-                const img = allImages[idx];
-                if (!img) continue;
-                const wrapper = document.createElement('div');
-                wrapper.className = 'cf-selected-item';
-                wrapper.dataset.index = idx;
-                const thumb = document.createElement('img');
-                thumb.className = 'cf-selected-thumb';
-                thumb.src = img.url;
-                thumb.title = img.originalName;
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'cf-remove-btn';
-                removeBtn.textContent = '✕';
-                removeBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    removeFromSelection(idx);
-                };
-                wrapper.appendChild(thumb);
-                wrapper.appendChild(removeBtn);
-                selectedGrid.appendChild(wrapper);
-            }
-            if (sortable) sortable.destroy();
-            sortable = new Sortable(selectedGrid, {
-                animation: 150,
-                onEnd: () => {
-                    const newOrder = [];
-                    Array.from(selectedGrid.children).forEach(child => {
-                        const idx = parseInt(child.dataset.index, 10);
-                        if (!isNaN(idx)) newOrder.push(idx);
-                    });
-                    selectedOrder = newOrder;
-                }
-            });
-        }
-
-        function toggleSelection(idx) {
-            if (selectedIndices.has(idx)) {
-                selectedIndices.delete(idx);
-                const pos = selectedOrder.indexOf(idx);
-                if (pos !== -1) selectedOrder.splice(pos, 1);
-            } else {
-                selectedIndices.add(idx);
-                selectedOrder.push(idx);
-            }
-            renderOriginal();
-            renderSelected();
-        }
-
-        function removeFromSelection(idx) {
-            if (selectedIndices.has(idx)) {
-                selectedIndices.delete(idx);
-                const pos = selectedOrder.indexOf(idx);
-                if (pos !== -1) selectedOrder.splice(pos, 1);
-                renderOriginal();
-                renderSelected();
-            }
-        }
-
-        async function processZip(file) {
-            statusDiv.textContent = '📂 Reading ZIP...';
-            try {
-                const zip = await JSZip.loadAsync(file);
-                const imageEntries = [];
-                zip.forEach((path, entry) => {
-                    if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
-                        imageEntries.push(entry);
-                    }
-                });
-                if (imageEntries.length === 0) {
-                    statusDiv.textContent = '❌ No images found in ZIP.';
-                    cfShowToast('No images found', 'error');
-                    return;
-                }
-                const parsed = parseFilename(file.name);
-                if (!parsed) {
-                    statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
-                    cfShowToast('Invalid filename format', 'error');
-                    return;
-                }
-                packNumber = parsed.pack;
-                statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 10... (Pack #${packNumber})`;
-                imageEntries.sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
-                const firstTen = imageEntries.slice(0, 10);
-                revokeAllURLs();
-                allImages = [];
-                selectedIndices.clear();
-                selectedOrder = [];
-                for (let i = 0; i < firstTen.length; i++) {
-                    const entry = firstTen[i];
-                    const blob = await entry.async('blob');
-                    const url = URL.createObjectURL(blob);
-                    allImages.push({
-                        blob,
-                        url,
-                        name: entry.name,
-                        originalName: entry.name
-                    });
-                }
-                renderOriginal();
-                renderSelected();
-                statusDiv.textContent = `✅ Loaded ${allImages.length} images. Click to select, drag to reorder.`;
-                cfShowToast(`ZIP loaded. Pack #${packNumber}`, 'success');
-            } catch (err) {
-                console.error(err);
-                statusDiv.textContent = '❌ Error reading ZIP file.';
-                cfShowToast('Failed to read ZIP', 'error');
-            }
-        }
-
-        async function uploadSelectedToR2() {
-            if (!packNumber) {
-                cfShowToast('Pack number missing – please load a valid ZIP first', 'error');
-                return false;
-            }
-            if (selectedOrder.length === 0) {
-                cfShowToast('No images selected to upload', 'error');
-                return false;
-            }
-            const formData = new FormData();
-            formData.append('packNumber', packNumber);
-            for (let i = 0; i < selectedOrder.length; i++) {
-                const idx = selectedOrder[i];
-                const img = allImages[idx];
-                if (img) {
-                    const file = new File([img.blob], img.originalName, { type: img.blob.type });
-                    formData.append('images', file);
-                }
-            }
-            cfShowToast('📡 Uploading to Cloudflare...', 'info');
-            try {
-                const res = await fetch(UPLOAD_WORKER_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    cfShowToast(`✅ Uploaded ${data.urls.length} images to /i/`, 'success');
-                    console.log('Uploaded URLs:', data.urls);
-                    return true;
-                } else {
-                    throw new Error(data.error || 'Upload failed');
-                }
-            } catch (err) {
-                console.error('Upload error:', err);
-                cfShowToast(`❌ Upload failed: ${err.message}`, 'error');
-                return false;
-            }
-        }
-
-        async function downloadSelectedLocally() {
-            if (!packNumber) {
-                cfShowToast('Pack number missing – please load a valid ZIP first', 'error');
-                return false;
-            }
-            if (selectedOrder.length === 0) {
-                cfShowToast('No images selected to download', 'error');
-                return false;
-            }
-            let successCount = 0;
-            for (let i = 0; i < selectedOrder.length; i++) {
-                const idx = selectedOrder[i];
-                const img = allImages[idx];
-                if (!img) continue;
-                const ext = img.originalName.split('.').pop().toLowerCase();
-                const newName = `pack${packNumber}-${i+1}.${ext}`;
-                const a = document.createElement('a');
-                a.href = img.url;
-                a.download = newName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                successCount++;
-                await new Promise(r => setTimeout(r, 100));
-            }
-            cfShowToast(`📥 Downloaded ${successCount} file(s)`, 'success');
-            statusDiv.textContent = `✅ ${successCount} files downloaded.`;
-            return true;
-        }
-
-        async function handleAction() {
-            if (!packNumber) {
-                cfShowToast('Please load a ZIP file first', 'error');
-                return;
-            }
-            if (selectedOrder.length === 0) {
-                cfShowToast('No images selected', 'error');
-                return;
-            }
-            const downloadPromise = downloadSelectedLocally();
-            const uploadPromise = uploadSelectedToR2();
-            await Promise.allSettled([downloadPromise, uploadPromise]);
-        }
-
-        // Event listeners
-        dropzone.addEventListener('click', () => fileInput.click());
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.style.borderColor = '#5a6e3c';
-        });
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.style.borderColor = '#3a4050';
-        });
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.style.borderColor = '#3a4050';
-            const file = e.dataTransfer.files[0];
-            if (file && file.name.toLowerCase().endsWith('.zip')) {
-                processZip(file);
-            } else {
-                cfShowToast('Please drop a .zip file', 'error');
-            }
-        });
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) {
-                processZip(e.target.files[0]);
-                fileInput.value = '';
-            }
-        });
-        downloadBtn.addEventListener('click', handleAction);
-    })();
+    });
 </script>
 </body>
 </html>
