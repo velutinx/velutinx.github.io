@@ -478,221 +478,254 @@
         return segments.map(s => `#${s}`).join(' ');
     }
 
-    // ========== BLUESKY TAB FUNCTIONALITY ==========
-    (function() {
-        // tab switching
-        const tabBtns = document.querySelectorAll('.tab-button');
-        const tabs = document.querySelectorAll('.tab-content');
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = btn.dataset.tab;
-                tabBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                tabs.forEach(t => t.classList.remove('active'));
-                document.getElementById(id).classList.add('active');
-            });
+// ========== BLUESKY TAB FUNCTIONALITY ==========
+(function() {
+    // tab switching (unchanged)
+    const tabBtns = document.querySelectorAll('.tab-button');
+    const tabs = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.tab;
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            tabs.forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         });
+    });
 
-        // Elements
-        const master = document.getElementById('masterPost');
-        const post1 = document.getElementById('post1');
-        const post2 = document.getElementById('post2');
-        const transformBtn = document.getElementById('transformBtn');
+    // DOM elements
+    const master = document.getElementById('masterPost');
+    const post1 = document.getElementById('post1');
+    const post2 = document.getElementById('post2');
 
-        // Transform function
-        function transformAndSync() {
-            let content = master.value;
-            if (!content.trim()) {
-                showToast('Master post is empty', 'error');
-                return;
+    // Helper: convert concatenated words into hashtags, removing spaces inside each segment
+    function textToHashtags(text) {
+        // Split on transitions between Latin/ASCII and non‑Latin (CJK, Katakana, etc.)
+        // Example: "FateGrandOrderクロエ・フォン・アインツベルンChloe Von EinzbernクロエChloe"
+        // becomes ["FateGrandOrder", "クロエ・フォン・アインツベルン", "Chloe Von Einzbern", "クロエ", "Chloe"]
+        const segments = [];
+        let current = '';
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            const isLatin = /[a-zA-Z0-9]/.test(ch);  // letters and numbers only, spaces are not included
+            const isSpace = /\s/.test(ch);
+            if (i === 0) {
+                current += ch;
+                continue;
             }
-
-            // Split into lines
-            let lines = content.split(/\r?\n/);
-            // Remove the disclaimer lines (both Japanese and English)
-            lines = lines.filter(line => {
-                const lower = line.toLowerCase();
-                return !lower.includes('免責事項') && !lower.includes('disclaimer:');
-            });
-            // Trim empty lines at the end
-            while (lines.length && lines[lines.length-1].trim() === '') lines.pop();
-
-            if (lines.length === 0) {
-                showToast('No content left after removing disclaimer', 'error');
-                return;
+            const prevIsLatin = /[a-zA-Z0-9]/.test(text[i-1]);
+            // boundary when switching between Latin and non-Latin, ignoring spaces
+            if (isLatin !== prevIsLatin && !isSpace) {
+                if (current.trim()) segments.push(current.trim());
+                current = ch;
+            } else {
+                current += ch;
             }
+        }
+        if (current.trim()) segments.push(current.trim());
 
-            // The last line contains the concatenated words
-            let lastLine = lines.pop() || '';
-            // Convert last line to hashtags
-            const hashtags = textToHashtags(lastLine);
-            // Rebuild the final text: all previous lines + hashtag line
-            let finalText = lines.join('\n');
-            if (finalText && !finalText.endsWith('\n')) finalText += '\n';
-            finalText += hashtags;
+        // Remove spaces inside each segment and then prepend '#'
+        return segments.map(seg => {
+            let cleaned = seg.replace(/\s+/g, '');  // remove all spaces
+            return `#${cleaned}`;
+        }).join(' ');
+    }
 
-            // Set both account posts
-            post1.value = finalText;
-            post2.value = finalText;
-            showToast('Transformed and synced to both accounts', 'success');
+    // Transform master content into final post text
+    function transformMaster() {
+        let content = master.value;
+        if (!content.trim()) {
+            post1.value = '';
+            post2.value = '';
+            return;
         }
 
-        if (transformBtn) {
-            transformBtn.addEventListener('click', transformAndSync);
-        } else {
-            console.warn("Transform button not found");
+        // Split into lines
+        let lines = content.split(/\r?\n/);
+        // Remove the disclaimer lines (both Japanese and English)
+        lines = lines.filter(line => {
+            const lower = line.toLowerCase();
+            return !lower.includes('免責事項') && !lower.includes('disclaimer:');
+        });
+        // Trim empty lines at the end
+        while (lines.length && lines[lines.length-1].trim() === '') lines.pop();
+
+        if (lines.length === 0) {
+            post1.value = '';
+            post2.value = '';
+            return;
         }
 
-        // Optional: keep manual sync for master post changes (if user wants to copy without transform)
-        // But we'll keep the button as the primary method.
+        // The last line contains the concatenated words
+        let lastLine = lines.pop() || '';
+        // Convert last line to hashtags
+        const hashtags = textToHashtags(lastLine);
+        // Rebuild the final text: all previous lines + hashtag line
+        let finalText = lines.join('\n');
+        if (finalText && !finalText.endsWith('\n')) finalText += '\n';
+        finalText += hashtags;
 
-        // Image storage per account (unchanged)
-        window.accountImages = { 1: [], 2: [] };
+        // Set both account posts
+        post1.value = finalText;
+        post2.value = finalText;
+    }
 
-        function renderThumbnails(acc) {
-            const container = document.querySelector(`.thumbnail-container[data-account="${acc}"]`);
-            if (!container) return;
-            const files = window.accountImages[acc];
-            container.innerHTML = '';
-            files.forEach((file, idx) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const div = document.createElement('div');
-                    div.className = 'thumbnail-item';
-                    div.draggable = true;
-                    div.dataset.index = idx;
-                    div.dataset.account = acc;
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    div.appendChild(img);
-                    const rm = document.createElement('button');
-                    rm.className = 'remove-btn';
-                    rm.textContent = '✕';
-                    rm.onclick = (ev) => {
-                        ev.stopPropagation();
-                        window.accountImages[acc].splice(idx, 1);
-                        renderThumbnails(acc);
-                        showToast('Image removed', 'info');
-                    };
-                    div.appendChild(rm);
-                    div.addEventListener('dragstart', handleDragStart);
-                    div.addEventListener('dragover', (e) => e.preventDefault());
-                    div.addEventListener('drop', handleDrop);
-                    div.addEventListener('dragend', () => div.classList.remove('dragging'));
-                    container.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+    // Attach event listener to master post (input event for live sync)
+    if (master) {
+        master.addEventListener('input', transformMaster);
+        // Run once in case there's pre‑filled content
+        transformMaster();
+    } else {
+        console.warn("Master post element not found");
+    }
 
-        let dragSource = null;
-        function handleDragStart(e) {
-            dragSource = e.target.closest('.thumbnail-item');
-            if(!dragSource) return;
-            e.dataTransfer.setData('text/plain', '');
-            dragSource.classList.add('dragging');
-        }
-        function handleDrop(e) {
-            e.preventDefault();
-            const target = e.target.closest('.thumbnail-item');
-            if(!target || !dragSource || target === dragSource) return;
-            const srcAcc = dragSource.dataset.account;
-            const tgtAcc = target.dataset.account;
-            if(srcAcc !== tgtAcc) return;
-            const container = target.parentNode;
-            const items = [...container.querySelectorAll('.thumbnail-item')];
-            const srcIdx = items.indexOf(dragSource);
-            const tgtIdx = items.indexOf(target);
-            const files = window.accountImages[srcAcc];
-            const [moved] = files.splice(srcIdx, 1);
-            files.splice(tgtIdx, 0, moved);
-            renderThumbnails(srcAcc);
-            showToast('Order updated', 'info');
-        }
+    // Image storage per account (unchanged)
+    window.accountImages = { 1: [], 2: [] };
 
-        // dropzone listeners
-        document.querySelectorAll('.dropzone').forEach(dz => {
-            const acc = dz.dataset.account;
-            dz.addEventListener('click', () => {
-                const inp = document.createElement('input');
-                inp.type = 'file';
-                inp.multiple = true;
-                inp.accept = 'image/*';
-                inp.onchange = () => {
-                    if(inp.files.length) {
-                        window.accountImages[acc].push(...Array.from(inp.files));
-                        renderThumbnails(acc);
-                        showToast(`+${inp.files.length} images added`, 'success');
-                    }
-                };
-                inp.click();
-            });
-            dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
-            dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
-            dz.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dz.style.borderColor = '#3a4050';
-                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                if(files.length) {
-                    window.accountImages[acc].push(...files);
+    function renderThumbnails(acc) {
+        const container = document.querySelector(`.thumbnail-container[data-account="${acc}"]`);
+        if (!container) return;
+        const files = window.accountImages[acc];
+        container.innerHTML = '';
+        files.forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const div = document.createElement('div');
+                div.className = 'thumbnail-item';
+                div.draggable = true;
+                div.dataset.index = idx;
+                div.dataset.account = acc;
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                div.appendChild(img);
+                const rm = document.createElement('button');
+                rm.className = 'remove-btn';
+                rm.textContent = '✕';
+                rm.onclick = (ev) => {
+                    ev.stopPropagation();
+                    window.accountImages[acc].splice(idx, 1);
                     renderThumbnails(acc);
-                    showToast(`${files.length} dropped`, 'success');
-                }
-            });
+                    showToast('Image removed', 'info');
+                };
+                div.appendChild(rm);
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragover', (e) => e.preventDefault());
+                div.addEventListener('drop', handleDrop);
+                div.addEventListener('dragend', () => div.classList.remove('dragging'));
+                container.appendChild(div);
+            };
+            reader.readAsDataURL(file);
         });
+    }
 
-        window.renderThumbnails = renderThumbnails;
+    let dragSource = null;
+    function handleDragStart(e) {
+        dragSource = e.target.closest('.thumbnail-item');
+        if(!dragSource) return;
+        e.dataTransfer.setData('text/plain', '');
+        dragSource.classList.add('dragging');
+    }
+    function handleDrop(e) {
+        e.preventDefault();
+        const target = e.target.closest('.thumbnail-item');
+        if(!target || !dragSource || target === dragSource) return;
+        const srcAcc = dragSource.dataset.account;
+        const tgtAcc = target.dataset.account;
+        if(srcAcc !== tgtAcc) return;
+        const container = target.parentNode;
+        const items = [...container.querySelectorAll('.thumbnail-item')];
+        const srcIdx = items.indexOf(dragSource);
+        const tgtIdx = items.indexOf(target);
+        const files = window.accountImages[srcAcc];
+        const [moved] = files.splice(srcIdx, 1);
+        files.splice(tgtIdx, 0, moved);
+        renderThumbnails(srcAcc);
+        showToast('Order updated', 'info');
+    }
 
-        async function postToBluesky(accountId) {
-            const postEl = document.getElementById(`post${accountId}`);
-            if (!postEl) return;
-            const text = postEl.value.trim();
-            const images = window.accountImages[accountId] || [];
-            if(!text && images.length === 0) { showToast('Add text or image first', 'error'); return; }
-            let statusDiv = document.getElementById(`post-status-${accountId}`);
-            if (!statusDiv) {
-                statusDiv = document.createElement('div');
-                statusDiv.id = `post-status-${accountId}`;
-                statusDiv.style.marginTop = '8px';
-                statusDiv.style.fontSize = '12px';
-                postEl.parentNode.appendChild(statusDiv);
-            }
-            statusDiv.textContent = '⏳ Posting...';
-            statusDiv.style.color = '#aaa';
-            try {
-                const fd = new FormData();
-                fd.append('account', accountId);
-                fd.append('text', text);
-                images.forEach(img => fd.append('image', img));
-                const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', { method: 'POST', body: fd });
-                const data = await res.json();
-                if(res.ok) {
-                    statusDiv.textContent = '✅ Posted!';
-                    statusDiv.style.color = '#4caf50';
-                    showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
-                    window.accountImages[accountId] = [];
-                    renderThumbnails(accountId);
-                    setTimeout(() => statusDiv.textContent = '', 2500);
-                } else {
-                    statusDiv.textContent = `❌ ${data.error || 'failed'}`;
-                    showToast(`Error: ${data.error || 'server error'}`, 'error');
+    // dropzone listeners (unchanged)
+    document.querySelectorAll('.dropzone').forEach(dz => {
+        const acc = dz.dataset.account;
+        dz.addEventListener('click', () => {
+            const inp = document.createElement('input');
+            inp.type = 'file';
+            inp.multiple = true;
+            inp.accept = 'image/*';
+            inp.onchange = () => {
+                if(inp.files.length) {
+                    window.accountImages[acc].push(...Array.from(inp.files));
+                    renderThumbnails(acc);
+                    showToast(`+${inp.files.length} images added`, 'success');
                 }
-            } catch(err) {
-                statusDiv.textContent = `❌ ${err.message}`;
-                showToast(`Network error: ${err.message}`, 'error');
+            };
+            inp.click();
+        });
+        dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
+        dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
+        dz.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dz.style.borderColor = '#3a4050';
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            if(files.length) {
+                window.accountImages[acc].push(...files);
+                renderThumbnails(acc);
+                showToast(`${files.length} dropped`, 'success');
             }
+        });
+    });
+
+    window.renderThumbnails = renderThumbnails;
+
+    async function postToBluesky(accountId) {
+        const postEl = document.getElementById(`post${accountId}`);
+        if (!postEl) return;
+        const text = postEl.value.trim();
+        const images = window.accountImages[accountId] || [];
+        if(!text && images.length === 0) { showToast('Add text or image first', 'error'); return; }
+        let statusDiv = document.getElementById(`post-status-${accountId}`);
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            statusDiv.id = `post-status-${accountId}`;
+            statusDiv.style.marginTop = '8px';
+            statusDiv.style.fontSize = '12px';
+            postEl.parentNode.appendChild(statusDiv);
         }
+        statusDiv.textContent = '⏳ Posting...';
+        statusDiv.style.color = '#aaa';
+        try {
+            const fd = new FormData();
+            fd.append('account', accountId);
+            fd.append('text', text);
+            images.forEach(img => fd.append('image', img));
+            const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', { method: 'POST', body: fd });
+            const data = await res.json();
+            if(res.ok) {
+                statusDiv.textContent = '✅ Posted!';
+                statusDiv.style.color = '#4caf50';
+                showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+                window.accountImages[accountId] = [];
+                renderThumbnails(accountId);
+                setTimeout(() => statusDiv.textContent = '', 2500);
+            } else {
+                statusDiv.textContent = `❌ ${data.error || 'failed'}`;
+                showToast(`Error: ${data.error || 'server error'}`, 'error');
+            }
+        } catch(err) {
+            statusDiv.textContent = `❌ ${err.message}`;
+            showToast(`Network error: ${err.message}`, 'error');
+        }
+    }
 
-        // add post buttons to each account card
-        document.querySelectorAll('.account-card').forEach(card => {
-            const acc = card.dataset.account;
-            const btn = document.createElement('button');
-            btn.textContent = '🚀 Post to Bluesky';
-            btn.style.cssText = 'margin-top:16px; width:100%; padding:8px; background:#2c6e2c; border:none; border-radius:30px; color:white; cursor:pointer; font-weight:500;';
-            btn.onclick = () => postToBluesky(acc);
-            card.appendChild(btn);
-        });
-    })();
+    // add post buttons to each account card
+    document.querySelectorAll('.account-card').forEach(card => {
+        const acc = card.dataset.account;
+        const btn = document.createElement('button');
+        btn.textContent = '🚀 Post to Bluesky';
+        btn.style.cssText = 'margin-top:16px; width:100%; padding:8px; background:#2c6e2c; border:none; border-radius:30px; color:white; cursor:pointer; font-weight:500;';
+        btn.onclick = () => postToBluesky(acc);
+        card.appendChild(btn);
+    });
+})();
 
     // ========== CLOUDFLARE UPLOADER INITIALIZATION ==========
     document.addEventListener('DOMContentLoaded', function() {
