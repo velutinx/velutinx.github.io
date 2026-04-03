@@ -505,7 +505,6 @@
 
     <!-- Subscribestar / Patreon Tab -->
     <div id="subscribestar" class="tab-content active">
-        <!-- ... (unchanged) ... -->
         <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
         <div class="upload-area" id="dropZone">
             <input type="file" id="fileInput" accept=".zip">
@@ -632,9 +631,10 @@
             </div>
         </div>
     </div>
+</div>
 
 <script>
-    // ========== GLOBAL TOAST FUNCTION (for Bluesky and others) ==========
+    // ========== GLOBAL TOAST FUNCTION ==========
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
@@ -689,7 +689,7 @@
             });
         });
 
-        // Bluesky specific code (unchanged)
+        // Bluesky specific code
         const master = document.getElementById('masterPost');
         const post1 = document.getElementById('post1');
         const post2 = document.getElementById('post2');
@@ -882,6 +882,7 @@
 
     // ========== PACK MANAGER (Offline-First with Sorting) ==========
     (function() {
+        // Wait for DOM to be ready
         const container = document.getElementById('packmanager');
         if (!container) return;
 
@@ -900,9 +901,9 @@
 
         let remoteReachable = false;
         let pendingSync = false;
-        let currentPacks = [];               // store current pack array
+        let currentPacks = [];
         let sortColumn = null;
-        let sortDirection = 'asc';           // 'asc' or 'desc'
+        let sortDirection = 'asc';
 
         function pmShowToast(message, type = 'success') {
             showToast(`[Pack Manager] ${message}`, type);
@@ -996,7 +997,6 @@
             });
         }
 
-        // Sorting function
         function sortPacks(packs, column, direction) {
             const sorted = [...packs];
             sorted.sort((a, b) => {
@@ -1041,7 +1041,7 @@
             currentPacks = packs;
             const sorted = sortPacks(packs, sortColumn, sortDirection);
             if (!sorted.length) {
-                pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
+                pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.您</td></tr>';
                 return;
             }
             pmTableBody.innerHTML = sorted.map(pack => {
@@ -1079,7 +1079,6 @@
             renderTable(currentPacks);
         }
 
-        // Add click handlers to table headers
         function bindSortHandlers() {
             const headers = ['id', 'title', 'category', 'price', 'illustrations', 'download'];
             headers.forEach(col => {
@@ -1091,7 +1090,7 @@
         }
 
         async function loadAllPacks() {
-            pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...<\/tr>';
+            pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>';
             try {
                 const remotePacks = await fetchRemotePacks();
                 remoteReachable = true;
@@ -1298,195 +1297,12 @@
 
         bindSortHandlers();
 
+        // Initialise
         (async function init() {
             await checkRemoteHealth();
             await loadAllPacks();
             if (!remoteReachable) addOfflineWarning();
         })();
-    })();
-
-        function addOfflineWarning() {
-            if (document.querySelector('#pm-warning-banner')) return;
-            const tableSection = document.querySelector('#packmanager .pm-table-section');
-            const warnDiv = document.createElement('div');
-            warnDiv.id = 'pm-warning-banner';
-            warnDiv.className = 'pm-warning-banner';
-            warnDiv.innerHTML = `
-                <span>⚠️ <strong>Offline mode active</strong> — Changes are saved locally. Click "Sync to Cloud" when connection restores.</span>
-                <button class="pm-small-retry" id="pm-retryConnectionBtn">⟳ Retry Connection</button>
-            `;
-            tableSection.insertBefore(warnDiv, tableSection.firstChild);
-            document.getElementById('pm-retryConnectionBtn')?.addEventListener('click', async () => {
-                pmShowToast("Checking connection...", "info");
-                const ok = await checkRemoteHealth();
-                if (ok) {
-                    pmShowToast("✅ Cloud reachable! Syncing local data...", "success");
-                    await syncAllLocalToRemote();
-                    await loadAllPacks();
-                    document.getElementById('pm-warning-banner')?.remove();
-                } else {
-                    pmShowToast("❌ Still offline. Try again later.", "error");
-                }
-            });
-        }
-        function removeOfflineWarning() {
-            document.getElementById('pm-warning-banner')?.remove();
-        }
-
-        async function syncAllLocalToRemote() {
-            const localPacks = getLocalPacks();
-            if (localPacks.length === 0) {
-                pmShowToast("Nothing to sync", "success");
-                return true;
-            }
-            if (!remoteReachable) {
-                const isOnline = await checkRemoteHealth();
-                if (!isOnline) {
-                    pmShowToast("Cannot sync: cloud unreachable. Retry later.", "error");
-                    return false;
-                }
-            }
-            pendingSync = true;
-            let successCount = 0, failCount = 0;
-            for (const pack of localPacks) {
-                try {
-                    await postPackToRemote(pack);
-                    successCount++;
-                } catch (err) {
-                    console.error(`Sync failed for ${pack.id}:`, err);
-                    failCount++;
-                }
-            }
-            pendingSync = false;
-            if (failCount === 0) {
-                pmShowToast(`✅ Synced ${successCount} packs to cloud`, 'success');
-                await loadAllPacks();
-                removeOfflineWarning();
-                remoteReachable = true;
-                updateConnectionUI(true);
-            } else {
-                pmShowToast(`⚠️ Synced ${successCount} packs, ${failCount} failed. Retry later.`, 'error');
-            }
-            return failCount === 0;
-        }
-
-        // Process ZIP
-        function cleanFilename(rawName) {
-            let name = rawName.replace(/\.zip$/i, '');
-            name = name.replace(/\s*\(\d+\)\s*$/, '');
-            return name.trim();
-        }
-        function parseFilename(filename) {
-            const base = cleanFilename(filename);
-            const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
-            const match = base.match(regex);
-            if (!match) return null;
-            return { pack: match[1], character: match[2].trim(), series: match[3].trim().toUpperCase() };
-        }
-        async function storePackWithFallback(packEntry) {
-            if (remoteReachable) {
-                try {
-                    const result = await postPackToRemote(packEntry);
-                    upsertLocalPack(packEntry);
-                    pmShowToast(`☁️ Pack #${packEntry.id} saved to cloud`, 'success');
-                    return { success: true, source: 'remote', result };
-                } catch (err) {
-                    console.warn("Remote store failed, switching to local fallback:", err);
-                    remoteReachable = false;
-                    updateConnectionUI(false);
-                    addOfflineWarning();
-                }
-            }
-            upsertLocalPack(packEntry);
-            pmShowToast(`💾 Pack #${packEntry.id} saved to LOCAL storage (cloud offline)`, 'success');
-            return { success: true, source: 'local' };
-        }
-        async function processZip(file) {
-            pmStatus.textContent = '📂 Reading ZIP...';
-            try {
-                const zip = await JSZip.loadAsync(file);
-                const imageEntries = [];
-                zip.forEach((path, entry) => {
-                    if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) imageEntries.push(entry);
-                });
-                if (imageEntries.length === 0) {
-                    pmStatus.textContent = '❌ No images found in ZIP.';
-                    pmShowToast('No images found', 'error');
-                    return;
-                }
-                const parsed = parseFilename(file.name);
-                if (!parsed) {
-                    pmStatus.textContent = '❌ Filename does not match [Pack XXX] ... format.';
-                    pmShowToast('Invalid filename format: expected [Pack 001] Name - Series', 'error');
-                    return;
-                }
-                const packNumber = parsed.pack;
-                const illustrationCount = imageEntries.length;
-                const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
-                const isFemale = pmCategoryToggle.checked;
-                const category = isFemale ? 1 : 2;
-                const title = cleanFilename(file.name);
-                const id = String(packNumber).padStart(3, '0');
-                const downloadUrl = pmDownloadUrl.value.trim();
-                const packEntry = { id, title, category, price, illustrationCount, downloadUrl: downloadUrl || null };
-                pmStatus.textContent = `⏳ Storing pack #${packNumber} ...`;
-                await storePackWithFallback(packEntry);
-                pmStatus.textContent = `✅ Pack #${packNumber} stored | ${illustrationCount} images | ${price}`;
-                await loadAllPacks();
-            } catch (err) {
-                console.error(err);
-                pmStatus.textContent = '❌ Failed to process pack.';
-                pmShowToast(`Error: ${err.message}`, 'error');
-            }
-        }
-
-        // Event listeners
-        if (pmDropzone) {
-            pmDropzone.addEventListener('click', () => pmFileInput.click());
-            pmDropzone.addEventListener('dragover', (e) => { e.preventDefault(); pmDropzone.style.borderColor = '#5a6e3c'; });
-            pmDropzone.addEventListener('dragleave', () => { pmDropzone.style.borderColor = '#3a4050'; });
-            pmDropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                pmDropzone.style.borderColor = '#3a4050';
-                const file = e.dataTransfer.files[0];
-                if (file && file.name.toLowerCase().endsWith('.zip')) {
-                    processZip(file);
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    pmFileInput.files = dataTransfer.files;
-                } else {
-                    pmShowToast('Please drop a .zip file', 'error');
-                }
-            });
-        }
-        if (pmFileInput) {
-            pmFileInput.addEventListener('change', (e) => {
-                if (e.target.files.length) processZip(e.target.files[0]);
-            });
-        }
-        if (pmCategoryToggle) {
-            pmCategoryToggle.addEventListener('change', () => {
-                if (pmFileInput.files && pmFileInput.files.length) processZip(pmFileInput.files[0]);
-            });
-        }
-        if (pmRefreshBtn) pmRefreshBtn.addEventListener('click', () => loadAllPacks());
-        if (pmSyncBtn) {
-            pmSyncBtn.addEventListener('click', async () => {
-                if (pendingSync) {
-                    pmShowToast("Sync already in progress...", "error");
-                    return;
-                }
-                pmSyncBtn.textContent = "⏳ Syncing...";
-                await syncAllLocalToRemote();
-                pmSyncBtn.textContent = "🔄 Sync to Cloud";
-            });
-        }
-
-        // Initialise pack manager
-        (async function init() {
-            await checkRemoteHealth();
-            await loadAllPacks();
-            if (!remoteReachable) addOfflineWarning();
     })();
 </script>
 </body>
