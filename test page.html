@@ -42,41 +42,21 @@
 <body>
     <div class="container">
         <h1>📦 Pack Manager → with Download Links</h1>
-        
-        <div class="dropzone" id="dropzone">
-            <input type="file" id="fileInput" accept=".zip">
-            <div>📂 Drag & drop a ZIP file here, or click to select</div>
-        </div>
-
-        <div class="url-input">
-            <label for="downloadUrl">🔗 Download link (Mega, Google Drive, etc.)</label>
-            <input type="url" id="downloadUrl" placeholder="https://mega.nz/file/...">
-        </div>
-
+        <div class="dropzone" id="dropzone"><input type="file" id="fileInput" accept=".zip"><div>📂 Drag & drop a ZIP file here, or click to select</div></div>
+        <div class="url-input"><label for="downloadUrl">🔗 Download link (Mega, Google Drive, etc.)</label><input type="url" id="downloadUrl" placeholder="https://mega.nz/file/..."></div>
         <div id="status" class="status"></div>
-
         <div class="toggle-container">
             <span class="femboy-label">👨‍🎤 Femboy</span>
-            <label class="switch">
-                <input type="checkbox" id="categoryToggle">
-                <span class="slider"></span>
-            </label>
+            <label class="switch"><input type="checkbox" id="categoryToggle"><span class="slider"></span></label>
             <span class="female-label">👩‍🦰 Female</span>
         </div>
-
         <div class="table-section">
-            <div class="table-header">
-                <strong>📋 All Stored Packs</strong>
-                <button class="refresh-btn" id="refreshTableBtn">⟳ Refresh</button>
-            </div>
-            <table id="packsTable">
-                <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Illustrations</th><th>Download</th></tr></thead>
-                <tbody id="tableBody"><tr class="empty-row"><td colspan="6">Loading packs...</td></tr></tbody>
-            </table>
+            <div class="table-header"><strong>📋 All Stored Packs</strong><button class="refresh-btn" id="refreshTableBtn">⟳ Refresh</button></div>
+            <table id="packsTable"><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Illustrations</th><th>Download</th></tr></thead><tbody id="tableBody"><tr class="empty-row"><td colspan="6">Loading packs...</td></tr></tbody></table>
         </div>
     </div>
 
-    <!-- EXTERNAL JS - only this line changes -->
-    <script type="module" crossorigin src="https://velutinx.github.io/assets/js/cloudflare-pack-add.js"></script>
+    <!-- EXTERNAL JS FILE -->
+    <script src="https://velutinx.github.io/assets/js/cloudflare-pack-add.js"></script>
 </body>
 </html>
