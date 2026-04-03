@@ -22,11 +22,7 @@
             border: 1px solid #2a2f38;
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         }
-        h1 { 
-            margin-top: 0; 
-            font-weight: 500; 
-            letter-spacing: -0.3px; 
-        }
+        h1 { margin-top: 0; font-weight: 500; letter-spacing: -0.3px; }
         .dropzone {
             border: 2px dashed #3a4050;
             border-radius: 14px;
@@ -41,14 +37,8 @@
         .dropzone:hover { border-color: #5a6e3c; }
         .dropzone input { display: none; }
 
-        .url-input {
-            margin: 20px 0 24px 0;
-        }
-        .url-input label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
+        .url-input { margin: 20px 0 24px 0; }
+        .url-input label { display: block; margin-bottom: 8px; font-weight: 500; }
         .url-input input {
             width: 100%;
             padding: 12px 14px;
@@ -59,11 +49,7 @@
             font-size: 0.95rem;
         }
 
-        .status {
-            margin: 12px 0;
-            font-size: 0.92rem;
-            min-height: 22px;
-        }
+        .status { margin: 12px 0; font-size: 0.92rem; min-height: 22px; }
 
         .toggle-container {
             display: flex;
@@ -76,10 +62,7 @@
             border-radius: 60px;
             border: 1px solid #252b33;
         }
-        .toggle-label { 
-            font-weight: bold; 
-            font-size: 1.1rem; 
-        }
+        .toggle-label { font-weight: bold; font-size: 1.1rem; }
         .female-label { color: #ec4899; }
         .femboy-label { color: #3b82f6; }
 
@@ -101,10 +84,8 @@
         .slider:before {
             position: absolute;
             content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
             background-color: white;
             transition: 0.3s;
             border-radius: 50%;
@@ -137,21 +118,9 @@
         }
         .refresh-btn:hover { background: #3a4050; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.87rem;
-        }
-        th, td {
-            text-align: left;
-            padding: 14px 18px;
-            border-bottom: 1px solid #252b33;
-        }
-        th {
-            background: #0a0e14;
-            color: #aaa;
-            font-weight: 500;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+        th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid #252b33; }
+        th { background: #0a0e14; color: #aaa; font-weight: 500; }
         .category-badge {
             display: inline-block;
             padding: 4px 10px;
@@ -161,61 +130,35 @@
         }
         .cat-female { background: #ec489933; color: #ec4899; }
         .cat-femboy { background: #3b82f633; color: #3b82f6; }
-
-        .empty-row td { 
-            text-align: center; 
-            padding: 60px 20px; 
-            color: #777; 
-        }
+        .empty-row td { text-align: center; padding: 60px 20px; color: #777; }
 
         .toast-container {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            top: 20px; right: 20px; z-index: 10000;
+            display: flex; flex-direction: column; gap: 10px;
         }
         .toast {
-            background: #1e2a1e;
-            color: #d4ffd4;
-            padding: 12px 20px;
-            border-radius: 40px;
-            font-size: 13.5px;
-            font-weight: 500;
+            background: #1e2a1e; color: #d4ffd4;
+            padding: 12px 20px; border-radius: 40px;
+            font-size: 13.5px; font-weight: 500;
             box-shadow: 0 4px 15px rgba(0,0,0,0.6);
             border-left: 4px solid #4caf50;
-            opacity: 0;
-            transform: translateX(30px);
+            opacity: 0; transform: translateX(30px);
             transition: all 0.25s ease;
         }
         .toast.error {
-            background: #2c1a1a;
-            border-left-color: #f44336;
-            color: #ffc9c9;
+            background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9;
         }
-
         .loading {
             display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid #666;
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+            width: 18px; height: 18px;
+            border: 2px solid #666; border-top-color: #3b82f6;
+            border-radius: 50%; animation: spin 0.7s linear infinite;
+            margin-right: 8px; vertical-align: middle;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        a.download-link {
-            color: #60a5fa;
-            text-decoration: none;
-        }
-        a.download-link:hover {
-            text-decoration: underline;
-        }
+        a.download-link { color: #60a5fa; text-decoration: none; }
+        a.download-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -251,26 +194,17 @@
             <div style="overflow-x: auto;">
                 <table id="packsTable">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Illustrations</th>
-                            <th>Download</th>
-                        </tr>
+                        <tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Illustrations</th><th>Download</th></tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr class="empty-row">
-                            <td colspan="6">Loading packs...</td>
-                        </tr>
+                        <tr class="empty-row"><td colspan="6">Loading packs...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- External JavaScript -->
-    <script src="https://velutinx.github.io/assets/js/cloudflare-pack-add.js"></script>
+    <!-- Fixed script tag for Firefox + ORB -->
+    <script type="module" crossorigin src="https://velutinx.github.io/assets/js/cloudflare-pack-add.js"></script>
 </body>
 </html>
