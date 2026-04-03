@@ -53,7 +53,7 @@ function escapeHtml(str) {
 // ======================== FETCH & DISPLAY ALL PACKS ========================
 async function loadAllPacks() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><span class="loading"></span> Fetching packs...</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><span class="loading"></span> Fetching packs...</tr>';
     try {
         const response = await fetch(WORKER_URL);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -61,7 +61,7 @@ async function loadAllPacks() {
         renderTable(packs);
     } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">⚠️ Failed to load packs: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">⚠️ Failed to load packs: ${err.message}</tr>`;
         showToast('Could not fetch pack list', 'error');
     }
 }
@@ -69,7 +69,7 @@ async function loadAllPacks() {
 function renderTable(packs) {
     const tbody = document.getElementById('tableBody');
     if (!packs.length) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</tr>';
         return;
     }
     packs.sort((a,b) => parseInt(a.id) - parseInt(b.id));
