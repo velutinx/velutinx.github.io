@@ -1,3 +1,4 @@
+// cloudflare-pack-add.js - Final minimal version
 const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
 
 let toastContainer = null;
