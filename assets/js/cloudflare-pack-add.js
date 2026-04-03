@@ -1,8 +1,7 @@
-// ================================================
+// =====================================================
 // cloudflare-pack-add.js
-// External JS for Pack Manager (Cloudflare Worker)
-// Hosted at: velutinx.github.io/assets/js/cloudflare-pack-add.js
-// ================================================
+// All logic moved here - minimal HTML version
+// =====================================================
 
 const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
 
@@ -24,14 +23,10 @@ function showToast(message, type = 'success') {
     toast.textContent = message;
     container.appendChild(toast);
 
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(0)';
-    }, 10);
-
+    setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
     setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(20px)';
+        toast.style.transform = 'translateX(30px)';
         setTimeout(() => toast.remove(), 300);
     }, 2500);
 }
@@ -45,221 +40,136 @@ function parseFilename(filename) {
     const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
     const match = base.match(regex);
     if (!match) return null;
-    return {
-        pack: match[1],
-        character: match[2].trim(),
-        series: match[3].trim().toUpperCase()
-    };
+    return { pack: match[1] };
 }
 
 function escapeHtml(str) {
-    return String(str).replace(/[&<>]/g, m => {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
+    return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
 }
 
-// ======================== FETCH & RENDER TABLE ========================
+// Fetch and render table
 async function loadAllPacks() {
     const tbody = document.getElementById('tableBody');
     if (!tbody) return;
-
     tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><span class="loading"></span> Fetching packs...</td></tr>';
 
     try {
-        const response = await fetch(WORKER_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const packs = await response.json();
+        const res = await fetch(WORKER_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const packs = await res.json();
         renderTable(packs);
     } catch (err) {
-        console.error(err);
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">⚠️ Failed to load packs: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">⚠️ Failed to load packs</td></tr>`;
         showToast('Could not fetch pack list', 'error');
     }
 }
 
 function renderTable(packs) {
     const tbody = document.getElementById('tableBody');
-    if (!tbody) return;
-
     if (!packs || packs.length === 0) {
         tbody.innerHTML = '<tr class="empty-row"><td colspan="6">📭 No packs stored yet.</td></tr>';
         return;
     }
-
     packs.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-
-    tbody.innerHTML = packs.map(pack => {
-        const categoryText = pack.category === 1 ? 'Female' : 'Femboy';
-        const categoryClass = pack.category === 1 ? 'cat-female' : 'cat-femboy';
-        const downloadCell = pack.downloadUrl && pack.downloadUrl.trim() !== ''
-            ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>`
-            : '—';
-
-        return `
-            <tr>
-                <td><code>${escapeHtml(pack.id)}</code></td>
-                <td>${escapeHtml(pack.title)}</td>
-                <td><span class="category-badge ${categoryClass}">${categoryText}</span></td>
-                <td>${escapeHtml(pack.price)}</td>
-                <td>${pack.illustrationCount}</td>
-                <td>${downloadCell}</td>
-            </tr>
-        `;
+    tbody.innerHTML = packs.map(p => {
+        const catText = p.category === 1 ? 'Female' : 'Femboy';
+        const catClass = p.category === 1 ? 'cat-female' : 'cat-femboy';
+        const dl = p.downloadUrl ? `<a href="${escapeHtml(p.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>` : '—';
+        return `<tr>
+            <td><code>${escapeHtml(p.id)}</code></td>
+            <td>${escapeHtml(p.title)}</td>
+            <td><span class="category-badge ${catClass}">${catText}</span></td>
+            <td>${escapeHtml(p.price)}</td>
+            <td>${p.illustrationCount}</td>
+            <td>${dl}</td>
+        </tr>`;
     }).join('');
 }
 
-// ======================== STORE PACK ========================
-async function storePack(packEntry) {
-    const formData = new FormData();
-    formData.append('id', packEntry.id);
-    formData.append('title', packEntry.title);
-    formData.append('category', packEntry.category);
-    formData.append('price', packEntry.price);
-    formData.append('illustrationCount', packEntry.illustrationCount);
-    formData.append('downloadUrl', packEntry.downloadUrl || '');
+// Store pack
+async function storePack(entry) {
+    const fd = new FormData();
+    fd.append('id', entry.id);
+    fd.append('title', entry.title);
+    fd.append('category', entry.category);
+    fd.append('price', entry.price);
+    fd.append('illustrationCount', entry.illustrationCount);
+    fd.append('downloadUrl', entry.downloadUrl || '');
 
-    const response = await fetch(WORKER_URL, {
-        method: 'POST',
-        body: formData
-    });
-
-    if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP ${response.status}`);
-    }
-    return await response.json();
+    const res = await fetch(WORKER_URL, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Failed to store pack');
+    return res.json();
 }
 
-// ======================== PROCESS ZIP FILE ========================
+// Main ZIP processor
 async function processZip(file) {
-    const statusDiv = document.getElementById('status');
-    if (!statusDiv) return;
-
-    statusDiv.textContent = '📂 Reading ZIP...';
+    const status = document.getElementById('status');
+    status.textContent = '📂 Reading ZIP...';
 
     try {
         const zip = await JSZip.loadAsync(file);
-
-        const imageEntries = [];
-        zip.forEach((path, entry) => {
-            if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
-                imageEntries.push(entry);
-            }
+        let imageCount = 0;
+        zip.forEach((_, entry) => {
+            if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(entry.name)) imageCount++;
         });
 
-        if (imageEntries.length === 0) {
-            throw new Error('No images found in ZIP.');
-        }
+        if (imageCount === 0) throw new Error('No images in ZIP');
 
         const parsed = parseFilename(file.name);
-        if (!parsed) {
-            throw new Error('Filename does not match [Pack XXX] ... format.');
-        }
+        if (!parsed) throw new Error('Invalid filename format');
 
-        const packNumber = parsed.pack;
-        const illustrationCount = imageEntries.length;
-        const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
+        const packNum = parsed.pack;
+        const price = imageCount <= 45 ? "PRICE_1" : "PRICE_2";
         const isFemale = document.getElementById('categoryToggle').checked;
         const category = isFemale ? 1 : 2;
         const title = cleanFilename(file.name);
-        const id = String(packNumber).padStart(3, '0');
+        const id = String(packNum).padStart(3, '0');
         const downloadUrl = document.getElementById('downloadUrl').value.trim();
 
-        const packEntry = {
-            id,
-            title,
-            category,
-            price,
-            illustrationCount,
-            downloadUrl: downloadUrl || null
-        };
+        const entryData = { id, title, category, price, illustrationCount: imageCount, downloadUrl: downloadUrl || null };
 
-        statusDiv.textContent = `⏳ Sending pack #${packNumber}...`;
+        status.textContent = `⏳ Sending pack #${packNum}...`;
+        await storePack(entryData);
 
-        const result = await storePack(packEntry);
-
-        statusDiv.textContent = `✅ Pack #${packNumber} stored | ${illustrationCount} images | ${price} | ${isFemale ? 'Female' : 'Femboy'}`;
-
-        showToast(`Pack ${packNumber} saved successfully`, 'success');
-
-        // Refresh table
+        status.textContent = `✅ Pack #${packNum} stored | ${imageCount} images | ${price}`;
+        showToast(`Pack ${packNum} saved`, 'success');
         await loadAllPacks();
-
     } catch (err) {
-        console.error(err);
-        statusDiv.textContent = `❌ ${err.message}`;
-        showToast(`Error: ${err.message}`, 'error');
+        status.textContent = `❌ ${err.message}`;
+        showToast(err.message, 'error');
     }
 }
 
-// ======================== INITIALIZE ========================
-function initPackManager() {
+// Initialize everything
+function init() {
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
     const refreshBtn = document.getElementById('refreshTableBtn');
-    const categoryToggle = document.getElementById('categoryToggle');
+    const toggle = document.getElementById('categoryToggle');
 
-    if (!dropzone || !fileInput) {
-        console.error('Pack Manager elements not found. Make sure IDs match.');
-        return;
-    }
-
-    // Click to select file
     dropzone.addEventListener('click', () => fileInput.click());
 
-    // Drag & Drop
-    dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.style.borderColor = '#5a6e3c';
-    });
-
-    dropzone.addEventListener('dragleave', () => {
-        dropzone.style.borderColor = '#3a4050';
-    });
-
-    dropzone.addEventListener('drop', (e) => {
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.style.borderColor = '#5a6e3c'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#3a4050'; });
+    dropzone.addEventListener('drop', e => {
         e.preventDefault();
         dropzone.style.borderColor = '#3a4050';
         const file = e.dataTransfer.files[0];
-        if (file && file.name.toLowerCase().endsWith('.zip')) {
-            processZip(file);
-        } else {
-            showToast('Please drop a .zip file', 'error');
-        }
+        if (file?.name.toLowerCase().endsWith('.zip')) processZip(file);
+        else showToast('Only .zip files allowed', 'error');
     });
 
-    // File input change
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            processZip(e.target.files[0]);
-        }
-    });
+    fileInput.addEventListener('change', e => e.target.files[0] && processZip(e.target.files[0]));
 
-    // Category toggle re-process (if file is already selected)
-    if (categoryToggle) {
-        categoryToggle.addEventListener('change', () => {
-            if (fileInput.files && fileInput.files.length > 0) {
-                processZip(fileInput.files[0]);
-            }
+    if (toggle) {
+        toggle.addEventListener('change', () => {
+            if (fileInput.files?.length) processZip(fileInput.files[0]);
         });
     }
 
-    // Refresh button
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', loadAllPacks);
-    }
+    if (refreshBtn) refreshBtn.addEventListener('click', loadAllPacks);
 
-    // Initial load
     loadAllPacks();
 }
 
-// Auto-initialize when script loads
-document.addEventListener('DOMContentLoaded', initPackManager);
-
-// Also expose globally in case you want to call manually
-window.initPackManager = initPackManager;
-window.loadAllPacks = loadAllPacks;
+document.addEventListener('DOMContentLoaded', init);
