@@ -4,7 +4,756 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pack Manager → with Download Links</title>
+    <style><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pack Manager · Offline-First & Resilient</title>
     <style>
+        * { box-sizing: border-box; }
+        body {
+            background: #0a0c10;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 24px;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #11151c;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid #2a2f38;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        h1 { margin-top: 0; font-weight: 500; letter-spacing: -0.3px; }
+        .dropzone {
+            border: 2px dashed #3a4050;
+            border-radius: 14px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #0f131a;
+            transition: border 0.2s;
+            margin-bottom: 20px;
+        }
+        .dropzone:hover { border-color: #5a6e3c; }
+        .dropzone input { display: none; }
+        .url-input {
+            margin: 20px 0;
+        }
+        .url-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .url-input input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: #0f131a;
+            border: 1px solid #3a4050;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .status {
+            margin: 12px 0;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            background: #0c1017;
+            padding: 16px;
+            border-radius: 60px;
+            border: 1px solid #252b33;
+        }
+        .toggle-label { font-weight: bold; font-size: 1.1rem; }
+        .female-label { color: #ec4899; }
+        .femboy-label { color: #3b82f6; }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 34px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3b82f6;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #ec4899; }
+        input:checked + .slider:before { transform: translateX(36px); }
+        
+        .table-section {
+            margin-top: 30px;
+            background: #0c1017;
+            border-radius: 16px;
+            border: 1px solid #2a2f38;
+            overflow-x: auto;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #2a2f38;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .refresh-btn, .sync-btn {
+            background: #2a2f38;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.1s;
+        }
+        .sync-btn { background: #3b4a5a; }
+        .refresh-btn:hover { background: #3a4050; }
+        .sync-btn:hover { background: #2c6e9e; }
+        .connection-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background: #2a2f38;
+        }
+        .connection-badge.online { background: #2e5a3e; color: #a3f0b0; }
+        .connection-badge.offline { background: #5a3a3a; color: #ffb0b0; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid #252b33;
+        }
+        th {
+            background: #0a0e14;
+            color: #aaa;
+            font-weight: 500;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .cat-female { background: #ec489933; color: #ec4899; }
+        .cat-femboy { background: #3b82f633; color: #3b82f6; }
+        .empty-row td { text-align: center; padding: 40px; color: #777; }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: #1e2a1e;
+            color: #d4ffd4;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px black;
+            border-left: 4px solid #4caf50;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .toast.error {
+            background: #2c1a1a;
+            border-left-color: #f44336;
+            color: #ffc9c9;
+        }
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #aaa;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        a.download-link {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        a.download-link:hover {
+            text-decoration: underline;
+        }
+        .warning-banner {
+            background: #2c2b1f;
+            border-left: 4px solid #ffaa33;
+            padding: 10px 16px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button.small-retry {
+            background: #3a3a44;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>📦 Pack Manager → Offline-First + Cloud Sync</h1>
+    <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".zip">
+        <div>📂 Drag & drop a ZIP file here, or click to select</div>
+    </div>
+
+    <div class="url-input">
+        <label for="downloadUrl">🔗 Download link (Mega, Google Drive, etc.)</label>
+        <input type="url" id="downloadUrl" placeholder="https://mega.nz/file/..." autocomplete="off">
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="toggle-container">
+        <span class="toggle-label femboy-label">👨‍🎤 Femboy</span>
+        <label class="switch">
+            <input type="checkbox" id="categoryToggle">
+            <span class="slider"></span>
+        </label>
+        <span class="toggle-label female-label">👩‍🦰 Female</span>
+    </div>
+
+    <div class="table-section">
+        <div class="table-header">
+            <strong>📋 All Stored Packs</strong>
+            <div class="header-actions">
+                <span id="connStatus" class="connection-badge offline">⚡ checking...</span>
+                <button class="sync-btn" id="syncRemoteBtn">🔄 Sync to Cloud</button>
+                <button class="refresh-btn" id="refreshTableBtn">⟳ Refresh</button>
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table id="packsTable">
+                <thead>
+                    <tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Illustrations</th><th>Download</th></tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr class="empty-row"><td colspan="6"><span class="loading"></span> Loading packs...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ======================== CONFIGURATION ========================
+    const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
+    const STORAGE_KEY = 'packs_offline_db';
+    
+    // Global state
+    let remoteReachable = false;        // last known remote status
+    let pendingSync = false;
+    
+    // Toast helper
+    let toastContainer = null;
+    function ensureToastContainer() {
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        return toastContainer;
+    }
+    function showToast(message, type = 'success') {
+        const container = ensureToastContainer();
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 200);
+        }, 2800);
+    }
+    
+    // ----- LocalStorage helpers -----
+    function getLocalPacks() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        try {
+            return JSON.parse(raw);
+        } catch(e) { return []; }
+    }
+    
+    function saveLocalPacks(packs) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(packs));
+    }
+    
+    // add or update pack in local storage (by id)
+    function upsertLocalPack(packEntry) {
+        let packs = getLocalPacks();
+        const existingIndex = packs.findIndex(p => p.id === packEntry.id);
+        if (existingIndex !== -1) {
+            packs[existingIndex] = { ...packEntry, updatedAt: Date.now() };
+        } else {
+            packs.push({ ...packEntry, updatedAt: Date.now() });
+        }
+        saveLocalPacks(packs);
+        return packs;
+    }
+    
+    function deleteLocalPackById(id) {
+        let packs = getLocalPacks();
+        packs = packs.filter(p => p.id !== id);
+        saveLocalPacks(packs);
+    }
+    
+    // ----- Remote API helpers (with timeout & CORS resilience)-----
+    async function fetchWithTimeout(url, options, timeout = 8000) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        } catch (err) {
+            clearTimeout(id);
+            throw err;
+        }
+    }
+    
+    // GET all packs from remote worker
+    async function fetchRemotePacks() {
+        const response = await fetchWithTimeout(WORKER_URL, { method: 'GET', mode: 'cors' }, 7000);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Invalid response format');
+        return data;
+    }
+    
+    // POST single pack to worker
+    async function postPackToRemote(packEntry) {
+        const formData = new FormData();
+        formData.append('id', packEntry.id);
+        formData.append('title', packEntry.title);
+        formData.append('category', packEntry.category);
+        formData.append('price', packEntry.price);
+        formData.append('illustrationCount', packEntry.illustrationCount);
+        formData.append('downloadUrl', packEntry.downloadUrl || '');
+        
+        const response = await fetchWithTimeout(WORKER_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'cors'
+        }, 10000);
+        if (!response.ok) {
+            const errText = await response.text().catch(() => '');
+            throw new Error(`Remote store failed (${response.status}): ${errText}`);
+        }
+        return await response.json();
+    }
+    
+    // ----- Health check & sync status update -----
+    async function checkRemoteHealth() {
+        try {
+            await fetchRemotePacks();
+            remoteReachable = true;
+            updateConnectionUI(true);
+            return true;
+        } catch (err) {
+            console.warn("Remote unreachable:", err);
+            remoteReachable = false;
+            updateConnectionUI(false);
+            return false;
+        }
+    }
+    
+    function updateConnectionUI(isOnline) {
+        const badge = document.getElementById('connStatus');
+        if (isOnline) {
+            badge.textContent = '☁️ Cloud Online';
+            badge.className = 'connection-badge online';
+        } else {
+            badge.textContent = '📴 Offline Mode (local storage)';
+            badge.className = 'connection-badge offline';
+        }
+    }
+    
+    // ----- MAIN LOAD: Remote first, fallback to local, cache remote data when possible -----
+    async function loadAllPacks() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6"><span class="loading"></span> Loading packs...</td></tr>';
+        
+        // 1) Try remote
+        try {
+            const remotePacks = await fetchRemotePacks();
+            // success: store remote data into localStorage as cache, update state
+            remoteReachable = true;
+            updateConnectionUI(true);
+            saveLocalPacks(remotePacks);   // cache fresh remote data
+            renderTable(remotePacks);
+            showToast(`✅ Loaded ${remotePacks.length} packs from cloud`, 'success');
+            return;
+        } catch (err) {
+            console.error("Remote fetch failed:", err);
+            remoteReachable = false;
+            updateConnectionUI(false);
+            // fallback to localStorage
+            const localPacks = getLocalPacks();
+            if (localPacks.length > 0) {
+                renderTable(localPacks);
+                showToast(`⚠️ Cloud unreachable — using local backup (${localPacks.length} packs)`, 'error');
+                // show warning banner inside table section
+                addOfflineWarning();
+            } else {
+                renderTable([]);
+                showToast(`⚠️ No connection & no local data. Upload a ZIP to start.`, 'error');
+                addOfflineWarning();
+            }
+        }
+    }
+    
+    function addOfflineWarning() {
+        let existing = document.querySelector('.warning-banner');
+        if (existing) return;
+        const tableSection = document.querySelector('.table-section');
+        const warnDiv = document.createElement('div');
+        warnDiv.className = 'warning-banner';
+        warnDiv.innerHTML = `
+            <span>⚠️ <strong>Offline mode active</strong> — Changes are saved locally. Click "Sync to Cloud" when connection restores.</span>
+            <button class="small-retry" id="retryConnectionBtn">⟳ Retry Connection</button>
+        `;
+        tableSection.insertBefore(warnDiv, tableSection.firstChild);
+        const retryBtn = document.getElementById('retryConnectionBtn');
+        if (retryBtn) retryBtn.onclick = async () => {
+            showToast("Checking connection...", "success");
+            const ok = await checkRemoteHealth();
+            if (ok) {
+                showToast("✅ Cloud reachable! Syncing local data...", "success");
+                await syncAllLocalToRemote();
+                await loadAllPacks();
+                const banner = document.querySelector('.warning-banner');
+                if (banner) banner.remove();
+            } else {
+                showToast("❌ Still offline. Try again later.", "error");
+            }
+        };
+    }
+    
+    function removeOfflineWarning() {
+        const banner = document.querySelector('.warning-banner');
+        if (banner) banner.remove();
+    }
+    
+    // ----- Render table from array -----
+    function renderTable(packs) {
+        const tbody = document.getElementById('tableBody');
+        if (!packs.length) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
+            return;
+        }
+        const sorted = [...packs].sort((a,b) => parseInt(a.id) - parseInt(b.id));
+        tbody.innerHTML = sorted.map(pack => {
+            const categoryText = pack.category === 1 ? 'Female' : 'Femboy';
+            const categoryClass = pack.category === 1 ? 'cat-female' : 'cat-femboy';
+            const downloadCell = pack.downloadUrl && pack.downloadUrl.trim() !== ''
+                ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>`
+                : '—';
+            return `
+                <tr>
+                    <td><code>${escapeHtml(pack.id)}</code></td>
+                    <td>${escapeHtml(pack.title)}</td>
+                    <td><span class="category-badge ${categoryClass}">${categoryText}</span></td>
+                    <td>${escapeHtml(pack.price)}</td>
+                    <td>${pack.illustrationCount}</td>
+                    <td>${downloadCell}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    function escapeHtml(str) { 
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m){ 
+            if(m==='&') return '&amp;'; 
+            if(m==='<') return '&lt;'; 
+            if(m==='>') return '&gt;'; 
+            return m;
+        }); 
+    }
+    
+    // ----- Store pack logic: remote with fallback to local -----
+    async function storePackWithFallback(packEntry) {
+        // try remote first if reachable (or optimistic)
+        let remoteSuccess = false;
+        if (remoteReachable) {
+            try {
+                const result = await postPackToRemote(packEntry);
+                remoteSuccess = true;
+                showToast(`☁️ Pack #${packEntry.id} saved to cloud`, 'success');
+                // also update local cache after remote success
+                upsertLocalPack(packEntry);
+                return { success: true, source: 'remote', result };
+            } catch (err) {
+                console.warn("Remote store failed, switching to local fallback:", err);
+                remoteReachable = false;
+                updateConnectionUI(false);
+                addOfflineWarning();
+                // fall through to local
+            }
+        }
+        
+        // local fallback (always works)
+        upsertLocalPack(packEntry);
+        showToast(`💾 Pack #${packEntry.id} saved to LOCAL storage (cloud offline)`, 'success');
+        return { success: true, source: 'local' };
+    }
+    
+    // ----- SYNC: push all local packs to remote (idempotent) -----
+    async function syncAllLocalToRemote() {
+        const localPacks = getLocalPacks();
+        if (localPacks.length === 0) {
+            showToast("Nothing to sync", "success");
+            return true;
+        }
+        if (!remoteReachable) {
+            const isOnline = await checkRemoteHealth();
+            if (!isOnline) {
+                showToast("Cannot sync: cloud unreachable. Retry later.", "error");
+                return false;
+            }
+        }
+        pendingSync = true;
+        let successCount = 0;
+        let failCount = 0;
+        for (const pack of localPacks) {
+            try {
+                await postPackToRemote(pack);
+                successCount++;
+            } catch (err) {
+                console.error(`Sync failed for ${pack.id}:`, err);
+                failCount++;
+            }
+        }
+        pendingSync = false;
+        if (failCount === 0) {
+            showToast(`✅ Synced ${successCount} packs to cloud`, 'success');
+            // after sync, fetch fresh remote data to confirm consistency
+            await loadAllPacks();
+            removeOfflineWarning();
+            remoteReachable = true;
+            updateConnectionUI(true);
+        } else {
+            showToast(`⚠️ Synced ${successCount} packs, ${failCount} failed. Retry later.`, 'error');
+        }
+        return failCount === 0;
+    }
+    
+    // ----- Process ZIP file (same logic but uses resilient storage)-----
+    function cleanFilename(rawName) {
+        let name = rawName.replace(/\.zip$/i, '');
+        name = name.replace(/\s*\(\d+\)\s*$/, '');
+        return name.trim();
+    }
+    function parseFilename(filename) {
+        const base = cleanFilename(filename);
+        const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
+        const match = base.match(regex);
+        if (!match) return null;
+        return {
+            pack: match[1],
+            character: match[2].trim(),
+            series: match[3].trim().toUpperCase()
+        };
+    }
+    
+    async function processZip(file) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = '📂 Reading ZIP...';
+        try {
+            const zip = await JSZip.loadAsync(file);
+            const imageEntries = [];
+            zip.forEach((path, entry) => {
+                if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
+                    imageEntries.push(entry);
+                }
+            });
+            if (imageEntries.length === 0) {
+                statusDiv.textContent = '❌ No images found in ZIP.';
+                showToast('No images found', 'error');
+                return;
+            }
+
+            const parsed = parseFilename(file.name);
+            if (!parsed) {
+                statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
+                showToast('Invalid filename format: expected [Pack 001] Name - Series', 'error');
+                return;
+            }
+
+            const packNumber = parsed.pack;
+            const illustrationCount = imageEntries.length;
+            const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
+
+            const categoryToggle = document.getElementById('categoryToggle');
+            const isFemale = categoryToggle.checked;
+            const category = isFemale ? 1 : 2;
+            const title = cleanFilename(file.name);
+            const id = String(packNumber).padStart(3, '0');
+            const downloadUrlInput = document.getElementById('downloadUrl');
+            const downloadUrl = downloadUrlInput.value.trim();
+
+            const packEntry = {
+                id: id,
+                title: title,
+                category: category,
+                price: price,
+                illustrationCount: illustrationCount,
+                downloadUrl: downloadUrl || null
+            };
+
+            statusDiv.textContent = `⏳ Storing pack #${packNumber} ...`;
+            const result = await storePackWithFallback(packEntry);
+            
+            if (result.source === 'remote') {
+                statusDiv.textContent = `✅ Pack #${packNumber} stored to CLOUD | ${illustrationCount} images | ${price}`;
+            } else {
+                statusDiv.textContent = `💾 Pack #${packNumber} stored LOCALLY | ${illustrationCount} images | ${price} (cloud offline)`;
+            }
+            
+            // Refresh table display from the most recent source (local after upsert)
+            await loadAllPacks(); // will re-evaluate remote/local
+            
+            // Clear download URL field after upload (optional)
+            // downloadUrlInput.value = '';  // maybe keep for next upload
+        } catch (err) {
+            console.error(err);
+            statusDiv.textContent = '❌ Failed to process pack.';
+            showToast(`Error: ${err.message}`, 'error');
+        }
+    }
+    
+    // ----- EVENT LISTENERS + INITIALIZATION WITH ERROR PREVENTION -----
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const categoryToggle = document.getElementById('categoryToggle');
+    const refreshBtn = document.getElementById('refreshTableBtn');
+    const syncBtn = document.getElementById('syncRemoteBtn');
+    const downloadUrlInput = document.getElementById('downloadUrl');
+    
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#5a6e3c'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#3a4050'; });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = '#3a4050';
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.toLowerCase().endsWith('.zip')) {
+            processZip(file);
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+        } else {
+            showToast('Please drop a .zip file', 'error');
+        }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) processZip(e.target.files[0]);
+    });
+    
+    // Re-upload when toggle changes only if a file is already selected
+    categoryToggle.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files.length > 0) {
+            processZip(fileInput.files[0]);
+        }
+    });
+    
+    refreshBtn.addEventListener('click', () => loadAllPacks());
+    syncBtn.addEventListener('click', async () => {
+        if (pendingSync) {
+            showToast("Sync already in progress...", "error");
+            return;
+        }
+        syncBtn.textContent = "⏳ Syncing...";
+        await syncAllLocalToRemote();
+        syncBtn.textContent = "🔄 Sync to Cloud";
+    });
+    
+    // Preload: check remote health, load packs, add window error handler
+    window.addEventListener('unhandledrejection', (event) => {
+        console.warn("Unhandled promise rejection:", event.reason);
+        showToast(`Unexpected error: ${event.reason?.message || 'network issue'}`, 'error');
+        event.preventDefault();
+    });
+    
+    // Initial load with safety
+    (async function init() {
+        await checkRemoteHealth();
+        await loadAllPacks();
+        // if offline, show warning after load
+        if (!remoteReachable) addOfflineWarning();
+    })();
+    
+    // Additional small fix: ensure manual retry if user clicks sync while offline triggers check first
+    window.checkRemoteHealth = checkRemoteHealth;
+</script>
+</body>
+</html>
         * { box-sizing: border-box; }
         body {
             background: #0a0c10;
