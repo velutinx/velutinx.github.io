@@ -582,7 +582,7 @@
         <button id="cfDownloadBtn" class="cf-btn-download">⬇️ Download & Upload Selected</button>
     </div>
 
-    <!-- Pack Manager Tab (offline-first) -->
+    <!-- Pack Manager Tab (offline-first with sorting) -->
     <div id="packmanager" class="tab-content">
         <div class="pm-container">
             <h1>📦 Pack Manager → Offline-First + Cloud Sync</h1>
@@ -615,17 +615,23 @@
                 <div style="overflow-x: auto;">
                     <table id="pm-packsTable">
                         <thead>
-                            <tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Illustrations</th><th>Download</th></tr>
+                            <tr>
+                                <th id="sort-id" style="cursor: pointer;">ID <span id="sort-id-icon"></span></th>
+                                <th id="sort-title" style="cursor: pointer;">Title <span id="sort-title-icon"></span></th>
+                                <th id="sort-category" style="cursor: pointer;">Category <span id="sort-category-icon"></span></th>
+                                <th id="sort-price" style="cursor: pointer;">Price <span id="sort-price-icon"></span></th>
+                                <th id="sort-illustrations" style="cursor: pointer;">Illustrations <span id="sort-illustrations-icon"></span></th>
+                                <th id="sort-download" style="cursor: pointer;">Download <span id="sort-download-icon"></span></th>
+                            </tr>
                         </thead>
                         <tbody id="pm-tableBody">
-                            <tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>
+                            <tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...<\/tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 <script>
     // ========== GLOBAL TOAST FUNCTION (for Bluesky and others) ==========
@@ -874,17 +880,14 @@
         }
     });
 
-    // ========== PACK MANAGER (Offline-First) ==========
+    // ========== PACK MANAGER (Offline-First with Sorting) ==========
     (function() {
-        // Wait for the tab to be fully present
         const container = document.getElementById('packmanager');
         if (!container) return;
 
-        // Configuration (using prefixed IDs)
         const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
         const STORAGE_KEY = 'packs_offline_db';
 
-        // DOM elements inside packmanager
         const pmDropzone = document.getElementById('pm-dropzone');
         const pmFileInput = document.getElementById('pm-fileInput');
         const pmDownloadUrl = document.getElementById('pm-downloadUrl');
@@ -895,16 +898,16 @@
         const pmConnStatus = document.getElementById('pm-connStatus');
         const pmTableBody = document.getElementById('pm-tableBody');
 
-        // Global state for pack manager
         let remoteReachable = false;
         let pendingSync = false;
+        let currentPacks = [];               // store current pack array
+        let sortColumn = null;
+        let sortDirection = 'asc';           // 'asc' or 'desc'
 
-        // Toast for pack manager (reuse global showToast, but prefix message)
         function pmShowToast(message, type = 'success') {
             showToast(`[Pack Manager] ${message}`, type);
         }
 
-        // LocalStorage helpers
         function getLocalPacks() {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) return [];
@@ -922,7 +925,6 @@
             return packs;
         }
 
-        // Remote helpers
         async function fetchWithTimeout(url, options, timeout = 8000) {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
@@ -984,7 +986,6 @@
             }
         }
 
-        // Render table
         function escapeHtml(str) {
             if (!str) return '';
             return String(str).replace(/[&<>]/g, function(m) {
@@ -994,12 +995,55 @@
                 return m;
             });
         }
+
+        // Sorting function
+        function sortPacks(packs, column, direction) {
+            const sorted = [...packs];
+            sorted.sort((a, b) => {
+                let valA, valB;
+                switch(column) {
+                    case 'id':
+                        valA = parseInt(a.id, 10);
+                        valB = parseInt(b.id, 10);
+                        break;
+                    case 'illustrations':
+                        valA = a.illustrationCount || 0;
+                        valB = b.illustrationCount || 0;
+                        break;
+                    case 'category':
+                        valA = a.category === 1 ? 'Female' : 'Femboy';
+                        valB = b.category === 1 ? 'Female' : 'Femboy';
+                        break;
+                    case 'price':
+                        valA = a.price || '';
+                        valB = b.price || '';
+                        break;
+                    case 'download':
+                        valA = a.downloadUrl ? a.downloadUrl.toLowerCase() : '';
+                        valB = b.downloadUrl ? b.downloadUrl.toLowerCase() : '';
+                        break;
+                    default: // title
+                        valA = a.title ? a.title.toLowerCase() : '';
+                        valB = b.title ? b.title.toLowerCase() : '';
+                }
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return direction === 'asc' ? valA - valB : valB - valA;
+                }
+                // string comparison
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            return sorted;
+        }
+
         function renderTable(packs) {
-            if (!packs.length) {
+            currentPacks = packs;
+            const sorted = sortPacks(packs, sortColumn, sortDirection);
+            if (!sorted.length) {
                 pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
                 return;
             }
-            const sorted = [...packs].sort((a,b) => parseInt(a.id) - parseInt(b.id));
             pmTableBody.innerHTML = sorted.map(pack => {
                 const categoryText = pack.category === 1 ? 'Female' : 'Femboy';
                 const categoryClass = pack.category === 1 ? 'pm-cat-female' : 'pm-cat-femboy';
@@ -1017,15 +1061,44 @@
                     </tr>
                 `;
             }).join('');
+            // Update sort icons
+            document.querySelectorAll('#packmanager th span').forEach(span => span.innerHTML = '');
+            if (sortColumn) {
+                const iconSpan = document.getElementById(`sort-${sortColumn}-icon`);
+                if (iconSpan) iconSpan.innerHTML = sortDirection === 'asc' ? ' ▲' : ' ▼';
+            }
         }
+
+        function setSort(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+            renderTable(currentPacks);
+        }
+
+        // Add click handlers to table headers
+        function bindSortHandlers() {
+            const headers = ['id', 'title', 'category', 'price', 'illustrations', 'download'];
+            headers.forEach(col => {
+                const th = document.getElementById(`sort-${col}`);
+                if (th) {
+                    th.onclick = () => setSort(col);
+                }
+            });
+        }
+
         async function loadAllPacks() {
-            pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>';
+            pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...<\/tr>';
             try {
                 const remotePacks = await fetchRemotePacks();
                 remoteReachable = true;
                 updateConnectionUI(true);
                 saveLocalPacks(remotePacks);
-                renderTable(remotePacks);
+                currentPacks = remotePacks;
+                renderTable(currentPacks);
                 pmShowToast(`✅ Loaded ${remotePacks.length} packs from cloud`, 'success');
                 removeOfflineWarning();
             } catch (err) {
@@ -1034,16 +1107,203 @@
                 updateConnectionUI(false);
                 const localPacks = getLocalPacks();
                 if (localPacks.length) {
-                    renderTable(localPacks);
+                    currentPacks = localPacks;
+                    renderTable(currentPacks);
                     pmShowToast(`⚠️ Cloud unreachable — using local backup (${localPacks.length} packs)`, 'error');
                     addOfflineWarning();
                 } else {
+                    currentPacks = [];
                     renderTable([]);
                     pmShowToast(`⚠️ No connection & no local data. Upload a ZIP to start.`, 'error');
                     addOfflineWarning();
                 }
             }
         }
+
+        function addOfflineWarning() {
+            if (document.querySelector('#pm-warning-banner')) return;
+            const tableSection = document.querySelector('#packmanager .pm-table-section');
+            const warnDiv = document.createElement('div');
+            warnDiv.id = 'pm-warning-banner';
+            warnDiv.className = 'pm-warning-banner';
+            warnDiv.innerHTML = `
+                <span>⚠️ <strong>Offline mode active</strong> — Changes are saved locally. Click "Sync to Cloud" when connection restores.</span>
+                <button class="pm-small-retry" id="pm-retryConnectionBtn">⟳ Retry Connection</button>
+            `;
+            tableSection.insertBefore(warnDiv, tableSection.firstChild);
+            document.getElementById('pm-retryConnectionBtn')?.addEventListener('click', async () => {
+                pmShowToast("Checking connection...", "info");
+                const ok = await checkRemoteHealth();
+                if (ok) {
+                    pmShowToast("✅ Cloud reachable! Syncing local data...", "success");
+                    await syncAllLocalToRemote();
+                    await loadAllPacks();
+                    document.getElementById('pm-warning-banner')?.remove();
+                } else {
+                    pmShowToast("❌ Still offline. Try again later.", "error");
+                }
+            });
+        }
+        function removeOfflineWarning() {
+            document.getElementById('pm-warning-banner')?.remove();
+        }
+
+        async function syncAllLocalToRemote() {
+            const localPacks = getLocalPacks();
+            if (localPacks.length === 0) {
+                pmShowToast("Nothing to sync", "success");
+                return true;
+            }
+            if (!remoteReachable) {
+                const isOnline = await checkRemoteHealth();
+                if (!isOnline) {
+                    pmShowToast("Cannot sync: cloud unreachable. Retry later.", "error");
+                    return false;
+                }
+            }
+            pendingSync = true;
+            let successCount = 0, failCount = 0;
+            for (const pack of localPacks) {
+                try {
+                    await postPackToRemote(pack);
+                    successCount++;
+                } catch (err) {
+                    console.error(`Sync failed for ${pack.id}:`, err);
+                    failCount++;
+                }
+            }
+            pendingSync = false;
+            if (failCount === 0) {
+                pmShowToast(`✅ Synced ${successCount} packs to cloud`, 'success');
+                await loadAllPacks();
+                removeOfflineWarning();
+                remoteReachable = true;
+                updateConnectionUI(true);
+            } else {
+                pmShowToast(`⚠️ Synced ${successCount} packs, ${failCount} failed. Retry later.`, 'error');
+            }
+            return failCount === 0;
+        }
+
+        function cleanFilename(rawName) {
+            let name = rawName.replace(/\.zip$/i, '');
+            name = name.replace(/\s*\(\d+\)\s*$/, '');
+            return name.trim();
+        }
+        function parseFilename(filename) {
+            const base = cleanFilename(filename);
+            const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
+            const match = base.match(regex);
+            if (!match) return null;
+            return { pack: match[1], character: match[2].trim(), series: match[3].trim().toUpperCase() };
+        }
+        async function storePackWithFallback(packEntry) {
+            if (remoteReachable) {
+                try {
+                    const result = await postPackToRemote(packEntry);
+                    upsertLocalPack(packEntry);
+                    pmShowToast(`☁️ Pack #${packEntry.id} saved to cloud`, 'success');
+                    return { success: true, source: 'remote', result };
+                } catch (err) {
+                    console.warn("Remote store failed, switching to local fallback:", err);
+                    remoteReachable = false;
+                    updateConnectionUI(false);
+                    addOfflineWarning();
+                }
+            }
+            upsertLocalPack(packEntry);
+            pmShowToast(`💾 Pack #${packEntry.id} saved to LOCAL storage (cloud offline)`, 'success');
+            return { success: true, source: 'local' };
+        }
+        async function processZip(file) {
+            pmStatus.textContent = '📂 Reading ZIP...';
+            try {
+                const zip = await JSZip.loadAsync(file);
+                const imageEntries = [];
+                zip.forEach((path, entry) => {
+                    if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) imageEntries.push(entry);
+                });
+                if (imageEntries.length === 0) {
+                    pmStatus.textContent = '❌ No images found in ZIP.';
+                    pmShowToast('No images found', 'error');
+                    return;
+                }
+                const parsed = parseFilename(file.name);
+                if (!parsed) {
+                    pmStatus.textContent = '❌ Filename does not match [Pack XXX] ... format.';
+                    pmShowToast('Invalid filename format: expected [Pack 001] Name - Series', 'error');
+                    return;
+                }
+                const packNumber = parsed.pack;
+                const illustrationCount = imageEntries.length;
+                const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
+                const isFemale = pmCategoryToggle.checked;
+                const category = isFemale ? 1 : 2;
+                const title = cleanFilename(file.name);
+                const id = String(packNumber).padStart(3, '0');
+                const downloadUrl = pmDownloadUrl.value.trim();
+                const packEntry = { id, title, category, price, illustrationCount, downloadUrl: downloadUrl || null };
+                pmStatus.textContent = `⏳ Storing pack #${packNumber} ...`;
+                await storePackWithFallback(packEntry);
+                pmStatus.textContent = `✅ Pack #${packNumber} stored | ${illustrationCount} images | ${price}`;
+                await loadAllPacks();
+            } catch (err) {
+                console.error(err);
+                pmStatus.textContent = '❌ Failed to process pack.';
+                pmShowToast(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        // Event listeners
+        if (pmDropzone) {
+            pmDropzone.addEventListener('click', () => pmFileInput.click());
+            pmDropzone.addEventListener('dragover', (e) => { e.preventDefault(); pmDropzone.style.borderColor = '#5a6e3c'; });
+            pmDropzone.addEventListener('dragleave', () => { pmDropzone.style.borderColor = '#3a4050'; });
+            pmDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                pmDropzone.style.borderColor = '#3a4050';
+                const file = e.dataTransfer.files[0];
+                if (file && file.name.toLowerCase().endsWith('.zip')) {
+                    processZip(file);
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    pmFileInput.files = dataTransfer.files;
+                } else {
+                    pmShowToast('Please drop a .zip file', 'error');
+                }
+            });
+        }
+        if (pmFileInput) {
+            pmFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) processZip(e.target.files[0]);
+            });
+        }
+        if (pmCategoryToggle) {
+            pmCategoryToggle.addEventListener('change', () => {
+                if (pmFileInput.files && pmFileInput.files.length) processZip(pmFileInput.files[0]);
+            });
+        }
+        if (pmRefreshBtn) pmRefreshBtn.addEventListener('click', () => loadAllPacks());
+        if (pmSyncBtn) {
+            pmSyncBtn.addEventListener('click', async () => {
+                if (pendingSync) {
+                    pmShowToast("Sync already in progress...", "error");
+                    return;
+                }
+                pmSyncBtn.textContent = "⏳ Syncing...";
+                await syncAllLocalToRemote();
+                pmSyncBtn.textContent = "🔄 Sync to Cloud";
+            });
+        }
+
+        bindSortHandlers();
+
+        (async function init() {
+            await checkRemoteHealth();
+            await loadAllPacks();
+            if (!remoteReachable) addOfflineWarning();
+        })();
+    })();
 
         function addOfflineWarning() {
             if (document.querySelector('#pm-warning-banner')) return;
