@@ -184,7 +184,7 @@ async function castVote(id) {
     }
     
     const characterName = charData?.character_name || `Option ${id}`;
-    console.log(`Voting for option ${id}, character: ${characterName}`);
+   // console.log(`Voting for option ${id}, character: ${characterName}`);
 
     // Upsert vote with character_name
     const { error } = await sb.from('website_voting').upsert(
@@ -291,7 +291,7 @@ async function init() {
     .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'website_voting' }, 
         () => {
-          console.log('Grid update detected!');
+//          console.log('Grid update detected!');
           fetchGridResults();
         })
     .subscribe();
