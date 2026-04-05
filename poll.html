@@ -149,12 +149,11 @@
     }
 
 async function castVote(id) {
-  // 1. Initialize variables outside the try blocks
   let visitorId = 'unknown_fp';
   let currentIp = '0.0.0.0';
 
   try {
-    // 2. Try to get the Fingerprint ID
+    // Get fingerprint
     try {
       const fp = await FingerprintJS.load();
       const result = await fp.get();
@@ -163,7 +162,7 @@ async function castVote(id) {
       console.warn('Fingerprint failed', e);
     }
 
-    // 3. Try to get the actual IP Address
+    // Get IP
     try {
       const ipRes = await fetch('https://api.ipify.org?format=json');
       const ipData = await ipRes.json();
@@ -172,17 +171,25 @@ async function castVote(id) {
       console.error("IP fetch failed", e);
     }
 
+    // Fetch character name from final_votes for this option_id
+    const { data: charData, error: charError } = await sb
+      .from('final_votes')
+      .select('character_name')
+      .eq('poll_id', POLL_ID)
+      .eq('option_id', id)
+      .single();
 
-    
-// 4. Send both to Supabase 
-    // We now use 'poll_id, user_ip' to ensure one vote per IP, 
-    // but still allow the user to change their mind/choice.
-const { data, error } = await sb.from('website_voting').upsert(
+    if (charError) throw new Error("Could not fetch character name");
+    const characterName = charData.character_name || `Option ${id}`;
+
+    // Upsert vote with character_name
+    const { error } = await sb.from('website_voting').upsert(
       { 
         voter_id: visitorId, 
         user_ip: currentIp, 
         option_id: id, 
-        poll_id: POLL_ID 
+        poll_id: POLL_ID,
+        character_name: characterName
       },
       { onConflict: 'poll_id, user_ip' } 
     );
@@ -194,18 +201,16 @@ const { data, error } = await sb.from('website_voting').upsert(
     updateCardStyles(id);
     fetchGridResults();
 
-} catch (err) { 
+  } catch (err) { 
     console.error("Vote failed:", err.message); 
-    
     if (err.message.includes("voting quota")) {
-        alert("This network range (VPN/Proxy) is restricted to 1 vote total. Your vote was not counted.");
+      alert("This network range (VPN/Proxy) is restricted to 1 vote total. Your vote was not counted.");
     } else if (err.message.includes("fingerprint")) {
-        alert("Security check failed. Please refresh or disable ad-blockers.");
+      alert("Security check failed. Please refresh or disable ad-blockers.");
     } else if (err.message.includes("unique_ip_per_poll")) {
-        // This handles the "Exact Duplicate IP" if the upsert fails
-        alert("You have already voted from this IP address.");
+      alert("You have already voted from this IP address.");
     } else {
-        alert("Something went wrong. Please try again.");
+      alert("Something went wrong. Please try again.");
     }
   }
 }
