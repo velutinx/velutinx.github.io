@@ -171,16 +171,20 @@ async function castVote(id) {
       console.error("IP fetch failed", e);
     }
 
-    // Fetch character name from final_votes for this option_id
+    // Fetch character name from final_votes (use maybeSingle to avoid error if missing)
     const { data: charData, error: charError } = await sb
       .from('final_votes')
       .select('character_name')
       .eq('poll_id', POLL_ID)
       .eq('option_id', id)
-      .single();
+      .maybeSingle();  // <-- changed from .single()
 
-    if (charError) throw new Error("Could not fetch character name");
-    const characterName = charData.character_name || `Option ${id}`;
+    if (charError) {
+      console.error("Error fetching character name:", charError);
+    }
+    
+    const characterName = charData?.character_name || `Option ${id}`;
+    console.log(`Voting for option ${id}, character: ${characterName}`);
 
     // Upsert vote with character_name
     const { error } = await sb.from('website_voting').upsert(
