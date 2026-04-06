@@ -161,6 +161,12 @@
     }
     .cart-btn svg { width: 26px; height: 26px; }
     .cart-btn.added { background: var(--success); }
+    .loading-spinner {
+      text-align: center;
+      padding: 3rem;
+      font-size: 1.2rem;
+      color: var(--text-light);
+    }
   </style>
 </head>
 <body>
@@ -195,7 +201,9 @@
         </div>
       </div>
     </div>
-    <div class="product-grid" id="productGrid"></div>
+    <div class="product-grid" id="productGrid">
+      <div class="loading-spinner">Loading packs...</div>
+    </div>
   </main>
 </div>
 
@@ -209,10 +217,9 @@
 <script src="/assets/js/price.js" type="module"></script>
 
 <script type="module">
-import packsData from '/assets/js/packs-data.js';
-
-// ==================== Constants ====================
-const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
+// ==================== CONSTANTS ====================
+const WORKER_URL = 'https://pack-list.velutinx.workers.dev/api/packs';
+const CART_WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
 
 // ==================== Helper functions ====================
 function escapeHtml(str) {
@@ -468,6 +475,26 @@ function bindStoreEvents() {
   });
 }
 
+// ==================== Fetch packs from Worker ====================
+async function fetchPacksFromWorker() {
+  try {
+    const response = await fetch(WORKER_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const packs = await response.json();
+    // Transform worker data to product format
+    return packs.map(p => ({
+      id: p.id,
+      title: p.title,
+      category: p.category,
+      priceKey: p.price,
+      // illustrationCount not needed for store grid
+    }));
+  } catch (err) {
+    console.error('Failed to fetch packs:', err);
+    return [];
+  }
+}
+
 // ==================== Cart drawer observer ====================
 function observeCartDrawer() {
   const cartDrawer = document.getElementById('cartDrawer');
@@ -488,7 +515,7 @@ let paypalConfig = null;
 
 async function loadPayPalConfig() {
   try {
-    const resp = await fetch(`${WORKER_URL}/api/config`);
+    const resp = await fetch(`${CART_WORKER_URL}/api/config`);
     if (!resp.ok) throw new Error('Failed to load PayPal config');
     paypalConfig = await resp.json();
     return paypalConfig;
@@ -535,7 +562,7 @@ function renderPayPalButton() {
 
   paypal.Buttons({
     createOrder: async () => {
-      const response = await fetch(`${WORKER_URL}/create-order`, {
+      const response = await fetch(`${CART_WORKER_URL}/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cart })
@@ -549,9 +576,8 @@ function renderPayPalButton() {
       const currentCart = storeCart;
       const lang = localStorage.getItem('language') || 'en';
 
-      // Store cart in KV via combined worker
       try {
-        const storeResponse = await fetch(`${WORKER_URL}/store-cart`, {
+        const storeResponse = await fetch(`${CART_WORKER_URL}/store-cart`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderID, cart: currentCart, language: lang })
@@ -562,11 +588,10 @@ function renderPayPalButton() {
         alert('Payment succeeded but we could not record your order. Please contact support with order ID: ' + orderID);
       }
 
-      // Clear local cart and redirect
       storeCart = [];
       saveStoreCart();
       renderStoreGrid();
-      window.location.href = `/s/success2.html?orderID=${orderID}`;
+      window.location.href = `/s/success.html?orderID=${orderID}`;
     },
     onError: (err) => {
       console.error('PayPal error', err);
@@ -615,23 +640,24 @@ function overrideSharedCart() {
 }
 
 // ==================== Initialisation ====================
-function initStore() {
+async function initStore() {
   if (!window.priceKeyMap || !window.priceUsdMap) {
     setTimeout(initStore, 200);
     return;
   }
-  // Build products array from packsData
-  const packProducts = packsData.map(p => ({
-    id: p.id,
-    title: p.title,
-    category: p.category,
-    priceKey: p.price
-  }));
-  // Add membership item as the first product (newest)
+
+  // Show loading indicator
+  const grid = document.getElementById('productGrid');
+  if (grid) grid.innerHTML = '<div class="loading-spinner">Loading packs...</div>';
+
+  // Fetch packs from worker
+  const packProducts = await fetchPacksFromWorker();
+
+  // Add membership item as the first product
   const membershipItem = {
     id: "membership",
-    title: "Requests & Membership", // fallback, will be replaced by translation
-    category: 3, // membership category
+    title: "Requests & Membership",
+    category: 3,
     priceKey: null,
     isLink: true
   };
@@ -644,7 +670,7 @@ function initStore() {
   observeCartDrawer();
   interceptCartButtons();
   overrideSharedCart();
-  loadPayPalSDK(); // load PayPal SDK dynamically
+  loadPayPalSDK();
 }
 
 // Wait for header to be ready before starting
