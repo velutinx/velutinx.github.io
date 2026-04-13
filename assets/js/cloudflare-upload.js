@@ -1,331 +1,309 @@
-// cloudflare-upload.js – reusable ZIP image selector + upload to Cloudflare R2 (classic script)
+// This is velutinx.github.io/assets/js/cloudflare-upload.js
 
 (function() {
-    const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
+    'use strict';
 
-    // Toast system (same as before)
-    let toastContainer = null;
-    function ensureToastContainer() {
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.className = 'cf-toast-container';
-            document.body.appendChild(toastContainer);
+    // ---------- Utility: Convert concatenated words into hashtags ----------
+    function textToHashtags(text) {
+        const segments = [];
+        let current = '';
+        let lastType = null;
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            const isSpace = /\s/.test(ch);
+            const isLatin = /[a-zA-Z0-9]/.test(ch);
+            let type = null;
+            if (isSpace) type = 'space';
+            else type = isLatin ? 'latin' : 'nonlatin';
+
+            if (type === 'space') {
+                current += ch;
+                continue;
+            }
+            if (lastType === null) {
+                current += ch;
+                lastType = type;
+            } else if (type === lastType) {
+                current += ch;
+            } else {
+                if (current.trim()) segments.push(current.trim());
+                current = ch;
+                lastType = type;
+            }
         }
-        return toastContainer;
-    }
-    function showToast(message, type = 'success') {
-        const container = ensureToastContainer();
-        const toast = document.createElement('div');
-        toast.className = `cf-toast ${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; }, 10);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(20px)';
-            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 200);
-        }, 2500);
+        if (current.trim()) segments.push(current.trim());
+        return segments.map(seg => `#${seg.replace(/\s+/g, '')}`).join(' ');
     }
 
-    // Helper functions (cleanFilename, parseFilename, extractNumber) same as before
-    function cleanFilename(rawName) {
-        let name = rawName.replace(/\.zip$/i, '');
-        name = name.replace(/\s*\(\d+\)\s*$/, '');
-        return name.trim();
-    }
-    function parseFilename(filename) {
-        const base = cleanFilename(filename);
-        const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
-        const match = base.match(regex);
-        if (!match) return null;
-        return {
-            pack: match[1],
-            character: match[2].trim(),
-            series: match[3].trim().toUpperCase()
-        };
-    }
-    function extractNumber(filename) {
-        const match = filename.match(/\d+/);
-        return match ? parseInt(match[0], 10) : Infinity;
-    }
+    // ---------- State ----------
+    window.accountImages = window.accountImages || { 1: [], 2: [] };
+    const sortableInstances = { 1: null, 2: null };
 
-    window.initCloudflareUploader = function(elementIds) {
-        const dropzone = document.getElementById(elementIds.dropzone);
-        const fileInput = document.getElementById(elementIds.fileInput);
-        const statusDiv = document.getElementById(elementIds.status);
-        const originalGrid = document.getElementById(elementIds.originalGrid);
-        const selectedGrid = document.getElementById(elementIds.selectedGrid);
-        const downloadBtn = document.getElementById(elementIds.downloadBtn);
+    // ---------- DOM Elements ----------
+    const masterPost = document.getElementById('masterPost');
+    const post1 = document.getElementById('post1');
+    const post2 = document.getElementById('post2');
+    const transformBtn = document.getElementById('transformBtn');
 
-        if (!dropzone || !fileInput || !statusDiv || !originalGrid || !selectedGrid || !downloadBtn) {
-            console.error('Cloudflare uploader: missing required DOM elements', elementIds);
+    // ---------- Transform Master Post ----------
+    function transformMaster() {
+        if (!masterPost || !post1 || !post2) return;
+
+        const content = masterPost.value;
+        if (!content.trim()) {
+            post1.value = '';
+            post2.value = '';
             return;
         }
 
-        let allImages = [];
-        let selectedIndices = new Set();
-        let selectedOrder = [];
-        let packNumber = null;
-        let sortable = null;
+        let lines = content.split(/\r?\n/);
+        lines = lines.filter(line => {
+            const lower = line.toLowerCase();
+            return !lower.includes('免責事項') && !lower.includes('disclaimer:');
+        });
+        while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
 
-        // ----- Functions to render and manipulate UI -----
-        function revokeAllURLs() {
-            allImages.forEach(img => { if (img.url) URL.revokeObjectURL(img.url); });
+        if (lines.length === 0) {
+            post1.value = '';
+            post2.value = '';
+            return;
         }
 
-        function renderOriginal() {
-            originalGrid.innerHTML = '';
-            // Show first 20 images (previously 10)
-            const toShow = allImages.slice(0, 30);
-            toShow.forEach((img, idx) => {
-                const isSelected = selectedIndices.has(idx);
-                const thumb = document.createElement('img');
-                thumb.className = 'cf-thumbnail';
-                thumb.src = img.url;
-                thumb.title = img.originalName;
-                thumb.style.border = isSelected ? '3px solid #2c6e2c' : '2px solid transparent';
-                thumb.onclick = () => toggleSelection(idx);
-                originalGrid.appendChild(thumb);
-            });
+        let lastLine = lines.pop() || '';
+        const hashtags = textToHashtags(lastLine);
+        let finalText = lines.join('\n');
+        if (finalText && !finalText.endsWith('\n')) finalText += '\n';
+        finalText += hashtags;
+
+        post1.value = finalText;
+        post2.value = finalText;
+    }
+
+    // ---------- Render Thumbnails with SortableJS ----------
+    function renderThumbnails(accountId) {
+        const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
+        if (!container) return;
+
+        // Destroy existing Sortable instance
+        if (sortableInstances[accountId]) {
+            sortableInstances[accountId].destroy();
+            sortableInstances[accountId] = null;
         }
 
-        function renderSelected() {
-            selectedGrid.innerHTML = '';
-            for (let idx of selectedOrder) {
-                const img = allImages[idx];
-                if (!img) continue;
+        const files = window.accountImages[accountId] || [];
+        container.innerHTML = '';
+
+        files.forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
                 const wrapper = document.createElement('div');
-                wrapper.className = 'cf-selected-item';
+                wrapper.className = 'cf-selected-item'; // reuse Cloudflare style
                 wrapper.dataset.index = idx;
+                wrapper.dataset.account = accountId;
+
                 const thumb = document.createElement('img');
                 thumb.className = 'cf-selected-thumb';
-                thumb.src = img.url;
-                thumb.title = img.originalName;
+                thumb.src = e.target.result;
+                wrapper.appendChild(thumb);
+
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'cf-remove-btn';
                 removeBtn.textContent = '✕';
-                removeBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    removeFromSelection(idx);
+                removeBtn.onclick = (ev) => {
+                    ev.stopPropagation();
+                    // Remove from array
+                    window.accountImages[accountId].splice(idx, 1);
+                    renderThumbnails(accountId);
+                    if (typeof showToast === 'function') {
+                        showToast('Image removed', 'info');
+                    }
                 };
-                wrapper.appendChild(thumb);
                 wrapper.appendChild(removeBtn);
-                selectedGrid.appendChild(wrapper);
-            }
-            if (sortable) sortable.destroy();
-            sortable = new Sortable(selectedGrid, {
+
+                container.appendChild(wrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Initialize Sortable after all images are appended
+        // Wait a tick to ensure DOM is fully populated (FileReader is async)
+        setTimeout(() => {
+            sortableInstances[accountId] = new Sortable(container, {
                 animation: 150,
-                onEnd: () => {
+                handle: '.cf-selected-thumb',  // drag by image only
+                onEnd: function() {
+                    // Update accountImages array to match new DOM order
                     const newOrder = [];
-                    Array.from(selectedGrid.children).forEach(child => {
+                    Array.from(container.children).forEach(child => {
                         const idx = parseInt(child.dataset.index, 10);
-                        if (!isNaN(idx)) newOrder.push(idx);
+                        if (!isNaN(idx) && window.accountImages[accountId][idx]) {
+                            newOrder.push(window.accountImages[accountId][idx]);
+                        }
                     });
-                    selectedOrder = newOrder;
+                    window.accountImages[accountId] = newOrder;
+                    // Re-render to fix data-index attributes (keeps consistency)
+                    renderThumbnails(accountId);
+                    if (typeof showToast === 'function') {
+                        showToast('Order updated', 'info');
+                    }
                 }
             });
-        }
+        }, 50);
+    }
 
-        function toggleSelection(idx) {
-            if (selectedIndices.has(idx)) {
-                selectedIndices.delete(idx);
-                const pos = selectedOrder.indexOf(idx);
-                if (pos !== -1) selectedOrder.splice(pos, 1);
-            } else {
-                selectedIndices.add(idx);
-                selectedOrder.push(idx);
-            }
-            renderOriginal();
-            renderSelected();
-            // Update shared state
-            if (window.sharedZipData) {
-                window.sharedZipData.selectedIndices = new Set(selectedIndices);
-                window.sharedZipData.selectedOrder = [...selectedOrder];
-            }
-        }
+    // ---------- Setup Dropzones ----------
+    function setupDropzones() {
+        document.querySelectorAll('.dropzone').forEach(dz => {
+            const accountId = dz.dataset.account;
+            if (!accountId) return;
 
-        function removeFromSelection(idx) {
-            if (selectedIndices.has(idx)) {
-                selectedIndices.delete(idx);
-                const pos = selectedOrder.indexOf(idx);
-                if (pos !== -1) selectedOrder.splice(pos, 1);
-                renderOriginal();
-                renderSelected();
-                if (window.sharedZipData) {
-                    window.sharedZipData.selectedIndices = new Set(selectedIndices);
-                    window.sharedZipData.selectedOrder = [...selectedOrder];
-                }
-            }
-        }
-
-        // Load shared data into the Cloudflare UI
-        function loadSharedData(sharedData) {
-            if (!sharedData || !sharedData.allImages) return;
-            revokeAllURLs();
-            allImages = sharedData.allImages.map(img => ({ ...img })); // shallow copy
-            packNumber = sharedData.packNumber;
-            selectedIndices = sharedData.selectedIndices ? new Set(sharedData.selectedIndices) : new Set();
-            selectedOrder = sharedData.selectedOrder ? [...sharedData.selectedOrder] : [];
-            renderOriginal();
-            renderSelected();
-            statusDiv.textContent = `✅ Loaded ${allImages.length} images from shared ZIP. Pack #${packNumber}`;
-            showToast(`Cloudflare tab synced with Pack #${packNumber}`, 'info');
-        }
-
-        // Process ZIP file (local drag/drop) and also update shared state
-        async function processZip(file) {
-            statusDiv.textContent = '📂 Reading ZIP...';
-            try {
-                const zip = await JSZip.loadAsync(file);
-                const imageEntries = [];
-                zip.forEach((path, entry) => {
-                    if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
-                        imageEntries.push(entry);
+            // Click to open file dialog
+            dz.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.multiple = true;
+                input.accept = 'image/*';
+                input.onchange = () => {
+                    if (input.files.length) {
+                        window.accountImages[accountId].push(...Array.from(input.files));
+                        renderThumbnails(accountId);
+                        if (typeof showToast === 'function') {
+                            showToast(`+${input.files.length} images added`, 'success');
+                        }
                     }
-                });
-                if (imageEntries.length === 0) {
-                    statusDiv.textContent = '❌ No images found in ZIP.';
-                    showToast('No images found', 'error');
-                    return;
-                }
-                const parsed = parseFilename(file.name);
-                if (!parsed) {
-                    statusDiv.textContent = '❌ Filename does not match [Pack XXX] ... format.';
-                    showToast('Invalid filename format', 'error');
-                    return;
-                }
-                packNumber = parsed.pack;
-                statusDiv.textContent = `📸 Found ${imageEntries.length} images. Extracting first 30... (Pack #${packNumber})`;
-                imageEntries.sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
-                // Extract first 20 images (previously 10)
-                const firstThirty = imageEntries.slice(0, 30);
-                revokeAllURLs();
-                allImages = [];
-                selectedIndices.clear();
-                selectedOrder = [];
-                for (let i = 0; i < firstThirty.length; i++) {
-                    const entry = firstThirty[i];
-                    const blob = await entry.async('blob');
-                    const url = URL.createObjectURL(blob);
-                    allImages.push({
-                        blob,
-                        url,
-                        name: entry.name,
-                        originalName: entry.name
-                    });
-                }
-                renderOriginal();
-                renderSelected();
-                statusDiv.textContent = `✅ Loaded ${allImages.length} images. Click to select, drag to reorder.`;
-                showToast(`ZIP loaded. Pack #${packNumber}`, 'success');
+                };
+                input.click();
+            });
 
-                // Update shared state
-                if (window.sharedZipData) {
-                    window.sharedZipData.allImages = allImages;
-                    window.sharedZipData.packNumber = packNumber;
-                    window.sharedZipData.selectedIndices = selectedIndices;
-                    window.sharedZipData.selectedOrder = selectedOrder;
-                    window.sharedZipData.source = 'cloudflare';
-                } else {
-                    window.sharedZipData = {
-                        packNumber: packNumber,
-                        allImages: allImages,
-                        selectedIndices: new Set(selectedIndices),
-                        selectedOrder: [...selectedOrder],
-                        source: 'cloudflare'
-                    };
+            // Drag over
+            dz.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dz.style.borderColor = '#6a8e3c';
+            });
+            dz.addEventListener('dragleave', () => {
+                dz.style.borderColor = '#3a4050';
+            });
+
+            // Drop
+            dz.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dz.style.borderColor = '#3a4050';
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                if (files.length) {
+                    window.accountImages[accountId].push(...files);
+                    renderThumbnails(accountId);
+                    if (typeof showToast === 'function') {
+                        showToast(`${files.length} dropped`, 'success');
+                    }
                 }
-            } catch (err) {
-                console.error(err);
-                statusDiv.textContent = '❌ Error reading ZIP file.';
-                showToast('Failed to read ZIP', 'error');
-            }
+            });
+        });
+    }
+
+    // ---------- Post to Bluesky ----------
+    async function postToBluesky(accountId) {
+        const postEl = document.getElementById(`post${accountId}`);
+        if (!postEl) return;
+
+        const text = postEl.value.trim();
+        const images = window.accountImages[accountId] || [];
+
+        if (!text && images.length === 0) {
+            if (typeof showToast === 'function') showToast('Add text or image first', 'error');
+            return;
         }
 
-        // Upload and download functions (unchanged)
-        async function uploadSelectedToR2() {
-            if (!packNumber) {
-                showToast('Pack number missing – please load a valid ZIP first', 'error');
-                return false;
-            }
-            if (selectedOrder.length === 0) {
-                showToast('No images selected to upload', 'error');
-                return false;
-            }
+        let statusDiv = document.getElementById(`post-status-${accountId}`);
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            statusDiv.id = `post-status-${accountId}`;
+            statusDiv.style.marginTop = '8px';
+            statusDiv.style.fontSize = '12px';
+            postEl.parentNode.appendChild(statusDiv);
+        }
+        statusDiv.textContent = '⏳ Posting...';
+        statusDiv.style.color = '#aaa';
+
+        try {
             const formData = new FormData();
-            formData.append('packNumber', packNumber);
-            for (let i = 0; i < selectedOrder.length; i++) {
-                const idx = selectedOrder[i];
-                const img = allImages[idx];
-                if (img) {
-                    const file = new File([img.blob], img.originalName, { type: img.blob.type });
-                    formData.append('images', file);
+            formData.append('account', accountId);
+            formData.append('text', text);
+            images.forEach(img => formData.append('image', img));
+
+            const response = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                statusDiv.textContent = '✅ Posted!';
+                statusDiv.style.color = '#4caf50';
+                if (typeof showToast === 'function') {
+                    showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+                }
+                window.accountImages[accountId] = [];
+                renderThumbnails(accountId);
+                setTimeout(() => statusDiv.textContent = '', 2500);
+            } else {
+                statusDiv.textContent = `❌ ${data.error || 'failed'}`;
+                if (typeof showToast === 'function') {
+                    showToast(`Error: ${data.error || 'server error'}`, 'error');
                 }
             }
-            showToast('📡 Uploading to Cloudflare...', 'info');
-            try {
-                const res = await fetch(UPLOAD_WORKER_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast(`✅ Uploaded ${data.urls.length} images to /i/`, 'success');
-                    console.log('Uploaded URLs:', data.urls);
-                    return true;
-                } else {
-                    throw new Error(data.error || 'Upload failed');
-                }
-            } catch (err) {
-                console.error('Upload error:', err);
-                showToast(`❌ Upload failed: ${err.message}`, 'error');
-                return false;
+        } catch (err) {
+            statusDiv.textContent = `❌ ${err.message}`;
+            if (typeof showToast === 'function') {
+                showToast(`Network error: ${err.message}`, 'error');
             }
+        }
+    }
+
+    // ---------- Add "Post to Bluesky" Buttons ----------
+    function addPostButtons() {
+        document.querySelectorAll('.account-card').forEach(card => {
+            const accountId = card.dataset.account;
+            if (!accountId) return;
+
+            if (card.querySelector('.bluesky-post-btn')) return;
+
+            const btn = document.createElement('button');
+            btn.textContent = '🚀 Post to Bluesky';
+            btn.className = 'bluesky-post-btn';
+            btn.style.cssText = 'margin-top:16px; width:100%; padding:8px; background:#2c6e2c; border:none; border-radius:30px; color:white; cursor:pointer; font-weight:500;';
+            btn.onclick = () => postToBluesky(accountId);
+            card.appendChild(btn);
+        });
+    }
+
+    // ---------- Initialize Module ----------
+    function init() {
+        if (!masterPost) {
+            console.warn('Bluesky Composer: Required elements not found.');
+            return;
         }
 
-        async function downloadSelectedLocally() {
-            if (!packNumber) {
-                showToast('Pack number missing – please load a valid ZIP first', 'error');
-                return false;
-            }
-            if (selectedOrder.length === 0) {
-                showToast('No images selected to download', 'error');
-                return false;
-            }
-            let successCount = 0;
-            for (let i = 0; i < selectedOrder.length; i++) {
-                const idx = selectedOrder[i];
-                const img = allImages[idx];
-                if (!img) continue;
-                const ext = img.originalName.split('.').pop().toLowerCase();
-                const newName = `pack${packNumber}-${i+1}.${ext}`;
-                const a = document.createElement('a');
-                a.href = img.url;
-                a.download = newName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                successCount++;
-                await new Promise(r => setTimeout(r, 100));
-            }
-            showToast(`📥 Downloaded ${successCount} file(s)`, 'success');
-            statusDiv.textContent = `✅ ${successCount} files downloaded.`;
-            return true;
-        }
+        masterPost.addEventListener('input', transformMaster);
+        transformMaster();
 
-        async function handleAction() {
-            if (!packNumber) {
-                showToast('Please load a ZIP file first', 'error');
-                return;
-            }
-            if (selectedOrder.length === 0) {
-                showToast('No images selected', 'error');
-                return;
-            }
-            const downloadPromise = downloadSelectedLocally();
-            const uploadPromise = uploadSelectedToR2();
-            await Promise.allSettled([downloadPromise, uploadPromise]);
-        }
+        if (transformBtn) transformBtn.addEventListener('click', transformMaster);
+
+        setupDropzones();
+        renderThumbnails(1);
+        renderThumbnails(2);
+        addPostButtons();
+
+        console.log('✅ Bluesky Composer initialized (with SortableJS reordering)');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    window.renderBlueskyThumbnails = renderThumbnails;
+})();
 
         // Event listeners for this tab
         dropzone.addEventListener('click', () => fileInput.click());
