@@ -1,4 +1,5 @@
-// ========== BLUESKY MODULE ==========
+// This is velutinx.github.io/assets/js/bluesky-composer.js
+
 (function() {
     // 1. Tab Logic: Shared across the dashboard
     const initTabs = () => {
