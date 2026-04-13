@@ -1,4 +1,5 @@
-// shared.js – Injects header, sidebar, cart, etc. into any page.
+// This is     velutinx.github.io/assets/js/shared.js – Injects header, sidebar, cart, etc. into any page.
+
 (function() {
   // --------------------------------------------------------------
   // 1. Translation dictionary (for header, cart, sidebar)
@@ -385,7 +386,7 @@
       }
 
       async function createOrder() {
-        const response = await fetch('https://velutinx-paypal-worker.velutinx.workers.dev', {
+          const response = await fetch('https://paypal-checkout-website.velutinx.workers.dev/create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cart: items })
