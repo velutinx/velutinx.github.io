@@ -325,7 +325,7 @@
         // Add post buttons
         addPostButtons();
 
-        console.log('✅ Bluesky Composer initialized');
+ //       console.log('✅ Bluesky Composer initialized');
     }
 
     // Auto-initialize when DOM is ready
