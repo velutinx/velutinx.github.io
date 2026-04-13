@@ -1,14 +1,4 @@
-/**
- * Bluesky Composer Module
- * Handles master post transformation, image management, drag/drop reordering,
- * and posting to the Bluesky worker proxy.
- * 
- * Dependencies:
- * - Global showToast(message, type) function (must be defined elsewhere)
- * - SortableJS (already loaded globally)
- * - DOM elements: #masterPost, #post1, #post2, .dropzone[data-account], 
- *   .thumbnail-container[data-account], .account-card[data-account]
- */
+    // This is velutinx.github.io/assets/js/bluesky-composer.js
 
 (function() {
     'use strict';
@@ -46,11 +36,8 @@
     }
 
     // ---------- State ----------
-    // Store images per account (1 = SFW, 2 = NSFW)
     window.accountImages = window.accountImages || { 1: [], 2: [] };
-
-    // Drag & drop reorder state
-    let dragSource = null;
+    const sortableInstances = { 1: null, 2: null };
 
     // ---------- DOM Elements ----------
     const masterPost = document.getElementById('masterPost');
@@ -70,12 +57,10 @@
         }
 
         let lines = content.split(/\r?\n/);
-        // Remove disclaimer lines
         lines = lines.filter(line => {
             const lower = line.toLowerCase();
             return !lower.includes('免責事項') && !lower.includes('disclaimer:');
         });
-        // Trim trailing empty lines
         while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
 
         if (lines.length === 0) {
@@ -94,81 +79,88 @@
         post2.value = finalText;
     }
 
-    // ---------- Render Thumbnails for an Account ----------
+    // ---------- Render Thumbnails with SortableJS (Cloudflare style) ----------
     function renderThumbnails(accountId) {
         const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
         if (!container) return;
 
+        // Ensure container uses flex wrap like Cloudflare's grid
+        container.style.display = 'flex';
+        container.style.flexWrap = 'wrap';
+        container.style.gap = '8px';
+
+        // Destroy existing Sortable instance
+        if (sortableInstances[accountId]) {
+            sortableInstances[accountId].destroy();
+            sortableInstances[accountId] = null;
+        }
+
         const files = window.accountImages[accountId] || [];
         container.innerHTML = '';
 
+        // Build thumbnail elements
         files.forEach((file, idx) => {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const div = document.createElement('div');
-                div.className = 'thumbnail-item';
-                div.draggable = true;
-                div.dataset.index = idx;
-                div.dataset.account = accountId;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'cf-selected-item';
+                wrapper.dataset.index = idx;
+                wrapper.dataset.account = accountId;
 
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                div.appendChild(img);
+                const thumb = document.createElement('img');
+                thumb.className = 'cf-selected-thumb';
+                thumb.src = e.target.result;
+                thumb.style.cursor = 'grab';
 
                 const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-btn';
+                removeBtn.className = 'cf-remove-btn';
                 removeBtn.textContent = '✕';
                 removeBtn.onclick = (ev) => {
                     ev.stopPropagation();
+                    // Remove from array and re-render
                     window.accountImages[accountId].splice(idx, 1);
                     renderThumbnails(accountId);
                     if (typeof showToast === 'function') {
                         showToast('Image removed', 'info');
                     }
                 };
-                div.appendChild(removeBtn);
 
-                div.addEventListener('dragstart', handleDragStart);
-                div.addEventListener('dragover', (e) => e.preventDefault());
-                div.addEventListener('drop', handleDrop);
-                div.addEventListener('dragend', () => div.classList.remove('dragging'));
-
-                container.appendChild(div);
+                wrapper.appendChild(thumb);
+                wrapper.appendChild(removeBtn);
+                container.appendChild(wrapper);
             };
             reader.readAsDataURL(file);
         });
-    }
 
-    // ---------- Drag & Drop Handlers ----------
-    function handleDragStart(e) {
-        dragSource = e.target.closest('.thumbnail-item');
-        if (!dragSource) return;
-        e.dataTransfer.setData('text/plain', '');
-        dragSource.classList.add('dragging');
-    }
+        // Initialize Sortable after images are appended
+        setTimeout(() => {
+            sortableInstances[accountId] = new Sortable(container, {
+                animation: 150,
+                handle: '.cf-selected-thumb',
+                ghostClass: 'cf-sortable-ghost',
+                dragClass: 'cf-sortable-drag',
+                onEnd: function() {
+                    // Update array order based on current DOM positions
+                    const newOrder = [];
+                    Array.from(container.children).forEach(child => {
+                        const idx = parseInt(child.dataset.index, 10);
+                        if (!isNaN(idx) && window.accountImages[accountId][idx]) {
+                            newOrder.push(window.accountImages[accountId][idx]);
+                        }
+                    });
+                    window.accountImages[accountId] = newOrder;
 
-    function handleDrop(e) {
-        e.preventDefault();
-        const target = e.target.closest('.thumbnail-item');
-        if (!target || !dragSource || target === dragSource) return;
+                    // Update data-index attributes to match new positions
+                    Array.from(container.children).forEach((child, newIdx) => {
+                        child.dataset.index = newIdx;
+                    });
 
-        const srcAcc = dragSource.dataset.account;
-        const tgtAcc = target.dataset.account;
-        if (srcAcc !== tgtAcc) return; // only reorder within same account
-
-        const container = target.parentNode;
-        const items = [...container.querySelectorAll('.thumbnail-item')];
-        const srcIdx = items.indexOf(dragSource);
-        const tgtIdx = items.indexOf(target);
-
-        const files = window.accountImages[srcAcc];
-        const [moved] = files.splice(srcIdx, 1);
-        files.splice(tgtIdx, 0, moved);
-
-        renderThumbnails(srcAcc);
-        if (typeof showToast === 'function') {
-            showToast('Order updated', 'info');
-        }
+                    if (typeof showToast === 'function') {
+                        showToast('Order updated', 'info');
+                    }
+                }
+            });
+        }, 50);
     }
 
     // ---------- Setup Dropzones ----------
@@ -177,7 +169,6 @@
             const accountId = dz.dataset.account;
             if (!accountId) return;
 
-            // Click to open file dialog
             dz.addEventListener('click', () => {
                 const input = document.createElement('input');
                 input.type = 'file';
@@ -195,7 +186,6 @@
                 input.click();
             });
 
-            // Drag over
             dz.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 dz.style.borderColor = '#6a8e3c';
@@ -203,8 +193,6 @@
             dz.addEventListener('dragleave', () => {
                 dz.style.borderColor = '#3a4050';
             });
-
-            // Drop
             dz.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dz.style.borderColor = '#3a4050';
@@ -233,7 +221,6 @@
             return;
         }
 
-        // Create/update status indicator
         let statusDiv = document.getElementById(`post-status-${accountId}`);
         if (!statusDiv) {
             statusDiv = document.createElement('div');
@@ -263,7 +250,6 @@
                 if (typeof showToast === 'function') {
                     showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
                 }
-                // Clear images after successful post
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
                 setTimeout(() => statusDiv.textContent = '', 2500);
@@ -287,7 +273,6 @@
             const accountId = card.dataset.account;
             if (!accountId) return;
 
-            // Avoid duplicate buttons
             if (card.querySelector('.bluesky-post-btn')) return;
 
             const btn = document.createElement('button');
@@ -302,39 +287,28 @@
     // ---------- Initialize Module ----------
     function init() {
         if (!masterPost) {
-            console.warn('Bluesky Composer: Required elements not found. Is the Bluesky tab present?');
+            console.warn('Bluesky Composer: Required elements not found.');
             return;
         }
 
-        // Set up master post transformation
         masterPost.addEventListener('input', transformMaster);
-        transformMaster(); // initial sync
+        transformMaster();
 
-        // Set up transform button (if exists)
-        if (transformBtn) {
-            transformBtn.addEventListener('click', transformMaster);
-        }
+        if (transformBtn) transformBtn.addEventListener('click', transformMaster);
 
-        // Initialize dropzones
         setupDropzones();
-
-        // Render existing images (if any)
         renderThumbnails(1);
         renderThumbnails(2);
-
-        // Add post buttons
         addPostButtons();
 
- //       console.log('✅ Bluesky Composer initialized');
+        console.log('✅ Bluesky Composer initialized (Cloudflare-style drag)');
     }
 
-    // Auto-initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 
-    // Expose render function for external use (optional)
     window.renderBlueskyThumbnails = renderThumbnails;
 })();
