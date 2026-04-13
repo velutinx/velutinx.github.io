@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zip to Post + Bluesky Composer + Cloudflare + Pack Manager (Nightmode)</title>
+    <title>Zip to Post · Patreon + Bluesky + Cloudflare + Pack Manager (Nightmode)</title>
     <style>
         /* ========== BASE STYLES (shared) ========== */
         * { box-sizing: border-box; }
@@ -54,7 +54,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* ========== Subscribestar / Patreon styles (unchanged) ========== */
+        /* ========== Subscribestar / Patreon styles ========== */
         .upload-area {
             border: 2px dashed #3a4050;
             border-radius: 14px;
@@ -115,7 +115,7 @@
         .filename-hint { font-size: 0.85rem; color: #888; margin-top: 12px; }
         .footer { margin-top: 20px; color: #6a6f78; font-size: 0.8rem; text-align: center; }
 
-        /* ========== Bluesky styles (unchanged) ========== */
+        /* ========== Bluesky styles ========== */
         .master-post {
             width: 100%;
             padding: 12px;
@@ -223,7 +223,7 @@
         .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
         .toast-notification.info { background: #1a2530; border-left-color: #2196F3; }
 
-        /* ========== Cloudflare tab specific styles (unchanged) ========== */
+        /* ========== Cloudflare tab specific styles ========== */
         .cf-status {
             margin: 12px 0;
             font-size: 0.9rem;
@@ -308,7 +308,7 @@
         }
         .cf-btn-download:hover { background: #3e8e3e; }
 
-        /* ========== Pack Manager specific styles (copied & scoped) ========== */
+        /* ========== Pack Manager specific styles (scoped) ========== */
         #packmanager .pm-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -488,12 +488,13 @@
             cursor: pointer;
         }
     </style>
+    <!-- External libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Feature modules -->
     <script src="/assets/js/zip-to-post.js"></script>
     <script src="/assets/js/cloudflare-upload.js"></script>
     <script src="/assets/js/bluesky-composer.js"></script>
-    
 </head>
 <body>
 <div class="container">
@@ -545,7 +546,7 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- Bluesky Composer Tab (unchanged) -->
+    <!-- Bluesky Composer Tab (HTML only – logic loaded externally) -->
     <div id="bluesky" class="tab-content">
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
@@ -569,7 +570,7 @@
         <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
     </div>
 
-    <!-- Cloudflare Upload Tab (unchanged) -->
+    <!-- Cloudflare Upload Tab -->
     <div id="cloudflare" class="tab-content">
         <div class="upload-area" id="cfDropzone">
             <input type="file" id="cfFileInput" accept=".zip">
@@ -626,143 +627,6 @@
                             </tr>
                         </thead>
                         <tbody id="pm-tableBody">
-                            <tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...<\/tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    
-<body>
-<div class="container">
-    <h1>🌙 Zip to Post · Patreon + Bluesky + Cloudflare + Pack Manager</h1>
-    <div class="tab-bar">
-        <button class="tab-button active" data-tab="subscribestar">📦 Subscribestar / Patreon</button>
-        <button class="tab-button" data-tab="bluesky">🦋 Bluesky Composer</button>
-        <button class="tab-button" data-tab="cloudflare">☁️ Upload to Cloudflare</button>
-        <button class="tab-button" data-tab="packmanager">📦 Pack Manager (Offline)</button>
-    </div>
-
-    <div id="subscribestar" class="tab-content active">
-        <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
-        <div class="upload-area" id="dropZone">
-            <input type="file" id="fileInput" accept=".zip">
-            <div class="upload-label">📂 Drag & drop zip or click</div>
-        </div>
-        <div class="columns">
-            <div class="column">
-                <h2>🎨 Pixiv Post (JP/EN)</h2>
-                <textarea id="pixivOutput" class="output" readonly>Waiting...</textarea>
-                <button class="copy-btn" data-copy="pixivOutput">Copy</button>
-            </div>
-            <div class="column">
-                <h2>📌 Subscriber (Subscribestar)</h2>
-                <textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea>
-                <button class="copy-btn" data-copy="subscriberOutput">Copy</button>
-            </div>
-            <div class="column">
-                <h2>⚠️ Public Teaser (Subscribestar)</h2>
-                <textarea id="publicOutput" class="output" readonly>Waiting...</textarea>
-                <button class="copy-btn" data-copy="publicOutput">Copy</button>
-            </div>
-        </div>
-        <div class="columns" style="margin-top: 20px;">
-            <div class="column">
-                <h2>🎯 Patreon Subscriber</h2>
-                <textarea id="patreonSubOutput" class="output" readonly>Waiting...</textarea>
-                <button class="copy-btn" data-copy="patreonSubOutput">Copy</button>
-            </div>
-            <div class="column">
-                <h2>🔓 Patreon Public Teaser</h2>
-                <textarea id="patreonPublicOutput" class="output" readonly>Waiting...</textarea>
-                <button class="copy-btn" data-copy="patreonPublicOutput">Copy</button>
-            </div>
-        </div>
-        <div class="filename-hint" id="filenameHint"></div>
-        <div class="footer">⚡ JSZip · no server upload · all local</div>
-    </div>
-
-    <div id="bluesky" class="tab-content">
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
-            <textarea id="masterPost" class="master-post" rows="5" placeholder="Paste your post content here... The last line will be converted to hashtags and the disclaimer will be removed."></textarea>
-            <button id="transformBtn" style="background: #2c6e2c; color: white; border: none; padding: 8px 16px; border-radius: 30px; margin-top: 8px; cursor: pointer;">✨ Transform & Sync to Both Accounts</button>
-        </div>
-        <div class="accounts-grid">
-            <div class="account-card" data-account="1">
-                <h3>🌸 SFW Account</h3>
-                <textarea id="post1" class="account-post" rows="6" placeholder="SFW post content (will be auto‑filled)"></textarea>
-                <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
-                <div class="thumbnail-container" data-account="1"></div>
-            </div>
-            <div class="account-card" data-account="2">
-                <h3>🔥 NSFW Account</h3>
-                <textarea id="post2" class="account-post" rows="6" placeholder="NSFW post content (will be auto‑filled)"></textarea>
-                <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
-                <div class="thumbnail-container" data-account="2"></div>
-            </div>
-        </div>
-        <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
-    </div>
-
-    <div id="cloudflare" class="tab-content">
-        <div class="upload-area" id="cfDropzone">
-            <input type="file" id="cfFileInput" accept=".zip">
-            <div class="upload-label">📂 Drag & drop ZIP or click</div>
-        </div>
-        <div id="cfStatus" class="cf-status"></div>
-        <div class="cf-section-title">🖼️ First 10 images (click to select)</div>
-        <div id="cfOriginalGrid" class="cf-thumb-grid"></div>
-        <div class="cf-section-title">✅ Selected images (drag to reorder)</div>
-        <div id="cfSelectedGrid" class="cf-thumb-grid" style="min-height: 120px;"></div>
-        <button id="cfDownloadBtn" class="cf-btn-download">⬇️ Download & Upload Selected</button>
-    </div>
-
-    <div id="packmanager" class="tab-content">
-        <div class="pm-container">
-            <h1>📦 Pack Manager → Offline-First + Cloud Sync</h1>
-            <div class="pm-dropzone" id="pm-dropzone">
-                <input type="file" id="pm-fileInput" accept=".zip">
-                <div>📂 Drag & drop a ZIP file here, or click to select</div>
-            </div>
-            <div class="pm-url-input">
-                <label for="pm-downloadUrl">🔗 Download link (Mega, Google Drive, etc.)</label>
-                <input type="url" id="pm-downloadUrl" placeholder="https://mega.nz/file/..." autocomplete="off">
-            </div>
-            <div id="pm-status" class="pm-status"></div>
-            <div class="pm-toggle-container">
-                <span class="pm-toggle-label pm-femboy-label">👨‍🎤 Femboy</span>
-                <label class="pm-switch">
-                    <input type="checkbox" id="pm-categoryToggle">
-                    <span class="pm-slider"></span>
-                </label>
-                <span class="pm-toggle-label pm-female-label">👩‍🦰 Female</span>
-            </div>
-            <div class="pm-table-section">
-                <div class="pm-table-header">
-                    <strong>📋 All Stored Packs</strong>
-                    <div class="pm-header-actions">
-                        <span id="pm-connStatus" class="pm-connection-badge offline">⚡ checking...</span>
-                        <button class="pm-sync-btn" id="pm-syncRemoteBtn">🔄 Sync to Cloud</button>
-                        <button class="pm-refresh-btn" id="pm-refreshTableBtn">⟳ Refresh</button>
-                    </div>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table id="pm-packsTable">
-                        <thead>
-                            <tr>
-                                <th id="sort-id" style="cursor: pointer;">ID <span id="sort-id-icon"></span></th>
-                                <th id="sort-title" style="cursor: pointer;">Title <span id="sort-title-icon"></span></th>
-                                <th id="sort-category" style="cursor: pointer;">Category <span id="sort-category-icon"></span></th>
-                                <th id="sort-price" style="cursor: pointer;">Price <span id="sort-price-icon"></span></th>
-                                <th id="sort-illustrations" style="cursor: pointer;">Illustrations <span id="sort-illustrations-icon"></span></th>
-                                <th id="sort-download" style="cursor: pointer;">Download <span id="sort-download-icon"></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="pm-tableBody">
                             <tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>
                         </tbody>
                     </table>
@@ -773,7 +637,7 @@
 </div>
 
 <script>
-    // ========== GLOBAL TOAST FUNCTION ==========
+    // ========== GLOBAL TOAST NOTIFICATION (used by all modules) ==========
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
@@ -782,18 +646,408 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // Remaining Pack Manager & General Page scripts
+    // ========== SIMPLE TAB SWITCHING ==========
     (function() {
-        // Assuming your existing Pack Manager DOM declarations live here
+        const tabBtns = document.querySelectorAll('.tab-button');
+        const tabs = document.querySelectorAll('.tab-content');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.tab;
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                tabs.forEach(t => t.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            });
+        });
+    })();
+
+    // ========== CLOUDFLARE UPLOADER INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.initCloudflareUploader === 'function') {
+            window.initCloudflareUploader({
+                dropzone: 'cfDropzone',
+                fileInput: 'cfFileInput',
+                status: 'cfStatus',
+                originalGrid: 'cfOriginalGrid',
+                selectedGrid: 'cfSelectedGrid',
+                downloadBtn: 'cfDownloadBtn'
+            });
+        } else {
+            console.error('initCloudflareUploader not found. Make sure cloudflare-upload.js is loaded.');
+        }
+    });
+
+    // ========== PACK MANAGER (Offline-First with Sorting) ==========
+    (function() {
+        const container = document.getElementById('packmanager');
+        if (!container) return;
+
+        const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
+        const STORAGE_KEY = 'packs_offline_db';
+
         const pmDropzone = document.getElementById('pm-dropzone');
         const pmFileInput = document.getElementById('pm-fileInput');
+        const pmDownloadUrl = document.getElementById('pm-downloadUrl');
+        const pmStatus = document.getElementById('pm-status');
         const pmCategoryToggle = document.getElementById('pm-categoryToggle');
         const pmRefreshBtn = document.getElementById('pm-refreshTableBtn');
         const pmSyncBtn = document.getElementById('pm-syncRemoteBtn');
-        let pendingSync = false;
-        let remoteReachable = true;
+        const pmConnStatus = document.getElementById('pm-connStatus');
+        const pmTableBody = document.getElementById('pm-tableBody');
 
-        // Event listeners (Pack Manager)
+        let remoteReachable = false;
+        let pendingSync = false;
+        let currentPacks = [];
+        let sortColumn = null;
+        let sortDirection = 'asc';
+
+        function pmShowToast(message, type = 'success') {
+            showToast(`[Pack Manager] ${message}`, type);
+        }
+
+        function getLocalPacks() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return [];
+            try { return JSON.parse(raw); } catch(e) { return []; }
+        }
+        function saveLocalPacks(packs) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(packs));
+        }
+        function upsertLocalPack(packEntry) {
+            let packs = getLocalPacks();
+            const idx = packs.findIndex(p => p.id === packEntry.id);
+            if (idx !== -1) packs[idx] = { ...packEntry, updatedAt: Date.now() };
+            else packs.push({ ...packEntry, updatedAt: Date.now() });
+            saveLocalPacks(packs);
+            return packs;
+        }
+
+        async function fetchWithTimeout(url, options, timeout = 8000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                return response;
+            } catch (err) {
+                clearTimeout(id);
+                throw err;
+            }
+        }
+        async function fetchRemotePacks() {
+            const response = await fetchWithTimeout(WORKER_URL, { method: 'GET', mode: 'cors' }, 7000);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!Array.isArray(data)) throw new Error('Invalid response format');
+            return data;
+        }
+        async function postPackToRemote(packEntry) {
+            const formData = new FormData();
+            formData.append('id', packEntry.id);
+            formData.append('title', packEntry.title);
+            formData.append('category', packEntry.category);
+            formData.append('price', packEntry.price);
+            formData.append('illustrationCount', packEntry.illustrationCount);
+            formData.append('downloadUrl', packEntry.downloadUrl || '');
+            const response = await fetchWithTimeout(WORKER_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'cors'
+            }, 10000);
+            if (!response.ok) {
+                const errText = await response.text().catch(() => '');
+                throw new Error(`Remote store failed (${response.status}): ${errText}`);
+            }
+            return await response.json();
+        }
+        async function checkRemoteHealth() {
+            try {
+                await fetchRemotePacks();
+                remoteReachable = true;
+                updateConnectionUI(true);
+                return true;
+            } catch (err) {
+                console.warn("Pack Manager: Remote unreachable", err);
+                remoteReachable = false;
+                updateConnectionUI(false);
+                return false;
+            }
+        }
+        function updateConnectionUI(isOnline) {
+            if (isOnline) {
+                pmConnStatus.textContent = '☁️ Cloud Online';
+                pmConnStatus.className = 'pm-connection-badge online';
+            } else {
+                pmConnStatus.textContent = '📴 Offline Mode (local storage)';
+                pmConnStatus.className = 'pm-connection-badge offline';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function sortPacks(packs, column, direction) {
+            const sorted = [...packs];
+            sorted.sort((a, b) => {
+                let valA, valB;
+                switch(column) {
+                    case 'id':
+                        valA = parseInt(a.id, 10);
+                        valB = parseInt(b.id, 10);
+                        break;
+                    case 'illustrations':
+                        valA = a.illustrationCount || 0;
+                        valB = b.illustrationCount || 0;
+                        break;
+                    case 'category':
+                        valA = a.category === 1 ? 'Female' : 'Femboy';
+                        valB = b.category === 1 ? 'Female' : 'Femboy';
+                        break;
+                    case 'price':
+                        valA = a.price || '';
+                        valB = b.price || '';
+                        break;
+                    case 'download':
+                        valA = a.downloadUrl ? a.downloadUrl.toLowerCase() : '';
+                        valB = b.downloadUrl ? b.downloadUrl.toLowerCase() : '';
+                        break;
+                    default: // title
+                        valA = a.title ? a.title.toLowerCase() : '';
+                        valB = b.title ? b.title.toLowerCase() : '';
+                }
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return direction === 'asc' ? valA - valB : valB - valA;
+                }
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            return sorted;
+        }
+
+        function renderTable(packs) {
+            currentPacks = packs;
+            const sorted = sortPacks(packs, sortColumn, sortDirection);
+            if (!sorted.length) {
+                pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
+                return;
+            }
+            pmTableBody.innerHTML = sorted.map(pack => {
+                const categoryText = pack.category === 1 ? 'Female' : 'Femboy';
+                const categoryClass = pack.category === 1 ? 'pm-cat-female' : 'pm-cat-femboy';
+                const downloadCell = pack.downloadUrl && pack.downloadUrl.trim()
+                    ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>`
+                    : '—';
+                return `
+                    <tr>
+                        <td><code>${escapeHtml(pack.id)}</code></td>
+                        <td>${escapeHtml(pack.title)}</td>
+                        <td><span class="pm-category-badge ${categoryClass}">${categoryText}</span></td>
+                        <td>${escapeHtml(pack.price)}</td>
+                        <td>${pack.illustrationCount}</td>
+                        <td>${downloadCell}</td>
+                    </tr>
+                `;
+            }).join('');
+            document.querySelectorAll('#packmanager th span').forEach(span => span.innerHTML = '');
+            if (sortColumn) {
+                const iconSpan = document.getElementById(`sort-${sortColumn}-icon`);
+                if (iconSpan) iconSpan.innerHTML = sortDirection === 'asc' ? ' ▲' : ' ▼';
+            }
+        }
+
+        function setSort(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+            renderTable(currentPacks);
+        }
+
+        function bindSortHandlers() {
+            const headers = ['id', 'title', 'category', 'price', 'illustrations', 'download'];
+            headers.forEach(col => {
+                const th = document.getElementById(`sort-${col}`);
+                if (th) {
+                    th.onclick = () => setSort(col);
+                }
+            });
+        }
+
+        async function loadAllPacks() {
+            pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>';
+            try {
+                const remotePacks = await fetchRemotePacks();
+                remoteReachable = true;
+                updateConnectionUI(true);
+                saveLocalPacks(remotePacks);
+                currentPacks = remotePacks;
+                renderTable(currentPacks);
+                pmShowToast(`✅ Loaded ${remotePacks.length} packs from cloud`, 'success');
+                removeOfflineWarning();
+            } catch (err) {
+                console.error("Pack Manager remote fetch failed:", err);
+                remoteReachable = false;
+                updateConnectionUI(false);
+                const localPacks = getLocalPacks();
+                if (localPacks.length) {
+                    currentPacks = localPacks;
+                    renderTable(currentPacks);
+                    pmShowToast(`⚠️ Cloud unreachable — using local backup (${localPacks.length} packs)`, 'error');
+                    addOfflineWarning();
+                } else {
+                    currentPacks = [];
+                    renderTable([]);
+                    pmShowToast(`⚠️ No connection & no local data. Upload a ZIP to start.`, 'error');
+                    addOfflineWarning();
+                }
+            }
+        }
+
+        function addOfflineWarning() {
+            if (document.querySelector('#pm-warning-banner')) return;
+            const tableSection = document.querySelector('#packmanager .pm-table-section');
+            const warnDiv = document.createElement('div');
+            warnDiv.id = 'pm-warning-banner';
+            warnDiv.className = 'pm-warning-banner';
+            warnDiv.innerHTML = `
+                <span>⚠️ <strong>Offline mode active</strong> — Changes are saved locally. Click "Sync to Cloud" when connection restores.</span>
+                <button class="pm-small-retry" id="pm-retryConnectionBtn">⟳ Retry Connection</button>
+            `;
+            tableSection.insertBefore(warnDiv, tableSection.firstChild);
+            document.getElementById('pm-retryConnectionBtn')?.addEventListener('click', async () => {
+                pmShowToast("Checking connection...", "info");
+                const ok = await checkRemoteHealth();
+                if (ok) {
+                    pmShowToast("✅ Cloud reachable! Syncing local data...", "success");
+                    await syncAllLocalToRemote();
+                    await loadAllPacks();
+                    document.getElementById('pm-warning-banner')?.remove();
+                } else {
+                    pmShowToast("❌ Still offline. Try again later.", "error");
+                }
+            });
+        }
+        function removeOfflineWarning() {
+            document.getElementById('pm-warning-banner')?.remove();
+        }
+
+        async function syncAllLocalToRemote() {
+            const localPacks = getLocalPacks();
+            if (localPacks.length === 0) {
+                pmShowToast("Nothing to sync", "success");
+                return true;
+            }
+            if (!remoteReachable) {
+                const isOnline = await checkRemoteHealth();
+                if (!isOnline) {
+                    pmShowToast("Cannot sync: cloud unreachable. Retry later.", "error");
+                    return false;
+                }
+            }
+            pendingSync = true;
+            let successCount = 0, failCount = 0;
+            for (const pack of localPacks) {
+                try {
+                    await postPackToRemote(pack);
+                    successCount++;
+                } catch (err) {
+                    console.error(`Sync failed for ${pack.id}:`, err);
+                    failCount++;
+                }
+            }
+            pendingSync = false;
+            if (failCount === 0) {
+                pmShowToast(`✅ Synced ${successCount} packs to cloud`, 'success');
+                await loadAllPacks();
+                removeOfflineWarning();
+                remoteReachable = true;
+                updateConnectionUI(true);
+            } else {
+                pmShowToast(`⚠️ Synced ${successCount} packs, ${failCount} failed. Retry later.`, 'error');
+            }
+            return failCount === 0;
+        }
+
+        function cleanFilename(rawName) {
+            let name = rawName.replace(/\.zip$/i, '');
+            name = name.replace(/\s*\(\d+\)\s*$/, '');
+            return name.trim();
+        }
+        function parseFilename(filename) {
+            const base = cleanFilename(filename);
+            const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
+            const match = base.match(regex);
+            if (!match) return null;
+            return { pack: match[1], character: match[2].trim(), series: match[3].trim().toUpperCase() };
+        }
+        async function storePackWithFallback(packEntry) {
+            if (remoteReachable) {
+                try {
+                    const result = await postPackToRemote(packEntry);
+                    upsertLocalPack(packEntry);
+                    pmShowToast(`☁️ Pack #${packEntry.id} saved to cloud`, 'success');
+                    return { success: true, source: 'remote', result };
+                } catch (err) {
+                    console.warn("Remote store failed, switching to local fallback:", err);
+                    remoteReachable = false;
+                    updateConnectionUI(false);
+                    addOfflineWarning();
+                }
+            }
+            upsertLocalPack(packEntry);
+            pmShowToast(`💾 Pack #${packEntry.id} saved to LOCAL storage (cloud offline)`, 'success');
+            return { success: true, source: 'local' };
+        }
+        async function processZip(file) {
+            pmStatus.textContent = '📂 Reading ZIP...';
+            try {
+                const zip = await JSZip.loadAsync(file);
+                const imageEntries = [];
+                zip.forEach((path, entry) => {
+                    if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) imageEntries.push(entry);
+                });
+                if (imageEntries.length === 0) {
+                    pmStatus.textContent = '❌ No images found in ZIP.';
+                    pmShowToast('No images found', 'error');
+                    return;
+                }
+                const parsed = parseFilename(file.name);
+                if (!parsed) {
+                    pmStatus.textContent = '❌ Filename does not match [Pack XXX] ... format.';
+                    pmShowToast('Invalid filename format: expected [Pack 001] Name - Series', 'error');
+                    return;
+                }
+                const packNumber = parsed.pack;
+                const illustrationCount = imageEntries.length;
+                const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
+                const isFemale = pmCategoryToggle.checked;
+                const category = isFemale ? 1 : 2;
+                const title = cleanFilename(file.name);
+                const id = String(packNumber).padStart(3, '0');
+                const downloadUrl = pmDownloadUrl.value.trim();
+                const packEntry = { id, title, category, price, illustrationCount, downloadUrl: downloadUrl || null };
+                pmStatus.textContent = `⏳ Storing pack #${packNumber} ...`;
+                await storePackWithFallback(packEntry);
+                pmStatus.textContent = `✅ Pack #${packNumber} stored | ${illustrationCount} images | ${price}`;
+                await loadAllPacks();
+            } catch (err) {
+                console.error(err);
+                pmStatus.textContent = '❌ Failed to process pack.';
+                pmShowToast(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        // Event listeners
         if (pmDropzone) {
             pmDropzone.addEventListener('click', () => pmFileInput.click());
             pmDropzone.addEventListener('dragover', (e) => { e.preventDefault(); pmDropzone.style.borderColor = '#5a6e3c'; });
@@ -803,47 +1057,45 @@
                 pmDropzone.style.borderColor = '#3a4050';
                 const file = e.dataTransfer.files[0];
                 if (file && file.name.toLowerCase().endsWith('.zip')) {
-                    if(typeof processZip === 'function') processZip(file);
+                    processZip(file);
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     pmFileInput.files = dataTransfer.files;
                 } else {
-                    showToast('Please drop a .zip file', 'error');
+                    pmShowToast('Please drop a .zip file', 'error');
                 }
             });
         }
         if (pmFileInput) {
             pmFileInput.addEventListener('change', (e) => {
-                if (e.target.files.length && typeof processZip === 'function') processZip(e.target.files[0]);
+                if (e.target.files.length) processZip(e.target.files[0]);
             });
         }
         if (pmCategoryToggle) {
             pmCategoryToggle.addEventListener('change', () => {
-                if (pmFileInput.files && pmFileInput.files.length && typeof processZip === 'function') processZip(pmFileInput.files[0]);
+                if (pmFileInput.files && pmFileInput.files.length) processZip(pmFileInput.files[0]);
             });
         }
-        if (pmRefreshBtn) pmRefreshBtn.addEventListener('click', () => {
-            if(typeof loadAllPacks === 'function') loadAllPacks();
-        });
+        if (pmRefreshBtn) pmRefreshBtn.addEventListener('click', () => loadAllPacks());
         if (pmSyncBtn) {
             pmSyncBtn.addEventListener('click', async () => {
                 if (pendingSync) {
-                    showToast("Sync already in progress...", "error");
+                    pmShowToast("Sync already in progress...", "error");
                     return;
                 }
                 pmSyncBtn.textContent = "⏳ Syncing...";
-                if(typeof syncAllLocalToRemote === 'function') await syncAllLocalToRemote();
+                await syncAllLocalToRemote();
                 pmSyncBtn.textContent = "🔄 Sync to Cloud";
             });
         }
 
-        if(typeof bindSortHandlers === 'function') bindSortHandlers();
+        bindSortHandlers();
 
         // Initialise
         (async function init() {
-            if(typeof checkRemoteHealth === 'function') await checkRemoteHealth();
-            if(typeof loadAllPacks === 'function') await loadAllPacks();
-            if (!remoteReachable && typeof addOfflineWarning === 'function') addOfflineWarning();
+            await checkRemoteHealth();
+            await loadAllPacks();
+            if (!remoteReachable) addOfflineWarning();
         })();
     })();
 </script>
