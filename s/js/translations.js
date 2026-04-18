@@ -1,4 +1,5 @@
-// velutinx.github.io/s/js/translations.js
+// This is velutinx.github.io/s/js/translations.js
+
 window.translations = {
   en: {
     // Cart
@@ -76,7 +77,7 @@ window.translations = {
     // Copper perks (6)
     perk2_1: "Everything in Bronze tier, plus:",
     perk2_2: "One (1) custom image request per active billing cycle.",
-    perk2_3: "Approx. 40 images per request.",
+    perk2_3: "Approx. 80 images per request.",
     perk2_4: "Official outfit or creator-selected outfit.",
     perk2_5: "Some character customization (body proportions, etc.) allowed.",
     perk2_6: "Typical turnaround: ~1 day once its time on queue is up.",
@@ -84,7 +85,7 @@ window.translations = {
     // Silver perks (6)
     perk3_1: "Everything in Bronze tier, plus:",
     perk3_2: "One (1) custom image request per active billing cycle.",
-    perk3_3: "Approx. 40 images per request.",
+    perk3_3: "Approx. 80 images per request.",
     perk3_4: "Custom outfit allowed.",
     perk3_5: "Character customization allowed.",
     perk3_6: "Typical turnaround: ~1 day once its time on queue is up.",
@@ -191,13 +192,13 @@ window.translations = {
     perk1_4: "投票での追加投票力。",
     perk2_1: "ブロンズの全特典に加え：",
     perk2_2: "各請求サイクルに1回のカスタム画像リクエスト。",
-    perk2_3: "1リクエストあたり約40枚。",
+    perk2_3: "1リクエストあたり約80枚。",
     perk2_4: "単一キャラクター、公式/クリエイター選択の衣装。",
     perk2_5: "一部のキャラクターカスタマイズ（体型など）可。",
     perk2_6: "標準納期：~1日（キュー順）。",
     perk3_1: "ブロンズの全特典に加え：",
     perk3_2: "各請求サイクルに1回のカスタム画像リクエスト。",
-    perk3_3: "1リクエストあたり約40枚。",
+    perk3_3: "1リクエストあたり約80枚。",
     perk3_4: "単一キャラクター、カスタム衣装可。",
     perk3_5: "キャラクターカスタマイズ可。",
     perk3_6: "標準納期：~1日（キュー順）。",
@@ -296,13 +297,13 @@ window.translations = {
     perk1_4: "投票时获得额外票数。",
     perk2_1: "包含青铜所有权益，外加：",
     perk2_2: "每个计费周期可提交 1 次定制图片请求。",
-    perk2_3: "每次请求约 40 张图片。",
+    perk2_3: "每次请求约 80 张图片。",
     perk2_4: "单一角色，官方/创作者选定服装。",
     perk2_5: "允许一定的角色自定义（身体比例等）。",
     perk2_6: "典型交期：~1 天（按队列顺序）。",
     perk3_1: "包含青铜所有权益，外加：",
     perk3_2: "每个计费周期可提交 1 次定制图片请求。",
-    perk3_3: "每次请求约 40 张图片。",
+    perk3_3: "每次请求约 80 张图片。",
     perk3_4: "单一角色，允许自定义服装。",
     perk3_5: "允许角色自定义。",
     perk3_6: "典型交期：~1 天（按队列顺序）。",
@@ -401,13 +402,13 @@ window.translations = {
     perk1_4: "Poder de voto extra en encuestas.",
     perk2_1: "Todo lo de Bronce, más:",
     perk2_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación activo.",
-    perk2_3: "Aprox. 40 imágenes por solicitud.",
+    perk2_3: "Aprox. 80 imágenes por solicitud.",
     perk2_4: "Personaje único, atuendo seleccionado por el oficial/creador.",
     perk2_5: "Se permite cierta personalización del personaje (proporciones corporales, etc.).",
     perk2_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
     perk3_1: "Todo lo de Bronce, más:",
     perk3_2: "Una (1) solicitud de imagen personalizada por ciclo de facturación activo.",
-    perk3_3: "Aprox. 40 imágenes por solicitud.",
+    perk3_3: "Aprox. 80 imágenes por solicitud.",
     perk3_4: "Personaje único, se permite atuendo personalizado.",
     perk3_5: "Se permite personalización del personaje.",
     perk3_6: "Tiempo de entrega típico: ~1 día (orden de cola).",
