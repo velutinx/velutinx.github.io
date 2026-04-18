@@ -1075,7 +1075,8 @@
       }
     });
     updateMonthButtonLabels();
-    refreshButtonsState();
+refreshButtonsState(); // extra call to be safe
+disableTopTiers();
   }
 
   function escapeHtml(str) {
@@ -1252,6 +1253,39 @@
       });
     }
   });
+
+
+
+  // TEMPORARILY DISABLE GOLD + PLATINUM
+function disableTopTiers(){
+  [4,5].forEach(tier=>{
+    const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+    if(!card) return;
+
+    card.style.opacity = "0.45";
+    card.style.pointerEvents = "none";
+    card.style.filter = "grayscale(1)";
+
+    const badge = document.createElement("div");
+    badge.textContent = "TEMPORARILY UNAVAILABLE";
+    badge.style.cssText = `
+      position:absolute;
+      top:12px;
+      right:12px;
+      background:#ef4444;
+      color:white;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      z-index:5;
+    `;
+
+    card.style.position = "relative";
+    card.appendChild(badge);
+  });
+}
+
 </script>
 
 <div class="sandbox-banner">
