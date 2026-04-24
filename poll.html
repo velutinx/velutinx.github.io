@@ -142,18 +142,17 @@
     }
 
     // Create grid cards (now 8 cards)
-    for (let i = 1; i <= TOTAL_CARDS; i++) {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.dataset.id = i;
-      card.innerHTML = `
-        <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
-        <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
-        <div class="label">Loading...</div>
-      `;
-      card.onclick = () => { showSelected(i); castVote(i); };
-      grid.appendChild(card);
-    }
+for (let i = 1; i <= TOTAL_CARDS; i++) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.dataset.id = i;
+  card.setAttribute('data-cursor-expand', '');   // ← this line
+  card.innerHTML = `
+    ...
+  `;
+  card.onclick = () => { showSelected(i); castVote(i); };
+  grid.appendChild(card);
+}
 
     async function castVote(id) {
       let visitorId = 'unknown_fp';
