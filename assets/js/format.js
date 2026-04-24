@@ -1,36 +1,116 @@
 // format.js – common page behaviour (stars, gallery, zoom, commissions sparkles, contact form)
+
+// format.js – custom cursor, magnetic social grid, gallery, zoom, & commission sparkles
 (function() {
   function init() {
-    // Cursor sparkles (global)
-    let lastStarTime = 0;
-    document.addEventListener("mousemove", (e) => {
-      const now = Date.now();
-      if (now - lastStarTime < 45) return;
-      lastStarTime = now;
+    // ---------- 1. INJECT CURSOR ELEMENTS ----------
+    const cursorDot = document.createElement('div');
+    cursorDot.className = 'cursor-dot';
+    document.body.appendChild(cursorDot);
 
-      const star = document.createElement("div");
-      star.className = "star";
-      star.textContent = "✦";
-      star.style.setProperty("--drift", Math.random());
-      star.style.left = `${e.clientX}px`;
-      star.style.top = `${e.clientY}px`;
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 2000);
+    const cursorRing = document.createElement('div');
+    cursorRing.className = 'cursor-ring';
+    document.body.appendChild(cursorRing);
+
+    // Add class to body to hide default cursor
+    document.body.classList.add('custom-cursor-active');
+
+    // ---------- 2. GSAP CURSOR TRACKING ----------
+    let mouse = { x: 0, y: 0 };
+    let ring = { x: 0, y: 0 };
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+
+      gsap.to(cursorDot, {
+        x: mouse.x,
+        y: mouse.y,
+        duration: 0.1,
+        ease: 'power2.out'
+      });
     });
 
-    // Full-page falling sparkles
-    setInterval(() => {
-      const star = document.createElement("div");
-      star.className = "falling-star";
-      star.textContent = "✦";
-      star.style.left = Math.random() * 100 + "vw";
-      star.style.top = "-10vh";
-      star.style.setProperty("--drift", Math.random() * 2 - 1);
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 8000);
-    }, 400);
+    gsap.ticker.add(() => {
+      ring.x += (mouse.x - ring.x) * 0.15;
+      ring.y += (mouse.y - ring.y) * 0.15;
+      gsap.set(cursorRing, { x: ring.x, y: ring.y });
+    });
 
-    // Gallery loading (if exists)
+    // ---------- 3. BUILD MAGNETIC SOCIAL GRID ----------
+    const socialArea = document.getElementById('socialArea');
+    if (socialArea) {
+      // Remove old circular menu (if any)
+      socialArea.innerHTML = '';
+
+      // Create container
+      const container = document.createElement('div');
+      container.className = 'social-container';
+
+      // Social links definition – using your own icon URLs
+      const links = [
+        { href: 'https://x.com/VelutinxSFW', img: 'https://www.velutinx.com/images/LogoTwitter.png', label: 'Twitter' },
+        { href: 'https://bsky.app/profile/velutinxx.bsky.social', img: 'https://www.velutinx.com/images/LogoBluesky.png', label: 'Bluesky' },
+        { href: 'https://www.pixiv.net/en/users/117116845', img: 'https://www.velutinx.com/images/LogoPixiv.png', label: 'Pixiv' },
+        { href: 'https://discord.gg/HKyH4bmQez', img: 'https://www.velutinx.com/images/LogoDiscord.png', label: 'Discord' },
+        { href: 'https://www.instagram.com/velutinxx/', img: 'https://www.velutinx.com/images/LogoInstagram.png', label: 'Instagram' },
+        { href: 'https://www.patreon.com/c/Velutinx_', img: 'https://www.velutinx.com/images/LogoPatreon.png', label: 'Patreon' },
+        { href: 'https://ko-fi.com/velutinxstudio', img: 'https://www.velutinx.com/images/LogoKoFi.png', label: 'Ko‑fi' },
+        { href: 'https://subscribestar.adult/velutinx', img: 'https://www.velutinx.com/images/LogoSubscribeStar.png', label: 'SubscribeStar' }
+      ];
+
+      const ul = document.createElement('ul');
+      ul.className = 'box-social';
+
+      links.forEach(link => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = link.href;
+        a.target = '_blank';
+        a.className = 'magnetic-wrap';
+        a.setAttribute('data-magnetic', '');
+
+        const inner = document.createElement('span');
+        inner.className = 'magnetic-inner';
+        inner.innerHTML = `<img src="${link.img}" alt="${link.label}"><span>${link.label}</span>`;
+
+        a.appendChild(inner);
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+
+      container.appendChild(ul);
+      socialArea.appendChild(container);
+
+      // ---------- 4. MAGNETIC EFFECT ----------
+      const magnetics = document.querySelectorAll('[data-magnetic]');
+      magnetics.forEach((el) => {
+        const inner = el.querySelector('.magnetic-inner');
+
+        el.addEventListener('mousemove', (e) => {
+          const rect = el.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = (e.clientX - cx) * 0.4;
+          const dy = (e.clientY - cy) * 0.4;
+
+          gsap.to(el, { x: dx, y: dy, duration: 0.3, ease: 'power2.out' });
+          gsap.to(inner, { x: dx * 0.5, y: dy * 0.5, duration: 0.3, ease: 'power2.out' });
+        });
+
+        el.addEventListener('mouseenter', () => {
+          cursorRing.classList.add('active');
+        });
+
+        el.addEventListener('mouseleave', () => {
+          cursorRing.classList.remove('active');
+          gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.3)' });
+          gsap.to(inner, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.3)' });
+        });
+      });
+    }
+
+    // ---------- 5. GALLERY LOADING (unchanged) ----------
     const gallery = document.getElementById("gallery");
     if (gallery) {
       const MAX_IMAGES = 12;
@@ -45,7 +125,7 @@
       }
     }
 
-    // Zoom functionality (if gallery exists)
+    // ---------- 6. ZOOM FUNCTIONALITY (unchanged) ----------
     let activeClone = null;
     let originRect = null;
     document.addEventListener("click", (e) => {
@@ -114,109 +194,7 @@
       };
     }
 
-// socials.js – form handling and UI for the contact page
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Form submission and validation
-  const form = document.getElementById('contactForm');
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      const name = document.getElementById('name');
-      const email = document.getElementById('email');
-      const message = document.getElementById('message');
-
-      [name, email, message].forEach(input => {
-        input.style.borderColor = '';
-        input.style.animation = 'none';
-      });
-
-      let hasError = false;
-
-      if (!name.value.trim()) {
-        name.style.borderColor = '#b33';
-        name.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
-      if (!email.value.trim() || !email.value.includes('@')) {
-        email.style.borderColor = '#b33';
-        email.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
-      if (!message.value.trim()) {
-        message.style.borderColor = '#b33';
-        message.style.animation = 'shake 0.35s';
-        hasError = true;
-      }
-
-      if (hasError) {
-        const errorText = (typeof translations !== 'undefined' && translations.contact?.[currentLanguage]?.errorText) ||
-          'Please fill out all fields correctly ♡';
-        showPopup(errorText);
-        return;
-      }
-
-      const successText = (typeof translations !== 'undefined' && translations.contact?.[currentLanguage]?.successText) ||
-        'Message sent successfully! You will hear back soon! ♡♡';
-      showPopup(successText);
-
-      form.submit();
-    });
-  }
-
-  // Send button shake
-  const sendBtn = document.getElementById('sendBtn');
-  if (sendBtn) {
-    sendBtn.addEventListener('click', () => {
-      sendBtn.style.animation = 'none';
-      void sendBtn.offsetWidth; // force reflow
-      sendBtn.style.animation = 'shake 0.35s';
-    });
-  }
-
-  // Language switching for contact page
-  document.querySelectorAll('.lang-item').forEach(item => {
-    item.addEventListener('click', () => {
-      if (typeof setLanguage === 'function') setLanguage(item.dataset.lang);
-    });
-  });
-
-  // Apply translations when page loads or language changes
-  if (typeof applyTranslations === 'function') {
-    applyTranslations('contact');
-    document.addEventListener('languageChanged', () => applyTranslations('contact'));
-  }
-});
-
-// Popup function (used by form)
-function showPopup(text) {
-  const popup = document.createElement('div');
-  popup.textContent = text;
-  popup.style.position = 'fixed';
-  popup.style.top = '20px';
-  popup.style.right = '20px';
-  popup.style.background = '#eeeae0';
-  popup.style.border = '3px solid #aa9e76';
-  popup.style.padding = '14px 18px';
-  popup.style.borderRadius = '10px';
-  popup.style.fontSize = '13px';
-  popup.style.fontWeight = '700';
-  popup.style.color = '#b33';
-  popup.style.boxShadow = '6px 6px 0 rgba(0,0,0,0.4)';
-  popup.style.zIndex = '99999';
-  popup.style.opacity = '0';
-  popup.style.transition = 'opacity 0.5s ease';
-  document.body.appendChild(popup);
-
-  setTimeout(() => popup.style.opacity = '1', 10);
-  setTimeout(() => {
-    popup.style.opacity = '0';
-    setTimeout(() => popup.remove(), 500);
-  }, 5000);
-}
-    
-    // Commission box sparkles (if exists)
+    // ---------- 7. COMMISSION BOX SPARKLES (keep) ----------
     const commissionBox = document.getElementById("commissionBox");
     if (commissionBox) {
       setInterval(() => {
@@ -230,22 +208,9 @@ function showPopup(text) {
       }, 700);
     }
 
-    // Contact form handling and social area sparkles (if exists)
+    // ---------- 8. CONTACT FORM HANDLING (unchanged) ----------
     const contactForm = document.getElementById("contactForm");
     if (contactForm) {
-      const socialArea = document.getElementById("socialArea");
-      if (socialArea) {
-        setInterval(() => {
-          const star = document.createElement("div");
-          star.className = "social-star";
-          star.textContent = "✦";
-          star.style.left = Math.random() * socialArea.clientWidth + "px";
-          star.style.top = "0px";
-          socialArea.appendChild(star);
-          setTimeout(() => star.remove(), 6000);
-        }, 700);
-      }
-
       contactForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -278,6 +243,18 @@ function showPopup(text) {
         }
       });
     }
+
+    // (Optional) keep global falling stars – you can remove this interval if you want a perfectly clean cursor
+    setInterval(() => {
+      const star = document.createElement("div");
+      star.className = "falling-star";
+      star.textContent = "✦";
+      star.style.left = Math.random() * 100 + "vw";
+      star.style.top = "-10vh";
+      star.style.setProperty("--drift", Math.random() * 2 - 1);
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 8000);
+    }, 400);
   }
 
   if (document.readyState === "loading") {
