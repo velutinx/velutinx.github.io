@@ -76,8 +76,8 @@
 <script src="/assets/js/shared.js"></script>
 
 <!-- GSAP library – required for the custom cursor -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+  
 <!-- Page‑specific scripts -->
 <script src="/assets/js/translt.js"></script>
 <script src="/assets/js/format.js"></script>
@@ -140,15 +140,16 @@
       const result = await fp.get();
       return result.visitorId;
     }
-
-    // Create grid cards (now 8 cards)
+// Create grid cards (now 8 cards)
 for (let i = 1; i <= TOTAL_CARDS; i++) {
   const card = document.createElement("div");
   card.className = "card";
   card.dataset.id = i;
-  card.setAttribute('data-cursor-expand', '');   // ← this line
+  card.setAttribute('data-cursor-expand', '');
   card.innerHTML = `
-    ...
+    <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
+    <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
+    <div class="label">Loading...</div>
   `;
   card.onclick = () => { showSelected(i); castVote(i); };
   grid.appendChild(card);
