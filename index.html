@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Shared page styles (hero, divider, sparkles, etc.) -->
+  <!-- Shared page styles (hero, divider, new cursor + falling stars) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
     /* Hide Website button, cart wrapper, and floating cart on index page */
@@ -54,6 +54,10 @@
 
   <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
   <script src="/assets/js/shared.js"></script>
+
+  <!-- GSAP library – required for custom cursor (and magnetic effects on other pages) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
   <!-- Page‑specific scripts -->
   <script src="/assets/js/translt.js"></script>
   <script src="/assets/js/format.js"></script>
@@ -72,33 +76,19 @@
     applyIndexTranslations();
 
     // When language changes via shared header, update translt.js and reapply
-document.addEventListener('languageChanged', (e) => {
-  const newLang = e.detail.language;
+    document.addEventListener('languageChanged', (e) => {
+      const newLang = e.detail.language;
       if (newLang && typeof window.setLanguage === 'function') {
         window.setLanguage(newLang);
       } else if (newLang) {
         window.currentLanguage = newLang;
       }
-  applyIndexTranslations();
-});
+      applyIndexTranslations();
+    });
 
     // Dark mode from localStorage
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
-    }
-
-    // Social‑star sparkles inside hero image (same as original)
-    const heroImage = document.getElementById('heroImage');
-    if (heroImage) {
-      setInterval(() => {
-        const star = document.createElement('div');
-        star.className = 'social-star';
-        star.textContent = '✦';
-        star.style.left = `${Math.random() * heroImage.clientWidth}px`;
-        star.style.top = '0px';
-        heroImage.appendChild(star);
-        setTimeout(() => star.remove(), 6000);
-      }, 700);
     }
 
     // Fade in main content (same as original intro-loader)
