@@ -327,11 +327,3 @@ body.dark .logo { color: var(--accent); }
 #paypal-button-container {
   margin: 12px 20px 20px;
 }
-
-/* Let the custom cursor show through PayPal buttons */
-.paypal-button-container,
-.paypal-button-row,
-.paypal-button,
-.paypal-button * {
-  cursor: none !important;
-}
