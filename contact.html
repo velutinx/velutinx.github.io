@@ -6,7 +6,7 @@
   <title>VELUTINX — Contact</title>
   <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Page‑specific CSS (includes contact form styles) -->
+  <!-- Page‑specific CSS (includes contact form + new cursor + magnetic grid styles) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
     /* Hide cart and website button on contact page */
@@ -20,12 +20,7 @@
       background: var(--bg) !important;
       border-bottom: 1px solid var(--border);
     }
-    /* Ensure the circular menu doesn't overflow on small screens */
-    @media (max-width: 768px) {
-      .contact-right .menu {
-        transform: scale(0.8) translate(150px, 150px);
-      }
-    }
+    /* (old menu media query removed – no longer needed) */
   </style>
 </head>
 <body class="contact-page">
@@ -61,48 +56,19 @@
       </form>
     </div>
 
-    <div class="contact-right" id="socialArea">
-      <!-- Circular social menu – same as original -->
-      <div class="menu" style="transform: translate(200px, 200px);">
-        <input type="checkbox" id="check" class="checkbox">
-        <label for="check" class="label_checkbox">
-          <svg class="icon_plus" viewBox="0 0 24 24">
-            <path d="M12 3v18M3 12h18" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-          </svg>
-          <svg class="icon_close" viewBox="0 0 24 24">
-            <path d="M5 5L19 19M19 5L5 19" stroke="#333" stroke-width="4" stroke-linecap="round"/>
-          </svg>
-        </label>
-        <a href="https://x.com/VelutinxSFW" target="_blank" class="menu_link twitter">
-          <img src="https://www.velutinx.com/images/LogoTwitter.png" class="menu_icon" alt="Twitter">
-        </a>
-        <a href="https://bsky.app/profile/velutinxx.bsky.social" target="_blank" class="menu_link bluesky">
-          <img src="https://www.velutinx.com/images/LogoBluesky.png" class="menu_icon" alt="Bluesky">
-        </a>
-        <a href="https://www.pixiv.net/en/users/117116845" target="_blank" class="menu_link pixiv">
-          <img src="https://www.velutinx.com/images/LogoPixiv.png" class="menu_icon" alt="Pixiv">
-        </a>
-        <a href="https://ko-fi.com/velutinxstudio" target="_blank" class="menu_link kofi">
-          <img src="https://www.velutinx.com/images/LogoKoFi.png" class="menu_icon" alt="Ko‑fi">
-        </a>
-        <a href="https://www.instagram.com/velutinxx/" target="_blank" class="menu_link instagram">
-          <img src="https://www.velutinx.com/images/LogoInstagram.png" class="menu_icon" alt="Instagram">
-        </a>
-        <a href="https://subscribestar.adult/velutinx" target="_blank" class="menu_link substar">
-          <img src="https://www.velutinx.com/images/LogoSubscribeStar.png" class="menu_icon" alt="SubscribeStar">
-        </a>
-        <a href="https://www.patreon.com/c/Velutinx_" target="_blank" class="menu_link patreon">
-         <img src="https://www.velutinx.com/images/LogoPatreon.png" class="menu_icon" alt="Patreon">
-        </a>
-      </div>
-    </div>
+    <!-- This container will be filled automatically by format.js with the magnetic social grid -->
+    <div class="contact-right" id="socialArea"></div>
   </section>
 
   <div class="divider"></div>
 
   <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
   <script src="/assets/js/shared.js"></script>
-  <!-- Page‑specific scripts (translations, gallery, tab animation) -->
+
+  <!-- GSAP library – required for the new cursor and magnetic effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <!-- Page‑specific scripts (translations, gallery, format with magnetic grid + cursor) -->
   <script src="/assets/js/translt.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
@@ -122,13 +88,10 @@
     document.addEventListener('languageChanged', (e) => {
       const newLang = e.detail.language;
       if (newLang && typeof window.setLanguage === 'function') {
-        // Update translt.js's internal language
         window.setLanguage(newLang);
       } else if (newLang) {
-        // Fallback
         window.currentLanguage = newLang;
       }
-      // Reapply contact translations
       applyContactTranslations();
     });
 
