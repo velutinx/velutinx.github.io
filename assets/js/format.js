@@ -126,19 +126,20 @@
     }
 
     // ---------- 6. GALLERY LOADING (unchanged) ----------
-    const gallery = document.getElementById("gallery");
-    if (gallery) {
-      const MAX_IMAGES = 12;
-      const BASE = "https://www.velutinx.com/images/artwork/";
-      for (let i = 1; i <= MAX_IMAGES; i++) {
-        const img = document.createElement("img");
-        img.src = BASE + i + ".jpg";
-        img.alt = `Artwork sample ${i}`;
-        img.onerror = () => img.remove();
-        img.loading = "lazy";
-        gallery.appendChild(img);
-      }
-    }
+const gallery = document.getElementById("gallery");
+if (gallery) {
+  const MAX_IMAGES = 12;
+  const BASE = "https://www.velutinx.com/images/artwork/";
+  for (let i = 1; i <= MAX_IMAGES; i++) {
+    const img = document.createElement("img");
+    img.src = BASE + i + ".jpg";
+    img.alt = `Artwork sample ${i}`;
+    img.onerror = () => img.remove();
+    img.loading = "lazy";
+    img.setAttribute('data-cursor-expand', '');   // ← this line added
+    gallery.appendChild(img);
+  }
+}
 
     // ---------- 7. ZOOM FUNCTIONALITY (unchanged) ----------
     let activeClone = null;
