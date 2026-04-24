@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Membership</title>
   <link rel="stylesheet" href="/assets/css/shared.css">
+  <link rel="stylesheet" href="/assets/css/format.css">
   <link rel="stylesheet" href="/s/css/sandbox-banner.css">
-<script src="/s/js/sandbox-banner.js"></script>
+  <script src="/s/js/sandbox-banner.js"></script>
   <style>
     /* ========== ALL STYLES (unchanged) ========== */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
@@ -17,7 +18,7 @@
     .carousel-container { position: relative; margin: 40px 0; }
     .carousel-scroll { display: flex; overflow-x: auto; gap: 2rem; padding: 20px 0; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; }
     .carousel-scroll::-webkit-scrollbar { display: none; }
-    .tier-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; width: 300px; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; transition: transform 0.2s; }
+    .tier-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; width: 300px; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; flex-direction: column; transition: transform 0.2s; position: relative; }
     .tier-card:hover { transform: translateY(-4px); }
     .tier-card h3 { font-size: 1.8rem; margin: 0 0 0.5rem; color: var(--text); }
     .tier-price { color: #ef4444; font-weight: 800; font-size: 2rem; text-align: center; margin: 0.5rem 0; }
@@ -280,7 +281,7 @@
       <input type="text" id="discordId" placeholder="e.g., 123456789012345678" value="" required>
       <div class="discord-hint">
         <span id="discordHintText">How to find your Discord ID:</span>
-        <span class="discord-help-link" id="discordHelpToggle">
+        <span class="discord-help-link" id="discordHelpToggle" data-cursor-expand>
           <span id="discordHelpText">Where do I find my Discord ID? (click)</span>
           <svg width="16" height="16" viewBox="-6.5 0 32 32" fill="currentColor" style="vertical-align: middle; margin-left: 4px;">
             <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"/>
@@ -303,181 +304,181 @@
       <div>
         <strong id="importantLabel">Important:</strong> <span id="noteBoxText">After successful payment, you'll receive the corresponding role in our Discord server automatically. Make sure you've joined the server first!</span>
         <div style="margin-top:12px;">
-          <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;">→ Join Discord Server ←</a>
+          <a href="https://discord.gg/YOUR_INVITE" target="_blank" id="joinDiscordLink" style="color:var(--accent); font-weight:600;" data-cursor-expand>→ Join Discord Server ←</a>
         </div>
       </div>
     </div>
   </div>
 
-<div class="carousel-container">
-<div class="carousel-scroll" id="tierCarousel">
-  <!-- Tier 1: Bronze -->
-  <div class="tier-card" data-tier="1">
-    <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
-    <div class="tier-header">
-      <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
-      <h3 class="tier-title" id="tier1Title">BRONZE</h3>
-    </div>
-    <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
-    <ul class="tier-perks">
-      <li id="perk1_1">• Exclusive discord role</li>
-      <li id="perk1_2">• Full archive access immediately.</li>
-      <li id="perk1_3">• Includes all past releases & paid content.</li>
-      <li id="perk1_4">• Extra voting power on polls.</li>
-    </ul>
-<div class="button-row">
-  <div class="month-selector-container">
-    <button class="month-selector-btn" data-tier="1" data-selected="1">
-      <span class="month-btn-label">1 month</span>
-      <span class="chevron">▼</span>
-    </button>
-    <div class="month-dropdown">
-      <button data-months="1">1 month</button>
-      <button data-months="3">3 months (10% OFF)</button>
-      <button data-months="6">6 months (20% OFF)</button>
-      <button data-months="12">12 months (30% OFF)</button>
-    </div>
-  </div>
-  <button class="membership-btn btn-monthly disabled" data-tier="1" data-type="monthly" disabled>Enter Discord ID first</button>
-  <button class="membership-btn btn-subscribe" data-tier="1" onclick="openSubscriptionModal(1)">Recurring Membership, 10% OFF</button>
-</div>
-  </div>
+  <div class="carousel-container">
+    <div class="carousel-scroll" id="tierCarousel">
+      <!-- Tier 1: Bronze -->
+      <div class="tier-card" data-tier="1">
+        <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" alt="Bronze" style="width:100%; height:auto; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier1Title">BRONZE</h3>
+        </div>
+        <div class="tier-price" data-price-usd="5"><span class="price-value"></span> <span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk1_1">• Exclusive discord role</li>
+          <li id="perk1_2">• Full archive access immediately.</li>
+          <li id="perk1_3">• Includes all past releases & paid content.</li>
+          <li id="perk1_4">• Extra voting power on polls.</li>
+        </ul>
+        <div class="button-row">
+          <div class="month-selector-container">
+            <button class="month-selector-btn" data-tier="1" data-selected="1" data-cursor-expand>
+              <span class="month-btn-label">1 month</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="month-dropdown">
+              <button data-months="1">1 month</button>
+              <button data-months="3">3 months (10% OFF)</button>
+              <button data-months="6">6 months (20% OFF)</button>
+              <button data-months="12">12 months (30% OFF)</button>
+            </div>
+          </div>
+          <button class="membership-btn btn-monthly disabled" data-tier="1" data-type="monthly" disabled data-cursor-expand>Enter Discord ID first</button>
+          <button class="membership-btn btn-subscribe" data-tier="1" onclick="openSubscriptionModal(1)" data-cursor-expand>Recurring Membership, 10% OFF</button>
+        </div>
+      </div>
 
-  <!-- Tier 2: Copper -->
-  <div class="tier-card" data-tier="2">
-    <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
-    <div class="tier-header">
-      <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
-      <h3 class="tier-title" id="tier2Title">COPPER</h3>
-    </div>
-    <div class="tier-price" data-price-usd="10"><span class="price-value"></span><span class="per-month">/ month</span></div>
-    <ul class="tier-perks">
-      <li id="perk2_1">• Everything in Bronze tier, plus:</li>
-      <li id="perk2_2">• One (1) custom image request per active billing cycle.</li>
-      <li id="perk2_3">• Approx. 40 images per request.</li>
-      <li id="perk2_4">• Official outfit or creator-selected outfit.</li>
-      <li id="perk2_5">• Some character customization (body proportions, etc.) allowed.</li>
-      <li id="perk2_6">• Typical turnaround: ~1 day once its time on queue is up.</li>
-    </ul>
-<div class="button-row">
-  <div class="month-selector-container">
-    <button class="month-selector-btn" data-tier="2" data-selected="1">
-      <span class="month-btn-label">1 month</span>
-      <span class="chevron">▼</span>
-    </button>
-    <div class="month-dropdown">
-      <button data-months="1">1 month</button>
-      <button data-months="3">3 months (10% OFF)</button>
-      <button data-months="6">6 months (20% OFF)</button>
-      <button data-months="12">12 months (30% OFF)</button>
-    </div>
-  </div>
-  <button class="membership-btn btn-monthly disabled" data-tier="2" data-type="monthly" disabled>Enter Discord ID first</button>
-  <button class="membership-btn btn-subscribe" data-tier="2" onclick="openSubscriptionModal(2)">Recurring Membership, 10% OFF</button>
-</div>
-  </div>
+      <!-- Tier 2: Copper -->
+      <div class="tier-card" data-tier="2">
+        <img src="https://www.velutinx.com/i/packmembership-2-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier2Title">COPPER</h3>
+        </div>
+        <div class="tier-price" data-price-usd="10"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk2_1">• Everything in Bronze tier, plus:</li>
+          <li id="perk2_2">• One (1) custom image request per active billing cycle.</li>
+          <li id="perk2_3">• Approx. 40 images per request.</li>
+          <li id="perk2_4">• Official outfit or creator-selected outfit.</li>
+          <li id="perk2_5">• Some character customization (body proportions, etc.) allowed.</li>
+          <li id="perk2_6">• Typical turnaround: ~1 day once its time on queue is up.</li>
+        </ul>
+        <div class="button-row">
+          <div class="month-selector-container">
+            <button class="month-selector-btn" data-tier="2" data-selected="1" data-cursor-expand>
+              <span class="month-btn-label">1 month</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="month-dropdown">
+              <button data-months="1">1 month</button>
+              <button data-months="3">3 months (10% OFF)</button>
+              <button data-months="6">6 months (20% OFF)</button>
+              <button data-months="12">12 months (30% OFF)</button>
+            </div>
+          </div>
+          <button class="membership-btn btn-monthly disabled" data-tier="2" data-type="monthly" disabled data-cursor-expand>Enter Discord ID first</button>
+          <button class="membership-btn btn-subscribe" data-tier="2" onclick="openSubscriptionModal(2)" data-cursor-expand>Recurring Membership, 10% OFF</button>
+        </div>
+      </div>
 
-  <!-- Tier 3: Silver -->
-  <div class="tier-card" data-tier="3">
-    <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
-    <div class="tier-header">
-      <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
-      <h3 class="tier-title" id="tier3Title">SILVER</h3>
-    </div>
-    <div class="tier-price" data-price-usd="18"><span class="price-value"></span><span class="per-month">/ month</span></div>
-    <ul class="tier-perks">
-      <li id="perk3_1">• Everything in Bronze tier, plus:</li>
-      <li id="perk3_2">• One (1) custom image request per active billing cycle.</li>
-      <li id="perk3_3">• Approx. 40 images per request.</li>
-      <li id="perk3_4">• Custom outfit allowed.</li>
-      <li id="perk3_5">• Character customization allowed.</li>
-      <li id="perk3_6">• Typical turnaround: ~1 day once its time on queue is up.</li>
-    </ul>
-<div class="button-row">
-  <div class="month-selector-container">
-    <button class="month-selector-btn" data-tier="3" data-selected="1">
-      <span class="month-btn-label">1 month</span>
-      <span class="chevron">▼</span>
-    </button>
-    <div class="month-dropdown">
-      <button data-months="1">1 month</button>
-      <button data-months="3">3 months (10% OFF)</button>
-      <button data-months="6">6 months (20% OFF)</button>
-      <button data-months="12">12 months (30% OFF)</button>
-    </div>
-  </div>
-  <button class="membership-btn btn-monthly disabled" data-tier="3" data-type="monthly" disabled>Enter Discord ID first</button>
-  <button class="membership-btn btn-subscribe" data-tier="3" onclick="openSubscriptionModal(3)">Recurring Membership, 10% OFF</button>
-</div>
-  </div>
+      <!-- Tier 3: Silver -->
+      <div class="tier-card" data-tier="3">
+        <img src="https://www.velutinx.com/i/packmembership-3-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier3Title">SILVER</h3>
+        </div>
+        <div class="tier-price" data-price-usd="18"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk3_1">• Everything in Bronze tier, plus:</li>
+          <li id="perk3_2">• One (1) custom image request per active billing cycle.</li>
+          <li id="perk3_3">• Approx. 40 images per request.</li>
+          <li id="perk3_4">• Custom outfit allowed.</li>
+          <li id="perk3_5">• Character customization allowed.</li>
+          <li id="perk3_6">• Typical turnaround: ~1 day once its time on queue is up.</li>
+        </ul>
+        <div class="button-row">
+          <div class="month-selector-container">
+            <button class="month-selector-btn" data-tier="3" data-selected="1" data-cursor-expand>
+              <span class="month-btn-label">1 month</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="month-dropdown">
+              <button data-months="1">1 month</button>
+              <button data-months="3">3 months (10% OFF)</button>
+              <button data-months="6">6 months (20% OFF)</button>
+              <button data-months="12">12 months (30% OFF)</button>
+            </div>
+          </div>
+          <button class="membership-btn btn-monthly disabled" data-tier="3" data-type="monthly" disabled data-cursor-expand>Enter Discord ID first</button>
+          <button class="membership-btn btn-subscribe" data-tier="3" onclick="openSubscriptionModal(3)" data-cursor-expand>Recurring Membership, 10% OFF</button>
+        </div>
+      </div>
 
-  <!-- Tier 4: Gold -->
-  <div class="tier-card" data-tier="4">
-    <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
-    <div class="tier-header">
-      <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
-      <h3 class="tier-title" id="tier4Title">GOLD</h3>
-    </div>
-    <div class="tier-price" data-price-usd="30"><span class="price-value"></span><span class="per-month">/ month</span></div>
-    <ul class="tier-perks">
-      <li id="perk4_1">• Everything in Bronze tier, plus:</li>
-      <li id="perk4_2">• One (1) large custom image request per active billing cycle.</li>
-      <li id="perk4_3">• Approx. 80 images per request.</li>
-      <li id="perk4_4">• Custom outfit allowed.</li>
-      <li id="perk4_5">• Character customization allowed.</li>
-      <li id="perk4_6">• Typical turnaround: 3-7 day once its time on queue is up.</li>
-    </ul>
-<div class="button-row">
-  <div class="month-selector-container">
-    <button class="month-selector-btn" data-tier="4" data-selected="1">
-      <span class="month-btn-label">1 month</span>
-      <span class="chevron">▼</span>
-    </button>
-    <div class="month-dropdown">
-      <button data-months="1">1 month</button>
-      <button data-months="3">3 months (10% OFF)</button>
-      <button data-months="6">6 months (20% OFF)</button>
-      <button data-months="12">12 months (30% OFF)</button>
-    </div>
-  </div>
-  <button class="membership-btn btn-monthly disabled" data-tier="4" data-type="monthly" disabled>Enter Discord ID first</button>
-  <button class="membership-btn btn-subscribe" data-tier="4" onclick="openSubscriptionModal(4)">Recurring Membership, 10% OFF</button>
-</div>
-  </div>
+      <!-- Tier 4: Gold -->
+      <div class="tier-card" data-tier="4">
+        <img src="https://www.velutinx.com/i/packmembership-4-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier4Title">GOLD</h3>
+        </div>
+        <div class="tier-price" data-price-usd="30"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk4_1">• Everything in Bronze tier, plus:</li>
+          <li id="perk4_2">• One (1) large custom image request per active billing cycle.</li>
+          <li id="perk4_3">• Approx. 80 images per request.</li>
+          <li id="perk4_4">• Custom outfit allowed.</li>
+          <li id="perk4_5">• Character customization allowed.</li>
+          <li id="perk4_6">• Typical turnaround: 3-7 day once its time on queue is up.</li>
+        </ul>
+        <div class="button-row">
+          <div class="month-selector-container">
+            <button class="month-selector-btn" data-tier="4" data-selected="1" data-cursor-expand>
+              <span class="month-btn-label">1 month</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="month-dropdown">
+              <button data-months="1">1 month</button>
+              <button data-months="3">3 months (10% OFF)</button>
+              <button data-months="6">6 months (20% OFF)</button>
+              <button data-months="12">12 months (30% OFF)</button>
+            </div>
+          </div>
+          <button class="membership-btn btn-monthly disabled" data-tier="4" data-type="monthly" disabled data-cursor-expand>Enter Discord ID first</button>
+          <button class="membership-btn btn-subscribe" data-tier="4" onclick="openSubscriptionModal(4)" data-cursor-expand>Recurring Membership, 10% OFF</button>
+        </div>
+      </div>
 
-  <!-- Tier 5: Platinum -->
-  <div class="tier-card" data-tier="5">
-    <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
-    <div class="tier-header">
-      <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
-      <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
+      <!-- Tier 5: Platinum -->
+      <div class="tier-card" data-tier="5">
+        <img src="https://www.velutinx.com/i/packmembership-5-1.jpg" style="width:100%; border-radius:8px; margin-bottom:1rem;">
+        <div class="tier-header">
+          <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#e5e4e2"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+          <h3 class="tier-title" id="tier5Title">PLATINUM</h3>
+        </div>
+        <div class="tier-price" data-price-usd="40"><span class="price-value"></span><span class="per-month">/ month</span></div>
+        <ul class="tier-perks">
+          <li id="perk5_1">• Includes everything from Bronze & Gold tiers, plus:</li>
+          <li id="perk5_2">• Your request is worked on first after current tasks are completed.</li>
+        </ul>
+        <div class="button-row">
+          <div class="month-selector-container">
+            <button class="month-selector-btn" data-tier="5" data-selected="1" data-cursor-expand>
+              <span class="month-btn-label">1 month</span>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="month-dropdown">
+              <button data-months="1">1 month</button>
+              <button data-months="3">3 months (10% OFF)</button>
+              <button data-months="6">6 months (20% OFF)</button>
+              <button data-months="12">12 months (30% OFF)</button>
+            </div>
+          </div>
+          <button class="membership-btn btn-monthly disabled" data-tier="5" data-type="monthly" disabled data-cursor-expand>Enter Discord ID first</button>
+          <button class="membership-btn btn-subscribe" data-tier="5" onclick="openSubscriptionModal(5)" data-cursor-expand>Recurring Membership, 10% OFF</button>
+        </div>
+      </div>
     </div>
-    <div class="tier-price" data-price-usd="40"><span class="price-value"></span><span class="per-month">/ month</span></div>
-    <ul class="tier-perks">
-      <li id="perk5_1">• Includes everything from Bronze & Gold tiers, plus:</li>
-      <li id="perk5_2">• Your request is worked on first after current tasks are completed.</li>
-    </ul>
-<div class="button-row">
-  <div class="month-selector-container">
-    <button class="month-selector-btn" data-tier="5" data-selected="1">
-      <span class="month-btn-label">1 month</span>
-      <span class="chevron">▼</span>
-    </button>
-    <div class="month-dropdown">
-      <button data-months="1">1 month</button>
-      <button data-months="3">3 months (10% OFF)</button>
-      <button data-months="6">6 months (20% OFF)</button>
-      <button data-months="12">12 months (30% OFF)</button>
-    </div>
+    <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)" data-cursor-expand>←</button>
+    <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)" data-cursor-expand>→</button>
   </div>
-  <button class="membership-btn btn-monthly disabled" data-tier="5" data-type="monthly" disabled>Enter Discord ID first</button>
-  <button class="membership-btn btn-subscribe" data-tier="5" onclick="openSubscriptionModal(5)">Recurring Membership, 10% OFF</button>
-</div>
-  </div>
-</div>
-  <button class="carousel-arrow arrow-left" onclick="scrollCarousel(-1)">←</button>
-  <button class="carousel-arrow arrow-right" onclick="scrollCarousel(1)">→</button>
-</div>
 </main>
 
 <!-- Modal for subscription -->
@@ -489,29 +490,26 @@
 </div>
 
 <script src="/assets/js/shared.js"></script>
+<!-- Custom cursor dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="/assets/js/format.js"></script>
 <script src="/s/js/translations.js"></script>
 
 <script>
   // ============================================================================
-  // Global variables
+  // Global variables (unchanged from original)
   // ============================================================================
   const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
 
-  let localMonthlyPrice = {}; // { tier: { JPY, CNY, MXN } }
-  let usdMonthly = {};        // { tier: USD }
+  let localMonthlyPrice = {};
+  let usdMonthly = {};
 
-  // ============================================================================
-  // Helper: get translation with fallback
-  // ============================================================================
   function getTranslation(key, fallback = '') {
     const lang = localStorage.getItem('language') || 'en';
     const t = window.translations?.[lang] || window.translations?.en || {};
     return t[key] !== undefined ? t[key] : fallback;
   }
 
-  // ============================================================================
-  // Helper: format local price (safe)
-  // ============================================================================
   function formatLocalPrice(amount, lang) {
     if (amount === undefined || amount === null || isNaN(amount)) return '0.00';
     if (lang === 'en') return `US$${amount.toFixed(2)}`;
@@ -525,9 +523,6 @@
     return `${sym}${formatted}`;
   }
 
-  // ============================================================================
-  // Fetch currency conversions and USD prices from the combined worker
-  // ============================================================================
   async function fetchConversions() {
     try {
       const resp = await fetch(`${WORKER_URL}/api/price`);
@@ -548,7 +543,6 @@
       }
     } catch (err) {
       console.error('Failed to load conversions', err);
-      // Fallback: use approximate rates (still uses the correct USD values for each tier)
       const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
       const usdValues = {1:5, 2:10, 3:15, 4:30, 5:40};
       for (let t=1; t<=5; t++) {
@@ -564,11 +558,11 @@
 
   function getLocalMonthlyPrice(tier, lang) {
     const prices = localMonthlyPrice[tier];
-    if (!prices) return 100; // fallback
+    if (!prices) return 100;
     if (lang === 'ja') return prices.JPY;
     if (lang === 'zh') return prices.CNY;
     if (lang === 'es') return prices.MXN;
-    return usdMonthly[tier] || 5; // USD
+    return usdMonthly[tier] || 5;
   }
 
   function getDiscountFactor(months) {
@@ -585,7 +579,7 @@
   }
 
   // ============================================================================
-  // Cart management
+  // Cart management (unchanged)
   // ============================================================================
   const CART_KEY = 'velutinx_membership_cart';
   function getCart() {
@@ -623,9 +617,6 @@
     } else alert(msg);
   }
 
-  // ============================================================================
-  // toggleMembership – only for monthly (single purchase) items
-  // ============================================================================
   function toggleMembership(tierNumber, type, months = 1) {
     const discordId = validateDiscordId();
     if (!discordId) return;
@@ -633,7 +624,6 @@
     const itemId = `M-${tierNumber}-monthly`;
     let cart = getCart();
 
-    // If exact same item already in cart → remove it (toggle off)
     const existingIndex = cart.findIndex(item => item.id === itemId);
     if (existingIndex !== -1) {
       cart.splice(existingIndex, 1);
@@ -642,7 +632,6 @@
       return;
     }
 
-    // Check existing membership items (both monthly and subscription)
     const existingMembership = cart.filter(item => item.type === 'membership' || item.type === 'subscription');
     const highestRank = existingMembership.length > 0 
       ? Math.max(...existingMembership.map(item => getMembershipRank(item.tier, item.type)))
@@ -650,23 +639,20 @@
 
     const newRank = getMembershipRank(tierNumber, type);
 
-    // If there is already a membership item and new rank is not higher → error
     if (existingMembership.length > 0 && newRank <= highestRank) {
       showSnackbar(getTranslation('errorOnlyHigher', 'You can only add a higher tier or a subscription.'), true);
       return;
     }
 
-    // Remove all existing membership items (they are lower rank)
     cart = cart.filter(item => !(item.type === 'membership' || item.type === 'subscription'));
 
-    // Build the new item
     const tierNames = ['Bronze','Copper','Silver','Gold','Platinum'];
     const tierName = getTranslation(`tier${tierNames[tierNumber-1]}`, tierNames[tierNumber-1].toUpperCase());
     const currentLang = localStorage.getItem('language') || 'en';
     const localMonthly = getLocalMonthlyPrice(tierNumber, currentLang);
     const discountFactor = getDiscountFactor(months);
     const discountPercent = discountFactor === 0.9 ? 10 : discountFactor === 0.8 ? 20 : discountFactor === 0.7 ? 30 : 0;
-    const usdPrice = usdMonthly[tierNumber]; // fetched USD price
+    const usdPrice = usdMonthly[tierNumber];
     const priceUSD = usdPrice * months * discountFactor;
     const displayOriginal = localMonthly * months;
     const displayPrice = localMonthly * months * discountFactor;
@@ -676,7 +662,7 @@
     const newItem = {
       id: itemId,
       title: title,
-      type: 'membership',   // <-- changed from 'monthly' to 'membership'
+      type: 'membership',
       tier: tierNumber,
       months: months,
       discordId: discordId,
@@ -692,9 +678,6 @@
     showSnackbar(getTranslation('addedToCart', 'Added to cart'), false);
   }
 
-  // ============================================================================
-  // Update cart UI (drawer)
-  // ============================================================================
   function updateCartUI() {
     const ourCartItems = document.getElementById('ourCartItems');
     const ourCartTotal = document.getElementById('ourCartTotal');
@@ -764,9 +747,6 @@
     if (ourDrawer && ourDrawer.classList.contains('open')) renderPayPalButton();
   }
 
-  // ============================================================================
-  // Store cart in KV via combined worker (with language)
-  // ============================================================================
   async function storeCartInKV(orderID, cart) {
     const lang = localStorage.getItem('language') || 'en';
     try {
@@ -782,9 +762,6 @@
     }
   }
 
-  // ============================================================================
-  // PayPal rendering (for cart) – uses dynamic client ID from config
-  // ============================================================================
   let isRendering = false;
   let paypalLoaded = false;
   let paypalConfig = null;
@@ -853,15 +830,11 @@
       .catch(err => { console.error(err); isRendering = false; });
   }
 
-  // ============================================================================
-  // Combined button state refresh (Discord ID + rank)
-  // ============================================================================
   function refreshButtonsState() {
     const discordId = document.getElementById('discordId')?.value.trim();
     const isValidId = discordId && /^\d{17,19}$/.test(discordId);
     const cart = getCart();
 
-    // Calculate highest rank among membership items in cart
     let highestRank = -1;
     for (const item of cart) {
       if (item.type === 'membership' || item.type === 'subscription') {
@@ -874,22 +847,19 @@
       const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
       if (!card) continue;
 
-      // Monthly button
       const monthlyBtn = card.querySelector(`.membership-btn[data-type="monthly"]`);
       const monthSelector = card.querySelector('.month-selector-btn');
-      const monthlyRank = getMembershipRank(tier, 'membership'); // note: type is now 'membership'
+      const monthlyRank = getMembershipRank(tier, 'membership');
       const isMonthlyInCart = cart.some(item => item.id === `M-${tier}-monthly`);
 
       if (monthlyBtn) {
         if (!isValidId) {
-          // No valid Discord ID
           monthlyBtn.textContent = getTranslation('enterDiscordFirst', 'Enter Discord ID first');
           monthlyBtn.classList.add('disabled');
           monthlyBtn.disabled = true;
           monthlyBtn.classList.remove('btn-monthly', 'btn-remove');
-          monthlyBtn.classList.add('btn-monthly'); // default style
+          monthlyBtn.classList.add('btn-monthly');
         } else {
-          // Valid ID: decide based on cart
           if (isMonthlyInCart) {
             monthlyBtn.textContent = getTranslation('removeFromCartText', 'Remove from Cart');
             monthlyBtn.classList.remove('btn-monthly');
@@ -912,14 +882,12 @@
         }
       }
 
-      // Month selector disabled state matches monthly button disabled
       if (monthSelector) {
         const isDisabled = monthlyBtn ? (monthlyBtn.disabled || monthlyBtn.classList.contains('disabled')) : false;
         if (isDisabled) monthSelector.classList.add('disabled');
         else monthSelector.classList.remove('disabled');
       }
 
-      // Subscription button
       const subBtn = card.querySelector(`.membership-btn.btn-subscribe`);
       if (subBtn) {
         const subRank = getMembershipRank(tier, 'subscription');
@@ -940,12 +908,8 @@
     }
   }
 
-  // ============================================================================
-  // Attach monthly button listeners
-  // ============================================================================
   function attachButtonListeners() {
     document.querySelectorAll('.membership-btn[data-type="monthly"]').forEach(btn => {
-      // Remove any previous listener to avoid duplicates
       btn.onclick = () => {
         const card = btn.closest('.tier-card');
         const tier = parseInt(card.getAttribute('data-tier'));
@@ -956,9 +920,6 @@
     });
   }
 
-  // ============================================================================
-  // Dropdown setup
-  // ============================================================================
   function setupDropdowns() {
     document.querySelectorAll('.month-selector-container').forEach(container => {
       const btn = container.querySelector('.month-selector-btn');
@@ -1063,7 +1024,6 @@
       if (!isNaN(usdAttr)) {
         const priceSpan = el.querySelector('.price-value');
         if (priceSpan) {
-          // Find tier number by USD value
           const tierNum = Object.keys(usdMonthly).find(k => Math.abs(usdMonthly[k] - usdAttr) < 0.01);
           if (tierNum) {
             const local = getLocalMonthlyPrice(parseInt(tierNum), localStorage.getItem('language') || 'en');
@@ -1075,8 +1035,8 @@
       }
     });
     updateMonthButtonLabels();
-refreshButtonsState(); // extra call to be safe
-disableTopTiers();
+    refreshButtonsState();
+    disableTopTiers();
   }
 
   function escapeHtml(str) {
@@ -1092,7 +1052,7 @@ disableTopTiers();
   // Main initialization after header is ready
   // ============================================================================
   document.addEventListener('headerReady', async () => {
-    // Remove old shared cart elements
+    // Remove old shared cart elements (cause they interfere)
     const sharedCartBtn = document.getElementById('cartBtn');
     const sharedFloatBtn = document.getElementById('floatingCartBtn');
     const sharedDrawer = document.getElementById('cartDrawer');
@@ -1103,12 +1063,13 @@ disableTopTiers();
     if (sharedOverlay) sharedOverlay.remove();
     document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => el?.remove());
 
-    // Build custom cart UI
+    // Build our custom cart UI
     const navActions = document.querySelector('.nav-actions');
     if (navActions) {
       const ourCartBtn = document.createElement('button');
       ourCartBtn.className = 'our-cart-btn';
       ourCartBtn.id = 'ourCartBtn';
+      ourCartBtn.setAttribute('data-cursor-expand', '');
       ourCartBtn.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -1126,6 +1087,7 @@ disableTopTiers();
     const ourFloatBtn = document.createElement('button');
     ourFloatBtn.className = 'our-floating-cart';
     ourFloatBtn.id = 'ourFloatingCartBtn';
+    ourFloatBtn.setAttribute('data-cursor-expand', '');
     ourFloatBtn.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
         <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
@@ -1140,7 +1102,7 @@ disableTopTiers();
     const drawerHTML = `
       <div class="our-cart-overlay" id="ourCartOverlay"></div>
       <div class="our-cart-drawer" id="ourCartDrawer">
-        <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="ourCartClose">×</button></div>
+        <div class="cart-header"><h5 id="cartTitle">Shopping Cart</h5><button class="cart-close" id="ourCartClose" data-cursor-expand>×</button></div>
         <div class="our-cart-items" id="ourCartItems"></div>
         <div class="our-cart-total"><span id="totalLabel">Total</span><span id="ourCartTotal">$0.00</span></div>
         <div id="ourPaypalButtonContainer" style="margin: 12px 20px 20px;"></div>
@@ -1170,47 +1132,38 @@ disableTopTiers();
     ourClose?.addEventListener('click', closeCart);
     ourOverlay?.addEventListener('click', closeCart);
 
-    // Load PayPal SDK and fetch conversions in parallel
     await loadPayPalSDK();
     await fetchConversions();
 
-    // Clear any autofilled Discord ID (to keep buttons disabled initially)
     const discordInput = document.getElementById('discordId');
     if (discordInput && discordInput.value.trim() !== '') {
       discordInput.value = '';
     }
 
-    // Setup dropdowns and monthly button listeners
     setupDropdowns();
     attachButtonListeners();
 
-    // Initial UI updates
     updateCartUI();
-    updateMembershipText(); // This will call refreshButtonsState
-    refreshButtonsState(); // extra call to be safe
+    updateMembershipText();
+    refreshButtonsState();
 
-    // Re‑evaluate when Discord ID changes
     if (discordInput) {
       discordInput.addEventListener('input', () => {
         refreshButtonsState();
       });
     }
 
-    // Listen for language changes
     document.addEventListener('languageChanged', (e) => {
       localStorage.setItem('language', e.detail.language);
-      updateMembershipText(); // updates translations and calls refreshButtonsState
+      updateMembershipText();
     });
   });
 
-  // ============================================================================
-  // Modal handling – runs after the entire page is loaded
-  // ============================================================================
+  // Modal handling
   document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('subscribeModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const iframe = document.getElementById('subscribeIframe');
-
     if (modal && closeModalBtn && iframe) {
       window.openSubscriptionModal = function(tier) {
         const discordId = document.getElementById('discordId').value.trim();
@@ -1219,26 +1172,20 @@ disableTopTiers();
           return;
         }
         const lang = localStorage.getItem('language') || 'en';
-        // Use the new combined worker URL for the subscription page (if you have subscribe.html)
-        // For now, point to the existing subscribe.html but you should create subscribe.html later.
         const url = `/s/subscribe.html?tier=${tier}&discordId=${encodeURIComponent(discordId)}&lang=${lang}`;
         iframe.src = url;
         modal.style.display = 'flex';
       };
-
       closeModalBtn.addEventListener('click', () => {
         modal.style.display = 'none';
         iframe.src = '';
       });
-
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
           modal.style.display = 'none';
           iframe.src = '';
         }
       });
-    } else {
-      console.warn('Modal elements not found');
     }
   });
 
@@ -1254,38 +1201,31 @@ disableTopTiers();
     }
   });
 
-
-
-  // TEMPORARILY DISABLE GOLD + PLATINUM
-function disableTopTiers(){
-  [4,5].forEach(tier=>{
-    const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
-    if(!card) return;
-
-    card.style.opacity = "0.45";
-    card.style.pointerEvents = "none";
-    card.style.filter = "grayscale(1)";
-
-    const badge = document.createElement("div");
-    badge.textContent = "TEMPORARILY UNAVAILABLE";
-    badge.style.cssText = `
-      position:absolute;
-      top:12px;
-      right:12px;
-      background:#ef4444;
-      color:white;
-      padding:4px 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:700;
-      z-index:5;
-    `;
-
-    card.style.position = "relative";
-    card.appendChild(badge);
-  });
-}
-
+  function disableTopTiers(){
+    [4,5].forEach(tier=>{
+      const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
+      if(!card) return;
+      card.style.opacity = "0.45";
+      card.style.pointerEvents = "none";
+      card.style.filter = "grayscale(1)";
+      const badge = document.createElement("div");
+      badge.textContent = "TEMPORARILY UNAVAILABLE";
+      badge.style.cssText = `
+        position:absolute;
+        top:12px;
+        right:12px;
+        background:#ef4444;
+        color:white;
+        padding:4px 10px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:700;
+        z-index:5;
+      `;
+      card.style.position = "relative";
+      card.appendChild(badge);
+    });
+  }
 </script>
 
 <div class="sandbox-banner">
@@ -1293,6 +1233,5 @@ function disableTopTiers(){
         <span class="text">CURRENTLY OPERATING ON SANDMODE, PLEASE STANDBY</span>
     </div>
 </div>
-  
 </body>
 </html>
