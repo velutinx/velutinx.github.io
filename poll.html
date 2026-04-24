@@ -1,3 +1,6 @@
+  <!-- This is poll.html -->
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -104,7 +107,7 @@
     const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
 
     const POLL_ID = "character_poll_new";
-    const TOTAL_CARDS = 12;
+    const TOTAL_CARDS = 8; // Changed from 12 to 8
     const grid = document.getElementById("grid");
     const resultsBox = document.getElementById("results");
 
@@ -134,7 +137,7 @@
       return result.visitorId;
     }
 
-    // Create grid cards
+    // Create grid cards (now 8 cards)
     for (let i = 1; i <= TOTAL_CARDS; i++) {
       const card = document.createElement("div");
       card.className = "card";
@@ -148,76 +151,75 @@
       grid.appendChild(card);
     }
 
-async function castVote(id) {
-  let visitorId = 'unknown_fp';
-  let currentIp = '0.0.0.0';
+    async function castVote(id) {
+      let visitorId = 'unknown_fp';
+      let currentIp = '0.0.0.0';
 
-  try {
-    // Get fingerprint
-    try {
-      const fp = await FingerprintJS.load();
-      const result = await fp.get();
-      visitorId = result.visitorId;
-    } catch (e) {
-      console.warn('Fingerprint failed', e);
+      try {
+        // Get fingerprint
+        try {
+          const fp = await FingerprintJS.load();
+          const result = await fp.get();
+          visitorId = result.visitorId;
+        } catch (e) {
+          console.warn('Fingerprint failed', e);
+        }
+
+        // Get IP
+        try {
+          const ipRes = await fetch('https://api.ipify.org?format=json');
+          const ipData = await ipRes.json();
+          currentIp = ipData.ip;
+        } catch (e) {
+          console.error("IP fetch failed", e);
+        }
+
+        // Fetch character name from final_votes (use maybeSingle to avoid error if missing)
+        const { data: charData, error: charError } = await sb
+          .from('final_votes')
+          .select('character_name')
+          .eq('poll_id', POLL_ID)
+          .eq('option_id', id)
+          .maybeSingle();  // <-- changed from .single()
+
+        if (charError) {
+          console.error("Error fetching character name:", charError);
+        }
+        
+        const characterName = charData?.character_name || `Option ${id}`;
+
+        // Upsert vote with character_name
+        const { error } = await sb.from('website_voting').upsert(
+          { 
+            voter_id: visitorId, 
+            user_ip: currentIp, 
+            option_id: id, 
+            poll_id: POLL_ID,
+            character_name: characterName
+          },
+          { onConflict: 'poll_id, user_ip' } 
+        );
+
+        if (error) throw error;
+
+        localStorage.setItem('voted_id', id);
+        setVoteCookie(id);
+        updateCardStyles(id);
+        fetchGridResults();
+
+      } catch (err) { 
+        console.error("Vote failed:", err.message); 
+        if (err.message.includes("voting quota")) {
+          alert("This network range (VPN/Proxy) is restricted to 1 vote total. Your vote was not counted.");
+        } else if (err.message.includes("fingerprint")) {
+          alert("Security check failed. Please refresh or disable ad-blockers.");
+        } else if (err.message.includes("unique_ip_per_poll")) {
+          alert("You have already voted from this IP address.");
+        } else {
+          alert("Something went wrong. Please try again.");
+        }
+      }
     }
-
-    // Get IP
-    try {
-      const ipRes = await fetch('https://api.ipify.org?format=json');
-      const ipData = await ipRes.json();
-      currentIp = ipData.ip;
-    } catch (e) {
-      console.error("IP fetch failed", e);
-    }
-
-    // Fetch character name from final_votes (use maybeSingle to avoid error if missing)
-    const { data: charData, error: charError } = await sb
-      .from('final_votes')
-      .select('character_name')
-      .eq('poll_id', POLL_ID)
-      .eq('option_id', id)
-      .maybeSingle();  // <-- changed from .single()
-
-    if (charError) {
-      console.error("Error fetching character name:", charError);
-    }
-    
-    const characterName = charData?.character_name || `Option ${id}`;
-   // console.log(`Voting for option ${id}, character: ${characterName}`);
-
-    // Upsert vote with character_name
-    const { error } = await sb.from('website_voting').upsert(
-      { 
-        voter_id: visitorId, 
-        user_ip: currentIp, 
-        option_id: id, 
-        poll_id: POLL_ID,
-        character_name: characterName
-      },
-      { onConflict: 'poll_id, user_ip' } 
-    );
-
-    if (error) throw error;
-
-    localStorage.setItem('voted_id', id);
-    setVoteCookie(id);
-    updateCardStyles(id);
-    fetchGridResults();
-
-  } catch (err) { 
-    console.error("Vote failed:", err.message); 
-    if (err.message.includes("voting quota")) {
-      alert("This network range (VPN/Proxy) is restricted to 1 vote total. Your vote was not counted.");
-    } else if (err.message.includes("fingerprint")) {
-      alert("Security check failed. Please refresh or disable ad-blockers.");
-    } else if (err.message.includes("unique_ip_per_poll")) {
-      alert("You have already voted from this IP address.");
-    } else {
-      alert("Something went wrong. Please try again.");
-    }
-  }
-}
 
     async function fetchGridResults() {
       const { data, error } = await sb.from('website_voting').select('option_id').eq('poll_id', POLL_ID);
@@ -236,10 +238,12 @@ async function castVote(id) {
 
     async function fetchLeaderboard() {
       try {
+        // Fetch only the options that are currently displayed (1 to TOTAL_CARDS)
         const { data: rows, error } = await sb
           .from('final_votes')
           .select('option_id, character_name, score, selected_at')
           .eq('poll_id', POLL_ID)
+          .in('option_id', Array.from({ length: TOTAL_CARDS }, (_, i) => i + 1))
           .order('score', { ascending: false });
 
         if (error) throw error;
@@ -278,34 +282,33 @@ async function castVote(id) {
       });
     }
 
-async function init() {
-  // 1. Initial Data Fetch
-  fpPromise = initFingerprint().catch(() => null);
-  await Promise.all([fetchGridResults(), fetchLeaderboard()]);
-  
-  const saved = localStorage.getItem('voted_id') || getVoteCookie();
-  if (saved) updateCardStyles(Number(saved));
+    async function init() {
+      // 1. Initial Data Fetch
+      fpPromise = initFingerprint().catch(() => null);
+      await Promise.all([fetchGridResults(), fetchLeaderboard()]);
+      
+      const saved = localStorage.getItem('voted_id') || getVoteCookie();
+      if (saved) updateCardStyles(Number(saved));
 
-  // 2. Real-time for Progress Bars (website_voting table)
-  sb.channel('grid-live')
-    .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'website_voting' }, 
-        () => {
-//          console.log('Grid update detected!');
-          fetchGridResults();
-        })
-    .subscribe();
+      // 2. Real-time for Progress Bars (website_voting table)
+      sb.channel('grid-live')
+        .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'website_voting' }, 
+            () => {
+              fetchGridResults();
+            })
+        .subscribe();
 
-  // 3. Real-time for Leaderboard (final_votes table)
-  sb.channel('leaderboard-live')
-    .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'final_votes' }, 
-        (payload) => {
-          console.log('Leaderboard updated by Bot!', payload);
-          fetchLeaderboard(); 
-        })
-    .subscribe();
-}
+      // 3. Real-time for Leaderboard (final_votes table)
+      sb.channel('leaderboard-live')
+        .on('postgres_changes', 
+            { event: 'UPDATE', schema: 'public', table: 'final_votes' }, 
+            (payload) => {
+              console.log('Leaderboard updated by Bot!', payload);
+              fetchLeaderboard(); 
+            })
+        .subscribe();
+    }
 
     // Visual helpers
     let rotateIndex = 1;
@@ -337,25 +340,28 @@ async function init() {
   </script>
 
   <style>
-/* Ensure cross appears in dark mode and is red */
-body.dark .card.winner::after {
-  display: block !important;
-  filter: brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5772%) hue-rotate(356deg) brightness(100%) contrast(118%);
-  /* This turns any black/white image into red */
-}
+    /* Ensure cross appears in dark mode and is red */
+    body.dark .card.winner::after {
+      display: block !important;
+      filter: brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5772%) hue-rotate(356deg) brightness(100%) contrast(118%);
+    }
 
-  /* Optional: ensure cross is properly positioned */
-  .card.winner::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('https://www.velutinx.com/images/cross.png') center / contain no-repeat;
-    pointer-events: none;
-    z-index: 10;
-  }
-</style>
+    .card.winner::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://www.velutinx.com/images/cross.png') center / contain no-repeat;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Override grid to 4 columns so that 8 cards fit in 2 rows of 4 */
+    #grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  </style>
 </body>
 </html>
