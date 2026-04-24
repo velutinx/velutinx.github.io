@@ -1,3 +1,5 @@
+/*     velutinx.github.io/assets/css/format.css    */
+
 /* ==================== PAGE CONTENT ==================== */
 .divider {
   width: 80%;
@@ -171,7 +173,6 @@ body.dark .commission-box::before {
   background: transparent;
 }
 
-/* Form side – transparent glass */
 .contact-left {
   background: transparent;
   border: 2px solid var(--divider, #aa9e76);
@@ -242,21 +243,114 @@ body.dark .send-btn {
   color: var(--text-dark);
 }
 
-/* Social column – this is for the social buttons area (non‑circular menu) */
+/* ==================== NEW CUSTOM CURSOR ==================== */
+.cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 8px; height: 8px;
+  background-color: var(--divider, #aa9e76);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference; /* visible on any background */
+}
+
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  width: 40px; height: 40px;
+  border: 1px solid var(--divider, #aa9e76);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+  transition: width 0.2s, height 0.2s, background 0.2s, border 0.2s;
+}
+
+.cursor-ring.active {
+  width: 90px;
+  height: 90px;
+  background: rgba(170,158,118, 0.15);
+  border-color: transparent;
+}
+
+/* Hide default cursor when custom cursor is present */
+body.custom-cursor-active,
+body.custom-cursor-active * {
+  cursor: none !important;
+}
+
+/* ==================== MAGNETIC SOCIAL GRID (replaces old circular menu) ==================== */
 .contact-right {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+}
+
+.social-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.box-social {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 30px;
+  justify-items: center;
+}
+
+.box-social li {
   position: relative;
 }
 
-/* The circular social menu (from socials.css) is separate and will be placed inside .contact-right.
-   We keep its own styles, but we may need to ensure it doesn't overflow.
-   The following ensures the menu container respects its parent width. */
-.contact-right .menu {
-  transform: translate(200px, 200px); /* as original */
-  /* other styles are from socials.css */
+.magnetic-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 1px solid var(--divider, #aa9e76);
+  color: var(--text, #fff);
+  text-decoration: none;
+  position: relative;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.magnetic-wrap:hover {
+  border-color: var(--accent);
+  background-color: rgba(170, 158, 118, 0.15);
+}
+
+.magnetic-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.magnetic-inner img {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 8px;
+  image-rendering: -webkit-optimize-contrast;
+  filter: invert(var(--icon-invert, 0)); /* adapt to light/dark */
+}
+
+body.dark .magnetic-inner img {
+  --icon-invert: 1;
 }
 
 /* ==================== POLL PAGE STYLES ==================== */
@@ -307,9 +401,9 @@ body.dark .send-btn {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* 8 cards → 2 rows of 4 */
   gap: 16px;
-  max-width: 1200px;
+  max-width: 800px; /* adjusted for 4 columns */
   margin: 0 auto;
   position: relative;
   z-index: 10;
@@ -335,7 +429,6 @@ body.dark .card {
   animation: blobWobble 1.6s ease-in-out infinite;
 }
 
-/* Active Voted State */
 .card.active-vote {
   border-color: #5a8cff !important;
   box-shadow: 0 0 15px rgba(90, 140, 255, 0.4);
@@ -359,7 +452,6 @@ body.dark .card {
   z-index: 20;
 }
 
-/* Winner Styling */
 .card.winner::after {
   content: "";
   position: absolute;
@@ -462,11 +554,11 @@ body.dark #leaderboard {
 
 @media (max-width: 1200px) {
   .big-card { display: none; }
-  .grid { grid-template-columns: repeat(4, 1fr); }
+  .grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 800px) {
-  .grid { grid-template-columns: repeat(3, 1fr); }
+  .grid { grid-template-columns: repeat(2, 1fr); }
   .bottom { flex-direction: column; align-items: center; }
 }
 
@@ -707,26 +799,19 @@ body.dark .shop-title {
   background: #22c55e;
 }
 
-
-
-/* ==================== SOCIAL AREA FALLING STARS (contact page) ==================== */
-.contact-right {
-  position: relative;  /* already present, but ensure it's there */
-}
-
-.social-star {
-  position: absolute;
+/* ==================== FALLING STARS (global, keep if wanted) ==================== */
+.falling-star {
+  position: fixed;
+  pointer-events: none;
   color: var(--divider, #aa9e76);
   font-size: 18px;
-  pointer-events: none;
-  animation: socialStarFall 6s linear forwards;
-  z-index: 1;
+  z-index: 3;
+  animation: fallDown 6s linear forwards;
 }
-
-@keyframes socialStarFall {
-  from { opacity: 0; transform: translateY(-20px); }
+@keyframes fallDown {
+  from { opacity: 0; transform: translateY(-10vh); }
   10% { opacity: 1; }
-  to { opacity: 0; transform: translateY(300px); }
+  to { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
 }
 
 /* ==================== HERO SECTION (index page) ==================== */
@@ -752,20 +837,6 @@ body.dark .shop-title {
   z-index: 1;
 }
 
-.social-star {
-  position: absolute;
-  color: var(--divider, #aa9e76);
-  font-size: 18px;
-  pointer-events: none;
-  animation: socialStarFall 6s linear forwards;
-  z-index: 2;
-}
-@keyframes socialStarFall {
-  from { opacity: 0; transform: translateY(-20px); }
-  10% { opacity: 1; }
-  to { opacity: 0; transform: translateY(300px); }
-}
-
 .hero-text {
   text-align: center;
 }
@@ -787,68 +858,11 @@ body.dark .shop-title {
 .discord-link img:hover {
   animation: blobWobble 1.6s ease-in-out infinite;
 }
+
 @keyframes blobWobble {
   0% { transform: scale(1.15) rotate(0deg); }
   25% { transform: scale(1.15) rotate(-4deg); }
   50% { transform: scale(1.15) rotate(4deg); }
   75% { transform: scale(1.15) rotate(-3deg); }
   100% { transform: scale(1.15) rotate(0deg); }
-}
-
-/* Circular social menu – reusable component */
-.menu {  position: relative;  width: 60px;  height: 60px;}
-
-.checkbox {  position: absolute;  opacity: 0;}
-
-.label_checkbox,
-.menu_link {  position: absolute;  width: 60px;  height: 60px;  border-radius: 50%;  display: flex;  align-items: center;  justify-content: center;  transition: .35s;  background: white;  box-shadow: 0 0 8px rgba(0,0,0,.35);}
-
-.label_checkbox {  z-index: 10;  cursor: pointer;}
-
-.menu_icon {  width: 60%;  height: 60%;  object-fit: contain;}
-
-.icon_plus,
-.icon_close {  width: 26px;  height: 26px;  position: absolute;  transition: .25s;}
-
-.icon_close {  opacity: 0;}
-.checkbox:checked ~ .label_checkbox .icon_plus {  opacity: 0;}
-.checkbox:checked ~ .label_checkbox .icon_close {  opacity: 1;}
-
-/* Radial positions – adjust these values if needed */
-.checkbox:checked ~ .twitter {  transform: translate(70px, -70px);}
-.checkbox:checked ~ .bluesky {  transform: translateY(-95px);}
-.checkbox:checked ~ .pixiv {  transform: translate(-70px, -70px);}
-.checkbox:checked ~ .kofi {  transform: translate(70px, 70px);}
-.checkbox:checked ~ .instagram {  transform: translateY(95px);}
-.checkbox:checked ~ .substar {  transform: translate(-70px, 70px);}
-.checkbox:checked ~ .patreon {  transform: translate(95px, 0);}
-
-/* ==================== STAR EFFECTS ==================== */
-.star {
-  position: fixed;
-  pointer-events: none;
-  color: var(--divider, #aa9e76);
-  font-size: 14px;
-  animation: driftFall 2s ease-out forwards;
-  z-index: 9999;
-}
-@keyframes driftFall {
-  to {
-    opacity: 0;
-    transform: translate(calc(-20px + 40px * var(--drift)), 90px) scale(0.4);
-  }
-}
-
-.falling-star {
-  position: fixed;
-  pointer-events: none;
-  color: var(--divider, #aa9e76);
-  font-size: 18px;
-  z-index: 3;
-  animation: fallDown 6s linear forwards;
-}
-@keyframes fallDown {
-  from { opacity: 0; transform: translateY(-10vh); }
-  10% { opacity: 1; }
-  to { opacity: 0; transform: translateY(calc(100vh + 100px)) translateX(calc(-120px + 240px * var(--drift))); }
 }
