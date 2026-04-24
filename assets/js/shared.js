@@ -91,7 +91,7 @@
       cart.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'cart-item';
-        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${item.title}</div><div class="cart-item-price">${window.formatPrice(STATIC_USD)}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${item.title}</div><div class="cart-item-price">${window.formatPrice(STATIC_USD)}</div></div><button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
         container.appendChild(div);
       });
       document.querySelectorAll('.cart-item-remove').forEach(btn => {
