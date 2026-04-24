@@ -217,7 +217,7 @@
 <script src="/assets/js/shared.js"></script>
 <script src="/assets/js/price.js" type="module"></script>
 
-<!-- GSAP library – required for the custom cursor -->
+<!-- Custom cursor dependencies -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="/assets/js/format.js"></script>
 
@@ -418,6 +418,8 @@ function renderStoreGrid() {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = p.id;
+    // Make the whole card trigger cursor expansion
+    card.setAttribute('data-cursor-expand', '');
 
     if (p.id === 'membership') {
       const t = storeTranslations[currentLang];
@@ -426,7 +428,7 @@ function renderStoreGrid() {
         <div class="card-content">
           <div class="card-title">${escapeHtml(t.membershipTitle)}</div>
           <div class="price-row" style="justify-content: center;">
-            <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;">${escapeHtml(t.membershipLearnMore)}</a>
+            <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;" data-cursor-expand>${escapeHtml(t.membershipLearnMore)}</a>
           </div>
         </div>
       `;
@@ -438,7 +440,7 @@ function renderStoreGrid() {
       const cartButtonSvg = inCart
         ? `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#e74c3c"/><path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`
         : `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#2ecc71"/><path d="M18 5V9M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-      card.innerHTML = `<img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'"><div class="card-content"><div class="card-title">${escapeHtml(p.title)}</div><div class="price-row"><div class="price">${priceString}</div><button class="cart-btn ${inCart ? 'added' : ''}">${cartButtonSvg}</button></div></div>`;
+      card.innerHTML = `<img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'"><div class="card-content"><div class="card-title">${escapeHtml(p.title)}</div><div class="price-row"><div class="price">${priceString}</div><button class="cart-btn ${inCart ? 'added' : ''}" data-cursor-expand>${cartButtonSvg}</button></div></div>`;
       const btn = card.querySelector('.cart-btn');
       btn.onclick = (e) => {
         e.stopPropagation();
@@ -451,7 +453,9 @@ function renderStoreGrid() {
 }
 
 function bindStoreEvents() {
+  // Add data-cursor-expand to category and sort buttons
   document.querySelectorAll('.category-list li').forEach(li => {
+    li.setAttribute('data-cursor-expand', '');
     li.addEventListener('click', () => {
       document.querySelectorAll('.category-list li').forEach(l => l.classList.remove('active'));
       li.classList.add('active');
@@ -460,6 +464,7 @@ function bindStoreEvents() {
     });
   });
   document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.setAttribute('data-cursor-expand', '');
     btn.addEventListener('click', () => {
       document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -486,13 +491,11 @@ async function fetchPacksFromWorker() {
     const response = await fetch(WORKER_URL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const packs = await response.json();
-    // Transform worker data to product format
     return packs.map(p => ({
       id: p.id,
       title: p.title,
       category: p.category,
       priceKey: p.price,
-      // illustrationCount not needed for store grid
     }));
   } catch (err) {
     console.error('Failed to fetch packs:', err);
@@ -651,14 +654,10 @@ async function initStore() {
     return;
   }
 
-  // Show loading indicator
   const grid = document.getElementById('productGrid');
   if (grid) grid.innerHTML = '<div class="loading-spinner">Loading packs...</div>';
 
-  // Fetch packs from worker
   const packProducts = await fetchPacksFromWorker();
-
-  // Add membership item as the first product
   const membershipItem = {
     id: "membership",
     title: "Requests & Membership",
@@ -678,7 +677,6 @@ async function initStore() {
   loadPayPalSDK();
 }
 
-// Wait for header to be ready before starting
 if (window.headerReady) {
   initStore();
 } else {
