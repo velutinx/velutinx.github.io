@@ -260,18 +260,19 @@ if (gallery) {
       });
     }
 
-    // ---------- 10. GLOBAL FALLING STARS (keep) ----------
-    setInterval(() => {
-      const star = document.createElement("div");
-      star.className = "falling-star";
-      star.textContent = "✦";
-      star.style.left = Math.random() * 100 + "vw";
-      star.style.top = "-10vh";
-      star.style.setProperty("--drift", Math.random() * 2 - 1);
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 8000);
-    }, 400);
-  }
+// ---------- 10. GLOBAL FALLING STARS (skip on store page) ----------
+if (!document.body.classList.contains('store-page')) {
+  setInterval(() => {
+    const star = document.createElement("div");
+    star.className = "falling-star";
+    star.textContent = "✦";
+    star.style.left = Math.random() * 100 + "vw";
+    star.style.top = "-10vh";
+    star.style.setProperty("--drift", Math.random() * 2 - 1);
+    document.body.appendChild(star);
+    setTimeout(() => star.remove(), 8000);
+  }, 400);
+}
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
