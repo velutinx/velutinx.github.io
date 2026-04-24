@@ -1,5 +1,3 @@
-// format.js – common page behaviour (stars, gallery, zoom, commissions sparkles, contact form)
-
 // format.js – custom cursor, magnetic social grid, gallery, zoom, & commission sparkles
 (function() {
   function init() {
@@ -12,7 +10,6 @@
     cursorRing.className = 'cursor-ring';
     document.body.appendChild(cursorRing);
 
-    // Add class to body to hide default cursor
     document.body.classList.add('custom-cursor-active');
 
     // ---------- 2. GSAP CURSOR TRACKING ----------
@@ -37,17 +34,35 @@
       gsap.set(cursorRing, { x: ring.x, y: ring.y });
     });
 
-    // ---------- 3. BUILD MAGNETIC SOCIAL GRID ----------
+    // ---------- 3. CURSOR RING EXPAND ON HOVER ----------
+    // Generic listener for any element with data-cursor-expand
+    function addCursorExpandListeners() {
+      document.querySelectorAll('[data-cursor-expand]').forEach(el => {
+        // Avoid adding multiple listeners if the script runs again
+        if (el.dataset.cursorExpandBound) return;
+        el.dataset.cursorExpandBound = 'true';
+
+        el.addEventListener('mouseenter', () => {
+          cursorRing.classList.add('active');
+        });
+        el.addEventListener('mouseleave', () => {
+          cursorRing.classList.remove('active');
+        });
+      });
+    }
+    // Initial run and also observe for dynamically added elements
+    addCursorExpandListeners();
+    const observer = new MutationObserver(() => addCursorExpandListeners());
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // ---------- 4. BUILD MAGNETIC SOCIAL GRID ----------
     const socialArea = document.getElementById('socialArea');
     if (socialArea) {
-      // Remove old circular menu (if any)
       socialArea.innerHTML = '';
 
-      // Create container
       const container = document.createElement('div');
       container.className = 'social-container';
 
-      // Social links definition – using your own icon URLs
       const links = [
         { href: 'https://x.com/VelutinxSFW', img: 'https://www.velutinx.com/images/LogoTwitter.png', label: 'Twitter' },
         { href: 'https://bsky.app/profile/velutinxx.bsky.social', img: 'https://www.velutinx.com/images/LogoBluesky.png', label: 'Bluesky' },
@@ -82,7 +97,7 @@
       container.appendChild(ul);
       socialArea.appendChild(container);
 
-      // ---------- 4. MAGNETIC EFFECT ----------
+      // ---------- 5. MAGNETIC EFFECT ----------
       const magnetics = document.querySelectorAll('[data-magnetic]');
       magnetics.forEach((el) => {
         const inner = el.querySelector('.magnetic-inner');
@@ -110,7 +125,7 @@
       });
     }
 
-    // ---------- 5. GALLERY LOADING (unchanged) ----------
+    // ---------- 6. GALLERY LOADING (unchanged) ----------
     const gallery = document.getElementById("gallery");
     if (gallery) {
       const MAX_IMAGES = 12;
@@ -125,7 +140,7 @@
       }
     }
 
-    // ---------- 6. ZOOM FUNCTIONALITY (unchanged) ----------
+    // ---------- 7. ZOOM FUNCTIONALITY (unchanged) ----------
     let activeClone = null;
     let originRect = null;
     document.addEventListener("click", (e) => {
@@ -194,7 +209,7 @@
       };
     }
 
-    // ---------- 7. COMMISSION BOX SPARKLES (keep) ----------
+    // ---------- 8. COMMISSION BOX SPARKLES (keep) ----------
     const commissionBox = document.getElementById("commissionBox");
     if (commissionBox) {
       setInterval(() => {
@@ -208,7 +223,7 @@
       }, 700);
     }
 
-    // ---------- 8. CONTACT FORM HANDLING (unchanged) ----------
+    // ---------- 9. CONTACT FORM HANDLING (unchanged) ----------
     const contactForm = document.getElementById("contactForm");
     if (contactForm) {
       contactForm.addEventListener("submit", async (e) => {
@@ -244,7 +259,7 @@
       });
     }
 
-    // (Optional) keep global falling stars – you can remove this interval if you want a perfectly clean cursor
+    // ---------- 10. GLOBAL FALLING STARS (keep) ----------
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "falling-star";
