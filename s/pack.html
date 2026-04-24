@@ -7,6 +7,8 @@
 
   <!-- Shared CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
+  <!-- Custom cursor & ring styles -->
+  <link rel="stylesheet" href="/assets/css/format.css">
   <link rel="stylesheet" href="/s/css/sandbox-banner.css">
   <script src="/s/js/sandbox-banner.js"></script>
   <!-- Translations -->
@@ -249,6 +251,9 @@
   </main>
 
   <script src="/assets/js/shared.js"></script>
+  <!-- Custom cursor dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="/assets/js/format.js"></script>
   <script src="/assets/js/price.js" type="module"></script>
 
   <script type="module">
@@ -459,7 +464,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
       if (!container || !currentPack) return;
       const isInCart = storeCart.some(item => item.id === currentPack.id);
       const btnText = isInCart ? getPackText('removeFromCart', 'Remove from Cart') : getPackText('addToCart', 'Add to Cart');
-      container.innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn">${btnText}</button>`;
+      container.innerHTML = `<button class="btn btn-cart ${isInCart ? 'remove-mode' : ''}" id="addCartBtn" data-cursor-expand>${btnText}</button>`;
       document.getElementById('addCartBtn').onclick = () => {
         window.addOrToggleCart({
           id: currentPack.id,
@@ -497,7 +502,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
       updateContents();
     }
 
-    // ==================== NEW: Fetch image list from worker (single request) ====================
+    // ==================== Fetch image list from worker ====================
     async function fetchImageUrls(packId) {
       try {
         const resp = await fetch(`https://www.velutinx.com/api/images?pack=${packId}`);
@@ -510,7 +515,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
       }
     }
 
-    // ==================== GALLERY RENDERING (using worker endpoint) ====================
+    // ==================== GALLERY RENDERING (with cursor‑expand on arrows & thumbs) ====================
     async function renderGallery(packId) {
       const galleryDiv = document.getElementById('gallery');
       if (!galleryDiv) return;
@@ -521,20 +526,19 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
         return;
       }
 
-      // Build HTML
       galleryDiv.innerHTML = `
         <div class="carousel">
           <div class="slides" id="slides">
             ${images.map(img => `<div class="slide"><img src="${img}" loading="lazy" onerror="this.src='https://placehold.co/800x600?text=Image+Error'"></div>`).join('')}
           </div>
           ${images.length > 1 ? `
-            <button class="arrow prev" id="prevBtn">❮</button>
-            <button class="arrow next" id="nextBtn">❯</button>
+            <button class="arrow prev" id="prevBtn" data-cursor-expand>❮</button>
+            <button class="arrow next" id="nextBtn" data-cursor-expand>❯</button>
           ` : ''}
         </div>
         ${images.length > 1 ? `
           <div class="thumbnails" id="thumbnails">
-            ${images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" data-index="${i}" loading="lazy" onerror="this.src='https://placehold.co/90x120?text=Thumb+Error'">`).join('')}
+            ${images.map((img, i) => `<img class="thumb ${i===0?'active':''}" src="${img}" data-index="${i}" loading="lazy" onerror="this.src='https://placehold.co/90x120?text=Thumb+Error'" data-cursor-expand>`).join('')}
           </div>
         ` : ''}
       `;
