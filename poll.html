@@ -193,7 +193,7 @@ for (let i = 1; i <= TOTAL_CARDS; i++) {
         const characterName = charData?.character_name || `Option ${id}`;
 
         // Upsert vote with character_name
-        const { error } = await sb.from('website_voting').upsert(
+        const { error } = await sb.from('poll_voting_website').upsert(
           { 
             voter_id: visitorId, 
             user_ip: currentIp, 
@@ -226,7 +226,7 @@ for (let i = 1; i <= TOTAL_CARDS; i++) {
     }
 
     async function fetchGridResults() {
-      const { data, error } = await sb.from('website_voting').select('option_id').eq('poll_id', POLL_ID);
+      const { data, error } = await sb.from('poll_voting_website').select('option_id').eq('poll_id', POLL_ID);
       if (error) return;
       const counts = {};
       for (let i = 1; i <= TOTAL_CARDS; i++) counts[i] = 0;
@@ -294,10 +294,10 @@ for (let i = 1; i <= TOTAL_CARDS; i++) {
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      // 2. Real-time for Progress Bars (website_voting table)
+      // 2. Real-time for Progress Bars (poll_voting_website table)
       sb.channel('grid-live')
         .on('postgres_changes', 
-            { event: '*', schema: 'public', table: 'website_voting' }, 
+            { event: '*', schema: 'public', table: 'poll_voting_website' }, 
             () => {
               fetchGridResults();
             })
