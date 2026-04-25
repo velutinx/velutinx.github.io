@@ -105,7 +105,7 @@
       applyPollTranslations();
     });
 
-    // ==================== SUPABASE & POLL LOGIC (unchanged) ====================
+    // ==================== SUPABASE & POLL LOGIC ====================
     const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
     const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
     const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
@@ -140,20 +140,21 @@
       const result = await fp.get();
       return result.visitorId;
     }
-// Create grid cards (now 8 cards)
-for (let i = 1; i <= TOTAL_CARDS; i++) {
-  const card = document.createElement("div");
-  card.className = "card";
-  card.dataset.id = i;
-  card.setAttribute('data-cursor-expand', '');
-  card.innerHTML = `
-    <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
-    <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
-    <div class="label">Loading...</div>
-  `;
-  card.onclick = () => { showSelected(i); castVote(i); };
-  grid.appendChild(card);
-}
+
+    // Create grid cards (now 8 cards)
+    for (let i = 1; i <= TOTAL_CARDS; i++) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.id = i;
+      card.setAttribute('data-cursor-expand', '');
+      card.innerHTML = `
+        <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
+        <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
+        <div class="label">Loading...</div>
+      `;
+      card.onclick = () => { showSelected(i); castVote(i); };
+      grid.appendChild(card);
+    }
 
     async function castVote(id) {
       let visitorId = 'unknown_fp';
@@ -178,13 +179,13 @@ for (let i = 1; i <= TOTAL_CARDS; i++) {
           console.error("IP fetch failed", e);
         }
 
-        // Fetch character name from final_votes (use maybeSingle to avoid error if missing)
+        // Fetch character name from final_votes
         const { data: charData, error: charError } = await sb
           .from('final_votes')
           .select('character_name')
           .eq('poll_id', POLL_ID)
           .eq('option_id', id)
-          .maybeSingle();  // <-- changed from .single()
+          .maybeSingle();
 
         if (charError) {
           console.error("Error fetching character name:", charError);
@@ -192,7 +193,7 @@ for (let i = 1; i <= TOTAL_CARDS; i++) {
         
         const characterName = charData?.character_name || `Option ${id}`;
 
-        // Upsert vote with character_name
+        // Upsert vote into the renamed table: poll_voting_website
         const { error } = await sb.from('poll_voting_website').upsert(
           { 
             voter_id: visitorId, 
