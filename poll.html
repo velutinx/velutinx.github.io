@@ -83,230 +83,248 @@
 <script src="/assets/js/format.js"></script>
 <script src="/assets/js/tab-title-animation.js"></script>
 
-  <script>
-    // ==================== POLL TRANSLATIONS ====================
-    function applyPollTranslations() {
-      if (typeof window.applyTranslations === 'function') {
-        window.applyTranslations('poll');
-      }
-    }
+<script>
+// ==================== POLL TRANSLATIONS ====================
+function applyPollTranslations() {
+  if (typeof window.applyTranslations === 'function') {
+    window.applyTranslations('poll');
+  }
+}
+applyPollTranslations();
+document.addEventListener('languageChanged', (e) => {
+  const newLang = e.detail.language;
+  if (newLang && typeof window.setLanguage === 'function') {
+    window.setLanguage(newLang);
+  } else if (newLang) {
+    window.currentLanguage = newLang;
+  }
+  applyPollTranslations();
+});
 
-    // Initial apply (when page loads)
-    applyPollTranslations();
+// ==================== SUPABASE & POLL LOGIC ====================
+const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
+const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
+const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
 
-    // When language changes via shared header, update translt.js and reapply
-    document.addEventListener('languageChanged', (e) => {
-      const newLang = e.detail.language;
-      if (newLang && typeof window.setLanguage === 'function') {
-        window.setLanguage(newLang);
-      } else if (newLang) {
-        window.currentLanguage = newLang;
-      }
-      applyPollTranslations();
-    });
+const POLL_ID = "character_poll_new";
+const TOTAL_CARDS = 8;
+const grid = document.getElementById("grid");
+const resultsBox = document.getElementById("results");
 
-  // ==================== SUPABASE & POLL LOGIC ====================
-  const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
-  const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
-  const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
+let fpPromise = null;
 
-  const POLL_ID = "character_poll_new";
-  const TOTAL_CARDS = 8;
-  const grid = document.getElementById("grid");
-  const resultsBox = document.getElementById("results");
+function setVoteCookie(optionId) {
+  const d = new Date();
+  d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
+  document.cookie = `votedPoll=${optionId}; expires=${d.toUTCString()}; path=/`;
+}
+function getVoteCookie() {
+  const name = 'votedPoll=';
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const ca = decodedCookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') c = c.substring(1);
+    if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+  }
+  return null;
+}
 
-    let fpPromise = null;
+async function initFingerprint() {
+  const fp = await FingerprintJS.load();
+  const result = await fp.get();
+  return result.visitorId;
+}
 
-    // Cookie helpers
-    function setVoteCookie(optionId) {
-      const d = new Date();
-      d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
-      document.cookie = `votedPoll=${optionId}; expires=${d.toUTCString()}; path=/`;
-    }
-    function getVoteCookie() {
-      const name = 'votedPoll=';
-      const decodedCookie = decodeURIComponent(document.cookie);
-      const ca = decodedCookie.split(';');
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
-      }
-      return null;
-    }
+// Create grid cards
+for (let i = 1; i <= TOTAL_CARDS; i++) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.dataset.id = i;
+  card.setAttribute('data-cursor-expand', '');
+  card.innerHTML = `
+    <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
+    <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
+    <div class="label">Loading...</div>
+  `;
+  card.onclick = () => { showSelected(i); castVote(i); };
+  grid.appendChild(card);
+}
 
-    async function initFingerprint() {
+async function castVote(id) {
+  let visitorId = 'unknown_fp';
+  let currentIp = '0.0.0.0';
+
+  try {
+    // Fingerprint
+    try {
       const fp = await FingerprintJS.load();
       const result = await fp.get();
-      return result.visitorId;
+      visitorId = result.visitorId;
+    } catch (e) {
+      console.warn('Fingerprint failed', e);
     }
-
-    // Create grid cards (now 8 cards)
-    for (let i = 1; i <= TOTAL_CARDS; i++) {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.dataset.id = i;
-      card.setAttribute('data-cursor-expand', '');
-      card.innerHTML = `
-        <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
-        <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
-        <div class="label">Loading...</div>
-      `;
-      card.onclick = () => { showSelected(i); castVote(i); };
-      grid.appendChild(card);
-    }
-
-    async function castVote(id) {
-      let visitorId = 'unknown_fp';
-      let currentIp = '0.0.0.0';
-
-      try {
-        // Get fingerprint
-        try {
-          const fp = await FingerprintJS.load();
-          const result = await fp.get();
-          visitorId = result.visitorId;
-        } catch (e) {
-          console.warn('Fingerprint failed', e);
-        }
-
-        // Get IP
-        try {
-          const ipRes = await fetch('https://api.ipify.org?format=json');
-          const ipData = await ipRes.json();
-          currentIp = ipData.ip;
-        } catch (e) {
-          console.error("IP fetch failed", e);
-        }
-
-      // Fetch character name from poll_votes_final (not final_votes)
-      const { data: charData, error: charError } = await sb
-        .from('poll_votes_final')
-        .select('character_name')
-        .eq('poll_id', POLL_ID)
-        .eq('option_id', id)
-        .maybeSingle();
-
-      const characterName = charData?.character_name || `Option ${id}`;
-
-      const { error } = await sb.from('poll_voting_website').upsert(
-        { voter_id: visitorId, user_ip: currentIp, option_id: id, poll_id: POLL_ID, character_name: characterName },
-        { onConflict: 'poll_id, user_ip' }
-      );
-      if (error) throw error;
-
-      localStorage.setItem('voted_id', id);
-      setVoteCookie(id);
-      updateCardStyles(id);
-      fetchGridResults();
-    } catch (err) { /* error handling unchanged */ }
-  }
-
-  async function fetchGridResults() {
-    // unchanged – already uses poll_voting_website
-  }
-
-  async function fetchLeaderboard() {
+    // IP
     try {
-      const { data: rows, error } = await sb
-        .from('poll_votes_final')   // <-- changed from final_votes
-        .select('option_id, character_name, score, selected_at')
-        .eq('poll_id', POLL_ID)
-        .in('option_id', Array.from({ length: TOTAL_CARDS }, (_, i) => i + 1))
-        .order('score', { ascending: false });
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipRes.json();
+      currentIp = ipData.ip;
+    } catch (e) {
+      console.error("IP fetch failed", e);
+    }
 
-      if (error) throw error;
+    // Get character name from final votes
+    const { data: charData, error: charError } = await sb
+      .from('poll_votes_final')
+      .select('character_name')
+      .eq('poll_id', POLL_ID)
+      .eq('option_id', id)
+      .maybeSingle();
 
-        const winnerIds = new Set();
-        rows.forEach(row => {
-          if (row.selected_at && row.selected_at !== null) {
-            winnerIds.add(Number(row.option_id));
-          }
-        });
+    const characterName = charData?.character_name || `Option ${id}`;
 
-        resultsBox.innerHTML = rows.map(row => {
-          const id = Number(row.option_id);
-          const isWinner = winnerIds.has(id);
-          return `<div class="leaderboard-entry ${isWinner ? 'spoiled' : ''}">
-            <span>${row.character_name || `Option ${id}`}</span>
-            <span>${Number(row.score || 0).toFixed(1)}</span>
-          </div>`;
-        }).join('') || "No votes yet";
+    // Insert into website votes table
+    const { error } = await sb.from('poll_voting_website').upsert(
+      { 
+        voter_id: visitorId, 
+        user_ip: currentIp, 
+        option_id: id, 
+        poll_id: POLL_ID, 
+        character_name: characterName 
+      },
+      { onConflict: 'poll_id, user_ip' }
+    );
+    if (error) throw error;
 
-        document.querySelectorAll(".card").forEach(card => {
-          const id = Number(card.dataset.id);
-          const row = rows.find(r => Number(r.option_id) === id);
-          if (row?.character_name) card.querySelector(".label").textContent = row.character_name;
-          card.classList.toggle("winner", winnerIds.has(id));
-        });
-      } catch (err) {
-        console.error("Leaderboard error:", err);
-        resultsBox.innerHTML = '<div>Error loading leaderboard</div>';
+    localStorage.setItem('voted_id', id);
+    setVoteCookie(id);
+    updateCardStyles(id);
+    fetchGridResults();
+  } catch (err) {
+    console.error("Vote failed:", err.message);
+    if (err.message.includes("voting quota")) {
+      alert("This network range (VPN/Proxy) is restricted to 1 vote total. Your vote was not counted.");
+    } else if (err.message.includes("fingerprint")) {
+      alert("Security check failed. Please refresh or disable ad-blockers.");
+    } else if (err.message.includes("unique_ip_per_poll")) {
+      alert("You have already voted from this IP address.");
+    } else if (err.message.includes("relation") || err.message.includes("does not exist")) {
+      alert("Database table missing. Please contact the administrator.");
+    } else {
+      alert("Something went wrong. Please try again.");
+    }
+  }
+}
+
+async function fetchGridResults() {
+  const { data, error } = await sb.from('poll_voting_website').select('option_id').eq('poll_id', POLL_ID);
+  if (error) return;
+  const counts = {};
+  for (let i = 1; i <= TOTAL_CARDS; i++) counts[i] = 0;
+  data.forEach(v => { if (counts[v.option_id] !== undefined) counts[v.option_id]++; });
+  const total = data.length || 1;
+  document.querySelectorAll(".card").forEach(card => {
+    const id = Number(card.dataset.id);
+    const percent = Math.round((counts[id] / total) * 100);
+    card.querySelector(".progress-fill").style.width = percent + "%";
+    card.querySelector(".progress-text").textContent = percent + "%";
+  });
+}
+
+async function fetchLeaderboard() {
+  try {
+    const { data: rows, error } = await sb
+      .from('poll_votes_final')
+      .select('option_id, character_name, score, selected_at')
+      .eq('poll_id', POLL_ID)
+      .in('option_id', Array.from({ length: TOTAL_CARDS }, (_, i) => i + 1))
+      .order('score', { ascending: false });
+
+    if (error) throw error;
+
+    const winnerIds = new Set();
+    rows.forEach(row => {
+      if (row.selected_at && row.selected_at !== null) {
+        winnerIds.add(Number(row.option_id));
       }
-    }
+    });
 
-    function updateCardStyles(votedId) {
-      document.querySelectorAll('.card').forEach(c => {
-        c.classList.toggle('active-vote', Number(c.dataset.id) === votedId);
-      });
-    }
+    resultsBox.innerHTML = rows.map(row => {
+      const id = Number(row.option_id);
+      const isWinner = winnerIds.has(id);
+      return `<div class="leaderboard-entry ${isWinner ? 'spoiled' : ''}">
+        <span>${row.character_name || `Option ${id}`}</span>
+        <span>${Number(row.score || 0).toFixed(1)}</span>
+      </div>`;
+    }).join('') || "No votes yet";
 
-    async function init() {
-      // 1. Initial Data Fetch
-      fpPromise = initFingerprint().catch(() => null);
-      await Promise.all([fetchGridResults(), fetchLeaderboard()]);
-      
-      const saved = localStorage.getItem('voted_id') || getVoteCookie();
-      if (saved) updateCardStyles(Number(saved));
+    document.querySelectorAll(".card").forEach(card => {
+      const id = Number(card.dataset.id);
+      const row = rows.find(r => Number(r.option_id) === id);
+      if (row?.character_name) card.querySelector(".label").textContent = row.character_name;
+      card.classList.toggle("winner", winnerIds.has(id));
+    });
+  } catch (err) {
+    console.error("Leaderboard error:", err);
+    resultsBox.innerHTML = '<div>Error loading leaderboard</div>';
+  }
+}
 
-      // 2. Real-time for Progress Bars (poll_voting_website table)
-      sb.channel('grid-live')
-        .on('postgres_changes', 
-            { event: '*', schema: 'public', table: 'poll_voting_website' }, 
-            () => {
-              fetchGridResults();
-            })
-        .subscribe();
+function updateCardStyles(votedId) {
+  document.querySelectorAll('.card').forEach(c => {
+    c.classList.toggle('active-vote', Number(c.dataset.id) === votedId);
+  });
+}
 
-      // 3. Real-time for Leaderboard (final_votes table)
-    sb.channel('leaderboard-live')
-      .on('postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'poll_votes_final' },
-          (payload) => {
-            console.log('Leaderboard updated by Bot!', payload);
-            fetchLeaderboard();
-          })
-      .subscribe();
-    }
+async function init() {
+  fpPromise = initFingerprint().catch(() => null);
+  await Promise.all([fetchGridResults(), fetchLeaderboard()]);
+  const saved = localStorage.getItem('voted_id') || getVoteCookie();
+  if (saved) updateCardStyles(Number(saved));
 
-    // Visual helpers
-    let rotateIndex = 1;
-    function showSelected(id) {
-      const left = document.getElementById("leftBig");
-      left.classList.remove("show");
-      setTimeout(() => {
-        document.getElementById("leftImg").src = `https://www.velutinx.com/images/poll/${id}.jpg`;
-        left.classList.add("show");
-      }, 150);
-    }
-    function rotate() {
-      const right = document.getElementById("rightBig");
-      right.classList.remove("show");
-      setTimeout(() => {
-        document.getElementById("rightImg").src = `https://www.velutinx.com/images/poll/${rotateIndex}.jpg`;
-        right.classList.add("show");
-        rotateIndex = (rotateIndex % TOTAL_CARDS) + 1;
-      }, 150);
-    }
+  // Real‑time for progress bars
+  sb.channel('grid-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_voting_website' }, () => {
+      fetchGridResults();
+    })
+    .subscribe();
 
-    setInterval(rotate, 3500);
-    rotate(); showSelected(1); init();
+  // Real‑time for leaderboard
+  sb.channel('leaderboard-live')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'poll_votes_final' }, (payload) => {
+      console.log('Leaderboard updated by Bot!', payload);
+      fetchLeaderboard();
+    })
+    .subscribe();
+}
 
-    // Dark mode from localStorage
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark');
-    }
-  </script>
+// Visual helpers
+let rotateIndex = 1;
+function showSelected(id) {
+  const left = document.getElementById("leftBig");
+  left.classList.remove("show");
+  setTimeout(() => {
+    document.getElementById("leftImg").src = `https://www.velutinx.com/images/poll/${id}.jpg`;
+    left.classList.add("show");
+  }, 150);
+}
+function rotate() {
+  const right = document.getElementById("rightBig");
+  right.classList.remove("show");
+  setTimeout(() => {
+    document.getElementById("rightImg").src = `https://www.velutinx.com/images/poll/${rotateIndex}.jpg`;
+    right.classList.add("show");
+    rotateIndex = (rotateIndex % TOTAL_CARDS) + 1;
+  }, 150);
+}
+
+setInterval(rotate, 3500);
+rotate(); showSelected(1); init();
+
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark');
+}
+</script>
 
   <style>
     /* Ensure cross appears in dark mode and is red */
