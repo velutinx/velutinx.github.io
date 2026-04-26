@@ -39,12 +39,8 @@
     const WORDS_MAX = 300;
 
     function updateWordCounter(textarea) {
-        // Find the counter div immediately after this textarea
-        let counter = textarea.nextElementSibling;
-        if (!counter || !counter.classList.contains('word-counter')) {
-            // If not found, try to locate by class (fallback)
-            counter = textarea.parentNode.querySelector('.word-counter');
-        }
+        // Use the stored counter element (set during init)
+        const counter = textarea._wc;
         if (!counter) return;
 
         const text = textarea.value.trim();
@@ -310,26 +306,33 @@
             return;
         }
 
-        // ---- Word counters for masterPost, post1, post2 ----
-        function attachWordCounter(textarea) {
+        // ---- Install word counters for each textarea ----
+        function installWordCounter(textarea) {
             if (!textarea) return;
-            // Avoid duplicates
-            if (textarea.parentNode.querySelector('.word-counter')) return;
 
+            // Remove any existing counter from previous scripts
+            const parent = textarea.parentNode;
+            const oldCounter = parent.querySelector('.word-counter');
+            if (oldCounter) oldCounter.remove();
+
+            // Create a fresh counter
             const counter = document.createElement('div');
             counter.className = 'word-counter';
             counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
-            textarea.parentNode.insertBefore(counter, textarea.nextSibling);
-            updateWordCounter(textarea);
+            parent.insertBefore(counter, textarea.nextSibling);
+            textarea._wc = counter;
 
-            // Use both 'input' and 'keyup' to be absolutely sure it updates on typing
+            // Bind events: input + keyup for maximal responsiveness
             textarea.addEventListener('input', () => updateWordCounter(textarea));
             textarea.addEventListener('keyup', () => updateWordCounter(textarea));
+
+            // Initial display
+            updateWordCounter(textarea);
         }
 
-        attachWordCounter(masterPost);
-        attachWordCounter(post1);
-        attachWordCounter(post2);
+        installWordCounter(masterPost);
+        installWordCounter(post1);
+        installWordCounter(post2);
 
         // ---- Transform events ----
         masterPost.addEventListener('input', transformMaster);
