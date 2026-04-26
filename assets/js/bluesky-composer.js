@@ -35,18 +35,17 @@
         return segments.map(seg => `#${seg.replace(/\s+/g, '')}`).join(' ');
     }
 
-    // ---------- Word Counter ----------
-    const WORDS_MAX = 300;
+    // ---------- Character Counter ----------
+    const CHARS_MAX = 300;
 
-    function updateWordCounter(textarea) {
+    function updateCharCounter(textarea) {
         // Use the stored counter element (set during init)
         const counter = textarea._wc;
         if (!counter) return;
 
-        const text = textarea.value.trim();
-        const words = text === '' ? 0 : text.split(/\s+/).length;
-        const remaining = WORDS_MAX - words;
-        counter.textContent = `Words remaining: ${remaining}`;
+        const length = textarea.value.length;
+        const remaining = CHARS_MAX - length;
+        counter.textContent = `Characters remaining: ${remaining}`;
         counter.style.color = remaining > 0 ? '#4caf50' : '#f44336';
         counter.style.fontWeight = remaining > 0 ? 'normal' : 'bold';
     }
@@ -69,8 +68,8 @@
         if (!content.trim()) {
             post1.value = '';
             post2.value = '';
-            updateWordCounter(post1);
-            updateWordCounter(post2);
+            updateCharCounter(post1);
+            updateCharCounter(post2);
             return;
         }
 
@@ -84,8 +83,8 @@
         if (lines.length === 0) {
             post1.value = '';
             post2.value = '';
-            updateWordCounter(post1);
-            updateWordCounter(post2);
+            updateCharCounter(post1);
+            updateCharCounter(post2);
             return;
         }
 
@@ -97,8 +96,8 @@
 
         post1.value = finalText;
         post2.value = finalText;
-        updateWordCounter(post1);
-        updateWordCounter(post2);
+        updateCharCounter(post1);
+        updateCharCounter(post2);
     }
 
     // ---------- Render Thumbnails with SortableJS (Cloudflare style) ----------
@@ -306,8 +305,8 @@
             return;
         }
 
-        // ---- Install word counters for each textarea ----
-        function installWordCounter(textarea) {
+        // ---- Install character counters for each textarea ----
+        function installCharCounter(textarea) {
             if (!textarea) return;
 
             // Remove any existing counter from previous scripts
@@ -317,22 +316,22 @@
 
             // Create a fresh counter
             const counter = document.createElement('div');
-            counter.className = 'word-counter';
+            counter.className = 'word-counter';   // class name stays the same for removal
             counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
             parent.insertBefore(counter, textarea.nextSibling);
             textarea._wc = counter;
 
             // Bind events: input + keyup for maximal responsiveness
-            textarea.addEventListener('input', () => updateWordCounter(textarea));
-            textarea.addEventListener('keyup', () => updateWordCounter(textarea));
+            textarea.addEventListener('input', () => updateCharCounter(textarea));
+            textarea.addEventListener('keyup', () => updateCharCounter(textarea));
 
             // Initial display
-            updateWordCounter(textarea);
+            updateCharCounter(textarea);
         }
 
-        installWordCounter(masterPost);
-        installWordCounter(post1);
-        installWordCounter(post2);
+        installCharCounter(masterPost);
+        installCharCounter(post1);
+        installCharCounter(post2);
 
         // ---- Transform events ----
         masterPost.addEventListener('input', transformMaster);
