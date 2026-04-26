@@ -1,4 +1,4 @@
-    // This is velutinx.github.io/assets/js/bluesky-composer.js
+// This is velutinx.github.io/assets/js/bluesky-composer.js
 
 (function() {
     'use strict';
@@ -35,6 +35,23 @@
         return segments.map(seg => `#${seg.replace(/\s+/g, '')}`).join(' ');
     }
 
+    // ---------- Word Counter ----------
+    const WORDS_MAX = 300;
+
+    function updateWordCounter(textarea, counterSpan) {
+        const text = textarea.value.trim();
+        const words = text === '' ? 0 : text.split(/\s+/).length;
+        const remaining = WORDS_MAX - words;
+        counterSpan.textContent = `Words remaining: ${remaining}`;
+        if (remaining > 0) {
+            counterSpan.style.color = '#4caf50';
+            counterSpan.style.fontWeight = 'normal';
+        } else {
+            counterSpan.style.color = '#f44336';
+            counterSpan.style.fontWeight = 'bold';
+        }
+    }
+
     // ---------- State ----------
     window.accountImages = window.accountImages || { 1: [], 2: [] };
     const sortableInstances = { 1: null, 2: null };
@@ -53,6 +70,9 @@
         if (!content.trim()) {
             post1.value = '';
             post2.value = '';
+            // Update counters after clearing
+            if (post1._wordCounter) updateWordCounter(post1, post1._wordCounter);
+            if (post2._wordCounter) updateWordCounter(post2, post2._wordCounter);
             return;
         }
 
@@ -66,6 +86,8 @@
         if (lines.length === 0) {
             post1.value = '';
             post2.value = '';
+            if (post1._wordCounter) updateWordCounter(post1, post1._wordCounter);
+            if (post2._wordCounter) updateWordCounter(post2, post2._wordCounter);
             return;
         }
 
@@ -77,6 +99,10 @@
 
         post1.value = finalText;
         post2.value = finalText;
+
+        // Update counters after setting the text
+        if (post1._wordCounter) updateWordCounter(post1, post1._wordCounter);
+        if (post2._wordCounter) updateWordCounter(post2, post2._wordCounter);
     }
 
     // ---------- Render Thumbnails with SortableJS (Cloudflare style) ----------
@@ -84,12 +110,10 @@
         const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
         if (!container) return;
 
-        // Ensure container uses flex wrap like Cloudflare's grid
         container.style.display = 'flex';
         container.style.flexWrap = 'wrap';
         container.style.gap = '8px';
 
-        // Destroy existing Sortable instance
         if (sortableInstances[accountId]) {
             sortableInstances[accountId].destroy();
             sortableInstances[accountId] = null;
@@ -98,7 +122,6 @@
         const files = window.accountImages[accountId] || [];
         container.innerHTML = '';
 
-        // Build thumbnail elements
         files.forEach((file, idx) => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -117,7 +140,6 @@
                 removeBtn.textContent = '✕';
                 removeBtn.onclick = (ev) => {
                     ev.stopPropagation();
-                    // Remove from array and re-render
                     window.accountImages[accountId].splice(idx, 1);
                     renderThumbnails(accountId);
                     if (typeof showToast === 'function') {
@@ -132,7 +154,6 @@
             reader.readAsDataURL(file);
         });
 
-        // Initialize Sortable after images are appended
         setTimeout(() => {
             sortableInstances[accountId] = new Sortable(container, {
                 animation: 150,
@@ -140,7 +161,6 @@
                 ghostClass: 'cf-sortable-ghost',
                 dragClass: 'cf-sortable-drag',
                 onEnd: function() {
-                    // Update array order based on current DOM positions
                     const newOrder = [];
                     Array.from(container.children).forEach(child => {
                         const idx = parseInt(child.dataset.index, 10);
@@ -150,7 +170,6 @@
                     });
                     window.accountImages[accountId] = newOrder;
 
-                    // Update data-index attributes to match new positions
                     Array.from(container.children).forEach((child, newIdx) => {
                         child.dataset.index = newIdx;
                     });
@@ -290,6 +309,18 @@
             console.warn('Bluesky Composer: Required elements not found.');
             return;
         }
+
+        // --- Word counters for post1 and post2 ---
+        [post1, post2].forEach(textarea => {
+            if (!textarea) return;
+            const counter = document.createElement('div');
+            counter.className = 'word-counter';
+            counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
+            textarea.parentNode.insertBefore(counter, textarea.nextSibling);
+            updateWordCounter(textarea, counter);
+            textarea.addEventListener('input', () => updateWordCounter(textarea, counter));
+            textarea._wordCounter = counter;
+        });
 
         masterPost.addEventListener('input', transformMaster);
         transformMaster();
