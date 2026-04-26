@@ -38,18 +38,21 @@
     // ---------- Word Counter ----------
     const WORDS_MAX = 300;
 
-    function updateWordCounter(textarea, counterSpan) {
+    function updateWordCounter(textarea) {
+        // Find the counter div immediately after this textarea
+        let counter = textarea.nextElementSibling;
+        if (!counter || !counter.classList.contains('word-counter')) {
+            // If not found, try to locate by class (fallback)
+            counter = textarea.parentNode.querySelector('.word-counter');
+        }
+        if (!counter) return;
+
         const text = textarea.value.trim();
         const words = text === '' ? 0 : text.split(/\s+/).length;
         const remaining = WORDS_MAX - words;
-        counterSpan.textContent = `Words remaining: ${remaining}`;
-        if (remaining > 0) {
-            counterSpan.style.color = '#4caf50';
-            counterSpan.style.fontWeight = 'normal';
-        } else {
-            counterSpan.style.color = '#f44336';
-            counterSpan.style.fontWeight = 'bold';
-        }
+        counter.textContent = `Words remaining: ${remaining}`;
+        counter.style.color = remaining > 0 ? '#4caf50' : '#f44336';
+        counter.style.fontWeight = remaining > 0 ? 'normal' : 'bold';
     }
 
     // ---------- State ----------
@@ -70,9 +73,8 @@
         if (!content.trim()) {
             post1.value = '';
             post2.value = '';
-            // Update counters after clearing
-            if (post1._wordCounter) updateWordCounter(post1, post1._wordCounter);
-            if (post2._wordCounter) updateWordCounter(post2, post2._wordCounter);
+            updateWordCounter(post1);
+            updateWordCounter(post2);
             return;
         }
 
@@ -86,8 +88,8 @@
         if (lines.length === 0) {
             post1.value = '';
             post2.value = '';
-            if (post1._wordCounter) updateWordCounter(post1, post1._wordCounter);
-            if (post2._wordCounter) updateWordCounter(post2, post2._wordCounter);
+            updateWordCounter(post1);
+            updateWordCounter(post2);
             return;
         }
 
@@ -99,10 +101,8 @@
 
         post1.value = finalText;
         post2.value = finalText;
-
-        // Update counters after setting the text
-        if (post1._wordCounter) updateWordCounter(post1, post1._wordCounter);
-        if (post2._wordCounter) updateWordCounter(post2, post2._wordCounter);
+        updateWordCounter(post1);
+        updateWordCounter(post2);
     }
 
     // ---------- Render Thumbnails with SortableJS (Cloudflare style) ----------
@@ -310,23 +310,33 @@
             return;
         }
 
-        // --- Word counters for post1 and post2 ---
-        [post1, post2].forEach(textarea => {
+        // ---- Word counters for masterPost, post1, post2 ----
+        function attachWordCounter(textarea) {
             if (!textarea) return;
+            // Avoid duplicates
+            if (textarea.parentNode.querySelector('.word-counter')) return;
+
             const counter = document.createElement('div');
             counter.className = 'word-counter';
             counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
             textarea.parentNode.insertBefore(counter, textarea.nextSibling);
-            updateWordCounter(textarea, counter);
-            textarea.addEventListener('input', () => updateWordCounter(textarea, counter));
-            textarea._wordCounter = counter;
-        });
+            updateWordCounter(textarea);
 
+            // Use both 'input' and 'keyup' to be absolutely sure it updates on typing
+            textarea.addEventListener('input', () => updateWordCounter(textarea));
+            textarea.addEventListener('keyup', () => updateWordCounter(textarea));
+        }
+
+        attachWordCounter(masterPost);
+        attachWordCounter(post1);
+        attachWordCounter(post2);
+
+        // ---- Transform events ----
         masterPost.addEventListener('input', transformMaster);
-        transformMaster();
-
         if (transformBtn) transformBtn.addEventListener('click', transformMaster);
+        transformMaster();  // initial fill
 
+        // ---- Dropzones & thumbs ----
         setupDropzones();
         renderThumbnails(1);
         renderThumbnails(2);
