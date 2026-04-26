@@ -48,8 +48,8 @@
     <p class="poll-subtitle">Click once — you can change your vote anytime</p>
 
     <div class="poll-page">
-      <div class="big-card" id="leftBig"><img id="leftImg" src="https://www.velutinx.com/images/Poll/1.jpg"></div>
-      <div class="big-card" id="rightBig"><img id="rightImg" src="https://www.velutinx.com/images/Poll/1.jpg"></div>
+      <div class="big-card" id="leftBig"><img id="leftImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
+      <div class="big-card" id="rightBig"><img id="rightImg" src="https://www.velutinx.com/images/poll/1.jpg"></div>
 
       <div class="center">
         <div class="grid" id="grid"></div>
@@ -143,7 +143,7 @@ for (let i = 1; i <= TOTAL_CARDS; i++) {
   card.dataset.id = i;
   card.setAttribute('data-cursor-expand', '');
   card.innerHTML = `
-    <img src="https://www.velutinx.com/images/Poll/${i}.jpg" loading="lazy">
+    <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
     <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
     <div class="label">Loading...</div>
   `;
@@ -304,7 +304,7 @@ function showSelected(id) {
   const left = document.getElementById("leftBig");
   left.classList.remove("show");
   setTimeout(() => {
-    document.getElementById("leftImg").src = `https://www.velutinx.com/images/Poll/${id}.jpg`;
+    document.getElementById("leftImg").src = `https://www.velutinx.com/images/poll/${id}.jpg`;
     left.classList.add("show");
   }, 150);
 }
@@ -312,7 +312,7 @@ function rotate() {
   const right = document.getElementById("rightBig");
   right.classList.remove("show");
   setTimeout(() => {
-    document.getElementById("rightImg").src = `https://www.velutinx.com/images/Poll/${rotateIndex}.jpg`;
+    document.getElementById("rightImg").src = `https://www.velutinx.com/images/poll/${rotateIndex}.jpg`;
     right.classList.add("show");
     rotateIndex = (rotateIndex % TOTAL_CARDS) + 1;
   }, 150);
