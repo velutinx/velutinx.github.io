@@ -63,7 +63,7 @@
 
         let hashtags = '';
         if (lastLine.includes('#')) {
-            // Already contains hashtags – use it directly (trimmed)
+            // Already contains hashtags – use it directly
             hashtags = lastLine.trim();
         } else {
             // Split by spaces and add # to each word
@@ -73,7 +73,11 @@
 
         finalText += hashtags;
 
-        // Set both posts
+        // === DEBUG: print to console ===
+        console.log('🔍 Final text sent to Bluesky:\n', finalText);
+        // Optional: show a small alert for visibility (remove after debugging)
+        // alert('Final text:\n' + finalText);
+
         post1.value = finalText;
         post2.value = finalText;
         updateCharCounter(post1);
@@ -270,7 +274,7 @@
         function installCharCounter(textarea) {
             if (!textarea) return;
             const parent = textarea.parentNode;
-            if (parent.querySelector('.word-counter')) return; // avoid duplicates
+            if (parent.querySelector('.word-counter')) return;
             const counter = document.createElement('div');
             counter.className = 'word-counter';
             counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
