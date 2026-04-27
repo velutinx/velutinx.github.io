@@ -3,46 +3,12 @@
 (function() {
     'use strict';
 
-    // ---------- Utility: Convert concatenated words into hashtags ----------
-    function textToHashtags(text) {
-        const segments = [];
-        let current = '';
-        let lastType = null;
-        for (let i = 0; i < text.length; i++) {
-            const ch = text[i];
-            const isSpace = /\s/.test(ch);
-            const isLatin = /[a-zA-Z0-9]/.test(ch);
-            let type = null;
-            if (isSpace) type = 'space';
-            else type = isLatin ? 'latin' : 'nonlatin';
-
-            if (type === 'space') {
-                current += ch;
-                continue;
-            }
-            if (lastType === null) {
-                current += ch;
-                lastType = type;
-            } else if (type === lastType) {
-                current += ch;
-            } else {
-                if (current.trim()) segments.push(current.trim());
-                current = ch;
-                lastType = type;
-            }
-        }
-        if (current.trim()) segments.push(current.trim());
-        return segments.map(seg => `#${seg.replace(/\s+/g, '')}`).join(' ');
-    }
-
     // ---------- Character Counter ----------
     const CHARS_MAX = 300;
 
     function updateCharCounter(textarea) {
-        // Use the stored counter element (set during init)
         const counter = textarea._wc;
         if (!counter) return;
-
         const length = textarea.value.length;
         const remaining = CHARS_MAX - length;
         counter.textContent = `Characters remaining: ${remaining}`;
@@ -60,7 +26,7 @@
     const post2 = document.getElementById('post2');
     const transformBtn = document.getElementById('transformBtn');
 
-    // ---------- Transform Master Post ----------
+    // ---------- Transform Master Post (fixed hashtag handling) ----------
     function transformMaster() {
         if (!masterPost || !post1 || !post2) return;
 
@@ -74,10 +40,12 @@
         }
 
         let lines = content.split(/\r?\n/);
+        // Remove disclaimer lines
         lines = lines.filter(line => {
             const lower = line.toLowerCase();
             return !lower.includes('免責事項') && !lower.includes('disclaimer:');
         });
+        // Trim trailing empty lines
         while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
 
         if (lines.length === 0) {
@@ -88,23 +56,34 @@
             return;
         }
 
+        // Last line is the hashtag line
         let lastLine = lines.pop() || '';
-        const hashtags = textToHashtags(lastLine);
         let finalText = lines.join('\n');
         if (finalText && !finalText.endsWith('\n')) finalText += '\n';
+
+        let hashtags = '';
+        if (lastLine.includes('#')) {
+            // Already contains hashtags – use it directly (trimmed)
+            hashtags = lastLine.trim();
+        } else {
+            // Split by spaces and add # to each word
+            const words = lastLine.trim().split(/\s+/);
+            hashtags = words.map(word => `#${word}`).join(' ');
+        }
+
         finalText += hashtags;
 
+        // Set both posts
         post1.value = finalText;
         post2.value = finalText;
         updateCharCounter(post1);
         updateCharCounter(post2);
     }
 
-    // ---------- Render Thumbnails with SortableJS (Cloudflare style) ----------
+    // ---------- Render Thumbnails with SortableJS ----------
     function renderThumbnails(accountId) {
         const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
         if (!container) return;
-
         container.style.display = 'flex';
         container.style.flexWrap = 'wrap';
         container.style.gap = '8px';
@@ -137,9 +116,7 @@
                     ev.stopPropagation();
                     window.accountImages[accountId].splice(idx, 1);
                     renderThumbnails(accountId);
-                    if (typeof showToast === 'function') {
-                        showToast('Image removed', 'info');
-                    }
+                    if (typeof showToast === 'function') showToast('Image removed', 'info');
                 };
 
                 wrapper.appendChild(thumb);
@@ -164,14 +141,10 @@
                         }
                     });
                     window.accountImages[accountId] = newOrder;
-
                     Array.from(container.children).forEach((child, newIdx) => {
                         child.dataset.index = newIdx;
                     });
-
-                    if (typeof showToast === 'function') {
-                        showToast('Order updated', 'info');
-                    }
+                    if (typeof showToast === 'function') showToast('Order updated', 'info');
                 }
             });
         }, 50);
@@ -192,9 +165,7 @@
                     if (input.files.length) {
                         window.accountImages[accountId].push(...Array.from(input.files));
                         renderThumbnails(accountId);
-                        if (typeof showToast === 'function') {
-                            showToast(`+${input.files.length} images added`, 'success');
-                        }
+                        if (typeof showToast === 'function') showToast(`+${input.files.length} images added`, 'success');
                     }
                 };
                 input.click();
@@ -214,9 +185,7 @@
                 if (files.length) {
                     window.accountImages[accountId].push(...files);
                     renderThumbnails(accountId);
-                    if (typeof showToast === 'function') {
-                        showToast(`${files.length} dropped`, 'success');
-                    }
+                    if (typeof showToast === 'function') showToast(`${files.length} dropped`, 'success');
                 }
             });
         });
@@ -261,23 +230,17 @@
             if (response.ok) {
                 statusDiv.textContent = '✅ Posted!';
                 statusDiv.style.color = '#4caf50';
-                if (typeof showToast === 'function') {
-                    showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
-                }
+                if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
                 setTimeout(() => statusDiv.textContent = '', 2500);
             } else {
                 statusDiv.textContent = `❌ ${data.error || 'failed'}`;
-                if (typeof showToast === 'function') {
-                    showToast(`Error: ${data.error || 'server error'}`, 'error');
-                }
+                if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
             }
         } catch (err) {
             statusDiv.textContent = `❌ ${err.message}`;
-            if (typeof showToast === 'function') {
-                showToast(`Network error: ${err.message}`, 'error');
-            }
+            if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
         }
     }
 
@@ -286,7 +249,6 @@
         document.querySelectorAll('.account-card').forEach(card => {
             const accountId = card.dataset.account;
             if (!accountId) return;
-
             if (card.querySelector('.bluesky-post-btn')) return;
 
             const btn = document.createElement('button');
@@ -305,27 +267,17 @@
             return;
         }
 
-        // ---- Install character counters for each textarea ----
         function installCharCounter(textarea) {
             if (!textarea) return;
-
-            // Remove any existing counter from previous scripts
             const parent = textarea.parentNode;
-            const oldCounter = parent.querySelector('.word-counter');
-            if (oldCounter) oldCounter.remove();
-
-            // Create a fresh counter
+            if (parent.querySelector('.word-counter')) return; // avoid duplicates
             const counter = document.createElement('div');
-            counter.className = 'word-counter';   // class name stays the same for removal
+            counter.className = 'word-counter';
             counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
             parent.insertBefore(counter, textarea.nextSibling);
             textarea._wc = counter;
-
-            // Bind events: input + keyup for maximal responsiveness
             textarea.addEventListener('input', () => updateCharCounter(textarea));
             textarea.addEventListener('keyup', () => updateCharCounter(textarea));
-
-            // Initial display
             updateCharCounter(textarea);
         }
 
@@ -333,18 +285,16 @@
         installCharCounter(post1);
         installCharCounter(post2);
 
-        // ---- Transform events ----
         masterPost.addEventListener('input', transformMaster);
         if (transformBtn) transformBtn.addEventListener('click', transformMaster);
-        transformMaster();  // initial fill
+        transformMaster();
 
-        // ---- Dropzones & thumbs ----
         setupDropzones();
         renderThumbnails(1);
         renderThumbnails(2);
         addPostButtons();
 
-        console.log('✅ Bluesky Composer initialized (Cloudflare-style drag)');
+        console.log('✅ Bluesky Composer initialized (hashtag‑fixed)');
     }
 
     if (document.readyState === 'loading') {
