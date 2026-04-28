@@ -298,7 +298,6 @@
         renderThumbnails(2);
         addPostButtons();
 
-        console.log('✅ Bluesky Composer initialized (hashtag‑fixed)');
     }
 
     if (document.readyState === 'loading') {
