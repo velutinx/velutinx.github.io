@@ -1,51 +1,5 @@
-import { Storage } from 'megajs';
+// i2-uploader worker – R2 upload + MEGA link proxy (via Discord bot)
 
-// ==============================================
-// Durable Object – persistent MEGA session
-// ==============================================
-export class MegaSession {
-  constructor(state, env) {
-    this.state = state;
-    this.env = env;
-    this.storage = null;
-  }
-
-  async fetch(request) {
-    const url = new URL(request.url);
-    const filename = url.searchParams.get('filename');
-
-    if (!filename) {
-      return new Response(JSON.stringify({ error: 'Missing filename' }), { status: 400 });
-    }
-
-    try {
-      // Login only if not already connected (session stays alive)
-      if (!this.storage) {
-        this.storage = new Storage({
-          email: this.env.MEGA_EMAIL,
-          password: this.env.MEGA_PASSWORD
-        });
-        await this.storage.ready;
-      }
-
-      const file = this.storage.files.find(f => f.name === filename);
-      if (!file) {
-        return new Response(JSON.stringify({ error: 'File not found' }), { status: 404 });
-      }
-
-      const link = await file.link();
-      return new Response(JSON.stringify({ url: link }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), { status: 500 });
-    }
-  }
-}
-
-// ==============================================
-// Main Worker – R2 uploads + MEGA link proxy
-// ==============================================
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -61,21 +15,32 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    // ---------- NEW: MEGA link endpoint (GET) ----------
+    // ---------- MEGA link proxy (GET) ----------
     if (url.pathname === '/mega-link' && request.method === 'GET') {
-      const id = env.MEGA_SESSION.idFromName('global');
-      const stub = env.MEGA_SESSION.get(id);
-      const response = await stub.fetch(request);
-
-      // Add CORS headers to the DO response
-      const newHeaders = new Headers(response.headers);
-      for (const [k, v] of Object.entries(corsHeaders)) {
-        newHeaders.set(k, v);
+      const filename = url.searchParams.get('filename');
+      if (!filename) {
+        return new Response(JSON.stringify({ error: 'Missing filename' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
-      return new Response(response.body, {
-        status: response.status,
-        headers: newHeaders
-      });
+
+      // Forward to the bot
+      const botUrl = `${env.BOT_API_BASE}/api/mega-link?filename=${encodeURIComponent(filename)}`;
+      try {
+        const botResp = await fetch(botUrl);
+        const data = await botResp.json();
+
+        return new Response(JSON.stringify(data), {
+          status: botResp.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: 'Bot unreachable: ' + err.message }), {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     // ---------- Existing R2 upload (POST) ----------
