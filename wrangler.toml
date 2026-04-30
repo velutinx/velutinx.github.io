@@ -2,6 +2,7 @@ name = "i2-uploader"
 main = "src/index.js"
 compatibility_date = "2025-04-02"
 
+# Replace with your actual R2 bucket name (e.g., "imgr2")
 r2_buckets = [
   { binding = "R2_BUCKET", bucket_name = "your-r2-bucket-name" }
 ]
