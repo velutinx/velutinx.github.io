@@ -1,4 +1,5 @@
-    // This is velutinx.github.io/assets/js/pack-manager.js
+// This is velutinx.github.io/assets/js/pack-manager.js
+// Updated: manual Upload button, disables automatic storing
 
 (function() {
     'use strict';
@@ -9,6 +10,12 @@
     const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
     const STORAGE_KEY = 'packs_offline_db';
 
+    // ---------- NEW: Temporary state for manual upload ----------
+    let currentZipFile = null;          // the File object (zip)
+    let currentPackEntry = null;       // { id, title, category, price, illustrationCount, downloadUrl }
+    let currentIllustrationCount = 0;
+
+    // ---------- DOM elements ----------
     const pmDropzone = document.getElementById('pm-dropzone');
     const pmFileInput = document.getElementById('pm-fileInput');
     const pmDownloadUrl = document.getElementById('pm-downloadUrl');
@@ -18,6 +25,7 @@
     const pmSyncBtn = document.getElementById('pm-syncRemoteBtn');
     const pmConnStatus = document.getElementById('pm-connStatus');
     const pmTableBody = document.getElementById('pm-tableBody');
+    const pmUploadBtn = document.getElementById('pm-uploadBtn');   // NEW button
 
     let remoteReachable = false;
     let pendingSync = false;
@@ -336,6 +344,95 @@
         pmShowToast(`💾 Pack #${packEntry.id} saved to LOCAL storage (cloud offline)`, 'success');
         return { success: true, source: 'local' };
     }
+
+    // ================== NEW: Upload pack images to Cloudflare R2 ==================
+    async function uploadPackImages() {
+        if (!currentZipFile || !currentPackEntry) {
+            pmShowToast('No ZIP processed yet – drop a file first', 'error');
+            return;
+        }
+
+        // Read the category and download link from the current UI state
+        const downloadUrl = pmDownloadUrl.value.trim() || null;
+        const isFemale = pmCategoryToggle.checked;
+        const category = isFemale ? 1 : 2;
+        const packNumber = currentPackEntry.id; // already zero-padded string
+
+        // Update the temporary entry with the latest category and link
+        currentPackEntry.category = category;
+        currentPackEntry.downloadUrl = downloadUrl;
+
+        pmStatus.textContent = `⏳ Uploading ${currentIllustrationCount} images for Pack #${packNumber}...`;
+        pmUploadBtn.disabled = true;
+        pmUploadBtn.textContent = '⏳ Uploading...';
+
+        try {
+            // 1. Extract ALL images from the zip (not just a preview)
+            const zip = await JSZip.loadAsync(currentZipFile);
+            const imageEntries = [];
+            zip.forEach((path, entry) => {
+                if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
+                    imageEntries.push(entry);
+                }
+            });
+
+            // Sort numerically by filename
+            imageEntries.sort((a, b) => {
+                const numA = parseInt((a.name.match(/\d+/) || ['0'])[0], 10) || 0;
+                const numB = parseInt((b.name.match(/\d+/) || ['0'])[0], 10) || 0;
+                return numA - numB;
+            });
+
+            // Build FormData with packNumber and all image blobs
+            const formData = new FormData();
+            formData.append('packNumber', packNumber);
+
+            for (let i = 0; i < imageEntries.length; i++) {
+                const blob = await imageEntries[i].async('blob');
+                const file = new File([blob], imageEntries[i].name, { type: blob.type });
+                formData.append('images', file);
+            }
+
+            // 2. Upload to Cloudflare R2 (i2-uploader worker)
+            const uploadRes = await fetch('https://i2-uploader.velutinx.workers.dev', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!uploadRes.ok) {
+                const errData = await uploadRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Upload HTTP ${uploadRes.status}`);
+            }
+
+            const uploadResult = await uploadRes.json();
+            console.log('R2 upload successful:', uploadResult.urls);
+
+            // 3. Now store/update the pack metadata (with download link)
+            await storePackWithFallback(currentPackEntry);
+
+            pmStatus.textContent = `✅ Pack #${packNumber} uploaded & stored | ${uploadResult.urls.length} images`;
+            pmShowToast(`☁️ Pack #${packNumber} uploaded to R2 and metadata saved`, 'success');
+
+            // Reload the table to show the new/updated entry
+            await loadAllPacks();
+
+            // Clear temporary state after successful upload
+            currentZipFile = null;
+            currentPackEntry = null;
+            currentIllustrationCount = 0;
+            pmUploadBtn.disabled = true;
+
+        } catch (err) {
+            console.error('Upload failed:', err);
+            pmStatus.textContent = `❌ Upload failed: ${err.message}`;
+            pmShowToast(`❌ Upload error: ${err.message}`, 'error');
+        } finally {
+            pmUploadBtn.disabled = false;
+            pmUploadBtn.textContent = '📤 Upload to Cloudflare';
+        }
+    }
+
+    // ================== MODIFIED processZip: only store temporary data ==================
     async function processZip(file) {
         pmStatus.textContent = '📂 Reading ZIP...';
         try {
@@ -362,20 +459,30 @@
             const category = isFemale ? 1 : 2;
             const title = cleanFilename(file.name);
             const id = String(packNumber).padStart(3, '0');
-            const downloadUrl = pmDownloadUrl.value.trim();
-            const packEntry = { id, title, category, price, illustrationCount, downloadUrl: downloadUrl || null };
-            pmStatus.textContent = `⏳ Storing pack #${packNumber} ...`;
-            await storePackWithFallback(packEntry);
-            pmStatus.textContent = `✅ Pack #${packNumber} stored | ${illustrationCount} images | ${price}`;
-            await loadAllPacks();
+            const downloadUrl = pmDownloadUrl.value.trim() || null;
+
+            // ---- STORE TEMPORARY DATA, DON'T SAVE YET ----
+            currentZipFile = file;                 // keep reference to the ZIP
+            currentPackEntry = { id, title, category, price, illustrationCount, downloadUrl };
+            currentIllustrationCount = illustrationCount;
+
+            pmStatus.textContent = `📦 Ready for upload: Pack #${id} | ${illustrationCount} images | ${price}`;
+            pmUploadBtn.disabled = false;   // enable the Upload button
+            pmShowToast(`✅ ZIP analysed. Set the category & download link, then click "Upload".`, 'info');
+
         } catch (err) {
             console.error(err);
             pmStatus.textContent = '❌ Failed to process pack.';
             pmShowToast(`Error: ${err.message}`, 'error');
+            // Clear temporary data on error
+            currentZipFile = null;
+            currentPackEntry = null;
+            currentIllustrationCount = 0;
+            pmUploadBtn.disabled = true;
         }
     }
 
-    // Event listeners
+    // ================== EVENT LISTENERS (modified) ==================
     if (pmDropzone) {
         pmDropzone.addEventListener('click', () => pmFileInput.click());
         pmDropzone.addEventListener('dragover', (e) => { e.preventDefault(); pmDropzone.style.borderColor = '#5a6e3c'; });
@@ -399,11 +506,21 @@
             if (e.target.files.length) processZip(e.target.files[0]);
         });
     }
+
+    // Category toggle: only update temp entry if a zip is already loaded, otherwise do nothing
     if (pmCategoryToggle) {
         pmCategoryToggle.addEventListener('change', () => {
-            if (pmFileInput.files && pmFileInput.files.length) processZip(pmFileInput.files[0]);
+            if (currentPackEntry) {
+                // Update only the category stored in memory
+                currentPackEntry.category = pmCategoryToggle.checked ? 1 : 2;
+                const catText = currentPackEntry.category === 1 ? 'Female' : 'Femboy';
+                pmStatus.textContent = `📦 Ready: Pack #${currentPackEntry.id} | ${currentIllustrationCount} images | Category: ${catText}`;
+                pmShowToast(`Category updated to ${catText}`, 'info');
+            }
+            // No action if no zip loaded
         });
     }
+
     if (pmRefreshBtn) pmRefreshBtn.addEventListener('click', () => loadAllPacks());
     if (pmSyncBtn) {
         pmSyncBtn.addEventListener('click', async () => {
@@ -415,6 +532,12 @@
             await syncAllLocalToRemote();
             pmSyncBtn.textContent = "🔄 Sync to Cloud";
         });
+    }
+
+    // Upload button
+    if (pmUploadBtn) {
+        pmUploadBtn.addEventListener('click', uploadPackImages);
+        pmUploadBtn.disabled = true;  // disabled until a ZIP is loaded
     }
 
     bindSortHandlers();
