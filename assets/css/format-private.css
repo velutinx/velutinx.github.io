@@ -388,6 +388,33 @@ h1 { margin-top: 0; color: #f0f0f0; font-weight: 500; letter-spacing: -0.3px; }
 }
 #packmanager .pm-switch input:checked + .pm-slider { background-color: #ec4899; }
 #packmanager .pm-switch input:checked + .pm-slider:before { transform: translateX(36px); }
+
+/* ========== NEW: Upload button (manual trigger) ========== */
+#packmanager .pm-upload-action {
+    text-align: center;
+    margin: 20px 0;
+}
+#packmanager .pm-upload-btn {
+    background: #2c6e2c;
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 40px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+#packmanager .pm-upload-btn:hover:not(:disabled) {
+    background: #3e8e3e;
+}
+#packmanager .pm-upload-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #4a5a4a;
+}
+
 #packmanager .pm-table-section {
     margin-top: 30px;
     background: #0c1017;
