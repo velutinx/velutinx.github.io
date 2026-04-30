@@ -1,32 +1,29 @@
 <!-- This is velutinx.github.io/subscrib.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zip to Post · Patreon + Bluesky + Cloudflare + Pack Manager (Nightmode)</title>
+    <title>Zip to Post · Patreon + Bluesky + Pack Manager (Nightmode)</title>
     <link rel="stylesheet" href="/assets/css/format-private.css">
     <!-- External libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <!-- Feature modules -->
     <script src="/assets/js/zip-to-post.js" defer></script>
-    <script src="/assets/js/cloudflare-upload.js" defer></script>
     <script src="/assets/js/bluesky-composer.js" defer></script>
     <script src="/assets/js/pack-manager.js" defer></script>
 </head>
 <body>
 <div class="container">
-    <h1>🌙 Zip to Post · Patreon + Bluesky + Cloudflare + Pack Manager</h1>
+    <h1>🌙 Zip to Post · Patreon + Bluesky + Pack Manager</h1>
     <div class="tab-bar">
         <button class="tab-button active" data-tab="subscribestar">📦 Subscribestar / Patreon</button>
         <button class="tab-button" data-tab="bluesky">🦋 Bluesky Composer</button>
-        <button class="tab-button" data-tab="cloudflare">☁️ Upload to Cloudflare</button>
-        <button class="tab-button" data-tab="packmanager">📦 Pack Manager (Offline)</button>
+        <button class="tab-button" data-tab="packmanager">📦 Pack Manager + Cloudflare</button>
     </div>
 
-    <!-- Subscribestar / Patreon Tab -->
+    <!-- Subscribestar / Patreon Tab (unchanged) -->
     <div id="subscribestar" class="tab-content active">
         <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
         <div class="upload-area" id="dropZone">
@@ -66,7 +63,7 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- Bluesky Composer Tab (HTML only – logic loaded externally) -->
+    <!-- Bluesky Composer Tab (unchanged) -->
     <div id="bluesky" class="tab-content">
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
@@ -90,24 +87,10 @@
         <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
     </div>
 
-    <!-- Cloudflare Upload Tab -->
-    <div id="cloudflare" class="tab-content">
-        <div class="upload-area" id="cfDropzone">
-            <input type="file" id="cfFileInput" accept=".zip">
-            <div class="upload-label">📂 Drag & drop ZIP or click</div>
-        </div>
-        <div id="cfStatus" class="cf-status"></div>
-        <div class="cf-section-title">🖼️ First 10 images (click to select)</div>
-        <div id="cfOriginalGrid" class="cf-thumb-grid"></div>
-        <div class="cf-section-title">✅ Selected images (drag to reorder)</div>
-        <div id="cfSelectedGrid" class="cf-thumb-grid" style="min-height: 120px;"></div>
-        <button id="cfDownloadBtn" class="cf-btn-download">⬇️ Download & Upload Selected</button>
-    </div>
-
-    <!-- Pack Manager Tab (offline-first with sorting) -->
+    <!-- Pack Manager Tab (now includes Cloudflare image selection) -->
     <div id="packmanager" class="tab-content">
         <div class="pm-container">
-            <h1>📦 Pack Manager → Offline-First + Cloud Sync</h1>
+            <h1>📦 Pack Manager + Cloudflare Upload</h1>
             <div class="pm-dropzone" id="pm-dropzone">
                 <input type="file" id="pm-fileInput" accept=".zip">
                 <div>📂 Drag & drop a ZIP file here, or click to select</div>
@@ -124,11 +107,21 @@
                 </label>
                 <span class="pm-toggle-label pm-female-label">👩‍🦰 Female</span>
             </div>
-            <!-- NEW UPLOAD BUTTON -->
+
+            <!-- Image selection area (merged from Cloudflare tab) -->
+            <div class="pm-image-selector">
+                <div class="cf-section-title">🖼️ First 30 images (click to select)</div>
+                <div id="pm-originalGrid" class="cf-thumb-grid"></div>
+                <div class="cf-section-title">✅ Selected images (drag to reorder)</div>
+                <div id="pm-selectedGrid" class="cf-thumb-grid" style="min-height: 120px;"></div>
+            </div>
+
+            <!-- Upload button (triggers metadata + selected images upload + download) -->
             <div class="pm-upload-action">
                 <button id="pm-uploadBtn" class="pm-upload-btn" disabled>📤 Upload to Cloudflare</button>
             </div>
             <div id="pm-status" class="pm-status"></div>
+
             <div class="pm-table-section">
                 <div class="pm-table-header">
                     <strong>📋 All Stored Packs</strong>
@@ -170,7 +163,7 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // ========== SIMPLE TAB SWITCHING ==========
+    // ========== SIMPLE TAB SWITCHING (updated to 3 tabs) ==========
     (function() {
         const tabBtns = document.querySelectorAll('.tab-button');
         const tabs = document.querySelectorAll('.tab-content');
@@ -184,22 +177,6 @@
             });
         });
     })();
-
-    // ========== CLOUDFLARE UPLOADER INITIALIZATION ==========
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof window.initCloudflareUploader === 'function') {
-            window.initCloudflareUploader({
-                dropzone: 'cfDropzone',
-                fileInput: 'cfFileInput',
-                status: 'cfStatus',
-                originalGrid: 'cfOriginalGrid',
-                selectedGrid: 'cfSelectedGrid',
-                downloadBtn: 'cfDownloadBtn'
-            });
-        } else {
-            console.error('initCloudflareUploader not found. Make sure cloudflare-upload.js is loaded.');
-        }
-    });
 </script>
 </body>
 </html>
