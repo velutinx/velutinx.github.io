@@ -9,29 +9,30 @@
     const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
     const STORAGE_KEY = 'packs_offline_db';
 
-    // ---------- Temporary state for manual upload ----------
-    let currentZipFile = null;          // raw ZIP File object
-    let currentPackEntry = null;       // { id, title, category, price, illustrationCount, downloadUrl }
+    // Temporary state for manual upload
+    let currentZipFile   = null;      // raw ZIP File object (unused in upload, kept for reference)
+    let currentPackEntry = null;      // { id, title, category, price, illustrationCount, downloadUrl }
     let currentIllustrationCount = 0;
 
-    // ---------- DOM elements ----------
-    const pmDropzone = document.getElementById('pm-dropzone');
-    const pmFileInput = document.getElementById('pm-fileInput');
-    const pmDownloadUrl = document.getElementById('pm-downloadUrl');
-    const pmStatus = document.getElementById('pm-status');
+    // DOM elements
+    const pmDropzone       = document.getElementById('pm-dropzone');
+    const pmFileInput      = document.getElementById('pm-fileInput');
+    const pmDownloadUrl    = document.getElementById('pm-downloadUrl');
+    const pmStatus         = document.getElementById('pm-status');
     const pmCategoryToggle = document.getElementById('pm-categoryToggle');
-    const pmRefreshBtn = document.getElementById('pm-refreshTableBtn');
-    const pmSyncBtn = document.getElementById('pm-syncRemoteBtn');
-    const pmConnStatus = document.getElementById('pm-connStatus');
-    const pmTableBody = document.getElementById('pm-tableBody');
-    const pmUploadBtn = document.getElementById('pm-uploadBtn');   // NEW button
+    const pmRefreshBtn     = document.getElementById('pm-refreshTableBtn');
+    const pmSyncBtn        = document.getElementById('pm-syncRemoteBtn');
+    const pmConnStatus     = document.getElementById('pm-connStatus');
+    const pmTableBody      = document.getElementById('pm-tableBody');
+    const pmUploadBtn      = document.getElementById('pm-uploadBtn');   // the new button
 
     let remoteReachable = false;
-    let pendingSync = false;
-    let currentPacks = [];
-    let sortColumn = null;
-    let sortDirection = 'asc';
+    let pendingSync     = false;
+    let currentPacks    = [];
+    let sortColumn      = null;
+    let sortDirection   = 'asc';
 
+    // ---------- Toast ----------
     function pmShowToast(message, type = 'success') {
         if (typeof showToast === 'function') {
             showToast(`[Pack Manager] ${message}`, type);
@@ -40,6 +41,7 @@
         }
     }
 
+    // ---------- Local storage ----------
     function getLocalPacks() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return [];
@@ -57,6 +59,7 @@
         return packs;
     }
 
+    // ---------- Remote API ----------
     async function fetchWithTimeout(url, options, timeout = 8000) {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), timeout);
@@ -118,55 +121,30 @@
         }
     }
 
+    // ---------- Table rendering ----------
     function escapeHtml(str) {
         if (!str) return '';
-        return String(str).replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
     }
-
     function sortPacks(packs, column, direction) {
         const sorted = [...packs];
         sorted.sort((a, b) => {
             let valA, valB;
             switch(column) {
-                case 'id':
-                    valA = parseInt(a.id, 10);
-                    valB = parseInt(b.id, 10);
-                    break;
-                case 'illustrations':
-                    valA = a.illustrationCount || 0;
-                    valB = b.illustrationCount || 0;
-                    break;
-                case 'category':
-                    valA = a.category === 1 ? 'Female' : 'Femboy';
-                    valB = b.category === 1 ? 'Female' : 'Femboy';
-                    break;
-                case 'price':
-                    valA = a.price || '';
-                    valB = b.price || '';
-                    break;
-                case 'download':
-                    valA = a.downloadUrl ? a.downloadUrl.toLowerCase() : '';
-                    valB = b.downloadUrl ? b.downloadUrl.toLowerCase() : '';
-                    break;
-                default: // title
-                    valA = a.title ? a.title.toLowerCase() : '';
-                    valB = b.title ? b.title.toLowerCase() : '';
+                case 'id':            valA = parseInt(a.id, 10); valB = parseInt(b.id, 10); break;
+                case 'illustrations': valA = a.illustrationCount || 0; valB = b.illustrationCount || 0; break;
+                case 'category':      valA = a.category === 1 ? 'Female' : 'Femboy'; valB = b.category === 1 ? 'Female' : 'Femboy'; break;
+                case 'price':         valA = a.price || ''; valB = b.price || ''; break;
+                case 'download':      valA = a.downloadUrl ? a.downloadUrl.toLowerCase() : ''; valB = b.downloadUrl ? b.downloadUrl.toLowerCase() : ''; break;
+                default:              valA = a.title ? a.title.toLowerCase() : ''; valB = b.title ? b.title.toLowerCase() : '';
             }
-            if (typeof valA === 'number' && typeof valB === 'number') {
-                return direction === 'asc' ? valA - valB : valB - valA;
-            }
+            if (typeof valA === 'number' && typeof valB === 'number') return direction === 'asc' ? valA - valB : valB - valA;
             if (valA < valB) return direction === 'asc' ? -1 : 1;
             if (valA > valB) return direction === 'asc' ? 1 : -1;
             return 0;
         });
         return sorted;
     }
-
     function renderTable(packs) {
         currentPacks = packs;
         const sorted = sortPacks(packs, sortColumn, sortDirection);
@@ -175,9 +153,9 @@
             return;
         }
         pmTableBody.innerHTML = sorted.map(pack => {
-            const categoryText = pack.category === 1 ? 'Female' : 'Femboy';
+            const categoryText  = pack.category === 1 ? 'Female' : 'Femboy';
             const categoryClass = pack.category === 1 ? 'pm-cat-female' : 'pm-cat-femboy';
-            const downloadCell = pack.downloadUrl && pack.downloadUrl.trim()
+            const downloadCell  = pack.downloadUrl && pack.downloadUrl.trim()
                 ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>`
                 : '—';
             return `
@@ -197,27 +175,19 @@
             if (iconSpan) iconSpan.innerHTML = sortDirection === 'asc' ? ' ▲' : ' ▼';
         }
     }
-
     function setSort(column) {
-        if (sortColumn === column) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            sortColumn = column;
-            sortDirection = 'asc';
-        }
+        if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        else { sortColumn = column; sortDirection = 'asc'; }
         renderTable(currentPacks);
     }
-
     function bindSortHandlers() {
-        const headers = ['id', 'title', 'category', 'price', 'illustrations', 'download'];
-        headers.forEach(col => {
+        ['id','title','category','price','illustrations','download'].forEach(col => {
             const th = document.getElementById(`sort-${col}`);
-            if (th) {
-                th.onclick = () => setSort(col);
-            }
+            if (th) th.onclick = () => setSort(col);
         });
     }
 
+    // ---------- Load / Sync ----------
     async function loadAllPacks() {
         pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>';
         try {
@@ -247,7 +217,6 @@
             }
         }
     }
-
     function addOfflineWarning() {
         if (document.querySelector('#pm-warning-banner')) return;
         const tableSection = document.querySelector('#packmanager .pm-table-section');
@@ -275,7 +244,6 @@
     function removeOfflineWarning() {
         document.getElementById('pm-warning-banner')?.remove();
     }
-
     async function syncAllLocalToRemote() {
         const localPacks = getLocalPacks();
         if (localPacks.length === 0) {
@@ -292,13 +260,8 @@
         pendingSync = true;
         let successCount = 0, failCount = 0;
         for (const pack of localPacks) {
-            try {
-                await postPackToRemote(pack);
-                successCount++;
-            } catch (err) {
-                console.error(`Sync failed for ${pack.id}:`, err);
-                failCount++;
-            }
+            try { await postPackToRemote(pack); successCount++; }
+            catch (err) { console.error(`Sync failed for ${pack.id}:`, err); failCount++; }
         }
         pendingSync = false;
         if (failCount === 0) {
@@ -313,6 +276,7 @@
         return failCount === 0;
     }
 
+    // ---------- Filename parsing ----------
     function cleanFilename(rawName) {
         let name = rawName.replace(/\.zip$/i, '');
         name = name.replace(/\s*\(\d+\)\s*$/, '');
@@ -344,15 +308,15 @@
         return { success: true, source: 'local' };
     }
 
-    // ================== UPLOAD BUTTON ACTION (metadata only) ==================
+    // ================== UPLOAD BUTTON (metadata only) ==================
     async function uploadPackMetadata() {
         if (!currentPackEntry) {
             pmShowToast('No ZIP processed yet – drop a file first', 'error');
             return;
         }
 
-        // Read the current toggle and download link
-        currentPackEntry.category = pmCategoryToggle.checked ? 1 : 2;
+        // Capture live toggle & download link
+        currentPackEntry.category    = pmCategoryToggle.checked ? 1 : 2;
         currentPackEntry.downloadUrl = pmDownloadUrl.value.trim() || null;
 
         pmStatus.textContent = `⏳ Saving pack #${currentPackEntry.id} ...`;
@@ -364,7 +328,7 @@
             pmStatus.textContent = `✅ Pack #${currentPackEntry.id} stored | ${currentIllustrationCount} images | ${currentPackEntry.price}`;
             await loadAllPacks();
 
-            // Clear temporary state after successful save
+            // Reset temporary state
             currentZipFile = null;
             currentPackEntry = null;
             currentIllustrationCount = 0;
@@ -379,7 +343,7 @@
         }
     }
 
-    // ================== MODIFIED processZip: only store temporary data ==================
+    // ================== PROCESS ZIP (only store metadata in memory) ==================
     async function processZip(file) {
         pmStatus.textContent = '📂 Reading ZIP...';
         try {
@@ -399,19 +363,19 @@
                 pmShowToast('Invalid filename format: expected [Pack 001] Name - Series', 'error');
                 return;
             }
-            const packNumber = parsed.pack;
+            const packNumber        = parsed.pack;
             const illustrationCount = imageEntries.length;
-            const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
-            const isFemale = pmCategoryToggle.checked;
-            const category = isFemale ? 1 : 2;
-            const title = cleanFilename(file.name);
-            const id = String(packNumber).padStart(3, '0');
-            const downloadUrl = pmDownloadUrl.value.trim() || null;
+            const price             = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
+            const isFemale          = pmCategoryToggle.checked;
+            const category          = isFemale ? 1 : 2;
+            const title             = cleanFilename(file.name);
+            const id                = String(packNumber).padStart(3, '0');
+            const downloadUrl       = pmDownloadUrl.value.trim() || null;
 
             // Store temporarily – no saving yet
-            currentZipFile = file;
-            currentPackEntry = { id, title, category, price, illustrationCount, downloadUrl };
-            currentIllustrationCount = illustrationCount;
+            currentZipFile            = file;
+            currentPackEntry          = { id, title, category, price, illustrationCount, downloadUrl };
+            currentIllustrationCount  = illustrationCount;
 
             pmStatus.textContent = `📦 Ready: Pack #${id} | ${illustrationCount} images | ${price}`;
             pmUploadBtn.disabled = false;   // enable the Upload button
@@ -431,29 +395,27 @@
     // ================== EVENT LISTENERS ==================
     if (pmDropzone) {
         pmDropzone.addEventListener('click', () => pmFileInput.click());
-        pmDropzone.addEventListener('dragover', (e) => { e.preventDefault(); pmDropzone.style.borderColor = '#5a6e3c'; });
+        pmDropzone.addEventListener('dragover', e => { e.preventDefault(); pmDropzone.style.borderColor = '#5a6e3c'; });
         pmDropzone.addEventListener('dragleave', () => { pmDropzone.style.borderColor = '#3a4050'; });
-        pmDropzone.addEventListener('drop', (e) => {
+        pmDropzone.addEventListener('drop', e => {
             e.preventDefault();
             pmDropzone.style.borderColor = '#3a4050';
             const file = e.dataTransfer.files[0];
             if (file && file.name.toLowerCase().endsWith('.zip')) {
                 processZip(file);
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                pmFileInput.files = dataTransfer.files;
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                pmFileInput.files = dt.files;
             } else {
                 pmShowToast('Please drop a .zip file', 'error');
             }
         });
     }
     if (pmFileInput) {
-        pmFileInput.addEventListener('change', (e) => {
+        pmFileInput.addEventListener('change', e => {
             if (e.target.files.length) processZip(e.target.files[0]);
         });
     }
-
-    // Category toggle only updates the temporary entry
     if (pmCategoryToggle) {
         pmCategoryToggle.addEventListener('change', () => {
             if (currentPackEntry) {
@@ -464,24 +426,18 @@
             }
         });
     }
-
     if (pmRefreshBtn) pmRefreshBtn.addEventListener('click', () => loadAllPacks());
     if (pmSyncBtn) {
         pmSyncBtn.addEventListener('click', async () => {
-            if (pendingSync) {
-                pmShowToast("Sync already in progress...", "error");
-                return;
-            }
+            if (pendingSync) { pmShowToast("Sync already in progress...", "error"); return; }
             pmSyncBtn.textContent = "⏳ Syncing...";
             await syncAllLocalToRemote();
             pmSyncBtn.textContent = "🔄 Sync to Cloud";
         });
     }
-
-    // Upload button (metadata only)
     if (pmUploadBtn) {
         pmUploadBtn.addEventListener('click', uploadPackMetadata);
-        pmUploadBtn.disabled = true;  // disabled until a ZIP is loaded
+        pmUploadBtn.disabled = true;
     }
 
     bindSortHandlers();
