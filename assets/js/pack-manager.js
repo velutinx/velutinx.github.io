@@ -1,4 +1,4 @@
-// pack-manager.js – Full combined: metadata upload + image selector + R2 upload
+// pack-manager.js – Full combined: metadata upload + image selector + R2 upload + MEGA link auto-fetch
 
 (function() {
     'use strict';
@@ -47,6 +47,25 @@
     function pmShowToast(message, type = 'success') {
         if (typeof showToast === 'function') showToast(`[Pack Manager] ${message}`, type);
         else console.warn('showToast not available:', message);
+    }
+
+    // ---------- MEGA link auto-fetch ----------
+    async function fetchMegaLink(filename) {
+        try {
+            const resp = await fetch(
+                `https://i2-uploader.velutinx.workers.dev/mega-link?filename=${encodeURIComponent(filename)}`
+            );
+            const data = await resp.json();
+            if (data.url) {
+                document.getElementById('pm-downloadUrl').value = data.url;
+                pmShowToast('✅ MEGA link auto‑filled!', 'success');
+            } else {
+                // File not found on MEGA – keep the field empty, no alert
+            }
+        } catch (err) {
+            console.error('MEGA fetch error:', err);
+            // Silently fail – user can still paste the link manually
+        }
     }
 
     // ---------- Local Storage ----------
@@ -565,6 +584,9 @@
             pmStatus.textContent = `📦 Ready: Pack #${id} | ${illustrationCount} images | ${price}`;
             pmUploadBtn.disabled = false;
             pmShowToast(`✅ ZIP analysed. Select images, set category & link, then click "Upload".`, 'info');
+
+            // ---- Automatically fetch MEGA download link ----
+            fetchMegaLink(file.name);
 
         } catch (err) {
             console.error(err);
