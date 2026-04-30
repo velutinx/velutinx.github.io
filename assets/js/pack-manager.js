@@ -586,8 +586,10 @@
             pmShowToast(`✅ ZIP analysed. Select images, set category & link, then click "Upload".`, 'info');
 
             // ---- Automatically fetch MEGA download link ----
-            fetchMegaLink(file.name);
-
+// Use the cleaned pack name (without "(1)" etc.) for the MEGA search
+const megaSearchName = cleanFilename(file.name) + '.zip';
+fetchMegaLink(megaSearchName);
+            
         } catch (err) {
             console.error(err);
             pmStatus.textContent = '❌ Failed to process pack.';
