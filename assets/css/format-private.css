@@ -218,7 +218,7 @@ h1 { margin-top: 0; color: #f0f0f0; font-weight: 500; letter-spacing: -0.3px; }
 .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
 .toast-notification.info { background: #1a2530; border-left-color: #2196F3; }
 
-/* ========== Cloudflare tab specific styles ========== */
+/* ========== Cloudflare tab specific styles (retained for backward compatibility) ========== */
 .cf-status {
     margin: 12px 0;
     font-size: 0.9rem;
@@ -389,7 +389,30 @@ h1 { margin-top: 0; color: #f0f0f0; font-weight: 500; letter-spacing: -0.3px; }
 #packmanager .pm-switch input:checked + .pm-slider { background-color: #ec4899; }
 #packmanager .pm-switch input:checked + .pm-slider:before { transform: translateX(36px); }
 
-/* ========== NEW: Upload button (manual trigger) ========== */
+/* ========== NEW: Pack Manager Image Selector (from Cloudflare tab) ========== */
+#packmanager .pm-image-selector {
+    margin: 24px 0;
+    background: #0c1017;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #2a2f38;
+}
+#packmanager .pm-image-selector .cf-section-title {
+    margin-top: 0;
+    border-bottom: 1px solid #2a2f38;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+}
+#packmanager .pm-image-selector .cf-thumb-grid {
+    margin-top: 0;
+    margin-bottom: 16px;
+    min-height: 100px;
+}
+#packmanager .pm-image-selector #pm-selectedGrid {
+    min-height: 120px;
+}
+
+/* ========== Upload button (manual trigger) ========== */
 #packmanager .pm-upload-action {
     text-align: center;
     margin: 20px 0;
