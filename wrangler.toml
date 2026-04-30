@@ -1,0 +1,15 @@
+name = "i2-uploader"
+main = "src/index.js"
+compatibility_date = "2025-04-02"
+
+r2_buckets = [
+  { binding = "R2_BUCKET", bucket_name = "your-r2-bucket-name" }
+]
+
+[[durable_objects.bindings]]
+name = "MEGA_SESSION"
+class_name = "MegaSession"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["MegaSession"]
