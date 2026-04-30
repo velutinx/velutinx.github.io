@@ -1,4 +1,4 @@
-// pack-manager.js – Manual Upload (metadata + selected images to R2)
+// pack-manager.js – Full combined: metadata upload + image selector + R2 upload
 
 (function() {
     'use strict';
@@ -10,10 +10,17 @@
     const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
     const STORAGE_KEY       = 'packs_offline_db';
 
-    // Temp state
+    // Temporary state for the current ZIP & pack
     let currentZipFile          = null;
     let currentPackEntry        = null;
     let currentIllustrationCount = 0;
+
+    // Image selection state
+    let allImages       = [];
+    let selectedIndices = new Set();
+    let selectedOrder   = [];
+    let packNumber      = null;   // from ZIP filename
+    let sortable        = null;
 
     // DOM elements
     const pmDropzone       = document.getElementById('pm-dropzone');
@@ -26,65 +33,293 @@
     const pmConnStatus     = document.getElementById('pm-connStatus');
     const pmTableBody      = document.getElementById('pm-tableBody');
     const pmUploadBtn      = document.getElementById('pm-uploadBtn');
-    const pmImageSection   = document.getElementById('pm-image-section');
     const pmOriginalGrid   = document.getElementById('pm-originalGrid');
     const pmSelectedGrid   = document.getElementById('pm-selectedGrid');
 
-    // Global remote state (unchanged)
+    // Remote state
     let remoteReachable = false;
     let pendingSync     = false;
     let currentPacks    = [];
     let sortColumn      = null;
     let sortDirection   = 'asc';
 
-    // ---------- Image selection state (from Cloudflare tab) ----------
-    let allImages       = [];
-    let selectedIndices = new Set();
-    let selectedOrder   = [];
-    let packNumber      = null;   // derived from ZIP filename
-    let sortable        = null;
-
-    // ---------- Toast (unchanged) ----------
+    // ---------- Toast ----------
     function pmShowToast(message, type = 'success') {
         if (typeof showToast === 'function') showToast(`[Pack Manager] ${message}`, type);
         else console.warn('showToast not available:', message);
     }
 
-    // ---------- Local Storage (unchanged) ----------
-    function getLocalPacks() { /* ... keep original ... */ }
-    function saveLocalPacks(packs) { /* ... */ }
-    function upsertLocalPack(packEntry) { /* ... */ }
+    // ---------- Local Storage ----------
+    function getLocalPacks() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        try { return JSON.parse(raw); } catch(e) { return []; }
+    }
+    function saveLocalPacks(packs) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(packs));
+    }
+    function upsertLocalPack(packEntry) {
+        let packs = getLocalPacks();
+        const idx = packs.findIndex(p => p.id === packEntry.id);
+        if (idx !== -1) packs[idx] = { ...packEntry, updatedAt: Date.now() };
+        else packs.push({ ...packEntry, updatedAt: Date.now() });
+        saveLocalPacks(packs);
+        return packs;
+    }
 
-    // ---------- Remote API (unchanged) ----------
-    async function fetchWithTimeout(url, options, timeout = 8000) { /* ... */ }
-    async function fetchRemotePacks() { /* ... */ }
-    async function postPackToRemote(packEntry) { /* ... */ }
-    async function checkRemoteHealth() { /* ... */ }
-    function updateConnectionUI(isOnline) { /* ... */ }
+    // ---------- Remote API ----------
+    async function fetchWithTimeout(url, options, timeout = 8000) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        } catch (err) {
+            clearTimeout(id);
+            throw err;
+        }
+    }
+    async function fetchRemotePacks() {
+        const response = await fetchWithTimeout(WORKER_URL, { method: 'GET', mode: 'cors' }, 7000);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Invalid response format');
+        return data;
+    }
+    async function postPackToRemote(packEntry) {
+        const formData = new FormData();
+        formData.append('id', packEntry.id);
+        formData.append('title', packEntry.title);
+        formData.append('category', packEntry.category);
+        formData.append('price', packEntry.price);
+        formData.append('illustrationCount', packEntry.illustrationCount);
+        formData.append('downloadUrl', packEntry.downloadUrl || '');
+        const response = await fetchWithTimeout(WORKER_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'cors'
+        }, 10000);
+        if (!response.ok) {
+            const errText = await response.text().catch(() => '');
+            throw new Error(`Remote store failed (${response.status}): ${errText}`);
+        }
+        return await response.json();
+    }
+    async function checkRemoteHealth() {
+        try {
+            await fetchRemotePacks();
+            remoteReachable = true;
+            updateConnectionUI(true);
+            return true;
+        } catch (err) {
+            console.warn("Pack Manager: Remote unreachable", err);
+            remoteReachable = false;
+            updateConnectionUI(false);
+            return false;
+        }
+    }
+    function updateConnectionUI(isOnline) {
+        if (isOnline) {
+            pmConnStatus.textContent = '☁️ Cloud Online';
+            pmConnStatus.className = 'pm-connection-badge online';
+        } else {
+            pmConnStatus.textContent = '📴 Offline Mode (local storage)';
+            pmConnStatus.className = 'pm-connection-badge offline';
+        }
+    }
 
-    // ---------- Table (unchanged) ----------
-    function escapeHtml(str) { /* ... */ }
-    function sortPacks(packs, column, direction) { /* ... */ }
-    function renderTable(packs) { /* ... */ }
-    function setSort(column) { /* ... */ }
-    function bindSortHandlers() { /* ... */ }
+    // ---------- Table rendering ----------
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+    }
+    function sortPacks(packs, column, direction) {
+        const sorted = [...packs];
+        sorted.sort((a, b) => {
+            let valA, valB;
+            switch(column) {
+                case 'id':            valA = parseInt(a.id, 10); valB = parseInt(b.id, 10); break;
+                case 'illustrations': valA = a.illustrationCount || 0; valB = b.illustrationCount || 0; break;
+                case 'category':      valA = a.category === 1 ? 'Female' : 'Femboy'; valB = b.category === 1 ? 'Female' : 'Femboy'; break;
+                case 'price':         valA = a.price || ''; valB = b.price || ''; break;
+                case 'download':      valA = a.downloadUrl ? a.downloadUrl.toLowerCase() : ''; valB = b.downloadUrl ? b.downloadUrl.toLowerCase() : ''; break;
+                default:              valA = a.title ? a.title.toLowerCase() : ''; valB = b.title ? b.title.toLowerCase() : '';
+            }
+            if (typeof valA === 'number' && typeof valB === 'number') return direction === 'asc' ? valA - valB : valB - valA;
+            if (valA < valB) return direction === 'asc' ? -1 : 1;
+            if (valA > valB) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    }
+    function renderTable(packs) {
+        currentPacks = packs;
+        const sorted = sortPacks(packs, sortColumn, sortDirection);
+        if (!sorted.length) {
+            pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6">📭 No packs stored yet. Upload a ZIP above.</td></tr>';
+            return;
+        }
+        pmTableBody.innerHTML = sorted.map(pack => {
+            const categoryText  = pack.category === 1 ? 'Female' : 'Femboy';
+            const categoryClass = pack.category === 1 ? 'pm-cat-female' : 'pm-cat-femboy';
+            const downloadCell  = pack.downloadUrl && pack.downloadUrl.trim()
+                ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>`
+                : '—';
+            return `
+                <tr>
+                    <td><code>${escapeHtml(pack.id)}</code></td>
+                    <td>${escapeHtml(pack.title)}</td>
+                    <td><span class="pm-category-badge ${categoryClass}">${categoryText}</span></td>
+                    <td>${escapeHtml(pack.price)}</td>
+                    <td>${pack.illustrationCount}</td>
+                    <td>${downloadCell}</td>
+                </tr>
+            `;
+        }).join('');
+        document.querySelectorAll('#packmanager th span').forEach(span => span.innerHTML = '');
+        if (sortColumn) {
+            const iconSpan = document.getElementById(`sort-${sortColumn}-icon`);
+            if (iconSpan) iconSpan.innerHTML = sortDirection === 'asc' ? ' ▲' : ' ▼';
+        }
+    }
+    function setSort(column) {
+        if (sortColumn === column) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        else { sortColumn = column; sortDirection = 'asc'; }
+        renderTable(currentPacks);
+    }
+    function bindSortHandlers() {
+        ['id','title','category','price','illustrations','download'].forEach(col => {
+            const th = document.getElementById(`sort-${col}`);
+            if (th) th.onclick = () => setSort(col);
+        });
+    }
 
-    // ---------- Load / Sync (unchanged) ----------
-    async function loadAllPacks() { /* ... */ }
-    function addOfflineWarning() { /* ... */ }
-    function removeOfflineWarning() { /* ... */ }
-    async function syncAllLocalToRemote() { /* ... */ }
+    // ---------- Load / Sync ----------
+    async function loadAllPacks() {
+        pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>';
+        try {
+            const remotePacks = await fetchRemotePacks();
+            remoteReachable = true;
+            updateConnectionUI(true);
+            saveLocalPacks(remotePacks);
+            currentPacks = remotePacks;
+            renderTable(currentPacks);
+            pmShowToast(`✅ Loaded ${remotePacks.length} packs from cloud`, 'success');
+            removeOfflineWarning();
+        } catch (err) {
+            console.error("Pack Manager remote fetch failed:", err);
+            remoteReachable = false;
+            updateConnectionUI(false);
+            const localPacks = getLocalPacks();
+            if (localPacks.length) {
+                currentPacks = localPacks;
+                renderTable(currentPacks);
+                pmShowToast(`⚠️ Cloud unreachable — using local backup (${localPacks.length} packs)`, 'error');
+                addOfflineWarning();
+            } else {
+                currentPacks = [];
+                renderTable([]);
+                pmShowToast(`⚠️ No connection & no local data. Upload a ZIP to start.`, 'error');
+                addOfflineWarning();
+            }
+        }
+    }
+    function addOfflineWarning() {
+        if (document.querySelector('#pm-warning-banner')) return;
+        const tableSection = document.querySelector('#packmanager .pm-table-section');
+        const warnDiv = document.createElement('div');
+        warnDiv.id = 'pm-warning-banner';
+        warnDiv.className = 'pm-warning-banner';
+        warnDiv.innerHTML = `
+            <span>⚠️ <strong>Offline mode active</strong> — Changes are saved locally. Click "Sync to Cloud" when connection restores.</span>
+            <button class="pm-small-retry" id="pm-retryConnectionBtn">⟳ Retry Connection</button>
+        `;
+        tableSection.insertBefore(warnDiv, tableSection.firstChild);
+        document.getElementById('pm-retryConnectionBtn')?.addEventListener('click', async () => {
+            pmShowToast("Checking connection...", "info");
+            const ok = await checkRemoteHealth();
+            if (ok) {
+                pmShowToast("✅ Cloud reachable! Syncing local data...", "success");
+                await syncAllLocalToRemote();
+                await loadAllPacks();
+                document.getElementById('pm-warning-banner')?.remove();
+            } else {
+                pmShowToast("❌ Still offline. Try again later.", "error");
+            }
+        });
+    }
+    function removeOfflineWarning() {
+        document.getElementById('pm-warning-banner')?.remove();
+    }
+    async function syncAllLocalToRemote() {
+        const localPacks = getLocalPacks();
+        if (localPacks.length === 0) {
+            pmShowToast("Nothing to sync", "success");
+            return true;
+        }
+        if (!remoteReachable) {
+            const isOnline = await checkRemoteHealth();
+            if (!isOnline) {
+                pmShowToast("Cannot sync: cloud unreachable. Retry later.", "error");
+                return false;
+            }
+        }
+        pendingSync = true;
+        let successCount = 0, failCount = 0;
+        for (const pack of localPacks) {
+            try { await postPackToRemote(pack); successCount++; }
+            catch (err) { console.error(`Sync failed for ${pack.id}:`, err); failCount++; }
+        }
+        pendingSync = false;
+        if (failCount === 0) {
+            pmShowToast(`✅ Synced ${successCount} packs to cloud`, 'success');
+            await loadAllPacks();
+            removeOfflineWarning();
+            remoteReachable = true;
+            updateConnectionUI(true);
+        } else {
+            pmShowToast(`⚠️ Synced ${successCount} packs, ${failCount} failed. Retry later.`, 'error');
+        }
+        return failCount === 0;
+    }
 
-    // ---------- Filename parsing (unchanged) ----------
-    function cleanFilename(rawName) { /* ... */ }
-    function parseFilename(filename) { /* ... */ }
-    async function storePackWithFallback(packEntry) { /* ... */ }
+    // ---------- Filename parsing ----------
+    function cleanFilename(rawName) {
+        let name = rawName.replace(/\.zip$/i, '');
+        name = name.replace(/\s*\(\d+\)\s*$/, '');
+        return name.trim();
+    }
+    function parseFilename(filename) {
+        const base = cleanFilename(filename);
+        const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
+        const match = base.match(regex);
+        if (!match) return null;
+        return { pack: match[1], character: match[2].trim(), series: match[3].trim().toUpperCase() };
+    }
+    async function storePackWithFallback(packEntry) {
+        if (remoteReachable) {
+            try {
+                const result = await postPackToRemote(packEntry);
+                upsertLocalPack(packEntry);
+                pmShowToast(`☁️ Pack #${packEntry.id} saved to cloud`, 'success');
+                return { success: true, source: 'remote', result };
+            } catch (err) {
+                console.warn("Remote store failed, switching to local fallback:", err);
+                remoteReachable = false;
+                updateConnectionUI(false);
+                addOfflineWarning();
+            }
+        }
+        upsertLocalPack(packEntry);
+        pmShowToast(`💾 Pack #${packEntry.id} saved to LOCAL storage (cloud offline)`, 'success');
+        return { success: true, source: 'local' };
+    }
 
     // ========== IMAGE GRID HELPERS ==========
     function revokeAllImageURLs() {
         allImages.forEach(img => { if (img.url) URL.revokeObjectURL(img.url); });
     }
-
     function renderOriginalGrid() {
         if (!pmOriginalGrid) return;
         pmOriginalGrid.innerHTML = '';
@@ -100,7 +335,6 @@
             pmOriginalGrid.appendChild(thumb);
         });
     }
-
     function renderSelectedGrid() {
         if (!pmSelectedGrid) return;
         pmSelectedGrid.innerHTML = '';
@@ -125,7 +359,6 @@
             wrapper.appendChild(removeBtn);
             pmSelectedGrid.appendChild(wrapper);
         }
-        // Enable drag reorder
         if (sortable) sortable.destroy();
         if (typeof Sortable !== 'undefined') {
             sortable = new Sortable(pmSelectedGrid, {
@@ -141,7 +374,6 @@
             });
         }
     }
-
     function toggleImageSelection(idx) {
         if (selectedIndices.has(idx)) {
             selectedIndices.delete(idx);
@@ -154,7 +386,6 @@
         renderOriginalGrid();
         renderSelectedGrid();
     }
-
     function removeImageSelection(idx) {
         if (selectedIndices.has(idx)) {
             selectedIndices.delete(idx);
@@ -165,18 +396,17 @@
         }
     }
 
-    // ========== UPLOAD ACTION (metadata + images) ==========
+    // ========== UPLOAD ACTION (metadata + selected images) ==========
     async function uploadPackMetadataAndImages() {
         if (!currentPackEntry) {
             pmShowToast('No ZIP processed yet – drop a file first', 'error');
             return;
         }
 
-        // Gather metadata from UI
+        // Capture current toggle and download link
         currentPackEntry.category    = pmCategoryToggle.checked ? 1 : 2;
         currentPackEntry.downloadUrl = pmDownloadUrl.value.trim() || null;
 
-        // If no images selected, we can still save metadata only
         if (selectedOrder.length === 0) {
             pmShowToast('No images selected – saving metadata only.', 'info');
         }
@@ -197,7 +427,7 @@
             return;
         }
 
-        // 2) If images selected, upload them to R2 and download locally
+        // 2) If images selected, upload to R2 and download locally
         if (selectedOrder.length > 0) {
             const downloadPromise = downloadSelectedLocally();
             const uploadPromise   = uploadSelectedToR2();
@@ -209,7 +439,7 @@
         pmUploadBtn.disabled = false;
         pmUploadBtn.textContent = '📤 Upload to Cloudflare';
 
-        // Clear image state after successful upload
+        // Clear state
         currentZipFile = null;
         currentPackEntry = null;
         currentIllustrationCount = 0;
@@ -220,10 +450,10 @@
         revokeAllImageURLs();
         renderOriginalGrid();
         renderSelectedGrid();
-        if (pmImageSection) pmImageSection.style.display = 'none';
+        if (pmOriginalGrid) pmOriginalGrid.innerHTML = '';
+        if (pmSelectedGrid) pmSelectedGrid.innerHTML = '';
     }
 
-    // ---------- Image upload to R2 ----------
     async function uploadSelectedToR2() {
         if (!packNumber || selectedOrder.length === 0) return false;
         const formData = new FormData();
@@ -253,7 +483,6 @@
         }
     }
 
-    // ---------- Local download of selected images ----------
     async function downloadSelectedLocally() {
         if (!packNumber || selectedOrder.length === 0) return false;
         let successCount = 0;
@@ -309,10 +538,9 @@
             currentZipFile = file;
             currentPackEntry = { id, title, category, price, illustrationCount, downloadUrl };
             currentIllustrationCount = illustrationCount;
-            packNumber = id;   // for image naming
+            packNumber = id;
 
-            // ---- Image previews ----
-            // Sort numerically
+            // Image previews
             imageEntries.sort((a, b) => {
                 const numA = parseInt((a.name.match(/\d+/) || ['0'])[0], 10) || 0;
                 const numB = parseInt((b.name.match(/\d+/) || ['0'])[0], 10) || 0;
@@ -328,16 +556,9 @@
             for (let entry of firstThirty) {
                 const blob = await entry.async('blob');
                 const url = URL.createObjectURL(blob);
-                allImages.push({
-                    blob,
-                    url,
-                    name: entry.name,
-                    originalName: entry.name
-                });
+                allImages.push({ blob, url, name: entry.name, originalName: entry.name });
             }
 
-            // Show image section
-            if (pmImageSection) pmImageSection.style.display = 'block';
             renderOriginalGrid();
             renderSelectedGrid();
 
@@ -349,7 +570,6 @@
             console.error(err);
             pmStatus.textContent = '❌ Failed to process pack.';
             pmShowToast(`Error: ${err.message}`, 'error');
-            if (pmImageSection) pmImageSection.style.display = 'none';
             currentZipFile = null;
             currentPackEntry = null;
             pmUploadBtn.disabled = true;
@@ -390,7 +610,14 @@
         });
     }
     if (pmRefreshBtn) pmRefreshBtn.addEventListener('click', loadAllPacks);
-    if (pmSyncBtn) pmSyncBtn.addEventListener('click', async () => { /* unchanged */ });
+    if (pmSyncBtn) {
+        pmSyncBtn.addEventListener('click', async () => {
+            if (pendingSync) { pmShowToast("Sync already in progress...", "error"); return; }
+            pmSyncBtn.textContent = "⏳ Syncing...";
+            await syncAllLocalToRemote();
+            pmSyncBtn.textContent = "🔄 Sync to Cloud";
+        });
+    }
     if (pmUploadBtn) {
         pmUploadBtn.addEventListener('click', uploadPackMetadataAndImages);
         pmUploadBtn.disabled = true;
@@ -398,6 +625,7 @@
 
     bindSortHandlers();
 
+    // Init
     (async function init() {
         await checkRemoteHealth();
         await loadAllPacks();
