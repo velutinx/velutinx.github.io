@@ -137,36 +137,28 @@
 
 <script>
     (function() {
+        // ---------- Configuration ----------
         const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
-        // Supabase config (same as your poll page)
         const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
+        // ---------- State ----------
         let entries = [];
         let sortKey = null;
         let sortAsc = true;
+        let supabaseClient = null;   // will be set when library is ready
 
-        // ---------- DOM ----------
-        const monthSelect = document.getElementById('monthSelect');
-        const daySelect = document.getElementById('daySelect');
-        const amountInput = document.getElementById('amountInput');
-        const currencySelect = document.getElementById('currencySelect');
-        const categorySelect = document.getElementById('categorySelect');
-        const conceptInput = document.getElementById('conceptInput');
-        const recurringCheck = document.getElementById('recurringCheck');
-        const addBtn = document.getElementById('addEntryBtn');
-        const syncBtn = document.getElementById('syncWebsiteBtn');
-        const tableBody = document.getElementById('tableBody');
-        const exportBtn = document.getElementById('exportBtn');
+        // ---------- DOM elements (null until DOM loaded) ----------
+        let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
+        let conceptInput, recurringCheck, addBtn, syncBtn, tableBody, exportBtn;
 
         // ---------- Date helpers ----------
-        const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         function formatDate(month, day, year = null) {
             const y = year || new Date().getFullYear();
-            const m = monthNames[month].substring(0,3);
+            const m = monthNames[month];
             const d = String(day).padStart(2, '0');
             return `${m} ${d} ${y}`;
         }
@@ -202,7 +194,7 @@
         // ---------- Server sync ----------
         async function fetchEntries() {
             try {
-                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:#777;">Loading entries...</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading entries...</td></tr>`;
                 const res = await fetch(`${WORKER_URL}/entries`);
                 if (!res.ok) throw new Error('Server error');
                 const data = await res.json();
@@ -217,7 +209,7 @@
                     recurring: Boolean(e.recurring)
                 }));
             } catch (err) {
-                console.error('Failed to fetch entries, using local only', err);
+                console.error('Failed to fetch entries', err);
                 showToast('⚠ Could not connect to server – working offline.', 'error');
                 entries = [];
             }
@@ -309,10 +301,15 @@
         }
 
         async function syncWebsitePayments() {
+            if (!supabaseClient) {
+                showToast('Supabase client not ready. Reload the page.', 'error');
+                return;
+            }
+
             syncBtn.disabled = true;
             syncBtn.textContent = '⏳ Syncing...';
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('successs')
                     .select('*')
                     .eq('status', 'completed')
@@ -324,7 +321,6 @@
                 let addedCount = 0;
 
                 for (const order of data) {
-                    // Skip if already imported
                     if (importedIds.includes(order.id)) continue;
 
                     const date = new Date(order.purchased_at);
@@ -333,30 +329,27 @@
                     const amount = parseFloat(order.amount);
                     const currency = order.currency || 'USD';
 
-                    // Check if we already have an entry with same month/day/amount (dedup)
-                    const duplicate = entries.some(e => 
-                        e.month === month && e.day === day && e.amount === amount && e.currency === currency && e.category === 'Website payments'
+                    // Check local duplicate (by month/day/amount/currency/category)
+                    const duplicate = entries.some(e =>
+                        e.month === month && e.day === day && e.amount === amount &&
+                        e.currency === currency && e.category === 'Website payments'
                     );
                     if (duplicate) {
-                        // Still mark as imported to avoid future checks
-                        addImportedId(order.id);
+                        addImportedId(order.id);  // avoid re-checking in future
                         continue;
                     }
 
-                    // Add entry
                     const success = await addEntry({
                         month, day, amount, currency,
                         category: 'Website payments',
-                        concept: '',  // leave blank for income
+                        concept: '',
                         recurring: false
                     });
-
                     if (success) {
                         addImportedId(order.id);
                         addedCount++;
                     } else {
-                        // Stop if server errors
-                        break;
+                        break; // stop if server fails
                     }
                 }
 
@@ -424,7 +417,7 @@
         function renderTable() {
             tableBody.innerHTML = '';
             if (entries.length === 0) {
-                tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
+                tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet.</td></tr>`;
                 exportBtn.disabled = true;
                 return;
             }
@@ -494,30 +487,57 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // ---------- Event listeners ----------
-        categorySelect.addEventListener('change', updateConceptState);
-        addBtn.addEventListener('click', handleAddClick);
-        syncBtn.addEventListener('click', syncWebsitePayments);
-        exportBtn.addEventListener('click', exportToExcel);
+        // ---------- Init (after DOM loaded) ----------
+        document.addEventListener('DOMContentLoaded', () => {
+            // Grab DOM elements
+            monthSelect = document.getElementById('monthSelect');
+            daySelect = document.getElementById('daySelect');
+            amountInput = document.getElementById('amountInput');
+            currencySelect = document.getElementById('currencySelect');
+            categorySelect = document.getElementById('categorySelect');
+            conceptInput = document.getElementById('conceptInput');
+            recurringCheck = document.getElementById('recurringCheck');
+            addBtn = document.getElementById('addEntryBtn');
+            syncBtn = document.getElementById('syncWebsiteBtn');
+            tableBody = document.getElementById('tableBody');
+            exportBtn = document.getElementById('exportBtn');
 
-        document.querySelectorAll('th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => {
-                const key = th.dataset.sort;
-                if (sortKey === key) {
-                    sortAsc = !sortAsc;
-                } else {
-                    sortKey = key;
-                    sortAsc = true;
-                }
-                sortAndRender();
-                updateSortIcons();
+            // Check Supabase library
+            if (typeof supabase === 'undefined') {
+                showToast('Supabase library missing – sync disabled.', 'error');
+                supabaseClient = null;
+            } else {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+            }
+
+            // Set default date
+            setDefaultDate();
+            updateConceptState();
+
+            // Event listeners
+            categorySelect.addEventListener('change', updateConceptState);
+            addBtn.addEventListener('click', handleAddClick);
+            syncBtn.addEventListener('click', syncWebsitePayments);
+            exportBtn.addEventListener('click', exportToExcel);
+
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const key = th.dataset.sort;
+                    if (sortKey === key) {
+                        sortAsc = !sortAsc;
+                    } else {
+                        sortKey = key;
+                        sortAsc = true;
+                    }
+                    sortAndRender();
+                    updateSortIcons();
+                });
             });
+
+            // Load entries from server
+            fetchEntries();
         });
 
-        // Initial load
-        setDefaultDate();
-        updateConceptState();
-        fetchEntries();
     })();
 </script>
 </body>
