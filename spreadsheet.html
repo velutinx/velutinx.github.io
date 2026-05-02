@@ -6,7 +6,6 @@
     <title>💰 Centralized Income & Expenses (Cloud Sync)</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -64,27 +63,22 @@
         .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
         .toast-notification.show { opacity: 1; transform: translateX(0); }
 
-        /* Month header row */
-        .month-header td {
-            background: #1a1f2a; cursor: pointer; font-weight: 500; color: #ccc;
-        }
+        .month-header td { background: #1a1f2a; cursor: pointer; font-weight: 500; color: #ccc; }
         .month-header td:hover { background: #232a38; }
         .hidden-row { display: none; }
         .toggle-icon { margin-right: 6px; font-size: 0.8rem; }
 
-        /* Row colors */
         .row-income { background-color: #1a3a1a; }
         .row-expense { background-color: #3a1a1a; }
         .row-income:hover, .row-expense:hover { filter: brightness(1.2); }
 
-        /* Chart section */
-        .chart-container { position: relative; height: 300px; margin-bottom: 16px; }
         .range-btns { display: flex; gap: 6px; margin-bottom: 12px; }
         .range-btn {
             background: #2a2f38; border: none; color: #ccc; padding: 4px 12px;
             border-radius: 20px; cursor: pointer; font-size: 0.8rem;
         }
         .range-btn.active { background: #2c6e2c; color: white; }
+        .chart-container { position: relative; height: 300px; margin-bottom: 16px; }
     </style>
 </head>
 <body>
@@ -158,12 +152,7 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Export button remains -->
             <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
-
-            <!-- Re‑sync Website button has been hidden for now
-            <button class="small-action-btn" id="resyncWebsiteBtn">🔄 Re‑sync Website descriptions</button>
-            -->
         </div>
 
         <!-- Right side: chart -->
@@ -177,9 +166,6 @@
             </div>
             <div class="chart-container">
                 <canvas id="incomeChart"></canvas>
-            </div>
-            <div style="font-size:0.8rem; color:#888; text-align:center;">
-                Net = income minus expenses · Expenses shown as absolute amount
             </div>
         </div>
     </div>
@@ -195,11 +181,10 @@
         window.entries = entries;
 
         let supabaseClient = null;
-        let incomeChart = null;          // Chart.js instance
+        let incomeChart = null;
 
         let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
         let conceptInput, recurringCheck, addBtn, tableBody, exportBtn;
-        // let resyncWebsiteBtn;  // hidden
 
         const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -239,7 +224,6 @@
             }
         }
 
-        // ---------- Server sync ----------
         async function fetchEntries() {
             try {
                 tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading entries...</td></tr>`;
@@ -306,7 +290,6 @@
             showToast('Entry removed.', 'info');
         }
 
-        // ---------- Manual add ----------
         async function handleAddClick() {
             const month = parseInt(monthSelect.value);
             const day = parseInt(daySelect.value);
@@ -330,7 +313,7 @@
                 amountInput.value = '';
                 conceptInput.value = '';
                 recurringCheck.checked = false;
-                categorySelect.value = 'Expenses';      // reset to default
+                categorySelect.value = 'Expenses';
                 updateConceptState();
                 refreshAll();
                 showToast('Entry added!', 'success');
@@ -349,10 +332,7 @@
             const email = order.paypal_email || 'unknown';
             let items = '';
             if (order.cart) {
-                try {
-                    const parsed = JSON.parse(order.cart);
-                    items = parsed || '';
-                } catch (e) { items = order.cart; }
+                try { const parsed = JSON.parse(order.cart); items = parsed || ''; } catch (e) { items = order.cart; }
             }
             return `${email} – ${items}`;
         }
@@ -445,7 +425,7 @@
             }
         }
 
-        // ---------- Table rendering with month grouping & colors ----------
+        // ---------- Table rendering ----------
         function renderTable() {
             tableBody.innerHTML = '';
             if (entries.length === 0) {
@@ -481,7 +461,6 @@
                 const isCurrent = (y === currentYear && m === currentMonth);
                 const monthName = monthNames[m] + ' ' + y;
 
-                // Month header row
                 const headerTr = document.createElement('tr');
                 headerTr.className = 'month-header';
                 headerTr.dataset.monthKey = key;
@@ -525,7 +504,6 @@
                 }
             }
 
-            // Delete button handlers
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.index);
@@ -533,7 +511,6 @@
                 });
             });
 
-            // Month toggles
             document.querySelectorAll('.month-header').forEach(header => {
                 header.addEventListener('click', function() {
                     const monthKey = this.dataset.monthKey;
@@ -549,65 +526,54 @@
             exportBtn.disabled = false;
         }
 
-        // ---------- Chart logic ----------
+        // ---------- Daily chart ----------
         function buildChart(monthsBack) {
-            // Destroy previous chart
             if (incomeChart) {
                 incomeChart.destroy();
                 incomeChart = null;
             }
-
             if (entries.length === 0) return;
 
-            const allMonths = new Map(); // key: "YYYY-MM"
             const currentYear = new Date().getFullYear();
             const currentMonth = new Date().getMonth() + 1;
 
-            // Build all possible month keys from earliest entry to current
-            let minMonth = 13, maxMonth = 0;
-            entries.forEach(e => {
-                if (e.month < minMonth) minMonth = e.month;
-                if (e.month > maxMonth) maxMonth = e.month;
-            });
-            // Use entries years? they all assume current year, but we'll use current year only.
-            // Realistically need to fetch year from database; we'll assume current year.
-            // We'll generate months from Jan to current month of current year, but for simplicity we can generate
-            // from the earliest entry month to current month.
+            // Determine start month
+            const allMonths = entries.map(e => e.month);
+            const minMonth = Math.min(...allMonths);
             const startMonth = (monthsBack === 0) ? minMonth : Math.max(currentMonth - monthsBack + 1, 1);
             const endMonth = currentMonth;
 
-            // Prepare month labels
-            const labels = [];
+            // Build daily points: date label "Mon DD"
+            const dailyMap = new Map(); // key: "YYYY-MM-DD", value: { patreon, website, expense }
             for (let m = startMonth; m <= endMonth; m++) {
-                labels.push(monthNames[m] + ' ' + currentYear);
+                const daysInMonth = new Date(currentYear, m, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const key = `${currentYear}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    dailyMap.set(key, { patreon: 0, website: 0, expense: 0 });
+                }
             }
 
-            // Compute totals per category per month
-            const patreonTotals = new Array(labels.length).fill(0);
-            const websiteTotals = new Array(labels.length).fill(0);
-            const expenseTotals = new Array(labels.length).fill(0);
-            const netTotals = new Array(labels.length).fill(0);
-
             entries.forEach(e => {
-                const monthIdx = e.month - startMonth;
-                if (monthIdx < 0 || monthIdx >= labels.length) return;
-
-                if (e.category === 'Patreon subscription') {
-                    patreonTotals[monthIdx] += e.amount;
-                } else if (e.category === 'Website payments') {
-                    websiteTotals[monthIdx] += e.amount;
-                } else if (e.category === 'Expenses') {
-                    expenseTotals[monthIdx] += e.amount;   // store positive
+                const key = `${currentYear}-${String(e.month).padStart(2,'0')}-${String(e.day).padStart(2,'0')}`;
+                if (dailyMap.has(key)) {
+                    const dayData = dailyMap.get(key);
+                    if (e.category === 'Patreon subscription') dayData.patreon += e.amount;
+                    else if (e.category === 'Website payments') dayData.website += e.amount;
+                    else if (e.category === 'Expenses') dayData.expense += e.amount;   // positive
                 }
             });
 
-            for (let i = 0; i < labels.length; i++) {
-                const income = patreonTotals[i] + websiteTotals[i];
-                const expense = expenseTotals[i];
-                netTotals[i] = income - expense;
-            }
+            const sortedKeys = Array.from(dailyMap.keys()).sort();
+            const labels = sortedKeys.map(key => {
+                const [y, m, d] = key.split('-');
+                return monthNames[parseInt(m)] + ' ' + parseInt(d);
+            });
 
-            // Create chart
+            const patreonData = sortedKeys.map(key => dailyMap.get(key).patreon);
+            const websiteData = sortedKeys.map(key => dailyMap.get(key).website);
+            const expenseData = sortedKeys.map(key => dailyMap.get(key).expense);
+            const netData = sortedKeys.map((key, i) => patreonData[i] + websiteData[i] - expenseData[i]);
+
             const ctx = document.getElementById('incomeChart').getContext('2d');
             incomeChart = new Chart(ctx, {
                 type: 'line',
@@ -616,36 +582,43 @@
                     datasets: [
                         {
                             label: 'Patreon',
-                            data: patreonTotals,
+                            data: patreonData,
                             borderColor: '#3b82f6',
                             backgroundColor: 'transparent',
-                            tension: 0.1,
                             borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.1,
                         },
                         {
                             label: 'Website',
-                            data: websiteTotals,
+                            data: websiteData,
                             borderColor: '#f97316',
                             backgroundColor: 'transparent',
-                            tension: 0.1,
                             borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.1,
                         },
                         {
                             label: 'Expenses (abs)',
-                            data: expenseTotals,
+                            data: expenseData,
                             borderColor: '#ef4444',
                             backgroundColor: 'transparent',
-                            tension: 0.1,
                             borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.1,
                         },
                         {
                             label: 'Net Income',
-                            data: netTotals,
+                            data: netData,
                             borderColor: '#22c55e',
                             backgroundColor: 'transparent',
-                            tension: 0.1,
                             borderWidth: 3,
-                            borderDash: [],
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.1,
                         }
                     ]
                 },
@@ -653,13 +626,11 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            labels: { color: '#aaa' }
-                        }
+                        legend: { labels: { color: '#aaa' } }
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#aaa' },
+                            ticks: { color: '#aaa', maxRotation: 45 },
                             grid: { color: '#2a2f38' }
                         },
                         y: {
@@ -679,7 +650,6 @@
             buildChart(months);
         }
 
-        // ---------- Excel export ----------
         function exportToExcel() {
             if (entries.length === 0) return;
             const data = entries.map(e => ({
@@ -699,7 +669,6 @@
             showToast('Excel downloaded!', 'success');
         }
 
-        // ---------- Toast ----------
         function showToast(msg, type='success') {
             let toast = document.getElementById('liveToast');
             if (!toast) {
@@ -713,7 +682,6 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // ---------- Init ----------
         document.addEventListener('DOMContentLoaded', async () => {
             monthSelect = document.getElementById('monthSelect');
             daySelect = document.getElementById('daySelect');
@@ -725,7 +693,6 @@
             addBtn = document.getElementById('addEntryBtn');
             tableBody = document.getElementById('tableBody');
             exportBtn = document.getElementById('exportBtn');
-            // resyncWebsiteBtn = document.getElementById('resyncWebsiteBtn');
 
             if (typeof supabase === 'undefined') {
                 showToast('Supabase library missing – auto‑sync disabled.', 'error');
@@ -740,15 +707,12 @@
             categorySelect.addEventListener('change', updateConceptState);
             addBtn.addEventListener('click', handleAddClick);
             exportBtn.addEventListener('click', exportToExcel);
-            // resyncWebsiteBtn?.addEventListener('click', resyncWebsite);
 
-            // Range buttons
             document.querySelectorAll('.range-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    const months = parseInt(this.dataset.months);
-                    buildChart(months);
+                    buildChart(parseInt(this.dataset.months));
                 });
             });
 
@@ -756,10 +720,8 @@
             await autoSyncWebsitePayments();
             await autoSyncPatreon();
 
-            // Initial chart (default 2 months)
-            buildChart(2);
+            buildChart(2);   // default: 2 months
         });
-
     })();
 </script>
 </body>
