@@ -1,0 +1,573 @@
+// spreadsheet.js (ES module safe – no imports)
+(function() {
+    const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
+    const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+
+    let entries = [];
+    window.entries = entries;
+
+    let supabaseClient = null;
+    let incomeChart = null;
+
+    let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
+    let conceptInput, recurringCheck, addBtn, tableBody, exportBtn;
+
+    const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    function formatDate(month, day, year = null) {
+        const y = year || new Date().getFullYear();
+        const m = monthNames[month];
+        const d = String(day).padStart(2, '0');
+        return `${m} ${d} ${y}`;
+    }
+
+    function populateDays() {
+        daySelect.innerHTML = '';
+        for (let d = 1; d <= 31; d++) {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            daySelect.appendChild(opt);
+        }
+    }
+
+    function setDefaultDate() {
+        const today = new Date();
+        monthSelect.value = today.getMonth() + 1;
+        populateDays();
+        daySelect.value = today.getDate();
+    }
+
+    function updateConceptState() {
+        if (categorySelect.value === 'Expenses') {
+            conceptInput.disabled = false;
+            conceptInput.placeholder = 'e.g. Railway subscription';
+        } else {
+            conceptInput.disabled = true;
+            conceptInput.value = '';
+            conceptInput.placeholder = '';
+        }
+    }
+
+    // ---------- Server sync ----------
+    async function fetchEntries() {
+        try {
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading entries...</td></tr>`;
+            const res = await fetch(`${WORKER_URL}/entries`);
+            if (!res.ok) throw new Error('Server error');
+            const data = await res.json();
+            entries = data.map(e => ({
+                id: e.id,
+                month: e.month,
+                day: e.day,
+                amount: e.amount,
+                currency: e.currency,
+                category: e.category,
+                concept: e.concept || '',
+                recurring: Boolean(e.recurring)
+            }));
+        } catch (err) {
+            console.error('Failed to fetch entries', err);
+            showToast('⚠ Could not connect to server – working offline.', 'error');
+            entries = [];
+        }
+        refreshAll();
+    }
+
+    async function addEntry(entryData) {
+        const newEntry = {
+            month: entryData.month,
+            day: entryData.day,
+            amount: entryData.amount,
+            currency: entryData.currency,
+            category: entryData.category,
+            concept: entryData.concept || '',
+            recurring: entryData.recurring || false
+        };
+
+        try {
+            const res = await fetch(`${WORKER_URL}/entries`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newEntry)
+            });
+            if (!res.ok) throw new Error('Failed to save');
+            const serverResp = await res.json();
+            entries.push({ id: serverResp.id, ...newEntry });
+            return true;
+        } catch (err) {
+            entries.push({ id: null, ...newEntry });
+            showToast('Entry saved locally (server unreachable).', 'error');
+            return false;
+        }
+    }
+
+    async function deleteEntry(index) {
+        const entry = entries[index];
+        if (entry.id) {
+            try {
+                await fetch(`${WORKER_URL}/entries/${entry.id}`, { method: 'DELETE' });
+            } catch (err) {
+                showToast('Could not delete from server.', 'error');
+            }
+        }
+        entries.splice(index, 1);
+        refreshAll();
+        showToast('Entry removed.', 'info');
+    }
+
+    async function toggleRecurring(index) {
+        const entry = entries[index];
+        const newRecurring = !entry.recurring;
+        try {
+            const res = await fetch(`${WORKER_URL}/entries/${entry.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recurring: newRecurring })
+            });
+            if (!res.ok) throw new Error('Failed to update');
+            entry.recurring = newRecurring;
+            refreshAll();
+            showToast(`Recurring ${newRecurring ? 'enabled' : 'disabled'}.`, 'success');
+        } catch (err) {
+            showToast(`Could not toggle recurring: ${err.message}`, 'error');
+        }
+    }
+
+    async function handleAddClick() {
+        const month = parseInt(monthSelect.value);
+        const day = parseInt(daySelect.value);
+        const amount = parseFloat(amountInput.value);
+        const currency = currencySelect.value;
+        const category = categorySelect.value;
+        const concept = conceptInput.value.trim();
+        const recurring = recurringCheck.checked;
+
+        if (isNaN(amount) || amount <= 0) {
+            showToast('Please enter a valid positive amount.', 'error');
+            return;
+        }
+        if (category === 'Expenses' && concept === '') {
+            showToast('Please enter a description for the expense.', 'error');
+            return;
+        }
+
+        const success = await addEntry({ month, day, amount, currency, category, concept, recurring });
+        if (success) {
+            amountInput.value = '';
+            conceptInput.value = '';
+            recurringCheck.checked = false;
+            categorySelect.value = 'Expenses';
+            updateConceptState();
+            refreshAll();
+            showToast('Entry added!', 'success');
+        }
+    }
+
+    // ---------- Website sync ----------
+    const IMPORTED_IDS_KEY = 'imported_website_order_ids';
+    function getImportedIds() { return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]'); }
+    function addImportedId(id) {
+        const ids = getImportedIds();
+        if (!ids.includes(id)) { ids.push(id); localStorage.setItem(IMPORTED_IDS_KEY, JSON.stringify(ids)); }
+    }
+
+    function buildWebsiteDescription(order) {
+        const email = order.paypal_email || 'unknown';
+        let items = '';
+        if (order.cart) {
+            try { const parsed = JSON.parse(order.cart); items = parsed || ''; } catch (e) { items = order.cart; }
+        }
+        return `${email} – ${items}`;
+    }
+
+    async function autoSyncWebsitePayments() {
+        if (!supabaseClient) return;
+        try {
+            const { data, error } = await supabaseClient
+                .from('successs')
+                .select('*')
+                .eq('status', 'completed')
+                .order('purchased_at', { ascending: true });
+            if (error) throw error;
+            const importedIds = getImportedIds();
+            let addedCount = 0;
+            for (const order of data) {
+                if (importedIds.includes(order.id)) continue;
+                const date = new Date(order.purchased_at);
+                const month = date.getUTCMonth() + 1;
+                const day = date.getUTCDate();
+                const amount = parseFloat(order.amount);
+                const currency = order.currency || 'USD';
+                const description = buildWebsiteDescription(order);
+                const duplicate = entries.some(e =>
+                    e.month === month && e.day === day && e.amount === amount &&
+                    e.currency === currency && e.category === 'Website payments');
+                if (duplicate) { addImportedId(order.id); continue; }
+                const success = await addEntry({
+                    month, day, amount, currency,
+                    category: 'Website payments',
+                    concept: description,
+                    recurring: false
+                });
+                if (success) { addImportedId(order.id); addedCount++; } else break;
+            }
+            if (addedCount > 0) {
+                refreshAll();
+                showToast(`✅ Synced ${addedCount} new website payments.`, 'success');
+            }
+        } catch (err) {
+            console.error('Website sync error:', err);
+            showToast(`❌ Could not sync website payments (${err.message})`, 'error');
+        }
+    }
+
+    // ---------- Patreon sync ----------
+    const PATREON_PROXY = 'https://patreon-api-proxy.velutinx.workers.dev';
+    const IMPORTED_PATREON_KEY = 'imported_patreon_charges';
+    function getImportedPatreonCharges() { return JSON.parse(localStorage.getItem(IMPORTED_PATREON_KEY) || '[]'); }
+    function addImportedPatreonCharge(key) {
+        const keys = getImportedPatreonCharges();
+        if (!keys.includes(key)) { keys.push(key); localStorage.setItem(IMPORTED_PATREON_KEY, JSON.stringify(keys)); }
+    }
+
+    async function autoSyncPatreon() {
+        try {
+            const res = await fetch(PATREON_PROXY);
+            if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+            const members = await res.json();
+            const importedKeys = getImportedPatreonCharges();
+            let addedCount = 0;
+            for (const m of members) {
+                const chargeDate = new Date(m.lastChargeDate);
+                const month = chargeDate.getUTCMonth() + 1;
+                const day = chargeDate.getUTCDate();
+                const amount = m.amountCents / 100;
+                const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
+                if (importedKeys.includes(chargeKey)) continue;
+                const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
+                const duplicate = entries.some(e =>
+                    e.month === month && e.day === day && e.amount === amount &&
+                    e.currency === 'USD' && e.category === 'Patreon subscription');
+                if (duplicate) { addImportedPatreonCharge(chargeKey); continue; }
+                const success = await addEntry({
+                    month, day, amount,
+                    currency: 'USD',
+                    category: 'Patreon subscription',
+                    concept: desc,
+                    recurring: false,
+                });
+                if (success) { addImportedPatreonCharge(chargeKey); addedCount++; } else break;
+            }
+            if (addedCount > 0) {
+                refreshAll();
+                showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
+            }
+        } catch (err) {
+            console.error('Patreon sync error:', err);
+            showToast(`❌ Patreon sync error: ${err.message}`, 'error');
+        }
+    }
+
+    // ---------- Table rendering ----------
+    function renderTable() {
+        tableBody.innerHTML = '';
+        if (entries.length === 0) {
+            tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
+            exportBtn.disabled = true;
+            return;
+        }
+
+        entries.sort((a, b) => (a.month * 100 + a.day) - (b.month * 100 + b.day));
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+        const groups = new Map();
+        for (const entry of entries) {
+            const key = `${currentYear}-${entry.month}`;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(entry);
+        }
+
+        const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
+            const [y1, m1] = a.split('-').map(Number);
+            const [y2, m2] = b.split('-').map(Number);
+            return y1 - y2 || m1 - m2;
+        });
+
+        for (const key of sortedKeys) {
+            const [y, m] = key.split('-').map(Number);
+            const monthEntries = groups.get(key);
+            const monthTotal = monthEntries.reduce((sum, e) =>
+                sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
+            const currencySet = new Set(monthEntries.map(e => e.currency));
+            const currency = currencySet.size === 1 ? currencySet.values().next().value : 'mixed';
+            const isCurrent = (y === currentYear && m === currentMonth);
+            const monthName = monthNames[m] + ' ' + y;
+
+            const headerTr = document.createElement('tr');
+            headerTr.className = 'month-header';
+            headerTr.dataset.monthKey = key;
+            headerTr.innerHTML = `
+                <td colspan="7" style="cursor:pointer;">
+                    <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
+                    <strong>${monthName}</strong> – ${monthEntries.length} entries, total:
+                    <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
+                        ${monthTotal.toFixed(2)} ${currency}
+                    </span>
+                    ${isCurrent ? ' (current)' : ''}
+                </td>
+            `;
+            tableBody.appendChild(headerTr);
+
+            let entryIdx = 0;
+            for (const entry of monthEntries) {
+                const dateStr = formatDate(entry.month, entry.day, y);
+                const amountDisplay = entry.amount.toFixed(2);
+                const desc = entry.concept || '';
+                let recurringHtml = '';
+                if (entry.category === 'Expenses') {
+                    const icon = entry.recurring ? '✔' : '✕';
+                    const color = entry.recurring ? '#4caf50' : '#f44336';
+                    recurringHtml = `<span class="recurring-toggle" data-index="${entries.indexOf(entry)}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
+                }
+                const deleteHtml = (entry.category === 'Expenses')
+                    ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
+                    : '';
+                const rowClass = 'entry-row ' +
+                    (isCurrent ? '' : 'hidden-row ') +
+                    (entry.category === 'Expenses' ? 'row-expense' : 'row-income');
+
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                tr.dataset.monthKey = key;
+                tr.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td>${amountDisplay}</td>
+                    <td>${entry.currency}</td>
+                    <td>${entry.category}</td>
+                    <td>${desc}</td>
+                    <td>${recurringHtml}</td>
+                    <td>${deleteHtml}</td>
+                `;
+                tableBody.appendChild(tr);
+                entryIdx++;
+            }
+        }
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.index);
+                deleteEntry(idx);
+            });
+        });
+        document.querySelectorAll('.recurring-toggle').forEach(span => {
+            span.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const idx = parseInt(this.dataset.index);
+                toggleRecurring(idx);
+            });
+        });
+        document.querySelectorAll('.month-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const monthKey = this.dataset.monthKey;
+                const icon = this.querySelector('.toggle-icon');
+                const isOpen = icon.textContent.trim() === '▼';
+                icon.textContent = isOpen ? '▶' : '▼';
+                document.querySelectorAll(`.entry-row[data-month-key="${monthKey}"]`).forEach(row => {
+                    row.classList.toggle('hidden-row', isOpen);
+                });
+            });
+        });
+
+        exportBtn.disabled = false;
+    }
+
+    // ---------- Chart ----------
+    function buildChart(initialDays) {
+        if (incomeChart) {
+            incomeChart.destroy();
+            incomeChart = null;
+        }
+        if (entries.length === 0) return;
+
+        const currentYear = new Date().getFullYear();
+        const now = moment().endOf('day');
+        const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
+
+        const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
+        const dailyMap = new Map();
+        entries.forEach(e => {
+            const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
+            if (!dailyMap.has(date)) {
+                dailyMap.set(date, { patreon: 0, website: 0, kofi: 0, expense: 0 });
+            }
+            const d = dailyMap.get(date);
+            if (e.category === 'Patreon subscription') d.patreon += e.amount;
+            else if (e.category === 'Website payments') d.website += e.amount;
+            else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
+            else if (e.category === 'Expenses' && !e.recurring) d.expense += e.amount;
+        });
+
+        const daysInMonth = (m, y) => new Date(y, m, 0).getDate();
+        for (const recExp of recurringExpenses) {
+            const startMonth = recExp.month;
+            const startDay = recExp.day;
+            for (let m = startMonth; m <= 12; m++) {
+                const firstDay = (m === startMonth) ? startDay : 1;
+                const lastDay = daysInMonth(m, currentYear);
+                for (let d = firstDay; d <= lastDay; d++) {
+                    const key = moment(new Date(currentYear, m - 1, d)).format('YYYY-MM-DD');
+                    if (!dailyMap.has(key)) {
+                        dailyMap.set(key, { patreon: 0, website: 0, kofi: 0, expense: 0 });
+                    }
+                    dailyMap.get(key).expense += recExp.amount;
+                }
+            }
+        }
+
+        const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], expenseCum = [], netCum = [];
+        let curPatreon = 0, curWebsite = 0, curKofi = 0, curExpense = 0, lastMonth = null;
+
+        for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
+            const key = d.format('YYYY-MM-DD');
+            const month = d.month() + 1;
+            if (lastMonth !== null && month !== lastMonth) {
+                curPatreon = 0; curWebsite = 0; curKofi = 0; curExpense = 0;
+            }
+            lastMonth = month;
+            const today = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
+            curPatreon += today.patreon;
+            curWebsite += today.website;
+            curKofi += today.kofi;
+            curExpense += today.expense;
+            const net = curPatreon + curWebsite + curKofi - curExpense;
+            dates.push(d.toDate());
+            patreonCum.push(curPatreon);
+            websiteCum.push(curWebsite);
+            kofiCum.push(curKofi);
+            expenseCum.push(curExpense);
+            netCum.push(net);
+        }
+
+        const ctx = document.getElementById('incomeChart').getContext('2d');
+        incomeChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label: 'Patreon', data: dates.map((x, i) => ({ x, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Website', data: dates.map((x, i) => ({ x, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Ko‑fi', data: dates.map((x, i) => ({ x, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Expenses (abs)', data: dates.map((x, i) => ({ x, y: expenseCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Net Income', data: dates.map((x, i) => ({ x, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, pointHoverRadius: 3, tension: 0 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                plugins: {
+                    legend: { labels: { color: '#aaa' } },
+                    zoom: {
+                        zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+                        pan: { enabled: true, mode: 'x' },
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time', time: { unit: 'day', displayFormats: { day: 'MMM D' } },
+                        min: startDate.toDate(), max: now.toDate(),
+                        ticks: { color: '#aaa', maxRotation: 45 }, grid: { color: '#2a2f38' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#aaa', callback: v => '$' + v }, grid: { color: '#2a2f38' }
+                    }
+                }
+            }
+        });
+    }
+
+    function refreshAll() {
+        renderTable();
+        const activeBtn = document.querySelector('.range-btn.active');
+        const days = activeBtn ? parseInt(activeBtn.dataset.days) : 30;
+        buildChart(days);
+    }
+
+    function setupRangeButtons() {
+        document.querySelectorAll('.range-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                buildChart(parseInt(this.dataset.days));
+            });
+        });
+    }
+
+    function exportToExcel() {
+        if (entries.length === 0) return;
+        const data = entries.map(e => ({
+            Date: formatDate(e.month, e.day),
+            Amount: e.category === 'Expenses' ? -e.amount : e.amount,
+            Currency: e.currency,
+            Category: e.category,
+            Description: e.concept || '',
+            Recurring: e.recurring ? 'Yes' : 'No'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data, { header: ['Date','Amount','Currency','Category','Description','Recurring'] });
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Income & Expenses');
+        XLSX.writeFile(wb, 'income_expenses.xlsx');
+        showToast('Excel downloaded!', 'success');
+    }
+
+    function showToast(msg, type='success') {
+        let toast = document.getElementById('liveToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'liveToast';
+            toast.className = 'toast-notification';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.className = `toast-notification ${type} show`;
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // ---------- Init ----------
+    document.addEventListener('DOMContentLoaded', async () => {
+        monthSelect = document.getElementById('monthSelect');
+        daySelect = document.getElementById('daySelect');
+        amountInput = document.getElementById('amountInput');
+        currencySelect = document.getElementById('currencySelect');
+        categorySelect = document.getElementById('categorySelect');
+        conceptInput = document.getElementById('conceptInput');
+        recurringCheck = document.getElementById('recurringCheck');
+        addBtn = document.getElementById('addEntryBtn');
+        tableBody = document.getElementById('tableBody');
+        exportBtn = document.getElementById('exportBtn');
+
+        if (typeof supabase === 'undefined') {
+            showToast('Supabase library missing – auto‑sync disabled.', 'error');
+            supabaseClient = null;
+        } else {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+        }
+
+        setDefaultDate();
+        updateConceptState();
+
+        categorySelect.addEventListener('change', updateConceptState);
+        addBtn.addEventListener('click', handleAddClick);
+        exportBtn.addEventListener('click', exportToExcel);
+        setupRangeButtons();
+
+        await fetchEntries();
+        await autoSyncWebsitePayments();
+        await autoSyncPatreon();
+
+        buildChart(30);
+    });
+})();
