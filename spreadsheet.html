@@ -535,7 +535,7 @@
             exportBtn.disabled = false;
         }
 
-        // ---------- Cumulative chart (reset each month) ----------
+        // ---------- Cumulative chart (reset each month) – now with Ko‑fi ----------
         function buildChart(initialDays) {
             if (incomeChart) {
                 incomeChart.destroy();
@@ -547,49 +547,50 @@
             const now = moment().endOf('day');
             const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-            // 1. Aggregate daily amounts per category for all entries
+            // 1. Aggregate daily amounts per category
             const dailyMap = new Map();   // key: YYYY-MM-DD
             entries.forEach(e => {
                 const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
                 if (!dailyMap.has(date)) {
-                    dailyMap.set(date, { patreon: 0, website: 0, expense: 0 });
+                    dailyMap.set(date, { patreon: 0, website: 0, kofi: 0, expense: 0 });
                 }
                 const d = dailyMap.get(date);
                 if (e.category === 'Patreon subscription') d.patreon += e.amount;
                 else if (e.category === 'Website payments') d.website += e.amount;
+                else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
                 else if (e.category === 'Expenses') d.expense += e.amount;
             });
 
-            // 2. Build arrays of points (one per day) with cumulative values per month
-            const dates = [], patreonCum = [], websiteCum = [], expenseCum = [], netCum = [];
-            // Track cumulative totals that reset on the 1st of each month
-            let curPatreon = 0, curWebsite = 0, curExpense = 0;
+            // 2. Build cumulative arrays (reset on 1st of each month)
+            const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], expenseCum = [], netCum = [];
+            let curPatreon = 0, curWebsite = 0, curKofi = 0, curExpense = 0;
             let lastMonth = null;
 
             for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
                 const key = d.format('YYYY-MM-DD');
                 const month = d.month() + 1;  // 1‑based
-                const dayOfMonth = d.date();
 
-                // If we crossed into a new month, reset accumulators
+                // Reset on new month
                 if (lastMonth !== null && month !== lastMonth) {
                     curPatreon = 0;
                     curWebsite = 0;
+                    curKofi = 0;
                     curExpense = 0;
                 }
                 lastMonth = month;
 
-                // Add today's amounts
-                const today = dailyMap.get(key) || { patreon: 0, website: 0, expense: 0 };
+                const today = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
                 curPatreon += today.patreon;
                 curWebsite += today.website;
+                curKofi += today.kofi;
                 curExpense += today.expense;
 
-                const net = curPatreon + curWebsite - curExpense;
+                const net = curPatreon + curWebsite + curKofi - curExpense;
 
                 dates.push(d.toDate());
                 patreonCum.push(curPatreon);
                 websiteCum.push(curWebsite);
+                kofiCum.push(curKofi);
                 expenseCum.push(curExpense);
                 netCum.push(net);
             }
@@ -609,12 +610,21 @@
                             pointRadius: 0,
                             pointHoverRadius: 3,
                             tension: 0,
-                            stepped: false,
                         },
                         {
                             label: 'Website',
                             data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })),
                             borderColor: '#f97316',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            tension: 0,
+                        },
+                        {
+                            label: 'Ko‑fi',
+                            data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })),
+                            borderColor: '#eab308',   // yellow
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             pointRadius: 0,
