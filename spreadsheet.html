@@ -96,7 +96,6 @@
     <div class="dashboard">
         <!-- Left side: table -->
         <div class="table-section">
-            <!-- … (form and table identical to previous) … -->
             <div class="form-row" id="entryForm">
                 <div class="form-group">
                     <label for="monthSelect">Month</label>
@@ -536,7 +535,7 @@
             exportBtn.disabled = false;
         }
 
-        // ---------- Daily chart with time scale and zoom ----------
+        // ---------- Cumulative chart (reset each month) ----------
         function buildChart(initialDays) {
             if (incomeChart) {
                 incomeChart.destroy();
@@ -548,31 +547,54 @@
             const now = moment().endOf('day');
             const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-            // Aggregate data per day
-            const dailyMap = new Map(); // key: YYYY-MM-DD
+            // 1. Aggregate daily amounts per category for all entries
+            const dailyMap = new Map();   // key: YYYY-MM-DD
             entries.forEach(e => {
                 const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
                 if (!dailyMap.has(date)) {
                     dailyMap.set(date, { patreon: 0, website: 0, expense: 0 });
                 }
-                const dayData = dailyMap.get(date);
-                if (e.category === 'Patreon subscription') dayData.patreon += e.amount;
-                else if (e.category === 'Website payments') dayData.website += e.amount;
-                else if (e.category === 'Expenses') dayData.expense += e.amount;
+                const d = dailyMap.get(date);
+                if (e.category === 'Patreon subscription') d.patreon += e.amount;
+                else if (e.category === 'Website payments') d.website += e.amount;
+                else if (e.category === 'Expenses') d.expense += e.amount;
             });
 
-            // Build arrays for the chart (sparse – only days with data)
-            const dates = [], patreonVals = [], websiteVals = [], expenseVals = [], netVals = [];
+            // 2. Build arrays of points (one per day) with cumulative values per month
+            const dates = [], patreonCum = [], websiteCum = [], expenseCum = [], netCum = [];
+            // Track cumulative totals that reset on the 1st of each month
+            let curPatreon = 0, curWebsite = 0, curExpense = 0;
+            let lastMonth = null;
+
             for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
                 const key = d.format('YYYY-MM-DD');
-                const day = dailyMap.get(key) || { patreon: 0, website: 0, expense: 0 };
+                const month = d.month() + 1;  // 1‑based
+                const dayOfMonth = d.date();
+
+                // If we crossed into a new month, reset accumulators
+                if (lastMonth !== null && month !== lastMonth) {
+                    curPatreon = 0;
+                    curWebsite = 0;
+                    curExpense = 0;
+                }
+                lastMonth = month;
+
+                // Add today's amounts
+                const today = dailyMap.get(key) || { patreon: 0, website: 0, expense: 0 };
+                curPatreon += today.patreon;
+                curWebsite += today.website;
+                curExpense += today.expense;
+
+                const net = curPatreon + curWebsite - curExpense;
+
                 dates.push(d.toDate());
-                patreonVals.push(day.patreon);
-                websiteVals.push(day.website);
-                expenseVals.push(day.expense);
-                netVals.push(day.patreon + day.website - day.expense);
+                patreonCum.push(curPatreon);
+                websiteCum.push(curWebsite);
+                expenseCum.push(curExpense);
+                netCum.push(net);
             }
 
+            // 3. Create chart
             const ctx = document.getElementById('incomeChart').getContext('2d');
             incomeChart = new Chart(ctx, {
                 type: 'line',
@@ -580,43 +602,44 @@
                     datasets: [
                         {
                             label: 'Patreon',
-                            data: dates.map((d, i) => ({ x: d, y: patreonVals[i] })),
+                            data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })),
                             borderColor: '#3b82f6',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
-                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            tension: 0,
+                            stepped: false,
                         },
                         {
                             label: 'Website',
-                            data: dates.map((d, i) => ({ x: d, y: websiteVals[i] })),
+                            data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })),
                             borderColor: '#f97316',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
-                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            tension: 0,
                         },
                         {
                             label: 'Expenses (abs)',
-                            data: dates.map((d, i) => ({ x: d, y: expenseVals[i] })),
+                            data: dates.map((d, i) => ({ x: d, y: expenseCum[i] })),
                             borderColor: '#ef4444',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
-                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            tension: 0,
                         },
                         {
                             label: 'Net Income',
-                            data: dates.map((d, i) => ({ x: d, y: netVals[i] })),
+                            data: dates.map((d, i) => ({ x: d, y: netCum[i] })),
                             borderColor: '#22c55e',
                             backgroundColor: 'transparent',
                             borderWidth: 3,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
-                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            tension: 0,
                         }
                     ]
                 },
@@ -654,7 +677,6 @@
             });
         }
 
-        // Range buttons update the chart
         function refreshAll() {
             renderTable();
             const activeBtn = document.querySelector('.range-btn.active');
@@ -662,7 +684,6 @@
             buildChart(days);
         }
 
-        // Attach range button events once
         function setupRangeButtons() {
             document.querySelectorAll('.range-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -736,7 +757,7 @@
             await autoSyncWebsitePayments();
             await autoSyncPatreon();
 
-            // Default chart: 30 days
+            // Default chart: last 30 days
             buildChart(30);
         });
     })();
