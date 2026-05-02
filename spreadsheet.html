@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Centralized Income & Expenses Tracker (Cloud Sync)</title>
+    <title>💰 Centralized Income & Expenses (Cloud Sync)</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -14,10 +16,21 @@
             display: flex; flex-direction: column; align-items: center; color: #e0e0e0;
         }
         .container {
-            max-width: 1000px; width: 100%; background: #11151c; border-radius: 16px;
+            max-width: 1400px; width: 100%;
+            background: #11151c; border-radius: 16px;
             padding: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); border: 1px solid #2a2f38;
         }
         h1 { margin-top: 0; color: #f0f0f0; font-weight: 500; }
+        .dashboard {
+            display: flex; gap: 20px; flex-wrap: wrap;
+        }
+        .table-section {
+            flex: 1 1 60%; min-width: 600px;
+        }
+        .chart-section {
+            flex: 1 1 35%; min-width: 350px;
+            background: #0c1017; border-radius: 14px; padding: 16px; border: 1px solid #252b33;
+        }
         .form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 24px; }
         .form-group { display: flex; flex-direction: column; min-width: 100px; }
         .form-group label { font-size: 0.8rem; color: #aaa; margin-bottom: 4px; font-weight: 500; }
@@ -36,18 +49,7 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
         .export-btn { margin-top: 20px; background: #3b4a5a; }
         .export-btn:hover { background: #2c6e9e; }
-        .small-action-btn {
-            background: #2a2f38;
-            color: #ccc;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            margin-left: 8px;
-        }
-        .small-action-btn:hover { background: #3a4050; }
-        .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
+        .table-wrapper { margin-top: 16px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
         th { background: #0a0e14; color: #aaa; font-weight: 500; }
@@ -64,91 +66,122 @@
 
         /* Month header row */
         .month-header td {
-            background: #1a1f2a;
-            cursor: pointer;
-            font-weight: 500;
-            color: #ccc;
+            background: #1a1f2a; cursor: pointer; font-weight: 500; color: #ccc;
         }
         .month-header td:hover { background: #232a38; }
         .hidden-row { display: none; }
         .toggle-icon { margin-right: 6px; font-size: 0.8rem; }
+
+        /* Row colors */
+        .row-income { background-color: #1a3a1a; }
+        .row-expense { background-color: #3a1a1a; }
+        .row-income:hover, .row-expense:hover { filter: brightness(1.2); }
+
+        /* Chart section */
+        .chart-container { position: relative; height: 300px; margin-bottom: 16px; }
+        .range-btns { display: flex; gap: 6px; margin-bottom: 12px; }
+        .range-btn {
+            background: #2a2f38; border: none; color: #ccc; padding: 4px 12px;
+            border-radius: 20px; cursor: pointer; font-size: 0.8rem;
+        }
+        .range-btn.active { background: #2c6e2c; color: white; }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>💰 Centralized Income & Expenses (Cloud Sync)</h1>
 
-    <div class="form-row" id="entryForm">
-        <div class="form-group">
-            <label for="monthSelect">Month</label>
-            <select id="monthSelect">
-                <option value="1">January</option><option value="2">February</option>
-                <option value="3">March</option><option value="4">April</option>
-                <option value="5">May</option><option value="6">June</option>
-                <option value="7">July</option><option value="8">August</option>
-                <option value="9">September</option><option value="10">October</option>
-                <option value="11">November</option><option value="12">December</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="daySelect">Day</label>
-            <select id="daySelect"></select>
-        </div>
-        <div class="form-group">
-            <label for="amountInput">Amount</label>
-            <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01">
-        </div>
-        <div class="form-group">
-            <label for="currencySelect">Currency</label>
-            <select id="currencySelect">
-                <option value="USD" selected>USD</option><option value="EUR">EUR</option>
-                <option value="GBP">GBP</option><option value="JPY">JPY</option>
-                <option value="CAD">CAD</option><option value="AUD">AUD</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="categorySelect">Category</label>
-            <select id="categorySelect">
-                <option value="Patreon subscription">Patreon subscription</option>
-                <option value="Patreon sales">Patreon sales</option>
-                <option value="Ko-Fi subscriptions">Ko-Fi subscriptions</option>
-                <option value="Subscribestar subscriptions">Subscribestar subscriptions</option>
-                <option value="Website payments">Website payments</option>
-                <option value="Expenses" selected>Expenses</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="conceptInput">Concept</label>
-            <input type="text" id="conceptInput" placeholder="e.g. Railway subscription" disabled>
-        </div>
-        <div class="recurring-group">
-            <input type="checkbox" id="recurringCheck">
-            <label for="recurringCheck">Recurring monthly</label>
-        </div>
-        <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
-    </div>
+    <div class="dashboard">
+        <!-- Left side: table -->
+        <div class="table-section">
+            <div class="form-row" id="entryForm">
+                <div class="form-group">
+                    <label for="monthSelect">Month</label>
+                    <select id="monthSelect">
+                        <option value="1">January</option><option value="2">February</option>
+                        <option value="3">March</option><option value="4">April</option>
+                        <option value="5">May</option><option value="6">June</option>
+                        <option value="7">July</option><option value="8">August</option>
+                        <option value="9">September</option><option value="10">October</option>
+                        <option value="11">November</option><option value="12">December</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="daySelect">Day</label>
+                    <select id="daySelect"></select>
+                </div>
+                <div class="form-group">
+                    <label for="amountInput">Amount</label>
+                    <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="currencySelect">Currency</label>
+                    <select id="currencySelect">
+                        <option value="USD" selected>USD</option><option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option><option value="JPY">JPY</option>
+                        <option value="CAD">CAD</option><option value="AUD">AUD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="categorySelect">Category</label>
+                    <select id="categorySelect">
+                        <option value="Patreon subscription">Patreon subscription</option>
+                        <option value="Patreon sales">Patreon sales</option>
+                        <option value="Ko-Fi subscriptions">Ko-Fi subscriptions</option>
+                        <option value="Subscribestar subscriptions">Subscribestar subscriptions</option>
+                        <option value="Website payments">Website payments</option>
+                        <option value="Expenses" selected>Expenses</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="conceptInput">Concept</label>
+                    <input type="text" id="conceptInput" placeholder="e.g. Railway subscription" disabled>
+                </div>
+                <div class="recurring-group">
+                    <input type="checkbox" id="recurringCheck">
+                    <label for="recurringCheck">Recurring monthly</label>
+                </div>
+                <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
+            </div>
 
-    <div class="table-wrapper">
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Currency</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th>Recurring</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr class="empty-message"><td colspan="7">Loading entries from server...</td></tr>
-            </tbody>
-        </table>
-    </div>
-    <div style="display: flex; align-items: center; margin-top: 16px; gap: 10px; flex-wrap: wrap;">
-        <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
-        <button class="small-action-btn" id="resyncWebsiteBtn" title="Delete all Website entries and re-import with full descriptions">🔄 Re‑sync Website descriptions</button>
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th><th>Amount</th><th>Currency</th>
+                            <th>Category</th><th>Description</th><th>Recurring</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr class="empty-message"><td colspan="7">Loading entries from server...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Export button remains -->
+            <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
+
+            <!-- Re‑sync Website button has been hidden for now
+            <button class="small-action-btn" id="resyncWebsiteBtn">🔄 Re‑sync Website descriptions</button>
+            -->
+        </div>
+
+        <!-- Right side: chart -->
+        <div class="chart-section">
+            <div class="range-btns">
+                <button class="range-btn active" data-months="2">2M</button>
+                <button class="range-btn" data-months="3">3M</button>
+                <button class="range-btn" data-months="6">6M</button>
+                <button class="range-btn" data-months="12">12M</button>
+                <button class="range-btn" data-months="0">All</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="incomeChart"></canvas>
+            </div>
+            <div style="font-size:0.8rem; color:#888; text-align:center;">
+                Net = income minus expenses · Expenses shown as absolute amount
+            </div>
+        </div>
     </div>
 </div>
 
@@ -162,9 +195,11 @@
         window.entries = entries;
 
         let supabaseClient = null;
+        let incomeChart = null;          // Chart.js instance
 
         let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
-        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn, resyncWebsiteBtn;
+        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn;
+        // let resyncWebsiteBtn;  // hidden
 
         const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -194,9 +229,6 @@
         }
 
         function updateConceptState() {
-            // Concept input is always disabled for all categories (we only use it for Expenses via the dropdown)
-            // But when category is Expenses, we enable it; otherwise disabled.
-            // Since default is Expenses, it's enabled by default.
             if (categorySelect.value === 'Expenses') {
                 conceptInput.disabled = false;
                 conceptInput.placeholder = 'e.g. Railway subscription';
@@ -229,7 +261,7 @@
                 showToast('⚠ Could not connect to server – working offline.', 'error');
                 entries = [];
             }
-            renderTable();
+            refreshAll();
         }
 
         async function addEntry(entryData) {
@@ -270,11 +302,11 @@
                 }
             }
             entries.splice(index, 1);
-            renderTable();
+            refreshAll();
             showToast('Entry removed.', 'info');
         }
 
-        // ---------- Manual add (now defaults to Expenses) ----------
+        // ---------- Manual add ----------
         async function handleAddClick() {
             const month = parseInt(monthSelect.value);
             const day = parseInt(daySelect.value);
@@ -293,28 +325,24 @@
                 return;
             }
 
-            await addEntry({ month, day, amount, currency, category, concept, recurring });
-            amountInput.value = '';
-            conceptInput.value = '';
-            recurringCheck.checked = false;
-            // Reset category to default (Expenses) after adding
-            categorySelect.value = 'Expenses';
-            updateConceptState();
-            renderTable();
-            showToast('Entry added!', 'success');
+            const success = await addEntry({ month, day, amount, currency, category, concept, recurring });
+            if (success) {
+                amountInput.value = '';
+                conceptInput.value = '';
+                recurringCheck.checked = false;
+                categorySelect.value = 'Expenses';      // reset to default
+                updateConceptState();
+                refreshAll();
+                showToast('Entry added!', 'success');
+            }
         }
 
-        // ---------- Website sync (now with email + items) ----------
+        // ---------- Website sync ----------
         const IMPORTED_IDS_KEY = 'imported_website_order_ids';
-        function getImportedIds() {
-            return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]');
-        }
+        function getImportedIds() { return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]'); }
         function addImportedId(id) {
             const ids = getImportedIds();
-            if (!ids.includes(id)) {
-                ids.push(id);
-                localStorage.setItem(IMPORTED_IDS_KEY, JSON.stringify(ids));
-            }
+            if (!ids.includes(id)) { ids.push(id); localStorage.setItem(IMPORTED_IDS_KEY, JSON.stringify(ids)); }
         }
 
         function buildWebsiteDescription(order) {
@@ -322,84 +350,61 @@
             let items = '';
             if (order.cart) {
                 try {
-                    // cart is a JSON string like "P-115, P-135, P-140, P-197, P-208"
                     const parsed = JSON.parse(order.cart);
-                    items = parsed || '';   // it's a string
-                } catch (e) {
-                    items = order.cart;   // fallback to raw
-                }
+                    items = parsed || '';
+                } catch (e) { items = order.cart; }
             }
             return `${email} – ${items}`;
         }
 
         async function autoSyncWebsitePayments() {
             if (!supabaseClient) return;
-
             try {
                 const { data, error } = await supabaseClient
                     .from('successs')
                     .select('*')
                     .eq('status', 'completed')
                     .order('purchased_at', { ascending: true });
-
                 if (error) throw error;
-
                 const importedIds = getImportedIds();
                 let addedCount = 0;
-
                 for (const order of data) {
                     if (importedIds.includes(order.id)) continue;
-
                     const date = new Date(order.purchased_at);
                     const month = date.getUTCMonth() + 1;
                     const day = date.getUTCDate();
                     const amount = parseFloat(order.amount);
                     const currency = order.currency || 'USD';
                     const description = buildWebsiteDescription(order);
-
                     const duplicate = entries.some(e =>
                         e.month === month && e.day === day && e.amount === amount &&
-                        e.currency === currency && e.category === 'Website payments'
-                    );
-                    if (duplicate) {
-                        addImportedId(order.id);
-                        continue;
-                    }
-
+                        e.currency === currency && e.category === 'Website payments');
+                    if (duplicate) { addImportedId(order.id); continue; }
                     const success = await addEntry({
                         month, day, amount, currency,
                         category: 'Website payments',
                         concept: description,
                         recurring: false
                     });
-                    if (success) {
-                        addImportedId(order.id);
-                        addedCount++;
-                    } else break;
+                    if (success) { addImportedId(order.id); addedCount++; } else break;
                 }
-
                 if (addedCount > 0) {
-                    renderTable();
+                    refreshAll();
                     showToast(`✅ Synced ${addedCount} new website payments.`, 'success');
                 }
             } catch (err) {
-                console.error('Auto‑sync failed:', err);
+                console.error('Website sync error:', err);
                 showToast(`❌ Could not sync website payments (${err.message})`, 'error');
             }
         }
 
         // ---------- Patreon sync ----------
         const PATREON_PROXY = 'https://patreon-api-proxy.velutinx.workers.dev';
-        const IMPORTED_PATREON_CHARGES_KEY = 'imported_patreon_charges';
-        function getImportedPatreonCharges() {
-            return JSON.parse(localStorage.getItem(IMPORTED_PATREON_CHARGES_KEY) || '[]');
-        }
+        const IMPORTED_PATREON_KEY = 'imported_patreon_charges';
+        function getImportedPatreonCharges() { return JSON.parse(localStorage.getItem(IMPORTED_PATREON_KEY) || '[]'); }
         function addImportedPatreonCharge(key) {
             const keys = getImportedPatreonCharges();
-            if (!keys.includes(key)) {
-                keys.push(key);
-                localStorage.setItem(IMPORTED_PATREON_CHARGES_KEY, JSON.stringify(keys));
-            }
+            if (!keys.includes(key)) { keys.push(key); localStorage.setItem(IMPORTED_PATREON_KEY, JSON.stringify(keys)); }
         }
 
         async function autoSyncPatreon() {
@@ -407,30 +412,20 @@
                 const res = await fetch(PATREON_PROXY);
                 if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
                 const members = await res.json();
-
                 const importedKeys = getImportedPatreonCharges();
                 let addedCount = 0;
-
                 for (const m of members) {
                     const chargeDate = new Date(m.lastChargeDate);
                     const month = chargeDate.getUTCMonth() + 1;
                     const day = chargeDate.getUTCDate();
                     const amount = m.amountCents / 100;
-
                     const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
                     if (importedKeys.includes(chargeKey)) continue;
-
                     const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
-
                     const duplicate = entries.some(e =>
                         e.month === month && e.day === day && e.amount === amount &&
-                        e.currency === 'USD' && e.category === 'Patreon subscription'
-                    );
-                    if (duplicate) {
-                        addImportedPatreonCharge(chargeKey);
-                        continue;
-                    }
-
+                        e.currency === 'USD' && e.category === 'Patreon subscription');
+                    if (duplicate) { addImportedPatreonCharge(chargeKey); continue; }
                     const success = await addEntry({
                         month, day, amount,
                         currency: 'USD',
@@ -438,51 +433,19 @@
                         concept: desc,
                         recurring: false,
                     });
-
-                    if (success) {
-                        addImportedPatreonCharge(chargeKey);
-                        addedCount++;
-                    } else break;
+                    if (success) { addImportedPatreonCharge(chargeKey); addedCount++; } else break;
                 }
-
                 if (addedCount > 0) {
-                    renderTable();
+                    refreshAll();
                     showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
                 }
             } catch (err) {
-                console.error('Patreon sync failed:', err);
+                console.error('Patreon sync error:', err);
                 showToast(`❌ Patreon sync error: ${err.message}`, 'error');
             }
         }
 
-        // ---------- Re‑sync Website (delete all website entries, clear history, and re-import) ----------
-        async function resyncWebsite() {
-            resyncWebsiteBtn.disabled = true;
-            resyncWebsiteBtn.textContent = '⏳ Re‑syncing Website...';
-            try {
-                // Delete all Website payments entries from server
-                const toDelete = entries.filter(e => e.category === 'Website payments');
-                for (const e of toDelete) {
-                    if (e.id) {
-                        await fetch(`${WORKER_URL}/entries/${e.id}`, { method: 'DELETE' });
-                    }
-                }
-                // Remove them from local array
-                entries = entries.filter(e => e.category !== 'Website payments');
-                localStorage.removeItem(IMPORTED_IDS_KEY);
-                window.entries = entries;
-                await autoSyncWebsitePayments();  // re-import with descriptions
-                renderTable();
-                showToast('✅ Website entries re‑synced with descriptions.', 'success');
-            } catch (err) {
-                showToast(`❌ Re‑sync failed: ${err.message}`, 'error');
-            } finally {
-                resyncWebsiteBtn.disabled = false;
-                resyncWebsiteBtn.textContent = '🔄 Re‑sync Website descriptions';
-            }
-        }
-
-        // ---------- Table rendering with month grouping ----------
+        // ---------- Table rendering with month grouping & colors ----------
         function renderTable() {
             tableBody.innerHTML = '';
             if (entries.length === 0) {
@@ -495,7 +458,6 @@
 
             const currentYear = new Date().getFullYear();
             const currentMonth = new Date().getMonth() + 1;
-
             const groups = new Map();
             for (const entry of entries) {
                 const key = `${currentYear}-${entry.month}`;
@@ -519,12 +481,12 @@
                 const isCurrent = (y === currentYear && m === currentMonth);
                 const monthName = monthNames[m] + ' ' + y;
 
+                // Month header row
                 const headerTr = document.createElement('tr');
                 headerTr.className = 'month-header';
                 headerTr.dataset.monthKey = key;
-                headerTr.style.cursor = 'pointer';
                 headerTr.innerHTML = `
-                    <td colspan="7">
+                    <td colspan="7" style="cursor:pointer;">
                         <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
                         <strong>${monthName}</strong> – ${monthEntries.length} entries, total:
                         <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
@@ -543,9 +505,12 @@
                     const deleteHtml = (entry.category === 'Expenses')
                         ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
                         : '';
+                    const rowClass = 'entry-row ' +
+                        (isCurrent ? '' : 'hidden-row ') +
+                        (entry.category === 'Expenses' ? 'row-expense' : 'row-income');
 
                     const tr = document.createElement('tr');
-                    tr.className = 'entry-row ' + (isCurrent ? '' : 'hidden-row');
+                    tr.className = rowClass;
                     tr.dataset.monthKey = key;
                     tr.innerHTML = `
                         <td>${dateStr}</td>
@@ -560,6 +525,7 @@
                 }
             }
 
+            // Delete button handlers
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.index);
@@ -567,6 +533,7 @@
                 });
             });
 
+            // Month toggles
             document.querySelectorAll('.month-header').forEach(header => {
                 header.addEventListener('click', function() {
                     const monthKey = this.dataset.monthKey;
@@ -580,6 +547,136 @@
             });
 
             exportBtn.disabled = false;
+        }
+
+        // ---------- Chart logic ----------
+        function buildChart(monthsBack) {
+            // Destroy previous chart
+            if (incomeChart) {
+                incomeChart.destroy();
+                incomeChart = null;
+            }
+
+            if (entries.length === 0) return;
+
+            const allMonths = new Map(); // key: "YYYY-MM"
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
+
+            // Build all possible month keys from earliest entry to current
+            let minMonth = 13, maxMonth = 0;
+            entries.forEach(e => {
+                if (e.month < minMonth) minMonth = e.month;
+                if (e.month > maxMonth) maxMonth = e.month;
+            });
+            // Use entries years? they all assume current year, but we'll use current year only.
+            // Realistically need to fetch year from database; we'll assume current year.
+            // We'll generate months from Jan to current month of current year, but for simplicity we can generate
+            // from the earliest entry month to current month.
+            const startMonth = (monthsBack === 0) ? minMonth : Math.max(currentMonth - monthsBack + 1, 1);
+            const endMonth = currentMonth;
+
+            // Prepare month labels
+            const labels = [];
+            for (let m = startMonth; m <= endMonth; m++) {
+                labels.push(monthNames[m] + ' ' + currentYear);
+            }
+
+            // Compute totals per category per month
+            const patreonTotals = new Array(labels.length).fill(0);
+            const websiteTotals = new Array(labels.length).fill(0);
+            const expenseTotals = new Array(labels.length).fill(0);
+            const netTotals = new Array(labels.length).fill(0);
+
+            entries.forEach(e => {
+                const monthIdx = e.month - startMonth;
+                if (monthIdx < 0 || monthIdx >= labels.length) return;
+
+                if (e.category === 'Patreon subscription') {
+                    patreonTotals[monthIdx] += e.amount;
+                } else if (e.category === 'Website payments') {
+                    websiteTotals[monthIdx] += e.amount;
+                } else if (e.category === 'Expenses') {
+                    expenseTotals[monthIdx] += e.amount;   // store positive
+                }
+            });
+
+            for (let i = 0; i < labels.length; i++) {
+                const income = patreonTotals[i] + websiteTotals[i];
+                const expense = expenseTotals[i];
+                netTotals[i] = income - expense;
+            }
+
+            // Create chart
+            const ctx = document.getElementById('incomeChart').getContext('2d');
+            incomeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Patreon',
+                            data: patreonTotals,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'transparent',
+                            tension: 0.1,
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Website',
+                            data: websiteTotals,
+                            borderColor: '#f97316',
+                            backgroundColor: 'transparent',
+                            tension: 0.1,
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Expenses (abs)',
+                            data: expenseTotals,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'transparent',
+                            tension: 0.1,
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Net Income',
+                            data: netTotals,
+                            borderColor: '#22c55e',
+                            backgroundColor: 'transparent',
+                            tension: 0.1,
+                            borderWidth: 3,
+                            borderDash: [],
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#aaa' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: '#2a2f38' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#aaa', callback: v => '$' + v },
+                            grid: { color: '#2a2f38' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshAll() {
+            renderTable();
+            const activeBtn = document.querySelector('.range-btn.active');
+            const months = activeBtn ? parseInt(activeBtn.dataset.months) : 2;
+            buildChart(months);
         }
 
         // ---------- Excel export ----------
@@ -616,7 +713,7 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // ---------- Initialise on DOM ready ----------
+        // ---------- Init ----------
         document.addEventListener('DOMContentLoaded', async () => {
             monthSelect = document.getElementById('monthSelect');
             daySelect = document.getElementById('daySelect');
@@ -628,7 +725,7 @@
             addBtn = document.getElementById('addEntryBtn');
             tableBody = document.getElementById('tableBody');
             exportBtn = document.getElementById('exportBtn');
-            resyncWebsiteBtn = document.getElementById('resyncWebsiteBtn');
+            // resyncWebsiteBtn = document.getElementById('resyncWebsiteBtn');
 
             if (typeof supabase === 'undefined') {
                 showToast('Supabase library missing – auto‑sync disabled.', 'error');
@@ -638,16 +735,29 @@
             }
 
             setDefaultDate();
-            updateConceptState();   // concept is enabled because default is Expenses
+            updateConceptState();
 
             categorySelect.addEventListener('change', updateConceptState);
             addBtn.addEventListener('click', handleAddClick);
             exportBtn.addEventListener('click', exportToExcel);
-            resyncWebsiteBtn.addEventListener('click', resyncWebsite);
+            // resyncWebsiteBtn?.addEventListener('click', resyncWebsite);
+
+            // Range buttons
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const months = parseInt(this.dataset.months);
+                    buildChart(months);
+                });
+            });
 
             await fetchEntries();
             await autoSyncWebsitePayments();
             await autoSyncPatreon();
+
+            // Initial chart (default 2 months)
+            buildChart(2);
         });
 
     })();
