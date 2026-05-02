@@ -36,6 +36,17 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
         .export-btn { margin-top: 20px; background: #3b4a5a; }
         .export-btn:hover { background: #2c6e9e; }
+        .small-action-btn {
+            background: #2a2f38;
+            color: #ccc;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .small-action-btn:hover { background: #3a4050; }
         .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
@@ -103,7 +114,7 @@
                 <option value="Ko-Fi subscriptions">Ko-Fi subscriptions</option>
                 <option value="Subscribestar subscriptions">Subscribestar subscriptions</option>
                 <option value="Website payments">Website payments</option>
-                <option value="Expenses">Expenses</option>
+                <option value="Expenses" selected>Expenses</option>
             </select>
         </div>
         <div class="form-group">
@@ -135,7 +146,10 @@
             </tbody>
         </table>
     </div>
-    <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
+    <div style="display: flex; align-items: center; margin-top: 16px; gap: 10px; flex-wrap: wrap;">
+        <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
+        <button class="small-action-btn" id="resyncWebsiteBtn" title="Delete all Website entries and re-import with full descriptions">🔄 Re‑sync Website descriptions</button>
+    </div>
 </div>
 
 <script>
@@ -145,12 +159,12 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
 
         let entries = [];
-        window.entries = entries;   // expose for console
+        window.entries = entries;
 
         let supabaseClient = null;
 
         let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
-        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn;
+        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn, resyncWebsiteBtn;
 
         const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -180,6 +194,9 @@
         }
 
         function updateConceptState() {
+            // Concept input is always disabled for all categories (we only use it for Expenses via the dropdown)
+            // But when category is Expenses, we enable it; otherwise disabled.
+            // Since default is Expenses, it's enabled by default.
             if (categorySelect.value === 'Expenses') {
                 conceptInput.disabled = false;
                 conceptInput.placeholder = 'e.g. Railway subscription';
@@ -257,7 +274,7 @@
             showToast('Entry removed.', 'info');
         }
 
-        // ---------- Manual add ----------
+        // ---------- Manual add (now defaults to Expenses) ----------
         async function handleAddClick() {
             const month = parseInt(monthSelect.value);
             const day = parseInt(daySelect.value);
@@ -280,13 +297,14 @@
             amountInput.value = '';
             conceptInput.value = '';
             recurringCheck.checked = false;
-            categorySelect.value = 'Patreon subscription';
+            // Reset category to default (Expenses) after adding
+            categorySelect.value = 'Expenses';
             updateConceptState();
             renderTable();
             showToast('Entry added!', 'success');
         }
 
-        // ---------- Website sync ----------
+        // ---------- Website sync (now with email + items) ----------
         const IMPORTED_IDS_KEY = 'imported_website_order_ids';
         function getImportedIds() {
             return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]');
@@ -297,6 +315,21 @@
                 ids.push(id);
                 localStorage.setItem(IMPORTED_IDS_KEY, JSON.stringify(ids));
             }
+        }
+
+        function buildWebsiteDescription(order) {
+            const email = order.paypal_email || 'unknown';
+            let items = '';
+            if (order.cart) {
+                try {
+                    // cart is a JSON string like "P-115, P-135, P-140, P-197, P-208"
+                    const parsed = JSON.parse(order.cart);
+                    items = parsed || '';   // it's a string
+                } catch (e) {
+                    items = order.cart;   // fallback to raw
+                }
+            }
+            return `${email} – ${items}`;
         }
 
         async function autoSyncWebsitePayments() {
@@ -322,6 +355,7 @@
                     const day = date.getUTCDate();
                     const amount = parseFloat(order.amount);
                     const currency = order.currency || 'USD';
+                    const description = buildWebsiteDescription(order);
 
                     const duplicate = entries.some(e =>
                         e.month === month && e.day === day && e.amount === amount &&
@@ -335,7 +369,7 @@
                     const success = await addEntry({
                         month, day, amount, currency,
                         category: 'Website payments',
-                        concept: '',
+                        concept: description,
                         recurring: false
                     });
                     if (success) {
@@ -421,6 +455,33 @@
             }
         }
 
+        // ---------- Re‑sync Website (delete all website entries, clear history, and re-import) ----------
+        async function resyncWebsite() {
+            resyncWebsiteBtn.disabled = true;
+            resyncWebsiteBtn.textContent = '⏳ Re‑syncing Website...';
+            try {
+                // Delete all Website payments entries from server
+                const toDelete = entries.filter(e => e.category === 'Website payments');
+                for (const e of toDelete) {
+                    if (e.id) {
+                        await fetch(`${WORKER_URL}/entries/${e.id}`, { method: 'DELETE' });
+                    }
+                }
+                // Remove them from local array
+                entries = entries.filter(e => e.category !== 'Website payments');
+                localStorage.removeItem(IMPORTED_IDS_KEY);
+                window.entries = entries;
+                await autoSyncWebsitePayments();  // re-import with descriptions
+                renderTable();
+                showToast('✅ Website entries re‑synced with descriptions.', 'success');
+            } catch (err) {
+                showToast(`❌ Re‑sync failed: ${err.message}`, 'error');
+            } finally {
+                resyncWebsiteBtn.disabled = false;
+                resyncWebsiteBtn.textContent = '🔄 Re‑sync Website descriptions';
+            }
+        }
+
         // ---------- Table rendering with month grouping ----------
         function renderTable() {
             tableBody.innerHTML = '';
@@ -430,13 +491,11 @@
                 return;
             }
 
-            // Sort entries by date ascending (month, day)
             entries.sort((a, b) => (a.month * 100 + a.day) - (b.month * 100 + b.day));
 
             const currentYear = new Date().getFullYear();
             const currentMonth = new Date().getMonth() + 1;
 
-            // Group entries by (year, month)
             const groups = new Map();
             for (const entry of entries) {
                 const key = `${currentYear}-${entry.month}`;
@@ -460,7 +519,6 @@
                 const isCurrent = (y === currentYear && m === currentMonth);
                 const monthName = monthNames[m] + ' ' + y;
 
-                // Month header row
                 const headerTr = document.createElement('tr');
                 headerTr.className = 'month-header';
                 headerTr.dataset.monthKey = key;
@@ -477,7 +535,6 @@
                 `;
                 tableBody.appendChild(headerTr);
 
-                // Individual entry rows
                 for (const entry of monthEntries) {
                     const dateStr = formatDate(entry.month, entry.day, y);
                     const amountDisplay = entry.amount.toFixed(2);
@@ -503,7 +560,6 @@
                 }
             }
 
-            // Attach delete handlers
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.index);
@@ -511,15 +567,12 @@
                 });
             });
 
-            // Toggle month groups
             document.querySelectorAll('.month-header').forEach(header => {
                 header.addEventListener('click', function() {
                     const monthKey = this.dataset.monthKey;
                     const icon = this.querySelector('.toggle-icon');
                     const isOpen = icon.textContent.trim() === '▼';
-
                     icon.textContent = isOpen ? '▶' : '▼';
-
                     document.querySelectorAll(`.entry-row[data-month-key="${monthKey}"]`).forEach(row => {
                         row.classList.toggle('hidden-row', isOpen);
                     });
@@ -575,6 +628,7 @@
             addBtn = document.getElementById('addEntryBtn');
             tableBody = document.getElementById('tableBody');
             exportBtn = document.getElementById('exportBtn');
+            resyncWebsiteBtn = document.getElementById('resyncWebsiteBtn');
 
             if (typeof supabase === 'undefined') {
                 showToast('Supabase library missing – auto‑sync disabled.', 'error');
@@ -584,11 +638,12 @@
             }
 
             setDefaultDate();
-            updateConceptState();
+            updateConceptState();   // concept is enabled because default is Expenses
 
             categorySelect.addEventListener('change', updateConceptState);
             addBtn.addEventListener('click', handleAddClick);
             exportBtn.addEventListener('click', exportToExcel);
+            resyncWebsiteBtn.addEventListener('click', resyncWebsite);
 
             await fetchEntries();
             await autoSyncWebsitePayments();
