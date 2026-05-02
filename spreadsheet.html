@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💰 Centralized Income & Expenses Tracker (Cloud Sync)</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <!-- Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -35,6 +37,8 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
         .export-btn { margin-top: 20px; background: #3b4a5a; }
         .export-btn:hover { background: #2c6e9e; }
+        .sync-btn { background: #1e5a6e; margin-top: 20px; }
+        .sync-btn:hover { background: #2a7a92; }
         .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
@@ -107,6 +111,7 @@
             <label for="recurringCheck">Recurring monthly</label>
         </div>
         <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
+        <button class="btn sync-btn" id="syncWebsiteBtn">🔄 Sync Website Payments</button>
     </div>
 
     <div class="table-wrapper">
@@ -133,11 +138,16 @@
 <script>
     (function() {
         const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
+        // Supabase config (same as your poll page)
+        const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
         let entries = [];
-        let sortKey = null;         // current sort column
-        let sortAsc = true;         // direction
+        let sortKey = null;
+        let sortAsc = true;
 
+        // ---------- DOM ----------
         const monthSelect = document.getElementById('monthSelect');
         const daySelect = document.getElementById('daySelect');
         const amountInput = document.getElementById('amountInput');
@@ -146,6 +156,7 @@
         const conceptInput = document.getElementById('conceptInput');
         const recurringCheck = document.getElementById('recurringCheck');
         const addBtn = document.getElementById('addEntryBtn');
+        const syncBtn = document.getElementById('syncWebsiteBtn');
         const tableBody = document.getElementById('tableBody');
         const exportBtn = document.getElementById('exportBtn');
 
@@ -153,11 +164,11 @@
         const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'];
 
-        function formatDate(month, day) {
-            const year = new Date().getFullYear();  // infer current year
-            const m = monthNames[month].substring(0,3); // e.g. "May"
+        function formatDate(month, day, year = null) {
+            const y = year || new Date().getFullYear();
+            const m = monthNames[month].substring(0,3);
             const d = String(day).padStart(2, '0');
-            return `${m} ${d} ${year}`;
+            return `${m} ${d} ${y}`;
         }
 
         function populateDays() {
@@ -213,7 +224,50 @@
             sortAndRender();
         }
 
-        async function addEntry() {
+        async function addEntry(entryData) {
+            const newEntry = {
+                month: entryData.month,
+                day: entryData.day,
+                amount: entryData.amount,
+                currency: entryData.currency,
+                category: entryData.category,
+                concept: entryData.concept || '',
+                recurring: entryData.recurring || false
+            };
+
+            try {
+                const res = await fetch(`${WORKER_URL}/entries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEntry)
+                });
+                if (!res.ok) throw new Error('Failed to save');
+                const serverResp = await res.json();
+                entries.push({ id: serverResp.id, ...newEntry });
+                return true;
+            } catch (err) {
+                entries.push({ id: null, ...newEntry });
+                showToast('Entry saved locally (server unreachable).', 'error');
+                return false;
+            }
+        }
+
+        async function deleteEntry(index) {
+            const entry = entries[index];
+            if (entry.id) {
+                try {
+                    await fetch(`${WORKER_URL}/entries/${entry.id}`, { method: 'DELETE' });
+                } catch (err) {
+                    showToast('Could not delete from server.', 'error');
+                }
+            }
+            entries.splice(index, 1);
+            sortAndRender();
+            showToast('Entry removed.', 'info');
+        }
+
+        // ---------- Manual add ----------
+        async function handleAddClick() {
             const month = parseInt(monthSelect.value);
             const day = parseInt(daySelect.value);
             const amount = parseFloat(amountInput.value);
@@ -231,43 +285,90 @@
                 return;
             }
 
-            const newEntry = { month, day, amount, currency, category, concept, recurring };
-
-            try {
-                const res = await fetch(`${WORKER_URL}/entries`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newEntry)
-                });
-                if (!res.ok) throw new Error('Failed to save');
-                const serverResp = await res.json();
-                entries.push({ id: serverResp.id, ...newEntry });
-                showToast('Entry added!', 'success');
-            } catch (err) {
-                entries.push({ id: null, ...newEntry });
-                showToast('Entry saved locally (server unreachable).', 'error');
-            }
-
+            await addEntry({ month, day, amount, currency, category, concept, recurring });
             amountInput.value = '';
             conceptInput.value = '';
             recurringCheck.checked = false;
             categorySelect.value = 'Patreon subscription';
             updateConceptState();
             sortAndRender();
+            showToast('Entry added!', 'success');
         }
 
-        async function deleteEntry(index) {
-            const entry = entries[index];
-            if (entry.id) {
-                try {
-                    await fetch(`${WORKER_URL}/entries/${entry.id}`, { method: 'DELETE' });
-                } catch (err) {
-                    showToast('Could not delete from server.', 'error');
-                }
+        // ---------- Sync website payments ----------
+        const IMPORTED_IDS_KEY = 'imported_website_order_ids';
+        function getImportedIds() {
+            return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]');
+        }
+        function addImportedId(id) {
+            const ids = getImportedIds();
+            if (!ids.includes(id)) {
+                ids.push(id);
+                localStorage.setItem(IMPORTED_IDS_KEY, JSON.stringify(ids));
             }
-            entries.splice(index, 1);
-            sortAndRender();
-            showToast('Entry removed.', 'info');
+        }
+
+        async function syncWebsitePayments() {
+            syncBtn.disabled = true;
+            syncBtn.textContent = '⏳ Syncing...';
+            try {
+                const { data, error } = await supabase
+                    .from('successs')
+                    .select('*')
+                    .eq('status', 'completed')
+                    .order('purchased_at', { ascending: true });
+
+                if (error) throw error;
+
+                const importedIds = getImportedIds();
+                let addedCount = 0;
+
+                for (const order of data) {
+                    // Skip if already imported
+                    if (importedIds.includes(order.id)) continue;
+
+                    const date = new Date(order.purchased_at);
+                    const month = date.getUTCMonth() + 1;
+                    const day = date.getUTCDate();
+                    const amount = parseFloat(order.amount);
+                    const currency = order.currency || 'USD';
+
+                    // Check if we already have an entry with same month/day/amount (dedup)
+                    const duplicate = entries.some(e => 
+                        e.month === month && e.day === day && e.amount === amount && e.currency === currency && e.category === 'Website payments'
+                    );
+                    if (duplicate) {
+                        // Still mark as imported to avoid future checks
+                        addImportedId(order.id);
+                        continue;
+                    }
+
+                    // Add entry
+                    const success = await addEntry({
+                        month, day, amount, currency,
+                        category: 'Website payments',
+                        concept: '',  // leave blank for income
+                        recurring: false
+                    });
+
+                    if (success) {
+                        addImportedId(order.id);
+                        addedCount++;
+                    } else {
+                        // Stop if server errors
+                        break;
+                    }
+                }
+
+                sortAndRender();
+                showToast(`✅ Added ${addedCount} new website payments.`, 'success');
+            } catch (err) {
+                console.error('Sync failed:', err);
+                showToast(`❌ Sync error: ${err.message}`, 'error');
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.textContent = '🔄 Sync Website Payments';
+            }
         }
 
         // ---------- Sorting ----------
@@ -283,7 +384,7 @@
                     case 'amount':
                         valA = a.amount;
                         valB = b.amount;
-                        break;
+                        return sortAsc ? valA - valB : valB - valA;
                     case 'currency':
                         valA = a.currency;
                         valB = b.currency;
@@ -299,7 +400,7 @@
                     case 'recurring':
                         valA = a.recurring ? 1 : 0;
                         valB = b.recurring ? 1 : 0;
-                        break;
+                        return sortAsc ? valA - valB : valB - valA;
                 }
                 if (valA < valB) return sortAsc ? -1 : 1;
                 if (valA > valB) return sortAsc ? 1 : -1;
@@ -331,9 +432,7 @@
             entries.forEach((entry, index) => {
                 const dateStr = formatDate(entry.month, entry.day);
                 const amountDisplay = entry.amount.toFixed(2);
-                // Description: show only for expenses, otherwise blank
                 const desc = (entry.category === 'Expenses') ? (entry.concept || '') : '';
-                // Recurring: green checkmark or blank
                 const recurringHtml = entry.recurring ? '<span style="color:#4caf50; font-weight:bold;">✔</span>' : '';
 
                 const tr = document.createElement('tr');
@@ -397,10 +496,10 @@
 
         // ---------- Event listeners ----------
         categorySelect.addEventListener('change', updateConceptState);
-        addBtn.addEventListener('click', addEntry);
+        addBtn.addEventListener('click', handleAddClick);
+        syncBtn.addEventListener('click', syncWebsitePayments);
         exportBtn.addEventListener('click', exportToExcel);
 
-        // Header click sorting
         document.querySelectorAll('th[data-sort]').forEach(th => {
             th.addEventListener('click', () => {
                 const key = th.dataset.sort;
