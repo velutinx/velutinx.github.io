@@ -299,6 +299,25 @@
             showToast('Entry removed.', 'info');
         }
 
+        // New: toggle recurring via PUT and update local state
+        async function toggleRecurring(index) {
+            const entry = entries[index];
+            const newRecurring = !entry.recurring;
+            try {
+                const res = await fetch(`${WORKER_URL}/entries/${entry.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recurring: newRecurring })
+                });
+                if (!res.ok) throw new Error('Failed to update');
+                entry.recurring = newRecurring;
+                refreshAll();   // re-render table and chart
+                showToast(`Recurring ${newRecurring ? 'enabled' : 'disabled'}.`, 'success');
+            } catch (err) {
+                showToast(`Could not toggle recurring: ${err.message}`, 'error');
+            }
+        }
+
         async function handleAddClick() {
             const month = parseInt(monthSelect.value);
             const day = parseInt(daySelect.value);
@@ -434,7 +453,7 @@
             }
         }
 
-        // ---------- Table rendering ----------
+        // ---------- Table rendering (with clickable recurring icon) ----------
         function renderTable() {
             tableBody.innerHTML = '';
             if (entries.length === 0) {
@@ -489,7 +508,15 @@
                     const dateStr = formatDate(entry.month, entry.day, y);
                     const amountDisplay = entry.amount.toFixed(2);
                     const desc = entry.concept || '';
-                    const recurringHtml = entry.recurring ? '<span style="color:#4caf50; font-weight:bold;">✔</span>' : '';
+
+                    // Recurring icon: clickable for expenses only
+                    let recurringHtml = '';
+                    if (entry.category === 'Expenses') {
+                        const icon = entry.recurring ? '✔' : '✕';
+                        const color = entry.recurring ? '#4caf50' : '#f44336';
+                        recurringHtml = `<span class="recurring-toggle" data-index="${entries.indexOf(entry)}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
+                    }
+
                     const deleteHtml = (entry.category === 'Expenses')
                         ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
                         : '';
@@ -513,6 +540,7 @@
                 }
             }
 
+            // Attach delete events
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.index);
@@ -520,6 +548,16 @@
                 });
             });
 
+            // Attach click on recurring icons
+            document.querySelectorAll('.recurring-toggle').forEach(span => {
+                span.addEventListener('click', function(e) {
+                    e.stopPropagation();   // prevent accidental month toggle
+                    const idx = parseInt(this.dataset.index);
+                    toggleRecurring(idx);
+                });
+            });
+
+            // Month toggle events
             document.querySelectorAll('.month-header').forEach(header => {
                 header.addEventListener('click', function() {
                     const monthKey = this.dataset.monthKey;
@@ -535,7 +573,7 @@
             exportBtn.disabled = false;
         }
 
-        // ---------- Cumulative chart (reset each month) – now with Ko‑fi ----------
+        // ---------- Chart with recurring expense handling ----------
         function buildChart(initialDays) {
             if (incomeChart) {
                 incomeChart.destroy();
@@ -547,8 +585,18 @@
             const now = moment().endOf('day');
             const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-            // 1. Aggregate daily amounts per category
-            const dailyMap = new Map();   // key: YYYY-MM-DD
+            // Pre‑compute recurring expenses separately
+            const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
+            const nonRecurringExpenses = entries.filter(e => e.category === 'Expenses' && !e.recurring);
+
+            // Function to get days in month
+            function daysInMonth(month, year) {
+                return new Date(year, month, 0).getDate();
+            }
+
+            // Daily map for all categories
+            const dailyMap = new Map();   // key: YYYY-MM-DD -> { patreon, website, kofi, expense }
+
             entries.forEach(e => {
                 const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
                 if (!dailyMap.has(date)) {
@@ -558,20 +606,56 @@
                 if (e.category === 'Patreon subscription') d.patreon += e.amount;
                 else if (e.category === 'Website payments') d.website += e.amount;
                 else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
-                else if (e.category === 'Expenses') d.expense += e.amount;
+                else if (e.category === 'Expenses' && !e.recurring) d.expense += e.amount;   // non‑recurring handled here
             });
 
-            // 2. Build cumulative arrays (reset on 1st of each month)
+            // Add recurring expenses to dailyMap for all appropriate days
+            for (const recExp of recurringExpenses) {
+                const startMonth = recExp.month;
+                const startDay = recExp.day;
+                for (let m = startMonth; m <= 12; m++) {   // assume within current year; we limit to current year
+                    const startDom = (m === startMonth) ? startDay : 1;
+                    const lastDay = daysInMonth(m, currentYear);
+                    for (let d = startDom; d <= lastDay; d++) {
+                        const dateKey = moment(new Date(currentYear, m - 1, d)).format('YYYY-MM-DD');
+                        if (!dailyMap.has(dateKey)) {
+                            dailyMap.set(dateKey, { patreon: 0, website: 0, kofi: 0, expense: 0 });
+                        }
+                        dailyMap.get(dateKey).expense += recExp.amount;
+                    }
+                }
+            }
+
+            // Build cumulative arrays (reset on 1st of each month)
             const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], expenseCum = [], netCum = [];
             let curPatreon = 0, curWebsite = 0, curKofi = 0, curExpense = 0;
             let lastMonth = null;
 
             for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
                 const key = d.format('YYYY-MM-DD');
-                const month = d.month() + 1;  // 1‑based
+                const month = d.month() + 1;
 
                 // Reset on new month
                 if (lastMonth !== null && month !== lastMonth) {
+                    curPatreon = 0;
+                    curWebsite = 0;
+                    curKofi = 0;
+                    // Do NOT reset curExpense because recurring expenses persist across months
+                    // But we do reset non‑recurring part? Actually we accumulated all expenses (including recurring) in dailyMap.
+                    // The dailyMap already contains all expenses for each day, including recurring that span months.
+                    // So we just build a running total without hard reset.
+                    // But the user wants non‑recurring expenses to reset? No, non‑recurring are one‑time, they don't need to reset; they just happen on their day and stay in cumulative (like all entries).
+                    // The previous behavior of resetting at month start was for the old design. Now with recurring, the expense line should not reset; it should keep growing.
+                    // The user said "the rest will restart back to 0" but that was before recurring logic. So we change: no reset of expense cumulative.
+                    // Actually, the user said: "in single payments, it will behave normally, where it resets on 1st day". That implies for one‑time expenses, the cumulative should reset each month (so each month starts at 0 for expenses). But with recurring, they carry over.
+                    // This is ambiguous. Let's re‑read: "on single payments, it will behave normally, where it resets on 1st day, i think it already does, but on recurring payments, it should assume that value is being paid every month".
+                    // So single (non‑recurring) expenses: reset on 1st. Recurring: do not reset, they continue.
+                    // Therefore we need to treat non‑recurring expenses as per‑month cumulative, while recurring add to a persistent total that never resets.
+                    // To implement, we can separate the expense cumulative into two parts: non‑recurring (resets each month) and recurring (persistent). But we show a single red line.
+                    // A simpler approach: keep the old per‑month reset for all expenses, but then for recurring, they would reappear each month anyway because we add them from day 1 of each month. That gives a step from the 1st, which matches "assume from 1st". And if they are toggled off, they won't be added in future months. So we don't need a persistent total; the resetting monthly cumulative naturally shows recurring as a jump on the 1st. That's consistent with the user's description: "when 1st reaches, it should assume im still paying the 10usd". So the line will drop to 0 on the 1st, then immediately jump by the recurring amounts (since they are added from day 1). That shows a sawtooth pattern but demonstrates the incurred monthly cost.
+                    // That is likely what the user expects. So we can keep the monthly reset, but we must ensure recurring expenses are added from day 1 of each month after their first month.
+                    // So we'll reset all categories at month change (including expense), and the dailyMap already accounts for recurring expenses on day 1 of subsequent months (since we added them from day 1). Thus the cumulative expense will include those amounts immediately after reset.
+                    // That's fine.
                     curPatreon = 0;
                     curWebsite = 0;
                     curKofi = 0;
@@ -595,62 +679,17 @@
                 netCum.push(net);
             }
 
-            // 3. Create chart
+            // Chart
             const ctx = document.getElementById('incomeChart').getContext('2d');
             incomeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     datasets: [
-                        {
-                            label: 'Patreon',
-                            data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })),
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 3,
-                            tension: 0,
-                        },
-                        {
-                            label: 'Website',
-                            data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })),
-                            borderColor: '#f97316',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 3,
-                            tension: 0,
-                        },
-                        {
-                            label: 'Ko‑fi',
-                            data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })),
-                            borderColor: '#eab308',   // yellow
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 3,
-                            tension: 0,
-                        },
-                        {
-                            label: 'Expenses (abs)',
-                            data: dates.map((d, i) => ({ x: d, y: expenseCum[i] })),
-                            borderColor: '#ef4444',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 3,
-                            tension: 0,
-                        },
-                        {
-                            label: 'Net Income',
-                            data: dates.map((d, i) => ({ x: d, y: netCum[i] })),
-                            borderColor: '#22c55e',
-                            backgroundColor: 'transparent',
-                            borderWidth: 3,
-                            pointRadius: 0,
-                            pointHoverRadius: 3,
-                            tension: 0,
-                        }
+                        { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                        { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                        { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                        { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: expenseCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                        { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, pointHoverRadius: 3, tension: 0 }
                     ]
                 },
                 options: {
@@ -660,11 +699,7 @@
                     plugins: {
                         legend: { labels: { color: '#aaa' } },
                         zoom: {
-                            zoom: {
-                                wheel: { enabled: true },
-                                pinch: { enabled: true },
-                                mode: 'x',
-                            },
+                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
                             pan: { enabled: true, mode: 'x' },
                         }
                     },
@@ -767,7 +802,6 @@
             await autoSyncWebsitePayments();
             await autoSyncPatreon();
 
-            // Default chart: last 30 days
             buildChart(30);
         });
     })();
