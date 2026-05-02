@@ -34,16 +34,16 @@
         }
         .btn:hover { background: #3e8e3e; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
+        .secondary-btn { background: #3b4a5a; }
+        .secondary-btn:hover { background: #2c6e9e; }
         .export-btn { margin-top: 20px; background: #3b4a5a; }
         .export-btn:hover { background: #2c6e9e; }
         .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
         th {
-            background: #0a0e14; color: #aaa; font-weight: 500; cursor: pointer; user-select: none;
+            background: #0a0e14; color: #aaa; font-weight: 500;
         }
-        th:hover { background: #1a1f2a; }
-        th .sort-icon { margin-left: 4px; font-size: 0.7rem; }
         .delete-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 1rem; }
         .empty-message { text-align: center; padding: 40px; color: #777; }
         .toast-notification {
@@ -54,6 +54,17 @@
         }
         .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
         .toast-notification.show { opacity: 1; transform: translateX(0); }
+
+        /* Month header row */
+        .month-header td {
+            background: #1a1f2a;
+            cursor: pointer;
+            font-weight: 500;
+            color: #ccc;
+        }
+        .month-header td:hover { background: #232a38; }
+        .hidden-row { display: none; }
+        .toggle-icon { margin-right: 6px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -108,18 +119,19 @@
             <label for="recurringCheck">Recurring monthly</label>
         </div>
         <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
+        <button class="btn secondary-btn" id="resyncPatreonBtn" title="Delete all Patreon entries and re-import">🔄 Re‑sync Patreon</button>
     </div>
 
     <div class="table-wrapper">
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th data-sort="date">Date <span class="sort-icon"></span></th>
-                    <th data-sort="amount">Amount <span class="sort-icon"></span></th>
-                    <th data-sort="currency">Currency <span class="sort-icon"></span></th>
-                    <th data-sort="category">Category <span class="sort-icon"></span></th>
-                    <th data-sort="description">Description <span class="sort-icon"></span></th>
-                    <th data-sort="recurring">Recurring <span class="sort-icon"></span></th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Recurring</th>
                     <th></th>
                 </tr>
             </thead>
@@ -138,12 +150,12 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
 
         let entries = [];
-        let sortKey = null;
-        let sortAsc = true;
+        window.entries = entries;   // expose for console
+
         let supabaseClient = null;
 
         let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
-        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn;
+        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn, resyncPatreonBtn;
 
         const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -205,7 +217,7 @@
                 showToast('⚠ Could not connect to server – working offline.', 'error');
                 entries = [];
             }
-            sortAndRender();
+            renderTable();   // table will group by month
         }
 
         async function addEntry(entryData) {
@@ -246,7 +258,7 @@
                 }
             }
             entries.splice(index, 1);
-            sortAndRender();
+            renderTable();
             showToast('Entry removed.', 'info');
         }
 
@@ -275,11 +287,11 @@
             recurringCheck.checked = false;
             categorySelect.value = 'Patreon subscription';
             updateConceptState();
-            sortAndRender();
+            renderTable();
             showToast('Entry added!', 'success');
         }
 
-        // ---------- Auto‑sync website payments ----------
+        // ---------- Website sync ----------
         const IMPORTED_IDS_KEY = 'imported_website_order_ids';
         function getImportedIds() {
             return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]');
@@ -316,7 +328,6 @@
                     const amount = parseFloat(order.amount);
                     const currency = order.currency || 'USD';
 
-                    // Check for duplicate in current entries
                     const duplicate = entries.some(e =>
                         e.month === month && e.day === day && e.amount === amount &&
                         e.currency === currency && e.category === 'Website payments'
@@ -335,13 +346,11 @@
                     if (success) {
                         addImportedId(order.id);
                         addedCount++;
-                    } else {
-                        break; // stop if server fails
-                    }
+                    } else break;
                 }
 
                 if (addedCount > 0) {
-                    sortAndRender();
+                    renderTable();
                     showToast(`✅ Synced ${addedCount} new website payments.`, 'success');
                 }
             } catch (err) {
@@ -350,7 +359,7 @@
             }
         }
 
-        // ---------- Auto‑sync Patreon payments ----------
+        // ---------- Patreon sync ----------
         const PATREON_PROXY = 'https://patreon-api-proxy.velutinx.workers.dev';
         const IMPORTED_PATREON_CHARGES_KEY = 'imported_patreon_charges';
         function getImportedPatreonCharges() {
@@ -364,111 +373,87 @@
             }
         }
 
-async function autoSyncPatreon() {
-  try {
-    const res = await fetch(PATREON_PROXY);
-    if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
-    const members = await res.json();
+        async function autoSyncPatreon() {
+            try {
+                const res = await fetch(PATREON_PROXY);
+                if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+                const members = await res.json();
 
-    const importedKeys = getImportedPatreonCharges();
-    let addedCount = 0;
+                const importedKeys = getImportedPatreonCharges();
+                let addedCount = 0;
 
-    for (const m of members) {
-      const chargeDate = new Date(m.lastChargeDate);
-      const month = chargeDate.getUTCMonth() + 1;
-      const day = chargeDate.getUTCDate();
-      const amount = m.amountCents / 100;
+                for (const m of members) {
+                    const chargeDate = new Date(m.lastChargeDate);
+                    const month = chargeDate.getUTCMonth() + 1;
+                    const day = chargeDate.getUTCDate();
+                    const amount = m.amountCents / 100;
 
-      const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
-      if (importedKeys.includes(chargeKey)) continue;
+                    const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
+                    if (importedKeys.includes(chargeKey)) continue;
 
-      // Build a description like "John Doe (j.doe@email.com) – Tier Name"
-      const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
+                    const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
 
-      // Check for duplicate in current entries
-      const duplicate = entries.some(e =>
-        e.month === month && e.day === day && e.amount === amount
-        && e.currency === 'USD' && e.category === 'Patreon subscription'
-      );
-      if (duplicate) {
-        addImportedPatreonCharge(chargeKey);
-        continue;
-      }
+                    const duplicate = entries.some(e =>
+                        e.month === month && e.day === day && e.amount === amount &&
+                        e.currency === 'USD' && e.category === 'Patreon subscription'
+                    );
+                    if (duplicate) {
+                        addImportedPatreonCharge(chargeKey);
+                        continue;
+                    }
 
-      const success = await addEntry({
-        month, day, amount,
-        currency: 'USD',
-        category: 'Patreon subscription',
-        concept: desc,            // store the description
-        recurring: false,
-      });
+                    const success = await addEntry({
+                        month, day, amount,
+                        currency: 'USD',
+                        category: 'Patreon subscription',
+                        concept: desc,
+                        recurring: false,
+                    });
 
-      if (success) {
-        addImportedPatreonCharge(chargeKey);
-        addedCount++;
-      } else break;
-    }
-
-    if (addedCount > 0) {
-      sortAndRender();
-      showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
-    }
-  } catch (err) {
-    console.error('Patreon sync failed:', err);
-    showToast(`❌ Patreon sync error: ${err.message}`, 'error');
-  }
-}
-
-        // ---------- Sorting ----------
-        function sortEntries() {
-            if (!sortKey) return;
-            entries.sort((a, b) => {
-                let valA, valB;
-                switch (sortKey) {
-                    case 'date':
-                        valA = a.month * 100 + a.day;
-                        valB = b.month * 100 + b.day;
-                        break;
-                    case 'amount':
-                        valA = a.amount;
-                        valB = b.amount;
-                        return sortAsc ? valA - valB : valB - valA;
-                    case 'currency':
-                        valA = a.currency;
-                        valB = b.currency;
-                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    case 'category':
-                        valA = a.category;
-                        valB = b.category;
-                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    case 'description':
-                        valA = a.concept || '';
-                        valB = b.concept || '';
-                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    case 'recurring':
-                        valA = a.recurring ? 1 : 0;
-                        valB = b.recurring ? 1 : 0;
-                        return sortAsc ? valA - valB : valB - valA;
+                    if (success) {
+                        addImportedPatreonCharge(chargeKey);
+                        addedCount++;
+                    } else break;
                 }
-                if (valA < valB) return sortAsc ? -1 : 1;
-                if (valA > valB) return sortAsc ? 1 : -1;
-                return 0;
-            });
+
+                if (addedCount > 0) {
+                    renderTable();
+                    showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
+                }
+            } catch (err) {
+                console.error('Patreon sync failed:', err);
+                showToast(`❌ Patreon sync error: ${err.message}`, 'error');
+            }
         }
 
-        function updateSortIcons() {
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                const icon = th.querySelector('.sort-icon');
-                if (!icon) return;
-                if (th.dataset.sort === sortKey) {
-                    icon.textContent = sortAsc ? '▲' : '▼';
-                } else {
-                    icon.textContent = '';
+        // ---------- Re‑sync Patreon (delete all & re‑import) ----------
+        async function resyncPatreon() {
+            resyncPatreonBtn.disabled = true;
+            resyncPatreonBtn.textContent = '⏳ Re‑syncing...';
+            try {
+                // Delete all Patreon subscription entries from server
+                const toDelete = entries.filter(e => e.category === 'Patreon subscription');
+                for (const e of toDelete) {
+                    if (e.id) {
+                        await fetch(`${WORKER_URL}/entries/${e.id}`, { method: 'DELETE' });
+                    }
                 }
-            });
+                // Remove them from local array
+                entries = entries.filter(e => e.category !== 'Patreon subscription');
+                window.entries = entries;
+                localStorage.removeItem(IMPORTED_PATREON_CHARGES_KEY);
+                await autoSyncPatreon();  // re‑import with fresh descriptions
+                renderTable();
+                showToast('✅ Patreon data re‑synced with full details.', 'success');
+            } catch (err) {
+                showToast(`❌ Re‑sync failed: ${err.message}`, 'error');
+            } finally {
+                resyncPatreonBtn.disabled = false;
+                resyncPatreonBtn.textContent = '🔄 Re‑sync Patreon';
+            }
         }
 
-        // ---------- Render (delete button only for Expenses) ----------
+        // ---------- Table rendering with month grouping ----------
         function renderTable() {
             tableBody.innerHTML = '';
             if (entries.length === 0) {
@@ -477,42 +462,107 @@ async function autoSyncPatreon() {
                 return;
             }
 
-            entries.forEach((entry, index) => {
-                const dateStr = formatDate(entry.month, entry.day);
-                const amountDisplay = entry.amount.toFixed(2);
-                // Show concept for Expenses AND for any income entry that has a description
-                const desc = entry.concept || '';
-                const recurringHtml = entry.recurring ? '<span style="color:#4caf50; font-weight:bold;">✔</span>' : '';
+            // Sort entries by date ascending (month, day)
+            entries.sort((a, b) => (a.month * 100 + a.day) - (b.month * 100 + b.day));
 
-                // Show delete button ONLY for Expenses
-                const deleteHtml = (entry.category === 'Expenses')
-                    ? `<button class="delete-btn" data-index="${index}" title="Delete">✕</button>`
-                    : '';
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${dateStr}</td>
-                    <td>${amountDisplay}</td>
-                    <td>${entry.currency}</td>
-                    <td>${entry.category}</td>
-                    <td>${desc}</td>
-                    <td>${recurringHtml}</td>
-                    <td>${deleteHtml}</td>
-                `;
-                tableBody.appendChild(tr);
+            // Group entries by (year, month)
+            const groups = new Map();
+            for (const entry of entries) {
+                const year = currentYear;   // all entries use current year by display, we need storage? we'll assume year stored? Actually we only have month/day, so use currentYear always.
+                const key = `${currentYear}-${entry.month}`;
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(entry);
+            }
+
+            // Iterate in ascending month order
+            const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
+                const [y1, m1] = a.split('-').map(Number);
+                const [y2, m2] = b.split('-').map(Number);
+                return y1 - y2 || m1 - m2;
             });
 
-            // attach delete handlers only to existing delete buttons
+            for (const key of sortedKeys) {
+                const [y, m] = key.split('-').map(Number);
+                const monthEntries = groups.get(key);
+                const monthTotal = monthEntries.reduce((sum, e) => sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
+                const currencySet = new Set(monthEntries.map(e => e.currency));
+                const currency = currencySet.size === 1 ? currencySet.values().next().value : 'mixed';
+                const isCurrent = (y === currentYear && m === currentMonth);
+                const monthName = monthNames[m] + ' ' + y;
+
+                // Month header row
+                const headerTr = document.createElement('tr');
+                headerTr.className = 'month-header';
+                headerTr.dataset.monthKey = key;
+                headerTr.style.cursor = 'pointer';
+                headerTr.innerHTML = `
+                    <td colspan="7">
+                        <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
+                        <strong>${monthName}</strong> – ${monthEntries.length} entries, total:
+                        <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
+                            ${monthTotal.toFixed(2)} ${currency}
+                        </span>
+                        ${isCurrent ? ' (current)' : ''}
+                    </td>
+                `;
+                tableBody.appendChild(headerTr);
+
+                // Individual entry rows – hidden if not current month
+                for (const entry of monthEntries) {
+                    const dateStr = formatDate(entry.month, entry.day, y);
+                    const amountDisplay = entry.amount.toFixed(2);
+                    const desc = entry.concept || '';
+                    const recurringHtml = entry.recurring ? '<span style="color:#4caf50; font-weight:bold;">✔</span>' : '';
+                    const deleteHtml = (entry.category === 'Expenses')
+                        ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
+                        : '';
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'entry-row ' + (isCurrent ? '' : 'hidden-row');
+                    tr.dataset.monthKey = key;
+                    tr.innerHTML = `
+                        <td>${dateStr}</td>
+                        <td>${amountDisplay}</td>
+                        <td>${entry.currency}</td>
+                        <td>${entry.category}</td>
+                        <td>${desc}</td>
+                        <td>${recurringHtml}</td>
+                        <td>${deleteHtml}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                }
+            }
+
+            // Attach delete events
             document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.onclick = () => deleteEntry(parseInt(btn.dataset.index));
+                btn.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.index);
+                    deleteEntry(idx);
+                });
+            });
+
+            // Toggle month groups
+            document.querySelectorAll('.month-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const monthKey = this.dataset.monthKey;
+                    const icon = this.querySelector('.toggle-icon');
+                    const currentIcon = icon.textContent.trim();
+                    const isOpen = currentIcon === '▼';
+
+                    // Toggle icon
+                    icon.textContent = isOpen ? '▶' : '▼';
+
+                    // Toggle all entry rows with that month key
+                    document.querySelectorAll(`.entry-row[data-month-key="${monthKey}"]`).forEach(row => {
+                        row.classList.toggle('hidden-row', isOpen);  // if was open, hide; if was closed, show
+                    });
+                });
             });
 
             exportBtn.disabled = false;
-        }
-
-        function sortAndRender() {
-            sortEntries();
-            renderTable();
         }
 
         // ---------- Excel export ----------
@@ -551,7 +601,6 @@ async function autoSyncPatreon() {
 
         // ---------- Initialise on DOM ready ----------
         document.addEventListener('DOMContentLoaded', async () => {
-            // Grab DOM elements
             monthSelect = document.getElementById('monthSelect');
             daySelect = document.getElementById('daySelect');
             amountInput = document.getElementById('amountInput');
@@ -562,8 +611,8 @@ async function autoSyncPatreon() {
             addBtn = document.getElementById('addEntryBtn');
             tableBody = document.getElementById('tableBody');
             exportBtn = document.getElementById('exportBtn');
+            resyncPatreonBtn = document.getElementById('resyncPatreonBtn');
 
-            // Set up Supabase client if library is present
             if (typeof supabase === 'undefined') {
                 showToast('Supabase library missing – auto‑sync disabled.', 'error');
                 supabaseClient = null;
@@ -574,32 +623,13 @@ async function autoSyncPatreon() {
             setDefaultDate();
             updateConceptState();
 
-            // Event listeners
             categorySelect.addEventListener('change', updateConceptState);
             addBtn.addEventListener('click', handleAddClick);
             exportBtn.addEventListener('click', exportToExcel);
+            resyncPatreonBtn.addEventListener('click', resyncPatreon);
 
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.addEventListener('click', () => {
-                    const key = th.dataset.sort;
-                    if (sortKey === key) {
-                        sortAsc = !sortAsc;
-                    } else {
-                        sortKey = key;
-                        sortAsc = true;
-                    }
-                    sortAndRender();
-                    updateSortIcons();
-                });
-            });
-
-            // 1. Load existing entries from the Cloudflare backend
             await fetchEntries();
-
-            // 2. Automatically pull new website payments from Supabase
             await autoSyncWebsitePayments();
-
-            // 3. Automatically pull new Patreon subscriptions
             await autoSyncPatreon();
         });
 
