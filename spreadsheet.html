@@ -6,7 +6,12 @@
     <title>💰 Centralized Income & Expenses (Cloud Sync)</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js + zoom + time adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -78,7 +83,7 @@
             border-radius: 20px; cursor: pointer; font-size: 0.8rem;
         }
         .range-btn.active { background: #2c6e2c; color: white; }
-        .chart-container { position: relative; height: 300px; margin-bottom: 16px; }
+        .chart-container { position: relative; height: 400px; }
     </style>
 </head>
 <body>
@@ -158,11 +163,11 @@
         <!-- Right side: chart -->
         <div class="chart-section">
             <div class="range-btns">
-                <button class="range-btn active" data-months="2">2M</button>
-                <button class="range-btn" data-months="3">3M</button>
-                <button class="range-btn" data-months="6">6M</button>
-                <button class="range-btn" data-months="12">12M</button>
-                <button class="range-btn" data-months="0">All</button>
+                <button class="range-btn active" data-days="30">30D</button>
+                <button class="range-btn" data-days="60">60D</button>
+                <button class="range-btn" data-days="90">90D</button>
+                <button class="range-btn" data-days="180">180D</button>
+                <button class="range-btn" data-days="365">1Y</button>
             </div>
             <div class="chart-container">
                 <canvas id="incomeChart"></canvas>
@@ -224,6 +229,7 @@
             }
         }
 
+        // ---------- Server sync ----------
         async function fetchEntries() {
             try {
                 tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading entries...</td></tr>`;
@@ -526,8 +532,8 @@
             exportBtn.disabled = false;
         }
 
-        // ---------- Daily chart ----------
-        function buildChart(monthsBack) {
+        // ---------- Chart with daily points and time scale ----------
+        function buildChart(initialDays) {
             if (incomeChart) {
                 incomeChart.destroy();
                 incomeChart = null;
@@ -535,44 +541,34 @@
             if (entries.length === 0) return;
 
             const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth() + 1;
+            const now = moment().endOf('day');
+            const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-            // Determine start month
-            const allMonths = entries.map(e => e.month);
-            const minMonth = Math.min(...allMonths);
-            const startMonth = (monthsBack === 0) ? minMonth : Math.max(currentMonth - monthsBack + 1, 1);
-            const endMonth = currentMonth;
-
-            // Build daily points: date label "Mon DD"
-            const dailyMap = new Map(); // key: "YYYY-MM-DD", value: { patreon, website, expense }
-            for (let m = startMonth; m <= endMonth; m++) {
-                const daysInMonth = new Date(currentYear, m, 0).getDate();
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const key = `${currentYear}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    dailyMap.set(key, { patreon: 0, website: 0, expense: 0 });
+            // Build daily data map from entries
+            const dailyMap = new Map(); // key: date string YYYY-MM-DD
+            entries.forEach(e => {
+                const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
+                if (!dailyMap.has(date)) {
+                    dailyMap.set(date, { patreon: 0, website: 0, expense: 0 });
                 }
+                const dayData = dailyMap.get(date);
+                if (e.category === 'Patreon subscription') dayData.patreon += e.amount;
+                else if (e.category === 'Website payments') dayData.website += e.amount;
+                else if (e.category === 'Expenses') dayData.expense += e.amount;
+            });
+
+            // Fill all days in the range to have continuous x-axis (optional: we could just use sparse data)
+            // We'll fill missing days with zero to avoid weird gaps; later we can filter.
+            const allDates = [];
+            for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
+                allDates.push(d.format('YYYY-MM-DD'));
             }
 
-            entries.forEach(e => {
-                const key = `${currentYear}-${String(e.month).padStart(2,'0')}-${String(e.day).padStart(2,'0')}`;
-                if (dailyMap.has(key)) {
-                    const dayData = dailyMap.get(key);
-                    if (e.category === 'Patreon subscription') dayData.patreon += e.amount;
-                    else if (e.category === 'Website payments') dayData.website += e.amount;
-                    else if (e.category === 'Expenses') dayData.expense += e.amount;   // positive
-                }
-            });
-
-            const sortedKeys = Array.from(dailyMap.keys()).sort();
-            const labels = sortedKeys.map(key => {
-                const [y, m, d] = key.split('-');
-                return monthNames[parseInt(m)] + ' ' + parseInt(d);
-            });
-
-            const patreonData = sortedKeys.map(key => dailyMap.get(key).patreon);
-            const websiteData = sortedKeys.map(key => dailyMap.get(key).website);
-            const expenseData = sortedKeys.map(key => dailyMap.get(key).expense);
-            const netData = sortedKeys.map((key, i) => patreonData[i] + websiteData[i] - expenseData[i]);
+            const labels = allDates;
+            const patreonData = labels.map(d => (dailyMap.get(d)?.patreon) || 0);
+            const websiteData = labels.map(d => (dailyMap.get(d)?.website) || 0);
+            const expenseData = labels.map(d => (dailyMap.get(d)?.expense) || 0);
+            const netData = labels.map((d, i) => patreonData[i] + websiteData[i] - expenseData[i]);
 
             const ctx = document.getElementById('incomeChart').getContext('2d');
             incomeChart = new Chart(ctx, {
@@ -582,7 +578,7 @@
                     datasets: [
                         {
                             label: 'Patreon',
-                            data: patreonData,
+                            data: patreonData.map((v, i) => ({ x: moment(labels[i]), y: v })),
                             borderColor: '#3b82f6',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
@@ -592,7 +588,7 @@
                         },
                         {
                             label: 'Website',
-                            data: websiteData,
+                            data: websiteData.map((v, i) => ({ x: moment(labels[i]), y: v })),
                             borderColor: '#f97316',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
@@ -602,7 +598,7 @@
                         },
                         {
                             label: 'Expenses (abs)',
-                            data: expenseData,
+                            data: expenseData.map((v, i) => ({ x: moment(labels[i]), y: v })),
                             borderColor: '#ef4444',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
@@ -612,7 +608,7 @@
                         },
                         {
                             label: 'Net Income',
-                            data: netData,
+                            data: netData.map((v, i) => ({ x: moment(labels[i]), y: v })),
                             borderColor: '#22c55e',
                             backgroundColor: 'transparent',
                             borderWidth: 3,
@@ -626,10 +622,28 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { labels: { color: '#aaa' } }
+                        legend: { labels: { color: '#aaa' } },
+                        zoom: {
+                            zoom: {
+                                wheel: { enabled: true },
+                                pinch: { enabled: true },
+                                mode: 'x',
+                            },
+                            pan: {
+                                enabled: true,
+                                mode: 'x',
+                            }
+                        }
                     },
                     scales: {
                         x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                displayFormats: { day: 'MMM D' }
+                            },
+                            min: startDate.toDate(),
+                            max: now.toDate(),
                             ticks: { color: '#aaa', maxRotation: 45 },
                             grid: { color: '#2a2f38' }
                         },
@@ -641,13 +655,28 @@
                     }
                 }
             });
+
+            // After chart creation, reset zoom when a range button is clicked
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const days = parseInt(this.dataset.days);
+                    const newStart = moment().subtract(days - 1, 'days').startOf('day');
+                    incomeChart.options.scales.x.min = newStart.toDate();
+                    incomeChart.options.scales.x.max = now.toDate();
+                    incomeChart.update();
+                    // Also reset zoom (otherwise zoom state may conflict)
+                    incomeChart.resetZoom();
+                });
+            });
         }
 
         function refreshAll() {
             renderTable();
             const activeBtn = document.querySelector('.range-btn.active');
-            const months = activeBtn ? parseInt(activeBtn.dataset.months) : 2;
-            buildChart(months);
+            const days = activeBtn ? parseInt(activeBtn.dataset.days) : 30;
+            buildChart(days);
         }
 
         function exportToExcel() {
@@ -708,11 +737,12 @@
             addBtn.addEventListener('click', handleAddClick);
             exportBtn.addEventListener('click', exportToExcel);
 
+            // Range buttons now use data-days
             document.querySelectorAll('.range-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    buildChart(parseInt(this.dataset.months));
+                    buildChart(parseInt(this.dataset.days));
                 });
             });
 
@@ -720,7 +750,8 @@
             await autoSyncWebsitePayments();
             await autoSyncPatreon();
 
-            buildChart(2);   // default: 2 months
+            // Build chart with default 30 days
+            buildChart(30);
         });
     })();
 </script>
