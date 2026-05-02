@@ -3,263 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Centralized Income & Expenses Tracker</title>
-    <!-- SheetJS for Excel export -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js">
-    </script>
+    <title>💰 Centralized Income & Expenses Tracker (Cloud Sync)</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* === Dark theme base (adapted from your style) === */
-        * {
-            box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0a0c10;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #e0e0e0;
+            background: #0a0c10; margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; color: #e0e0e0;
         }
-
         .container {
-            max-width: 1000px;
-            width: 100%;
-            background: #11151c;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            border: 1px solid #2a2f38;
+            max-width: 1000px; width: 100%; background: #11151c; border-radius: 16px;
+            padding: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); border: 1px solid #2a2f38;
         }
-
-        h1 {
-            margin-top: 0;
-            color: #f0f0f0;
-            font-weight: 500;
-            letter-spacing: -0.3px;
-        }
-
-        .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: flex-end;
-            margin-bottom: 24px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 100px;
-        }
-
-        .form-group label {
-            font-size: 0.8rem;
-            color: #aaa;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-
+        h1 { margin-top: 0; color: #f0f0f0; font-weight: 500; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 24px; }
+        .form-group { display: flex; flex-direction: column; min-width: 100px; }
+        .form-group label { font-size: 0.8rem; color: #aaa; margin-bottom: 4px; font-weight: 500; }
         select, input {
-            background: #0a0e14;
-            border: 1px solid #2a2f38;
-            border-radius: 8px;
-            color: #e0e0e0;
-            padding: 8px 10px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border 0.2s;
+            background: #0a0e14; border: 1px solid #2a2f38; border-radius: 8px;
+            color: #e0e0e0; padding: 8px 10px; font-size: 0.9rem; outline: none;
         }
-
-        select:focus, input:focus {
-            border-color: #5a6e3c;
-        }
-
-        input:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .recurring-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-width: auto;
-            margin-bottom: 0;
-            margin-top: 20px;
-        }
-
-        .recurring-group label {
-            margin-bottom: 0;
-            color: #ccc;
-            font-size: 0.85rem;
-        }
-
+        select:focus, input:focus { border-color: #5a6e3c; }
+        input:disabled { opacity: 0.4; cursor: not-allowed; }
+        .recurring-group { display: flex; align-items: center; gap: 6px; margin-top: 20px; }
         .btn {
-            background: #2c6e2c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-            align-self: center;
+            background: #2c6e2c; color: white; border: none; padding: 8px 16px;
+            border-radius: 30px; cursor: pointer; font-weight: 500; transition: background 0.2s;
         }
-
-        .btn:hover {
-            background: #3e8e3e;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #4a5a4a;
-        }
-
-        .export-btn {
-            margin-top: 20px;
-            background: #3b4a5a;
-        }
-
-        .export-btn:hover {
-            background: #2c6e9e;
-        }
-
-        /* Spreadsheet table */
-        .table-wrapper {
-            margin-top: 24px;
-            background: #0c1017;
-            border-radius: 14px;
-            border: 1px solid #252b33;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            color: #ddd;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 12px 16px;
-            border-bottom: 1px solid #252b33;
-        }
-
-        th {
-            background: #0a0e14;
-            color: #aaa;
-            font-weight: 500;
-        }
-
-        .delete-btn {
-            background: none;
-            border: none;
-            color: #f44336;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0 4px;
-        }
-
-        .delete-btn:hover {
-            color: #ff7961;
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 40px;
-            color: #777;
-        }
-
-        /* Toast (optional for feedback) */
+        .btn:hover { background: #3e8e3e; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
+        .export-btn { margin-top: 20px; background: #3b4a5a; }
+        .export-btn:hover { background: #2c6e9e; }
+        .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
+        th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
+        th { background: #0a0e14; color: #aaa; font-weight: 500; }
+        .delete-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 1rem; }
+        .empty-message { text-align: center; padding: 40px; color: #777; }
         .toast-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #1e2a1e;
-            color: #d4ffd4;
-            padding: 10px 18px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 500;
-            z-index: 10000;
-            box-shadow: 0 4px 12px black;
-            border-left: 4px solid #4caf50;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: 0.15s;
+            position: fixed; top: 20px; right: 20px; background: #1e2a1e; color: #d4ffd4;
+            padding: 10px 18px; border-radius: 40px; font-size: 13px; z-index: 10000;
+            box-shadow: 0 4px 12px black; border-left: 4px solid #4caf50;
+            opacity: 0; transform: translateX(20px); transition: 0.15s;
         }
-
-        .toast-notification.error {
-            background: #2c1a1a;
-            border-left-color: #f44336;
-            color: #ffc9c9;
-        }
-
-        .toast-notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
+        .toast-notification.show { opacity: 1; transform: translateX(0); }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>💰 Centralized Income & Expenses</h1>
+    <h1>💰 Centralized Income & Expenses (Cloud Sync)</h1>
 
-    <!-- Input form -->
     <div class="form-row" id="entryForm">
-        <!-- Month -->
         <div class="form-group">
             <label for="monthSelect">Month</label>
             <select id="monthSelect">
-                <option value="1">January</option>
-                <option value="2">February</option>
-                <option value="3">March</option>
-                <option value="4">April</option>
-                <option value="5">May</option>
-                <option value="6">June</option>
-                <option value="7">July</option>
-                <option value="8">August</option>
-                <option value="9">September</option>
-                <option value="10">October</option>
-                <option value="11">November</option>
-                <option value="12">December</option>
+                <option value="1">January</option><option value="2">February</option>
+                <option value="3">March</option><option value="4">April</option>
+                <option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option>
+                <option value="9">September</option><option value="10">October</option>
+                <option value="11">November</option><option value="12">December</option>
             </select>
         </div>
-
-        <!-- Day -->
         <div class="form-group">
             <label for="daySelect">Day</label>
-            <select id="daySelect">
-                <!-- filled by JS -->
-            </select>
+            <select id="daySelect"></select>
         </div>
-
-        <!-- Amount -->
         <div class="form-group">
             <label for="amountInput">Amount</label>
-            <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01" value="">
+            <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01">
         </div>
-
-        <!-- Currency -->
         <div class="form-group">
             <label for="currencySelect">Currency</label>
             <select id="currencySelect">
-                <option value="USD" selected>USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="JPY">JPY</option>
-                <option value="CAD">CAD</option>
-                <option value="AUD">AUD</option>
+                <option value="USD" selected>USD</option><option value="EUR">EUR</option>
+                <option value="GBP">GBP</option><option value="JPY">JPY</option>
+                <option value="CAD">CAD</option><option value="AUD">AUD</option>
             </select>
         </div>
-
-        <!-- Category -->
         <div class="form-group">
             <label for="categorySelect">Category</label>
             <select id="categorySelect">
@@ -271,55 +94,41 @@
                 <option value="Expenses">Expenses</option>
             </select>
         </div>
-
-        <!-- Concept (only active for Expenses) -->
         <div class="form-group">
             <label for="conceptInput">Concept</label>
             <input type="text" id="conceptInput" placeholder="e.g. Railway subscription" disabled>
         </div>
-
-        <!-- Recurring toggle -->
         <div class="recurring-group">
             <input type="checkbox" id="recurringCheck">
             <label for="recurringCheck">Recurring monthly</label>
         </div>
-
-        <!-- Add button -->
         <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
     </div>
 
-    <!-- Spreadsheet table -->
     <div class="table-wrapper">
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Currency</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th>Recurring</th>
-                    <th style="width: 40px;"></th>
+                    <th>Date</th><th>Amount</th><th>Currency</th>
+                    <th>Category</th><th>Description</th><th>Recurring</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr class="empty-message">
-                    <td colspan="7">No entries yet. Add your first income/expense above.</td>
-                </tr>
+                <tr class="empty-message"><td colspan="7">Loading entries from server...</td></tr>
             </tbody>
         </table>
     </div>
-
-    <!-- Export button -->
     <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
 </div>
 
 <script>
     (function() {
-        // ---------- State ----------
-        let entries = []; // { month, day, amount, currency, category, concept, recurring }
+        // ⚠️ Replace with your deployed Worker URL
+        const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
 
-        // ---------- DOM elements ----------
+        let entries = [];
+
         const monthSelect = document.getElementById('monthSelect');
         const daySelect = document.getElementById('daySelect');
         const amountInput = document.getElementById('amountInput');
@@ -331,26 +140,23 @@
         const tableBody = document.getElementById('tableBody');
         const exportBtn = document.getElementById('exportBtn');
 
-        // ---------- Initialize dropdowns ----------
         function populateDays() {
             daySelect.innerHTML = '';
             for (let d = 1; d <= 31; d++) {
-                const option = document.createElement('option');
-                option.value = d;
-                option.textContent = d;
-                daySelect.appendChild(option);
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                daySelect.appendChild(opt);
             }
         }
 
-        // ---------- Set to today ----------
         function setDefaultDate() {
             const today = new Date();
-            monthSelect.value = today.getMonth() + 1; // 1-12
+            monthSelect.value = today.getMonth() + 1;
             populateDays();
             daySelect.value = today.getDate();
         }
 
-        // ---------- Category change -> enable/disable concept input ----------
         function updateConceptState() {
             if (categorySelect.value === 'Expenses') {
                 conceptInput.disabled = false;
@@ -362,8 +168,31 @@
             }
         }
 
-        // ---------- Add entry ----------
-        function addEntry() {
+        async function fetchEntries() {
+            try {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:#777;">Loading entries...</td></tr>`;
+                const res = await fetch(`${WORKER_URL}/entries`);
+                if (!res.ok) throw new Error('Server error');
+                const data = await res.json();
+                entries = data.map(e => ({
+                    id: e.id,
+                    month: e.month,
+                    day: e.day,
+                    amount: e.amount,
+                    currency: e.currency,
+                    category: e.category,
+                    concept: e.concept || '',
+                    recurring: Boolean(e.recurring)
+                }));
+            } catch (err) {
+                console.error('Failed to fetch entries, using local only', err);
+                showToast('⚠ Could not connect to server – working offline.', 'error');
+                entries = [];
+            }
+            renderTable();
+        }
+
+        async function addEntry() {
             const month = parseInt(monthSelect.value);
             const day = parseInt(daySelect.value);
             const amount = parseFloat(amountInput.value);
@@ -372,7 +201,6 @@
             const concept = conceptInput.value.trim();
             const recurring = recurringCheck.checked;
 
-            // Validate
             if (isNaN(amount) || amount <= 0) {
                 showToast('Please enter a valid positive amount.', 'error');
                 return;
@@ -382,35 +210,47 @@
                 return;
             }
 
-            // Create entry
-            const entry = {
-                month,
-                day,
-                amount,
-                currency,
-                category,
-                concept: category === 'Expenses' ? concept : '', // store only for expenses
-                recurring
-            };
-            entries.push(entry);
+            const newEntry = { month, day, amount, currency, category, concept, recurring };
 
-            // Clear form (except date & defaults)
+            try {
+                const res = await fetch(`${WORKER_URL}/entries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEntry)
+                });
+                if (!res.ok) throw new Error('Failed to save');
+                const serverResp = await res.json();
+                entries.push({ id: serverResp.id, ...newEntry });
+                showToast('Entry added!', 'success');
+            } catch (err) {
+                entries.push({ id: null, ...newEntry });
+                showToast('Entry saved locally (server unreachable).', 'error');
+            }
+
             amountInput.value = '';
             conceptInput.value = '';
             recurringCheck.checked = false;
-            categorySelect.value = 'Patreon subscription'; // reset category
+            categorySelect.value = 'Patreon subscription';
             updateConceptState();
             renderTable();
-            showToast('Entry added!', 'success');
-
-            // Enable export if there are entries
-            exportBtn.disabled = entries.length === 0;
         }
 
-        // ---------- Render table ----------
+        async function deleteEntry(index) {
+            const entry = entries[index];
+            if (entry.id) {
+                try {
+                    await fetch(`${WORKER_URL}/entries/${entry.id}`, { method: 'DELETE' });
+                } catch (err) {
+                    showToast('Could not delete from server.', 'error');
+                }
+            }
+            entries.splice(index, 1);
+            renderTable();
+            showToast('Entry removed.', 'info');
+        }
+
         function renderTable() {
             tableBody.innerHTML = '';
-
             if (entries.length === 0) {
                 tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
                 exportBtn.disabled = true;
@@ -419,72 +259,50 @@
 
             entries.forEach((entry, index) => {
                 const dateStr = `${entry.month}/${entry.day}`;
-                // Net value for internal use (not shown in main table, but we can display amount as positive for income/expenses listed)
-                // We'll show the absolute amount and rely on category to know it's expense.
                 const amountDisplay = entry.amount.toFixed(2);
                 const conceptDisplay = entry.concept || '-';
                 const recurringDisplay = entry.recurring ? 'Yes' : 'No';
-                const categoryDisplay = entry.category;
 
-                // Build row
                 const tr = document.createElement('tr');
-
                 tr.innerHTML = `
                     <td>${dateStr}</td>
                     <td>${amountDisplay}</td>
                     <td>${entry.currency}</td>
-                    <td>${categoryDisplay}</td>
+                    <td>${entry.category}</td>
                     <td>${conceptDisplay}</td>
                     <td>${recurringDisplay}</td>
-                    <td><button class="delete-btn" data-index="${index}" title="Delete entry">✕</button></td>
+                    <td><button class="delete-btn" data-index="${index}" title="Delete">✕</button></td>
                 `;
-
                 tableBody.appendChild(tr);
             });
 
-            // Attach delete handlers
             document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const idx = parseInt(this.dataset.index);
-                    entries.splice(idx, 1);
-                    renderTable();
-                    showToast('Entry removed.', 'info');
-                    exportBtn.disabled = entries.length === 0;
-                });
+                btn.onclick = () => deleteEntry(parseInt(btn.dataset.index));
             });
 
-            exportBtn.disabled = entries.length === 0;
+            exportBtn.disabled = false;
         }
 
-        // ---------- Export to Excel (XLSX) ----------
         function exportToExcel() {
             if (entries.length === 0) return;
-
-            // Prepare data for SheetJS: each entry with actual amount (income positive, expense negative)
-            const data = entries.map(entry => ({
-                Date: `${entry.month}/${entry.day}`,
-                Amount: entry.category === 'Expenses' ? -entry.amount : entry.amount,
-                Currency: entry.currency,
-                Category: entry.category,
-                Description: entry.concept || '',
-                Recurring: entry.recurring ? 'Yes' : 'No'
+            const data = entries.map(e => ({
+                Date: `${e.month}/${e.day}`,
+                Amount: e.category === 'Expenses' ? -e.amount : e.amount,
+                Currency: e.currency,
+                Category: e.category,
+                Description: e.concept || '',
+                Recurring: e.recurring ? 'Yes' : 'No'
             }));
-
-            // Add headers
-            const ws = XLSX.utils.json_to_sheet(data, { header: ['Date', 'Amount', 'Currency', 'Category', 'Description', 'Recurring'] });
-
-            // Create workbook
+            const ws = XLSX.utils.json_to_sheet(data, {
+                header: ['Date','Amount','Currency','Category','Description','Recurring']
+            });
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Income & Expenses');
-
-            // Trigger download
             XLSX.writeFile(wb, 'income_expenses.xlsx');
-            showToast('Excel file downloaded!', 'success');
+            showToast('Excel downloaded!', 'success');
         }
 
-        // ---------- Simple toast ----------
-        function showToast(message, type = 'success') {
-            // Create if not exists
+        function showToast(msg, type='success') {
             let toast = document.getElementById('liveToast');
             if (!toast) {
                 toast = document.createElement('div');
@@ -492,31 +310,18 @@
                 toast.className = 'toast-notification';
                 document.body.appendChild(toast);
             }
-            toast.textContent = message;
+            toast.textContent = msg;
             toast.className = `toast-notification ${type} show`;
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
+            setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // ---------- Event listeners ----------
         categorySelect.addEventListener('change', updateConceptState);
         addBtn.addEventListener('click', addEntry);
         exportBtn.addEventListener('click', exportToExcel);
 
-        // Allow Enter key to add entry (optional)
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && document.activeElement !== conceptInput && document.activeElement !== amountInput) {
-                e.preventDefault();
-                addEntry();
-            }
-        });
-
-        // Initial setup
         setDefaultDate();
         updateConceptState();
-        renderTable();
-
+        fetchEntries();
     })();
 </script>
 </body>
