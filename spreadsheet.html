@@ -364,57 +364,60 @@
             }
         }
 
-        async function autoSyncPatreon() {
-            try {
-                const res = await fetch(PATREON_PROXY);
-                if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
-                const members = await res.json();
+async function autoSyncPatreon() {
+  try {
+    const res = await fetch(PATREON_PROXY);
+    if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+    const members = await res.json();
 
-                const importedKeys = getImportedPatreonCharges();
-                let addedCount = 0;
+    const importedKeys = getImportedPatreonCharges();
+    let addedCount = 0;
 
-                for (const m of members) {
-                    const chargeDate = new Date(m.lastChargeDate);
-                    const month = chargeDate.getUTCMonth() + 1;
-                    const day = chargeDate.getUTCDate();
-                    const amount = m.amountCents / 100;
+    for (const m of members) {
+      const chargeDate = new Date(m.lastChargeDate);
+      const month = chargeDate.getUTCMonth() + 1;
+      const day = chargeDate.getUTCDate();
+      const amount = m.amountCents / 100;
 
-                    const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
-                    if (importedKeys.includes(chargeKey)) continue;
+      const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
+      if (importedKeys.includes(chargeKey)) continue;
 
-                    // Check for duplicate in current entries
-                    const duplicate = entries.some(e =>
-                        e.month === month && e.day === day && e.amount === amount
-                        && e.currency === 'USD' && e.category === 'Patreon subscription'
-                    );
-                    if (duplicate) {
-                        addImportedPatreonCharge(chargeKey);
-                        continue;
-                    }
+      // Build a description like "John Doe (j.doe@email.com) – Tier Name"
+      const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
 
-                    const success = await addEntry({
-                        month, day, amount,
-                        currency: 'USD',
-                        category: 'Patreon subscription',
-                        concept: '',
-                        recurring: false,
-                    });
+      // Check for duplicate in current entries
+      const duplicate = entries.some(e =>
+        e.month === month && e.day === day && e.amount === amount
+        && e.currency === 'USD' && e.category === 'Patreon subscription'
+      );
+      if (duplicate) {
+        addImportedPatreonCharge(chargeKey);
+        continue;
+      }
 
-                    if (success) {
-                        addImportedPatreonCharge(chargeKey);
-                        addedCount++;
-                    } else break;
-                }
+      const success = await addEntry({
+        month, day, amount,
+        currency: 'USD',
+        category: 'Patreon subscription',
+        concept: desc,            // store the description
+        recurring: false,
+      });
 
-                if (addedCount > 0) {
-                    sortAndRender();
-                    showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
-                }
-            } catch (err) {
-                console.error('Patreon sync failed:', err);
-                showToast(`❌ Patreon sync error: ${err.message}`, 'error');
-            }
-        }
+      if (success) {
+        addImportedPatreonCharge(chargeKey);
+        addedCount++;
+      } else break;
+    }
+
+    if (addedCount > 0) {
+      sortAndRender();
+      showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
+    }
+  } catch (err) {
+    console.error('Patreon sync failed:', err);
+    showToast(`❌ Patreon sync error: ${err.message}`, 'error');
+  }
+}
 
         // ---------- Sorting ----------
         function sortEntries() {
@@ -477,7 +480,8 @@
             entries.forEach((entry, index) => {
                 const dateStr = formatDate(entry.month, entry.day);
                 const amountDisplay = entry.amount.toFixed(2);
-                const desc = (entry.category === 'Expenses') ? (entry.concept || '') : '';
+                // Show concept for Expenses AND for any income entry that has a description
+                const desc = entry.concept || '';
                 const recurringHtml = entry.recurring ? '<span style="color:#4caf50; font-weight:bold;">✔</span>' : '';
 
                 // Show delete button ONLY for Expenses
