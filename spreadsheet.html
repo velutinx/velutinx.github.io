@@ -38,7 +38,11 @@
         .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
-        th { background: #0a0e14; color: #aaa; font-weight: 500; }
+        th {
+            background: #0a0e14; color: #aaa; font-weight: 500; cursor: pointer; user-select: none;
+        }
+        th:hover { background: #1a1f2a; }
+        th .sort-icon { margin-left: 4px; font-size: 0.7rem; }
         .delete-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 1rem; }
         .empty-message { text-align: center; padding: 40px; color: #777; }
         .toast-notification {
@@ -109,8 +113,12 @@
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th>Date</th><th>Amount</th><th>Currency</th>
-                    <th>Category</th><th>Description</th><th>Recurring</th>
+                    <th data-sort="date">Date <span class="sort-icon"></span></th>
+                    <th data-sort="amount">Amount <span class="sort-icon"></span></th>
+                    <th data-sort="currency">Currency <span class="sort-icon"></span></th>
+                    <th data-sort="category">Category <span class="sort-icon"></span></th>
+                    <th data-sort="description">Description <span class="sort-icon"></span></th>
+                    <th data-sort="recurring">Recurring <span class="sort-icon"></span></th>
                     <th></th>
                 </tr>
             </thead>
@@ -124,10 +132,11 @@
 
 <script>
     (function() {
-        // ⚠️ Replace with your deployed Worker URL
         const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
 
         let entries = [];
+        let sortKey = null;         // current sort column
+        let sortAsc = true;         // direction
 
         const monthSelect = document.getElementById('monthSelect');
         const daySelect = document.getElementById('daySelect');
@@ -139,6 +148,17 @@
         const addBtn = document.getElementById('addEntryBtn');
         const tableBody = document.getElementById('tableBody');
         const exportBtn = document.getElementById('exportBtn');
+
+        // ---------- Date helpers ----------
+        const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+
+        function formatDate(month, day) {
+            const year = new Date().getFullYear();  // infer current year
+            const m = monthNames[month].substring(0,3); // e.g. "May"
+            const d = String(day).padStart(2, '0');
+            return `${m} ${d} ${year}`;
+        }
 
         function populateDays() {
             daySelect.innerHTML = '';
@@ -168,6 +188,7 @@
             }
         }
 
+        // ---------- Server sync ----------
         async function fetchEntries() {
             try {
                 tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:#777;">Loading entries...</td></tr>`;
@@ -189,7 +210,7 @@
                 showToast('⚠ Could not connect to server – working offline.', 'error');
                 entries = [];
             }
-            renderTable();
+            sortAndRender();
         }
 
         async function addEntry() {
@@ -232,7 +253,7 @@
             recurringCheck.checked = false;
             categorySelect.value = 'Patreon subscription';
             updateConceptState();
-            renderTable();
+            sortAndRender();
         }
 
         async function deleteEntry(index) {
@@ -245,10 +266,60 @@
                 }
             }
             entries.splice(index, 1);
-            renderTable();
+            sortAndRender();
             showToast('Entry removed.', 'info');
         }
 
+        // ---------- Sorting ----------
+        function sortEntries() {
+            if (!sortKey) return;
+            entries.sort((a, b) => {
+                let valA, valB;
+                switch (sortKey) {
+                    case 'date':
+                        valA = a.month * 100 + a.day;
+                        valB = b.month * 100 + b.day;
+                        break;
+                    case 'amount':
+                        valA = a.amount;
+                        valB = b.amount;
+                        break;
+                    case 'currency':
+                        valA = a.currency;
+                        valB = b.currency;
+                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    case 'category':
+                        valA = a.category;
+                        valB = b.category;
+                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    case 'description':
+                        valA = a.concept || '';
+                        valB = b.concept || '';
+                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    case 'recurring':
+                        valA = a.recurring ? 1 : 0;
+                        valB = b.recurring ? 1 : 0;
+                        break;
+                }
+                if (valA < valB) return sortAsc ? -1 : 1;
+                if (valA > valB) return sortAsc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function updateSortIcons() {
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                const icon = th.querySelector('.sort-icon');
+                if (!icon) return;
+                if (th.dataset.sort === sortKey) {
+                    icon.textContent = sortAsc ? '▲' : '▼';
+                } else {
+                    icon.textContent = '';
+                }
+            });
+        }
+
+        // ---------- Render ----------
         function renderTable() {
             tableBody.innerHTML = '';
             if (entries.length === 0) {
@@ -258,10 +329,12 @@
             }
 
             entries.forEach((entry, index) => {
-                const dateStr = `${entry.month}/${entry.day}`;
+                const dateStr = formatDate(entry.month, entry.day);
                 const amountDisplay = entry.amount.toFixed(2);
-                const conceptDisplay = entry.concept || '-';
-                const recurringDisplay = entry.recurring ? 'Yes' : 'No';
+                // Description: show only for expenses, otherwise blank
+                const desc = (entry.category === 'Expenses') ? (entry.concept || '') : '';
+                // Recurring: green checkmark or blank
+                const recurringHtml = entry.recurring ? '<span style="color:#4caf50; font-weight:bold;">✔</span>' : '';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -269,8 +342,8 @@
                     <td>${amountDisplay}</td>
                     <td>${entry.currency}</td>
                     <td>${entry.category}</td>
-                    <td>${conceptDisplay}</td>
-                    <td>${recurringDisplay}</td>
+                    <td>${desc}</td>
+                    <td>${recurringHtml}</td>
                     <td><button class="delete-btn" data-index="${index}" title="Delete">✕</button></td>
                 `;
                 tableBody.appendChild(tr);
@@ -283,10 +356,16 @@
             exportBtn.disabled = false;
         }
 
+        function sortAndRender() {
+            sortEntries();
+            renderTable();
+        }
+
+        // ---------- Excel export ----------
         function exportToExcel() {
             if (entries.length === 0) return;
             const data = entries.map(e => ({
-                Date: `${e.month}/${e.day}`,
+                Date: formatDate(e.month, e.day),
                 Amount: e.category === 'Expenses' ? -e.amount : e.amount,
                 Currency: e.currency,
                 Category: e.category,
@@ -302,6 +381,7 @@
             showToast('Excel downloaded!', 'success');
         }
 
+        // ---------- Toast ----------
         function showToast(msg, type='success') {
             let toast = document.getElementById('liveToast');
             if (!toast) {
@@ -315,10 +395,27 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
+        // ---------- Event listeners ----------
         categorySelect.addEventListener('change', updateConceptState);
         addBtn.addEventListener('click', addEntry);
         exportBtn.addEventListener('click', exportToExcel);
 
+        // Header click sorting
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const key = th.dataset.sort;
+                if (sortKey === key) {
+                    sortAsc = !sortAsc;
+                } else {
+                    sortKey = key;
+                    sortAsc = true;
+                }
+                sortAndRender();
+                updateSortIcons();
+            });
+        });
+
+        // Initial load
         setDefaultDate();
         updateConceptState();
         fetchEntries();
