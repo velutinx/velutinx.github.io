@@ -6,10 +6,13 @@
     <title>💰 Centralized Income & Expenses (Cloud Sync)</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js + zoom + time adapter -->
+    <!-- 1. Moment first -->
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <!-- 2. Chart.js second -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- 3. Moment adapter (registers after Chart) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <!-- 4. Hammer and zoom plugin -->
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <style>
@@ -93,6 +96,7 @@
     <div class="dashboard">
         <!-- Left side: table -->
         <div class="table-section">
+            <!-- … (form and table identical to previous) … -->
             <div class="form-row" id="entryForm">
                 <div class="form-group">
                     <label for="monthSelect">Month</label>
@@ -532,7 +536,7 @@
             exportBtn.disabled = false;
         }
 
-        // ---------- Chart with daily points and time scale ----------
+        // ---------- Daily chart with time scale and zoom ----------
         function buildChart(initialDays) {
             if (incomeChart) {
                 incomeChart.destroy();
@@ -544,8 +548,8 @@
             const now = moment().endOf('day');
             const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-            // Build daily data map from entries
-            const dailyMap = new Map(); // key: date string YYYY-MM-DD
+            // Aggregate data per day
+            const dailyMap = new Map(); // key: YYYY-MM-DD
             entries.forEach(e => {
                 const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
                 if (!dailyMap.has(date)) {
@@ -557,28 +561,26 @@
                 else if (e.category === 'Expenses') dayData.expense += e.amount;
             });
 
-            // Fill all days in the range to have continuous x-axis (optional: we could just use sparse data)
-            // We'll fill missing days with zero to avoid weird gaps; later we can filter.
-            const allDates = [];
+            // Build arrays for the chart (sparse – only days with data)
+            const dates = [], patreonVals = [], websiteVals = [], expenseVals = [], netVals = [];
             for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
-                allDates.push(d.format('YYYY-MM-DD'));
+                const key = d.format('YYYY-MM-DD');
+                const day = dailyMap.get(key) || { patreon: 0, website: 0, expense: 0 };
+                dates.push(d.toDate());
+                patreonVals.push(day.patreon);
+                websiteVals.push(day.website);
+                expenseVals.push(day.expense);
+                netVals.push(day.patreon + day.website - day.expense);
             }
-
-            const labels = allDates;
-            const patreonData = labels.map(d => (dailyMap.get(d)?.patreon) || 0);
-            const websiteData = labels.map(d => (dailyMap.get(d)?.website) || 0);
-            const expenseData = labels.map(d => (dailyMap.get(d)?.expense) || 0);
-            const netData = labels.map((d, i) => patreonData[i] + websiteData[i] - expenseData[i]);
 
             const ctx = document.getElementById('incomeChart').getContext('2d');
             incomeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
                     datasets: [
                         {
                             label: 'Patreon',
-                            data: patreonData.map((v, i) => ({ x: moment(labels[i]), y: v })),
+                            data: dates.map((d, i) => ({ x: d, y: patreonVals[i] })),
                             borderColor: '#3b82f6',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
@@ -588,7 +590,7 @@
                         },
                         {
                             label: 'Website',
-                            data: websiteData.map((v, i) => ({ x: moment(labels[i]), y: v })),
+                            data: dates.map((d, i) => ({ x: d, y: websiteVals[i] })),
                             borderColor: '#f97316',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
@@ -598,7 +600,7 @@
                         },
                         {
                             label: 'Expenses (abs)',
-                            data: expenseData.map((v, i) => ({ x: moment(labels[i]), y: v })),
+                            data: dates.map((d, i) => ({ x: d, y: expenseVals[i] })),
                             borderColor: '#ef4444',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
@@ -608,7 +610,7 @@
                         },
                         {
                             label: 'Net Income',
-                            data: netData.map((v, i) => ({ x: moment(labels[i]), y: v })),
+                            data: dates.map((d, i) => ({ x: d, y: netVals[i] })),
                             borderColor: '#22c55e',
                             backgroundColor: 'transparent',
                             borderWidth: 3,
@@ -621,6 +623,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
                     plugins: {
                         legend: { labels: { color: '#aaa' } },
                         zoom: {
@@ -629,19 +632,13 @@
                                 pinch: { enabled: true },
                                 mode: 'x',
                             },
-                            pan: {
-                                enabled: true,
-                                mode: 'x',
-                            }
+                            pan: { enabled: true, mode: 'x' },
                         }
                     },
                     scales: {
                         x: {
                             type: 'time',
-                            time: {
-                                unit: 'day',
-                                displayFormats: { day: 'MMM D' }
-                            },
+                            time: { unit: 'day', displayFormats: { day: 'MMM D' } },
                             min: startDate.toDate(),
                             max: now.toDate(),
                             ticks: { color: '#aaa', maxRotation: 45 },
@@ -655,28 +652,25 @@
                     }
                 }
             });
-
-            // After chart creation, reset zoom when a range button is clicked
-            document.querySelectorAll('.range-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    const days = parseInt(this.dataset.days);
-                    const newStart = moment().subtract(days - 1, 'days').startOf('day');
-                    incomeChart.options.scales.x.min = newStart.toDate();
-                    incomeChart.options.scales.x.max = now.toDate();
-                    incomeChart.update();
-                    // Also reset zoom (otherwise zoom state may conflict)
-                    incomeChart.resetZoom();
-                });
-            });
         }
 
+        // Range buttons update the chart
         function refreshAll() {
             renderTable();
             const activeBtn = document.querySelector('.range-btn.active');
             const days = activeBtn ? parseInt(activeBtn.dataset.days) : 30;
             buildChart(days);
+        }
+
+        // Attach range button events once
+        function setupRangeButtons() {
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    buildChart(parseInt(this.dataset.days));
+                });
+            });
         }
 
         function exportToExcel() {
@@ -736,21 +730,13 @@
             categorySelect.addEventListener('change', updateConceptState);
             addBtn.addEventListener('click', handleAddClick);
             exportBtn.addEventListener('click', exportToExcel);
-
-            // Range buttons now use data-days
-            document.querySelectorAll('.range-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    buildChart(parseInt(this.dataset.days));
-                });
-            });
+            setupRangeButtons();
 
             await fetchEntries();
             await autoSyncWebsitePayments();
             await autoSyncPatreon();
 
-            // Build chart with default 30 days
+            // Default chart: 30 days
             buildChart(30);
         });
     })();
