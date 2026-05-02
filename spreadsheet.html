@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💰 Centralized Income & Expenses Tracker (Cloud Sync)</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <!-- Supabase client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; }
@@ -37,8 +36,6 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
         .export-btn { margin-top: 20px; background: #3b4a5a; }
         .export-btn:hover { background: #2c6e9e; }
-        .sync-btn { background: #1e5a6e; margin-top: 20px; }
-        .sync-btn:hover { background: #2a7a92; }
         .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
@@ -111,7 +108,6 @@
             <label for="recurringCheck">Recurring monthly</label>
         </div>
         <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
-        <button class="btn sync-btn" id="syncWebsiteBtn">🔄 Sync Website Payments</button>
     </div>
 
     <div class="table-wrapper">
@@ -137,22 +133,18 @@
 
 <script>
     (function() {
-        // ---------- Configuration ----------
         const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
         const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
 
-        // ---------- State ----------
         let entries = [];
         let sortKey = null;
         let sortAsc = true;
-        let supabaseClient = null;   // will be set when library is ready
+        let supabaseClient = null;
 
-        // ---------- DOM elements (null until DOM loaded) ----------
         let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
-        let conceptInput, recurringCheck, addBtn, syncBtn, tableBody, exportBtn;
+        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn;
 
-        // ---------- Date helpers ----------
         const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -287,7 +279,7 @@
             showToast('Entry added!', 'success');
         }
 
-        // ---------- Sync website payments ----------
+        // ---------- Auto-sync website payments ----------
         const IMPORTED_IDS_KEY = 'imported_website_order_ids';
         function getImportedIds() {
             return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]');
@@ -300,14 +292,9 @@
             }
         }
 
-        async function syncWebsitePayments() {
-            if (!supabaseClient) {
-                showToast('Supabase client not ready. Reload the page.', 'error');
-                return;
-            }
+        async function autoSyncWebsitePayments() {
+            if (!supabaseClient) return;
 
-            syncBtn.disabled = true;
-            syncBtn.textContent = '⏳ Syncing...';
             try {
                 const { data, error } = await supabaseClient
                     .from('successs')
@@ -329,13 +316,13 @@
                     const amount = parseFloat(order.amount);
                     const currency = order.currency || 'USD';
 
-                    // Check local duplicate (by month/day/amount/currency/category)
+                    // Check for duplicate in current entries
                     const duplicate = entries.some(e =>
                         e.month === month && e.day === day && e.amount === amount &&
                         e.currency === currency && e.category === 'Website payments'
                     );
                     if (duplicate) {
-                        addImportedId(order.id);  // avoid re-checking in future
+                        addImportedId(order.id);
                         continue;
                     }
 
@@ -353,14 +340,13 @@
                     }
                 }
 
-                sortAndRender();
-                showToast(`✅ Added ${addedCount} new website payments.`, 'success');
+                if (addedCount > 0) {
+                    sortAndRender();
+                    showToast(`✅ Synced ${addedCount} new website payments.`, 'success');
+                }
             } catch (err) {
-                console.error('Sync failed:', err);
-                showToast(`❌ Sync error: ${err.message}`, 'error');
-            } finally {
-                syncBtn.disabled = false;
-                syncBtn.textContent = '🔄 Sync Website Payments';
+                console.error('Auto‑sync failed:', err);
+                showToast(`❌ Could not sync website payments (${err.message})`, 'error');
             }
         }
 
@@ -417,7 +403,7 @@
         function renderTable() {
             tableBody.innerHTML = '';
             if (entries.length === 0) {
-                tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet.</td></tr>`;
+                tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
                 exportBtn.disabled = true;
                 return;
             }
@@ -487,8 +473,8 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // ---------- Init (after DOM loaded) ----------
-        document.addEventListener('DOMContentLoaded', () => {
+        // ---------- Initialise on DOM ready ----------
+        document.addEventListener('DOMContentLoaded', async () => {
             // Grab DOM elements
             monthSelect = document.getElementById('monthSelect');
             daySelect = document.getElementById('daySelect');
@@ -498,26 +484,23 @@
             conceptInput = document.getElementById('conceptInput');
             recurringCheck = document.getElementById('recurringCheck');
             addBtn = document.getElementById('addEntryBtn');
-            syncBtn = document.getElementById('syncWebsiteBtn');
             tableBody = document.getElementById('tableBody');
             exportBtn = document.getElementById('exportBtn');
 
-            // Check Supabase library
+            // Set up Supabase client if library is present
             if (typeof supabase === 'undefined') {
-                showToast('Supabase library missing – sync disabled.', 'error');
+                showToast('Supabase library missing – auto‑sync disabled.', 'error');
                 supabaseClient = null;
             } else {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
             }
 
-            // Set default date
             setDefaultDate();
             updateConceptState();
 
             // Event listeners
             categorySelect.addEventListener('change', updateConceptState);
             addBtn.addEventListener('click', handleAddClick);
-            syncBtn.addEventListener('click', syncWebsitePayments);
             exportBtn.addEventListener('click', exportToExcel);
 
             document.querySelectorAll('th[data-sort]').forEach(th => {
@@ -534,8 +517,11 @@
                 });
             });
 
-            // Load entries from server
-            fetchEntries();
+            // 1. Load existing entries from the Cloudflare backend
+            await fetchEntries();
+
+            // 2. Automatically pull any new website payments from Supabase
+            await autoSyncWebsitePayments();
         });
 
     })();
