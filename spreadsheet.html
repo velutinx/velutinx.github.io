@@ -34,16 +34,12 @@
         }
         .btn:hover { background: #3e8e3e; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
-        .secondary-btn { background: #3b4a5a; }
-        .secondary-btn:hover { background: #2c6e9e; }
         .export-btn { margin-top: 20px; background: #3b4a5a; }
         .export-btn:hover { background: #2c6e9e; }
         .table-wrapper { margin-top: 24px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
         th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
-        th {
-            background: #0a0e14; color: #aaa; font-weight: 500;
-        }
+        th { background: #0a0e14; color: #aaa; font-weight: 500; }
         .delete-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 1rem; }
         .empty-message { text-align: center; padding: 40px; color: #777; }
         .toast-notification {
@@ -119,7 +115,6 @@
             <label for="recurringCheck">Recurring monthly</label>
         </div>
         <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
-        <button class="btn secondary-btn" id="resyncPatreonBtn" title="Delete all Patreon entries and re-import">🔄 Re‑sync Patreon</button>
     </div>
 
     <div class="table-wrapper">
@@ -155,7 +150,7 @@
         let supabaseClient = null;
 
         let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
-        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn, resyncPatreonBtn;
+        let conceptInput, recurringCheck, addBtn, tableBody, exportBtn;
 
         const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -217,7 +212,7 @@
                 showToast('⚠ Could not connect to server – working offline.', 'error');
                 entries = [];
             }
-            renderTable();   // table will group by month
+            renderTable();
         }
 
         async function addEntry(entryData) {
@@ -426,33 +421,6 @@
             }
         }
 
-        // ---------- Re‑sync Patreon (delete all & re‑import) ----------
-        async function resyncPatreon() {
-            resyncPatreonBtn.disabled = true;
-            resyncPatreonBtn.textContent = '⏳ Re‑syncing...';
-            try {
-                // Delete all Patreon subscription entries from server
-                const toDelete = entries.filter(e => e.category === 'Patreon subscription');
-                for (const e of toDelete) {
-                    if (e.id) {
-                        await fetch(`${WORKER_URL}/entries/${e.id}`, { method: 'DELETE' });
-                    }
-                }
-                // Remove them from local array
-                entries = entries.filter(e => e.category !== 'Patreon subscription');
-                window.entries = entries;
-                localStorage.removeItem(IMPORTED_PATREON_CHARGES_KEY);
-                await autoSyncPatreon();  // re‑import with fresh descriptions
-                renderTable();
-                showToast('✅ Patreon data re‑synced with full details.', 'success');
-            } catch (err) {
-                showToast(`❌ Re‑sync failed: ${err.message}`, 'error');
-            } finally {
-                resyncPatreonBtn.disabled = false;
-                resyncPatreonBtn.textContent = '🔄 Re‑sync Patreon';
-            }
-        }
-
         // ---------- Table rendering with month grouping ----------
         function renderTable() {
             tableBody.innerHTML = '';
@@ -471,13 +439,11 @@
             // Group entries by (year, month)
             const groups = new Map();
             for (const entry of entries) {
-                const year = currentYear;   // all entries use current year by display, we need storage? we'll assume year stored? Actually we only have month/day, so use currentYear always.
                 const key = `${currentYear}-${entry.month}`;
                 if (!groups.has(key)) groups.set(key, []);
                 groups.get(key).push(entry);
             }
 
-            // Iterate in ascending month order
             const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
                 const [y1, m1] = a.split('-').map(Number);
                 const [y2, m2] = b.split('-').map(Number);
@@ -487,7 +453,8 @@
             for (const key of sortedKeys) {
                 const [y, m] = key.split('-').map(Number);
                 const monthEntries = groups.get(key);
-                const monthTotal = monthEntries.reduce((sum, e) => sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
+                const monthTotal = monthEntries.reduce((sum, e) =>
+                    sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
                 const currencySet = new Set(monthEntries.map(e => e.currency));
                 const currency = currencySet.size === 1 ? currencySet.values().next().value : 'mixed';
                 const isCurrent = (y === currentYear && m === currentMonth);
@@ -510,7 +477,7 @@
                 `;
                 tableBody.appendChild(headerTr);
 
-                // Individual entry rows – hidden if not current month
+                // Individual entry rows
                 for (const entry of monthEntries) {
                     const dateStr = formatDate(entry.month, entry.day, y);
                     const amountDisplay = entry.amount.toFixed(2);
@@ -536,7 +503,7 @@
                 }
             }
 
-            // Attach delete events
+            // Attach delete handlers
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.index);
@@ -549,15 +516,12 @@
                 header.addEventListener('click', function() {
                     const monthKey = this.dataset.monthKey;
                     const icon = this.querySelector('.toggle-icon');
-                    const currentIcon = icon.textContent.trim();
-                    const isOpen = currentIcon === '▼';
+                    const isOpen = icon.textContent.trim() === '▼';
 
-                    // Toggle icon
                     icon.textContent = isOpen ? '▶' : '▼';
 
-                    // Toggle all entry rows with that month key
                     document.querySelectorAll(`.entry-row[data-month-key="${monthKey}"]`).forEach(row => {
-                        row.classList.toggle('hidden-row', isOpen);  // if was open, hide; if was closed, show
+                        row.classList.toggle('hidden-row', isOpen);
                     });
                 });
             });
@@ -611,7 +575,6 @@
             addBtn = document.getElementById('addEntryBtn');
             tableBody = document.getElementById('tableBody');
             exportBtn = document.getElementById('exportBtn');
-            resyncPatreonBtn = document.getElementById('resyncPatreonBtn');
 
             if (typeof supabase === 'undefined') {
                 showToast('Supabase library missing – auto‑sync disabled.', 'error');
@@ -626,7 +589,6 @@
             categorySelect.addEventListener('change', updateConceptState);
             addBtn.addEventListener('click', handleAddClick);
             exportBtn.addEventListener('click', exportToExcel);
-            resyncPatreonBtn.addEventListener('click', resyncPatreon);
 
             await fetchEntries();
             await autoSyncWebsitePayments();
