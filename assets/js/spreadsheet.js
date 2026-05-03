@@ -1,4 +1,4 @@
-// spreadsheet.js (ES module safe – no imports)
+// spreadsheet.js – Centralized Income & Expenses (Cloud Sync)
 (function() {
     const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
     const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
@@ -271,24 +271,66 @@
         }
     }
 
-    // ---------- Table rendering ----------
+    // ---------- Compute future occurrence of a recurring expense ----------
+    function getNextOccurrence(entry, currentYear, currentMonth) {
+        // Returns { month, day } for the next occurrence after the current date
+        const today = new Date();
+        const entryDay = entry.day;
+        let nextMonth = entry.month;
+        let nextYear = currentYear;
+
+        // Start from the month *after* the entry's original month?
+        // We want the next occurrence that is strictly after 'today'.
+        // We'll iterate month by month until we find a date > today.
+        // Use a loop for simplicity.
+        let dateCandidate = new Date(currentYear, nextMonth - 1, entryDay);
+        while (dateCandidate <= today) {
+            nextMonth++;
+            if (nextMonth > 12) { nextMonth = 1; nextYear++; }
+            dateCandidate = new Date(nextYear, nextMonth - 1, entryDay);
+        }
+        return { month: nextMonth, day: entryDay, year: nextYear };
+    }
+
+    // ---------- Table rendering (now includes future recurring projections) ----------
     function renderTable() {
         tableBody.innerHTML = '';
-        if (entries.length === 0) {
+        if (entries.length === 0 && !hasRecurringExpenses()) {
             tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
             exportBtn.disabled = true;
             return;
         }
 
-        entries.sort((a, b) => (a.month * 100 + a.day) - (b.month * 100 + b.day));
-
+        // Build list of all rows to display: actual entries + future projections for recurring expenses
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth() + 1;
+        const allRows = [];
+
+        // Add actual entries
+        entries.forEach(e => {
+            allRows.push({ entry: e, isFuture: false });
+        });
+
+        // For each recurring expense, compute the next occurrence and add as a future row
+        const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
+        recurringExpenses.forEach(e => {
+            const next = getNextOccurrence(e, currentYear, currentMonth);
+            // Only add if it's not already an existing entry (e.g., if the recurring already has an actual entry for that month)
+            const exists = entries.some(ee => ee.month === next.month && ee.day === next.day && ee.category === 'Expenses' && ee.concept === e.concept && ee.amount === e.amount);
+            if (!exists) {
+                allRows.push({ entry: { ...e, month: next.month, day: next.day, id: null, recurring: true, concept: e.concept, amount: e.amount, currency: e.currency, category: 'Expenses' }, isFuture: true });
+            }
+        });
+
+        // Sort all rows by date
+        allRows.sort((a, b) => (a.entry.month * 100 + a.entry.day) - (b.entry.month * 100 + b.entry.day));
+
+        // Group by month (using current year for display)
         const groups = new Map();
-        for (const entry of entries) {
-            const key = `${currentYear}-${entry.month}`;
+        for (const row of allRows) {
+            const key = `${currentYear}-${row.entry.month}`;
             if (!groups.has(key)) groups.set(key, []);
-            groups.get(key).push(entry);
+            groups.get(key).push(row);
         }
 
         const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
@@ -297,52 +339,74 @@
             return y1 - y2 || m1 - m2;
         });
 
+        // Determine which months contain future entries
+        const futureMonths = new Set();
+        allRows.forEach(r => { if (r.isFuture) futureMonths.add(`${currentYear}-${r.entry.month}`); });
+
         for (const key of sortedKeys) {
             const [y, m] = key.split('-').map(Number);
-            const monthEntries = groups.get(key);
-            const monthTotal = monthEntries.reduce((sum, e) =>
+            const monthRows = groups.get(key);
+            // Only compute total from actual (non-future) entries
+            const actualEntries = monthRows.filter(r => !r.isFuture).map(r => r.entry);
+            const monthTotal = actualEntries.reduce((sum, e) =>
                 sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
-            const currencySet = new Set(monthEntries.map(e => e.currency));
+            const currencySet = new Set(actualEntries.map(e => e.currency));
             const currency = currencySet.size === 1 ? currencySet.values().next().value : 'mixed';
             const isCurrent = (y === currentYear && m === currentMonth);
             const monthName = monthNames[m] + ' ' + y;
 
+            // Month header row
             const headerTr = document.createElement('tr');
             headerTr.className = 'month-header';
             headerTr.dataset.monthKey = key;
             headerTr.innerHTML = `
                 <td colspan="7" style="cursor:pointer;">
                     <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
-                    <strong>${monthName}</strong> – ${monthEntries.length} entries, total:
+                    <strong>${monthName}</strong> – ${entries.length} entries, total:
                     <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
                         ${monthTotal.toFixed(2)} ${currency}
                     </span>
                     ${isCurrent ? ' (current)' : ''}
+                    ${futureMonths.has(key) ? ' <span style="color:#888; font-size:0.8rem;">(upcoming)</span>' : ''}
                 </td>
             `;
             tableBody.appendChild(headerTr);
 
-            let entryIdx = 0;
-            for (const entry of monthEntries) {
+            // Render each row (actual or future)
+            for (const row of monthRows) {
+                const entry = row.entry;
                 const dateStr = formatDate(entry.month, entry.day, y);
                 const amountDisplay = entry.amount.toFixed(2);
                 const desc = entry.concept || '';
+
                 let recurringHtml = '';
                 if (entry.category === 'Expenses') {
-                    const icon = entry.recurring ? '✔' : '✕';
-                    const color = entry.recurring ? '#4caf50' : '#f44336';
-                    recurringHtml = `<span class="recurring-toggle" data-index="${entries.indexOf(entry)}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
+                    if (row.isFuture) {
+                        // Future: show a grayed out icon (not clickable)
+                        recurringHtml = `<span style="color:#888; font-weight:bold;">⏳</span>`;
+                    } else {
+                        const icon = entry.recurring ? '✔' : '✕';
+                        const color = entry.recurring ? '#4caf50' : '#f44336';
+                        recurringHtml = `<span class="recurring-toggle" data-index="${entries.indexOf(entry)}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
+                    }
                 }
-                const deleteHtml = (entry.category === 'Expenses')
+
+                const deleteHtml = (!row.isFuture && entry.category === 'Expenses')
                     ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
                     : '';
+
                 const rowClass = 'entry-row ' +
-                    (isCurrent ? '' : 'hidden-row ') +
-                    (entry.category === 'Expenses' ? 'row-expense' : 'row-income');
+                    (isCurrent || futureMonths.has(key) ? '' : 'hidden-row ') +
+                    (entry.category === 'Expenses' ? 'row-expense' : 'row-income') +
+                    (row.isFuture ? ' future-row' : '');
 
                 const tr = document.createElement('tr');
                 tr.className = rowClass;
                 tr.dataset.monthKey = key;
+                if (row.isFuture) {
+                    tr.style.opacity = '0.5';
+                    tr.style.fontStyle = 'italic';
+                }
                 tr.innerHTML = `
                     <td>${dateStr}</td>
                     <td>${amountDisplay}</td>
@@ -353,10 +417,10 @@
                     <td>${deleteHtml}</td>
                 `;
                 tableBody.appendChild(tr);
-                entryIdx++;
             }
         }
 
+        // Attach events
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const idx = parseInt(this.dataset.index);
@@ -382,10 +446,14 @@
             });
         });
 
-        exportBtn.disabled = false;
+        exportBtn.disabled = entries.length === 0;
     }
 
-    // ---------- Chart ----------
+    function hasRecurringExpenses() {
+        return entries.some(e => e.category === 'Expenses' && e.recurring);
+    }
+
+    // ---------- Chart (fixed recurring handling – only occurrence days) ----------
     function buildChart(initialDays) {
         if (incomeChart) {
             incomeChart.destroy();
@@ -397,8 +465,10 @@
         const now = moment().endOf('day');
         const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-        const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
-        const dailyMap = new Map();
+        // Build dailyMap for all categories
+        const dailyMap = new Map();   // key: YYYY-MM-DD -> { patreon, website, kofi, expense }
+
+        // Add all actual entries
         entries.forEach(e => {
             const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
             if (!dailyMap.has(date)) {
@@ -411,39 +481,50 @@
             else if (e.category === 'Expenses' && !e.recurring) d.expense += e.amount;
         });
 
-        const daysInMonth = (m, y) => new Date(y, m, 0).getDate();
-        for (const recExp of recurringExpenses) {
-            const startMonth = recExp.month;
-            const startDay = recExp.day;
-            for (let m = startMonth; m <= 12; m++) {
-                const firstDay = (m === startMonth) ? startDay : 1;
-                const lastDay = daysInMonth(m, currentYear);
-                for (let d = firstDay; d <= lastDay; d++) {
-                    const key = moment(new Date(currentYear, m - 1, d)).format('YYYY-MM-DD');
-                    if (!dailyMap.has(key)) {
-                        dailyMap.set(key, { patreon: 0, website: 0, kofi: 0, expense: 0 });
-                    }
-                    dailyMap.get(key).expense += recExp.amount;
+        // For each recurring expense, add its amount only on its actual occurrence days (up to today)
+        const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
+        for (const rec of recurringExpenses) {
+            let curMonth = rec.month;
+            let curYear = currentYear;
+            let date = new Date(curYear, curMonth - 1, rec.day);
+            // Loop over months until we pass today
+            while (date <= new Date()) {
+                const key = moment(date).format('YYYY-MM-DD');
+                if (!dailyMap.has(key)) {
+                    dailyMap.set(key, { patreon: 0, website: 0, kofi: 0, expense: 0 });
                 }
+                dailyMap.get(key).expense += rec.amount;
+
+                // Move to next month, same day
+                curMonth++;
+                if (curMonth > 12) { curMonth = 1; curYear++; }
+                date = new Date(curYear, curMonth - 1, rec.day);
             }
         }
 
+        // Cumulative arrays (reset each month)
         const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], expenseCum = [], netCum = [];
-        let curPatreon = 0, curWebsite = 0, curKofi = 0, curExpense = 0, lastMonth = null;
+        let curPatreon = 0, curWebsite = 0, curKofi = 0, curExpense = 0;
+        let lastMonth = null;
 
         for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
             const key = d.format('YYYY-MM-DD');
             const month = d.month() + 1;
+
+            // Reset on new month
             if (lastMonth !== null && month !== lastMonth) {
                 curPatreon = 0; curWebsite = 0; curKofi = 0; curExpense = 0;
             }
             lastMonth = month;
+
             const today = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
             curPatreon += today.patreon;
             curWebsite += today.website;
             curKofi += today.kofi;
             curExpense += today.expense;
+
             const net = curPatreon + curWebsite + curKofi - curExpense;
+
             dates.push(d.toDate());
             patreonCum.push(curPatreon);
             websiteCum.push(curWebsite);
@@ -452,20 +533,22 @@
             netCum.push(net);
         }
 
+        // Create chart
         const ctx = document.getElementById('incomeChart').getContext('2d');
         incomeChart = new Chart(ctx, {
             type: 'line',
             data: {
                 datasets: [
-                    { label: 'Patreon', data: dates.map((x, i) => ({ x, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Website', data: dates.map((x, i) => ({ x, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Ko‑fi', data: dates.map((x, i) => ({ x, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Expenses (abs)', data: dates.map((x, i) => ({ x, y: expenseCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Net Income', data: dates.map((x, i) => ({ x, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, pointHoverRadius: 3, tension: 0 }
+                    { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: expenseCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                    { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, pointHoverRadius: 3, tension: 0 }
                 ]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 interaction: { mode: 'nearest', axis: 'x', intersect: false },
                 plugins: {
                     legend: { labels: { color: '#aaa' } },
@@ -476,13 +559,17 @@
                 },
                 scales: {
                     x: {
-                        type: 'time', time: { unit: 'day', displayFormats: { day: 'MMM D' } },
-                        min: startDate.toDate(), max: now.toDate(),
-                        ticks: { color: '#aaa', maxRotation: 45 }, grid: { color: '#2a2f38' }
+                        type: 'time',
+                        time: { unit: 'day', displayFormats: { day: 'MMM D' } },
+                        min: startDate.toDate(),
+                        max: now.toDate(),
+                        ticks: { color: '#aaa', maxRotation: 45 },
+                        grid: { color: '#2a2f38' }
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#aaa', callback: v => '$' + v }, grid: { color: '#2a2f38' }
+                        ticks: { color: '#aaa', callback: v => '$' + v },
+                        grid: { color: '#2a2f38' }
                     }
                 }
             }
