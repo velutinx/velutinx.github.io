@@ -524,18 +524,26 @@ function buildChart(initialDays) {
     const now = moment().endOf('day');
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-    // 1. Separate entries for chart purposes
+    // 1. GET RECURRING SOURCES
+    // These define our "Flat Baseline" that doesn't reset monthly.
     const activeRecurringOriginals = entries.filter(e => e.category === 'Expenses' && e.recurring);
+
+    // 2. GET NON-RECURRING ENTRIES (AND FILTER OUT COPIES)
+    // We exclude copies of recurring expenses here to prevent double-counting ($10 vs $5).
     const nonRecurringEntries = entries.filter(e => {
-        if (e.category !== 'Expenses') return true;                     // income
-        if (e.recurring) return false;                                  // handled by activeRecurringOriginals
-        const copyInfo = getCopyInfo(e);
-        if (!copyInfo) return true;                                     // genuine one‑time expense
-        return copyInfo.active;                                         // active copy only
+        if (e.category !== 'Expenses') return true; // Keep all income
+        if (e.recurring) return false;              // Handled by the baseline logic below
+
+        // If this is a copy of a recurring expense, we IGNORE it for the chart's Y-axis
+        // because the "Flat Baseline" logic will account for its value continuously.
+        const copyInfo = typeof getCopyInfo === 'function' ? getCopyInfo(e) : null;
+        if (copyInfo) return false; 
+
+        return true; // This is a genuine one-time expense (e.g., a random hardware purchase)
     });
 
-    // 2. Build daily map for non‑recurring entries
-    const dailyNonRecMap = new Map();   // key: YYYY-MM-DD → { patreon, website, kofi, expense }
+    // 3. BUILD DAILY MAP FOR NON-RECURRING (Income & One-off Expenses)
+    const dailyNonRecMap = new Map();
     nonRecurringEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
         if (!dailyNonRecMap.has(date)) {
@@ -545,19 +553,18 @@ function buildChart(initialDays) {
         if (e.category === 'Patreon subscription') d.patreon += e.amount;
         else if (e.category === 'Website payments') d.website += e.amount;
         else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
-        else if (e.category === 'Expenses') d.expense += e.amount;   // one‑time or active copy
+        else if (e.category === 'Expenses') d.expense += e.amount;
     });
 
-    // 3. Define Start Dates for active recurring to create a FLAT baseline
+    // 4. DEFINE START DATES FOR FLAT BASELINE
     const recurringBaselines = activeRecurringOriginals.map(rec => {
-        // We anchor the start date to the current year based on your existing structure
         const start = moment(new Date(currentYear, rec.month - 1, rec.day)).format('YYYY-MM-DD');
         return { startDate: start, amount: rec.amount };
     });
 
-    // 4. Build cumulative arrays
+    // 5. BUILD CUMULATIVE ARRAYS
     const dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
-          recExpCum = [], nonRecExpCum = [], totalExpCum = [], netCum = [];
+          totalExpCum = [], netCum = [];
 
     let curPatreon = 0, curWebsite = 0, curKofi = 0, curNonRecExp = 0;
     let lastMonth = null;
@@ -566,7 +573,7 @@ function buildChart(initialDays) {
         const key = d.format('YYYY-MM-DD');
         const month = d.month() + 1;
 
-        // Reset monthly accumulators for income and ONE-TIME expenses
+        // Reset Income and One-Time Expenses every month
         if (lastMonth !== null && month !== lastMonth) {
             curPatreon = 0;
             curWebsite = 0;
@@ -575,15 +582,15 @@ function buildChart(initialDays) {
         }
         lastMonth = month;
 
-        // Today's non‑recurring amounts
+        // Add today's non-recurring totals to the monthly accumulator
         const nonRec = dailyNonRecMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
         curPatreon += nonRec.patreon;
         curWebsite += nonRec.website;
         curKofi += nonRec.kofi;
         curNonRecExp += nonRec.expense;
 
-        // Today's recurring amount (FLAT CONTINUOUS RATE)
-        // If the plotted day is past the subscription's start date, it stays in the baseline forever.
+        // CALCULATE FLAT BASELINE (Does NOT reset on the 1st)
+        // If today is on or after the subscription start date, it's part of the static cost.
         let currentRunRate = 0;
         recurringBaselines.forEach(sub => {
             if (key >= sub.startDate) {
@@ -591,30 +598,30 @@ function buildChart(initialDays) {
             }
         });
 
+        // Combined Expenses = (Monthly One-Offs) + (Static Continuous Baseline)
         const totalExp = curNonRecExp + currentRunRate;
-        const net = curPatreon + curWebsite + curKofi - totalExp;
+        const totalIncome = curPatreon + curWebsite + curKofi;
+        const net = totalIncome - totalExp;
 
         dates.push(d.toDate());
         patreonCum.push(curPatreon);
         websiteCum.push(curWebsite);
         kofiCum.push(curKofi);
-        recExpCum.push(currentRunRate);
-        nonRecExpCum.push(curNonRecExp);
         totalExpCum.push(totalExp);
         netCum.push(net);
     }
 
-    // 5. Create chart
+    // 6. CREATE CHART
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
         type: 'line',
         data: {
             datasets: [
-                { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, pointHoverRadius: 3, tension: 0 }
+                { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 },
+                { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 },
+                { label: 'Ko-fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
+                { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 },
+                { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 }
             ]
         },
         options: {
@@ -646,7 +653,7 @@ function buildChart(initialDays) {
         }
     });
 }
-
+    
     function refreshAll() {
         renderTable();
         const activeBtn = document.querySelector('.range-btn.active');
