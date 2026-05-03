@@ -73,6 +73,7 @@
             showToast('⚠ Could not connect to server – working offline.', 'error');
             entries = [];
         }
+        await ensurePastRecurringOccurrences();
         refreshAll();
     }
 
@@ -164,6 +165,67 @@
             refreshAll();
             showToast('Entry added!', 'success');
         }
+    }
+
+    // ---------- Auto-fill missing past recurring occurrences ----------
+    async function ensurePastRecurringOccurrences() {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        const currentDay = today.getDate();
+
+        for (const e of entries) {
+            if (e.category !== 'Expenses' || !e.recurring) continue;
+
+            // Find all past months from the entry's start month until the current month
+            let month = e.month;
+            let year = currentYear; // assume same year for simplicity; later we could handle cross-year
+            while (true) {
+                // Stop if we pass the current date
+                if (year > currentYear || (year === currentYear && month > currentMonth) ||
+                    (year === currentYear && month === currentMonth && e.day >= currentDay)) {
+                    break;
+                }
+
+                // Check if an entry already exists for this month/day combination
+                const exists = entries.some(ee =>
+                    ee.month === month && ee.day === e.day &&
+                    ee.category === 'Expenses' && ee.concept === e.concept &&
+                    ee.amount === e.amount
+                );
+
+                if (!exists) {
+                    // Create a one‑time entry (recurring = false)
+                    await addEntry({
+                        month, day: e.day,
+                        amount: e.amount,
+                        currency: e.currency,
+                        category: 'Expenses',
+                        concept: e.concept,
+                        recurring: false
+                    });
+                }
+
+                // Move to next month
+                month++;
+                if (month > 12) { month = 1; year++; }
+            }
+        }
+    }
+
+    // ---------- Compute next occurrence for future projection ----------
+    function getNextOccurrence(entry, currentYear, currentMonth, currentDay) {
+        const today = new Date();
+        let nextMonth = entry.month;
+        let nextYear = currentYear;
+
+        let dateCandidate = new Date(nextYear, nextMonth - 1, entry.day);
+        while (dateCandidate <= today) {
+            nextMonth++;
+            if (nextMonth > 12) { nextMonth = 1; nextYear++; }
+            dateCandidate = new Date(nextYear, nextMonth - 1, entry.day);
+        }
+        return { month: nextMonth, day: entry.day, year: nextYear };
     }
 
     // ---------- Website sync ----------
@@ -271,52 +333,32 @@
         }
     }
 
-    // ---------- Compute future occurrence of a recurring expense ----------
-    function getNextOccurrence(entry, currentYear, currentMonth) {
-        // Returns { month, day } for the next occurrence after the current date
-        const today = new Date();
-        const entryDay = entry.day;
-        let nextMonth = entry.month;
-        let nextYear = currentYear;
-
-        // Start from the month *after* the entry's original month?
-        // We want the next occurrence that is strictly after 'today'.
-        // We'll iterate month by month until we find a date > today.
-        // Use a loop for simplicity.
-        let dateCandidate = new Date(currentYear, nextMonth - 1, entryDay);
-        while (dateCandidate <= today) {
-            nextMonth++;
-            if (nextMonth > 12) { nextMonth = 1; nextYear++; }
-            dateCandidate = new Date(nextYear, nextMonth - 1, entryDay);
-        }
-        return { month: nextMonth, day: entryDay, year: nextYear };
-    }
-
-    // ---------- Table rendering (now includes future recurring projections) ----------
+    // ---------- Table rendering (actual entries + future projections) ----------
     function renderTable() {
         tableBody.innerHTML = '';
-        if (entries.length === 0 && !hasRecurringExpenses()) {
+        if (entries.length === 0) {
             tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
             exportBtn.disabled = true;
             return;
         }
 
-        // Build list of all rows to display: actual entries + future projections for recurring expenses
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth() + 1;
+        const currentDay = new Date().getDate();
+
+        // Build all rows: actual entries + future projections for recurring expenses
         const allRows = [];
+        entries.forEach(e => allRows.push({ entry: e, isFuture: false }));
 
-        // Add actual entries
-        entries.forEach(e => {
-            allRows.push({ entry: e, isFuture: false });
-        });
-
-        // For each recurring expense, compute the next occurrence and add as a future row
         const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
         recurringExpenses.forEach(e => {
-            const next = getNextOccurrence(e, currentYear, currentMonth);
-            // Only add if it's not already an existing entry (e.g., if the recurring already has an actual entry for that month)
-            const exists = entries.some(ee => ee.month === next.month && ee.day === next.day && ee.category === 'Expenses' && ee.concept === e.concept && ee.amount === e.amount);
+            const next = getNextOccurrence(e, currentYear, currentMonth, currentDay);
+            // check if an actual entry already exists for that date
+            const exists = entries.some(ee =>
+                ee.month === next.month && ee.day === next.day &&
+                ee.category === 'Expenses' && ee.concept === e.concept &&
+                ee.amount === e.amount
+            );
             if (!exists) {
                 allRows.push({ entry: { ...e, month: next.month, day: next.day, id: null, recurring: true, concept: e.concept, amount: e.amount, currency: e.currency, category: 'Expenses' }, isFuture: true });
             }
@@ -325,7 +367,7 @@
         // Sort all rows by date
         allRows.sort((a, b) => (a.entry.month * 100 + a.entry.day) - (b.entry.month * 100 + b.entry.day));
 
-        // Group by month (using current year for display)
+        // Group by month
         const groups = new Map();
         for (const row of allRows) {
             const key = `${currentYear}-${row.entry.month}`;
@@ -339,14 +381,12 @@
             return y1 - y2 || m1 - m2;
         });
 
-        // Determine which months contain future entries
         const futureMonths = new Set();
         allRows.forEach(r => { if (r.isFuture) futureMonths.add(`${currentYear}-${r.entry.month}`); });
 
         for (const key of sortedKeys) {
             const [y, m] = key.split('-').map(Number);
             const monthRows = groups.get(key);
-            // Only compute total from actual (non-future) entries
             const actualEntries = monthRows.filter(r => !r.isFuture).map(r => r.entry);
             const monthTotal = actualEntries.reduce((sum, e) =>
                 sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
@@ -355,14 +395,13 @@
             const isCurrent = (y === currentYear && m === currentMonth);
             const monthName = monthNames[m] + ' ' + y;
 
-            // Month header row
             const headerTr = document.createElement('tr');
             headerTr.className = 'month-header';
             headerTr.dataset.monthKey = key;
             headerTr.innerHTML = `
                 <td colspan="7" style="cursor:pointer;">
                     <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
-                    <strong>${monthName}</strong> – ${entries.length} entries, total:
+                    <strong>${monthName}</strong> – ${actualEntries.length} entries, total:
                     <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
                         ${monthTotal.toFixed(2)} ${currency}
                     </span>
@@ -372,7 +411,6 @@
             `;
             tableBody.appendChild(headerTr);
 
-            // Render each row (actual or future)
             for (const row of monthRows) {
                 const entry = row.entry;
                 const dateStr = formatDate(entry.month, entry.day, y);
@@ -382,7 +420,6 @@
                 let recurringHtml = '';
                 if (entry.category === 'Expenses') {
                     if (row.isFuture) {
-                        // Future: show a grayed out icon (not clickable)
                         recurringHtml = `<span style="color:#888; font-weight:bold;">⏳</span>`;
                     } else {
                         const icon = entry.recurring ? '✔' : '✕';
@@ -446,14 +483,10 @@
             });
         });
 
-        exportBtn.disabled = entries.length === 0;
+        exportBtn.disabled = false;
     }
 
-    function hasRecurringExpenses() {
-        return entries.some(e => e.category === 'Expenses' && e.recurring);
-    }
-
-    // ---------- Chart (fixed recurring handling – only occurrence days) ----------
+    // ---------- Chart (fixed recurring – only on occurrence days) ----------
     function buildChart(initialDays) {
         if (incomeChart) {
             incomeChart.destroy();
@@ -465,10 +498,7 @@
         const now = moment().endOf('day');
         const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-        // Build dailyMap for all categories
-        const dailyMap = new Map();   // key: YYYY-MM-DD -> { patreon, website, kofi, expense }
-
-        // Add all actual entries
+        const dailyMap = new Map();
         entries.forEach(e => {
             const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
             if (!dailyMap.has(date)) {
@@ -478,53 +508,26 @@
             if (e.category === 'Patreon subscription') d.patreon += e.amount;
             else if (e.category === 'Website payments') d.website += e.amount;
             else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
-            else if (e.category === 'Expenses' && !e.recurring) d.expense += e.amount;
+            else if (e.category === 'Expenses') d.expense += e.amount;   // all expenses, recurring or not
         });
 
-        // For each recurring expense, add its amount only on its actual occurrence days (up to today)
-        const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
-        for (const rec of recurringExpenses) {
-            let curMonth = rec.month;
-            let curYear = currentYear;
-            let date = new Date(curYear, curMonth - 1, rec.day);
-            // Loop over months until we pass today
-            while (date <= new Date()) {
-                const key = moment(date).format('YYYY-MM-DD');
-                if (!dailyMap.has(key)) {
-                    dailyMap.set(key, { patreon: 0, website: 0, kofi: 0, expense: 0 });
-                }
-                dailyMap.get(key).expense += rec.amount;
-
-                // Move to next month, same day
-                curMonth++;
-                if (curMonth > 12) { curMonth = 1; curYear++; }
-                date = new Date(curYear, curMonth - 1, rec.day);
-            }
-        }
-
-        // Cumulative arrays (reset each month)
+        // No need to separately add recurring occurrences because they are now actual entries
         const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], expenseCum = [], netCum = [];
-        let curPatreon = 0, curWebsite = 0, curKofi = 0, curExpense = 0;
-        let lastMonth = null;
+        let curPatreon = 0, curWebsite = 0, curKofi = 0, curExpense = 0, lastMonth = null;
 
         for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
             const key = d.format('YYYY-MM-DD');
             const month = d.month() + 1;
-
-            // Reset on new month
             if (lastMonth !== null && month !== lastMonth) {
                 curPatreon = 0; curWebsite = 0; curKofi = 0; curExpense = 0;
             }
             lastMonth = month;
-
             const today = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
             curPatreon += today.patreon;
             curWebsite += today.website;
             curKofi += today.kofi;
             curExpense += today.expense;
-
             const net = curPatreon + curWebsite + curKofi - curExpense;
-
             dates.push(d.toDate());
             patreonCum.push(curPatreon);
             websiteCum.push(curWebsite);
@@ -533,7 +536,6 @@
             netCum.push(net);
         }
 
-        // Create chart
         const ctx = document.getElementById('incomeChart').getContext('2d');
         incomeChart = new Chart(ctx, {
             type: 'line',
@@ -623,7 +625,6 @@
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    // ---------- Init ----------
     document.addEventListener('DOMContentLoaded', async () => {
         monthSelect = document.getElementById('monthSelect');
         daySelect = document.getElementById('daySelect');
