@@ -579,40 +579,49 @@ function renderPayPalButton() {
       if (!response.ok) throw new Error(data.error || 'Order creation failed');
       return data.orderID;
     },
-    onApprove: async (data, actions) => {
-      const orderID = data.orderID;
-      const currentCart = storeCart;
-      const lang = localStorage.getItem('language') || 'en';
+onApprove: async (data, actions) => {
+  const orderID = data.orderID;
+  const lang = localStorage.getItem('language') || 'en';
 
-      try {
-        const storeResponse = await fetch(`${CART_WORKER_URL}/store-cart`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderID, cart: currentCart, language: lang })
-        });
-        if (!storeResponse.ok) throw new Error('Store cart failed');
-      } catch (err) {
-        console.error('Failed to store cart:', err);
-        alert('Payment succeeded but we could not record your order. Please contact support with order ID: ' + orderID);
-      }
+  try {
+    // 1. Tell your Worker to capture the payment via PayPal API
+    // The worker will also record the success to Supabase automatically
+    const response = await fetch(`${CART_WORKER_URL}/capture-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        orderID: orderID, 
+        language: lang 
+      })
+    });
 
-      storeCart = [];
-      saveStoreCart();
-      renderStoreGrid();
-      window.location.href = `/s/success.html?orderID=${orderID}`;
-    },
-    onError: (err) => {
-      console.error('PayPal error', err);
-      alert('Something went wrong. Please try again.');
-    },
-    onCancel: () => {
-      isRendering = false;
+    const result = await response.json();
+
+    if (!response.ok || result.error) {
+      throw new Error(result.error || 'Payment capture failed');
     }
-  }).render(container).then(() => {
-    isRendering = false;
-  }).catch(() => {
-    isRendering = false;
-  });
+
+    // 2. Clear the local cart now that payment is confirmed
+    storeCart = [];
+    saveStoreCart();
+    renderStoreGrid();
+
+    // 3. Redirect to success page using the REAL Transaction ID
+    // result.transactionID is the ID you'll see in your PayPal dashboard
+    window.location.href = `/s/success.html?orderID=${result.transactionID}`;
+
+  } catch (err) {
+    console.error('PayPal Capture Error:', err);
+    alert('The payment could not be finalized. Please check your PayPal activity or contact support with Order ID: ' + orderID);
+  }
+},
+onError: (err) => {
+  console.error('PayPal error', err);
+  alert('Something went wrong with the PayPal gateway. Please try again.');
+},
+onCancel: () => {
+  isRendering = false;
+  // Optional: Add a toast or notification that the payment was cancelled
 }
 
 window.setupStoreCheckout = () => renderPayPalButton();
