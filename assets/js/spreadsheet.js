@@ -105,30 +105,8 @@
         }
     }
 
-    // Enhanced delete: if deleting a recurring original, also remove all its auto-generated copies
     async function deleteEntry(index) {
         const entry = entries[index];
-        const isRecurringOriginal = entry.category === 'Expenses' && entry.recurring;
-
-        if (isRecurringOriginal) {
-            // delete all auto‑generated copies (same concept, amount, day, but month > original month)
-            const copies = entries.filter(e =>
-                e.category === 'Expenses' &&
-                !e.recurring &&
-                e.concept === entry.concept &&
-                e.amount === entry.amount &&
-                e.day === entry.day &&
-                e.month > entry.month
-            );
-            for (const copy of copies) {
-                if (copy.id) {
-                    await fetch(`${WORKER_URL}/entries/${copy.id}`, { method: 'DELETE' });
-                }
-                entries.splice(entries.indexOf(copy), 1);
-            }
-        }
-
-        // delete the original entry itself
         if (entry.id) {
             try {
                 await fetch(`${WORKER_URL}/entries/${entry.id}`, { method: 'DELETE' });
@@ -141,7 +119,7 @@
         showToast('Entry removed.', 'info');
     }
 
-    // Toggle recurring on the original entry (clicking ✔ on auto-generated will call cancelSubscription instead)
+    // Toggle recurring on the original entry (✔ ↔ ✕)
     async function toggleRecurring(index) {
         const entry = entries[index];
         const newRecurring = !entry.recurring;
@@ -153,6 +131,11 @@
             });
             if (!res.ok) throw new Error('Failed to update');
             entry.recurring = newRecurring;
+            // If turning off, we don't delete copies; they will just become inactive in the table.
+            // If turning on, ensure past copies exist (they should already be present, but just in case).
+            if (newRecurring) {
+                await ensurePastRecurringOccurrences();
+            }
             refreshAll();
             showToast(`Recurring ${newRecurring ? 'enabled' : 'disabled'}.`, 'success');
         } catch (err) {
@@ -160,32 +143,31 @@
         }
     }
 
-    // Called when clicking ✔ on an auto-generated copy – cancels the whole subscription
-    async function cancelSubscriptionFromAutoEntry(copyEntry) {
-        // Find the original recurring entry (same concept, amount, day, recurring=true)
+    // Cancel subscription from an auto-generated copy (set original recurring=false)
+    async function cancelSubscriptionFromCopy(copyEntry) {
         const original = entries.find(e =>
-            e.category === 'Expenses' &&
-            e.recurring &&
-            e.concept === copyEntry.concept &&
-            e.amount === copyEntry.amount &&
-            e.day === copyEntry.day
+            e.category === 'Expenses' && e.recurring &&
+            e.concept === copyEntry.concept && e.amount === copyEntry.amount && e.day === copyEntry.day
         );
         if (!original) {
             showToast('Original subscription not found.', 'error');
             return;
         }
-
-        // Toggle the original's recurring off
         await toggleRecurring(entries.indexOf(original));
+    }
 
-        // Delete the auto-generated copy that was clicked (the payment for that month never occurred)
-        if (copyEntry.id) {
-            await fetch(`${WORKER_URL}/entries/${copyEntry.id}`, { method: 'DELETE' });
-            const idx = entries.indexOf(copyEntry);
-            if (idx !== -1) entries.splice(idx, 1);
+    // Reactivate subscription from an inactive copy (set original recurring=true)
+    async function reactivateSubscriptionFromCopy(copyEntry) {
+        const original = entries.find(e =>
+            e.category === 'Expenses' && !e.recurring &&   // original is currently inactive
+            e.concept === copyEntry.concept && e.amount === copyEntry.amount && e.day === copyEntry.day
+        );
+        if (!original) {
+            showToast('Original subscription not found (maybe already active).', 'error');
+            return;
         }
-        refreshAll();
-        showToast('Subscription cancelled – this month’s charge removed.', 'success');
+        // Toggle it on
+        await toggleRecurring(entries.indexOf(original));
     }
 
     async function handleAddClick() {
@@ -234,7 +216,7 @@
             if (e.category !== 'Expenses' || !e.recurring) continue;
 
             let month = e.month;
-            let year = currentYear;
+            let year = currentYear; // assume same year (can be extended later)
             while (true) {
                 if (year > currentYear || (year === currentYear && month > currentMonth) ||
                     (year === currentYear && month === currentMonth && e.day >= currentDay)) {
@@ -254,7 +236,7 @@
                         currency: e.currency,
                         category: 'Expenses',
                         concept: e.concept,
-                        recurring: false
+                        recurring: false   // auto-generated copies are non-recurring
                     });
                 }
 
@@ -264,18 +246,25 @@
         }
     }
 
-    // ---------- Helper: is this entry an auto‑generated past recurrence? ----------
-    function isAutoGeneratedCopy(entry) {
-        if (entry.category !== 'Expenses' || entry.recurring) return false;
-        // Check if there is a recurring original with same concept, amount, day and earlier month
-        return entries.some(e =>
-            e.category === 'Expenses' &&
-            e.recurring &&
-            e.concept === entry.concept &&
-            e.amount === entry.amount &&
-            e.day === entry.day &&
-            e.month < entry.month
+    // ---------- Determine if an entry is an auto-generated copy and its subscription status ----------
+    function getCopyInfo(entry) {
+        if (entry.category !== 'Expenses' || entry.recurring) return null;
+        // Find the original recurring entry with same concept, amount, day
+        const original = entries.find(e =>
+            e.category === 'Expenses' && e.recurring &&
+            e.concept === entry.concept && e.amount === entry.amount && e.day === entry.day
         );
+        if (!original) return null; // no original found (shouldn't happen)
+        return {
+            isCopy: true,
+            active: original.recurring   // true if original is still recurring
+        };
+    }
+
+    // Check if an entry is an inactive copy (original exists but inactive)
+    function isInactiveCopy(entry) {
+        const info = getCopyInfo(entry);
+        return info && !info.active;
     }
 
     // ---------- Compute next occurrence for future projection ----------
@@ -296,21 +285,18 @@
     // ---------- Website sync ----------
     const IMPORTED_IDS_KEY = 'imported_website_order_ids';
     function getImportedIds() { return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]'); }
-    function addImportedId(id) { /* ... unchanged ... */ }
-
-    function buildWebsiteDescription(order) { /* ... unchanged ... */ }
-
-    async function autoSyncWebsitePayments() { /* ... unchanged ... */ }
+    function addImportedId(id) { /* unchanged */ }
+    function buildWebsiteDescription(order) { /* unchanged */ }
+    async function autoSyncWebsitePayments() { /* unchanged */ }
 
     // ---------- Patreon sync ----------
     const PATREON_PROXY = 'https://patreon-api-proxy.velutinx.workers.dev';
     const IMPORTED_PATREON_KEY = 'imported_patreon_charges';
-    function getImportedPatreonCharges() { /* ... unchanged ... */ }
-    function addImportedPatreonCharge(key) { /* ... unchanged ... */ }
+    function getImportedPatreonCharges() { /* unchanged */ }
+    function addImportedPatreonCharge(key) { /* unchanged */ }
+    async function autoSyncPatreon() { /* unchanged */ }
 
-    async function autoSyncPatreon() { /* ... unchanged ... */ }
-
-    // ---------- Table rendering (updated) ----------
+    // ---------- Table rendering ----------
     function renderTable() {
         tableBody.innerHTML = '';
         if (entries.length === 0) {
@@ -323,11 +309,14 @@
         const currentMonth = new Date().getMonth() + 1;
         const currentDay = new Date().getDate();
 
+        // Build all rows: actual entries + future projections
         const allRows = [];
         entries.forEach(e => allRows.push({ entry: e, isFuture: false }));
 
         const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
         recurringExpenses.forEach(e => {
+            // Only add future projection if the original is still active
+            if (!e.recurring) return;
             const next = getNextOccurrence(e, currentYear, currentMonth, currentDay);
             const exists = entries.some(ee =>
                 ee.month === next.month && ee.day === next.day &&
@@ -344,6 +333,7 @@
 
         allRows.sort((a, b) => (a.entry.month * 100 + a.entry.day) - (b.entry.month * 100 + b.entry.day));
 
+        // Group by month (including future months)
         const groups = new Map();
         for (const row of allRows) {
             const key = `${currentYear}-${row.entry.month}`;
@@ -363,13 +353,19 @@
         for (const key of sortedKeys) {
             const [y, m] = key.split('-').map(Number);
             const monthRows = groups.get(key);
-            const actualEntries = monthRows.filter(r => !r.isFuture).map(r => r.entry);
-            const monthTotal = actualEntries.reduce((sum, e) =>
+            // For month total, exclude future rows and inactive copies
+            const activeActualEntries = monthRows.filter(r => !r.isFuture).map(r => r.entry).filter(e => !isInactiveCopy(e));
+            const monthTotal = activeActualEntries.reduce((sum, e) =>
                 sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
-            const currencySet = new Set(actualEntries.map(e => e.currency));
+            const currencySet = new Set(activeActualEntries.map(e => e.currency));
             const currency = currencySet.size === 1 ? currencySet.values().next().value : 'mixed';
             const isCurrent = (y === currentYear && m === currentMonth);
             const monthName = monthNames[m] + ' ' + y;
+
+            // Determine if this month contains any future projection
+            const hasFuture = monthRows.some(r => r.isFuture);
+            // Determine if this month contains an inactive copy
+            const hasInactive = monthRows.some(r => !r.isFuture && isInactiveCopy(r.entry));
 
             const headerTr = document.createElement('tr');
             headerTr.className = 'month-header';
@@ -377,12 +373,12 @@
             headerTr.innerHTML = `
                 <td colspan="7" style="cursor:pointer;">
                     <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
-                    <strong>${monthName}</strong> – ${actualEntries.length} entries, total:
+                    <strong>${monthName}</strong> – ${monthRows.filter(r => !r.isFuture).length} entries, total:
                     <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
                         ${monthTotal.toFixed(2)} ${currency}
                     </span>
                     ${isCurrent ? ' (current)' : ''}
-                    ${futureMonths.has(key) ? ' <span style="color:#888; font-size:0.8rem;">(upcoming)</span>' : ''}
+                    ${hasFuture ? ' <span style="color:#888; font-size:0.8rem;">(upcoming)</span>' : ''}
                 </td>
             `;
             tableBody.appendChild(headerTr);
@@ -396,29 +392,44 @@
                 let recurringHtml = '';
                 if (entry.category === 'Expenses') {
                     if (row.isFuture) {
-                        recurringHtml = `<span style="color:#888; font-weight:bold;">⏳</span>`;
+                        // Future projection based on original's active status
+                        const original = entries.find(e => e.recurring && e.concept === entry.concept && e.amount === entry.amount && e.day === entry.day);
+                        const isActive = original ? original.recurring : false;
+                        recurringHtml = isActive
+                            ? `<span style="color:#888; font-weight:bold;">⏳</span>`
+                            : `<span style="color:#f44336; font-weight:bold;">✕</span>`;
                     } else {
-                        const isAutoCopy = isAutoGeneratedCopy(entry);
-                        if (isAutoCopy) {
-                            // Clickable ✔ that calls cancelSubscriptionFromAutoEntry
-                            recurringHtml = `<span class="auto-recurring-toggle" data-month="${entry.month}" data-day="${entry.day}" data-concept="${entry.concept}" data-amount="${entry.amount}" style="color:#4caf50; cursor:pointer; font-weight:bold;">✔</span>`;
+                        const copyInfo = getCopyInfo(entry);
+                        if (copyInfo) {
+                            // This is an auto-generated copy
+                            const active = copyInfo.active;
+                            const icon = active ? '✔' : '✕';
+                            const color = active ? '#4caf50' : '#f44336';
+                            // Click handler will be attached later via class 'copy-recurring-toggle'
+                            recurringHtml = `<span class="copy-recurring-toggle" data-concept="${entry.concept}" data-amount="${entry.amount}" data-day="${entry.day}" data-month="${entry.month}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
                         } else {
+                            // Original recurring entry or one-time expense
                             const icon = entry.recurring ? '✔' : '✕';
                             const color = entry.recurring ? '#4caf50' : '#f44336';
+                            const toggleClass = entry.recurring ? 'recurring-toggle' : 'recurring-toggle'; // allow toggle only on original? actually both original and one-time can toggle, so keep same.
                             recurringHtml = `<span class="recurring-toggle" data-index="${entries.indexOf(entry)}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
                         }
                     }
                 }
 
-                // For auto-generated copies, no delete button
-                const deleteHtml = (entry.category === 'Expenses' && !row.isFuture && !isAutoGeneratedCopy(entry))
+                // Delete button: only for original recurring expenses (or one-time expenses) but not for copies
+                const isOriginalRecurring = entry.category === 'Expenses' && entry.recurring;
+                const isOneTimeExpense = entry.category === 'Expenses' && !entry.recurring && !getCopyInfo(entry); // not a copy
+                const deleteHtml = (!row.isFuture && (isOriginalRecurring || isOneTimeExpense))
                     ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
                     : '';
 
-                const rowClass = 'entry-row ' +
-                    (isCurrent || futureMonths.has(key) ? '' : 'hidden-row ') +
-                    (entry.category === 'Expenses' ? 'row-expense' : 'row-income') +
-                    (row.isFuture ? ' future-row' : '');
+                // Determine row styling
+                let rowClass = 'entry-row ';
+                if (isCurrent || futureMonths.has(key)) rowClass += '';
+                else rowClass += 'hidden-row ';
+                rowClass += (entry.category === 'Expenses' ? 'row-expense' : 'row-income');
+                if (row.isFuture) rowClass += ' future-row';
 
                 const tr = document.createElement('tr');
                 tr.className = rowClass;
@@ -426,7 +437,11 @@
                 if (row.isFuture) {
                     tr.style.opacity = '0.5';
                     tr.style.fontStyle = 'italic';
+                } else if (isInactiveCopy(entry)) {
+                    tr.style.opacity = '0.5';
+                    tr.style.color = '#888';
                 }
+
                 tr.innerHTML = `
                     <td>${dateStr}</td>
                     <td>${amountDisplay}</td>
@@ -440,7 +455,7 @@
             }
         }
 
-        // Attach events
+        // Attach event listeners
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const idx = parseInt(this.dataset.index);
@@ -448,6 +463,7 @@
             });
         });
 
+        // Toggle original recurring (on the original entry)
         document.querySelectorAll('.recurring-toggle').forEach(span => {
             span.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -456,7 +472,8 @@
             });
         });
 
-        document.querySelectorAll('.auto-recurring-toggle').forEach(span => {
+        // Cancel or reactivate subscription from a copy
+        document.querySelectorAll('.copy-recurring-toggle').forEach(span => {
             span.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const concept = this.dataset.concept;
@@ -466,12 +483,20 @@
                 const copyEntry = entries.find(ee =>
                     ee.concept === concept && ee.amount === amount && ee.day === day && ee.month === month && !ee.recurring
                 );
-                if (copyEntry) {
-                    cancelSubscriptionFromAutoEntry(copyEntry);
+                if (!copyEntry) return;
+                const copyInfo = getCopyInfo(copyEntry);
+                if (!copyInfo) return;
+                if (copyInfo.active) {
+                    // Currently active -> cancel
+                    cancelSubscriptionFromCopy(copyEntry);
+                } else {
+                    // Currently inactive -> reactivate
+                    reactivateSubscriptionFromCopy(copyEntry);
                 }
             });
         });
 
+        // Month toggle
         document.querySelectorAll('.month-header').forEach(header => {
             header.addEventListener('click', function() {
                 const monthKey = this.dataset.monthKey;
@@ -487,7 +512,7 @@
         exportBtn.disabled = false;
     }
 
-    // ---------- Chart (recurring no reset, non-recurring monthly reset) ----------
+    // ---------- Chart (fixed recurring never resets, non-recurring resets) ----------
     function buildChart(initialDays) {
         if (incomeChart) {
             incomeChart.destroy();
@@ -499,15 +524,18 @@
         const now = moment().endOf('day');
         const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-        // Separate recurring and non-recurring expenses
-        const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
-        const nonRecurringExpenses = entries.filter(e => e.category === 'Expenses' && !e.recurring);
+        // Separate active and inactive entries for chart
+        const activeEntries = entries.filter(e => {
+            if (e.category !== 'Expenses') return true;
+            if (e.recurring) return true; // original recurring always active
+            const copyInfo = getCopyInfo(e);
+            if (!copyInfo) return true; // one-time expense, always included
+            return copyInfo.active; // only active copies
+        });
 
-        // Map for daily amounts of each category
+        // Daily map for active entries only
         const dailyMap = new Map();
-
-        // Add income categories
-        entries.forEach(e => {
+        activeEntries.forEach(e => {
             const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
             if (!dailyMap.has(date)) {
                 dailyMap.set(date, { patreon: 0, website: 0, kofi: 0, nonRecExp: 0, recExp: 0 });
@@ -522,11 +550,8 @@
             }
         });
 
-        // We'll compute cumulative lines: 
-        // - patreon, website, kofi reset monthly
-        // - nonRecExp reset monthly
-        // - recExp never resets (global cumulative)
-        const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], nonRecExpCum = [], recExpCumGlobal = [], totalExpCum = [], netCum = [];
+        // Cumulative lines: patreon, website, kofi, nonRecExp reset monthly; recExp global resets only when no active recurring? Actually recExp should never reset as long as subscription is active. So we keep a global cumulative for recExp.
+        const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], nonRecExpCum = [], recExpGlobal = [], totalExpCum = [], netCum = [];
         let curPatreon = 0, curWebsite = 0, curKofi = 0, curNonRecExp = 0, globalRecExp = 0;
         let lastMonth = null;
 
@@ -535,6 +560,7 @@
             const month = d.month() + 1;
 
             if (lastMonth !== null && month !== lastMonth) {
+                // reset income and non-recurring expense, but NOT recurring
                 curPatreon = 0; curWebsite = 0; curKofi = 0; curNonRecExp = 0;
             }
             lastMonth = month;
@@ -554,7 +580,7 @@
             websiteCum.push(curWebsite);
             kofiCum.push(curKofi);
             nonRecExpCum.push(curNonRecExp);
-            recExpCumGlobal.push(globalRecExp);
+            recExpGlobal.push(globalRecExp);
             totalExpCum.push(totalExp);
             netCum.push(net);
         }
