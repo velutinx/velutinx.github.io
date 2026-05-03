@@ -668,13 +668,21 @@ onApprove: async (data, actions) => {
 
     if (!response.ok) {
       const errData = await response.json();
-      throw new Error(errData.error || 'Store/capture failed');
+      throw new Error(errData.error || 'Capture failed');
     }
+
+    const result = await response.json();
+    const captureID = result.transactionID;
+    if (!captureID) throw new Error('No transaction ID received');
+
+    storeCart = [];
+    saveStoreCart();
+    window.location.href = `/s/success.html?orderID=${captureID}`;
   } catch (err) {
-    console.error('Store/capture failed:', err);
+    console.error('Capture failed:', err);
     alert('Payment could not be captured. Please try again. Order ID: ' + orderID);
-    return;   // 👈 STOPS HERE – cart is NOT cleared, no redirect
   }
+},
 
   // Only reached if capture + store succeeded
   storeCart = [];
