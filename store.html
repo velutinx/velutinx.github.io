@@ -579,42 +579,35 @@ function renderPayPalButton() {
       if (!response.ok) throw new Error(data.error || 'Order creation failed');
       return data.orderID;
     },
-onApprove: async (data, actions) => {
-  const orderID = data.orderID;
-  const lang = localStorage.getItem('language') || 'en';
+    onApprove: async (data, actions) => {
+      const orderID = data.orderID;
+      const lang = localStorage.getItem('language') || 'en';
 
-  try {
-    const response = await fetch(`${CART_WORKER_URL}/store-cart`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderID, cart: storeCart, language: lang })
-    });
+      try {
+        const response = await fetch(`${CART_WORKER_URL}/store-cart`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderID, cart: storeCart, language: lang })
+        });
 
-    if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error || 'Capture failed');
-    }
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || 'Capture failed');
+        }
 
-    const result = await response.json();
-    const captureID = result.transactionID;   // <-- use the capture ID
-    if (!captureID) throw new Error('No transaction ID received');
+        const result = await response.json();
+        const captureID = result.transactionID;
+        if (!captureID) throw new Error('No transaction ID received');
 
-    storeCart = [];
-    saveStoreCart();
-    renderStoreGrid();
-    window.location.href = `/s/success.html?orderID=${captureID}`;
-  } catch (err) {
-    console.error('Capture failed:', err);
-    alert('Payment could not be captured. Please try again. Order ID: ' + orderID);
-  }
-},
-
-  // Clear cart and redirect
-  storeCart = [];
-  saveStoreCart();
-  renderStoreGrid();
-  window.location.href = `/s/success.html?orderID=${orderID}`;
-},
+        storeCart = [];
+        saveStoreCart();
+        renderStoreGrid();
+        window.location.href = `/s/success.html?orderID=${captureID}`;
+      } catch (err) {
+        console.error('Capture failed:', err);
+        alert('Payment could not be captured. Please try again. Order ID: ' + orderID);
+      }
+    },
     onError: (err) => {
       console.error('PayPal error', err);
       alert('Something went wrong. Please try again.');
@@ -627,7 +620,6 @@ onApprove: async (data, actions) => {
   }).catch(() => {
     isRendering = false;
   });
-}
 
 window.setupStoreCheckout = () => renderPayPalButton();
 
