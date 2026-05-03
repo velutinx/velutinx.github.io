@@ -580,27 +580,33 @@ function renderPayPalButton() {
       return data.orderID;
     },
     onApprove: async (data, actions) => {
-      const orderID = data.orderID;
-      const currentCart = storeCart;
-      const lang = localStorage.getItem('language') || 'en';
+  const orderID = data.orderID;
+  const lang = localStorage.getItem('language') || 'en';
 
-      try {
-        const storeResponse = await fetch(`${CART_WORKER_URL}/store-cart`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderID, cart: currentCart, language: lang })
-        });
-        if (!storeResponse.ok) throw new Error('Store cart failed');
-      } catch (err) {
-        console.error('Failed to store cart:', err);
-        alert('Payment succeeded but we could not record your order. Please contact support with order ID: ' + orderID);
-      }
+  try {
+    // Capture the payment and store the order
+    const captureRes = await fetch(`${CART_WORKER_URL}/capture-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderID, language: lang })
+    });
 
-      storeCart = [];
-      saveStoreCart();
-      renderStoreGrid();
-      window.location.href = `/s/success.html?orderID=${orderID}`;
-    },
+    if (!captureRes.ok) {
+      const errData = await captureRes.json();
+      throw new Error(errData.error || 'Capture failed');
+    }
+  } catch (err) {
+    console.error('Capture failed:', err);
+    alert('Payment could not be captured. Please try again. Order ID: ' + orderID);
+    return;
+  }
+
+  // Clear cart and redirect
+  storeCart = [];
+  saveStoreCart();
+  renderStoreGrid();
+  window.location.href = `/s/success.html?orderID=${orderID}`;
+},
     onError: (err) => {
       console.error('PayPal error', err);
       alert('Something went wrong. Please try again.');
