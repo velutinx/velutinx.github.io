@@ -512,120 +512,144 @@
         exportBtn.disabled = false;
     }
 
-    // ---------- Chart (fixed recurring never resets, non-recurring resets) ----------
-    function buildChart(initialDays) {
-        if (incomeChart) {
-            incomeChart.destroy();
-            incomeChart = null;
+// ---------- Chart (fixed recurring never resets, non‑recurring resets) ----------
+function buildChart(initialDays) {
+    if (incomeChart) {
+        incomeChart.destroy();
+        incomeChart = null;
+    }
+    if (entries.length === 0) return;
+
+    const currentYear = new Date().getFullYear();
+    const now = moment().endOf('day');
+    const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
+
+    // 1. Separate entries for chart purposes
+    const activeRecurringOriginals = entries.filter(e => e.category === 'Expenses' && e.recurring);
+    // All other entries (income, one‑time expenses, active copies) – we will later exclude inactive copies
+    const nonRecurringEntries = entries.filter(e => {
+        if (e.category !== 'Expenses') return true;                     // income
+        if (e.recurring) return false;                                  // handled by activeRecurringOriginals
+        const copyInfo = getCopyInfo(e);
+        if (!copyInfo) return true;                                     // genuine one‑time expense
+        return copyInfo.active;                                         // active copy only
+    });
+
+    // 2. Build daily map for non‑recurring entries
+    const dailyNonRecMap = new Map();   // key: YYYY-MM-DD → { patreon, website, kofi, expense }
+    nonRecurringEntries.forEach(e => {
+        const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
+        if (!dailyNonRecMap.has(date)) {
+            dailyNonRecMap.set(date, { patreon: 0, website: 0, kofi: 0, expense: 0 });
         }
-        if (entries.length === 0) return;
+        const d = dailyNonRecMap.get(date);
+        if (e.category === 'Patreon subscription') d.patreon += e.amount;
+        else if (e.category === 'Website payments') d.website += e.amount;
+        else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
+        else if (e.category === 'Expenses') d.expense += e.amount;   // one‑time or active copy
+    });
 
-        const currentYear = new Date().getFullYear();
-        const now = moment().endOf('day');
-        const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
-
-        // Separate active and inactive entries for chart
-        const activeEntries = entries.filter(e => {
-            if (e.category !== 'Expenses') return true;
-            if (e.recurring) return true; // original recurring always active
-            const copyInfo = getCopyInfo(e);
-            if (!copyInfo) return true; // one-time expense, always included
-            return copyInfo.active; // only active copies
-        });
-
-        // Daily map for active entries only
-        const dailyMap = new Map();
-        activeEntries.forEach(e => {
-            const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
-            if (!dailyMap.has(date)) {
-                dailyMap.set(date, { patreon: 0, website: 0, kofi: 0, nonRecExp: 0, recExp: 0 });
-            }
-            const d = dailyMap.get(date);
-            if (e.category === 'Patreon subscription') d.patreon += e.amount;
-            else if (e.category === 'Website payments') d.website += e.amount;
-            else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
-            else if (e.category === 'Expenses') {
-                if (e.recurring) d.recExp += e.amount;
-                else d.nonRecExp += e.amount;
-            }
-        });
-
-        // Cumulative lines: patreon, website, kofi, nonRecExp reset monthly; recExp global resets only when no active recurring? Actually recExp should never reset as long as subscription is active. So we keep a global cumulative for recExp.
-        const dates = [], patreonCum = [], websiteCum = [], kofiCum = [], nonRecExpCum = [], recExpGlobal = [], totalExpCum = [], netCum = [];
-        let curPatreon = 0, curWebsite = 0, curKofi = 0, curNonRecExp = 0, globalRecExp = 0;
-        let lastMonth = null;
-
-        for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
-            const key = d.format('YYYY-MM-DD');
-            const month = d.month() + 1;
-
-            if (lastMonth !== null && month !== lastMonth) {
-                // reset income and non-recurring expense, but NOT recurring
-                curPatreon = 0; curWebsite = 0; curKofi = 0; curNonRecExp = 0;
-            }
-            lastMonth = month;
-
-            const today = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, nonRecExp: 0, recExp: 0 };
-            curPatreon += today.patreon;
-            curWebsite += today.website;
-            curKofi += today.kofi;
-            curNonRecExp += today.nonRecExp;
-            globalRecExp += today.recExp;   // never reset
-
-            const totalExp = curNonRecExp + globalRecExp;
-            const net = curPatreon + curWebsite + curKofi - totalExp;
-
-            dates.push(d.toDate());
-            patreonCum.push(curPatreon);
-            websiteCum.push(curWebsite);
-            kofiCum.push(curKofi);
-            nonRecExpCum.push(curNonRecExp);
-            recExpGlobal.push(globalRecExp);
-            totalExpCum.push(totalExp);
-            netCum.push(net);
+    // 3. Build daily map for active recurring originals (monthly occurrence)
+    const dailyRecurringMap = new Map(); // key: YYYY-MM-DD → total recurring expense
+    for (const rec of activeRecurringOriginals) {
+        let curMonth = rec.month;
+        let curYear = currentYear;
+        let date = new Date(curYear, curMonth - 1, rec.day);
+        while (date <= new Date()) {
+            const key = moment(date).format('YYYY-MM-DD');
+            dailyRecurringMap.set(key, (dailyRecurringMap.get(key) || 0) + rec.amount);
+            curMonth++;
+            if (curMonth > 12) { curMonth = 1; curYear++; }
+            date = new Date(curYear, curMonth - 1, rec.day);
         }
+    }
 
-        const ctx = document.getElementById('incomeChart').getContext('2d');
-        incomeChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: [
-                    { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
-                    { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, pointHoverRadius: 3, tension: 0 }
-                ]
+    // 4. Build cumulative arrays
+    const dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
+          recExpCum = [], nonRecExpCum = [], totalExpCum = [], netCum = [];
+
+    let curPatreon = 0, curWebsite = 0, curKofi = 0, curNonRecExp = 0, globalRecExp = 0;
+    let lastMonth = null;
+
+    for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
+        const key = d.format('YYYY-MM-DD');
+        const month = d.month() + 1;
+
+        // Reset monthly accumulators for income and non‑recurring expenses
+        if (lastMonth !== null && month !== lastMonth) {
+            curPatreon = 0;
+            curWebsite = 0;
+            curKofi = 0;
+            curNonRecExp = 0;
+            // globalRecExp is NOT reset – it accumulates forever
+        }
+        lastMonth = month;
+
+        // Today's non‑recurring amounts
+        const nonRec = dailyNonRecMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
+        curPatreon += nonRec.patreon;
+        curWebsite += nonRec.website;
+        curKofi += nonRec.kofi;
+        curNonRecExp += nonRec.expense;
+
+        // Today's recurring amount (cumulative, never resets)
+        globalRecExp += (dailyRecurringMap.get(key) || 0);
+
+        const totalExp = curNonRecExp + globalRecExp;
+        const net = curPatreon + curWebsite + curKofi - totalExp;
+
+        dates.push(d.toDate());
+        patreonCum.push(curPatreon);
+        websiteCum.push(curWebsite);
+        kofiCum.push(curKofi);
+        recExpCum.push(globalRecExp);
+        nonRecExpCum.push(curNonRecExp);
+        totalExpCum.push(totalExp);
+        netCum.push(net);
+    }
+
+    // 5. Create chart
+    const ctx = document.getElementById('incomeChart').getContext('2d');
+    incomeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0 },
+                { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, pointHoverRadius: 3, tension: 0 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'nearest', axis: 'x', intersect: false },
+            plugins: {
+                legend: { labels: { color: '#aaa' } },
+                zoom: {
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+                    pan: { enabled: true, mode: 'x' },
+                }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'nearest', axis: 'x', intersect: false },
-                plugins: {
-                    legend: { labels: { color: '#aaa' } },
-                    zoom: {
-                        zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-                        pan: { enabled: true, mode: 'x' },
-                    }
+            scales: {
+                x: {
+                    type: 'time',
+                    time: { unit: 'day', displayFormats: { day: 'MMM D' } },
+                    min: startDate.toDate(),
+                    max: now.toDate(),
+                    ticks: { color: '#aaa', maxRotation: 45 },
+                    grid: { color: '#2a2f38' }
                 },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: { unit: 'day', displayFormats: { day: 'MMM D' } },
-                        min: startDate.toDate(),
-                        max: now.toDate(),
-                        ticks: { color: '#aaa', maxRotation: 45 },
-                        grid: { color: '#2a2f38' }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#aaa', callback: v => '$' + v },
-                        grid: { color: '#2a2f38' }
-                    }
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#aaa', callback: v => '$' + v },
+                    grid: { color: '#2a2f38' }
                 }
             }
-        });
-    }
+        }
+    });
+}
 
     function refreshAll() {
         renderTable();
