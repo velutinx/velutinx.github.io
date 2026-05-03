@@ -526,7 +526,6 @@ function buildChart(initialDays) {
 
     // 1. Separate entries for chart purposes
     const activeRecurringOriginals = entries.filter(e => e.category === 'Expenses' && e.recurring);
-    // All other entries (income, one‑time expenses, active copies) – we will later exclude inactive copies
     const nonRecurringEntries = entries.filter(e => {
         if (e.category !== 'Expenses') return true;                     // income
         if (e.recurring) return false;                                  // handled by activeRecurringOriginals
@@ -549,39 +548,30 @@ function buildChart(initialDays) {
         else if (e.category === 'Expenses') d.expense += e.amount;   // one‑time or active copy
     });
 
-    // 3. Build daily map for active recurring originals (monthly occurrence)
-    const dailyRecurringMap = new Map(); // key: YYYY-MM-DD → total recurring expense
-    for (const rec of activeRecurringOriginals) {
-        let curMonth = rec.month;
-        let curYear = currentYear;
-        let date = new Date(curYear, curMonth - 1, rec.day);
-        while (date <= new Date()) {
-            const key = moment(date).format('YYYY-MM-DD');
-            dailyRecurringMap.set(key, (dailyRecurringMap.get(key) || 0) + rec.amount);
-            curMonth++;
-            if (curMonth > 12) { curMonth = 1; curYear++; }
-            date = new Date(curYear, curMonth - 1, rec.day);
-        }
-    }
+    // 3. Define Start Dates for active recurring to create a FLAT baseline
+    const recurringBaselines = activeRecurringOriginals.map(rec => {
+        // We anchor the start date to the current year based on your existing structure
+        const start = moment(new Date(currentYear, rec.month - 1, rec.day)).format('YYYY-MM-DD');
+        return { startDate: start, amount: rec.amount };
+    });
 
     // 4. Build cumulative arrays
     const dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
           recExpCum = [], nonRecExpCum = [], totalExpCum = [], netCum = [];
 
-    let curPatreon = 0, curWebsite = 0, curKofi = 0, curNonRecExp = 0, globalRecExp = 0;
+    let curPatreon = 0, curWebsite = 0, curKofi = 0, curNonRecExp = 0;
     let lastMonth = null;
 
     for (let d = moment(startDate); d.isSameOrBefore(now, 'day'); d.add(1, 'day')) {
         const key = d.format('YYYY-MM-DD');
         const month = d.month() + 1;
 
-        // Reset monthly accumulators for income and non‑recurring expenses
+        // Reset monthly accumulators for income and ONE-TIME expenses
         if (lastMonth !== null && month !== lastMonth) {
             curPatreon = 0;
             curWebsite = 0;
             curKofi = 0;
             curNonRecExp = 0;
-            // globalRecExp is NOT reset – it accumulates forever
         }
         lastMonth = month;
 
@@ -592,17 +582,23 @@ function buildChart(initialDays) {
         curKofi += nonRec.kofi;
         curNonRecExp += nonRec.expense;
 
-        // Today's recurring amount (cumulative, never resets)
-        globalRecExp += (dailyRecurringMap.get(key) || 0);
+        // Today's recurring amount (FLAT CONTINUOUS RATE)
+        // If the plotted day is past the subscription's start date, it stays in the baseline forever.
+        let currentRunRate = 0;
+        recurringBaselines.forEach(sub => {
+            if (key >= sub.startDate) {
+                currentRunRate += sub.amount; 
+            }
+        });
 
-        const totalExp = curNonRecExp + globalRecExp;
+        const totalExp = curNonRecExp + currentRunRate;
         const net = curPatreon + curWebsite + curKofi - totalExp;
 
         dates.push(d.toDate());
         patreonCum.push(curPatreon);
         websiteCum.push(curWebsite);
         kofiCum.push(curKofi);
-        recExpCum.push(globalRecExp);
+        recExpCum.push(currentRunRate);
         nonRecExpCum.push(curNonRecExp);
         totalExpCum.push(totalExp);
         netCum.push(net);
