@@ -9,10 +9,19 @@
     <!-- External libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Spreadsheet CDN dependencies -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <!-- Feature modules -->
     <script src="/assets/js/zip-to-post.js" defer></script>
     <script src="/assets/js/bluesky-composer.js" defer></script>
     <script src="/assets/js/pack-manager.js" defer></script>
+    <script src="/assets/js/spreadsheet.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -21,6 +30,7 @@
         <button class="tab-button active" data-tab="subscribestar">📦 Subscribestar / Patreon</button>
         <button class="tab-button" data-tab="bluesky">🦋 Bluesky Composer</button>
         <button class="tab-button" data-tab="packmanager">📦 Pack Manager + Cloudflare</button>
+        <button class="tab-button" data-tab="spreadsheet">💰 Spreadsheet</button>
     </div>
 
     <!-- Subscribestar / Patreon Tab (unchanged) -->
@@ -87,7 +97,7 @@
         <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
     </div>
 
-    <!-- Pack Manager Tab (now includes Cloudflare image selection) -->
+    <!-- Pack Manager Tab (unchanged) -->
     <div id="packmanager" class="tab-content">
         <div class="pm-container">
             <h1>📦 Pack Manager + Cloudflare Upload</h1>
@@ -107,21 +117,16 @@
                 </label>
                 <span class="pm-toggle-label pm-female-label">👩‍🦰 Female</span>
             </div>
-
-            <!-- Image selection area (merged from Cloudflare tab) -->
             <div class="pm-image-selector">
                 <div class="cf-section-title">🖼️ First 30 images (click to select)</div>
                 <div id="pm-originalGrid" class="cf-thumb-grid"></div>
                 <div class="cf-section-title">✅ Selected images (drag to reorder)</div>
                 <div id="pm-selectedGrid" class="cf-thumb-grid" style="min-height: 120px;"></div>
             </div>
-
-            <!-- Upload button (triggers metadata + selected images upload + download) -->
             <div class="pm-upload-action">
                 <button id="pm-uploadBtn" class="pm-upload-btn" disabled>📤 Upload to Cloudflare</button>
             </div>
             <div id="pm-status" class="pm-status"></div>
-
             <div class="pm-table-section">
                 <div class="pm-table-header">
                     <strong>📋 All Stored Packs</strong>
@@ -151,10 +156,94 @@
             </div>
         </div>
     </div>
+
+    <!-- 💰 Spreadsheet Tab -->
+    <div id="spreadsheet" class="tab-content">
+        <div class="dashboard">
+            <div class="table-section">
+                <div class="form-row" id="entryForm">
+                    <div class="form-group">
+                        <label for="monthSelect">Month</label>
+                        <select id="monthSelect">
+                            <option value="1">January</option><option value="2">February</option>
+                            <option value="3">March</option><option value="4">April</option>
+                            <option value="5">May</option><option value="6">June</option>
+                            <option value="7">July</option><option value="8">August</option>
+                            <option value="9">September</option><option value="10">October</option>
+                            <option value="11">November</option><option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="daySelect">Day</label>
+                        <select id="daySelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amountInput">Amount</label>
+                        <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="currencySelect">Currency</label>
+                        <select id="currencySelect">
+                            <option value="USD" selected>USD</option><option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option><option value="JPY">JPY</option>
+                            <option value="CAD">CAD</option><option value="AUD">AUD</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="categorySelect">Category</label>
+                        <select id="categorySelect">
+                            <option value="Patreon subscription">Patreon subscription</option>
+                            <option value="Patreon sales">Patreon sales</option>
+                            <option value="Ko-Fi subscriptions">Ko-Fi subscriptions</option>
+                            <option value="Subscribestar subscriptions">Subscribestar subscriptions</option>
+                            <option value="Website payments">Website payments</option>
+                            <option value="Expenses" selected>Expenses</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="conceptInput">Concept</label>
+                        <input type="text" id="conceptInput" placeholder="e.g. Railway subscription" disabled>
+                    </div>
+                    <div class="recurring-group">
+                        <input type="checkbox" id="recurringCheck">
+                        <label for="recurringCheck">Recurring monthly</label>
+                    </div>
+                    <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th><th>Amount</th><th>Currency</th>
+                                <th>Category</th><th>Description</th><th>Recurring</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr class="empty-message"><td colspan="7">Loading entries from server...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
+            </div>
+            <div class="chart-section">
+                <div class="range-btns">
+                    <button class="range-btn active" data-days="30">30D</button>
+                    <button class="range-btn" data-days="60">60D</button>
+                    <button class="range-btn" data-days="90">90D</button>
+                    <button class="range-btn" data-days="180">180D</button>
+                    <button class="range-btn" data-days="365">1Y</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="incomeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    // ========== GLOBAL TOAST NOTIFICATION (used by all modules) ==========
+    // ========== GLOBAL TOAST NOTIFICATION ==========
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
@@ -163,7 +252,7 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // ========== SIMPLE TAB SWITCHING (updated to 3 tabs) ==========
+    // ========== TAB SWITCHING (4 tabs) ==========
     (function() {
         const tabBtns = document.querySelectorAll('.tab-button');
         const tabs = document.querySelectorAll('.tab-content');
