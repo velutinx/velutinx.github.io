@@ -579,24 +579,24 @@ function renderPayPalButton() {
       if (!response.ok) throw new Error(data.error || 'Order creation failed');
       return data.orderID;
     },
-    onApprove: async (data, actions) => {
+onApprove: async (data, actions) => {
   const orderID = data.orderID;
   const lang = localStorage.getItem('language') || 'en';
 
   try {
-    // Capture the payment and store the order
-    const captureRes = await fetch(`${CART_WORKER_URL}/capture-order`, {
+    // Call /store-cart to capture payment and record the order
+    const response = await fetch(`${CART_WORKER_URL}/store-cart`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderID, language: lang })
+      body: JSON.stringify({ orderID, cart: storeCart, language: lang })
     });
 
-    if (!captureRes.ok) {
-      const errData = await captureRes.json();
-      throw new Error(errData.error || 'Capture failed');
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || 'Store failed');
     }
   } catch (err) {
-    console.error('Capture failed:', err);
+    console.error('Store/capture failed:', err);
     alert('Payment could not be captured. Please try again. Order ID: ' + orderID);
     return;
   }
