@@ -276,7 +276,7 @@ let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 
 function saveStoreCart() {
   localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-  updateStoreCartUI();
+  ();
 }
 
 function updateStoreCartUI() {
@@ -548,9 +548,17 @@ let isRendering = false;
 
 function renderPayPalButton() {
   const container = document.getElementById('paypal-button-container');
-  if (!container || !document.body.contains(container)) return;
   const cartDrawer = document.getElementById('cartDrawer');
+  
+  // 1. Safety checks: Container must exist, be in the DOM, and drawer must be open
+  if (!container || !document.body.contains(container)) return;
   if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
+
+  // 2. IMPORTANT: If there is already a button inside, do NOT clear it or re-render
+  // This prevents the "Detected container element removed from DOM" error
+  if (container.hasChildNodes()) return;
+
+  // 3. Guard against concurrent render calls
   if (isRendering) return;
   isRendering = true;
 
@@ -561,13 +569,13 @@ function renderPayPalButton() {
     return;
   }
 
-  container.innerHTML = '';
   if (!window.paypal) {
     container.innerHTML = '<p>Loading PayPal...</p>';
     isRendering = false;
     return;
   }
 
+  // No innerHTML = '' here anymore because the check above handles it
   paypal.Buttons({
     createOrder: async () => {
       const response = await fetch(`${CART_WORKER_URL}/create-order`, {
@@ -579,48 +587,40 @@ function renderPayPalButton() {
       if (!response.ok) throw new Error(data.error || 'Order creation failed');
       return data.orderID;
     },
-onApprove: async (data, actions) => {
+    onApprove: async (data, actions) => {
       const orderID = data.orderID;
       const lang = localStorage.getItem('language') || 'en';
-
       try {
-        // 1. Tell your Worker to capture the payment via PayPal API
         const response = await fetch(`${CART_WORKER_URL}/capture-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            orderID: orderID, 
-            language: lang 
-          })
+          body: JSON.stringify({ orderID, language: lang })
         });
-
         const result = await response.json();
-
-        if (!response.ok || result.error) {
-          throw new Error(result.error || 'Payment capture failed');
-        }
-
-        // 2. Clear the local cart now that payment is confirmed
+        if (!response.ok || result.error) throw new Error(result.error || 'Payment capture failed');
+        
         storeCart = [];
         saveStoreCart();
         renderStoreGrid();
-
-        // 3. Redirect to success page
         window.location.href = `/s/success.html?orderID=${result.transactionID}`;
-
       } catch (err) {
         console.error('PayPal Capture Error:', err);
-        alert('The payment could not be finalized. Please check your PayPal activity or contact support with Order ID: ' + orderID);
+        alert('Payment could not be finalized. Order ID: ' + orderID);
       }
     },
     onError: (err) => {
       console.error('PayPal error', err);
-      alert('Something went wrong with the PayPal gateway. Please try again.');
+      // If error occurs, clear container so user can try again
+      container.innerHTML = '';
+      isRendering = false;
     },
     onCancel: () => {
       isRendering = false;
     }
-  }).render('#paypal-button-container'); // This closes the Buttons call and renders it
+  }).render('#paypal-button-container').then(() => {
+    isRendering = false; // Set to false ONLY after render is successful
+  });
+}).render('#paypal-button-container'); // This closes the Buttons call and renders it
 
   isRendering = false; // Reset rendering flag after setup
 } // This closes the renderPayPalButton function
@@ -680,7 +680,7 @@ async function initStore() {
   applyStoreTranslations();
   bindStoreEvents();
   renderStoreGrid();
-  updateStoreCartUI();
+  ();
   observeCartDrawer();
   interceptCartButtons();
   overrideSharedCart();
