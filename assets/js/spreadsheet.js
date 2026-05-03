@@ -524,25 +524,37 @@ function buildChart(initialDays) {
     const now = moment().endOf('day');
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-    // 1. GET RECURRING SOURCES
-    // These define our "Flat Baseline" that doesn't reset monthly.
+    // 1. IDENTIFY RECURRING SOURCES (Originals)
     const activeRecurringOriginals = entries.filter(e => e.category === 'Expenses' && e.recurring);
 
-    // 2. GET NON-RECURRING ENTRIES (AND FILTER OUT COPIES)
-    // We exclude copies of recurring expenses here to prevent double-counting ($10 vs $5).
-    const nonRecurringEntries = entries.filter(e => {
-        if (e.category !== 'Expenses') return true; // Keep all income
-        if (e.recurring) return false;              // Handled by the baseline logic below
+    // 2. IDENTIFY CANCELLATION DATES
+    // Create a map of Original ID -> Date where the subscription was first canceled (✕)
+    const cancellationMap = new Map();
+    entries.forEach(e => {
+        const info = typeof getCopyInfo === 'function' ? getCopyInfo(e) : null;
+        if (info && !info.active) {
+            const dateStr = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
+            // Record the earliest cancellation date found for this subscription
+            if (!cancellationMap.has(info.originalId) || dateStr < cancellationMap.get(info.originalId)) {
+                cancellationMap.set(info.originalId, dateStr);
+            }
+        }
+    });
 
-        // If this is a copy of a recurring expense, we IGNORE it for the chart's Y-axis
-        // because the "Flat Baseline" logic will account for its value continuously.
+    // 3. GET GENUINE ONE-TIME ENTRIES
+    const nonRecurringEntries = entries.filter(e => {
+        if (e.category !== 'Expenses') return true; // Keep Income
+        if (e.recurring) return false;              // Originals handled by baseline logic
+        
+        // STOPS THE "MAY 1ST" BUG: Exclude ALL copies (active or canceled) from the daily map.
+        // This prevents them from being added to the monthly cumulative total.
         const copyInfo = typeof getCopyInfo === 'function' ? getCopyInfo(e) : null;
         if (copyInfo) return false; 
 
-        return true; // This is a genuine one-time expense (e.g., a random hardware purchase)
+        return true; // Keep only genuine one-time expenses
     });
 
-    // 3. BUILD DAILY MAP FOR NON-RECURRING (Income & One-off Expenses)
+    // 4. BUILD DAILY MAP FOR NON-RECURRING (Monthly Accumulators)
     const dailyNonRecMap = new Map();
     nonRecurringEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
@@ -556,12 +568,6 @@ function buildChart(initialDays) {
         else if (e.category === 'Expenses') d.expense += e.amount;
     });
 
-    // 4. DEFINE START DATES FOR FLAT BASELINE
-    const recurringBaselines = activeRecurringOriginals.map(rec => {
-        const start = moment(new Date(currentYear, rec.month - 1, rec.day)).format('YYYY-MM-DD');
-        return { startDate: start, amount: rec.amount };
-    });
-
     // 5. BUILD CUMULATIVE ARRAYS
     const dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
           totalExpCum = [], netCum = [];
@@ -573,35 +579,34 @@ function buildChart(initialDays) {
         const key = d.format('YYYY-MM-DD');
         const month = d.month() + 1;
 
-        // Reset Income and One-Time Expenses every month
+        // Reset monthly accumulators on the 1st
         if (lastMonth !== null && month !== lastMonth) {
-            curPatreon = 0;
-            curWebsite = 0;
-            curKofi = 0;
-            curNonRecExp = 0;
+            curPatreon = 0; curWebsite = 0; curKofi = 0; curNonRecExp = 0;
         }
         lastMonth = month;
 
-        // Add today's non-recurring totals to the monthly accumulator
         const nonRec = dailyNonRecMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
         curPatreon += nonRec.patreon;
         curWebsite += nonRec.website;
         curKofi += nonRec.kofi;
         curNonRecExp += nonRec.expense;
 
-        // CALCULATE FLAT BASELINE (Does NOT reset on the 1st)
-        // If today is on or after the subscription start date, it's part of the static cost.
+        // 6. CALCULATE FLAT BASELINE (STOPS IMMEDIATELY ON CANCELLATION DATE)
         let currentRunRate = 0;
-        recurringBaselines.forEach(sub => {
-            if (key >= sub.startDate) {
-                currentRunRate += sub.amount; 
+        activeRecurringOriginals.forEach(ori => {
+            const startKey = moment(new Date(currentYear, ori.month - 1, ori.day)).format('YYYY-MM-DD');
+            const cancelKey = cancellationMap.get(ori.id);
+
+            // Logic: Is today after the sub started AND before it was canceled?
+            if (key >= startKey) {
+                if (!cancelKey || key < cancelKey) {
+                    currentRunRate += ori.amount;
+                }
             }
         });
 
-        // Combined Expenses = (Monthly One-Offs) + (Static Continuous Baseline)
         const totalExp = curNonRecExp + currentRunRate;
-        const totalIncome = curPatreon + curWebsite + curKofi;
-        const net = totalIncome - totalExp;
+        const net = (curPatreon + curWebsite + curKofi) - totalExp;
 
         dates.push(d.toDate());
         patreonCum.push(curPatreon);
@@ -611,7 +616,7 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-    // 6. CREATE CHART
+    // 7. CREATE CHART (Standard Rendering)
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
         type: 'line',
