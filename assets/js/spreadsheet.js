@@ -513,6 +513,7 @@
     }
 
 // ---------- Chart (fixed: handles cancellation drop dates and monthly resets) ----------
+// ---------- Chart (recurring baseline with hard stop on cancellation) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -524,51 +525,83 @@ function buildChart(initialDays) {
     const now = moment().endOf('day');
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-    // 1. IDENTIFY RECURRING SOURCES (Originals)
-    const activeRecurringOriginals = entries.filter(e => e.category === 'Expenses' && e.recurring);
-
-    // 2. IDENTIFY CANCELLATION DATES (The exact day it turns to ✕)
-    const cancellationMap = new Map();
-    entries.forEach(e => {
-        const info = typeof getCopyInfo === 'function' ? getCopyInfo(e) : null;
-        // If this row is a copy and it is marked INACTIVE (✕)
-        if (info && !info.active) {
-            const dateStr = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
-            // If we find multiple cancellations, we take the earliest one
-            if (!cancellationMap.has(info.originalId) || dateStr < cancellationMap.get(info.originalId)) {
-                cancellationMap.set(info.originalId, dateStr);
+    // -------------------------------------------------------------
+    // 1. Find all subscription “definitions”
+    //    A subscription is defined by (concept, amount, day).
+    //    We look for the **original** entry that is (or was) recurring.
+    // -------------------------------------------------------------
+    const subMap = new Map();   // key = concept + amount + day -> { startMonth, startDay, active, lastChargeDate }
+    
+    for (const e of entries) {
+        if (e.category !== 'Expenses' || !e.concept) continue;
+        const key = `${e.concept}::${e.amount}::${e.day}`;
+        if (!subMap.has(key)) {
+            // First time seeing this subscription – use the earliest month as start
+            subMap.set(key, {
+                startMonth: e.month,
+                startDay: e.day,
+                active: false,        // will update below
+                lastChargeDate: null,
+            });
+        }
+        const sub = subMap.get(key);
+        // If any entry with this concept+amount+day is still recurring, the subscription is active
+        if (e.recurring) sub.active = true;
+        
+        // Track the latest charge date (only for non‑future, i.e. actual charges)
+        const chargeDate = moment(new Date(currentYear, e.month - 1, e.day));
+        if (chargeDate.isBefore(now)) {   // actual charge (not future projection)
+            if (!sub.lastChargeDate || chargeDate.isAfter(sub.lastChargeDate)) {
+                sub.lastChargeDate = chargeDate;
             }
         }
+    }
+
+    // -------------------------------------------------------------
+    // 2. For each subscription, determine the END date
+    //    - If active → there is no end (runs until today)
+    //    - If cancelled → ends on the last charge we have (the copy that was clicked)
+    // -------------------------------------------------------------
+    const recurringLines = [];   // { startKey, endKey, amount }
+    for (const [key, sub] of subMap) {
+        if (!sub.lastChargeDate) continue;    // no actual charges yet
+        const startKey = moment(new Date(currentYear, sub.startMonth - 1, sub.startDay)).format('YYYY-MM-DD');
+        const endKey = sub.active
+            ? now.format('YYYY-MM-DD')          // still active → runs until today
+            : sub.lastChargeDate.format('YYYY-MM-DD');  // cancelled → stops on its last actual day
+        
+        const amount = parseFloat(key.split('::')[1]);
+        recurringLines.push({ startKey, endKey, amount });
+    }
+
+    // -------------------------------------------------------------
+    // 3. Separate all OTHER (non‑subscription) entries
+    // -------------------------------------------------------------
+    const nonSubEntries = entries.filter(e => {
+        if (e.category !== 'Expenses') return true;               // income
+        if (!e.concept) return true;                              // one‑time expense
+        // Is it part of a subscription? Exclude both original and copies
+        const key = `${e.concept}::${e.amount}::${e.day}`;
+        return !subMap.has(key);   // keep only genuine one‑time expenses
     });
 
-    // 3. GET GENUINE ONE-TIME ENTRIES ONLY
-    const nonRecurringEntries = entries.filter(e => {
-        if (e.category !== 'Expenses') return true; // Keep Income
-        if (e.recurring) return false;              // Handled by baseline logic
-
-        // CRITICAL: If this row is a copy (active OR canceled), EXCLUDE it from 
-        // the monthly accumulator. This prevents the "April 5th" lingering bug.
-        const copyInfo = typeof getCopyInfo === 'function' ? getCopyInfo(e) : null;
-        if (copyInfo) return false; 
-
-        return true; // Only genuine one-off expenses (like a one-time hardware buy)
-    });
-
-    // 4. BUILD DAILY MAP FOR MONTHLY ACCUMULATORS
-    const dailyNonRecMap = new Map();
-    nonRecurringEntries.forEach(e => {
+    // Daily map for non‑subscription items (resets monthly)
+    const dailyNonSubMap = new Map();
+    nonSubEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
-        if (!dailyNonRecMap.has(date)) {
-            dailyNonRecMap.set(date, { patreon: 0, website: 0, kofi: 0, expense: 0 });
+        if (!dailyNonSubMap.has(date)) {
+            dailyNonSubMap.set(date, { patreon: 0, website: 0, kofi: 0, expense: 0 });
         }
-        const d = dailyNonRecMap.get(date);
+        const d = dailyNonSubMap.get(date);
         if (e.category === 'Patreon subscription') d.patreon += e.amount;
         else if (e.category === 'Website payments') d.website += e.amount;
         else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
         else if (e.category === 'Expenses') d.expense += e.amount;
     });
 
-    // 5. BUILD CUMULATIVE ARRAYS
+    // -------------------------------------------------------------
+    // 4. Build the final arrays
+    // -------------------------------------------------------------
     const dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
           totalExpCum = [], netCum = [];
 
@@ -579,36 +612,29 @@ function buildChart(initialDays) {
         const key = d.format('YYYY-MM-DD');
         const month = d.month() + 1;
 
-        // Reset monthly variables on the 1st
+        // Monthly reset for income and one‑time expenses
         if (lastMonth !== null && month !== lastMonth) {
             curPatreon = 0; curWebsite = 0; curKofi = 0; curNonRecExp = 0;
         }
         lastMonth = month;
 
-        const nonRec = dailyNonRecMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
-        curPatreon += nonRec.patreon;
-        curWebsite += nonRec.website;
-        curKofi += nonRec.kofi;
-        curNonRecExp += nonRec.expense;
+        // Non‑subscription amounts
+        const nonSub = dailyNonSubMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
+        curPatreon += nonSub.patreon;
+        curWebsite += nonSub.website;
+        curKofi += nonSub.kofi;
+        curNonRecExp += nonSub.expense;
 
-        // 6. CALCULATE FLAT BASELINE (DROPS TO 0 ON CANCELLATION DATE)
-        let currentRunRate = 0;
-        activeRecurringOriginals.forEach(ori => {
-            const startKey = moment(new Date(currentYear, ori.month - 1, ori.day)).format('YYYY-MM-DD');
-            const cancelKey = cancellationMap.get(ori.id);
-
-            // Logic: Is today >= the day the subscription started?
-            if (key >= startKey) {
-                // AND is today strictly BEFORE the day it was canceled?
-                if (!cancelKey || key < cancelKey) {
-                    currentRunRate += ori.amount;
-                }
+        // Subscription baseline (flat, never resets)
+        let recurringTotal = 0;
+        for (const line of recurringLines) {
+            if (key >= line.startKey && key <= line.endKey) {
+                recurringTotal += line.amount;
             }
-        });
+        }
 
-        const totalExp = curNonRecExp + currentRunRate;
-        const totalIncome = curPatreon + curWebsite + curKofi;
-        const net = totalIncome - totalExp;
+        const totalExp = curNonRecExp + recurringTotal;
+        const net = (curPatreon + curWebsite + curKofi) - totalExp;
 
         dates.push(d.toDate());
         patreonCum.push(curPatreon);
@@ -618,7 +644,9 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-    // 7. RENDER CHART
+    // -------------------------------------------------------------
+    // 5. Draw the chart
+    // -------------------------------------------------------------
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
         type: 'line',
@@ -626,7 +654,7 @@ function buildChart(initialDays) {
             datasets: [
                 { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Ko-fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
+                { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 }
             ]
@@ -635,11 +663,20 @@ function buildChart(initialDays) {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
+            plugins: {
+                legend: { labels: { color: '#aaa' } },
+                zoom: {
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+                    pan: { enabled: true, mode: 'x' },
+                }
+            },
             scales: {
                 x: {
                     type: 'time',
                     time: { unit: 'day', displayFormats: { day: 'MMM D' } },
-                    ticks: { color: '#aaa' },
+                    min: startDate.toDate(),
+                    max: now.toDate(),
+                    ticks: { color: '#aaa', maxRotation: 45 },
                     grid: { color: '#2a2f38' }
                 },
                 y: {
@@ -647,8 +684,7 @@ function buildChart(initialDays) {
                     ticks: { color: '#aaa', callback: v => '$' + v },
                     grid: { color: '#2a2f38' }
                 }
-            },
-            plugins: { legend: { labels: { color: '#aaa' } } }
+            }
         }
     });
 }
