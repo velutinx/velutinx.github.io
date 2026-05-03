@@ -276,7 +276,11 @@ let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 
 function saveStoreCart() {
   localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
-  ();
+  updateStoreCartUI();
+  
+  // Clear the PayPal button so it regenerates with the new total/items next time it opens
+  const container = document.getElementById('paypal-button-container');
+  if (container) container.innerHTML = '';
 }
 
 function updateStoreCartUI() {
@@ -510,7 +514,11 @@ function observeCartDrawer() {
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-        if (cartDrawer.classList.contains('open')) updateStoreCartUI();
+        if (cartDrawer.classList.contains('open')) {
+          updateStoreCartUI();
+          // The button rendering is now safely handled inside renderPayPalButton
+          renderPayPalButton();
+        }
       }
     }
   });
