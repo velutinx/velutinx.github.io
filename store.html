@@ -558,12 +558,11 @@ function renderPayPalButton() {
   const container = document.getElementById('paypal-button-container');
   const cartDrawer = document.getElementById('cartDrawer');
   
-  // 1. Safety checks: Container must exist, be in the DOM, and drawer must be open
+  // 1. Safety checks
   if (!container || !document.body.contains(container)) return;
   if (!cartDrawer || !cartDrawer.classList.contains('open')) return;
 
-  // 2. IMPORTANT: If there is already a button inside, do NOT clear it or re-render
-  // This prevents the "Detected container element removed from DOM" error
+  // 2. Prevent "Detected container element removed from DOM" error
   if (container.hasChildNodes()) return;
 
   // 3. Guard against concurrent render calls
@@ -572,7 +571,7 @@ function renderPayPalButton() {
 
   const cart = storeCart;
   if (cart.length === 0) {
-    container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+    container.innerHTML = `<p style="text-align:center; margin-top:1rem;">${storeTranslations[currentLang].emptyCart}</p>`;
     isRendering = false;
     return;
   }
@@ -583,7 +582,7 @@ function renderPayPalButton() {
     return;
   }
 
-  // No innerHTML = '' here anymore because the check above handles it
+  // Render the button
   paypal.Buttons({
     createOrder: async () => {
       const response = await fetch(`${CART_WORKER_URL}/create-order`, {
@@ -618,7 +617,6 @@ function renderPayPalButton() {
     },
     onError: (err) => {
       console.error('PayPal error', err);
-      // If error occurs, clear container so user can try again
       container.innerHTML = '';
       isRendering = false;
     },
@@ -626,7 +624,7 @@ function renderPayPalButton() {
       isRendering = false;
     }
   }).render('#paypal-button-container').then(() => {
-    isRendering = false; // Set to false ONLY after render is successful
+    isRendering = false;
   });
 }).render('#paypal-button-container'); // This closes the Buttons call and renders it
 
@@ -688,7 +686,6 @@ async function initStore() {
   applyStoreTranslations();
   bindStoreEvents();
   renderStoreGrid();
-  ();
   observeCartDrawer();
   interceptCartButtons();
   overrideSharedCart();
