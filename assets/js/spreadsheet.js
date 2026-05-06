@@ -606,7 +606,6 @@
         exportBtn.disabled = false;
     }
 
-// ---------- Chart (fixed: handles cancellation drop dates and monthly resets) ----------
 // ---------- Chart (recurring baseline with hard stop on cancellation) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
@@ -621,8 +620,6 @@ function buildChart(initialDays) {
 
     // -------------------------------------------------------------
     // 1. Find all subscription “definitions”
-    //    A subscription is defined by (concept, amount, day).
-    //    We look for the **original** entry that is (or was) recurring.
     // -------------------------------------------------------------
     const subMap = new Map();   // key = concept + amount + day -> { startMonth, startDay, active, lastChargeDate }
     
@@ -630,21 +627,18 @@ function buildChart(initialDays) {
         if (e.category !== 'Expenses' || !e.concept) continue;
         const key = `${e.concept}::${e.amount}::${e.day}`;
         if (!subMap.has(key)) {
-            // First time seeing this subscription – use the earliest month as start
             subMap.set(key, {
                 startMonth: e.month,
                 startDay: e.day,
-                active: false,        // will update below
+                active: false,
                 lastChargeDate: null,
             });
         }
         const sub = subMap.get(key);
-        // If any entry with this concept+amount+day is still recurring, the subscription is active
         if (e.recurring) sub.active = true;
         
-        // Track the latest charge date (only for non‑future, i.e. actual charges)
         const chargeDate = moment(new Date(currentYear, e.month - 1, e.day));
-        if (chargeDate.isBefore(now)) {   // actual charge (not future projection)
+        if (chargeDate.isBefore(now)) {
             if (!sub.lastChargeDate || chargeDate.isAfter(sub.lastChargeDate)) {
                 sub.lastChargeDate = chargeDate;
             }
@@ -653,16 +647,14 @@ function buildChart(initialDays) {
 
     // -------------------------------------------------------------
     // 2. For each subscription, determine the END date
-    //    - If active → there is no end (runs until today)
-    //    - If cancelled → ends on the last charge we have (the copy that was clicked)
     // -------------------------------------------------------------
-    const recurringLines = [];   // { startKey, endKey, amount }
+    const recurringLines = [];
     for (const [key, sub] of subMap) {
-        if (!sub.lastChargeDate) continue;    // no actual charges yet
+        if (!sub.lastChargeDate) continue;
         const startKey = moment(new Date(currentYear, sub.startMonth - 1, sub.startDay)).format('YYYY-MM-DD');
         const endKey = sub.active
-            ? now.format('YYYY-MM-DD')          // still active → runs until today
-            : sub.lastChargeDate.format('YYYY-MM-DD');  // cancelled → stops on its last actual day
+            ? now.format('YYYY-MM-DD')
+            : sub.lastChargeDate.format('YYYY-MM-DD');
         
         const amount = parseFloat(key.split('::')[1]);
         recurringLines.push({ startKey, endKey, amount });
@@ -672,14 +664,12 @@ function buildChart(initialDays) {
     // 3. Separate all OTHER (non‑subscription) entries
     // -------------------------------------------------------------
     const nonSubEntries = entries.filter(e => {
-        if (e.category !== 'Expenses') return true;               // income
-        if (!e.concept) return true;                              // one‑time expense
-        // Is it part of a subscription? Exclude both original and copies
+        if (e.category !== 'Expenses') return true;
+        if (!e.concept) return true;
         const key = `${e.concept}::${e.amount}::${e.day}`;
-        return !subMap.has(key);   // keep only genuine one‑time expenses
+        return !subMap.has(key);
     });
 
-    // Daily map for non‑subscription items (resets monthly)
     const dailyNonSubMap = new Map();
     nonSubEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
@@ -706,20 +696,17 @@ function buildChart(initialDays) {
         const key = d.format('YYYY-MM-DD');
         const month = d.month() + 1;
 
-        // Monthly reset for income and one‑time expenses
         if (lastMonth !== null && month !== lastMonth) {
             curPatreon = 0; curWebsite = 0; curKofi = 0; curNonRecExp = 0;
         }
         lastMonth = month;
 
-        // Non‑subscription amounts
         const nonSub = dailyNonSubMap.get(key) || { patreon: 0, website: 0, kofi: 0, expense: 0 };
         curPatreon += nonSub.patreon;
         curWebsite += nonSub.website;
         curKofi += nonSub.kofi;
         curNonRecExp += nonSub.expense;
 
-        // Subscription baseline (flat, never resets)
         let recurringTotal = 0;
         for (const line of recurringLines) {
             if (key >= line.startKey && key <= line.endKey) {
@@ -739,7 +726,42 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 5. Draw the chart
+    // 5. Build the green dotted reference line
+    // -------------------------------------------------------------
+    const referenceData = new Array(dates.length).fill(null);  // init all null
+
+    // Find the index of the last day of the previous month
+    const today = new Date();
+    const prevMonth = today.getMonth();      // 0‑based, so previous month is already last month if today is May?
+    const prevMonthYear = today.getFullYear();
+    // Find the last day that belongs to the previous month (or the last day of April if today is May)
+    let lastDayOfPrevMonth = null;
+    for (let i = dates.length - 1; i >= 0; i--) {
+        const dt = dates[i];
+        if (dt.getFullYear() === prevMonthYear && dt.getMonth() === prevMonth - 1) {  // April = 3? Actually getMonth() returns 0‑based, so April is 3, May is 4. We want previous month (April) if today is May.
+            // We want the last day of April (30th) if today is May.
+            // Actually we need the last day of April, which could be at index where date is April 30. We'll find the maximum date in April.
+            // Better: look for the latest date <= today that is in the previous month.
+            if (!lastDayOfPrevMonth || dt > lastDayOfPrevMonth) {
+                lastDayOfPrevMonth = dt;
+            }
+        }
+    }
+
+    if (lastDayOfPrevMonth) {
+        // Find the index of that date in the dates array
+        const lastDayIndex = dates.findIndex(d => d.getTime() === lastDayOfPrevMonth.getTime());
+        if (lastDayIndex !== -1) {
+            const lastDayNet = netCum[lastDayIndex];
+            // Set reference data from that index to the end
+            for (let i = lastDayIndex; i < dates.length; i++) {
+                referenceData[i] = lastDayNet;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 6. Draw the chart
     // -------------------------------------------------------------
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
@@ -750,7 +772,8 @@ function buildChart(initialDays) {
                 { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 }
+                { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 },
+                { label: 'Last Month’s Final', data: dates.map((d, i) => ({ x: d, y: referenceData[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false }
             ]
         },
         options: {
