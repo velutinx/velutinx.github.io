@@ -283,18 +283,112 @@
     }
 
     // ---------- Website sync ----------
+    // ---------- Website sync ----------
     const IMPORTED_IDS_KEY = 'imported_website_order_ids';
     function getImportedIds() { return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]'); }
-    function addImportedId(id) { /* unchanged */ }
-    function buildWebsiteDescription(order) { /* unchanged */ }
-    async function autoSyncWebsitePayments() { /* unchanged */ }
+    function addImportedId(id) {
+        const ids = getImportedIds();
+        if (!ids.includes(id)) { ids.push(id); localStorage.setItem(IMPORTED_IDS_KEY, JSON.stringify(ids)); }
+    }
+    function buildWebsiteDescription(order) {
+        const email = order.paypal_email || 'unknown';
+        let items = '';
+        if (order.cart) {
+            try { const parsed = JSON.parse(order.cart); items = parsed || ''; } catch (e) { items = order.cart; }
+        }
+        return `${email} – ${items}`;
+    }
+    async function autoSyncWebsitePayments() {
+        if (!supabaseClient) return;
+        try {
+            const { data, error } = await supabaseClient
+                .from('successs')
+                .select('*')
+                .eq('status', 'completed')
+                .order('purchased_at', { ascending: true });
+            if (error) throw error;
+            const importedIds = getImportedIds();
+            let addedCount = 0;
+            for (const order of data) {
+                if (importedIds.includes(order.id)) continue;
+                const date = new Date(order.purchased_at);
+                const month = date.getUTCMonth() + 1;
+                const day = date.getUTCDate();
+                const amount = parseFloat(order.amount);
+                const currency = order.currency || 'USD';
+                const description = buildWebsiteDescription(order);
+                const duplicate = entries.some(e =>
+                    e.month === month && e.day === day && e.amount === amount &&
+                    e.currency === currency && e.category === 'Website payments');
+                if (duplicate) { addImportedId(order.id); continue; }
+                const success = await addEntry({
+                    month, day, amount, currency,
+                    category: 'Website payments',
+                    concept: description,
+                    recurring: false
+                });
+                if (success) { addImportedId(order.id); addedCount++; } else break;
+            }
+            if (addedCount > 0) {
+                refreshAll();
+                showToast(`✅ Synced ${addedCount} new website payments.`, 'success');
+            }
+        } catch (err) {
+            console.error('Website sync error:', err);
+            showToast(`❌ Could not sync website payments (${err.message})`, 'error');
+        }
+    }
 
     // ---------- Patreon sync ----------
     const PATREON_PROXY = 'https://patreon-api-proxy.velutinx.workers.dev';
     const IMPORTED_PATREON_KEY = 'imported_patreon_charges';
-    function getImportedPatreonCharges() { /* unchanged */ }
-    function addImportedPatreonCharge(key) { /* unchanged */ }
-    async function autoSyncPatreon() { /* unchanged */ }
+    function getImportedPatreonCharges() {
+        return JSON.parse(localStorage.getItem(IMPORTED_PATREON_KEY) || '[]');
+    }
+    function addImportedPatreonCharge(key) {
+        const keys = getImportedPatreonCharges();
+        if (!keys.includes(key)) {
+            keys.push(key);
+            localStorage.setItem(IMPORTED_PATREON_KEY, JSON.stringify(keys));
+        }
+    }
+    async function autoSyncPatreon() {
+        try {
+            const res = await fetch(PATREON_PROXY);
+            if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+            const members = await res.json();
+            const importedKeys = getImportedPatreonCharges();
+            let addedCount = 0;
+            for (const m of members) {
+                const chargeDate = new Date(m.lastChargeDate);
+                const month = chargeDate.getUTCMonth() + 1;
+                const day = chargeDate.getUTCDate();
+                const amount = m.amountCents / 100;
+                const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
+                if (importedKeys.includes(chargeKey)) continue;
+                const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
+                const duplicate = entries.some(e =>
+                    e.month === month && e.day === day && e.amount === amount &&
+                    e.currency === 'USD' && e.category === 'Patreon subscription');
+                if (duplicate) { addImportedPatreonCharge(chargeKey); continue; }
+                const success = await addEntry({
+                    month, day, amount,
+                    currency: 'USD',
+                    category: 'Patreon subscription',
+                    concept: desc,
+                    recurring: false,
+                });
+                if (success) { addImportedPatreonCharge(chargeKey); addedCount++; } else break;
+            }
+            if (addedCount > 0) {
+                refreshAll();
+                showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
+            }
+        } catch (err) {
+            console.error('Patreon sync error:', err);
+            showToast(`❌ Patreon sync error: ${err.message}`, 'error');
+        }
+    }
 
     // ---------- Table rendering ----------
     function renderTable() {
