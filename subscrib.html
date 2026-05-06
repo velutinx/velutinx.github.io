@@ -33,7 +33,7 @@
         <button class="tab-button" data-tab="spreadsheet">💰 Spreadsheet</button>
     </div>
 
-    <!-- Subscribestar / Patreon Tab (unchanged) -->
+    <!-- Subscribestar / Patreon Tab -->
     <div id="subscribestar" class="tab-content active">
         <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
         <div class="upload-area" id="dropZone">
@@ -73,7 +73,7 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- Bluesky Composer Tab (unchanged) -->
+    <!-- Bluesky Composer Tab -->
     <div id="bluesky" class="tab-content">
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
@@ -97,7 +97,7 @@
         <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
     </div>
 
-    <!-- Pack Manager Tab (unchanged) -->
+    <!-- Pack Manager Tab -->
     <div id="packmanager" class="tab-content">
         <div class="pm-container">
             <h1>📦 Pack Manager + Cloudflare Upload</h1>
@@ -209,6 +209,7 @@
                         <label for="recurringCheck">Recurring monthly</label>
                     </div>
                     <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
+                    <button class="btn" id="resyncBtn" style="background:#3a3a44; font-size:0.8rem;" title="Force re‑import of Patreon & Website data">🔄 Re‑sync</button>
                 </div>
                 <div class="table-wrapper">
                     <table id="dataTable">
