@@ -388,7 +388,7 @@
             showToast(`❌ Patreon sync error: ${err.message}`, 'error');
         }
     }
-    
+
 // ---------- Table rendering ----------
 function renderTable() {
     tableBody.innerHTML = '';
@@ -425,7 +425,7 @@ function renderTable() {
 
     allRows.sort((a, b) => (a.entry.month * 100 + a.entry.day) - (b.entry.month * 100 + b.entry.day));
 
-    // Group by month (including future months)
+    // Group by month
     const groups = new Map();
     for (const row of allRows) {
         const key = `${currentYear}-${row.entry.month}`;
@@ -435,12 +435,12 @@ function renderTable() {
 
     // ---------- Custom month ordering ----------
     const currentKey = `${currentYear}-${currentMonth}`;
-    const upcomingKeys = [];   // months > current month
-    const pastKeys = [];       // months < current month
+    const upcomingKeys = [];
+    const pastKeys = [];
 
     for (const key of groups.keys()) {
         const [y, m] = key.split('-').map(Number);
-        if (key === currentKey) continue;            // handled separately
+        if (key === currentKey) continue;
         if (y > currentYear || (y === currentYear && m > currentMonth)) {
             upcomingKeys.push(key);
         } else {
@@ -448,32 +448,28 @@ function renderTable() {
         }
     }
 
-    // Sort upcoming ascending (closest future first)
     upcomingKeys.sort((a, b) => {
         const [y1, m1] = a.split('-').map(Number);
         const [y2, m2] = b.split('-').map(Number);
         return y1 - y2 || m1 - m2;
     });
-
-    // Sort past descending (closest past first)
     pastKeys.sort((a, b) => {
         const [y1, m1] = a.split('-').map(Number);
         const [y2, m2] = b.split('-').map(Number);
         return y2 - y1 || m2 - m1;
     });
 
-    // Build final ordered list: current → upcoming → past
     const sortedKeys = [];
     if (groups.has(currentKey)) sortedKeys.push(currentKey);
     sortedKeys.push(...upcomingKeys, ...pastKeys);
 
+    // futureMonths is only used for the (upcoming) label – no longer affects visibility
     const futureMonths = new Set();
     allRows.forEach(r => { if (r.isFuture) futureMonths.add(`${currentYear}-${r.entry.month}`); });
 
     for (const key of sortedKeys) {
         const [y, m] = key.split('-').map(Number);
         const monthRows = groups.get(key);
-        // For month total, exclude future rows and inactive copies
         const activeActualEntries = monthRows.filter(r => !r.isFuture).map(r => r.entry).filter(e => !isInactiveCopy(e));
         const monthTotal = activeActualEntries.reduce((sum, e) =>
             sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
@@ -482,11 +478,10 @@ function renderTable() {
         const isCurrent = (y === currentYear && m === currentMonth);
         const monthName = monthNames[m] + ' ' + y;
 
-        // Determine if this month contains any future projection
         const hasFuture = monthRows.some(r => r.isFuture);
-        // (upcoming) only for future months, never for the current month
         const upcomingLabel = (hasFuture && !isCurrent) ? ' <span style="color:#888; font-size:0.8rem;">(upcoming)</span>' : '';
 
+        // Month header row
         const headerTr = document.createElement('tr');
         headerTr.className = 'month-header';
         headerTr.dataset.monthKey = key;
@@ -538,11 +533,11 @@ function renderTable() {
                 ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
                 : '';
 
-            let rowClass = 'entry-row ';
-            if (isCurrent || futureMonths.has(key)) rowClass += '';
-            else rowClass += 'hidden-row ';
-            rowClass += (entry.category === 'Expenses' ? 'row-expense' : 'row-income');
-            if (row.isFuture) rowClass += ' future-row';
+            // Row visibility: only current month rows are shown initially; future and past rows are hidden
+            const rowClass = 'entry-row ' +
+                (isCurrent ? '' : 'hidden-row ') +
+                (entry.category === 'Expenses' ? 'row-expense' : 'row-income') +
+                (row.isFuture ? ' future-row' : '');
 
             const tr = document.createElement('tr');
             tr.className = rowClass;
