@@ -283,7 +283,6 @@
     }
 
     // ---------- Website sync ----------
-    // ---------- Website sync ----------
     const IMPORTED_IDS_KEY = 'imported_website_order_ids';
     function getImportedIds() { return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]'); }
     function addImportedId(id) {
@@ -389,222 +388,233 @@
             showToast(`❌ Patreon sync error: ${err.message}`, 'error');
         }
     }
+    
+// ---------- Table rendering ----------
+function renderTable() {
+    tableBody.innerHTML = '';
+    if (entries.length === 0) {
+        tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
+        exportBtn.disabled = true;
+        return;
+    }
 
-    // ---------- Table rendering ----------
-    function renderTable() {
-        tableBody.innerHTML = '';
-        if (entries.length === 0) {
-            tableBody.innerHTML = `<tr class="empty-message"><td colspan="7">No entries yet. Add your first income/expense above.</td></tr>`;
-            exportBtn.disabled = true;
-            return;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const currentDay = new Date().getDate();
+
+    // Build all rows: actual entries + future projections
+    const allRows = [];
+    entries.forEach(e => allRows.push({ entry: e, isFuture: false }));
+
+    const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
+    recurringExpenses.forEach(e => {
+        if (!e.recurring) return;
+        const next = getNextOccurrence(e, currentYear, currentMonth, currentDay);
+        const exists = entries.some(ee =>
+            ee.month === next.month && ee.day === next.day &&
+            ee.category === 'Expenses' && ee.concept === e.concept &&
+            ee.amount === e.amount
+        );
+        if (!exists) {
+            allRows.push({
+                entry: { ...e, month: next.month, day: next.day, id: null, recurring: true, concept: e.concept, amount: e.amount, currency: e.currency, category: 'Expenses' },
+                isFuture: true
+            });
         }
+    });
 
-        const currentYear = new Date().getFullYear();
-        const currentMonth = new Date().getMonth() + 1;
-        const currentDay = new Date().getDate();
+    allRows.sort((a, b) => (a.entry.month * 100 + a.entry.day) - (b.entry.month * 100 + b.entry.day));
 
-        // Build all rows: actual entries + future projections
-        const allRows = [];
-        entries.forEach(e => allRows.push({ entry: e, isFuture: false }));
+    // Group by month (including future months)
+    const groups = new Map();
+    for (const row of allRows) {
+        const key = `${currentYear}-${row.entry.month}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(row);
+    }
 
-        const recurringExpenses = entries.filter(e => e.category === 'Expenses' && e.recurring);
-        recurringExpenses.forEach(e => {
-            // Only add future projection if the original is still active
-            if (!e.recurring) return;
-            const next = getNextOccurrence(e, currentYear, currentMonth, currentDay);
-            const exists = entries.some(ee =>
-                ee.month === next.month && ee.day === next.day &&
-                ee.category === 'Expenses' && ee.concept === e.concept &&
-                ee.amount === e.amount
-            );
-            if (!exists) {
-                allRows.push({
-                    entry: { ...e, month: next.month, day: next.day, id: null, recurring: true, concept: e.concept, amount: e.amount, currency: e.currency, category: 'Expenses' },
-                    isFuture: true
-                });
-            }
-        });
+    // ---------- Custom month ordering ----------
+    const currentKey = `${currentYear}-${currentMonth}`;
+    const upcomingKeys = [];   // months > current month
+    const pastKeys = [];       // months < current month
 
-        allRows.sort((a, b) => (a.entry.month * 100 + a.entry.day) - (b.entry.month * 100 + b.entry.day));
-
-        // Group by month (including future months)
-        const groups = new Map();
-        for (const row of allRows) {
-            const key = `${currentYear}-${row.entry.month}`;
-            if (!groups.has(key)) groups.set(key, []);
-            groups.get(key).push(row);
+    for (const key of groups.keys()) {
+        const [y, m] = key.split('-').map(Number);
+        if (key === currentKey) continue;            // handled separately
+        if (y > currentYear || (y === currentYear && m > currentMonth)) {
+            upcomingKeys.push(key);
+        } else {
+            pastKeys.push(key);
         }
+    }
 
-        const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
-            const [y1, m1] = a.split('-').map(Number);
-            const [y2, m2] = b.split('-').map(Number);
-            return y1 - y2 || m1 - m2;
-        });
+    // Sort upcoming ascending (closest future first)
+    upcomingKeys.sort((a, b) => {
+        const [y1, m1] = a.split('-').map(Number);
+        const [y2, m2] = b.split('-').map(Number);
+        return y1 - y2 || m1 - m2;
+    });
 
-        const futureMonths = new Set();
-        allRows.forEach(r => { if (r.isFuture) futureMonths.add(`${currentYear}-${r.entry.month}`); });
+    // Sort past descending (closest past first)
+    pastKeys.sort((a, b) => {
+        const [y1, m1] = a.split('-').map(Number);
+        const [y2, m2] = b.split('-').map(Number);
+        return y2 - y1 || m2 - m1;
+    });
 
-        for (const key of sortedKeys) {
-            const [y, m] = key.split('-').map(Number);
-            const monthRows = groups.get(key);
-            // For month total, exclude future rows and inactive copies
-            const activeActualEntries = monthRows.filter(r => !r.isFuture).map(r => r.entry).filter(e => !isInactiveCopy(e));
-            const monthTotal = activeActualEntries.reduce((sum, e) =>
-                sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
-            const currencySet = new Set(activeActualEntries.map(e => e.currency));
-            const currency = currencySet.size === 1 ? currencySet.values().next().value : 'mixed';
-            const isCurrent = (y === currentYear && m === currentMonth);
-            const monthName = monthNames[m] + ' ' + y;
+    // Build final ordered list: current → upcoming → past
+    const sortedKeys = [];
+    if (groups.has(currentKey)) sortedKeys.push(currentKey);
+    sortedKeys.push(...upcomingKeys, ...pastKeys);
 
-            // Determine if this month contains any future projection
-            const hasFuture = monthRows.some(r => r.isFuture);
-            // Determine if this month contains an inactive copy
-            const hasInactive = monthRows.some(r => !r.isFuture && isInactiveCopy(r.entry));
+    const futureMonths = new Set();
+    allRows.forEach(r => { if (r.isFuture) futureMonths.add(`${currentYear}-${r.entry.month}`); });
 
-            const headerTr = document.createElement('tr');
-            headerTr.className = 'month-header';
-            headerTr.dataset.monthKey = key;
-            headerTr.innerHTML = `
-                <td colspan="7" style="cursor:pointer;">
-                    <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
-                    <strong>${monthName}</strong> – ${monthRows.filter(r => !r.isFuture).length} entries, total:
-                    <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
-                        ${monthTotal.toFixed(2)} ${currency}
-                    </span>
-                    ${isCurrent ? ' (current)' : ''}
-                    ${hasFuture ? ' <span style="color:#888; font-size:0.8rem;">(upcoming)</span>' : ''}
-                </td>
-            `;
-            tableBody.appendChild(headerTr);
+    for (const key of sortedKeys) {
+        const [y, m] = key.split('-').map(Number);
+        const monthRows = groups.get(key);
+        // For month total, exclude future rows and inactive copies
+        const activeActualEntries = monthRows.filter(r => !r.isFuture).map(r => r.entry).filter(e => !isInactiveCopy(e));
+        const monthTotal = activeActualEntries.reduce((sum, e) =>
+            sum + (e.category === 'Expenses' ? -e.amount : e.amount), 0);
+        const currencySet = new Set(activeActualEntries.map(e => e.currency));
+        const currency = currencySet.size === 1 ? currencySet.values().next().value : 'mixed';
+        const isCurrent = (y === currentYear && m === currentMonth);
+        const monthName = monthNames[m] + ' ' + y;
 
-            for (const row of monthRows) {
-                const entry = row.entry;
-                const dateStr = formatDate(entry.month, entry.day, y);
-                const amountDisplay = entry.amount.toFixed(2);
-                const desc = entry.concept || '';
+        // Determine if this month contains any future projection
+        const hasFuture = monthRows.some(r => r.isFuture);
+        // (upcoming) only for future months, never for the current month
+        const upcomingLabel = (hasFuture && !isCurrent) ? ' <span style="color:#888; font-size:0.8rem;">(upcoming)</span>' : '';
 
-                let recurringHtml = '';
-                if (entry.category === 'Expenses') {
-                    if (row.isFuture) {
-                        // Future projection based on original's active status
-                        const original = entries.find(e => e.recurring && e.concept === entry.concept && e.amount === entry.amount && e.day === entry.day);
-                        const isActive = original ? original.recurring : false;
-                        recurringHtml = isActive
-                            ? `<span style="color:#888; font-weight:bold;">⏳</span>`
-                            : `<span style="color:#f44336; font-weight:bold;">✕</span>`;
+        const headerTr = document.createElement('tr');
+        headerTr.className = 'month-header';
+        headerTr.dataset.monthKey = key;
+        headerTr.innerHTML = `
+            <td colspan="7" style="cursor:pointer;">
+                <span class="toggle-icon">${isCurrent ? '▼' : '▶'}</span>
+                <strong>${monthName}</strong> – ${monthRows.filter(r => !r.isFuture).length} entries, total:
+                <span style="color: ${monthTotal >= 0 ? '#4caf50' : '#f44336'}">
+                    ${monthTotal.toFixed(2)} ${currency}
+                </span>
+                ${isCurrent ? ' (current)' : ''}
+                ${upcomingLabel}
+            </td>
+        `;
+        tableBody.appendChild(headerTr);
+
+        for (const row of monthRows) {
+            const entry = row.entry;
+            const dateStr = formatDate(entry.month, entry.day, y);
+            const amountDisplay = entry.amount.toFixed(2);
+            const desc = entry.concept || '';
+
+            let recurringHtml = '';
+            if (entry.category === 'Expenses') {
+                if (row.isFuture) {
+                    const original = entries.find(e => e.recurring && e.concept === entry.concept && e.amount === entry.amount && e.day === entry.day);
+                    const isActive = original ? original.recurring : false;
+                    recurringHtml = isActive
+                        ? `<span style="color:#888; font-weight:bold;">⏳</span>`
+                        : `<span style="color:#f44336; font-weight:bold;">✕</span>`;
+                } else {
+                    const copyInfo = getCopyInfo(entry);
+                    if (copyInfo) {
+                        const active = copyInfo.active;
+                        const icon = active ? '✔' : '✕';
+                        const color = active ? '#4caf50' : '#f44336';
+                        recurringHtml = `<span class="copy-recurring-toggle" data-concept="${entry.concept}" data-amount="${entry.amount}" data-day="${entry.day}" data-month="${entry.month}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
                     } else {
-                        const copyInfo = getCopyInfo(entry);
-                        if (copyInfo) {
-                            // This is an auto-generated copy
-                            const active = copyInfo.active;
-                            const icon = active ? '✔' : '✕';
-                            const color = active ? '#4caf50' : '#f44336';
-                            // Click handler will be attached later via class 'copy-recurring-toggle'
-                            recurringHtml = `<span class="copy-recurring-toggle" data-concept="${entry.concept}" data-amount="${entry.amount}" data-day="${entry.day}" data-month="${entry.month}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
-                        } else {
-                            // Original recurring entry or one-time expense
-                            const icon = entry.recurring ? '✔' : '✕';
-                            const color = entry.recurring ? '#4caf50' : '#f44336';
-                            const toggleClass = entry.recurring ? 'recurring-toggle' : 'recurring-toggle'; // allow toggle only on original? actually both original and one-time can toggle, so keep same.
-                            recurringHtml = `<span class="recurring-toggle" data-index="${entries.indexOf(entry)}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
-                        }
+                        const icon = entry.recurring ? '✔' : '✕';
+                        const color = entry.recurring ? '#4caf50' : '#f44336';
+                        recurringHtml = `<span class="recurring-toggle" data-index="${entries.indexOf(entry)}" style="color:${color}; cursor:pointer; font-weight:bold;">${icon}</span>`;
                     }
                 }
-
-                // Delete button: only for original recurring expenses (or one-time expenses) but not for copies
-                const isOriginalRecurring = entry.category === 'Expenses' && entry.recurring;
-                const isOneTimeExpense = entry.category === 'Expenses' && !entry.recurring && !getCopyInfo(entry); // not a copy
-                const deleteHtml = (!row.isFuture && (isOriginalRecurring || isOneTimeExpense))
-                    ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
-                    : '';
-
-                // Determine row styling
-                let rowClass = 'entry-row ';
-                if (isCurrent || futureMonths.has(key)) rowClass += '';
-                else rowClass += 'hidden-row ';
-                rowClass += (entry.category === 'Expenses' ? 'row-expense' : 'row-income');
-                if (row.isFuture) rowClass += ' future-row';
-
-                const tr = document.createElement('tr');
-                tr.className = rowClass;
-                tr.dataset.monthKey = key;
-                if (row.isFuture) {
-                    tr.style.opacity = '0.5';
-                    tr.style.fontStyle = 'italic';
-                } else if (isInactiveCopy(entry)) {
-                    tr.style.opacity = '0.5';
-                    tr.style.color = '#888';
-                }
-
-                tr.innerHTML = `
-                    <td>${dateStr}</td>
-                    <td>${amountDisplay}</td>
-                    <td>${entry.currency}</td>
-                    <td>${entry.category}</td>
-                    <td>${desc}</td>
-                    <td>${recurringHtml}</td>
-                    <td>${deleteHtml}</td>
-                `;
-                tableBody.appendChild(tr);
             }
+
+            const isOriginalRecurring = entry.category === 'Expenses' && entry.recurring;
+            const isOneTimeExpense = entry.category === 'Expenses' && !entry.recurring && !getCopyInfo(entry);
+            const deleteHtml = (!row.isFuture && (isOriginalRecurring || isOneTimeExpense))
+                ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
+                : '';
+
+            let rowClass = 'entry-row ';
+            if (isCurrent || futureMonths.has(key)) rowClass += '';
+            else rowClass += 'hidden-row ';
+            rowClass += (entry.category === 'Expenses' ? 'row-expense' : 'row-income');
+            if (row.isFuture) rowClass += ' future-row';
+
+            const tr = document.createElement('tr');
+            tr.className = rowClass;
+            tr.dataset.monthKey = key;
+            if (row.isFuture) {
+                tr.style.opacity = '0.5';
+                tr.style.fontStyle = 'italic';
+            } else if (isInactiveCopy(entry)) {
+                tr.style.opacity = '0.5';
+                tr.style.color = '#888';
+            }
+            tr.innerHTML = `
+                <td>${dateStr}</td>
+                <td>${amountDisplay}</td>
+                <td>${entry.currency}</td>
+                <td>${entry.category}</td>
+                <td>${desc}</td>
+                <td>${recurringHtml}</td>
+                <td>${deleteHtml}</td>
+            `;
+            tableBody.appendChild(tr);
         }
-
-        // Attach event listeners
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const idx = parseInt(this.dataset.index);
-                deleteEntry(idx);
-            });
-        });
-
-        // Toggle original recurring (on the original entry)
-        document.querySelectorAll('.recurring-toggle').forEach(span => {
-            span.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const idx = parseInt(this.dataset.index);
-                toggleRecurring(idx);
-            });
-        });
-
-        // Cancel or reactivate subscription from a copy
-        document.querySelectorAll('.copy-recurring-toggle').forEach(span => {
-            span.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const concept = this.dataset.concept;
-                const amount = parseFloat(this.dataset.amount);
-                const day = parseInt(this.dataset.day);
-                const month = parseInt(this.dataset.month);
-                const copyEntry = entries.find(ee =>
-                    ee.concept === concept && ee.amount === amount && ee.day === day && ee.month === month && !ee.recurring
-                );
-                if (!copyEntry) return;
-                const copyInfo = getCopyInfo(copyEntry);
-                if (!copyInfo) return;
-                if (copyInfo.active) {
-                    // Currently active -> cancel
-                    cancelSubscriptionFromCopy(copyEntry);
-                } else {
-                    // Currently inactive -> reactivate
-                    reactivateSubscriptionFromCopy(copyEntry);
-                }
-            });
-        });
-
-        // Month toggle
-        document.querySelectorAll('.month-header').forEach(header => {
-            header.addEventListener('click', function() {
-                const monthKey = this.dataset.monthKey;
-                const icon = this.querySelector('.toggle-icon');
-                const isOpen = icon.textContent.trim() === '▼';
-                icon.textContent = isOpen ? '▶' : '▼';
-                document.querySelectorAll(`.entry-row[data-month-key="${monthKey}"]`).forEach(row => {
-                    row.classList.toggle('hidden-row', isOpen);
-                });
-            });
-        });
-
-        exportBtn.disabled = false;
     }
+
+    // Attach event listeners (unchanged)
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.dataset.index);
+            deleteEntry(idx);
+        });
+    });
+    document.querySelectorAll('.recurring-toggle').forEach(span => {
+        span.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const idx = parseInt(this.dataset.index);
+            toggleRecurring(idx);
+        });
+    });
+    document.querySelectorAll('.copy-recurring-toggle').forEach(span => {
+        span.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const concept = this.dataset.concept;
+            const amount = parseFloat(this.dataset.amount);
+            const day = parseInt(this.dataset.day);
+            const month = parseInt(this.dataset.month);
+            const copyEntry = entries.find(ee =>
+                ee.concept === concept && ee.amount === amount && ee.day === day && ee.month === month && !ee.recurring
+            );
+            if (!copyEntry) return;
+            const copyInfo = getCopyInfo(copyEntry);
+            if (!copyInfo) return;
+            if (copyInfo.active) {
+                cancelSubscriptionFromCopy(copyEntry);
+            } else {
+                reactivateSubscriptionFromCopy(copyEntry);
+            }
+        });
+    });
+    document.querySelectorAll('.month-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const monthKey = this.dataset.monthKey;
+            const icon = this.querySelector('.toggle-icon');
+            const isOpen = icon.textContent.trim() === '▼';
+            icon.textContent = isOpen ? '▶' : '▼';
+            document.querySelectorAll(`.entry-row[data-month-key="${monthKey}"]`).forEach(row => {
+                row.classList.toggle('hidden-row', isOpen);
+            });
+        });
+    });
+
+    exportBtn.disabled = false;
+}
 
 // ---------- Chart (recurring baseline with hard stop on cancellation) ----------
 function buildChart(initialDays) {
