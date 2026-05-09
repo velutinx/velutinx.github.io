@@ -730,6 +730,12 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
+// ✅ NEW: hide zero values so the line doesn’t show flat zero segments
+    patreonCum = patreonCum.map(v => v === 0 ? null : v);
+    websiteCum = websiteCum.map(v => v === 0 ? null : v);
+    kofiCum   = kofiCum.map(v => v === 0 ? null : v);
+    totalExpCum = totalExpCum.map(v => v === 0 ? null : v);
+
     // -------------------------------------------------------------
     // 5. Build the green dotted reference line
     // -------------------------------------------------------------
