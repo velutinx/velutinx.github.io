@@ -611,6 +611,13 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
+
+
+
+
+
+
+    
 // ---------- Chart (recurring baseline with hard stop on cancellation) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
@@ -689,10 +696,10 @@ function buildChart(initialDays) {
     });
 
     // -------------------------------------------------------------
-    // 4. Build the final arrays
+    // 4. Build the final arrays – now using let so we can map later
     // -------------------------------------------------------------
-    const dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
-          totalExpCum = [], netCum = [];
+    let dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
+        totalExpCum = [], netCum = [];
 
     let curPatreon = 0, curWebsite = 0, curKofi = 0, curNonRecExp = 0;
     let lastMonth = null;
@@ -730,7 +737,7 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-// ✅ NEW: hide zero values so the line doesn’t show flat zero segments
+    // ✅ Hide zero values so the line doesn’t show flat zero segments
     patreonCum = patreonCum.map(v => v === 0 ? null : v);
     websiteCum = websiteCum.map(v => v === 0 ? null : v);
     kofiCum   = kofiCum.map(v => v === 0 ? null : v);
@@ -741,18 +748,13 @@ function buildChart(initialDays) {
     // -------------------------------------------------------------
     const referenceData = new Array(dates.length).fill(null);  // init all null
 
-    // Find the index of the last day of the previous month
     const today = new Date();
-    const prevMonth = today.getMonth();      // 0‑based, so previous month is already last month if today is May?
+    const prevMonth = today.getMonth();
     const prevMonthYear = today.getFullYear();
-    // Find the last day that belongs to the previous month (or the last day of April if today is May)
     let lastDayOfPrevMonth = null;
     for (let i = dates.length - 1; i >= 0; i--) {
         const dt = dates[i];
-        if (dt.getFullYear() === prevMonthYear && dt.getMonth() === prevMonth - 1) {  // April = 3? Actually getMonth() returns 0‑based, so April is 3, May is 4. We want previous month (April) if today is May.
-            // We want the last day of April (30th) if today is May.
-            // Actually we need the last day of April, which could be at index where date is April 30. We'll find the maximum date in April.
-            // Better: look for the latest date <= today that is in the previous month.
+        if (dt.getFullYear() === prevMonthYear && dt.getMonth() === prevMonth - 1) {
             if (!lastDayOfPrevMonth || dt > lastDayOfPrevMonth) {
                 lastDayOfPrevMonth = dt;
             }
@@ -760,11 +762,9 @@ function buildChart(initialDays) {
     }
 
     if (lastDayOfPrevMonth) {
-        // Find the index of that date in the dates array
         const lastDayIndex = dates.findIndex(d => d.getTime() === lastDayOfPrevMonth.getTime());
         if (lastDayIndex !== -1) {
             const lastDayNet = netCum[lastDayIndex];
-            // Set reference data from that index to the end
             for (let i = lastDayIndex; i < dates.length; i++) {
                 referenceData[i] = lastDayNet;
             }
