@@ -3,20 +3,28 @@
 <head>
     <title>TeraBox Uploader</title>
     <style>
-        #drop-zone { width: 300px; height: 200px; border: 2px dashed #ccc; display: flex; 
-                     align-items: center; justify-content: center; margin: 20px auto; }
-        #drop-zone.hover { border-color: #007bff; background: #f0f8ff; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f4f7f6; }
+        #drop-zone { width: 400px; height: 250px; border: 3px dashed #cbd5e0; border-radius: 15px; display: flex; 
+                     align-items: center; justify-content: center; transition: all 0.3s ease; cursor: pointer; background: white; text-align: center; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        #drop-zone.hover { border-color: #4299e1; background: #ebf8ff; transform: scale(1.02); }
+        #status { margin-top: 20px; font-weight: bold; color: #4a5568; max-width: 400px; word-wrap: break-word; text-align: center; }
+        .success { color: #38a169 !important; }
+        .error { color: #e53e3e !important; }
     </style>
 </head>
 <body>
-    <div id="drop-zone">Drag files here or click to upload</div>
+
+    <div id="drop-zone">Drag & Drop files here <br>or click to browse</div>
     <input type="file" id="file-input" style="display: none">
-    <p id="status" style="text-align: center;"></p>
+    <p id="status"></p>
 
     <script>
         const zone = document.getElementById('drop-zone');
         const input = document.getElementById('file-input');
         const status = document.getElementById('status');
+
+        // Replace this with your exact Cloudflare Worker URL
+        const WORKER_URL = 'https://terabox-uploader.velutinx.workers.dev';
 
         zone.onclick = () => input.click();
         zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
@@ -31,15 +39,36 @@
 
         async function handleUpload(file) {
             if (!file) return;
-            status.innerText = "Uploading to server...";
+            
+            // Visual feedback
+            status.innerText = `Uploading "${file.name}"...`;
+            status.className = "";
             
             const formData = new FormData();
             formData.append('file', file);
 
-            const res = await fetch('/upload', { method: 'POST', body: formData });
-            const data = await res.json();
-            
-            status.innerText = data.success ? "Successfully uploaded to TeraBox!" : "Error: " + data.error;
+            try {
+                const res = await fetch(WORKER_URL, { 
+                    method: 'POST', 
+                    body: formData 
+                });
+
+                const data = await res.json();
+                
+                // TeraBox returns errno: 0 on success
+                if (data.errno === 0 || !data.error) {
+                    status.innerText = "✅ Successfully uploaded to TeraBox!";
+                    status.className = "success";
+                } else {
+                    status.innerText = "❌ TeraBox Error: " + (data.error || "Unknown error");
+                    status.className = "error";
+                    console.log("Full Data:", data);
+                }
+            } catch (err) {
+                status.innerText = "❌ Connection Error: Check console";
+                status.className = "error";
+                console.error(err);
+            }
         }
     </script>
 </body>
