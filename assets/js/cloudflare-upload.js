@@ -1,10 +1,9 @@
-// This is velutinx.github.io/assets/js/cloudflare-upload.js
-
 // cloudflare-upload.js – reusable ZIP image selector + upload to Cloudflare R2
+
 (function() {
     const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
 
-    // Toast system
+    // Toast system (unchanged)
     let toastContainer = null;
     function ensureToastContainer() {
         if (!toastContainer) {
@@ -275,6 +274,7 @@
             }
         }
 
+        // This function is kept for reference but no longer called by default.
         async function downloadSelectedLocally() {
             if (!packNumber) {
                 showToast('Pack number missing – please load a valid ZIP first', 'error');
@@ -305,6 +305,7 @@
             return true;
         }
 
+        // ---------- UPDATED: Only upload, no local download ----------
         async function handleAction() {
             if (!packNumber) {
                 showToast('Please load a ZIP file first', 'error');
@@ -314,9 +315,8 @@
                 showToast('No images selected', 'error');
                 return;
             }
-            const downloadPromise = downloadSelectedLocally();
-            const uploadPromise = uploadSelectedToR2();
-            await Promise.allSettled([downloadPromise, uploadPromise]);
+            // Only upload – no local download
+            await uploadSelectedToR2();
         }
 
         dropzone.addEventListener('click', () => fileInput.click());
