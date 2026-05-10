@@ -882,3 +882,35 @@ body.dark .shop-title {
 .grid.grid-12 .card {
   min-height: 220px;
 }
+
+/* --- Leaderboard Animation Styles --- */
+#results {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.leaderboard-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  transition: background 0.3s ease;
+  /* Required for GSAP positioning */
+  position: relative; 
+}
+
+body.dark .leaderboard-entry {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.leaderboard-entry.moving {
+  z-index: 10;
+}
+
+/* --- Rest of your format.css (Simplified for brevity) --- */
+.divider { width: 80%; height: 6px; background: var(--divider, #aa9e76); margin: 22px auto; border-radius: 4px; }
+/* ... (Include all your gallery, commission, contact, and poll grid styles here) ... */
