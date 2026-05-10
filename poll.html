@@ -183,45 +183,102 @@ const { error } = await sb.from('poll_voting_website').upsert(
       });
     }
 
-    async function fetchLeaderboard() {
-      try {
-        const { data: rows, error } = await sb
-          .from('poll_votes_final')
-          .select('option_id, character_name, score, selected_at')
-          .eq('poll_id', POLL_ID)
-          .in('option_id', Array.from({ length: TOTAL_CARDS }, (_, i) => i + 1))
-          .order('score', { ascending: false });
+// ==================== ANIMATED LEADERBOARD LOGIC ====================
 
-        if (error) throw error;
+async function fetchLeaderboard() {
+  try {
+    const { data: rows, error } = await sb
+      .from('poll_votes_final')
+      .select('option_id, character_name, score, selected_at')
+      .eq('poll_id', POLL_ID)
+      .in('option_id', Array.from({ length: TOTAL_CARDS }, (_, i) => i + 1))
+      .order('score', { ascending: false });
 
-        const winnerIds = new Set();
-        rows.forEach(row => {
-          if (row.selected_at && row.selected_at !== null) {
-            winnerIds.add(Number(row.option_id));
-          }
-        });
+    if (error) throw error;
 
-        const resultsBox = document.getElementById("results");
-        resultsBox.innerHTML = rows.map(row => {
-          const id = Number(row.option_id);
-          const isWinner = winnerIds.has(id);
-          return `<div class="leaderboard-entry ${isWinner ? 'spoiled' : ''}">
-            <span>${row.character_name || `Option ${id}`}</span>
-            <span>${Number(row.score || 0).toFixed(1)}</span>
-          </div>`;
-        }).join('') || "No votes yet";
+    const resultsBox = document.getElementById("results");
+    
+    // 1. Capture current positions of all entries
+    const entries = Array.from(resultsBox.querySelectorAll('.leaderboard-entry'));
+    const oldPositions = new Map();
+    entries.forEach(el => {
+      oldPositions.set(el.dataset.id, el.getBoundingClientRect());
+    });
 
-        document.querySelectorAll(".card").forEach(card => {
-          const id = Number(card.dataset.id);
-          const row = rows.find(r => Number(r.option_id) === id);
-          if (row?.character_name) card.querySelector(".label").textContent = row.character_name;
-          card.classList.toggle("winner", winnerIds.has(id));
-        });
-      } catch (err) {
-        console.error("Leaderboard error:", err);
-        document.getElementById("results").innerHTML = '<div>Error loading leaderboard</div>';
+    // 2. Build or Update the elements
+    // We update content first without changing the DOM order yet
+    rows.forEach((row) => {
+      const id = String(row.option_id);
+      let el = resultsBox.querySelector(`.leaderboard-entry[data-id="${id}"]`);
+      
+      if (!el) {
+        // Create it if it doesn't exist (first load)
+        el = document.createElement('div');
+        el.className = 'leaderboard-entry';
+        el.dataset.id = id;
+        el.innerHTML = `<span></span><span></span>`;
+        resultsBox.appendChild(el);
       }
-    }
+
+      const nameSpan = el.children[0];
+      const scoreSpan = el.children[1];
+      
+      nameSpan.textContent = row.character_name || `Option ${id}`;
+      scoreSpan.textContent = Number(row.score || 0).toFixed(1);
+      
+      // Handle the "spoiled/winner" cross-out
+      if (row.selected_at) el.classList.add('spoiled');
+      else el.classList.remove('spoiled');
+    });
+
+    // 3. Re-sort the DOM elements based on the new data order
+    rows.forEach((row) => {
+      const el = resultsBox.querySelector(`.leaderboard-entry[data-id="${row.option_id}"]`);
+      resultsBox.appendChild(el); // Appending moves it to the end, effectively sorting
+    });
+
+    // 4. Animate the transition (The "Flip")
+    rows.forEach((row) => {
+      const id = String(row.option_id);
+      const el = resultsBox.querySelector(`.leaderboard-entry[data-id="${id}"]`);
+      const oldPos = oldPositions.get(id);
+
+      if (oldPos) {
+        const newPos = el.getBoundingClientRect();
+        const dy = oldPos.top - newPos.top;
+
+        if (dy !== 0) {
+          // If the position changed, slide it from the old position to the new one
+          gsap.fromTo(el, 
+            { y: dy }, 
+            { y: 0, duration: 0.6, ease: "power2.out", clearProps: "all" }
+          );
+          
+          // Optional: Add a subtle highlight flash to the one that moved
+          gsap.fromTo(el, 
+            { backgroundColor: "rgba(90, 140, 255, 0.3)" }, 
+            { backgroundColor: "rgba(255, 255, 255, 0.05)", duration: 1 }
+          );
+        }
+      } else {
+        // New entry appearing (Digital Dissolve effect)
+        gsap.from(el, { opacity: 0, x: -20, duration: 0.5 });
+      }
+    });
+
+    // Sync the grid labels/winner state
+    document.querySelectorAll(".card").forEach(card => {
+      const id = Number(card.dataset.id);
+      const row = rows.find(r => Number(r.option_id) === id);
+      if (row?.character_name) card.querySelector(".label").textContent = row.character_name;
+      card.classList.toggle("winner", !!row?.selected_at);
+    });
+
+  } catch (err) {
+    console.error("Leaderboard error:", err);
+    document.getElementById("results").innerHTML = '<div>Error loading leaderboard</div>';
+  }
+}
 
     function updateCardStyles(votedId) {
       document.querySelectorAll('.card').forEach(c => {
