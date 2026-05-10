@@ -144,7 +144,7 @@
 
 const { error } = await sb.from('poll_voting_website').upsert(
   { voter_id: visitorId, user_ip: currentIp, option_id: id, poll_id: POLL_ID, character_name: characterName },
-  { onConflict: 'poll_id, voter_id' }
+  { onConflict: 'poll_id, user_ip' }
 );
         if (error) throw error;
 
