@@ -282,12 +282,10 @@
         grid.appendChild(card);
       }
 
-      // 3. Columns and sizing
+      // 3. Columns and sizing – all in CSS, only need to set the class
       if (TOTAL_CARDS === 12) {
-        grid.style.gridTemplateColumns = "repeat(6, 1fr)";
-        grid.classList.add("grid-12");          // triggers wider container
+        grid.classList.add("grid-12");
       } else {
-        grid.style.gridTemplateColumns = "repeat(4, 1fr)";
         grid.classList.remove("grid-12");
       }
 
@@ -344,23 +342,5 @@
     }
   </script>
 
-  <style>
-    body.dark .card.winner::after {
-      display: block !important;
-      filter: brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(5772%) hue-rotate(356deg) brightness(100%) contrast(118%);
-    }
-
-    .card.winner::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('https://www.velutinx.com/images/cross.png') center / contain no-repeat;
-      pointer-events: none;
-      z-index: 10;
-    }
-  </style>
 </body>
 </html>
