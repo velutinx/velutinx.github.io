@@ -10,37 +10,7 @@
   <link rel="stylesheet" href="/assets/css/format.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
-  <style>
-    .poll-page .login-btn,
-    .poll-page .cart-wrapper,
-    .poll-page .floating-cart {
-      display: none !important;
-    }
-    .poll-page .top-nav {
-      background: var(--bg) !important;
-      border-bottom: 1px solid var(--border);
-    }
-    .icon-link img {
-      transition: transform 0.25s ease;
-    }
-    .icon-link:hover img {
-      animation: blobWobble 1.6s ease-in-out infinite;
-    }
 
-    /* ===== New: enlarge 12‑card grid ===== */
-    #grid.grid-12 {
-      max-width: 1200px;      /* ← try 1100px - 1300px depending on your layout */
-      margin: 0 auto;
-    }
-    #grid.grid-12 .card {
-      /* Optionally enforce a minimum card height so they don't look flat */
-      min-height: 220px;      /* adjust as needed */
-    }
-    /* The static fallback stays the same */
-    #grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  </style>
 </head>
 <body class="poll-page">
 
