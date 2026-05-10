@@ -346,11 +346,7 @@ body.custom-cursor-active * {
   height: 24px;
   margin-bottom: 8px;
   image-rendering: -webkit-optimize-contrast;
-  filter: invert(var(--icon-invert, 0)); /* adapt to light/dark */
-}
-
-body.dark .magnetic-inner img {
-  --icon-invert: 1;
+  filter: none;
 }
 
 /* ==================== POLL PAGE STYLES ==================== */
