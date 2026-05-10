@@ -553,13 +553,15 @@ body.dark #leaderboard {
 .icon-link img:hover { transform: scale(1.1); }
 
 @media (max-width: 1200px) {
-  .big-card { display: none; }
-  .grid { grid-template-columns: repeat(3, 1fr); }
+  .grid.grid-12 {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 800px;
+  }
 }
-
 @media (max-width: 800px) {
-  .grid { grid-template-columns: repeat(2, 1fr); }
-  .bottom { flex-direction: column; align-items: center; }
+  .grid.grid-12 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* ==================== STORE PAGE STYLES ==================== */
@@ -865,4 +867,16 @@ body.dark .shop-title {
   50% { transform: scale(1.15) rotate(4deg); }
   75% { transform: scale(1.15) rotate(-3deg); }
   100% { transform: scale(1.15) rotate(0deg); }
+}
+
+/* ==================== 12‑CARD POLL GRID OVERRIDE ==================== */
+/* Applied automatically when 12 poll images are detected */
+.grid.grid-12 {
+  grid-template-columns: repeat(6, 1fr);  /* 2 rows of 6 */
+  max-width: 1200px;                     /* wider container so cards stay the original size */
+}
+
+/* Optional: enforce a minimum card height so they don’t look flattened */
+.grid.grid-12 .card {
+  min-height: 220px;
 }
