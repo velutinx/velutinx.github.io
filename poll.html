@@ -266,19 +266,26 @@ const { error } = await sb.from('poll_voting_website').upsert(
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      // 6. Real‑time
-      sb.channel('grid-live')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_voting_website' }, () => {
-          fetchGridResults();
-        })
-        .subscribe();
+// 6. Real‑time (Optimized & Silent)
+let debounceTimer;
 
-      sb.channel('leaderboard-live')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'poll_votes_final' }, (payload) => {
-          console.log('Leaderboard updated by Bot!', payload);
-          fetchLeaderboard();
-        })
-        .subscribe();
+sb.channel('poll-live')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_voting_website' }, () => {
+    // Small delay to let multiple votes group together
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      fetchGridResults();
+      fetchLeaderboard();
+    }, 200); 
+  })
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'poll_votes_final' }, () => {
+    // When the bot updates many rows at once, we only refresh once at the end
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      fetchLeaderboard();
+    }, 300);
+  })
+  .subscribe();
 
       // 7. Rotation
       let rotateIndex = 1;
