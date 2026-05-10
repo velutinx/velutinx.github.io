@@ -1,4 +1,5 @@
 // pack-manager.js – Full combined: metadata upload + image selector + R2 upload + MEGA link auto-fetch
+// (no local download)
 
 (function() {
     'use strict';
@@ -59,12 +60,9 @@
             if (data.url) {
                 document.getElementById('pm-downloadUrl').value = data.url;
                 pmShowToast('✅ MEGA link auto‑filled!', 'success');
-            } else {
-                // File not found on MEGA – keep the field empty, no alert
             }
         } catch (err) {
             console.error('MEGA fetch error:', err);
-            // Silently fail – user can still paste the link manually
         }
     }
 
@@ -415,7 +413,7 @@
         }
     }
 
-    // ========== UPLOAD ACTION (metadata + selected images) ==========
+    // ========== UPLOAD ACTION (metadata + selected images only) ==========
     async function uploadPackMetadataAndImages() {
         if (!currentPackEntry) {
             pmShowToast('No ZIP processed yet – drop a file first', 'error');
@@ -446,11 +444,9 @@
             return;
         }
 
-        // 2) If images selected, upload to R2 and download locally
+        // 2) If images selected, upload to R2 (no local download)
         if (selectedOrder.length > 0) {
-            const downloadPromise = downloadSelectedLocally();
-            const uploadPromise   = uploadSelectedToR2();
-            await Promise.allSettled([downloadPromise, uploadPromise]);
+            await uploadSelectedToR2();
         }
 
         // 3) Refresh table and reset
@@ -502,27 +498,7 @@
         }
     }
 
-    async function downloadSelectedLocally() {
-        if (!packNumber || selectedOrder.length === 0) return false;
-        let successCount = 0;
-        for (let i = 0; i < selectedOrder.length; i++) {
-            const idx = selectedOrder[i];
-            const img = allImages[idx];
-            if (!img) continue;
-            const ext = img.originalName.split('.').pop().toLowerCase();
-            const newName = `pack${packNumber}-${i+1}.${ext}`;
-            const a = document.createElement('a');
-            a.href = img.url;
-            a.download = newName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            successCount++;
-            await new Promise(r => setTimeout(r, 100));
-        }
-        pmShowToast(`📥 Downloaded ${successCount} file(s)`, 'success');
-        return true;
-    }
+    // (Removed downloadSelectedLocally function – no local download needed)
 
     // ========== PROCESS ZIP (metadata + image previews) ==========
     async function processZip(file) {
@@ -585,10 +561,9 @@
             pmUploadBtn.disabled = false;
             pmShowToast(`✅ ZIP analysed. Select images, set category & link, then click "Upload".`, 'info');
 
-            // ---- Automatically fetch MEGA download link ----
-// Use the cleaned pack name (without "(1)" etc.) for the MEGA search
-const megaSearchName = cleanFilename(file.name) + '.zip';
-fetchMegaLink(megaSearchName);
+            // Automatically fetch MEGA download link
+            const megaSearchName = cleanFilename(file.name) + '.zip';
+            fetchMegaLink(megaSearchName);
             
         } catch (err) {
             console.error(err);
