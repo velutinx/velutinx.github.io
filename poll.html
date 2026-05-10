@@ -31,8 +31,7 @@
           <div id="leaderboard">
             <h3>Leaderboard</h3>
             <div class="tooltip">Website + Discord votes</div>
-            <div id="results">Loading…</div>
-          </div>
+            </div>
           <div class="icon-wrapper">
             <a class="icon-link" href="https://discord.gg/HKyH4bmQez" target="_blank" data-cursor-expand>
               <img src="https://www.velutinx.com/images/LogoDiscord.png" alt="Discord">
@@ -237,7 +236,7 @@ async function fetchLeaderboard() {
       resultsBox.appendChild(el); // Appending moves it to the end, effectively sorting
     });
 
-    // 4. Animate the transition (The "Flip")
+// 4. Animate the transition (Snappy High-Speed Version)
     rows.forEach((row) => {
       const id = String(row.option_id);
       const el = resultsBox.querySelector(`.leaderboard-entry[data-id="${id}"]`);
@@ -248,23 +247,29 @@ async function fetchLeaderboard() {
         const dy = oldPos.top - newPos.top;
 
         if (dy !== 0) {
-          // If the position changed, slide it from the old position to the new one
+          // SLIDE: Reduced from 0.6s to 0.35s for a "pop" feel
           gsap.fromTo(el, 
-            { y: dy }, 
-            { y: 0, duration: 0.6, ease: "power2.out", clearProps: "all" }
+            { y: dy, zIndex: 10 }, 
+            { y: 0, duration: 0.35, ease: "back.out(1.2)", clearProps: "all" }
           );
           
-          // Optional: Add a subtle highlight flash to the one that moved
+          // FLASH: Fast digital highlight (0.4s total)
           gsap.fromTo(el, 
-            { backgroundColor: "rgba(90, 140, 255, 0.3)" }, 
-            { backgroundColor: "rgba(255, 255, 255, 0.05)", duration: 1 }
+            { backgroundColor: "rgba(90, 140, 255, 0.4)" }, 
+            { backgroundColor: "rgba(0, 0, 0, 0.03)", duration: 0.4 }
           );
         }
       } else {
-        // New entry appearing (Digital Dissolve effect)
-        gsap.from(el, { opacity: 0, x: -20, duration: 0.5 });
+        // Digital Dissolve (Appear) for brand new items
+        gsap.from(el, { 
+          opacity: 0, 
+          filter: "blur(5px)", 
+          scale: 0.9, 
+          duration: 0.3 
+        });
       }
     });
+
 
     // Sync the grid labels/winner state
     document.querySelectorAll(".card").forEach(card => {
