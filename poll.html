@@ -31,6 +31,7 @@
           <div id="leaderboard">
             <h3>Leaderboard</h3>
             <div class="tooltip">Website + Discord votes</div>
+            <div id="results"></div>
           </div>
           <div class="icon-wrapper">
             <a class="icon-link" href="https://discord.gg/HKyH4bmQez" target="_blank" data-cursor-expand>
@@ -307,6 +308,7 @@ async function fetchLeaderboard() {
         card.innerHTML = `
           <img src="https://www.velutinx.com/images/poll/${i}.jpg" loading="lazy">
           <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
+          <div class="label"></div>
         `;
         card.onclick = () => { showSelected(i); castVote(i); };
         grid.appendChild(card);
