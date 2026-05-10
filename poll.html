@@ -1,4 +1,4 @@
-<!-- This is poll.html (dynamic image count + adaptive grid columns) -->
+<!-- This is poll.html (dynamic image count + corrected card sizing) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,6 +25,20 @@
     }
     .icon-link:hover img {
       animation: blobWobble 1.6s ease-in-out infinite;
+    }
+
+    /* ===== New: enlarge 12‑card grid ===== */
+    #grid.grid-12 {
+      max-width: 1200px;      /* ← try 1100px - 1300px depending on your layout */
+      margin: 0 auto;
+    }
+    #grid.grid-12 .card {
+      /* Optionally enforce a minimum card height so they don't look flat */
+      min-height: 220px;      /* adjust as needed */
+    }
+    /* The static fallback stays the same */
+    #grid {
+      grid-template-columns: repeat(4, 1fr);
     }
   </style>
 </head>
@@ -116,6 +130,7 @@
       return count;
     }
 
+    // ---------- Voting helpers ----------
     function setVoteCookie(optionId) {
       const d = new Date();
       d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -246,11 +261,11 @@
 
     // ---------- Main initialisation ----------
     async function startPoll() {
-      // 1. Detect available images
+      // 1. Detect images
       TOTAL_CARDS = await detectTotalCards();
       console.log('Poll using', TOTAL_CARDS, 'characters.');
 
-      // 2. Build the grid
+      // 2. Build grid
       const grid = document.getElementById("grid");
       grid.innerHTML = '';
       for (let i = 1; i <= TOTAL_CARDS; i++) {
@@ -267,22 +282,23 @@
         grid.appendChild(card);
       }
 
-      // 3. Adjust grid columns based on total cards
+      // 3. Columns and sizing
       if (TOTAL_CARDS === 12) {
         grid.style.gridTemplateColumns = "repeat(6, 1fr)";
+        grid.classList.add("grid-12");          // triggers wider container
       } else {
-        // 8 cards (or any other number) -> 4 columns
         grid.style.gridTemplateColumns = "repeat(4, 1fr)";
+        grid.classList.remove("grid-12");
       }
 
-      // 4. Fetch initial data
+      // 4. Fetch data
       await Promise.all([fetchGridResults(), fetchLeaderboard()]);
 
-      // 5. Restore previous vote
+      // 5. Restore vote
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      // 6. Real‑time subscriptions
+      // 6. Real‑time
       sb.channel('grid-live')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_voting_website' }, () => {
           fetchGridResults();
@@ -296,7 +312,7 @@
         })
         .subscribe();
 
-      // 7. Start rotation & initial preview
+      // 7. Rotation
       let rotateIndex = 1;
       function rotate() {
         const right = document.getElementById("rightBig");
@@ -344,11 +360,6 @@
       background: url('https://www.velutinx.com/images/cross.png') center / contain no-repeat;
       pointer-events: none;
       z-index: 10;
-    }
-
-    /* Static fallback – will be overridden by JS */
-    #grid {
-      grid-template-columns: repeat(4, 1fr);
     }
   </style>
 </body>
