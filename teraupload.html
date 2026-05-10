@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TeraBox Uploader</title>
+    <style>
+        #drop-zone { width: 300px; height: 200px; border: 2px dashed #ccc; display: flex; 
+                     align-items: center; justify-content: center; margin: 20px auto; }
+        #drop-zone.hover { border-color: #007bff; background: #f0f8ff; }
+    </style>
+</head>
+<body>
+    <div id="drop-zone">Drag files here or click to upload</div>
+    <input type="file" id="file-input" style="display: none">
+    <p id="status" style="text-align: center;"></p>
+
+    <script>
+        const zone = document.getElementById('drop-zone');
+        const input = document.getElementById('file-input');
+        const status = document.getElementById('status');
+
+        zone.onclick = () => input.click();
+        zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('hover'); };
+        zone.ondragleave = () => zone.classList.remove('hover');
+        zone.ondrop = (e) => {
+            e.preventDefault();
+            zone.classList.remove('hover');
+            handleUpload(e.dataTransfer.files[0]);
+        };
+
+        input.onchange = () => handleUpload(input.files[0]);
+
+        async function handleUpload(file) {
+            if (!file) return;
+            status.innerText = "Uploading to server...";
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            status.innerText = data.success ? "Successfully uploaded to TeraBox!" : "Error: " + data.error;
+        }
+    </script>
+</body>
+</html>
