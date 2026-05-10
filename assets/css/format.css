@@ -518,30 +518,56 @@ body.dark .card.winner::after {
 }
 
 #leaderboard {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   border: 3px solid #ffffff;
-  padding: 16px;
+  padding: 12px; /* Reduced from 16px */
   border-radius: 12px;
-  min-width: 280px;
+  min-width: 340px; /* Increased from 280px to prevent wrapping */
   text-align: center;
 }
 
 body.dark #leaderboard {
   background: rgba(30, 30, 35, 0.9);
   border: 3px solid #444;
-  color: #fff;
+}
+
+#results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px; /* Small gap between rows */
+  margin-top: 10px;
 }
 
 .leaderboard-entry {
-  font-size: 13px;
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px; /* Much tighter vertical padding */
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap; /* Forces name and score to stay on one line */
+}
+
+body.dark .leaderboard-entry {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.leaderboard-entry span:first-child {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adds ... if a name is somehow STILL too long */
+  margin-right: 15px;
+}
+
+.leaderboard-entry span:last-child {
+  font-weight: bold;
+  font-family: monospace; /* Keeps numbers aligned */
 }
 
 .leaderboard-entry.spoiled {
-  opacity: 0.5;
+  opacity: 0.4;
   text-decoration: line-through;
 }
 
