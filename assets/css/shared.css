@@ -334,12 +334,11 @@ body.dark .logo { color: var(--accent); }
   margin: 12px 20px 20px;
 }
 
-/* Coupon section */
 #couponSection {
-  margin-bottom: 1rem;
   display: flex;
   gap: 8px;
   padding: 0 20px;
+  margin-bottom: 1rem;
 }
 .coupon-input {
   flex: 1;
@@ -349,7 +348,6 @@ body.dark .logo { color: var(--accent); }
   background: var(--card);
   color: var(--text);
   font-size: 0.95rem;
-  transition: border 0.2s;
 }
 .coupon-input:focus {
   outline: none;
@@ -365,16 +363,12 @@ body.dark .logo { color: var(--accent); }
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: transform 0.15s, background 0.2s;
   white-space: nowrap;
 }
-.coupon-apply-btn:hover {
-  background: #38aae8;
-  color: white;
-}
+.coupon-apply-btn:hover { background: #38aae8; color: white; }
 #couponMessage {
   font-size: 0.85rem;
   margin: 0.25rem 20px 0.5rem;
-  font-weight: 700;               /* bold */
-  color: var(--text);             /* adapts to light/dark automatically */
+  font-weight: 700;
+  color: var(--text);
 }
