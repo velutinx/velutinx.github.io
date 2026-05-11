@@ -370,6 +370,35 @@ function updateStoreCartUI() {
   }
 }
 
+function injectCouponUI() {
+  const container = document.getElementById('cartItems'); // Or a specific div for coupons
+  if (!container || document.getElementById('couponCode')) return;
+
+  const lang = currentLang || localStorage.getItem('language') || 'en';
+  const t = storeTranslations[lang] || storeTranslations.en;
+
+  const couponHTML = `
+    <div id="couponWrapper" style="padding: 16px; border-top: 1px solid var(--border);">
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="couponCode" placeholder="${t.couponPlaceholder || 'Coupon Code'}" 
+               style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+        <button id="applyCouponBtn" class="btn" style="padding: 8px 16px; font-size: 0.9rem; min-width: auto;">
+          ${t.applyBtn || 'Apply'}
+        </button>
+      </div>
+      <div id="couponMessage" style="margin-top: 8px; font-size: 0.85rem;"></div>
+    </div>
+  `;
+  
+  // Append it after the cart items
+  container.insertAdjacentHTML('afterend', couponHTML);
+  
+  // Now that it's in the DOM, bind the click logic
+  setupCouponHandler();
+}
+
+
+    
     function setupCouponHandler() {
       const btn = document.getElementById('applyCouponBtn');
       if (!btn || btn.dataset.bound) return;
