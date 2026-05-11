@@ -274,28 +274,36 @@
         catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
         sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
         latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
-        addedMsg: "Added to cart", removedMsg: "Removed from cart"
+        addedMsg: "Added to cart", removedMsg: "Removed from cart",
+        couponPlaceholder: "Coupon code",
+        applyBtn: "Apply"
       },
       ja: {
         filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
         catFemale: "婦人", catFemboy: "男の娘", catMembership: "メンバーシップ",
         sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
         latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
-        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました"
+        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
+        couponPlaceholder: "クーポンコード",
+        applyBtn: "適用"
       },
       zh: {
         filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
         catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
         sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
         latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
-        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除"
+        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
+        couponPlaceholder: "优惠码",
+        applyBtn: "应用"
       },
       es: {
         filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
         catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
         sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
         latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
-        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito"
+        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito",
+        couponPlaceholder: "Código de cupón",
+        applyBtn: "Aplicar"
       }
     };
 
@@ -365,21 +373,23 @@
     };
 
     // ==================== Coupon handling (same as store.html) ====================
-    function injectCouponUI() {
-      if (document.getElementById('couponSection')) return;
-      const container = document.getElementById('paypal-button-container');
-      if (!container) return;
+function injectCouponUI() {
+  if (document.getElementById('couponSection')) return;
+  const container = document.getElementById('paypal-button-container');
+  if (!container) return;
 
-      const couponHTML = `
-        <div id="couponSection">
-          <input type="text" id="couponCode" placeholder="Coupon code" class="coupon-input" data-cursor-expand>
-          <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>Apply</button>
-        </div>
-        <div id="couponMessage"></div>
-      `;
-      container.insertAdjacentHTML('beforebegin', couponHTML);
-      setupCouponHandler();
-    }
+  const t = storeTranslations[window.currentLanguage || 'en'];
+
+  const couponHTML = `
+    <div id="couponSection">
+      <input type="text" id="couponCode" placeholder="${t.couponPlaceholder}" class="coupon-input" data-cursor-expand>
+      <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>${t.applyBtn}</button>
+    </div>
+    <div id="couponMessage"></div>
+  `;
+  container.insertAdjacentHTML('beforebegin', couponHTML);
+  setupCouponHandler();
+}
 
     function setupCouponHandler() {
       const btn = document.getElementById('applyCouponBtn');
