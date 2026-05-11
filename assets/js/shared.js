@@ -170,6 +170,12 @@
     if (cartTitleEl) cartTitleEl.innerText = t.cartTitle;
     const totalLabelEl = document.getElementById('totalLabel');
     if (totalLabelEl) totalLabelEl.innerText = t.totalLabel;
+
+    const couponPlaceholder = document.getElementById('couponPlaceholder');
+    if (couponPlaceholder) couponPlaceholder.innerText = t.couponPlaceholder;
+    const applyBtn = document.getElementById('applyBtn');
+    if (applyBtn) applyBtn.innerText = t.applyBtn;
+    
     const checkoutBtn = document.getElementById('demoCheckoutBtn');
     if (checkoutBtn) checkoutBtn.innerText = t.checkoutBtn;
     const menuHome = document.getElementById('menuHome');
