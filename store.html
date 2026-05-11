@@ -517,6 +517,17 @@ function observeCartDrawer() {
   observer.observe(cartDrawer, { attributes: true });
 }
 
+<div style="margin-bottom: 1rem; display: flex; gap: 8px;">
+  <input type="text" id="couponCode" placeholder="Coupon code"
+    style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text);">
+  <button id="applyCouponBtn"
+    style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+    Apply
+  </button>
+</div>
+<div id="couponMessage" style="font-size: 0.85rem; margin-bottom: 0.5rem;"></div>
+
+  
 // ==================== Dynamic PayPal SDK loading ====================
 let paypalLoaded = false;
 let paypalConfig = null;
