@@ -324,6 +324,7 @@
     const cartDrawer = document.getElementById('cartDrawer');
     const cartOverlay = document.getElementById('cartOverlay');
     const cartClose = document.getElementById('cartClose');
+    if (cartClose) cartClose.setAttribute('data-cursor-expand', '');
 
     const openCart = () => {
       cartDrawer.classList.add('open');
