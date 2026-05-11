@@ -808,7 +808,7 @@ const openOurCart = (e) => {
 
 document.addEventListener('languageChanged', () => {
   currentLang = localStorage.getItem('language') || 'en';
-  refreshAllTranslations();   // ✅ pack‑specific (pack details, button, etc.)
+  refreshAllTranslations();   // ✅ uses pack‑specific function
   const drawer = document.getElementById('cartDrawer');
   if (drawer && drawer.classList.contains('open')) {
     // Re‑inject coupon UI with the new language
