@@ -258,8 +258,9 @@
 
   <script type="module">
     // ==================== CONSTANTS ====================
-const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
+    const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
     const IMAGE_BASE = 'https://www.velutinx.com/i/';
+    const CART_WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
 
     // ==================== Helper functions ====================
     function escapeHtml(str) {
@@ -300,6 +301,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
 
     // ==================== Custom cart (unchanged) ====================
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
+    let activeCoupon = null;   // coupon state
 
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
@@ -318,7 +320,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
         total += window.priceKeyMap[item.priceKey] || 0;
         const div = document.createElement('div');
         div.className = 'cart-item';
-        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
         container.appendChild(div);
       });
       document.querySelectorAll('.cart-item-remove').forEach(btn => {
@@ -361,6 +363,53 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
       saveStoreCart();
       updateCartButton();
     };
+
+    // ==================== Coupon handling (same as store.html) ====================
+    function injectCouponUI() {
+      if (document.getElementById('couponSection')) return;
+      const container = document.getElementById('paypal-button-container');
+      if (!container) return;
+
+      const couponHTML = `
+        <div id="couponSection">
+          <input type="text" id="couponCode" placeholder="Coupon code" class="coupon-input" data-cursor-expand>
+          <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>Apply</button>
+        </div>
+        <div id="couponMessage"></div>
+      `;
+      container.insertAdjacentHTML('beforebegin', couponHTML);
+      setupCouponHandler();
+    }
+
+    function setupCouponHandler() {
+      const btn = document.getElementById('applyCouponBtn');
+      if (!btn || btn.dataset.bound) return;
+      btn.dataset.bound = 'true';
+      btn.addEventListener('click', async () => {
+        const code = document.getElementById('couponCode')?.value?.trim();
+        const msg = document.getElementById('couponMessage');
+        if (!code) return;
+
+        const resp = await fetch(`${CART_WORKER_URL}/validate-coupon`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, cart: storeCart })
+        });
+        const data = await resp.json();
+
+        if (data.valid) {
+          activeCoupon = data;
+          msg.innerHTML = `✅ <strong>${data.code}</strong>: -$${data.discount} (total: $${data.final_total})`;
+          const totalSpan = document.getElementById('cartTotal');
+          if (totalSpan) totalSpan.textContent = `$${data.final_total}`;
+        } else {
+          activeCoupon = null;
+          msg.innerHTML = `❌ ${data.error}`;
+          msg.style.color = '#ef4444';
+          updateStoreCartUI();
+        }
+      });
+    }
 
     // ==================== Pack‑specific translations ====================
     const packTranslations = {
@@ -515,7 +564,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
       }
     }
 
-    // ==================== GALLERY RENDERING (with cursor‑expand on arrows & thumbs) ====================
+    // ==================== GALLERY RENDERING ====================
     async function renderGallery(packId) {
       const galleryDiv = document.getElementById('gallery');
       if (!galleryDiv) return;
@@ -545,7 +594,6 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
 
       if (images.length === 1) return;
 
-      // Carousel logic
       const slides = document.getElementById('slides');
       const prev = document.getElementById('prevBtn');
       const next = document.getElementById('nextBtn');
@@ -593,7 +641,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
       refreshAllTranslations();
     }
 
-    // ==================== PayPal SDK loading (unchanged) ====================
+    // ==================== PayPal SDK loading ====================
     let paypalLoaded = false;
     let paypalConfig = null;
 
@@ -645,10 +693,14 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
 
       paypal.Buttons({
         createOrder: async () => {
+          const payload = { cart };
+          if (activeCoupon) {
+            payload.coupon_code = activeCoupon.code;
+          }
           const response = await fetch('https://paypal-checkout-website.velutinx.workers.dev/create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart })
+            body: JSON.stringify(payload)
           });
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || 'Order creation failed');
@@ -675,6 +727,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
             const captureID = result.transactionID;
             if (!captureID) throw new Error('No transaction ID received');
 
+            activeCoupon = null;   // reset coupon after successful purchase
             storeCart = [];
             saveStoreCart();
             window.location.href = `/s/success.html?orderID=${captureID}`;
@@ -695,7 +748,8 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
       }).catch(() => {
         isRendering = false;
       });
- }
+    }
+
     function interceptCartButtons() {
       const cartBtn = document.getElementById('cartBtn');
       const floatCartBtn = document.getElementById('floatingCartBtn');
@@ -710,6 +764,7 @@ const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
           drawer.classList.add('open');
           overlay.classList.add('active');
           document.body.classList.add('drawer-open');
+          injectCouponUI();        // inject coupon on drawer open
           renderPayPalButton();
         }
       };
