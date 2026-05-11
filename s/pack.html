@@ -274,36 +274,28 @@
         catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
         sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
         latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
-        addedMsg: "Added to cart", removedMsg: "Removed from cart",
-        couponPlaceholder: "Coupon code",
-        applyBtn: "Apply"
+        addedMsg: "Added to cart", removedMsg: "Removed from cart"
       },
       ja: {
         filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
         catFemale: "婦人", catFemboy: "男の娘", catMembership: "メンバーシップ",
         sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
         latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
-        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
-        couponPlaceholder: "クーポンコード",
-        applyBtn: "適用"
+        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました"
       },
       zh: {
         filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
         catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
         sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
         latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
-        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
-        couponPlaceholder: "优惠码",
-        applyBtn: "应用"
+        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除"
       },
       es: {
         filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
         catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
         sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
         latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
-        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito",
-        couponPlaceholder: "Código de cupón",
-        applyBtn: "Aplicar"
+        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito"
       }
     };
 
@@ -320,7 +312,7 @@
       const container = document.getElementById('cartItems');
       const totalSpan = document.getElementById('cartTotal');
       if (!container) return;
-const t = storeTranslations[currentLang || 'en'];
+      const t = storeTranslations[window.currentLanguage || 'en'];
       container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
       let total = 0;
       storeCart.forEach((item, idx) => {
@@ -360,7 +352,7 @@ const t = storeTranslations[currentLang || 'en'];
 
     window.addOrToggleCart = function(product) {
       const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
-const t = storeTranslations[currentLang || 'en'];
+      const t = storeTranslations[window.currentLanguage || 'en'];
       if (idx > -1) {
         storeCart.splice(idx, 1);
         showSnackbar(t.removedMsg, true);
@@ -373,22 +365,63 @@ const t = storeTranslations[currentLang || 'en'];
     };
 
     // ==================== Coupon handling (same as store.html) ====================
-function injectCouponUI() {
-  if (document.getElementById('couponSection')) return;
-  const container = document.getElementById('paypal-button-container');
+function updateStoreCartUI() {
+  const container = document.getElementById('cartItems');
+  const totalSpan = document.getElementById('cartTotal');
   if (!container) return;
 
+  // 1. Get current language translations
   const t = storeTranslations[window.currentLanguage || 'en'];
 
-  const couponHTML = `
-    <div id="couponSection">
-      <input type="text" id="couponCode" placeholder="${t.couponPlaceholder}" class="coupon-input" data-cursor-expand>
-      <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>${t.applyBtn}</button>
-    </div>
-    <div id="couponMessage"></div>
-  `;
-  container.insertAdjacentHTML('beforebegin', couponHTML);
-  setupCouponHandler();
+  // 2. Render Cart Items
+  container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
+  let total = 0;
+  storeCart.forEach((item, idx) => {
+    const priceStr = window.getFormattedPrice(item.priceKey);
+    total += window.priceKeyMap[item.priceKey] || 0;
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    div.innerHTML = `
+      <img src="${item.image}" alt="${item.title}">
+      <div class="cart-item-info">
+        <div class="cart-item-title">${escapeHtml(item.title)}</div>
+        <div class="cart-item-price">${priceStr}</div>
+      </div>
+      <button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>
+    `;
+    container.appendChild(div);
+  });
+
+  // 3. Handle Item Removal Listeners
+  document.querySelectorAll('.cart-item-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(btn.dataset.idx);
+      storeCart.splice(idx, 1);
+      saveStoreCart();
+      showSnackbar(t.removedMsg, true);
+      updateCartButton();
+    });
+  });
+
+  // 4. Update Price and Badge Counts
+  if (totalSpan) totalSpan.innerText = window.formatPrice(total);
+  document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { 
+    if (el) el.textContent = storeCart.length; 
+  });
+
+  // 5. UPDATE COUPON TRANSLATIONS
+  const couponInput = document.getElementById('couponCode');
+  const applyBtn = document.getElementById('applyCouponBtn');
+  if (couponInput && applyBtn) {
+    couponInput.placeholder = t.couponPlaceholder;
+    applyBtn.innerText = t.applyBtn;
+  }
+
+  // 6. Handle PayPal Button State
+  const cartDrawer = document.getElementById('cartDrawer');
+  if (cartDrawer && cartDrawer.classList.contains('open')) {
+    renderPayPalButton();
+  }
 }
 
     function setupCouponHandler() {
@@ -765,24 +798,19 @@ function injectCouponUI() {
       const floatCartBtn = document.getElementById('floatingCartBtn');
       if (!cartBtn && !floatCartBtn) return;
 
-const openOurCart = (e) => {
-  e.stopPropagation();
-  e.preventDefault();
-  const drawer = document.getElementById('cartDrawer');
-  const overlay = document.getElementById('cartOverlay');
-  if (drawer && !drawer.classList.contains('open')) {
-    drawer.classList.add('open');
-    overlay.classList.add('active');
-    document.body.classList.add('drawer-open');
-    // Remove old coupon UI so it's re‑created with the current language
-    const oldSection = document.getElementById('couponSection');
-    if (oldSection) oldSection.remove();
-    const oldMsg = document.getElementById('couponMessage');
-    if (oldMsg) oldMsg.remove();
-    injectCouponUI();
-    renderPayPalButton();
-  }
-};
+      const openOurCart = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const drawer = document.getElementById('cartDrawer');
+        const overlay = document.getElementById('cartOverlay');
+        if (drawer && !drawer.classList.contains('open')) {
+          drawer.classList.add('open');
+          overlay.classList.add('active');
+          document.body.classList.add('drawer-open');
+          injectCouponUI();        // inject coupon on drawer open
+          renderPayPalButton();
+        }
+      };
 
       if (cartBtn) cartBtn.addEventListener('click', openOurCart, true);
       if (floatCartBtn) floatCartBtn.addEventListener('click', openOurCart, true);
@@ -806,20 +834,11 @@ const openOurCart = (e) => {
       overrideSharedCart();
       loadPayPalSDK();
 
-document.addEventListener('languageChanged', () => {
-  currentLang = localStorage.getItem('language') || 'en';
-  refreshAllTranslations();   // ✅ uses pack‑specific function
-  const drawer = document.getElementById('cartDrawer');
-  if (drawer && drawer.classList.contains('open')) {
-    // Re‑inject coupon UI with the new language
-    const oldSection = document.getElementById('couponSection');
-    if (oldSection) oldSection.remove();
-    const oldMsg = document.getElementById('couponMessage');
-    if (oldMsg) oldMsg.remove();
-    injectCouponUI();
-    updateStoreCartUI();
-  }
-});
+      document.addEventListener('languageChanged', () => {
+        currentLang = localStorage.getItem('language') || 'en';
+        refreshAllTranslations();
+        updateStoreCartUI();
+      });
     }
 
     document.addEventListener('headerReady', () => {
