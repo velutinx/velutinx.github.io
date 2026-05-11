@@ -10,28 +10,36 @@
       addedMsg: "Added successfully", removedMsg: "Removed from cart",
       checkoutBtn: "Proceed to checkout (DEMO)", menuHome: "HOME", menuCommissions: "COMMISSIONS",
       menuArtwork: "ARTWORK", menuPoll: "POLL", menuStore: "STORE", menuContact: "CONTACT",
-      websiteBtn: "Website"
+      websiteBtn: "Website",
+      couponPlaceholder: "Coupon code",
+      applyBtn: "Apply"
     },
     ja: {
       cartTitle: "ショッピングカート", totalLabel: "合計", emptyCart: "カートは空です",
       addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
       checkoutBtn: "レジに進む (デモ)", menuHome: "ホーム", menuCommissions: "コミッション",
       menuArtwork: "アートワーク", menuPoll: "投票", menuStore: "ストア", menuContact: "お問い合わせ",
-      websiteBtn: "ウェブサイト"
+      websiteBtn: "ウェブサイト",
+      couponPlaceholder: "クーポンコード",
+      applyBtn: "適用"
     },
     zh: {
       cartTitle: "购物车", totalLabel: "总计", emptyCart: "购物车是空的",
       addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
       checkoutBtn: "去结账 (演示)", menuHome: "主页", menuCommissions: "委托",
       menuArtwork: "作品集", menuPoll: "投票", menuStore: "商店", menuContact: "联系",
-      websiteBtn: "网站"
+      websiteBtn: "网站",
+      couponPlaceholder: "优惠码",
+      applyBtn: "应用"
     },
     es: {
       cartTitle: "Carrito de Compras", totalLabel: "Total", emptyCart: "Tu carrito está vacío",
       addedMsg: "Añadido correctamente", removedMsg: "Eliminado del carrito",
       checkoutBtn: "Proceder al pago (DEMO)", menuHome: "INICIO", menuCommissions: "COMISIONES",
       menuArtwork: "OBRAS", menuPoll: "ENCUESTA", menuStore: "TIENDA", menuContact: "CONTACTO",
-      websiteBtn: "Sitio web"
+      websiteBtn: "Sitio web",
+      couponPlaceholder: "Código de cupón",
+      applyBtn: "Aplicar"
     }
   };
 
