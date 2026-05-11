@@ -360,7 +360,7 @@ const t = storeTranslations[currentLang || 'en'];
 
     window.addOrToggleCart = function(product) {
       const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
-      const t = storeTranslations[window.currentLanguage || 'en'];
+const t = storeTranslations[currentLang || 'en'];
       if (idx > -1) {
         storeCart.splice(idx, 1);
         showSnackbar(t.removedMsg, true);
