@@ -308,97 +308,79 @@
       updateStoreCartUI();
     }
 
-// ==================== Updated Cart UI (Fixed & Translating) ====================
-function updateStoreCartUI() {
-  const container = document.getElementById('cartItems');
-  const totalSpan = document.getElementById('cartTotal');
-  if (!container) return;
+    function updateStoreCartUI() {
+      const container = document.getElementById('cartItems');
+      const totalSpan = document.getElementById('cartTotal');
+      if (!container) return;
+      const t = storeTranslations[window.currentLanguage || 'en'];
+      container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
+      let total = 0;
+      storeCart.forEach((item, idx) => {
+        const priceStr = window.getFormattedPrice(item.priceKey);
+        total += window.priceKeyMap[item.priceKey] || 0;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
+        container.appendChild(div);
+      });
+      document.querySelectorAll('.cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          storeCart.splice(idx, 1);
+          saveStoreCart();
+          showSnackbar(t.removedMsg, true);
+          updateCartButton();
+        });
+      });
+      if (totalSpan) totalSpan.innerText = window.formatPrice(total);
+      document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
 
-  // Use currentLang (defined below in your script) or fallback to 'en'
-  const lang = currentLang || localStorage.getItem('language') || 'en';
-  const t = storeTranslations[lang] || storeTranslations.en;
+      const cartDrawer = document.getElementById('cartDrawer');
+      if (cartDrawer && cartDrawer.classList.contains('open')) renderPayPalButton();
+    }
 
-  // 1. Render Cart Items
-  container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
-  let total = 0;
-  
-  storeCart.forEach((item, idx) => {
-    const priceStr = window.getFormattedPrice(item.priceKey);
-    total += window.priceKeyMap[item.priceKey] || 0;
-    const div = document.createElement('div');
-    div.className = 'cart-item';
-    div.innerHTML = `
-      <img src="${item.image}" alt="${item.title}">
-      <div class="cart-item-info">
-        <div class="cart-item-title">${escapeHtml(item.title)}</div>
-        <div class="cart-item-price">${priceStr}</div>
-      </div>
-      <button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>
-    `;
-    container.appendChild(div);
-  });
+    function showSnackbar(msg, isRemove) {
+      const sb = document.getElementById('snackbar');
+      if (sb) {
+        sb.style.background = isRemove ? '#ef4444' : '#22c55e';
+        const textSpan = sb.querySelector('#snackText');
+        if (textSpan) textSpan.innerText = msg;
+        sb.classList.add('show');
+        setTimeout(() => sb.classList.remove('show'), 2000);
+      } else alert(msg);
+    }
 
-  // 2. Removal Logic
-  document.querySelectorAll('.cart-item-remove').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = parseInt(btn.dataset.idx);
-      storeCart.splice(idx, 1);
+    window.addOrToggleCart = function(product) {
+      const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
+      const t = storeTranslations[window.currentLanguage || 'en'];
+      if (idx > -1) {
+        storeCart.splice(idx, 1);
+        showSnackbar(t.removedMsg, true);
+      } else {
+        storeCart.push({ id: product.id, title: product.title, priceKey: product.priceKey, image: product.image, type: 'store' });
+        showSnackbar(t.addedMsg, false);
+      }
       saveStoreCart();
-      showSnackbar(t.removedMsg, true);
       updateCartButton();
-    });
-  });
+    };
 
-  // 3. Update Totals & Badges
-  if (totalSpan) totalSpan.innerText = window.formatPrice(total);
-  document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { 
-    if (el) el.textContent = storeCart.length; 
-  });
+    // ==================== Coupon handling (same as store.html) ====================
+    function injectCouponUI() {
+      if (document.getElementById('couponSection')) return;
+      const container = document.getElementById('paypal-button-container');
+      if (!container) return;
 
-  // 4. DYNAMIC COUPON TRANSLATION
-  const couponInput = document.getElementById('couponCode');
-  const applyBtn = document.getElementById('applyCouponBtn');
-  if (couponInput && applyBtn) {
-    couponInput.placeholder = t.couponPlaceholder;
-    applyBtn.innerText = t.applyBtn;
-  }
+      const couponHTML = `
+        <div id="couponSection">
+          <input type="text" id="couponCode" placeholder="Coupon code" class="coupon-input" data-cursor-expand>
+          <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>Apply</button>
+        </div>
+        <div id="couponMessage"></div>
+      `;
+      container.insertAdjacentHTML('beforebegin', couponHTML);
+      setupCouponHandler();
+    }
 
-  // 5. Refresh PayPal if Drawer is open
-  const cartDrawer = document.getElementById('cartDrawer');
-  if (cartDrawer && cartDrawer.classList.contains('open')) {
-    renderPayPalButton();
-  }
-}
-
-function injectCouponUI() {
-  const container = document.getElementById('cartItems'); // Or a specific div for coupons
-  if (!container || document.getElementById('couponCode')) return;
-
-  const lang = currentLang || localStorage.getItem('language') || 'en';
-  const t = storeTranslations[lang] || storeTranslations.en;
-
-  const couponHTML = `
-    <div id="couponWrapper" style="padding: 16px; border-top: 1px solid var(--border);">
-      <div style="display: flex; gap: 8px;">
-        <input type="text" id="couponCode" placeholder="${t.couponPlaceholder || 'Coupon Code'}" 
-               style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
-        <button id="applyCouponBtn" class="btn" style="padding: 8px 16px; font-size: 0.9rem; min-width: auto;">
-          ${t.applyBtn || 'Apply'}
-        </button>
-      </div>
-      <div id="couponMessage" style="margin-top: 8px; font-size: 0.85rem;"></div>
-    </div>
-  `;
-  
-  // Append it after the cart items
-  container.insertAdjacentHTML('afterend', couponHTML);
-  
-  // Now that it's in the DOM, bind the click logic
-  setupCouponHandler();
-}
-
-
-    
     function setupCouponHandler() {
       const btn = document.getElementById('applyCouponBtn');
       if (!btn || btn.dataset.bound) return;
