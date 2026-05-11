@@ -320,7 +320,7 @@
       const container = document.getElementById('cartItems');
       const totalSpan = document.getElementById('cartTotal');
       if (!container) return;
-      const t = storeTranslations[window.currentLanguage || 'en'];
+const t = storeTranslations[currentLang || 'en'];
       container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
       let total = 0;
       storeCart.forEach((item, idx) => {
