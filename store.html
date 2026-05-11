@@ -533,7 +533,8 @@ function bindStoreEvents() {
     searchQuery = e.target.value;
     renderStoreGrid();
   });
-document.addEventListener('languageChanged', () => {
+
+  document.addEventListener('languageChanged', () => {
   currentLang = localStorage.getItem('language') || 'en';
   applyStoreTranslations();
   renderStoreGrid();
