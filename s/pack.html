@@ -765,19 +765,24 @@ function injectCouponUI() {
       const floatCartBtn = document.getElementById('floatingCartBtn');
       if (!cartBtn && !floatCartBtn) return;
 
-      const openOurCart = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const drawer = document.getElementById('cartDrawer');
-        const overlay = document.getElementById('cartOverlay');
-        if (drawer && !drawer.classList.contains('open')) {
-          drawer.classList.add('open');
-          overlay.classList.add('active');
-          document.body.classList.add('drawer-open');
-          injectCouponUI();        // inject coupon on drawer open
-          renderPayPalButton();
-        }
-      };
+const openOurCart = (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+  const drawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartOverlay');
+  if (drawer && !drawer.classList.contains('open')) {
+    drawer.classList.add('open');
+    overlay.classList.add('active');
+    document.body.classList.add('drawer-open');
+    // Remove old coupon UI so it's re‑created with the current language
+    const oldSection = document.getElementById('couponSection');
+    if (oldSection) oldSection.remove();
+    const oldMsg = document.getElementById('couponMessage');
+    if (oldMsg) oldMsg.remove();
+    injectCouponUI();
+    renderPayPalButton();
+  }
+};
 
       if (cartBtn) cartBtn.addEventListener('click', openOurCart, true);
       if (floatCartBtn) floatCartBtn.addEventListener('click', openOurCart, true);
@@ -801,11 +806,21 @@ function injectCouponUI() {
       overrideSharedCart();
       loadPayPalSDK();
 
-      document.addEventListener('languageChanged', () => {
-        currentLang = localStorage.getItem('language') || 'en';
-        refreshAllTranslations();
-        updateStoreCartUI();
-      });
+document.addEventListener('languageChanged', () => {
+  currentLang = localStorage.getItem('language') || 'en';
+  applyStoreTranslations();
+  renderStoreGrid();
+  const drawer = document.getElementById('cartDrawer');
+  if (drawer && drawer.classList.contains('open')) {
+    // Remove old coupon UI and re‑inject with new language
+    const oldSection = document.getElementById('couponSection');
+    if (oldSection) oldSection.remove();
+    const oldMsg = document.getElementById('couponMessage');
+    if (oldMsg) oldMsg.remove();
+    injectCouponUI();
+    updateStoreCartUI();
+  }
+});
     }
 
     document.addEventListener('headerReady', () => {
