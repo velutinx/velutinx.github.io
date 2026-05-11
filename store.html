@@ -292,7 +292,7 @@ function updateStoreCartUI() {
     total += window.priceKeyMap[item.priceKey] || 0;
     const div = document.createElement('div');
     div.className = 'cart-item';
-    div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}">✕</button>`;
+    div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
     container.appendChild(div);
   });
   document.querySelectorAll('.cart-item-remove').forEach(btn => {
@@ -372,7 +372,7 @@ function setupCouponHandler() {
     if (data.valid) {
       activeCoupon = data;
       msg.innerHTML = `✅ <strong>${data.code}</strong>: -$${data.discount} (total: $${data.final_total})`;
-      msg.style.color = '#22c55e';
+      // REMOVED inline color – uses #couponMessage rule from shared.css
       const totalSpan = document.getElementById('cartTotal');
       if (totalSpan) totalSpan.textContent = `$${data.final_total}`;
     } else {
