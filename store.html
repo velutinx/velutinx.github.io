@@ -240,7 +240,9 @@ const storeTranslations = {
     latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
     addedMsg: "Added to cart", removedMsg: "Removed from cart",
     membershipTitle: "Requests & Membership",
-    membershipLearnMore: "Learn More"
+    membershipLearnMore: "Learn More",
+    couponPlaceholder: "Coupon code",
+    applyBtn: "Apply"
   },
   ja: {
     filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
@@ -249,7 +251,9 @@ const storeTranslations = {
     latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
     addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
     membershipTitle: "リクエスト＆メンバーシップ",
-    membershipLearnMore: "詳細を見る"
+    membershipLearnMore: "詳細を見る",
+    couponPlaceholder: "クーポンコード",
+    applyBtn: "適用"
   },
   zh: {
     filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
@@ -258,7 +262,9 @@ const storeTranslations = {
     latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
     addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
     membershipTitle: "请求与会员资格",
-    membershipLearnMore: "了解更多"
+    membershipLearnMore: "了解更多",
+    couponPlaceholder: "优惠码",
+    applyBtn: "应用"
   },
   es: {
     filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
@@ -267,7 +273,9 @@ const storeTranslations = {
     latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
     addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito",
     membershipTitle: "Solicitudes y Membresía",
-    membershipLearnMore: "Más información"
+    membershipLearnMore: "Más información",
+    couponPlaceholder: "Código de cupón",
+    applyBtn: "Aplicar"
   }
 };
 
@@ -342,10 +350,12 @@ function injectCouponUI() {
   const container = document.getElementById('paypal-button-container');
   if (!container) return;
 
+  const t = storeTranslations[window.currentLanguage || 'en'];
+
   const couponHTML = `
     <div id="couponSection">
-      <input type="text" id="couponCode" placeholder="Coupon code" class="coupon-input" data-cursor-expand>
-      <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>Apply</button>
+      <input type="text" id="couponCode" placeholder="${t.couponPlaceholder}" class="coupon-input" data-cursor-expand>
+      <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>${t.applyBtn}</button>
     </div>
     <div id="couponMessage"></div>
   `;
