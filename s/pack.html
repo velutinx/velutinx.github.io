@@ -808,11 +808,10 @@ const openOurCart = (e) => {
 
 document.addEventListener('languageChanged', () => {
   currentLang = localStorage.getItem('language') || 'en';
-  applyStoreTranslations();
-  renderStoreGrid();
+  refreshAllTranslations();   // ✅ pack‑specific (pack details, button, etc.)
   const drawer = document.getElementById('cartDrawer');
   if (drawer && drawer.classList.contains('open')) {
-    // Remove old coupon UI and re‑inject with new language
+    // Re‑inject coupon UI with the new language
     const oldSection = document.getElementById('couponSection');
     if (oldSection) oldSection.remove();
     const oldMsg = document.getElementById('couponMessage');
