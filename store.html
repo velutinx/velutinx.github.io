@@ -224,7 +224,7 @@
 <script type="module">
 // ==================== CONSTANTS ====================
 const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
-  const CART_WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
+const CART_WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
 
 // ==================== Helper functions ====================
 function escapeHtml(str) {
@@ -273,6 +273,7 @@ const storeTranslations = {
 
 // ==================== Store cart ====================
 let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
+let activeCoupon = null;
 
 function saveStoreCart() {
   localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
@@ -334,6 +335,57 @@ window.addOrToggleCart = function(product) {
   saveStoreCart();
   renderStoreGrid();
 };
+
+// ==================== Coupon handling ====================
+function injectCouponUI() {
+  if (document.getElementById('couponSection')) return;
+  const container = document.getElementById('paypal-button-container');
+  if (!container) return;
+  const couponHTML = `
+    <div id="couponSection" style="margin-bottom: 1rem; display: flex; gap: 8px; padding: 0 20px;">
+      <input type="text" id="couponCode" placeholder="Coupon code"
+        style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text);">
+      <button id="applyCouponBtn"
+        style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+        Apply
+      </button>
+    </div>
+    <div id="couponMessage" style="font-size: 0.85rem; margin: 0 20px 0.5rem;"></div>
+  `;
+  container.insertAdjacentHTML('beforebegin', couponHTML);
+  setupCouponHandler();
+}
+
+function setupCouponHandler() {
+  const btn = document.getElementById('applyCouponBtn');
+  if (!btn || btn.dataset.bound) return;
+  btn.dataset.bound = 'true';
+  btn.addEventListener('click', async () => {
+    const code = document.getElementById('couponCode')?.value?.trim();
+    const msg = document.getElementById('couponMessage');
+    if (!code) return;
+
+    const resp = await fetch(`${CART_WORKER_URL}/validate-coupon`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, cart: storeCart })
+    });
+    const data = await resp.json();
+
+    if (data.valid) {
+      activeCoupon = data;
+      msg.innerHTML = `✅ <strong>${data.code}</strong>: -$${data.discount} (total: $${data.final_total})`;
+      msg.style.color = '#22c55e';
+      const totalSpan = document.getElementById('cartTotal');
+      if (totalSpan) totalSpan.textContent = `$${data.final_total}`;
+    } else {
+      activeCoupon = null;
+      msg.innerHTML = `❌ ${data.error}`;
+      msg.style.color = '#ef4444';
+      updateStoreCartUI();
+    }
+  });
+}
 
 // ==================== Store rendering logic ====================
 let products = [];
@@ -418,7 +470,6 @@ function renderStoreGrid() {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = p.id;
-    // Make the whole card trigger cursor expansion
     card.setAttribute('data-cursor-expand', '');
 
     if (p.id === 'membership') {
@@ -453,7 +504,6 @@ function renderStoreGrid() {
 }
 
 function bindStoreEvents() {
-  // Add data-cursor-expand to category and sort buttons
   document.querySelectorAll('.category-list li').forEach(li => {
     li.setAttribute('data-cursor-expand', '');
     li.addEventListener('click', () => {
@@ -517,17 +567,6 @@ function observeCartDrawer() {
   observer.observe(cartDrawer, { attributes: true });
 }
 
-<div style="margin-bottom: 1rem; display: flex; gap: 8px;">
-  <input type="text" id="couponCode" placeholder="Coupon code"
-    style="flex:1; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text);">
-  <button id="applyCouponBtn"
-    style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
-    Apply
-  </button>
-</div>
-<div id="couponMessage" style="font-size: 0.85rem; margin-bottom: 0.5rem;"></div>
-
-  
 // ==================== Dynamic PayPal SDK loading ====================
 let paypalLoaded = false;
 let paypalConfig = null;
@@ -581,10 +620,14 @@ function renderPayPalButton() {
 
   paypal.Buttons({
     createOrder: async () => {
+      const payload = { cart };
+      if (activeCoupon) {
+        payload.coupon_code = activeCoupon.code;
+      }
       const response = await fetch(`${CART_WORKER_URL}/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart })
+        body: JSON.stringify(payload)
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Order creation failed');
@@ -610,6 +653,7 @@ function renderPayPalButton() {
         const captureID = result.transactionID;
         if (!captureID) throw new Error('No transaction ID received');
 
+        activeCoupon = null;
         storeCart = [];
         saveStoreCart();
         renderStoreGrid();
@@ -632,6 +676,7 @@ function renderPayPalButton() {
     isRendering = false;
   });
 }
+
 window.setupStoreCheckout = () => renderPayPalButton();
 
 // ==================== Intercept cart button clicks ====================
@@ -649,6 +694,7 @@ function interceptCartButtons() {
       drawer.classList.add('open');
       overlay.classList.add('active');
       document.body.classList.add('drawer-open');
+      injectCouponUI();
       renderPayPalButton();
     }
   };
