@@ -155,7 +155,7 @@
         }, 50);
     }
 
-    // ---------- CROP MODAL (now supports moving the rectangle) ----------
+    // ---------- CROP MODAL (fixed – no undeclared variables) ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -163,7 +163,6 @@
         const doneBtn = document.getElementById('cropDoneBtn');
         const cancelBtn = document.getElementById('cropCancelBtn');
 
-        // Max dimensions
         const maxWidth = Math.min(800, window.innerWidth * 0.8);
         const maxHeight = Math.min(800, window.innerHeight * 0.7);
 
@@ -179,12 +178,12 @@
             modal.style.display = 'flex';
         };
 
-        // ---------- Selection & move state ----------
-        let dragging = false,         // drawing a new rectangle
-            isMoving = false,        // moving the existing rectangle
+        // ---------- State ----------
+        let dragging = false,        // drawing a new rectangle
+            isMoving = false,       // moving existing rectangle
             startX, startY,
-            rect = null,             // {x, y, w, h}
-            moveOffset = { x: 0, y: 0 }; // click offset when moving
+            rect = null,           // {x, y, w, h}
+            moveOffset = { x: 0, y: 0 };
 
         function getScale() {
             const displayWidth = canvas.clientWidth;
@@ -208,31 +207,23 @@
             };
         }
 
-        // Check if point is inside existing rect
         function isInsideRect(pos) {
             return rect &&
                 pos.x >= rect.x && pos.x <= rect.x + rect.w &&
                 pos.y >= rect.y && pos.y <= rect.y + rect.h;
         }
 
-        // Cursor update
         function updateCursor(pos) {
-            if (isInsideRect(pos)) {
-                canvas.style.cursor = 'move';
-            } else {
-                canvas.style.cursor = 'crosshair';
-            }
+            canvas.style.cursor = isInsideRect(pos) ? 'move' : 'crosshair';
         }
 
-        // Mouse down
         function startDrag(e) {
             e.preventDefault();
             const pos = getPos(e);
 
             if (isInsideRect(pos)) {
-                // Start moving the rectangle
-                isMoving = true;
-                moving = true;
+                // Start moving
+                isMoving = true;                // ✅ only this flag, no 'moving'
                 moveOffset.x = pos.x - rect.x;
                 moveOffset.y = pos.y - rect.y;
                 dragging = false;
@@ -246,23 +237,20 @@
             }
         }
 
-        // Mouse move
         function moveDrag(e) {
             e.preventDefault();
             const pos = getPos(e);
 
             if (isMoving && rect) {
-                // Move rectangle
+                // Move rectangle – keeps it exactly under the cursor
                 let newX = pos.x - moveOffset.x;
                 let newY = pos.y - moveOffset.y;
-                // Clamp to keep the rectangle fully inside the canvas
                 newX = Math.max(0, Math.min(canvas.width - rect.w, newX));
                 newY = Math.max(0, Math.min(canvas.height - rect.h, newY));
                 rect.x = newX;
                 rect.y = newY;
                 redrawCanvas();
             } else if (dragging) {
-                // Draw new rectangle
                 const x = Math.min(startX, pos.x);
                 const y = Math.min(startY, pos.y);
                 const w = Math.abs(pos.x - startX);
@@ -270,34 +258,29 @@
                 rect = { x, y, w, h };
                 redrawCanvas();
             } else {
-                // Just hovering – update cursor
                 updateCursor(pos);
             }
         }
 
-        // Mouse up
         function endDrag(e) {
             if (isMoving) {
                 isMoving = false;
             }
             if (dragging) {
                 dragging = false;
-                if (rect && (rect.w < 10 || rect.h < 10)) rect = null; // discard tiny
+                if (rect && (rect.w < 10 || rect.h < 10)) rect = null;
             }
             redrawCanvas();
         }
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // 1. Full bright image
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
             if (rect && rect.w > 0 && rect.h > 0) {
-                // 2. Darken everywhere
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 3. Restore the selected rectangle bright
                 ctx.save();
                 ctx.beginPath();
                 ctx.rect(rect.x, rect.y, rect.w, rect.h);
@@ -305,14 +288,13 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 ctx.restore();
 
-                // 4. Green selection border
                 ctx.strokeStyle = '#2c6e2c';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
             }
         }
 
-        // Attach events (mouse + touch)
+        // Attach events
         canvas.addEventListener('mousedown', startDrag);
         canvas.addEventListener('mousemove', moveDrag);
         canvas.addEventListener('mouseup', endDrag);
@@ -320,7 +302,6 @@
         canvas.addEventListener('touchmove', moveDrag, { passive: false });
         canvas.addEventListener('touchend', endDrag);
 
-        // Clean up after modal close
         function cleanup() {
             canvas.removeEventListener('mousedown', startDrag);
             canvas.removeEventListener('mousemove', moveDrag);
@@ -340,7 +321,6 @@
                 return;
             }
 
-            // Map canvas coords to original image resolution
             const scaleOrigX = img.naturalWidth / canvas.width;
             const scaleOrigY = img.naturalHeight / canvas.height;
             const cropX = rect.x * scaleOrigX;
@@ -366,7 +346,6 @@
             }, file.type || 'image/jpeg', 0.92);
         };
 
-        // Close modal when clicking the dark background
         modal.addEventListener('click', (e) => {
             if (e.target === modal) cleanup();
         });
