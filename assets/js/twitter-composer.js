@@ -1,10 +1,10 @@
 // velutinx.github.io/assets/js/twitter-composer.js
-// Standalone Twitter composer logic (to be merged later)
+// Handles master mirroring + Twitter image/posting
 
 (function() {
     'use strict';
 
-    // ========== Toast notification ==========
+    // ---------- Toast ----------
     function showToast(message, type = 'success') {
         let container = document.getElementById('toast-container');
         if (!container) {
@@ -17,22 +17,20 @@
         toast.className = `toast-notification ${type}`;
         toast.textContent = message;
         container.appendChild(toast);
-        setTimeout(() => { toast.remove(); }, 3000);
+        setTimeout(() => toast.remove(), 3000);
     }
 
-    // ========== Character counter (Bluesky style) ==========
-    const CHARS_MAX = 280;
-
-    function updateCharCounter(textarea) {
+    // ---------- Character counters (280 for Twitter) ----------
+    const TWITTER_MAX = 280;
+    function updateTwitterCounter(textarea) {
         const counter = textarea._wc;
         if (!counter) return;
-        const remaining = CHARS_MAX - textarea.value.length;
-        counter.textContent = `Characters remaining: ${remaining}`;
+        const remaining = TWITTER_MAX - textarea.value.length;
+        counter.textContent = `Characters: ${remaining}`;
         counter.style.color = remaining >= 0 ? '#4caf50' : '#f44336';
         counter.style.fontWeight = remaining >= 0 ? 'normal' : 'bold';
     }
-
-    function installCharCounter(textarea) {
+    function installTwitterCounter(textarea) {
         if (!textarea) return;
         const parent = textarea.parentNode;
         let counter = parent.querySelector('.word-counter');
@@ -42,224 +40,170 @@
             parent.insertBefore(counter, textarea.nextSibling);
         }
         textarea._wc = counter;
-        textarea.addEventListener('input', () => updateCharCounter(textarea));
-        textarea.addEventListener('keyup', () => updateCharCounter(textarea));
-        updateCharCounter(textarea);
+        textarea.addEventListener('input', () => updateTwitterCounter(textarea));
+        updateTwitterCounter(textarea);
     }
 
-    // ========== Image store & thumbnail rendering ==========
-    window.accountImages = { 1: [], 2: [], 3: [] };
-    const sortableInstances = {};
+    // ---------- Master mirroring ----------
+    const master = document.getElementById('masterPost');
+    const allChildren = [
+        document.getElementById('post1'),
+        document.getElementById('post2'),
+        document.getElementById('twitter-post-1'),
+        document.getElementById('twitter-post-2'),
+        document.getElementById('twitter-post-3')
+    ].filter(Boolean);
 
-    function renderThumbnails(accId) {
-        const container = document.getElementById(`container-${accId}`);
+    if (master) {
+        master.addEventListener('input', () => {
+            allChildren.forEach(ta => { ta.value = master.value; });
+            // Update counters for Bluesky ones (they have their own limit, 300)
+            // but we just trigger the event; their listeners will handle it.
+            allChildren.forEach(ta => ta.dispatchEvent(new Event('input')));
+        });
+    }
+
+    // ---------- Twitter image storage ----------
+    window.twitterImages = { 1: [], 2: [], 3: [] };
+    const twitterSortables = {};
+
+    function renderTwitterThumbnails(accId) {
+        const container = document.getElementById(`tw-container-${accId}`);
         if (!container) return;
         container.style.display = 'flex';
         container.style.flexWrap = 'wrap';
         container.style.gap = '8px';
-
-        // Destroy previous Sortable instance
-        if (sortableInstances[accId]) {
-            sortableInstances[accId].destroy();
-            sortableInstances[accId] = null;
+        if (twitterSortables[accId]) {
+            twitterSortables[accId].destroy();
+            twitterSortables[accId] = null;
         }
-
-        const files = window.accountImages[accId] || [];
+        const files = window.twitterImages[accId] || [];
         container.innerHTML = '';
-
         files.forEach((file, idx) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const wrapper = document.createElement('div');
-                wrapper.className = 'cf-selected-item';   // same as Bluesky / Pack Manager
+                wrapper.className = 'cf-selected-item';
                 wrapper.dataset.index = idx;
-                wrapper.dataset.account = accId;
-
                 const thumb = document.createElement('img');
                 thumb.className = 'cf-selected-thumb';
                 thumb.src = e.target.result;
-                thumb.style.cursor = 'grab';
-
-                // Remove button
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'cf-remove-btn';
                 removeBtn.textContent = '✕';
                 removeBtn.onclick = (ev) => {
                     ev.stopPropagation();
-                    window.accountImages[accId].splice(idx, 1);
-                    renderThumbnails(accId);
-                    showToast('Image removed', 'info');
+                    window.twitterImages[accId].splice(idx, 1);
+                    renderTwitterThumbnails(accId);
                 };
-
                 wrapper.appendChild(thumb);
                 wrapper.appendChild(removeBtn);
                 container.appendChild(wrapper);
             };
             reader.readAsDataURL(file);
         });
-
-        // Re-initialise Sortable after images have been rendered
         setTimeout(() => {
-            sortableInstances[accId] = new Sortable(container, {
+            twitterSortables[accId] = new Sortable(container, {
                 animation: 150,
                 handle: '.cf-selected-thumb',
                 ghostClass: 'cf-sortable-ghost',
-                dragClass: 'cf-sortable-drag',
                 onEnd: function() {
                     const newOrder = [];
                     Array.from(container.children).forEach(child => {
                         const oldIdx = parseInt(child.dataset.index, 10);
-                        if (!isNaN(oldIdx) && window.accountImages[accId][oldIdx]) {
-                            newOrder.push(window.accountImages[accId][oldIdx]);
+                        if (!isNaN(oldIdx) && window.twitterImages[accId][oldIdx]) {
+                            newOrder.push(window.twitterImages[accId][oldIdx]);
                         }
                     });
-                    window.accountImages[accId] = newOrder;
-                    // Update dataset indices
-                    Array.from(container.children).forEach((child, i) => {
-                        child.dataset.index = i;
-                    });
-                    showToast('Order updated', 'info');
+                    window.twitterImages[accId] = newOrder;
+                    Array.from(container.children).forEach((child, i) => child.dataset.index = i);
                 }
             });
         }, 50);
     }
 
-    // ========== File input & dropzone ==========
-    function triggerInput(accId) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.accept = 'image/*';
-        input.onchange = (e) => {
-            const fileList = e.target.files;
-            if (fileList.length) {
-                const imgFiles = Array.from(fileList).filter(f => f.type.startsWith('image/'));
-                window.accountImages[accId].push(...imgFiles);
-                renderThumbnails(accId);
-                showToast(`+${imgFiles.length} image(s) added`, 'success');
-            }
-        };
-        input.click();
-    }
-
-    function setupDropzones() {
-        [1, 2, 3].forEach(accId => {
-            const dz = document.getElementById(`dz-${accId}`);
-            if (!dz) return;
-
-            // Click to select files
-            dz.addEventListener('click', () => triggerInput(accId));
-
-            // Drag & drop
-            dz.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dz.style.borderColor = '#6a8e3c';
+    // Dropzones for Twitter
+    function setupTwitterDropzones() {
+        for (let accId = 1; accId <= 3; accId++) {
+            const dz = document.getElementById(`tw-dz-${accId}`);
+            if (!dz) continue;
+            dz.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.multiple = true;
+                input.accept = 'image/*';
+                input.onchange = () => {
+                    if (input.files.length) {
+                        window.twitterImages[accId].push(...Array.from(input.files).filter(f => f.type.startsWith('image/')));
+                        renderTwitterThumbnails(accId);
+                        showToast(`+${input.files.length} image(s) added`, 'success');
+                    }
+                };
+                input.click();
             });
-            dz.addEventListener('dragleave', () => {
-                dz.style.borderColor = '#3a4050';
-            });
-            dz.addEventListener('drop', (e) => {
+            dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
+            dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
+            dz.addEventListener('drop', e => {
                 e.preventDefault();
                 dz.style.borderColor = '#3a4050';
                 const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
                 if (files.length) {
-                    window.accountImages[accId].push(...files);
-                    renderThumbnails(accId);
+                    window.twitterImages[accId].push(...files);
+                    renderTwitterThumbnails(accId);
                     showToast(`${files.length} dropped`, 'success');
                 }
             });
-        });
+        }
     }
 
-    // ========== Master-to-children mirroring ==========
-    function setupMirroring() {
-        const master = document.getElementById('masterPost');
-        const childTextareas = [
-            document.getElementById('post-1'),
-            document.getElementById('post-2'),
-            document.getElementById('post-3')
-        ];
-
-        master.addEventListener('input', () => {
-            childTextareas.forEach(ta => {
-                if (ta) {
-                    ta.value = master.value;
-                    updateCharCounter(ta);
-                }
-            });
-            updateCharCounter(master);
-        });
-
-        // Also update child counters when they are edited directly
-        childTextareas.forEach(ta => {
-            if (ta) {
-                ta.addEventListener('input', () => updateCharCounter(ta));
-            }
-        });
-    }
-
-    // ========== Post to Cloudflare Worker ==========
+    // Posting to Twitter
     async function sendToWorker(accId) {
-        const statusEl = document.getElementById(`status-${accId}`);
-        const textarea = document.getElementById(`post-${accId}`);
+        const statusEl = document.getElementById(`tw-status-${accId}`);
+        const textarea = document.getElementById(`twitter-post-${accId}`);
         if (!textarea) return;
         const text = textarea.value;
-        const images = window.accountImages[accId] || [];
-
+        const images = window.twitterImages[accId] || [];
         statusEl.textContent = '⏳ Posting...';
-        statusEl.style.color = '#aaa';
-
         const formData = new FormData();
         formData.append('accId', accId.toString());
         formData.append('text', text);
         images.forEach(img => formData.append('images', img));
-
         try {
             const res = await fetch('https://twitter-post.velutinx.workers.dev', {
                 method: 'POST',
                 body: formData
             });
             const data = await res.json();
-
             if (data.success && data.data && data.data.id) {
                 statusEl.textContent = '✅ Posted!';
                 statusEl.style.color = '#4CAF50';
-                showToast('Tweet posted successfully!', 'success');
-                // Optionally clear images after successful post
-                window.accountImages[accId] = [];
-                renderThumbnails(accId);
+                showToast('Tweet posted!', 'success');
+                window.twitterImages[accId] = [];
+                renderTwitterThumbnails(accId);
             } else {
-                statusEl.textContent = '❌ Error: ' + (data.error || data.detail || 'Unknown');
+                statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
                 statusEl.style.color = '#f44336';
-                console.error('Post error:', data);
+                console.error(data);
             }
         } catch (err) {
             statusEl.textContent = '❌ Connection Failed';
             statusEl.style.color = '#f44336';
         }
     }
+    window.sendToWorker = sendToWorker;   // for onclick
 
-    // Make sendToWorker globally accessible for the onclick attributes
-    window.sendToWorker = sendToWorker;
-    window.triggerInput = triggerInput;   // not needed if using dropzones, but keep for potential direct calls
-
-    // ========== Initialization ==========
+    // Init
     function init() {
-        // Install counters on all textareas
-        installCharCounter(document.getElementById('masterPost'));
-        installCharCounter(document.getElementById('post-1'));
-        installCharCounter(document.getElementById('post-2'));
-        installCharCounter(document.getElementById('post-3'));
-
-        setupMirroring();
-        setupDropzones();
-
-        // Initial render (maybe empty)
-        renderThumbnails(1);
-        renderThumbnails(2);
-        renderThumbnails(3);
+        // Install counters on Twitter textareas
+        for (let i = 1; i <= 3; i++) {
+            installTwitterCounter(document.getElementById(`twitter-post-${i}`));
+        }
+        // Also install counters on Bluesky ones (do nothing, they already have their own)
+        setupTwitterDropzones();
+        renderTwitterThumbnails(1);
+        renderTwitterThumbnails(2);
+        renderTwitterThumbnails(3);
     }
-
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
