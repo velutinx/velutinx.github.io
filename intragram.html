@@ -101,24 +101,20 @@
         const centerWmUrl = 'https://www.velutinx.com/images/instagram/Rotated%20Warermark.png';
         const cornerWmUrl = 'https://www.velutinx.com/images/instagram/Watermark%20Corner.png';
 
-        // Build the list of all possible canvas filenames (0–355 in steps of 5)
         const canvasAngles = [];
-        for (let angle = 0; angle <= 355; angle += 5) {
-            canvasAngles.push(angle);
-        }
+        for (let angle = 0; angle <= 355; angle += 5) canvasAngles.push(angle);
 
         const dropArea = document.getElementById('dropArea');
         const fileInput = document.getElementById('fileInput');
         const preview = document.getElementById('preview');
         const caption = document.getElementById('caption');
-        const processBtn = document.getElementById('processBtn');
         const postBtn = document.getElementById('postBtn');
         const statusDiv = document.getElementById('status');
 
         let selectedFile = null;
         let selectedBlob = null;
 
-        function showToast(msg, type = 'success') {
+        function showToast(msg, type) {
             const toast = document.createElement('div');
             toast.className = `toast-notification ${type}`;
             toast.textContent = msg;
@@ -136,9 +132,8 @@
             const url = URL.createObjectURL(selectedBlob);
             preview.src = url;
             preview.classList.add('active');
-            processBtn.disabled = false;
             postBtn.disabled = false;
-            statusDiv.textContent = 'Ready. Click “Process & Download” to generate the final image.';
+            statusDiv.textContent = 'Ready. Click “Post to Instagram” to create your post.';
         }
 
         dropArea.addEventListener('click', () => fileInput.click());
@@ -147,13 +142,9 @@
         dropArea.addEventListener('drop', e => {
             e.preventDefault();
             dropArea.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            handleFile(file);
+            handleFile(e.dataTransfer.files[0]);
         });
-        fileInput.addEventListener('change', e => {
-            const file = e.target.files[0];
-            handleFile(file);
-        });
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
 
         function loadImageWithProxy(url) {
             return new Promise((resolve, reject) => {
@@ -165,27 +156,22 @@
             });
         }
 
-        // Try to load a random canvas from the list (with retries)
         async function loadRandomCanvas(maxTries = 20) {
-            // Shuffle the angles so we don't always start from the same one
             const shuffled = [...canvasAngles].sort(() => Math.random() - 0.5);
             for (let i = 0; i < Math.min(maxTries, shuffled.length); i++) {
                 const angle = shuffled[i];
                 const url = canvasBase + angle + '.jpg';
                 try {
-                    const img = await loadImageWithProxy(url);
-                    return img;
+                    return await loadImageWithProxy(url);
                 } catch (e) {
                     console.warn(`Canvas ${angle}.jpg not found, trying another…`);
                 }
             }
-            // Fallback: solid black background
-            console.warn('No canvas available – using black background.');
+            console.warn('No canvas – using black background.');
             const canvas = document.createElement('canvas');
-            canvas.width = 2160;
-            canvas.height = 2688;
+            canvas.width = 2160; canvas.height = 2688;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#000000';
+            ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, 2160, 2688);
             const img = new Image();
             img.src = canvas.toDataURL('image/jpeg');
@@ -193,13 +179,19 @@
             return img;
         }
 
-        // ---------- PROCESS & DOWNLOAD ----------
-        processBtn.addEventListener('click', async () => {
+        postBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
-            statusDiv.textContent = '⏳ Compositing…';
-            processBtn.disabled = true;
+            const captionText = caption.value.trim();
+            if (!captionText) {
+                showToast('Please write a caption', 'error');
+                return;
+            }
+
+            statusDiv.textContent = '⏳ Compositing & posting…';
+            postBtn.disabled = true;
 
             try {
+                // Compose image (same as before)
                 const userImg = new Image();
                 userImg.src = URL.createObjectURL(selectedBlob);
                 await userImg.decode();
@@ -228,61 +220,36 @@
 
                 // 3) Center watermark (20% opacity)
                 ctx.globalAlpha = 0.2;
-                ctx.drawImage(centerWm,
-                    (2160 - centerWm.width) / 2,
-                    (2688 - centerWm.height) / 2);
+                ctx.drawImage(centerWm, (2160 - centerWm.width) / 2, (2688 - centerWm.height) / 2);
                 ctx.globalAlpha = 1.0;
 
                 // 4) Corner watermark (northeast +200+30)
-                ctx.drawImage(cornerWm,
-                    2160 - cornerWm.width - 200,
-                    30);
+                ctx.drawImage(cornerWm, 2160 - cornerWm.width - 200, 30);
 
-                out.toBlob(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = (selectedFile.name || 'processed').replace(/\.[^.]+$/, '') + '_instagram.jpg';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    statusDiv.textContent = '✅ Downloaded! Check your downloads.';
-                    showToast('Processed image downloaded', 'success');
-                    processBtn.disabled = false;
-                }, 'image/jpeg', 0.95);
+                // Convert final canvas to Blob
+                const finalBlob = await new Promise(resolve => out.toBlob(resolve, 'image/jpeg', 0.95));
 
-            } catch (err) {
-                statusDiv.textContent = '❌ ' + err.message;
-                showToast('Processing failed: ' + err.message, 'error');
-                processBtn.disabled = false;
-            }
-        });
-
-        // ---------- POST TO INSTAGRAM (placeholder) ----------
-        postBtn.addEventListener('click', async () => {
-            if (!selectedFile) return;
-            const captionText = caption.value.trim();
-            if (!captionText) {
-                showToast('Please write a caption', 'error');
-                return;
-            }
-            statusDiv.textContent = '⏳ Posting…';
-            postBtn.disabled = true;
-            try {
+                // Send to Worker
                 const fd = new FormData();
                 fd.append('caption', captionText);
-                fd.append('image', selectedBlob, selectedFile.name || 'post.jpg');
-                const resp = await fetch('https://instagram-post.velutinx.workers.dev', { method: 'POST', body: fd });
+                fd.append('image', finalBlob, 'instagram_post.jpg');
+
+                const resp = await fetch('https://instagram-post.velutinx.workers.dev', {
+                    method: 'POST',
+                    body: fd
+                });
                 const data = await resp.json();
+
                 if (data.success) {
                     statusDiv.textContent = '✅ Posted!';
-                    showToast('Instagram post succeeded!', 'success');
+                    showToast('Instagram post published!', 'success');
+                    // Reset
                     preview.src = ''; preview.classList.remove('active');
                     selectedFile = null; selectedBlob = null;
                     caption.value = '';
-                    processBtn.disabled = true;
                     postBtn.disabled = true;
                 } else {
-                    throw new Error(data.error || 'Unknown error');
+                    throw new Error(data.error || data.detail?.message || 'Unknown error');
                 }
             } catch (err) {
                 statusDiv.textContent = '❌ ' + err.message;
