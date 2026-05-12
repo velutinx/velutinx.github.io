@@ -5,34 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Twitter Composer – Velutinx</title>
     <link rel="stylesheet" href="/assets/css/format-private.css">
-    <style>
-        /* minor overrides for the Twitter composer */
-        .twitter-master-post {
-            margin-bottom: 20px;
-        }
-        .post-btn {
-            width: 100%;
-            margin-top: 12px;
-            padding: 10px 16px;
-            background: #1da1f2;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        .post-btn:hover {
-            background: #0f8ad6;
-        }
-        .status-msg {
-            margin-top: 8px;
-            font-size: 0.8rem;
-            text-align: center;
-            min-height: 18px;
-        }
-    </style>
+    <!-- SortableJS (required for drag‑to‑reorder thumbnails) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="/assets/js/twitter-composer.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -42,7 +17,7 @@
     <div class="twitter-master-post">
         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #ddd;">📝 Master Post (mirrors to all accounts)</label>
         <textarea id="masterPost" class="master-post" rows="4" placeholder="Write your tweet…"></textarea>
-        <div class="word-counter" id="master-counter" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
+        <!-- Counter is added by JS -->
     </div>
 
     <!-- Account Cards Grid -->
@@ -51,7 +26,6 @@
         <div class="account-card" data-account="1">
             <h3>@Velutinx2</h3>
             <textarea id="post-1" class="account-post" rows="4" placeholder="Edit for this account…"></textarea>
-            <div class="word-counter" id="counter-1" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
             <div class="dropzone" id="dz-1">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-1"></div>
             <button class="post-btn" onclick="sendToWorker(1)">🚀 Post</button>
@@ -62,7 +36,6 @@
         <div class="account-card" data-account="2">
             <h3>@TwitterAcct_2</h3>
             <textarea id="post-2" class="account-post" rows="4" placeholder="Edit for this account…"></textarea>
-            <div class="word-counter" id="counter-2" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
             <div class="dropzone" id="dz-2">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-2"></div>
             <button class="post-btn" onclick="sendToWorker(2)">🚀 Post</button>
@@ -73,7 +46,6 @@
         <div class="account-card" data-account="3">
             <h3>@TwitterAcct_3</h3>
             <textarea id="post-3" class="account-post" rows="4" placeholder="Edit for this account…"></textarea>
-            <div class="word-counter" id="counter-3" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
             <div class="dropzone" id="dz-3">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-3"></div>
             <button class="post-btn" onclick="sendToWorker(3)">🚀 Post</button>
@@ -81,215 +53,5 @@
         </div>
     </div>
 </div>
-
-<!-- Toast container -->
-<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
-
-<script>
-    // ---------- Toast notification (standalone copy) ----------
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast-notification ' + type;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    }
-
-    // ---------- Character counter (Bluesky style) ----------
-    const CHARS_MAX = 280;
-
-    function updateCharCounter(textarea, counterEl) {
-        const remaining = CHARS_MAX - textarea.value.length;
-        counterEl.textContent = `Characters remaining: ${remaining}`;
-        counterEl.style.color = remaining >= 0 ? '#4caf50' : '#f44336';
-        counterEl.style.fontWeight = remaining >= 0 ? 'normal' : 'bold';
-    }
-
-    function installCharCounter(textareaId, counterId) {
-        const ta = document.getElementById(textareaId);
-        const counter = document.getElementById(counterId);
-        if (!ta || !counter) return;
-        ta.addEventListener('input', () => updateCharCounter(ta, counter));
-        ta.addEventListener('keyup', () => updateCharCounter(ta, counter));
-        updateCharCounter(ta, counter);
-    }
-
-    // Install counters for all textareas
-    installCharCounter('masterPost', 'master-counter');
-    installCharCounter('post-1', 'counter-1');
-    installCharCounter('post-2', 'counter-2');
-    installCharCounter('post-3', 'counter-3');
-
-    // ---------- Master mirroring ----------
-    const master = document.getElementById('masterPost');
-    const childTextareas = [
-        document.getElementById('post-1'),
-        document.getElementById('post-2'),
-        document.getElementById('post-3')
-    ];
-    master.addEventListener('input', () => {
-        childTextareas.forEach(ta => {
-            ta.value = master.value;
-            // trigger counter update on children
-            updateCharCounter(ta, document.getElementById(`counter-${ta.id.split('-')[1]}`));
-        });
-        updateCharCounter(master, document.getElementById('master-counter'));
-    });
-
-    // ---------- Image storage and thumbnails ----------
-    window.accountImages = { 1: [], 2: [], 3: [] };
-    let dragSourceElement = null;
-
-    function triggerInput(accId) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.accept = 'image/*';
-        input.onchange = (e) => handleFiles(e.target.files, accId);
-        input.click();
-    }
-
-    function handleFiles(files, accId) {
-        const imgFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
-        window.accountImages[accId].push(...imgFiles);
-        renderThumbnails(accId);
-        showToast(`+${imgFiles.length} image(s) added`, 'success');
-    }
-
-    async function renderThumbnails(accId) {
-        const container = document.getElementById(`container-${accId}`);
-        container.innerHTML = '';
-        const files = window.accountImages[accId];
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const dataUrl = await new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(file);
-            });
-            const item = document.createElement('div');
-            item.className = 'thumbnail-item';
-            item.draggable = true;
-            item.dataset.index = i;
-            item.dataset.accId = accId;
-            item.addEventListener('dragstart', handleDragStart);
-            item.addEventListener('dragover', handleDragOver);
-            item.addEventListener('drop', handleDrop);
-            item.addEventListener('dragend', handleDragEnd);
-
-            const img = document.createElement('img');
-            img.src = dataUrl;
-            item.appendChild(img);
-
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-btn';
-            removeBtn.innerHTML = '✕';
-            removeBtn.onclick = (ev) => {
-                ev.stopPropagation();
-                const idx = window.accountImages[accId].indexOf(file);
-                if (idx > -1) {
-                    window.accountImages[accId].splice(idx, 1);
-                    renderThumbnails(accId);
-                    showToast('Image removed', 'info');
-                }
-            };
-            item.appendChild(removeBtn);
-            container.appendChild(item);
-        }
-    }
-
-    function handleDragStart(e) {
-        dragSourceElement = this;
-        this.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-    }
-    function handleDragOver(e) {
-        if (e.preventDefault) e.preventDefault();
-        return false;
-    }
-    function handleDrop(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        if (dragSourceElement !== this) {
-            const accId = this.dataset.accId;
-            const fromIdx = parseInt(dragSourceElement.dataset.index);
-            const toIdx = parseInt(this.dataset.index);
-            const files = window.accountImages[accId];
-            const movedItem = files.splice(fromIdx, 1)[0];
-            files.splice(toIdx, 0, movedItem);
-            renderThumbnails(accId);
-            showToast('Order updated', 'info');
-        }
-        return false;
-    }
-    function handleDragEnd() {
-        this.classList.remove('dragging');
-    }
-
-    // Dropzone events
-    [1, 2, 3].forEach(accId => {
-        const dz = document.getElementById(`dz-${accId}`);
-        if (!dz) return;
-        dz.addEventListener('click', () => triggerInput(accId));
-        dz.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dz.style.borderColor = '#6a8e3c';
-        });
-        dz.addEventListener('dragleave', () => {
-            dz.style.borderColor = '#3a4050';
-        });
-        dz.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dz.style.borderColor = '#3a4050';
-            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-            if (files.length) {
-                handleFiles(files, accId);
-            }
-        });
-    });
-
-    // ---------- Post to Worker ----------
-    async function sendToWorker(accId) {
-        const statusEl = document.getElementById(`status-${accId}`);
-        const textarea = document.getElementById(`post-${accId}`);
-        const text = textarea.value;
-        const images = window.accountImages[accId] || [];
-
-        statusEl.textContent = '⏳ Posting...';
-        statusEl.style.color = '#aaa';
-
-        const formData = new FormData();
-        formData.append('accId', accId.toString());
-        formData.append('text', text);
-        images.forEach(img => formData.append('images', img));
-
-        try {
-            const res = await fetch('https://twitter-post.velutinx.workers.dev', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-
-            if (data.success && data.data && data.data.id) {
-                statusEl.textContent = '✅ Posted!';
-                statusEl.style.color = '#4CAF50';
-                showToast('Tweet posted successfully!', 'success');
-                // optionally clear images
-                window.accountImages[accId] = [];
-                renderThumbnails(accId);
-            } else {
-                statusEl.textContent = '❌ Error: ' + (data.error || data.detail || 'Unknown');
-                statusEl.style.color = '#f44336';
-                console.error('Post error:', data);
-            }
-        } catch (err) {
-            statusEl.textContent = '❌ Connection Failed';
-            statusEl.style.color = '#f44336';
-        }
-    }
-</script>
 </body>
 </html>
