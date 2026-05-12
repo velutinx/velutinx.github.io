@@ -421,7 +421,7 @@
             if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
         }
     }
-
+window.postToBluesky = postToBluesky;
     // ---------- Initialize ----------
     function init() {
         if (!masterPost) {
