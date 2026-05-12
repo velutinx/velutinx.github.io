@@ -74,67 +74,66 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-<!-- Tweeter Tab (Bluesky + Twitter combined) -->
-<div id="bluesky" class="tab-content">
-    <div style="margin-bottom: 20px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (mirrors to all 5 accounts)</label>
-        <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
-    </div>
+    <!-- Tweeter Tab (Bluesky + Twitter combined) -->
+    <div id="bluesky" class="tab-content">
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (mirrors to all 5 accounts)</label>
+            <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
+            <button id="transformBtn" style="background: #2c6e2c; color: white; border: none; padding: 8px 16px; border-radius: 30px; margin-top: 8px; cursor: pointer;">📋 Copy to Both Accounts</button>
+        </div>
 
-<!-- Bluesky Composer Tab -->
-<div id="bluesky" class="tab-content">
-    <div style="margin-bottom: 20px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
-        <textarea id="masterPost" class="master-post" rows="5" placeholder="Paste your post content here... Text is copied 1:1 to both accounts"></textarea>
-        <button id="transformBtn" style="background: #2c6e2c; color: white; border: none; padding: 8px 16px; border-radius: 30px; margin-top: 8px; cursor: pointer;">📋 Copy to Both Accounts</button>
-    </div>
-    <div class="accounts-grid">
-        <!-- NSFW Account (left) -->
-        <div class="account-card" data-account="2">
-            <h3>🔥 NSFW Account</h3>
-            <textarea id="post2" class="account-post" rows="6" placeholder="NSFW post content (will be auto‑filled)"></textarea>
-            <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
-            <div class="thumbnail-container" data-account="2"></div>
+        <!-- Bluesky Accounts -->
+        <h3 style="margin-top:0; color:#ddd;">🦋 Bluesky</h3>
+        <div class="accounts-grid">
+            <!-- NSFW Account (left) -->
+            <div class="account-card" data-account="2">
+                <h3>🔥 NSFW Account</h3>
+                <textarea id="post2" class="account-post" rows="4" placeholder="NSFW post"></textarea>
+                <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
+                <div class="thumbnail-container" data-account="2"></div>
+                <button class="post-btn" style="background:#2c6e2c; margin-top:12px; width:100%;" onclick="postToBluesky(2)">🚀 Post to Bluesky</button>
+                <div id="post-status-2" class="status-msg"></div>
+            </div>
+            <!-- SFW Account (right) -->
+            <div class="account-card" data-account="1">
+                <h3>🌸 SFW Account</h3>
+                <textarea id="post1" class="account-post" rows="4" placeholder="SFW post"></textarea>
+                <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
+                <div class="thumbnail-container" data-account="1"></div>
+                <button class="post-btn" style="background:#2c6e2c; margin-top:12px; width:100%;" onclick="postToBluesky(1)">🚀 Post to Bluesky</button>
+                <div id="post-status-1" class="status-msg"></div>
+            </div>
         </div>
-        <!-- SFW Account (right) -->
-        <div class="account-card" data-account="1">
-            <h3>🌸 SFW Account</h3>
-            <textarea id="post1" class="account-post" rows="6" placeholder="SFW post content (will be auto‑filled)"></textarea>
-            <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
-            <div class="thumbnail-container" data-account="1"></div>
-        </div>
-    </div>
-    <div class="footer">🖼️ Images are stored locally. Click "Copy to Both Accounts" before posting.</div>
 
-    <!-- Twitter Accounts -->
-    <h3 style="margin-top:30px; color:#ddd;">🐦 Twitter</h3>
-    <div class="accounts-grid" style="margin-top:12px;">
-        <div class="account-card" data-twitter-account="1">
-            <h3>@Velutinx2</h3>
-            <textarea id="twitter-post-1" class="account-post" rows="4" placeholder="Twitter post"></textarea>
-            <div class="dropzone" id="tw-dz-1">📸 Drop images or Click</div>
-            <div class="thumbnail-container" id="tw-container-1"></div>
-            <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(1)">🚀 Tweet</button>
-            <div id="tw-status-1" class="status-msg"></div>
-        </div>
-        <div class="account-card" data-twitter-account="2">
-            <h3>NSFW Twitter</h3>
-            <textarea id="twitter-post-2" class="account-post" rows="4" placeholder="Twitter post"></textarea>
-            <div class="dropzone" id="tw-dz-2">📸 Drop images or Click</div>
-            <div class="thumbnail-container" id="tw-container-2"></div>
-            <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(2)">🚀 Tweet</button>
-            <div id="tw-status-2" class="status-msg"></div>
-        </div>
-        <div class="account-card" data-twitter-account="3">
-            <h3>SFW Twitter</h3>
-            <textarea id="twitter-post-3" class="account-post" rows="4" placeholder="Twitter post"></textarea>
-            <div class="dropzone" id="tw-dz-3">📸 Drop images or Click</div>
-            <div class="thumbnail-container" id="tw-container-3"></div>
-            <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(3)">🚀 Tweet</button>
-            <div id="tw-status-3" class="status-msg"></div>
+        <!-- Twitter Accounts -->
+        <h3 style="margin-top:30px; color:#ddd;">🐦 Twitter</h3>
+        <div class="accounts-grid" style="margin-top:12px;">
+            <div class="account-card" data-twitter-account="1">
+                <h3>@Velutinx2</h3>
+                <textarea id="twitter-post-1" class="account-post" rows="4" placeholder="Twitter post"></textarea>
+                <div class="dropzone" id="tw-dz-1">📸 Drop images or Click</div>
+                <div class="thumbnail-container" id="tw-container-1"></div>
+                <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(1)">🚀 Tweet</button>
+                <div id="tw-status-1" class="status-msg"></div>
+            </div>
+            <div class="account-card" data-twitter-account="2">
+                <h3>NSFW Twitter</h3>
+                <textarea id="twitter-post-2" class="account-post" rows="4" placeholder="Twitter post"></textarea>
+                <div class="dropzone" id="tw-dz-2">📸 Drop images or Click</div>
+                <div class="thumbnail-container" id="tw-container-2"></div>
+                <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(2)">🚀 Tweet</button>
+                <div id="tw-status-2" class="status-msg"></div>
+            </div>
+            <div class="account-card" data-twitter-account="3">
+                <h3>SFW Twitter</h3>
+                <textarea id="twitter-post-3" class="account-post" rows="4" placeholder="Twitter post"></textarea>
+                <div class="dropzone" id="tw-dz-3">📸 Drop images or Click</div>
+                <div class="thumbnail-container" id="tw-container-3"></div>
+                <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(3)">🚀 Tweet</button>
+                <div id="tw-status-3" class="status-msg"></div>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- CROP MODAL -->
     <div id="cropModal" class="crop-modal" style="display:none;">
