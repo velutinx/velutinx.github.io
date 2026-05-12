@@ -79,10 +79,11 @@
     <div class="drop-area" id="dropArea">
         <input type="file" id="fileInput" accept="image/*" style="display:none;">
         <div>🖼️ Drop an image here or click to select</div>
-        <div class="aspect-hint">Image will be cropped to 4:5 (portrait)</div>
+        <div class="aspect-hint">Background + watermarks will be applied automatically</div>
     </div>
 
-    <img id="preview" class="preview-img" alt="Cropped preview" />
+    <!-- Preview of the ORIGINAL selected image (just for feedback) -->
+    <img id="preview" class="preview-img" alt="Original preview" />
 
     <textarea class="caption-input" id="caption" placeholder="Write your caption and hashtags…"></textarea>
 
@@ -108,8 +109,8 @@
         const postBtn = document.getElementById('postBtn');
         const statusDiv = document.getElementById('status');
 
-        let selectedFile = null;
-        let croppedBlob = null;
+        let selectedFile = null;       // original file
+        let selectedBlob = null;       // just for preview (original)
 
         function showToast(msg, type = 'success') {
             const toast = document.createElement('div');
@@ -119,56 +120,23 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // Crop to 4:5 (cover crop)
-        function cropToPortrait(file) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-                img.onload = () => {
-                    const targetRatio = 4 / 5;
-                    const imgRatio = img.width / img.height;
-                    let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
-                    if (imgRatio > targetRatio) {
-                        srcW = img.height * targetRatio;
-                        srcX = (img.width - srcW) / 2;
-                    } else {
-                        srcH = img.width / targetRatio;
-                        srcY = (img.height - srcH) / 2;
-                    }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = srcW;
-                    canvas.height = srcH;
-                    canvas.getContext('2d').drawImage(img, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-                    canvas.toBlob(blob => {
-                        if (blob) resolve(blob);
-                        else reject(new Error('toBlob failed'));
-                    }, file.type || 'image/jpeg', 0.9);
-                };
-                img.onerror = () => reject(new Error('Image load error'));
-            });
-        }
-
-        async function processFile(file) {
-            if (!file.type.startsWith('image/')) {
+        // When a file is selected – no cropping, just store original
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
                 showToast('Please select an image file', 'error');
                 return;
             }
             selectedFile = file;
-            statusDiv.textContent = 'Cropping to 4:5…';
-            try {
-                croppedBlob = await cropToPortrait(file);
-                const previewUrl = URL.createObjectURL(croppedBlob);
-                preview.src = previewUrl;
-                preview.classList.add('active');
-                processBtn.disabled = false;
-                postBtn.disabled = false;
-                statusDiv.textContent = 'Ready.';
-            } catch (err) {
-                showToast('Failed to process image', 'error');
-                console.error(err);
-            }
+            selectedBlob = file.slice(0, file.size, file.type); // copy
+            const url = URL.createObjectURL(selectedBlob);
+            preview.src = url;
+            preview.classList.add('active');
+            processBtn.disabled = false;
+            postBtn.disabled = false;
+            statusDiv.textContent = 'Ready. Click “Process & Download” to generate the final image.';
         }
 
+        // Drop / click handlers
         dropArea.addEventListener('click', () => fileInput.click());
         dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
         dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
@@ -176,79 +144,97 @@
             e.preventDefault();
             dropArea.classList.remove('drag-over');
             const file = e.dataTransfer.files[0];
-            if (file) processFile(file);
+            handleFile(file);
         });
         fileInput.addEventListener('change', e => {
-            if (e.target.files[0]) processFile(e.target.files[0]);
+            const file = e.target.files[0];
+            handleFile(file);
         });
 
-        // Load image via proxy (CORS-safe)
+        // Load image via proxy (CORS-friendly)
         function loadImageWithProxy(url) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
                 img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error('Image load error'));
+                img.onerror = () => reject(new Error(`Failed to load ${url}`));
                 img.src = proxyBase + encodeURIComponent(url);
             });
         }
 
-        // Try to load a canvas image; if 404, try another random index up to maxTries
-        async function loadRandomCanvas(maxTries = 10) {
+        // Try to load a random canvas (1..72) with retries
+        async function loadRandomCanvas(maxTries = 15) {
             for (let attempt = 0; attempt < maxTries; attempt++) {
-                const idx = Math.floor(Math.random() * 72);
+                const idx = Math.floor(Math.random() * 72) + 1;   // 1‑72
                 const url = canvasBase + idx + '.jpg';
                 try {
                     const img = await loadImageWithProxy(url);
                     return img;
                 } catch (e) {
-                    console.warn(`Canvas ${idx} missing or failed, retrying…`);
+                    console.warn(`Canvas ${idx} not found, trying another…`);
                 }
             }
-            throw new Error('Could not load any canvas after ' + maxTries + ' attempts');
+            // Fallback: solid black background
+            console.warn('No canvas available – using black background.');
+            const canvas = document.createElement('canvas');
+            canvas.width = 2160;
+            canvas.height = 2688;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, 2160, 2688);
+            const img = new Image();
+            img.src = canvas.toDataURL('image/jpeg');
+            await new Promise(r => img.onload = r);
+            return img;
         }
 
         // ---------- PROCESS & DOWNLOAD ----------
         processBtn.addEventListener('click', async () => {
-            if (!croppedBlob) return;
+            if (!selectedFile) return;
             statusDiv.textContent = '⏳ Compositing…';
             processBtn.disabled = true;
 
             try {
-                // Load uploaded image (the 4:5 cropped version)
+                // Load the original image (user upload)
                 const userImg = new Image();
-                userImg.src = URL.createObjectURL(croppedBlob);
+                userImg.src = URL.createObjectURL(selectedBlob);
                 await userImg.decode();
 
-                // Load canvas (random, with retry) and watermarks
+                // Load canvas + watermarks
                 const [canvasImg, centerWm, cornerWm] = await Promise.all([
                     loadRandomCanvas(),
                     loadImageWithProxy(centerWmUrl),
                     loadImageWithProxy(cornerWmUrl),
                 ]);
 
-                // Final output
+                // Final output canvas
                 const out = document.createElement('canvas');
                 out.width = 2160;
                 out.height = 2688;
                 const ctx = out.getContext('2d');
 
-                // 1) Background canvas
+                // 1) Draw background canvas
                 ctx.drawImage(canvasImg, 0, 0, 2160, 2688);
 
-                // 2) User image (cover)
-                const scale = Math.max(2160 / userImg.width, 2688 / userImg.height);
-                const drawW = userImg.width * scale;
-                const drawH = userImg.height * scale;
-                ctx.drawImage(userImg, (2160 - drawW)/2, (2688 - drawH)/2, drawW, drawH);
+                // 2) Draw uploaded image, FIT within 2160x2688, CENTERED
+                const fitScale = Math.min(2160 / userImg.width, 2688 / userImg.height);
+                const drawW = userImg.width * fitScale;
+                const drawH = userImg.height * fitScale;
+                const dx = (2160 - drawW) / 2;
+                const dy = (2688 - drawH) / 2;
+                ctx.drawImage(userImg, dx, dy, drawW, drawH);
 
-                // 3) Centre watermark 20%
+                // 3) Centre watermark (20% opacity)
                 ctx.globalAlpha = 0.2;
-                ctx.drawImage(centerWm, (2160 - centerWm.width)/2, (2688 - centerWm.height)/2);
-                ctx.globalAlpha = 1;
+                ctx.drawImage(centerWm,
+                    (2160 - centerWm.width) / 2,
+                    (2688 - centerWm.height) / 2);
+                ctx.globalAlpha = 1.0;
 
-                // 4) Corner watermark
-                ctx.drawImage(cornerWm, 2160 - cornerWm.width - 200, 30);
+                // 4) Corner watermark (northeast +200+30)
+                ctx.drawImage(cornerWm,
+                    2160 - cornerWm.width - 200,
+                    30);
 
                 // Download
                 out.toBlob(blob => {
@@ -258,10 +244,11 @@
                     a.download = (selectedFile.name || 'processed').replace(/\.[^.]+$/, '') + '_instagram.jpg';
                     a.click();
                     URL.revokeObjectURL(url);
-                    statusDiv.textContent = '✅ Downloaded!';
+                    statusDiv.textContent = '✅ Downloaded! Check your downloads.';
                     showToast('Processed image downloaded', 'success');
                     processBtn.disabled = false;
                 }, 'image/jpeg', 0.95);
+
             } catch (err) {
                 statusDiv.textContent = '❌ ' + err.message;
                 showToast('Processing failed: ' + err.message, 'error');
@@ -271,7 +258,7 @@
 
         // ---------- POST TO INSTAGRAM (placeholder) ----------
         postBtn.addEventListener('click', async () => {
-            if (!croppedBlob) return;
+            if (!selectedFile) return;
             const captionText = caption.value.trim();
             if (!captionText) {
                 showToast('Please write a caption', 'error');
@@ -282,14 +269,15 @@
             try {
                 const fd = new FormData();
                 fd.append('caption', captionText);
-                fd.append('image', croppedBlob, selectedFile.name || 'post.jpg');
+                fd.append('image', selectedBlob, selectedFile.name || 'post.jpg');
                 const resp = await fetch('https://instagram-post.velutinx.workers.dev', { method: 'POST', body: fd });
                 const data = await resp.json();
                 if (data.success) {
                     statusDiv.textContent = '✅ Posted!';
                     showToast('Instagram post succeeded!', 'success');
+                    // Reset
                     preview.src = ''; preview.classList.remove('active');
-                    selectedFile = null; croppedBlob = null;
+                    selectedFile = null; selectedBlob = null;
                     caption.value = '';
                     processBtn.disabled = true;
                     postBtn.disabled = true;
