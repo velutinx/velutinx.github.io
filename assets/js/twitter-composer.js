@@ -177,7 +177,7 @@
 if (data.success && data.data?.data?.id) {
     statusEl.textContent = '✅ Posted!';
     statusEl.style.color = '#4CAF50';
-    showToast('Tweet posted!', 'success');
+    showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
     window.twitterImages[accId] = [];
     renderTwitterThumbnails(accId);
 } else {
