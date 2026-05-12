@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Post – Velutinx</title>
+    <title>Instagram Poster – Velutinx</title>
     <link rel="stylesheet" href="/assets/css/format-private.css">
     <style>
-        .insta-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
+        .insta-container { max-width: 600px; margin: 0 auto; }
         .drop-area {
             border: 2px dashed #3a4050;
             border-radius: 12px;
@@ -20,23 +17,19 @@
             margin-bottom: 20px;
             transition: border-color 0.2s;
         }
-        .drop-area:hover, .drop-area.drag-over {
-            border-color: #5a6e3c;
-        }
+        .drop-area:hover, .drop-area.drag-over { border-color: #5a6e3c; }
         .preview-img {
             width: 100%;
             max-width: 400px;
-            aspect-ratio: 4 / 5;
+            aspect-ratio: 4/5;
             object-fit: contain;
             background: #03060b;
             border-radius: 8px;
-            margin: 0 auto 12px auto;
+            margin: 0 auto 12px;
             display: none;
             border: 1px solid #2a2f38;
         }
-        .preview-img.active {
-            display: block;
-        }
+        .preview-img.active { display: block; }
         .caption-input {
             width: 100%;
             min-height: 80px;
@@ -45,16 +38,11 @@
             border-radius: 10px;
             color: #eee;
             padding: 10px;
-            font-family: inherit;
             font-size: 14px;
             resize: vertical;
             margin-bottom: 16px;
         }
-        .button-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+        .button-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .process-btn {
             flex: 1;
             padding: 12px;
@@ -67,9 +55,7 @@
             font-size: 14px;
             transition: background 0.2s;
         }
-        .process-btn:hover {
-            background: #4a5060;
-        }
+        .process-btn:hover { background: #4a5060; }
         .post-btn {
             flex: 1;
             padding: 12px;
@@ -82,15 +68,8 @@
             font-size: 14px;
             transition: background 0.2s;
         }
-        .post-btn:hover {
-            background: #b82265;
-        }
-        .status-msg {
-            margin-top: 10px;
-            font-size: 13px;
-            text-align: center;
-            min-height: 20px;
-        }
+        .post-btn:hover { background: #b82265; }
+        .status-msg { margin-top: 10px; font-size: 13px; text-align: center; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -103,7 +82,7 @@
         <div class="aspect-hint">Image will be cropped to 4:5 (portrait)</div>
     </div>
 
-    <img id="preview" class="preview-img" alt="Preview" />
+    <img id="preview" class="preview-img" alt="Cropped preview" />
 
     <textarea class="caption-input" id="caption" placeholder="Write your caption and hashtags…"></textarea>
 
@@ -125,7 +104,8 @@
         const statusDiv = document.getElementById('status');
 
         let selectedFile = null;
-        let croppedBlob = null;
+        let croppedBlob = null;          // 4:5 cropped image blob
+        let uploadedImage = null;        // Image object of uploaded file (for compositing)
 
         function showToast(msg, type = 'success') {
             const toast = document.createElement('div');
@@ -135,7 +115,7 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // Crop image to 4:5 aspect ratio (cover crop)
+        // Crop image to 4:5 (cover crop) using a canvas
         function cropToPortrait(file) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -143,23 +123,23 @@
                 img.onload = () => {
                     const targetRatio = 4 / 5;
                     const imgRatio = img.width / img.height;
-                    let cropWidth, cropHeight, offsetX = 0, offsetY = 0;
+                    let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
 
                     if (imgRatio > targetRatio) {
-                        cropHeight = img.height;
-                        cropWidth = cropHeight * targetRatio;
-                        offsetX = (img.width - cropWidth) / 2;
+                        // wider than 4:5 → crop width
+                        srcW = img.height * targetRatio;
+                        srcX = (img.width - srcW) / 2;
                     } else {
-                        cropWidth = img.width;
-                        cropHeight = cropWidth / targetRatio;
-                        offsetY = (img.height - cropHeight) / 2;
+                        // taller than 4:5 → crop height
+                        srcH = img.width / targetRatio;
+                        srcY = (img.height - srcH) / 2;
                     }
 
                     const canvas = document.createElement('canvas');
-                    canvas.width = cropWidth;
-                    canvas.height = cropHeight;
+                    canvas.width = srcW;
+                    canvas.height = srcH;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, offsetX, offsetY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
 
                     canvas.toBlob(blob => {
                         if (blob) resolve(blob);
@@ -170,6 +150,7 @@
             });
         }
 
+        // When a file is selected/dropped
         async function processFile(file) {
             if (!file.type.startsWith('image/')) {
                 showToast('Please select an image file', 'error');
@@ -177,6 +158,7 @@
             }
             selectedFile = file;
             statusDiv.textContent = 'Cropping to 4:5…';
+
             try {
                 croppedBlob = await cropToPortrait(file);
                 const previewUrl = URL.createObjectURL(croppedBlob);
@@ -184,75 +166,141 @@
                 preview.classList.add('active');
                 processBtn.disabled = false;
                 postBtn.disabled = false;
-                statusDiv.textContent = 'Ready.';
+                statusDiv.textContent = 'Ready. You can now process & download or post.';
             } catch (err) {
                 showToast('Failed to process image', 'error');
                 console.error(err);
             }
         }
 
+        // Drag & drop + file input events
         dropArea.addEventListener('click', () => fileInput.click());
-        dropArea.addEventListener('dragover', (e) => {
+        dropArea.addEventListener('dragover', e => {
             e.preventDefault();
             dropArea.classList.add('drag-over');
         });
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('drag-over');
-        });
-        dropArea.addEventListener('drop', (e) => {
+        dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
+        dropArea.addEventListener('drop', e => {
             e.preventDefault();
             dropArea.classList.remove('drag-over');
             const file = e.dataTransfer.files[0];
             if (file) processFile(file);
         });
-        fileInput.addEventListener('change', (e) => {
+        fileInput.addEventListener('change', e => {
             const file = e.target.files[0];
             if (file) processFile(file);
         });
 
-        // ========== PROCESS & DOWNLOAD ==========
+        // ------------------------------------------------------------
+        //  PROCESS & DOWNLOAD – does the full compositing (canvas + watermarks)
+        // ------------------------------------------------------------
         processBtn.addEventListener('click', async () => {
-            if (!croppedBlob || !selectedFile) return;
+            if (!croppedBlob) return;
 
-            statusDiv.textContent = '⏳ Processing on server...';
+            statusDiv.textContent = '⏳ Compositing...';
             processBtn.disabled = true;
 
             try {
-                const formData = new FormData();
-                formData.append('image', croppedBlob, selectedFile.name || 'post.jpg');
+                // 1. Load the uploaded image (the 4:5 cropped version)
+                const userImg = new Image();
+                userImg.src = URL.createObjectURL(croppedBlob);
+                await userImg.decode();
 
-                const response = await fetch('https://instagram-post.velutinx.workers.dev', {
-                    method: 'POST',
-                    body: formData
-                });
+                // 2. Pick a random canvas (0‑71.jpg)
+                const canvasIdx = Math.floor(Math.random() * 72);
+                const canvasUrl = `https://www.velutinx.com/images/instagram/PreRotatedCanvases/${canvasIdx}.jpg`;
 
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error || 'Server error');
-                }
+                // 3. Load watermarks
+                const centerWmUrl = 'https://www.velutinx.com/images/instagram/Rotated%20Warermark.png';
+                const cornerWmUrl = 'https://www.velutinx.com/images/instagram/Watermark%20Corner.png';
 
-                // Download the processed image
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = (selectedFile.name || 'processed').replace(/\.[^.]+$/, '') + '_instagram.jpg';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                const [canvasImg, centerWm, cornerWm] = await Promise.all([
+                    loadImage(canvasUrl),
+                    loadImage(centerWmUrl),
+                    loadImage(cornerWmUrl),
+                ]);
 
-                statusDiv.textContent = '✅ Downloaded! Check your downloads folder.';
-                showToast('Processed image downloaded', 'success');
+                // 4. Final output canvas (2160x2688)
+                const outCanvas = document.createElement('canvas');
+                outCanvas.width = 2160;
+                outCanvas.height = 2688;
+                const ctx = outCanvas.getContext('2d');
+
+                // Layer 1: background canvas (already 2160x2688)
+                ctx.drawImage(canvasImg, 0, 0, 2160, 2688);
+
+                // Layer 2: uploaded image (cover to 2160x2688, centred)
+                const userW = userImg.width;
+                const userH = userImg.height;
+                const scale = Math.max(2160 / userW, 2688 / userH);
+                const drawW = userW * scale;
+                const drawH = userH * scale;
+                const dx = (2160 - drawW) / 2;
+                const dy = (2688 - drawH) / 2;
+                ctx.drawImage(userImg, dx, dy, drawW, drawH);
+
+                // Layer 3: centre watermark (20% opacity)
+                ctx.globalAlpha = 0.2;
+                const centerWmX = (2160 - centerWm.width) / 2;
+                const centerWmY = (2688 - centerWm.height) / 2;
+                ctx.drawImage(centerWm, centerWmX, centerWmY);
+                ctx.globalAlpha = 1.0;
+
+                // Layer 4: corner watermark (northeast +200 from right, +30 from top)
+                const cornerWmX = 2160 - cornerWm.width - 200;
+                const cornerWmY = 30;
+                ctx.drawImage(cornerWm, cornerWmX, cornerWmY);
+
+                // 5. Convert to Blob and download
+                outCanvas.toBlob(async (finalBlob) => {
+                    if (!finalBlob) {
+                        showToast('Failed to generate image', 'error');
+                        processBtn.disabled = false;
+                        statusDiv.textContent = 'Error';
+                        return;
+                    }
+
+                    // Download
+                    const url = URL.createObjectURL(finalBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = (selectedFile.name || 'processed').replace(/\.[^.]+$/, '') + '_instagram.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    // Clean up created URLs
+                    URL.revokeObjectURL(canvasImg.src);
+                    URL.revokeObjectURL(centerWm.src);
+                    URL.revokeObjectURL(cornerWm.src);
+
+                    statusDiv.textContent = '✅ Downloaded! Check your downloads folder.';
+                    showToast('Processed image downloaded', 'success');
+                    processBtn.disabled = false;
+                }, 'image/jpeg', 0.95);
+
             } catch (err) {
                 statusDiv.textContent = '❌ ' + err.message;
                 showToast('Processing failed: ' + err.message, 'error');
-            } finally {
                 processBtn.disabled = false;
             }
         });
 
-        // ========== POST TO INSTAGRAM (unchanged for now) ==========
+        // Helper to load an image from a URL (with CORS)
+        function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';  // important for cross‑origin URLs
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Failed to load ' + src));
+                img.src = src;
+            });
+        }
+
+        // ------------------------------------------------------------
+        //  POST TO INSTAGRAM – placeholder (sends cropped image + caption)
+        // ------------------------------------------------------------
         postBtn.addEventListener('click', async () => {
             if (!croppedBlob || !selectedFile) return;
 
@@ -268,6 +316,7 @@
             try {
                 const formData = new FormData();
                 formData.append('caption', captionText);
+                // For now we send the raw 4:5 cropped image; later you can send the composited one.
                 formData.append('image', croppedBlob, selectedFile.name || 'post.jpg');
 
                 const response = await fetch('https://instagram-post.velutinx.workers.dev', {
@@ -279,6 +328,7 @@
                 if (response.ok && data.success) {
                     statusDiv.textContent = '✅ Posted!';
                     showToast('Instagram post succeeded!', 'success');
+                    // Reset form
                     preview.classList.remove('active');
                     preview.src = '';
                     selectedFile = null;
