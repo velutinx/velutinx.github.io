@@ -24,17 +24,7 @@
     const masterPost = document.getElementById('masterPost');
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
-    const transformBtn = document.getElementById('transformBtn');
-
-    // ---------- Simple 1:1 copy (no transformation) ----------
-    function copyMasterText() {
-        if (!masterPost || !post1 || !post2) return;
-        const text = masterPost.value;
-        post1.value = text;
-        post2.value = text;
-        updateCharCounter(post1);
-        updateCharCounter(post2);
-    }
+    // transformBtn is absent from the HTML now
 
     // ---------- Render Thumbnails ----------
     function renderThumbnails(accountId) {
@@ -120,7 +110,7 @@
         }, 50);
     }
 
-    // ---------- CROP MODAL (your existing code, unchanged) ----------
+    // ---------- CROP MODAL (unchanged) ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -487,17 +477,12 @@
             updateCharCounter(textarea);
         }
 
-        installCharCounter(masterPost);
+        // Install counters ONLY on the two Bluesky post textareas (not master)
         installCharCounter(post1);
         installCharCounter(post2);
 
-        masterPost.addEventListener('input', copyMasterText);
-        if (transformBtn) {
-            transformBtn.addEventListener('click', copyMasterText);
-            transformBtn.textContent = '📋 Copy to Both Accounts';
-        }
-
-        copyMasterText();
+        // Master mirroring to these textareas is handled by twitter-composer.js,
+        // so we do NOT attach a local 'input' listener here.
 
         setupDropzones();
         renderThumbnails(1);
