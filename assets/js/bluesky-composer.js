@@ -26,51 +26,12 @@
     const post2 = document.getElementById('post2');
     const transformBtn = document.getElementById('transformBtn');
 
-    // ---------- Transform Master Post ----------
-    function transformMaster() {
+    // ---------- Simple 1:1 copy (no transformation) ----------
+    function copyMasterText() {
         if (!masterPost || !post1 || !post2) return;
-
-        const content = masterPost.value;
-        if (!content.trim()) {
-            post1.value = '';
-            post2.value = '';
-            updateCharCounter(post1);
-            updateCharCounter(post2);
-            return;
-        }
-
-        let lines = content.split(/\r?\n/);
-        lines = lines.filter(line => {
-            const lower = line.toLowerCase();
-            return !lower.includes('免責事項') && !lower.includes('disclaimer:');
-        });
-        while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
-
-        if (lines.length === 0) {
-            post1.value = '';
-            post2.value = '';
-            updateCharCounter(post1);
-            updateCharCounter(post2);
-            return;
-        }
-
-        let lastLine = lines.pop() || '';
-        let finalText = lines.join('\n');
-        if (finalText && !finalText.endsWith('\n')) finalText += '\n';
-
-        let hashtags = '';
-        if (lastLine.includes('#')) {
-            hashtags = lastLine.trim();
-        } else {
-            const words = lastLine.trim().split(/\s+/);
-            hashtags = words.map(word => `#${word}`).join(' ');
-        }
-
-        finalText += hashtags;
-
-        console.log('🔍 Final text sent to Bluesky:\n', finalText);
-        post1.value = finalText;
-        post2.value = finalText;
+        const text = masterPost.value;
+        post1.value = text;
+        post2.value = text;
         updateCharCounter(post1);
         updateCharCounter(post2);
     }
@@ -179,10 +140,10 @@
         };
 
         // ---------- State ----------
-        let dragging = false,        // drawing a new rectangle
-            isMoving = false,       // moving existing rectangle
+        let dragging = false,
+            isMoving = false,
             startX, startY,
-            rect = null,           // {x, y, w, h}
+            rect = null,
             moveOffset = { x: 0, y: 0 };
 
         function getScale() {
@@ -222,13 +183,11 @@
             const pos = getPos(e);
 
             if (isInsideRect(pos)) {
-                // Start moving
-                isMoving = true;                // ✅ only this flag, no 'moving'
+                isMoving = true;
                 moveOffset.x = pos.x - rect.x;
                 moveOffset.y = pos.y - rect.y;
                 dragging = false;
             } else {
-                // Start new selection
                 isMoving = false;
                 startX = pos.x;
                 startY = pos.y;
@@ -242,7 +201,6 @@
             const pos = getPos(e);
 
             if (isMoving && rect) {
-                // Move rectangle – keeps it exactly under the cursor
                 let newX = pos.x - moveOffset.x;
                 let newY = pos.y - moveOffset.y;
                 newX = Math.max(0, Math.min(canvas.width - rect.w, newX));
@@ -263,9 +221,7 @@
         }
 
         function endDrag(e) {
-            if (isMoving) {
-                isMoving = false;
-            }
+            if (isMoving) isMoving = false;
             if (dragging) {
                 dragging = false;
                 if (rect && (rect.w < 10 || rect.h < 10)) rect = null;
@@ -486,9 +442,16 @@
         installCharCounter(post1);
         installCharCounter(post2);
 
-        masterPost.addEventListener('input', transformMaster);
-        if (transformBtn) transformBtn.addEventListener('click', transformMaster);
-        transformMaster();
+        // Replace old transformation with simple copy
+        masterPost.addEventListener('input', copyMasterText);
+        if (transformBtn) {
+            transformBtn.addEventListener('click', copyMasterText);
+            // Update button label to reflect new behavior
+            transformBtn.textContent = '📋 Copy to Both Accounts';
+        }
+
+        // Initial copy if there's already something in master
+        copyMasterText();
 
         setupDropzones();
         renderThumbnails(1);
