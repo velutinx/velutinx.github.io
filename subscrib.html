@@ -73,29 +73,43 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- Bluesky Composer Tab -->
-    <div id="bluesky" class="tab-content">
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
-            <textarea id="masterPost" class="master-post" rows="5" placeholder="Paste your post content here... The last line will be converted to hashtags and the disclaimer will be removed."></textarea>
-            <button id="transformBtn" style="background: #2c6e2c; color: white; border: none; padding: 8px 16px; border-radius: 30px; margin-top: 8px; cursor: pointer;">✨ Transform & Sync to Both Accounts</button>
-        </div>
-        <div class="accounts-grid">
-            <div class="account-card" data-account="1">
-                <h3>🌸 SFW Account</h3>
-                <textarea id="post1" class="account-post" rows="6" placeholder="SFW post content (will be auto‑filled)"></textarea>
-                <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
-                <div class="thumbnail-container" data-account="1"></div>
-            </div>
-            <div class="account-card" data-account="2">
-                <h3>🔥 NSFW Account</h3>
-                <textarea id="post2" class="account-post" rows="6" placeholder="NSFW post content (will be auto‑filled)"></textarea>
-                <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
-                <div class="thumbnail-container" data-account="2"></div>
-            </div>
-        </div>
-        <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
+<!-- Bluesky Composer Tab -->
+<div id="bluesky" class="tab-content">
+    <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 500;">📝 Master Post (paste full text here)</label>
+        <textarea id="masterPost" class="master-post" rows="5" placeholder="Paste your post content here... The last line will be converted to hashtags and the disclaimer will be removed."></textarea>
+        <button id="transformBtn" style="background: #2c6e2c; color: white; border: none; padding: 8px 16px; border-radius: 30px; margin-top: 8px; cursor: pointer;">✨ Transform & Sync to Both Accounts</button>
     </div>
+    <div class="accounts-grid">
+        <div class="account-card" data-account="1">
+            <h3>🌸 SFW Account</h3>
+            <textarea id="post1" class="account-post" rows="6" placeholder="SFW post content (will be auto‑filled)"></textarea>
+            <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
+            <div class="thumbnail-container" data-account="1"></div>
+        </div>
+        <div class="account-card" data-account="2">
+            <h3>🔥 NSFW Account</h3>
+            <textarea id="post2" class="account-post" rows="6" placeholder="NSFW post content (will be auto‑filled)"></textarea>
+            <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
+            <div class="thumbnail-container" data-account="2"></div>
+        </div>
+    </div>
+    <div class="footer">🖼️ Images are stored locally. Click "Transform & Sync" before posting.</div>
+
+    <!-- ========== CROP MODAL (new) ========== -->
+    <div id="cropModal" class="crop-modal" style="display:none;">
+        <div class="crop-modal-content">
+            <div class="crop-canvas-wrapper">
+                <canvas id="cropCanvas"></canvas>
+                <div class="crop-instructions">Drag to select a square area</div>
+            </div>
+            <div class="crop-controls">
+                <button id="cropCancelBtn" class="crop-btn cancel">Cancel</button>
+                <button id="cropDoneBtn" class="crop-btn confirm">Crop & Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Pack Manager Tab -->
     <div id="packmanager" class="tab-content">
