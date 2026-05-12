@@ -174,17 +174,17 @@
                 body: formData
             });
             const data = await res.json();
-            if (data.success && data.data && data.data.id) {
-                statusEl.textContent = '✅ Posted!';
-                statusEl.style.color = '#4CAF50';
-                showToast('Tweet posted!', 'success');
-                window.twitterImages[accId] = [];
-                renderTwitterThumbnails(accId);
-            } else {
-                statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
-                statusEl.style.color = '#f44336';
-                console.error(data);
-            }
+if (data.success && data.data?.data?.id) {
+    statusEl.textContent = '✅ Posted!';
+    statusEl.style.color = '#4CAF50';
+    showToast('Tweet posted!', 'success');
+    window.twitterImages[accId] = [];
+    renderTwitterThumbnails(accId);
+} else {
+    statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
+    statusEl.style.color = '#f44336';
+    console.error(data);
+}
         } catch (err) {
             statusEl.textContent = '❌ Connection Failed';
             statusEl.style.color = '#f44336';
