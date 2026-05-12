@@ -1,105 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Poster – Velutinx</title>
-    <link rel="stylesheet" href="/assets/css/format-private.css">
-    <style>
-        .insta-container { max-width: 600px; margin: 0 auto; }
-        .drop-area {
-            border: 2px dashed #3a4050;
-            border-radius: 12px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            background: #0f131a;
-            margin-bottom: 20px;
-            transition: border-color 0.2s;
-        }
-        .drop-area:hover, .drop-area.drag-over { border-color: #5a6e3c; }
-        .preview-img {
-            width: 100%;
-            max-width: 400px;
-            aspect-ratio: 4/5;
-            object-fit: contain;
-            background: #03060b;
-            border-radius: 8px;
-            margin: 0 auto 12px;
-            display: none;
-            border: 1px solid #2a2f38;
-        }
-        .preview-img.active { display: block; }
-        .caption-input {
-            width: 100%;
-            min-height: 80px;
-            background: #0a0e14;
-            border: 1px solid #2a2f38;
-            border-radius: 10px;
-            color: #eee;
-            padding: 10px;
-            font-size: 14px;
-            resize: vertical;
-            margin-bottom: 16px;
-        }
-        .button-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .process-btn {
-            flex: 1;
-            padding: 12px;
-            background: #3a4050;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .process-btn:hover { background: #4a5060; }
-        .post-btn {
-            flex: 1;
-            padding: 12px;
-            background: #d62976;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .post-btn:hover { background: #b82265; }
-        .status-msg { margin-top: 10px; font-size: 13px; text-align: center; min-height: 20px; }
-    </style>
-</head>
-<body>
-<div class="container insta-container">
-    <h1>📸 Instagram Poster</h1>
-
-    <div class="drop-area" id="dropArea">
-        <input type="file" id="fileInput" accept="image/*" style="display:none;">
-        <div>🖼️ Drop an image here or click to select</div>
-        <div class="aspect-hint">Background + watermarks will be applied automatically</div>
-    </div>
-
-    <!-- Preview of the ORIGINAL selected image (just for feedback) -->
-    <img id="preview" class="preview-img" alt="Original preview" />
-
-    <textarea class="caption-input" id="caption" placeholder="Write your caption and hashtags…"></textarea>
-
-    <div class="button-row">
-        <button class="process-btn" id="processBtn" disabled>🛠️ Process & Download</button>
-        <button class="post-btn" id="postBtn" disabled>🚀 Post to Instagram</button>
-    </div>
-    <div id="status" class="status-msg"></div>
-</div>
-
 <script>
     (function() {
         const proxyBase = 'https://instagram-post.velutinx.workers.dev/proxy?url=';
         const canvasBase = 'https://www.velutinx.com/images/instagram/PreRotatedCanvases/';
         const centerWmUrl = 'https://www.velutinx.com/images/instagram/Rotated%20Warermark.png';
         const cornerWmUrl = 'https://www.velutinx.com/images/instagram/Watermark%20Corner.png';
+
+        // Build the list of all possible canvas filenames (0–355 in steps of 5)
+        const canvasAngles = [];
+        for (let angle = 0; angle <= 355; angle += 5) {
+            canvasAngles.push(angle);
+        }
 
         const dropArea = document.getElementById('dropArea');
         const fileInput = document.getElementById('fileInput');
@@ -109,8 +19,8 @@
         const postBtn = document.getElementById('postBtn');
         const statusDiv = document.getElementById('status');
 
-        let selectedFile = null;       // original file
-        let selectedBlob = null;       // just for preview (original)
+        let selectedFile = null;
+        let selectedBlob = null;
 
         function showToast(msg, type = 'success') {
             const toast = document.createElement('div');
@@ -120,14 +30,13 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // When a file is selected – no cropping, just store original
         function handleFile(file) {
             if (!file || !file.type.startsWith('image/')) {
                 showToast('Please select an image file', 'error');
                 return;
             }
             selectedFile = file;
-            selectedBlob = file.slice(0, file.size, file.type); // copy
+            selectedBlob = file.slice(0, file.size, file.type);
             const url = URL.createObjectURL(selectedBlob);
             preview.src = url;
             preview.classList.add('active');
@@ -136,7 +45,6 @@
             statusDiv.textContent = 'Ready. Click “Process & Download” to generate the final image.';
         }
 
-        // Drop / click handlers
         dropArea.addEventListener('click', () => fileInput.click());
         dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
         dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
@@ -151,7 +59,6 @@
             handleFile(file);
         });
 
-        // Load image via proxy (CORS-friendly)
         function loadImageWithProxy(url) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -162,16 +69,18 @@
             });
         }
 
-        // Try to load a random canvas (1..72) with retries
-        async function loadRandomCanvas(maxTries = 15) {
-            for (let attempt = 0; attempt < maxTries; attempt++) {
-                const idx = Math.floor(Math.random() * 72) + 1;   // 1‑72
-                const url = canvasBase + idx + '.jpg';
+        // Try to load a random canvas from the list (with retries)
+        async function loadRandomCanvas(maxTries = 20) {
+            // Shuffle the angles so we don't always start from the same one
+            const shuffled = [...canvasAngles].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < Math.min(maxTries, shuffled.length); i++) {
+                const angle = shuffled[i];
+                const url = canvasBase + angle + '.jpg';
                 try {
                     const img = await loadImageWithProxy(url);
                     return img;
                 } catch (e) {
-                    console.warn(`Canvas ${idx} not found, trying another…`);
+                    console.warn(`Canvas ${angle}.jpg not found, trying another…`);
                 }
             }
             // Fallback: solid black background
@@ -195,28 +104,25 @@
             processBtn.disabled = true;
 
             try {
-                // Load the original image (user upload)
                 const userImg = new Image();
                 userImg.src = URL.createObjectURL(selectedBlob);
                 await userImg.decode();
 
-                // Load canvas + watermarks
                 const [canvasImg, centerWm, cornerWm] = await Promise.all([
                     loadRandomCanvas(),
                     loadImageWithProxy(centerWmUrl),
                     loadImageWithProxy(cornerWmUrl),
                 ]);
 
-                // Final output canvas
                 const out = document.createElement('canvas');
                 out.width = 2160;
                 out.height = 2688;
                 const ctx = out.getContext('2d');
 
-                // 1) Draw background canvas
+                // 1) Background canvas
                 ctx.drawImage(canvasImg, 0, 0, 2160, 2688);
 
-                // 2) Draw uploaded image, FIT within 2160x2688, CENTERED
+                // 2) Uploaded image – fit inside, centered
                 const fitScale = Math.min(2160 / userImg.width, 2688 / userImg.height);
                 const drawW = userImg.width * fitScale;
                 const drawH = userImg.height * fitScale;
@@ -224,7 +130,7 @@
                 const dy = (2688 - drawH) / 2;
                 ctx.drawImage(userImg, dx, dy, drawW, drawH);
 
-                // 3) Centre watermark (20% opacity)
+                // 3) Center watermark (20% opacity)
                 ctx.globalAlpha = 0.2;
                 ctx.drawImage(centerWm,
                     (2160 - centerWm.width) / 2,
@@ -236,7 +142,6 @@
                     2160 - cornerWm.width - 200,
                     30);
 
-                // Download
                 out.toBlob(blob => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -275,7 +180,6 @@
                 if (data.success) {
                     statusDiv.textContent = '✅ Posted!';
                     showToast('Instagram post succeeded!', 'success');
-                    // Reset
                     preview.src = ''; preview.classList.remove('active');
                     selectedFile = null; selectedBlob = null;
                     caption.value = '';
@@ -293,5 +197,3 @@
         });
     })();
 </script>
-</body>
-</html>
