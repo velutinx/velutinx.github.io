@@ -6,33 +6,21 @@
     <title>Twitter Composer – Velutinx</title>
     <link rel="stylesheet" href="/assets/css/format-private.css">
     <style>
-        /* minor overrides for Twitter-specific tweaks */
+        /* minor overrides for the Twitter composer */
         .twitter-master-post {
-            margin-bottom: 24px;
-        }
-        .char-count {
-            display: block;
-            text-align: right;
-            margin-top: 4px;
-            font-size: 0.8rem;
-            color: #888;
-        }
-        .char-count.over {
-            color: #f44336;
-        }
-        .account-card textarea {
-            margin-bottom: 8px;
+            margin-bottom: 20px;
         }
         .post-btn {
             width: 100%;
+            margin-top: 12px;
+            padding: 10px 16px;
             background: #1da1f2;
             color: white;
             border: none;
-            padding: 10px;
             border-radius: 30px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
+            font-size: 0.9rem;
             transition: background 0.2s;
         }
         .post-btn:hover {
@@ -44,9 +32,6 @@
             text-align: center;
             min-height: 18px;
         }
-        .dropzone {
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
@@ -56,8 +41,8 @@
     <!-- Master Post -->
     <div class="twitter-master-post">
         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #ddd;">📝 Master Post (mirrors to all accounts)</label>
-        <textarea id="masterPost" class="master-post" rows="4" placeholder="Write your tweet…" maxlength="280"></textarea>
-        <span class="char-count" id="master-counter">0/280</span>
+        <textarea id="masterPost" class="master-post" rows="4" placeholder="Write your tweet…"></textarea>
+        <div class="word-counter" id="master-counter" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
     </div>
 
     <!-- Account Cards Grid -->
@@ -65,9 +50,9 @@
         <!-- Account 1: Velutinx2 -->
         <div class="account-card" data-account="1">
             <h3>@Velutinx2</h3>
-            <textarea id="post-1" class="account-post" rows="4" placeholder="Edit for this account…" maxlength="280"></textarea>
-            <span class="char-count" id="counter-1">0/280</span>
-            <div class="dropzone" onclick="triggerInput(1)" id="dz-1">📸 Drop images or Click</div>
+            <textarea id="post-1" class="account-post" rows="4" placeholder="Edit for this account…"></textarea>
+            <div class="word-counter" id="counter-1" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
+            <div class="dropzone" id="dz-1">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-1"></div>
             <button class="post-btn" onclick="sendToWorker(1)">🚀 Post</button>
             <div id="status-1" class="status-msg"></div>
@@ -76,9 +61,9 @@
         <!-- Account 2: placeholder -->
         <div class="account-card" data-account="2">
             <h3>@TwitterAcct_2</h3>
-            <textarea id="post-2" class="account-post" rows="4" placeholder="Edit for this account…" maxlength="280"></textarea>
-            <span class="char-count" id="counter-2">0/280</span>
-            <div class="dropzone" onclick="triggerInput(2)" id="dz-2">📸 Drop images or Click</div>
+            <textarea id="post-2" class="account-post" rows="4" placeholder="Edit for this account…"></textarea>
+            <div class="word-counter" id="counter-2" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
+            <div class="dropzone" id="dz-2">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-2"></div>
             <button class="post-btn" onclick="sendToWorker(2)">🚀 Post</button>
             <div id="status-2" class="status-msg"></div>
@@ -87,9 +72,9 @@
         <!-- Account 3: placeholder -->
         <div class="account-card" data-account="3">
             <h3>@TwitterAcct_3</h3>
-            <textarea id="post-3" class="account-post" rows="4" placeholder="Edit for this account…" maxlength="280"></textarea>
-            <span class="char-count" id="counter-3">0/280</span>
-            <div class="dropzone" onclick="triggerInput(3)" id="dz-3">📸 Drop images or Click</div>
+            <textarea id="post-3" class="account-post" rows="4" placeholder="Edit for this account…"></textarea>
+            <div class="word-counter" id="counter-3" style="margin-top: 6px; font-size: 0.85rem;">Characters remaining: 280</div>
+            <div class="dropzone" id="dz-3">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-3"></div>
             <button class="post-btn" onclick="sendToWorker(3)">🚀 Post</button>
             <div id="status-3" class="status-msg"></div>
@@ -97,66 +82,87 @@
     </div>
 </div>
 
-<script>
-    // ---------- Data store ----------
-    window.accountImages = { 1: [], 2: [], 3: [] };
-    let dragSourceElement = null;
+<!-- Toast container -->
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
-    // ---------- Character counter (280 limit) ----------
-    function updateCharCount(textareaId, counterId) {
-        const ta = document.getElementById(textareaId);
-        const counter = document.getElementById(counterId);
-        if (ta && counter) {
-            const len = ta.value.length;
-            counter.textContent = len + '/280';
-            counter.classList.toggle('over', len > 280);
-        }
+<script>
+    // ---------- Toast notification (standalone copy) ----------
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification ' + type;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
     }
 
+    // ---------- Character counter (Bluesky style) ----------
+    const CHARS_MAX = 280;
+
+    function updateCharCounter(textarea, counterEl) {
+        const remaining = CHARS_MAX - textarea.value.length;
+        counterEl.textContent = `Characters remaining: ${remaining}`;
+        counterEl.style.color = remaining >= 0 ? '#4caf50' : '#f44336';
+        counterEl.style.fontWeight = remaining >= 0 ? 'normal' : 'bold';
+    }
+
+    function installCharCounter(textareaId, counterId) {
+        const ta = document.getElementById(textareaId);
+        const counter = document.getElementById(counterId);
+        if (!ta || !counter) return;
+        ta.addEventListener('input', () => updateCharCounter(ta, counter));
+        ta.addEventListener('keyup', () => updateCharCounter(ta, counter));
+        updateCharCounter(ta, counter);
+    }
+
+    // Install counters for all textareas
+    installCharCounter('masterPost', 'master-counter');
+    installCharCounter('post-1', 'counter-1');
+    installCharCounter('post-2', 'counter-2');
+    installCharCounter('post-3', 'counter-3');
+
+    // ---------- Master mirroring ----------
     const master = document.getElementById('masterPost');
-    const children = [
+    const childTextareas = [
         document.getElementById('post-1'),
         document.getElementById('post-2'),
         document.getElementById('post-3')
     ];
-
-    // Mirror master to children + counters
     master.addEventListener('input', () => {
-        children.forEach((ta, idx) => {
+        childTextareas.forEach(ta => {
             ta.value = master.value;
-            updateCharCount('post-' + (idx + 1), 'counter-' + (idx + 1));
+            // trigger counter update on children
+            updateCharCounter(ta, document.getElementById(`counter-${ta.id.split('-')[1]}`));
         });
-        updateCharCount('masterPost', 'master-counter');
+        updateCharCounter(master, document.getElementById('master-counter'));
     });
 
-    // Individual overrides update their own counter
-    children.forEach((ta, idx) => {
-        ta.addEventListener('input', () => {
-            updateCharCount('post-' + (idx + 1), 'counter-' + (idx + 1));
-        });
-    });
+    // ---------- Image storage and thumbnails ----------
+    window.accountImages = { 1: [], 2: [], 3: [] };
+    let dragSourceElement = null;
 
-    // ---------- File input & drop ----------
-    function triggerInput(id) {
+    function triggerInput(accId) {
         const input = document.createElement('input');
         input.type = 'file';
         input.multiple = true;
         input.accept = 'image/*';
-        input.onchange = (e) => handleFiles(e.target.files, id);
+        input.onchange = (e) => handleFiles(e.target.files, accId);
         input.click();
     }
 
-    function handleFiles(files, id) {
-        const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
-        window.accountImages[id].push(...newFiles);
-        renderThumbnails(id);
+    function handleFiles(files, accId) {
+        const imgFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+        window.accountImages[accId].push(...imgFiles);
+        renderThumbnails(accId);
+        showToast(`+${imgFiles.length} image(s) added`, 'success');
     }
 
-    // Render thumbnails for an account (order-safe)
-    async function renderThumbnails(id) {
-        const container = document.getElementById('container-' + id);
+    async function renderThumbnails(accId) {
+        const container = document.getElementById(`container-${accId}`);
         container.innerHTML = '';
-        const files = window.accountImages[id];
+        const files = window.accountImages[accId];
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const dataUrl = await new Promise(resolve => {
@@ -168,7 +174,7 @@
             item.className = 'thumbnail-item';
             item.draggable = true;
             item.dataset.index = i;
-            item.dataset.accId = id;
+            item.dataset.accId = accId;
             item.addEventListener('dragstart', handleDragStart);
             item.addEventListener('dragover', handleDragOver);
             item.addEventListener('drop', handleDrop);
@@ -178,16 +184,19 @@
             img.src = dataUrl;
             item.appendChild(img);
 
-            const remove = document.createElement('button');
-            remove.className = 'remove-btn';
-            remove.innerHTML = '✕';
-            remove.onclick = (ev) => {
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerHTML = '✕';
+            removeBtn.onclick = (ev) => {
                 ev.stopPropagation();
-                const currentFiles = window.accountImages[id];
-                currentFiles.splice(currentFiles.indexOf(file), 1);
-                renderThumbnails(id);
+                const idx = window.accountImages[accId].indexOf(file);
+                if (idx > -1) {
+                    window.accountImages[accId].splice(idx, 1);
+                    renderThumbnails(accId);
+                    showToast('Image removed', 'info');
+                }
             };
-            item.appendChild(remove);
+            item.appendChild(removeBtn);
             container.appendChild(item);
         }
     }
@@ -212,6 +221,7 @@
             const movedItem = files.splice(fromIdx, 1)[0];
             files.splice(toIdx, 0, movedItem);
             renderThumbnails(accId);
+            showToast('Order updated', 'info');
         }
         return false;
     }
@@ -219,28 +229,40 @@
         this.classList.remove('dragging');
     }
 
-    // Global dropzones
-    [1, 2, 3].forEach(id => {
-        const dz = document.getElementById('dz-' + id);
-        dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = '#5a6e3c'; });
-        dz.addEventListener('dragleave', () => { dz.style.borderColor = '#3a4050'; });
+    // Dropzone events
+    [1, 2, 3].forEach(accId => {
+        const dz = document.getElementById(`dz-${accId}`);
+        if (!dz) return;
+        dz.addEventListener('click', () => triggerInput(accId));
+        dz.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dz.style.borderColor = '#6a8e3c';
+        });
+        dz.addEventListener('dragleave', () => {
+            dz.style.borderColor = '#3a4050';
+        });
         dz.addEventListener('drop', (e) => {
             e.preventDefault();
             dz.style.borderColor = '#3a4050';
-            handleFiles(e.dataTransfer.files, id);
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            if (files.length) {
+                handleFiles(files, accId);
+            }
         });
     });
 
-    // ---------- Post to Cloudflare Worker ----------
-    async function sendToWorker(id) {
-        const status = document.getElementById('status-' + id);
-        const text = document.getElementById('post-' + id).value;
-        const images = window.accountImages[id];
-        status.innerText = '⏳ Processing...';
-        status.style.color = '#aaa';
+    // ---------- Post to Worker ----------
+    async function sendToWorker(accId) {
+        const statusEl = document.getElementById(`status-${accId}`);
+        const textarea = document.getElementById(`post-${accId}`);
+        const text = textarea.value;
+        const images = window.accountImages[accId] || [];
+
+        statusEl.textContent = '⏳ Posting...';
+        statusEl.style.color = '#aaa';
 
         const formData = new FormData();
-        formData.append('accId', id);
+        formData.append('accId', accId.toString());
         formData.append('text', text);
         images.forEach(img => formData.append('images', img));
 
@@ -250,17 +272,22 @@
                 body: formData
             });
             const data = await res.json();
-            if (data.data && data.data.id) {
-                status.innerText = '✅ Posted!';
-                status.style.color = '#4CAF50';
+
+            if (data.success && data.data && data.data.id) {
+                statusEl.textContent = '✅ Posted!';
+                statusEl.style.color = '#4CAF50';
+                showToast('Tweet posted successfully!', 'success');
+                // optionally clear images
+                window.accountImages[accId] = [];
+                renderThumbnails(accId);
             } else {
-                status.innerText = '❌ Error: ' + (data.error || 'Check Console');
-                status.style.color = '#f44336';
-                console.log(data);
+                statusEl.textContent = '❌ Error: ' + (data.error || data.detail || 'Unknown');
+                statusEl.style.color = '#f44336';
+                console.error('Post error:', data);
             }
-        } catch (e) {
-            status.innerText = '❌ Connection Failed';
-            status.style.color = '#f44336';
+        } catch (err) {
+            statusEl.textContent = '❌ Connection Failed';
+            statusEl.style.color = '#f44336';
         }
     }
 </script>
