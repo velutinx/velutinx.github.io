@@ -626,8 +626,7 @@ function buildChart(initialDays) {
     // -------------------------------------------------------------
     // 1. Find all subscription “definitions”
     // -------------------------------------------------------------
-    const subMap = new Map();   // key = concept + amount + day -> { startMonth, startDay, active, lastChargeDate }
-    
+    const subMap = new Map();
     for (const e of entries) {
         if (e.category !== 'Expenses' || !e.concept) continue;
         const key = `${e.concept}::${e.amount}::${e.day}`;
@@ -641,7 +640,6 @@ function buildChart(initialDays) {
         }
         const sub = subMap.get(key);
         if (e.recurring) sub.active = true;
-        
         const chargeDate = moment(new Date(currentYear, e.month - 1, e.day));
         if (chargeDate.isBefore(now)) {
             if (!sub.lastChargeDate || chargeDate.isAfter(sub.lastChargeDate)) {
@@ -660,7 +658,6 @@ function buildChart(initialDays) {
         const endKey = sub.active
             ? now.format('YYYY-MM-DD')
             : sub.lastChargeDate.format('YYYY-MM-DD');
-        
         const amount = parseFloat(key.split('::')[1]);
         recurringLines.push({ startKey, endKey, amount });
     }
@@ -689,7 +686,7 @@ function buildChart(initialDays) {
     });
 
     // -------------------------------------------------------------
-    // 4. Build the final arrays – using let so we can map later
+    // 4. Build the final arrays
     // -------------------------------------------------------------
     let dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
         totalExpCum = [], netCum = [];
@@ -730,11 +727,7 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-    // ✅ Hide zero values so the line doesn’t show flat zero segments
-    patreonCum = patreonCum.map(v => v === 0 ? null : v);
-    websiteCum = websiteCum.map(v => v === 0 ? null : v);
-    kofiCum   = kofiCum.map(v => v === 0 ? null : v);
-    totalExpCum = totalExpCum.map(v => v === 0 ? null : v);
+    // NO MORE zero‑hiding – lines now display correctly throughout the month
 
     // -------------------------------------------------------------
     // 5. Build the reference lines (last month's final values)
@@ -752,7 +745,6 @@ function buildChart(initialDays) {
         }
     }
 
-    // Prepare reference arrays for all four lines
     const netRef = new Array(dates.length).fill(null);
     const patreonRef = new Array(dates.length).fill(null);
     const websiteRef = new Array(dates.length).fill(null);
@@ -766,7 +758,6 @@ function buildChart(initialDays) {
             const lastWebsite = websiteCum[lastDayIndex];
             const lastKofi = kofiCum[lastDayIndex];
 
-            // Set reference data from that index to the end (only if > 0 to avoid useless lines)
             if (lastNet != null && lastNet !== 0) {
                 for (let i = lastDayIndex; i < dates.length; i++) netRef[i] = lastNet;
             }
@@ -795,11 +786,11 @@ function buildChart(initialDays) {
                 { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 },
-                // Reference lines (dotted, from last month's final value)
-                { label: 'Patreon (prev)', data: dates.map((d, i) => ({ x: d, y: patreonRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
-                { label: 'Website (prev)', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
-                { label: 'Ko‑fi (prev)', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
-                { label: 'Last Month’s Final', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false }
+                // Dotted reference lines (now hidden from legend)
+                { label: '', data: dates.map((d, i) => ({ x: d, y: patreonRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
+                { label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
+                { label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
+                { label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false }
             ]
         },
         options: {
@@ -807,7 +798,7 @@ function buildChart(initialDays) {
             maintainAspectRatio: false,
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             plugins: {
-                legend: { labels: { color: '#aaa' } },
+                legend: { labels: { color: '#aaa', filter: (item) => item.text !== '' } }, // hides empty labels
                 zoom: {
                     zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
                     pan: { enabled: true, mode: 'x' },
