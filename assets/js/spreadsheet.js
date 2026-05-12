@@ -624,17 +624,25 @@ function buildChart(initialDays) {
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
     // -------------------------------------------------------------
-    // 1. Find all subscription “definitions”
+    // 1. Find all ACTIVE RECURRING expenses ONLY
     // -------------------------------------------------------------
-    const subMap = new Map();
+    const subMap = new Map();   // key = concept + amount + day -> { startMonth, startDay, active, lastChargeDate }
+
     for (const e of entries) {
-        if (e.category !== 'Expenses' || !e.concept) continue;
+        // Only consider entries that are currently recurring
+        if (e.category !== 'Expenses' || !e.concept || !e.recurring) continue;
+
         const key = `${e.concept}::${e.amount}::${e.day}`;
         if (!subMap.has(key)) {
-            subMap.set(key, { startMonth: e.month, startDay: e.day, active: false, lastChargeDate: null });
+            subMap.set(key, {
+                startMonth: e.month,
+                startDay: e.day,
+                active: true,            // always true here
+                lastChargeDate: null,
+            });
         }
         const sub = subMap.get(key);
-        if (e.recurring) sub.active = true;
+        // Track the latest charge date for the subscription
         const chargeDate = moment(new Date(currentYear, e.month - 1, e.day));
         if (chargeDate.isBefore(now)) {
             if (!sub.lastChargeDate || chargeDate.isAfter(sub.lastChargeDate)) {
@@ -650,19 +658,23 @@ function buildChart(initialDays) {
     for (const [key, sub] of subMap) {
         if (!sub.lastChargeDate) continue;
         const startKey = moment(new Date(currentYear, sub.startMonth - 1, sub.startDay)).format('YYYY-MM-DD');
-        const endKey = sub.active ? now.format('YYYY-MM-DD') : sub.lastChargeDate.format('YYYY-MM-DD');
+        // Active subscriptions run until today; inactive ones stop on their last charge
+        const endKey = sub.active
+            ? now.format('YYYY-MM-DD')
+            : sub.lastChargeDate.format('YYYY-MM-DD');
         const amount = parseFloat(key.split('::')[1]);
         recurringLines.push({ startKey, endKey, amount });
     }
 
     // -------------------------------------------------------------
-    // 3. Separate all OTHER (non‑subscription) entries
+    // 3. ALL OTHER entries (income + genuine one‑time / inactive copy expenses)
     // -------------------------------------------------------------
     const nonSubEntries = entries.filter(e => {
-        if (e.category !== 'Expenses') return true;
-        if (!e.concept) return true;
+        if (e.category !== 'Expenses') return true;                // income
+        if (!e.concept) return true;                               // one‑time expense
+        // Exclude entries that belong to an active recurring subscription (they are handled by recurringLines)
         const key = `${e.concept}::${e.amount}::${e.day}`;
-        return !subMap.has(key);
+        return !subMap.has(key);   // keep only genuine one‑time expenses (including inactive copies)
     });
 
     const dailyNonSubMap = new Map();
@@ -702,6 +714,7 @@ function buildChart(initialDays) {
         curKofi += nonSub.kofi;
         curNonRecExp += nonSub.expense;
 
+        // Recurring baseline (flat, never resets)
         let recurringTotal = 0;
         for (const line of recurringLines) {
             if (key >= line.startKey && key <= line.endKey) {
@@ -712,11 +725,6 @@ function buildChart(initialDays) {
         const totalExp = curNonRecExp + recurringTotal;
         const net = (curPatreon + curWebsite + curKofi) - totalExp;
 
-        // 🔍 DEBUG: log the total expense on May 11 & 12
-        if (key === '2026-05-11' || key === '2026-05-12') {
-            console.log(`DEBUG ${key}: curNonRecExp=${curNonRecExp}, recurringTotal=${recurringTotal}, totalExp=${totalExp}`);
-        }
-
         dates.push(d.toDate());
         patreonCum.push(curPatreon);
         websiteCum.push(curWebsite);
@@ -725,7 +733,7 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-    // ✅ NO zero‑hiding – lines stay continuous
+    // No zero‑hiding – lines now correctly reflect permanent totals
 
     // -------------------------------------------------------------
     // 5. Build the reference lines (last month's final values)
@@ -811,6 +819,7 @@ function buildChart(initialDays) {
             }
         }
     });
+}
 
     window.incomeChart = incomeChart;
 }
