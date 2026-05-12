@@ -3,222 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitter Dashboard - Velutinx</title>
+    <title>Twitter Composer – Velutinx</title>
+    <link rel="stylesheet" href="/assets/css/format-private.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #101419;
-            color: #e1e8ed;
-            padding: 20px;
+        /* minor overrides for Twitter-specific tweaks */
+        .twitter-master-post {
+            margin-bottom: 24px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-
-        /* Master Input Section */
-        .master-section {
-            background: #1a1f26;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            border: 1px solid #2f3a44;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
-        .master-section label {
-            display: block;
-            margin-bottom: 10px;
-            color: #8899a6;
-            font-weight: bold;
-            font-size: 14px;
-            letter-spacing: 0.3px;
-        }
-
-        textarea {
-            width: 100%;
-            background: #101419;
-            color: white;
-            border: 1px solid #2f3a44;
-            border-radius: 12px;
-            padding: 12px;
-            resize: vertical;
-            min-height: 100px;
-            box-sizing: border-box;
-            font-size: 15px;
-            outline: none;
-            transition: border 0.2s, background 0.2s;
-            font-family: inherit;
-        }
-        textarea:focus {
-            border-color: #1da1f2;
-            background: #0d1114;
-        }
-
         .char-count {
             display: block;
             text-align: right;
-            margin-top: 6px;
-            font-size: 12px;
-            color: #8899a6;
-            font-weight: 500;
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: #888;
         }
         .char-count.over {
             color: #f44336;
         }
-
-        /* Account Grid */
-        .accounts-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+        .account-card textarea {
+            margin-bottom: 8px;
         }
-        .account-card {
-            background: #1a1f26;
-            padding: 15px;
-            border-radius: 16px;
-            border: 1px solid #2f3a44;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: border 0.2s;
-        }
-        .account-card:hover {
-            border-color: #4a5662;
-        }
-        .account-header {
-            font-weight: bold;
-            margin-bottom: 12px;
-            color: #1da1f2;
-            border-bottom: 1px solid #2f3a44;
-            padding-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Dropzone */
-        .dropzone {
-            border: 2px dashed #2f3a44;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            margin: 10px 0;
-            color: #8899a6;
-            font-size: 13px;
-            transition: 0.2s;
-            background: #101419;
-        }
-        .dropzone:hover {
-            border-color: #1da1f2;
-            background: #151c22;
-            color: white;
-        }
-
-        /* Thumbnails & Dragging */
-        .thumbnail-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-            min-height: 100px;
-        }
-        .thumbnail-item {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            aspect-ratio: 1/1;
-            background: #253341;
-            cursor: grab;
-            border: 2px solid transparent;
-        }
-        .thumbnail-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            pointer-events: none;
-        }
-        .thumbnail-item.dragging {
-            opacity: 0.4;
-            transform: scale(0.95);
-            border: 2px solid #1da1f2;
-        }
-
-        .remove-btn {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-        .remove-btn:hover { background: #f44336; }
-
-        /* Actions */
         .post-btn {
             width: 100%;
-            padding: 12px;
-            margin-top: 15px;
             background: #1da1f2;
             color: white;
             border: none;
-            border-radius: 25px;
+            padding: 10px;
+            border-radius: 30px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 14px;
+            margin-top: 10px;
             transition: background 0.2s;
         }
-        .post-btn:hover { background: #0f8ad6; }
+        .post-btn:hover {
+            background: #0f8ad6;
+        }
         .status-msg {
-            margin-top: 10px;
-            font-size: 12px;
+            margin-top: 8px;
+            font-size: 0.8rem;
             text-align: center;
-            height: 15px;
+            min-height: 18px;
+        }
+        .dropzone {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="master-section">
-        <label>MASTER POST (Mirrors to all boxes below)</label>
-        <textarea id="masterPost" placeholder="Write your main set description here..." maxlength="280"></textarea>
+    <h1>🐦 Twitter Composer</h1>
+
+    <!-- Master Post -->
+    <div class="twitter-master-post">
+        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #ddd;">📝 Master Post (mirrors to all accounts)</label>
+        <textarea id="masterPost" class="master-post" rows="4" placeholder="Write your tweet…" maxlength="280"></textarea>
         <span class="char-count" id="master-counter">0/280</span>
     </div>
 
-    <div class="accounts-grid">
-        <div class="account-card" id="card-1">
-            <div class="account-header"><span>@Velutinx2</span></div>
-            <textarea id="post-1" placeholder="Edit for Acct 1..." maxlength="280"></textarea>
+    <!-- Account Cards Grid -->
+    <div class="accounts-grid" style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <!-- Account 1: Velutinx2 -->
+        <div class="account-card" data-account="1">
+            <h3>@Velutinx2</h3>
+            <textarea id="post-1" class="account-post" rows="4" placeholder="Edit for this account…" maxlength="280"></textarea>
             <span class="char-count" id="counter-1">0/280</span>
-            <div class="dropzone" onclick="triggerInput(1)" id="dz-1">Drop images or Click</div>
+            <div class="dropzone" onclick="triggerInput(1)" id="dz-1">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-1"></div>
             <button class="post-btn" onclick="sendToWorker(1)">🚀 Post</button>
             <div id="status-1" class="status-msg"></div>
         </div>
 
-        <div class="account-card" id="card-2">
-            <div class="account-header"><span>@TwitterAcct_2</span></div>
-            <textarea id="post-2" placeholder="Edit for Acct 2..." maxlength="280"></textarea>
+        <!-- Account 2: placeholder -->
+        <div class="account-card" data-account="2">
+            <h3>@TwitterAcct_2</h3>
+            <textarea id="post-2" class="account-post" rows="4" placeholder="Edit for this account…" maxlength="280"></textarea>
             <span class="char-count" id="counter-2">0/280</span>
-            <div class="dropzone" onclick="triggerInput(2)" id="dz-2">Drop images or Click</div>
+            <div class="dropzone" onclick="triggerInput(2)" id="dz-2">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-2"></div>
             <button class="post-btn" onclick="sendToWorker(2)">🚀 Post</button>
             <div id="status-2" class="status-msg"></div>
         </div>
 
-        <div class="account-card" id="card-3">
-            <div class="account-header"><span>@TwitterAcct_3</span></div>
-            <textarea id="post-3" placeholder="Edit for Acct 3..." maxlength="280"></textarea>
+        <!-- Account 3: placeholder -->
+        <div class="account-card" data-account="3">
+            <h3>@TwitterAcct_3</h3>
+            <textarea id="post-3" class="account-post" rows="4" placeholder="Edit for this account…" maxlength="280"></textarea>
             <span class="char-count" id="counter-3">0/280</span>
-            <div class="dropzone" onclick="triggerInput(3)" id="dz-3">Drop images or Click</div>
+            <div class="dropzone" onclick="triggerInput(3)" id="dz-3">📸 Drop images or Click</div>
             <div class="thumbnail-container" id="container-3"></div>
             <button class="post-btn" onclick="sendToWorker(3)">🚀 Post</button>
             <div id="status-3" class="status-msg"></div>
@@ -227,47 +98,45 @@
 </div>
 
 <script>
-    // Data Store
+    // ---------- Data store ----------
     window.accountImages = { 1: [], 2: [], 3: [] };
     let dragSourceElement = null;
 
-    // ---------- Character Counter (280 limit) ----------
+    // ---------- Character counter (280 limit) ----------
     function updateCharCount(textareaId, counterId) {
         const ta = document.getElementById(textareaId);
         const counter = document.getElementById(counterId);
         if (ta && counter) {
             const len = ta.value.length;
-            counter.textContent = `${len}/280`;
+            counter.textContent = len + '/280';
             counter.classList.toggle('over', len > 280);
         }
     }
 
-    // Attach to all textareas
     const master = document.getElementById('masterPost');
-    const childTextareas = [
+    const children = [
         document.getElementById('post-1'),
         document.getElementById('post-2'),
         document.getElementById('post-3')
     ];
 
-    // Master mirroring + counters
+    // Mirror master to children + counters
     master.addEventListener('input', () => {
-        childTextareas.forEach((ta, idx) => {
+        children.forEach((ta, idx) => {
             ta.value = master.value;
-            updateCharCount(`post-${idx+1}`, `counter-${idx+1}`);
+            updateCharCount('post-' + (idx + 1), 'counter-' + (idx + 1));
         });
         updateCharCount('masterPost', 'master-counter');
     });
 
-    // Individual overrides and counters
-    childTextareas.forEach((ta, idx) => {
+    // Individual overrides update their own counter
+    children.forEach((ta, idx) => {
         ta.addEventListener('input', () => {
-            updateCharCount(`post-${idx+1}`, `counter-${idx+1}`);
-            // Optionally break mirroring (no action needed)
+            updateCharCount('post-' + (idx + 1), 'counter-' + (idx + 1));
         });
     });
 
-    // File Input Helper
+    // ---------- File input & drop ----------
     function triggerInput(id) {
         const input = document.createElement('input');
         input.type = 'file';
@@ -283,13 +152,13 @@
         renderThumbnails(id);
     }
 
-    // Order‑safe render
+    // Render thumbnails for an account (order-safe)
     async function renderThumbnails(id) {
-        const container = document.getElementById(`container-${id}`);
+        const container = document.getElementById('container-' + id);
         container.innerHTML = '';
         const files = window.accountImages[id];
-        for (let index = 0; index < files.length; index++) {
-            const file = files[index];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
             const dataUrl = await new Promise(resolve => {
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
@@ -298,15 +167,17 @@
             const item = document.createElement('div');
             item.className = 'thumbnail-item';
             item.draggable = true;
-            item.dataset.index = index;
+            item.dataset.index = i;
             item.dataset.accId = id;
             item.addEventListener('dragstart', handleDragStart);
             item.addEventListener('dragover', handleDragOver);
             item.addEventListener('drop', handleDrop);
             item.addEventListener('dragend', handleDragEnd);
+
             const img = document.createElement('img');
             img.src = dataUrl;
             item.appendChild(img);
+
             const remove = document.createElement('button');
             remove.className = 'remove-btn';
             remove.innerHTML = '✕';
@@ -350,26 +221,29 @@
 
     // Global dropzones
     [1, 2, 3].forEach(id => {
-        const dz = document.getElementById(`dz-${id}`);
-        dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = '#1da1f2'; });
-        dz.addEventListener('dragleave', () => dz.style.borderColor = '#2f3a44');
+        const dz = document.getElementById('dz-' + id);
+        dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = '#5a6e3c'; });
+        dz.addEventListener('dragleave', () => { dz.style.borderColor = '#3a4050'; });
         dz.addEventListener('drop', (e) => {
             e.preventDefault();
-            dz.style.borderColor = '#2f3a44';
+            dz.style.borderColor = '#3a4050';
             handleFiles(e.dataTransfer.files, id);
         });
     });
 
-    // Post to Worker
+    // ---------- Post to Cloudflare Worker ----------
     async function sendToWorker(id) {
-        const status = document.getElementById(`status-${id}`);
-        const text = document.getElementById(`post-${id}`).value;
+        const status = document.getElementById('status-' + id);
+        const text = document.getElementById('post-' + id).value;
         const images = window.accountImages[id];
-        status.innerText = "⏳ Processing...";
+        status.innerText = '⏳ Processing...';
+        status.style.color = '#aaa';
+
         const formData = new FormData();
         formData.append('accId', id);
         formData.append('text', text);
         images.forEach(img => formData.append('images', img));
+
         try {
             const res = await fetch('https://twitter-post.velutinx.workers.dev', {
                 method: 'POST',
@@ -377,17 +251,18 @@
             });
             const data = await res.json();
             if (data.data && data.data.id) {
-                status.innerText = "✅ Posted!";
-                status.style.color = "#4CAF50";
+                status.innerText = '✅ Posted!';
+                status.style.color = '#4CAF50';
             } else {
-                status.innerText = "❌ Error: " + (data.error || "Check Console");
+                status.innerText = '❌ Error: ' + (data.error || 'Check Console');
+                status.style.color = '#f44336';
                 console.log(data);
             }
         } catch (e) {
-            status.innerText = "❌ Connection Failed";
+            status.innerText = '❌ Connection Failed';
+            status.style.color = '#f44336';
         }
     }
 </script>
-
 </body>
 </html>
