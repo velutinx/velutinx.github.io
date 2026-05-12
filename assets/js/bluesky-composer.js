@@ -81,6 +81,8 @@
                     ev.stopPropagation();
                     window.accountImages[accountId].splice(idx, 1);
                     renderThumbnails(accountId);
+                    // also remove from synced Twitter accounts
+                    removeFromTwitterSync(accountId, idx);
                     if (typeof showToast === 'function') showToast('Image removed', 'info');
                 };
 
@@ -110,13 +112,15 @@
                     Array.from(container.children).forEach((child, newIdx) => {
                         child.dataset.index = newIdx;
                     });
+                    // Sync order to Twitter
+                    syncOrderToTwitter(accountId, newOrder);
                     if (typeof showToast === 'function') showToast('Order updated', 'info');
                 }
             });
         }, 50);
     }
 
-    // ---------- CROP MODAL (unchanged) ----------
+    // ---------- CROP MODAL (your existing code, unchanged) ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -297,6 +301,8 @@
                 });
                 window.accountImages[accountId][index] = croppedFile;
                 renderThumbnails(accountId);
+                // Sync the cropped image to Twitter (replace same index)
+                updateTwitterImageAtIndex(accountId, index, croppedFile);
                 if (typeof showToast === 'function') showToast('Image cropped!', 'success');
                 cleanup();
             }, file.type || 'image/jpeg', 0.92);
@@ -307,22 +313,55 @@
         });
     }
 
-    // ---------- Cross‑platform sync: Bluesky → Twitter ----------
+    // ---------- Cross‑platform sync helpers ----------
+    function getTwitterTargets(blueskyAccountId) {
+        if (blueskyAccountId == 1) return [3];          // SFW → Twitter 3
+        if (blueskyAccountId == 2) return [1, 2];       // NSFW → Twitter 1 & 2
+        return [];
+    }
+
+    // Sync newly added files (called from setupDropzones)
     function syncToTwitter(blueskyAccountId, files) {
         if (!window.twitterImages || typeof window.renderTwitterThumbnails !== 'function') return;
+        const targets = getTwitterTargets(blueskyAccountId);
+        targets.forEach(twId => {
+            window.twitterImages[twId].push(...files);
+            window.renderTwitterThumbnails(twId);
+        });
+    }
 
-        // SFW (1) → Twitter account 3
-        if (blueskyAccountId == 1) {
-            window.twitterImages[3].push(...files);
-            window.renderTwitterThumbnails(3);
-        }
-        // NSFW (2) → Twitter accounts 1 and 2
-        else if (blueskyAccountId == 2) {
-            window.twitterImages[1].push(...files);
-            window.twitterImages[2].push(...files);
-            window.renderTwitterThumbnails(1);
-            window.renderTwitterThumbnails(2);
-        }
+    // Sync reordering (replace entire array with new order)
+    function syncOrderToTwitter(blueskyAccountId, orderedFiles) {
+        if (!window.twitterImages || typeof window.renderTwitterThumbnails !== 'function') return;
+        const targets = getTwitterTargets(blueskyAccountId);
+        targets.forEach(twId => {
+            window.twitterImages[twId] = [...orderedFiles];
+            window.renderTwitterThumbnails(twId);
+        });
+    }
+
+    // Remove an image from synced Twitter accounts
+    function removeFromTwitterSync(blueskyAccountId, index) {
+        if (!window.twitterImages || typeof window.renderTwitterThumbnails !== 'function') return;
+        const targets = getTwitterTargets(blueskyAccountId);
+        targets.forEach(twId => {
+            if (window.twitterImages[twId].length > index) {
+                window.twitterImages[twId].splice(index, 1);
+                window.renderTwitterThumbnails(twId);
+            }
+        });
+    }
+
+    // Update a specific image at index (for crop)
+    function updateTwitterImageAtIndex(blueskyAccountId, index, newFile) {
+        if (!window.twitterImages || typeof window.renderTwitterThumbnails !== 'function') return;
+        const targets = getTwitterTargets(blueskyAccountId);
+        targets.forEach(twId => {
+            if (window.twitterImages[twId].length > index) {
+                window.twitterImages[twId][index] = newFile;
+                window.renderTwitterThumbnails(twId);
+            }
+        });
     }
 
     // ---------- Setup Dropzones ----------
@@ -411,6 +450,10 @@
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
+                // Cascade to Twitter SFW if account is SFW (1)
+                if (accountId == 1 && typeof window.sendToWorker === 'function') {
+                    window.sendToWorker(3);
+                }
                 setTimeout(() => statusDiv.textContent = '', 2500);
             } else {
                 statusDiv.textContent = `❌ ${data.error || 'failed'}`;
@@ -421,7 +464,8 @@
             if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
         }
     }
-window.postToBluesky = postToBluesky;
+    window.postToBluesky = postToBluesky;
+
     // ---------- Initialize ----------
     function init() {
         if (!masterPost) {
@@ -458,7 +502,6 @@ window.postToBluesky = postToBluesky;
         setupDropzones();
         renderThumbnails(1);
         renderThumbnails(2);
-        // No addPostButtons() call – buttons are already in HTML
     }
 
     if (document.readyState === 'loading') {
