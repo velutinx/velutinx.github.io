@@ -611,13 +611,6 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-
-
-
-
-
-
-    
 // ---------- Chart (recurring baseline with hard stop on cancellation) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
@@ -696,7 +689,7 @@ function buildChart(initialDays) {
     });
 
     // -------------------------------------------------------------
-    // 4. Build the final arrays – now using let so we can map later
+    // 4. Build the final arrays – using let so we can map later
     // -------------------------------------------------------------
     let dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
         totalExpCum = [], netCum = [];
@@ -744,10 +737,8 @@ function buildChart(initialDays) {
     totalExpCum = totalExpCum.map(v => v === 0 ? null : v);
 
     // -------------------------------------------------------------
-    // 5. Build the green dotted reference line
+    // 5. Build the reference lines (last month's final values)
     // -------------------------------------------------------------
-    const referenceData = new Array(dates.length).fill(null);  // init all null
-
     const today = new Date();
     const prevMonth = today.getMonth();
     const prevMonthYear = today.getFullYear();
@@ -761,12 +752,32 @@ function buildChart(initialDays) {
         }
     }
 
+    // Prepare reference arrays for all four lines
+    const netRef = new Array(dates.length).fill(null);
+    const patreonRef = new Array(dates.length).fill(null);
+    const websiteRef = new Array(dates.length).fill(null);
+    const kofiRef = new Array(dates.length).fill(null);
+
     if (lastDayOfPrevMonth) {
         const lastDayIndex = dates.findIndex(d => d.getTime() === lastDayOfPrevMonth.getTime());
         if (lastDayIndex !== -1) {
-            const lastDayNet = netCum[lastDayIndex];
-            for (let i = lastDayIndex; i < dates.length; i++) {
-                referenceData[i] = lastDayNet;
+            const lastNet = netCum[lastDayIndex];
+            const lastPatreon = patreonCum[lastDayIndex];
+            const lastWebsite = websiteCum[lastDayIndex];
+            const lastKofi = kofiCum[lastDayIndex];
+
+            // Set reference data from that index to the end (only if > 0 to avoid useless lines)
+            if (lastNet != null && lastNet !== 0) {
+                for (let i = lastDayIndex; i < dates.length; i++) netRef[i] = lastNet;
+            }
+            if (lastPatreon != null && lastPatreon !== 0) {
+                for (let i = lastDayIndex; i < dates.length; i++) patreonRef[i] = lastPatreon;
+            }
+            if (lastWebsite != null && lastWebsite !== 0) {
+                for (let i = lastDayIndex; i < dates.length; i++) websiteRef[i] = lastWebsite;
+            }
+            if (lastKofi != null && lastKofi !== 0) {
+                for (let i = lastDayIndex; i < dates.length; i++) kofiRef[i] = lastKofi;
             }
         }
     }
@@ -784,7 +795,11 @@ function buildChart(initialDays) {
                 { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 },
-                { label: 'Last Month’s Final', data: dates.map((d, i) => ({ x: d, y: referenceData[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false }
+                // Reference lines (dotted, from last month's final value)
+                { label: 'Patreon (prev)', data: dates.map((d, i) => ({ x: d, y: patreonRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
+                { label: 'Website (prev)', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
+                { label: 'Ko‑fi (prev)', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
+                { label: 'Last Month’s Final', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false }
             ]
         },
         options: {
