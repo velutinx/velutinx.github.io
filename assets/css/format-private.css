@@ -152,60 +152,18 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 #packmanager button.pm-small-retry { background: #3a3a44; border: none; padding: 4px 12px; border-radius: 20px; color: white; cursor: pointer; }
 
 /* ========== CROP MODAL ========== */
-.crop-modal {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8); backdrop-filter: blur(6px);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 10000;
-}
-.crop-modal-content {
-    background: #11151c; border: 1px solid #2a2f38;
-    border-radius: 16px; padding: 20px; max-width: 90vw; max-height: 90vh;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-}
+.crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+.crop-modal-content { background: #11151c; border: 1px solid #2a2f38; border-radius: 16px; padding: 20px; max-width: 90vw; max-height: 90vh; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
 .crop-canvas-wrapper { position: relative; }
-#cropCanvas {
-    display: block; max-width: 100%; max-height: 70vh;
-    border-radius: 8px; cursor: crosshair;
-    background: #03060b;
-}
-.crop-instructions {
-    text-align: center; color: #888; margin-top: 8px;
-    font-size: 0.85rem;
-}
-.crop-controls {
-    display: flex; justify-content: flex-end; gap: 12px;
-    margin-top: 16px;
-}
-.crop-btn {
-    padding: 8px 24px; border-radius: 30px; border: none;
-    font-weight: 500; cursor: pointer; font-size: 0.9rem;
-}
+#cropCanvas { display: block; max-width: 100%; max-height: 70vh; border-radius: 8px; cursor: crosshair; background: #03060b; }
+.crop-instructions { text-align: center; color: #888; margin-top: 8px; font-size: 0.85rem; }
+.crop-controls { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; }
+.crop-btn { padding: 8px 24px; border-radius: 30px; border: none; font-weight: 500; cursor: pointer; font-size: 0.9rem; }
 .crop-btn.cancel { background: #3a3a44; color: #ccc; }
 .crop-btn.cancel:hover { background: #4a4a54; }
 .crop-btn.confirm { background: #2c6e2c; color: white; }
 .crop-btn.confirm:hover { background: #3e8e3e; }
 
 /* ========== Crop button on thumbnails ========== */
-.cf-crop-btn {
-    position: absolute;
-    top: -6px;
-    left: -6px;
-    background: #2c6e2c;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-    padding: 0;
-    line-height: 1;
-}
-.cf-crop-btn:hover {
-    background: #3e8e3e;
-}
+.cf-crop-btn { position: absolute; top: -6px; left: -6px; background: #2c6e2c; color: white; border: none; border-radius: 20px; width: 22px; height: 22px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 20; padding: 0; line-height: 1; }
+.cf-crop-btn:hover { background: #3e8e3e; }
