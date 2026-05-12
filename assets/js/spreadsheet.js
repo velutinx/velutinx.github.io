@@ -637,7 +637,7 @@ function buildChart(initialDays) {
             subMap.set(key, {
                 startMonth: e.month,
                 startDay: e.day,
-                active: true,            // always true here
+                active: true,
                 lastChargeDate: null,
             });
         }
@@ -819,11 +819,12 @@ function buildChart(initialDays) {
             }
         }
     });
-}
 
+    // Expose chart for debugging (optional, safe to keep)
     window.incomeChart = incomeChart;
 }
-    
+
+  
     function refreshAll() {
         renderTable();
         const activeBtn = document.querySelector('.range-btn.active');
