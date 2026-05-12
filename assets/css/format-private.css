@@ -185,3 +185,27 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .crop-btn.cancel:hover { background: #4a4a54; }
 .crop-btn.confirm { background: #2c6e2c; color: white; }
 .crop-btn.confirm:hover { background: #3e8e3e; }
+
+/* ========== Crop button on thumbnails ========== */
+.cf-crop-btn {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    background: #2c6e2c;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    padding: 0;
+    line-height: 1;
+}
+.cf-crop-btn:hover {
+    background: #3e8e3e;
+}
