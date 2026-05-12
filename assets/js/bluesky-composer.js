@@ -73,10 +73,7 @@
 
         finalText += hashtags;
 
-        // === DEBUG: print to console ===
         console.log('🔍 Final text sent to Bluesky:\n', finalText);
-        // Optional: show a small alert for visibility (remove after debugging)
-        // alert('Final text:\n' + finalText);
 
         post1.value = finalText;
         post2.value = finalText;
@@ -113,6 +110,16 @@
                 thumb.src = e.target.result;
                 thumb.style.cursor = 'grab';
 
+                // ===== CROP BUTTON (new) =====
+                const cropBtn = document.createElement('button');
+                cropBtn.className = 'cf-crop-btn';
+                cropBtn.innerHTML = '✂️';
+                cropBtn.title = 'Crop image (square)';
+                cropBtn.onclick = (ev) => {
+                    ev.stopPropagation();
+                    openCropModal(file, accountId, idx);
+                };
+
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'cf-remove-btn';
                 removeBtn.textContent = '✕';
@@ -124,6 +131,7 @@
                 };
 
                 wrapper.appendChild(thumb);
+                wrapper.appendChild(cropBtn);
                 wrapper.appendChild(removeBtn);
                 container.appendChild(wrapper);
             };
@@ -152,6 +160,147 @@
                 }
             });
         }, 50);
+    }
+
+    // ---------- CROP MODAL (new) ----------
+    function openCropModal(file, accountId, index) {
+        const modal = document.getElementById('cropModal');
+        const canvas = document.getElementById('cropCanvas');
+        const ctx = canvas.getContext('2d');
+        const doneBtn = document.getElementById('cropDoneBtn');
+        const cancelBtn = document.getElementById('cropCancelBtn');
+
+        // Load image
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = () => {
+            // Resize canvas to max 800px while keeping ratio
+            const maxDim = 800;
+            let scale = 1;
+            if (img.width > maxDim || img.height > maxDim) {
+                scale = Math.min(maxDim / img.width, maxDim / img.height);
+            }
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            modal.style.display = 'flex';
+        };
+
+        // ---------- Selection state ----------
+        let dragging = false,
+            startX, startY,
+            rect = null;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            const pos = getPos(e);
+            startX = pos.x;
+            startY = pos.y;
+            dragging = true;
+            rect = null;
+        }
+
+        function moveDrag(e) {
+            if (!dragging) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            const dx = pos.x - startX;
+            const dy = pos.y - startY;
+            const size = Math.min(Math.abs(dx), Math.abs(dy));
+            const newX = dx >= 0 ? startX : startX - size;
+            const newY = dy >= 0 ? startY : startY - size;
+            rect = { x: newX, y: newY, w: size, h: size };
+            redrawCanvas();
+        }
+
+        function endDrag(e) {
+            dragging = false;
+            if (rect && rect.w < 10) rect = null;  // ignore tiny selections
+            redrawCanvas();
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            if (rect) {
+                ctx.strokeStyle = '#2c6e2c';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+            }
+        }
+
+        // Attach events (mouse + touch)
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', moveDrag);
+        canvas.addEventListener('mouseup', endDrag);
+        canvas.addEventListener('touchstart', startDrag, { passive: false });
+        canvas.addEventListener('touchmove', moveDrag, { passive: false });
+        canvas.addEventListener('touchend', endDrag);
+
+        function cleanup() {
+            canvas.removeEventListener('mousedown', startDrag);
+            canvas.removeEventListener('mousemove', moveDrag);
+            canvas.removeEventListener('mouseup', endDrag);
+            canvas.removeEventListener('touchstart', startDrag);
+            canvas.removeEventListener('touchmove', moveDrag);
+            canvas.removeEventListener('touchend', endDrag);
+            modal.style.display = 'none';
+            URL.revokeObjectURL(img.src);
+        }
+
+        // Cancel button
+        cancelBtn.onclick = () => {
+            cleanup();
+        };
+
+        // Done button: extract cropped square
+        doneBtn.onclick = () => {
+            if (!rect) {
+                if (typeof showToast === 'function') showToast('Please select a square first', 'error');
+                return;
+            }
+            // Map canvas coords back to original image coords
+            const origScaleX = img.naturalWidth / canvas.width;
+            const origScaleY = img.naturalHeight / canvas.height;
+            const cropX = rect.x * origScaleX;
+            const cropY = rect.y * origScaleY;
+            const cropW = rect.w * origScaleX;
+            const cropH = rect.h * origScaleY;
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = cropW;
+            outCanvas.height = cropH;
+            const outCtx = outCanvas.getContext('2d');
+            outCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+            outCanvas.toBlob(blob => {
+                // Replace file in accountImages array
+                const croppedFile = new File([blob], file.name || 'cropped.jpg', {
+                    type: blob.type || 'image/jpeg',
+                    lastModified: Date.now()
+                });
+                window.accountImages[accountId][index] = croppedFile;
+                // Refresh thumbnails
+                renderThumbnails(accountId);
+                if (typeof showToast === 'function') showToast('Image cropped!', 'success');
+                cleanup();
+            }, file.type || 'image/jpeg', 0.92);
+        };
+
+        // Close modal if clicking background
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) cleanup();
+        });
     }
 
     // ---------- Setup Dropzones ----------
@@ -297,7 +446,6 @@
         renderThumbnails(1);
         renderThumbnails(2);
         addPostButtons();
-
     }
 
     if (document.readyState === 'loading') {
