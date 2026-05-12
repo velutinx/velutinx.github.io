@@ -26,7 +26,7 @@
     const post2 = document.getElementById('post2');
     const transformBtn = document.getElementById('transformBtn');
 
-    // ---------- Transform Master Post (fixed hashtag handling) ----------
+    // ---------- Transform Master Post ----------
     function transformMaster() {
         if (!masterPost || !post1 || !post2) return;
 
@@ -40,12 +40,10 @@
         }
 
         let lines = content.split(/\r?\n/);
-        // Remove disclaimer lines
         lines = lines.filter(line => {
             const lower = line.toLowerCase();
             return !lower.includes('免責事項') && !lower.includes('disclaimer:');
         });
-        // Trim trailing empty lines
         while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
 
         if (lines.length === 0) {
@@ -56,17 +54,14 @@
             return;
         }
 
-        // Last line is the hashtag line
         let lastLine = lines.pop() || '';
         let finalText = lines.join('\n');
         if (finalText && !finalText.endsWith('\n')) finalText += '\n';
 
         let hashtags = '';
         if (lastLine.includes('#')) {
-            // Already contains hashtags – use it directly
             hashtags = lastLine.trim();
         } else {
-            // Split by spaces and add # to each word
             const words = lastLine.trim().split(/\s+/);
             hashtags = words.map(word => `#${word}`).join(' ');
         }
@@ -74,14 +69,13 @@
         finalText += hashtags;
 
         console.log('🔍 Final text sent to Bluesky:\n', finalText);
-
         post1.value = finalText;
         post2.value = finalText;
         updateCharCounter(post1);
         updateCharCounter(post2);
     }
 
-    // ---------- Render Thumbnails with SortableJS ----------
+    // ---------- Render Thumbnails ----------
     function renderThumbnails(accountId) {
         const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
         if (!container) return;
@@ -110,11 +104,10 @@
                 thumb.src = e.target.result;
                 thumb.style.cursor = 'grab';
 
-                // ===== CROP BUTTON (new) =====
                 const cropBtn = document.createElement('button');
                 cropBtn.className = 'cf-crop-btn';
                 cropBtn.innerHTML = '✂️';
-                cropBtn.title = 'Crop image (square)';
+                cropBtn.title = 'Crop image (free rectangle)';
                 cropBtn.onclick = (ev) => {
                     ev.stopPropagation();
                     openCropModal(file, accountId, idx);
@@ -162,7 +155,7 @@
         }, 50);
     }
 
-    // ---------- CROP MODAL (new) ----------
+    // ---------- CROP MODAL (fixed & improved) ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -170,34 +163,53 @@
         const doneBtn = document.getElementById('cropDoneBtn');
         const cancelBtn = document.getElementById('cropCancelBtn');
 
-        // Load image
+        // Determine max canvas size based on viewport
+        const maxWidth = Math.min(800, window.innerWidth * 0.8);
+        const maxHeight = Math.min(800, window.innerHeight * 0.7);
+
         const img = new Image();
         img.src = URL.createObjectURL(file);
         img.onload = () => {
-            // Resize canvas to max 800px while keeping ratio
-            const maxDim = 800;
-            let scale = 1;
-            if (img.width > maxDim || img.height > maxDim) {
-                scale = Math.min(maxDim / img.width, maxDim / img.height);
-            }
+            // Scale image to fit inside the max dimensions while preserving aspect ratio
+            let scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Make canvas responsive in CSS
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+
+            // Draw initial full image
+            redrawCanvas();
+
             modal.style.display = 'flex';
         };
 
         // ---------- Selection state ----------
         let dragging = false,
             startX, startY,
-            rect = null;
+            rect = null;  // {x, y, w, h}
+
+        // Correction factor: canvas CSS size vs internal resolution
+        function getScale() {
+            const displayWidth = canvas.clientWidth;
+            const displayHeight = canvas.clientHeight;
+            return {
+                scaleX: canvas.width / displayWidth,
+                scaleY: canvas.height / displayHeight
+            };
+        }
 
         function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const rawX = clientX - canvasRect.left;
+            const rawY = clientY - canvasRect.top;
+            const { scaleX, scaleY } = getScale();
             return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
+                x: rawX * scaleX,
+                y: rawY * scaleY
             };
         }
 
@@ -214,25 +226,40 @@
             if (!dragging) return;
             e.preventDefault();
             const pos = getPos(e);
-            const dx = pos.x - startX;
-            const dy = pos.y - startY;
-            const size = Math.min(Math.abs(dx), Math.abs(dy));
-            const newX = dx >= 0 ? startX : startX - size;
-            const newY = dy >= 0 ? startY : startY - size;
-            rect = { x: newX, y: newY, w: size, h: size };
+            // Free rectangle – take raw dx, dy (can be negative)
+            const x = Math.min(startX, pos.x);
+            const y = Math.min(startY, pos.y);
+            const w = Math.abs(pos.x - startX);
+            const h = Math.abs(pos.y - startY);
+            rect = { x, y, w, h };
             redrawCanvas();
         }
 
         function endDrag(e) {
             dragging = false;
-            if (rect && rect.w < 10) rect = null;  // ignore tiny selections
+            if (rect && (rect.w < 10 || rect.h < 10)) rect = null;  // ignore tiny
             redrawCanvas();
         }
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 1. Draw the whole image bright
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            if (rect) {
+
+            if (rect && rect.w > 0 && rect.h > 0) {
+                // 2. Darken everything
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 3. Restore the selected area (bright)
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(rect.x, rect.y, rect.w, rect.h);
+                ctx.clip();
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+
+                // 4. Draw the selection border (like Bluesky)
                 ctx.strokeStyle = '#2c6e2c';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
@@ -258,24 +285,23 @@
             URL.revokeObjectURL(img.src);
         }
 
-        // Cancel button
         cancelBtn.onclick = () => {
             cleanup();
         };
 
-        // Done button: extract cropped square
         doneBtn.onclick = () => {
             if (!rect) {
-                if (typeof showToast === 'function') showToast('Please select a square first', 'error');
+                if (typeof showToast === 'function') showToast('Please select an area first', 'error');
                 return;
             }
-            // Map canvas coords back to original image coords
-            const origScaleX = img.naturalWidth / canvas.width;
-            const origScaleY = img.naturalHeight / canvas.height;
-            const cropX = rect.x * origScaleX;
-            const cropY = rect.y * origScaleY;
-            const cropW = rect.w * origScaleX;
-            const cropH = rect.h * origScaleY;
+
+            // Map canvas coords to original image resolution
+            const scaleOrigX = img.naturalWidth / canvas.width;
+            const scaleOrigY = img.naturalHeight / canvas.height;
+            const cropX = rect.x * scaleOrigX;
+            const cropY = rect.y * scaleOrigY;
+            const cropW = rect.w * scaleOrigX;
+            const cropH = rect.h * scaleOrigY;
 
             const outCanvas = document.createElement('canvas');
             outCanvas.width = cropW;
@@ -284,20 +310,18 @@
             outCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
             outCanvas.toBlob(blob => {
-                // Replace file in accountImages array
                 const croppedFile = new File([blob], file.name || 'cropped.jpg', {
                     type: blob.type || 'image/jpeg',
                     lastModified: Date.now()
                 });
                 window.accountImages[accountId][index] = croppedFile;
-                // Refresh thumbnails
                 renderThumbnails(accountId);
                 if (typeof showToast === 'function') showToast('Image cropped!', 'success');
                 cleanup();
             }, file.type || 'image/jpeg', 0.92);
         };
 
-        // Close modal if clicking background
+        // Close modal when clicking outside the content
         modal.addEventListener('click', (e) => {
             if (e.target === modal) cleanup();
         });
@@ -397,7 +421,7 @@
         }
     }
 
-    // ---------- Add "Post to Bluesky" Buttons ----------
+    // ---------- Add Post Buttons ----------
     function addPostButtons() {
         document.querySelectorAll('.account-card').forEach(card => {
             const accountId = card.dataset.account;
@@ -413,7 +437,7 @@
         });
     }
 
-    // ---------- Initialize Module ----------
+    // ---------- Initialize ----------
     function init() {
         if (!masterPost) {
             console.warn('Bluesky Composer: Required elements not found.');
