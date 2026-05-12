@@ -203,6 +203,7 @@
         renderTwitterThumbnails(1);
         renderTwitterThumbnails(2);
         renderTwitterThumbnails(3);
+        window.renderTwitterThumbnails = renderTwitterThumbnails;
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
