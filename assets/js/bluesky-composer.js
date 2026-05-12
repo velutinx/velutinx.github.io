@@ -1,4 +1,4 @@
-// This is velutinx.github.io/assets/js/bluesky-composer.js
+// velutinx.github.io/assets/js/bluesky-composer.js
 
 (function() {
     'use strict';
@@ -116,7 +116,7 @@
         }, 50);
     }
 
-    // ---------- CROP MODAL (fixed – no undeclared variables) ----------
+    // ---------- CROP MODAL (unchanged) ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -307,9 +307,27 @@
         });
     }
 
+    // ---------- Cross‑platform sync: Bluesky → Twitter ----------
+    function syncToTwitter(blueskyAccountId, files) {
+        if (!window.twitterImages || typeof window.renderTwitterThumbnails !== 'function') return;
+
+        // SFW (1) → Twitter account 3
+        if (blueskyAccountId == 1) {
+            window.twitterImages[3].push(...files);
+            window.renderTwitterThumbnails(3);
+        }
+        // NSFW (2) → Twitter accounts 1 and 2
+        else if (blueskyAccountId == 2) {
+            window.twitterImages[1].push(...files);
+            window.twitterImages[2].push(...files);
+            window.renderTwitterThumbnails(1);
+            window.renderTwitterThumbnails(2);
+        }
+    }
+
     // ---------- Setup Dropzones ----------
     function setupDropzones() {
-        document.querySelectorAll('.dropzone').forEach(dz => {
+        document.querySelectorAll('.dropzone[data-account]').forEach(dz => {
             const accountId = dz.dataset.account;
             if (!accountId) return;
 
@@ -320,9 +338,11 @@
                 input.accept = 'image/*';
                 input.onchange = () => {
                     if (input.files.length) {
-                        window.accountImages[accountId].push(...Array.from(input.files));
+                        const imgFiles = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+                        window.accountImages[accountId].push(...imgFiles);
                         renderThumbnails(accountId);
-                        if (typeof showToast === 'function') showToast(`+${input.files.length} images added`, 'success');
+                        syncToTwitter(accountId, imgFiles);
+                        if (typeof showToast === 'function') showToast(`+${imgFiles.length} images added`, 'success');
                     }
                 };
                 input.click();
@@ -342,6 +362,7 @@
                 if (files.length) {
                     window.accountImages[accountId].push(...files);
                     renderThumbnails(accountId);
+                    syncToTwitter(accountId, files);
                     if (typeof showToast === 'function') showToast(`${files.length} dropped`, 'success');
                 }
             });
@@ -401,22 +422,6 @@
         }
     }
 
-    // ---------- Add Post Buttons ----------
-    function addPostButtons() {
-        document.querySelectorAll('.account-card').forEach(card => {
-            const accountId = card.dataset.account;
-            if (!accountId) return;
-            if (card.querySelector('.bluesky-post-btn')) return;
-
-            const btn = document.createElement('button');
-            btn.textContent = '🚀 Post to Bluesky';
-            btn.className = 'bluesky-post-btn';
-            btn.style.cssText = 'margin-top:16px; width:100%; padding:8px; background:#2c6e2c; border:none; border-radius:30px; color:white; cursor:pointer; font-weight:500;';
-            btn.onclick = () => postToBluesky(accountId);
-            card.appendChild(btn);
-        });
-    }
-
     // ---------- Initialize ----------
     function init() {
         if (!masterPost) {
@@ -442,21 +447,18 @@
         installCharCounter(post1);
         installCharCounter(post2);
 
-        // Replace old transformation with simple copy
         masterPost.addEventListener('input', copyMasterText);
         if (transformBtn) {
             transformBtn.addEventListener('click', copyMasterText);
-            // Update button label to reflect new behavior
             transformBtn.textContent = '📋 Copy to Both Accounts';
         }
 
-        // Initial copy if there's already something in master
         copyMasterText();
 
         setupDropzones();
         renderThumbnails(1);
         renderThumbnails(2);
-        addPostButtons();
+        // No addPostButtons() call – buttons are already in HTML
     }
 
     if (document.readyState === 'loading') {
