@@ -631,12 +631,7 @@ function buildChart(initialDays) {
         if (e.category !== 'Expenses' || !e.concept) continue;
         const key = `${e.concept}::${e.amount}::${e.day}`;
         if (!subMap.has(key)) {
-            subMap.set(key, {
-                startMonth: e.month,
-                startDay: e.day,
-                active: false,
-                lastChargeDate: null,
-            });
+            subMap.set(key, { startMonth: e.month, startDay: e.day, active: false, lastChargeDate: null });
         }
         const sub = subMap.get(key);
         if (e.recurring) sub.active = true;
@@ -655,9 +650,7 @@ function buildChart(initialDays) {
     for (const [key, sub] of subMap) {
         if (!sub.lastChargeDate) continue;
         const startKey = moment(new Date(currentYear, sub.startMonth - 1, sub.startDay)).format('YYYY-MM-DD');
-        const endKey = sub.active
-            ? now.format('YYYY-MM-DD')
-            : sub.lastChargeDate.format('YYYY-MM-DD');
+        const endKey = sub.active ? now.format('YYYY-MM-DD') : sub.lastChargeDate.format('YYYY-MM-DD');
         const amount = parseFloat(key.split('::')[1]);
         recurringLines.push({ startKey, endKey, amount });
     }
@@ -719,6 +712,11 @@ function buildChart(initialDays) {
         const totalExp = curNonRecExp + recurringTotal;
         const net = (curPatreon + curWebsite + curKofi) - totalExp;
 
+        // 🔍 DEBUG: log the total expense on May 11 & 12
+        if (key === '2026-05-11' || key === '2026-05-12') {
+            console.log(`DEBUG ${key}: curNonRecExp=${curNonRecExp}, recurringTotal=${recurringTotal}, totalExp=${totalExp}`);
+        }
+
         dates.push(d.toDate());
         patreonCum.push(curPatreon);
         websiteCum.push(curWebsite);
@@ -727,7 +725,7 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-    // NO MORE zero‑hiding – lines now display correctly throughout the month
+    // ✅ NO zero‑hiding – lines stay continuous
 
     // -------------------------------------------------------------
     // 5. Build the reference lines (last month's final values)
@@ -758,18 +756,10 @@ function buildChart(initialDays) {
             const lastWebsite = websiteCum[lastDayIndex];
             const lastKofi = kofiCum[lastDayIndex];
 
-            if (lastNet != null && lastNet !== 0) {
-                for (let i = lastDayIndex; i < dates.length; i++) netRef[i] = lastNet;
-            }
-            if (lastPatreon != null && lastPatreon !== 0) {
-                for (let i = lastDayIndex; i < dates.length; i++) patreonRef[i] = lastPatreon;
-            }
-            if (lastWebsite != null && lastWebsite !== 0) {
-                for (let i = lastDayIndex; i < dates.length; i++) websiteRef[i] = lastWebsite;
-            }
-            if (lastKofi != null && lastKofi !== 0) {
-                for (let i = lastDayIndex; i < dates.length; i++) kofiRef[i] = lastKofi;
-            }
+            if (lastNet != null && lastNet !== 0) { for (let i = lastDayIndex; i < dates.length; i++) netRef[i] = lastNet; }
+            if (lastPatreon != null && lastPatreon !== 0) { for (let i = lastDayIndex; i < dates.length; i++) patreonRef[i] = lastPatreon; }
+            if (lastWebsite != null && lastWebsite !== 0) { for (let i = lastDayIndex; i < dates.length; i++) websiteRef[i] = lastWebsite; }
+            if (lastKofi != null && lastKofi !== 0) { for (let i = lastDayIndex; i < dates.length; i++) kofiRef[i] = lastKofi; }
         }
     }
 
@@ -786,7 +776,7 @@ function buildChart(initialDays) {
                 { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 },
                 { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 },
-                // Dotted reference lines (now hidden from legend)
+                // Dotted reference lines (hidden from legend)
                 { label: '', data: dates.map((d, i) => ({ x: d, y: patreonRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
                 { label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
                 { label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
@@ -798,7 +788,7 @@ function buildChart(initialDays) {
             maintainAspectRatio: false,
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             plugins: {
-                legend: { labels: { color: '#aaa', filter: (item) => item.text !== '' } }, // hides empty labels
+                legend: { labels: { color: '#aaa', filter: (item) => item.text !== '' } },
                 zoom: {
                     zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
                     pan: { enabled: true, mode: 'x' },
@@ -821,6 +811,8 @@ function buildChart(initialDays) {
             }
         }
     });
+
+    window.incomeChart = incomeChart;
 }
     
     function refreshAll() {
