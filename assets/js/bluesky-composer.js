@@ -5,7 +5,6 @@
 
     // ---------- Character Counter ----------
     const CHARS_MAX = 300;
-
     function updateCharCounter(textarea) {
         const counter = textarea._wc;
         if (!counter) return;
@@ -16,7 +15,19 @@
         counter.style.fontWeight = remaining > 0 ? 'normal' : 'bold';
     }
 
-    // ---------- State ----------
+    // ---------- Global Image Registry ----------
+    // Stores the actual File objects, keyed by unique ID.
+    // This ensures that the same file is never duplicated and that
+    // any card can retrieve it by ID.
+    window.imageRegistry = window.imageRegistry || {};
+
+    function addImage(file) {
+        const id = Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 6);
+        window.imageRegistry[id] = file;
+        return id;
+    }
+
+    // ---------- State: arrays of image IDs ----------
     window.accountImages = window.accountImages || { 1: [], 2: [] };
     const sortableInstances = { 1: null, 2: null };
 
@@ -25,15 +36,13 @@
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
 
-    // ---------- Refresh Twitter cards (no copying, just re‑render) ----------
+    // ---------- Refresh Twitter cards ----------
     function refreshTwitterFromBluesky(blueskyAccountId) {
         if (typeof window.renderTwitterThumbnails !== 'function') return;
         if (blueskyAccountId == 1) {
-            // SFW Bluesky → Twitter account 3
-            window.renderTwitterThumbnails(3);
+            window.renderTwitterThumbnails(3);        // SFW → Twitter 3
         } else if (blueskyAccountId == 2) {
-            // NSFW Bluesky → Twitter accounts 1 and 2
-            window.renderTwitterThumbnails(1);
+            window.renderTwitterThumbnails(1);        // NSFW → Twitter 1 & 2
             window.renderTwitterThumbnails(2);
         }
     }
@@ -51,48 +60,62 @@
             sortableInstances[accountId] = null;
         }
 
-        const files = window.accountImages[accountId] || [];
+        const ids = window.accountImages[accountId] || [];
         container.innerHTML = '';
 
-        files.forEach((file, idx) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'cf-selected-item';
-                wrapper.dataset.index = idx;
-                wrapper.dataset.account = accountId;
+        ids.forEach((id, idx) => {
+            const file = window.imageRegistry[id];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
 
-                const thumb = document.createElement('img');
-                thumb.className = 'cf-selected-thumb';
-                thumb.src = e.target.result;
-                thumb.style.cursor = 'grab';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'cf-selected-item';
+            wrapper.dataset.index = idx;
+            wrapper.dataset.id = id;
+            wrapper.dataset.account = accountId;
 
-                const cropBtn = document.createElement('button');
-                cropBtn.className = 'cf-crop-btn';
-                cropBtn.innerHTML = '✂️';
-                cropBtn.title = 'Crop image (free rectangle)';
-                cropBtn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    openCropModal(file, accountId, idx);
-                };
+            const thumb = document.createElement('img');
+            thumb.className = 'cf-selected-thumb';
+            thumb.src = url;
+            thumb.style.cursor = 'grab';
+            thumb.onload = () => URL.revokeObjectURL(url);
+            thumb.onerror = () => URL.revokeObjectURL(url);
 
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'cf-remove-btn';
-                removeBtn.textContent = '✕';
-                removeBtn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    window.accountImages[accountId].splice(idx, 1);
-                    renderThumbnails(accountId);
-                    refreshTwitterFromBluesky(accountId);
-                    if (typeof showToast === 'function') showToast('Image removed', 'info');
-                };
-
-                wrapper.appendChild(thumb);
-                wrapper.appendChild(cropBtn);
-                wrapper.appendChild(removeBtn);
-                container.appendChild(wrapper);
+            const cropBtn = document.createElement('button');
+            cropBtn.className = 'cf-crop-btn';
+            cropBtn.innerHTML = '✂️';
+            cropBtn.title = 'Crop image (free rectangle)';
+            cropBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                openCropModal(file, accountId, idx);
             };
-            reader.readAsDataURL(file);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'cf-remove-btn';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                const removedId = wrapper.dataset.id;
+                if (removedId) {
+                    // Remove ID from the array
+                    const pos = window.accountImages[accountId].indexOf(removedId);
+                    if (pos !== -1) window.accountImages[accountId].splice(pos, 1);
+                    // Delete from registry (only if no other card still references it)
+                    let inUse = false;
+                    for (const arr of Object.values(window.accountImages)) {
+                        if (arr.includes(removedId)) { inUse = true; break; }
+                    }
+                    if (!inUse) delete window.imageRegistry[removedId];
+                }
+                renderThumbnails(accountId);
+                refreshTwitterFromBluesky(accountId);
+                if (typeof showToast === 'function') showToast('Image removed', 'info');
+            };
+
+            wrapper.appendChild(thumb);
+            wrapper.appendChild(cropBtn);
+            wrapper.appendChild(removeBtn);
+            container.appendChild(wrapper);
         });
 
         setTimeout(() => {
@@ -104,15 +127,13 @@
                 onEnd: function() {
                     const newOrder = [];
                     Array.from(container.children).forEach(child => {
-                        const idx = parseInt(child.dataset.index, 10);
-                        if (!isNaN(idx) && window.accountImages[accountId][idx]) {
-                            newOrder.push(window.accountImages[accountId][idx]);
+                        const id = child.dataset.id;
+                        if (id && window.imageRegistry[id]) {
+                            newOrder.push(id);
                         }
                     });
                     window.accountImages[accountId] = newOrder;
-                    Array.from(container.children).forEach((child, newIdx) => {
-                        child.dataset.index = newIdx;
-                    });
+                    Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
                     refreshTwitterFromBluesky(accountId);
                     if (typeof showToast === 'function') showToast('Order updated', 'info');
                 }
@@ -143,41 +164,27 @@
             modal.style.display = 'flex';
         };
 
-        let dragging = false,
-            isMoving = false,
-            startX, startY,
-            rect = null,
-            moveOffset = { x: 0, y: 0 };
+        let dragging = false, isMoving = false, startX, startY,
+            rect = null, moveOffset = { x: 0, y: 0 };
 
         function getScale() {
-            const displayWidth = canvas.clientWidth;
-            const displayHeight = canvas.clientHeight;
-            return {
-                scaleX: canvas.width / displayWidth,
-                scaleY: canvas.height / displayHeight
-            };
+            const dw = canvas.clientWidth, dh = canvas.clientHeight;
+            return { scaleX: canvas.width / dw, scaleY: canvas.height / dh };
         }
-
         function getPos(e) {
-            const canvasRect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const rawX = clientX - canvasRect.left;
-            const rawY = clientY - canvasRect.top;
+            const r = canvas.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
             const { scaleX, scaleY } = getScale();
-            return { x: rawX * scaleX, y: rawY * scaleY };
+            return { x: (cx - r.left) * scaleX, y: (cy - r.top) * scaleY };
         }
-
         function isInsideRect(pos) {
-            return rect &&
-                pos.x >= rect.x && pos.x <= rect.x + rect.w &&
-                pos.y >= rect.y && pos.y <= rect.y + rect.h;
+            return rect && pos.x >= rect.x && pos.x <= rect.x + rect.w &&
+                   pos.y >= rect.y && pos.y <= rect.y + rect.h;
         }
-
         function updateCursor(pos) {
             canvas.style.cursor = isInsideRect(pos) ? 'move' : 'crosshair';
         }
-
         function startDrag(e) {
             e.preventDefault();
             const pos = getPos(e);
@@ -188,59 +195,41 @@
                 dragging = false;
             } else {
                 isMoving = false;
-                startX = pos.x;
-                startY = pos.y;
+                startX = pos.x; startY = pos.y;
                 dragging = true;
                 rect = null;
             }
         }
-
         function moveDrag(e) {
             e.preventDefault();
             const pos = getPos(e);
             if (isMoving && rect) {
-                let newX = pos.x - moveOffset.x;
-                let newY = pos.y - moveOffset.y;
-                newX = Math.max(0, Math.min(canvas.width - rect.w, newX));
-                newY = Math.max(0, Math.min(canvas.height - rect.h, newY));
-                rect.x = newX;
-                rect.y = newY;
+                let nx = pos.x - moveOffset.x, ny = pos.y - moveOffset.y;
+                nx = Math.max(0, Math.min(canvas.width - rect.w, nx));
+                ny = Math.max(0, Math.min(canvas.height - rect.h, ny));
+                rect.x = nx; rect.y = ny;
                 redrawCanvas();
             } else if (dragging) {
-                const x = Math.min(startX, pos.x);
-                const y = Math.min(startY, pos.y);
-                const w = Math.abs(pos.x - startX);
-                const h = Math.abs(pos.y - startY);
-                rect = { x, y, w, h };
+                const x = Math.min(startX, pos.x), y = Math.min(startY, pos.y);
+                rect = { x, y, w: Math.abs(pos.x - startX), h: Math.abs(pos.y - startY) };
                 redrawCanvas();
-            } else {
-                updateCursor(pos);
-            }
+            } else { updateCursor(pos); }
         }
-
         function endDrag(e) {
             if (isMoving) isMoving = false;
-            if (dragging) {
-                dragging = false;
-                if (rect && (rect.w < 10 || rect.h < 10)) rect = null;
-            }
+            if (dragging) { dragging = false; if (rect && (rect.w < 10 || rect.h < 10)) rect = null; }
             redrawCanvas();
         }
-
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             if (rect && rect.w > 0 && rect.h > 0) {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(rect.x, rect.y, rect.w, rect.h);
-                ctx.clip();
+                ctx.save(); ctx.beginPath(); ctx.rect(rect.x, rect.y, rect.w, rect.h); ctx.clip();
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 ctx.restore();
-                ctx.strokeStyle = '#2c6e2c';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#2c6e2c'; ctx.lineWidth = 2;
                 ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
             }
         }
@@ -264,41 +253,31 @@
         }
 
         cancelBtn.onclick = cleanup;
-
         doneBtn.onclick = () => {
             if (!rect) {
                 if (typeof showToast === 'function') showToast('Please select an area first', 'error');
                 return;
             }
-            const scaleOrigX = img.naturalWidth / canvas.width;
-            const scaleOrigY = img.naturalHeight / canvas.height;
-            const cropX = rect.x * scaleOrigX;
-            const cropY = rect.y * scaleOrigY;
-            const cropW = rect.w * scaleOrigX;
-            const cropH = rect.h * scaleOrigY;
-
+            const sox = img.naturalWidth / canvas.width, soy = img.naturalHeight / canvas.height;
+            const cropX = rect.x * sox, cropY = rect.y * soy, cropW = rect.w * sox, cropH = rect.h * soy;
             const outCanvas = document.createElement('canvas');
-            outCanvas.width = cropW;
-            outCanvas.height = cropH;
+            outCanvas.width = cropW; outCanvas.height = cropH;
             const outCtx = outCanvas.getContext('2d');
             outCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
             outCanvas.toBlob(blob => {
                 const croppedFile = new File([blob], file.name || 'cropped.jpg', {
-                    type: blob.type || 'image/jpeg',
-                    lastModified: Date.now()
+                    type: blob.type || 'image/jpeg', lastModified: Date.now()
                 });
-                window.accountImages[accountId][index] = croppedFile;
+                // Replace the image in the registry
+                const currentId = window.accountImages[accountId][index];
+                window.imageRegistry[currentId] = croppedFile;
                 renderThumbnails(accountId);
                 refreshTwitterFromBluesky(accountId);
                 if (typeof showToast === 'function') showToast('Image cropped!', 'success');
                 cleanup();
             }, file.type || 'image/jpeg', 0.92);
         };
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) cleanup();
-        });
+        modal.addEventListener('click', (e) => { if (e.target === modal) cleanup(); });
     }
 
     // ---------- Setup Dropzones ----------
@@ -306,37 +285,34 @@
         document.querySelectorAll('.dropzone[data-account]').forEach(dz => {
             const accountId = dz.dataset.account;
             if (!accountId) return;
-
             dz.addEventListener('click', () => {
                 const input = document.createElement('input');
-                input.type = 'file';
-                input.multiple = true;
-                input.accept = 'image/*';
+                input.type = 'file'; input.multiple = true; input.accept = 'image/*';
                 input.onchange = () => {
                     if (input.files.length) {
-                        const imgFiles = Array.from(input.files).filter(f => f.type.startsWith('image/'));
-                        window.accountImages[accountId].push(...imgFiles);
+                        const files = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+                        files.forEach(f => {
+                            const id = addImage(f);
+                            window.accountImages[accountId].push(id);
+                        });
                         renderThumbnails(accountId);
                         refreshTwitterFromBluesky(accountId);
-                        if (typeof showToast === 'function') showToast(`+${imgFiles.length} images added`, 'success');
+                        if (typeof showToast === 'function') showToast(`+${files.length} images added`, 'success');
                     }
                 };
                 input.click();
             });
-
-            dz.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dz.style.borderColor = '#6a8e3c';
-            });
-            dz.addEventListener('dragleave', () => {
-                dz.style.borderColor = '#3a4050';
-            });
-            dz.addEventListener('drop', (e) => {
+            dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
+            dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
+            dz.addEventListener('drop', e => {
                 e.preventDefault();
                 dz.style.borderColor = '#3a4050';
                 const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
                 if (files.length) {
-                    window.accountImages[accountId].push(...files);
+                    files.forEach(f => {
+                        const id = addImage(f);
+                        window.accountImages[accountId].push(id);
+                    });
                     renderThumbnails(accountId);
                     refreshTwitterFromBluesky(accountId);
                     if (typeof showToast === 'function') showToast(`${files.length} dropped`, 'success');
@@ -349,46 +325,36 @@
     async function postToBluesky(accountId) {
         const postEl = document.getElementById(`post${accountId}`);
         if (!postEl) return;
-
         const text = postEl.value.trim();
-        const images = window.accountImages[accountId] || [];
-
+        const ids = window.accountImages[accountId] || [];
+        const images = ids.map(id => window.imageRegistry[id]).filter(Boolean);
         if (!text && images.length === 0) {
             if (typeof showToast === 'function') showToast('Add text or image first', 'error');
             return;
         }
-
         let statusDiv = document.getElementById(`post-status-${accountId}`);
         if (!statusDiv) {
             statusDiv = document.createElement('div');
             statusDiv.id = `post-status-${accountId}`;
-            statusDiv.style.marginTop = '8px';
-            statusDiv.style.fontSize = '12px';
+            statusDiv.style.marginTop = '8px'; statusDiv.style.fontSize = '12px';
             postEl.parentNode.appendChild(statusDiv);
         }
-        statusDiv.textContent = '⏳ Posting...';
-        statusDiv.style.color = '#aaa';
-
+        statusDiv.textContent = '⏳ Posting...'; statusDiv.style.color = '#aaa';
         try {
             const formData = new FormData();
             formData.append('account', accountId);
             formData.append('text', text);
             images.forEach(img => formData.append('image', img));
-
-            const response = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
-                method: 'POST',
-                body: formData
+            const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
+                method: 'POST', body: formData
             });
-            const data = await response.json();
-
-            if (response.ok) {
-                statusDiv.textContent = '✅ Posted!';
-                statusDiv.style.color = '#4caf50';
+            const data = await res.json();
+            if (res.ok) {
+                statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
                 refreshTwitterFromBluesky(accountId);
-                // Cascade SFW post to Twitter account 3
                 if (accountId == 1 && typeof window.sendToWorker === 'function') {
                     window.sendToWorker(3);
                 }
@@ -404,13 +370,8 @@
     }
     window.postToBluesky = postToBluesky;
 
-    // ---------- Initialize ----------
     function init() {
-        if (!masterPost) {
-            console.warn('Bluesky Composer: Required elements not found.');
-            return;
-        }
-
+        if (!masterPost) { console.warn('Bluesky Composer: Required elements not found.'); return; }
         function installCharCounter(textarea) {
             if (!textarea) return;
             const parent = textarea.parentNode;
@@ -424,20 +385,13 @@
             textarea.addEventListener('keyup', () => updateCharCounter(textarea));
             updateCharCounter(textarea);
         }
-
         installCharCounter(post1);
         installCharCounter(post2);
-
         setupDropzones();
         renderThumbnails(1);
         renderThumbnails(2);
     }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
     window.renderBlueskyThumbnails = renderThumbnails;
 })();
