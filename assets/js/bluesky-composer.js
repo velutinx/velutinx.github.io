@@ -24,24 +24,18 @@
     const masterPost = document.getElementById('masterPost');
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
-    // transformBtn is absent from the HTML now
 
-    // ---------- Twitter mirror helper ----------
-    function getTwitterTargets(blueskyAccountId) {
-        if (blueskyAccountId == 1) return [3];          // SFW → Twitter 3
-        if (blueskyAccountId == 2) return [1, 2];       // NSFW → Twitter 1 & 2
-        return [];
-    }
-
-    // Full mirror: copy the entire Bluesky array to each target Twitter account
-    function mirrorToTwitter(blueskyAccountId) {
-        if (!window.twitterImages || typeof window.renderTwitterThumbnails !== 'function') return;
-        const targets = getTwitterTargets(blueskyAccountId);
-        const sourceArray = window.accountImages[blueskyAccountId] || [];
-        targets.forEach(twId => {
-            window.twitterImages[twId] = [...sourceArray];   // completely replace
-            window.renderTwitterThumbnails(twId);
-        });
+    // ---------- Refresh Twitter cards (no copying, just re‑render) ----------
+    function refreshTwitterFromBluesky(blueskyAccountId) {
+        if (typeof window.renderTwitterThumbnails !== 'function') return;
+        if (blueskyAccountId == 1) {
+            // SFW Bluesky → Twitter account 3
+            window.renderTwitterThumbnails(3);
+        } else if (blueskyAccountId == 2) {
+            // NSFW Bluesky → Twitter accounts 1 and 2
+            window.renderTwitterThumbnails(1);
+            window.renderTwitterThumbnails(2);
+        }
     }
 
     // ---------- Render Thumbnails ----------
@@ -89,7 +83,7 @@
                     ev.stopPropagation();
                     window.accountImages[accountId].splice(idx, 1);
                     renderThumbnails(accountId);
-                    mirrorToTwitter(accountId);   // full mirror after removal
+                    refreshTwitterFromBluesky(accountId);
                     if (typeof showToast === 'function') showToast('Image removed', 'info');
                 };
 
@@ -119,14 +113,14 @@
                     Array.from(container.children).forEach((child, newIdx) => {
                         child.dataset.index = newIdx;
                     });
-                    mirrorToTwitter(accountId);   // full mirror after reorder
+                    refreshTwitterFromBluesky(accountId);
                     if (typeof showToast === 'function') showToast('Order updated', 'info');
                 }
             });
         }, 50);
     }
 
-    // ---------- CROP MODAL (unchanged except mirror call) ----------
+    // ---------- CROP MODAL ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -149,7 +143,6 @@
             modal.style.display = 'flex';
         };
 
-        // ---------- State ----------
         let dragging = false,
             isMoving = false,
             startX, startY,
@@ -172,10 +165,7 @@
             const rawX = clientX - canvasRect.left;
             const rawY = clientY - canvasRect.top;
             const { scaleX, scaleY } = getScale();
-            return {
-                x: rawX * scaleX,
-                y: rawY * scaleY
-            };
+            return { x: rawX * scaleX, y: rawY * scaleY };
         }
 
         function isInsideRect(pos) {
@@ -191,7 +181,6 @@
         function startDrag(e) {
             e.preventDefault();
             const pos = getPos(e);
-
             if (isInsideRect(pos)) {
                 isMoving = true;
                 moveOffset.x = pos.x - rect.x;
@@ -209,7 +198,6 @@
         function moveDrag(e) {
             e.preventDefault();
             const pos = getPos(e);
-
             if (isMoving && rect) {
                 let newX = pos.x - moveOffset.x;
                 let newY = pos.y - moveOffset.y;
@@ -242,25 +230,21 @@
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
             if (rect && rect.w > 0 && rect.h > 0) {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
                 ctx.save();
                 ctx.beginPath();
                 ctx.rect(rect.x, rect.y, rect.w, rect.h);
                 ctx.clip();
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 ctx.restore();
-
                 ctx.strokeStyle = '#2c6e2c';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
             }
         }
 
-        // Attach events
         canvas.addEventListener('mousedown', startDrag);
         canvas.addEventListener('mousemove', moveDrag);
         canvas.addEventListener('mouseup', endDrag);
@@ -286,7 +270,6 @@
                 if (typeof showToast === 'function') showToast('Please select an area first', 'error');
                 return;
             }
-
             const scaleOrigX = img.naturalWidth / canvas.width;
             const scaleOrigY = img.naturalHeight / canvas.height;
             const cropX = rect.x * scaleOrigX;
@@ -307,7 +290,7 @@
                 });
                 window.accountImages[accountId][index] = croppedFile;
                 renderThumbnails(accountId);
-                mirrorToTwitter(accountId);   // full mirror after crop
+                refreshTwitterFromBluesky(accountId);
                 if (typeof showToast === 'function') showToast('Image cropped!', 'success');
                 cleanup();
             }, file.type || 'image/jpeg', 0.92);
@@ -334,7 +317,7 @@
                         const imgFiles = Array.from(input.files).filter(f => f.type.startsWith('image/'));
                         window.accountImages[accountId].push(...imgFiles);
                         renderThumbnails(accountId);
-                        mirrorToTwitter(accountId);   // full mirror after add
+                        refreshTwitterFromBluesky(accountId);
                         if (typeof showToast === 'function') showToast(`+${imgFiles.length} images added`, 'success');
                     }
                 };
@@ -355,7 +338,7 @@
                 if (files.length) {
                     window.accountImages[accountId].push(...files);
                     renderThumbnails(accountId);
-                    mirrorToTwitter(accountId);   // full mirror after drop
+                    refreshTwitterFromBluesky(accountId);
                     if (typeof showToast === 'function') showToast(`${files.length} dropped`, 'success');
                 }
             });
@@ -404,8 +387,8 @@
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
-                mirrorToTwitter(accountId);   // clear Twitter mirrors
-                // cascade SFW post to Twitter
+                refreshTwitterFromBluesky(accountId);
+                // Cascade SFW post to Twitter account 3
                 if (accountId == 1 && typeof window.sendToWorker === 'function') {
                     window.sendToWorker(3);
                 }
@@ -445,14 +428,9 @@
         installCharCounter(post1);
         installCharCounter(post2);
 
-        // Master mirroring is now handled by twitter-composer.js
-
         setupDropzones();
         renderThumbnails(1);
         renderThumbnails(2);
-        // initial mirror
-        mirrorToTwitter(1);
-        mirrorToTwitter(2);
     }
 
     if (document.readyState === 'loading') {
