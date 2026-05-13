@@ -65,25 +65,21 @@
     window.twitterImages = { 1: [], 2: [], 3: [] };
     const twitterSortables = {};
 
-    // Debounce timers – one per account
     const renderTimers = { 1: null, 2: null, 3: null };
 
     function renderTwitterThumbnails(accId) {
         const container = document.getElementById(`tw-container-${accId}`);
         if (!container) return;
 
-        // Cancel any pending render for this account
+        // Cancel any pending render
         if (renderTimers[accId]) {
             clearTimeout(renderTimers[accId]);
             renderTimers[accId] = null;
         }
 
-        console.log(`🔄 Scheduling render for Twitter ${accId}`);
-
-        // Wait a very short time before rendering (coalesces rapid calls)
+        // Debounce: schedule a render after 20ms
         renderTimers[accId] = setTimeout(() => {
             renderTimers[accId] = null;
-            console.log(`🎨 Rendering Twitter ${accId} with ${(window.twitterImages[accId] || []).length} images`);
 
             container.style.display = 'flex';
             container.style.flexWrap = 'wrap';
@@ -97,29 +93,35 @@
             const files = window.twitterImages[accId] || [];
             container.innerHTML = '';
 
-            // Use URL.createObjectURL synchronously – no more FileReader race
+            // Create thumbnails synchronously (no FileReader)
             files.forEach((file, idx) => {
                 const url = URL.createObjectURL(file);
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'cf-selected-item';
-                wrapper.dataset.index = idx;
+                wrapper.dataset.index = idx;   // initial index
 
                 const thumb = document.createElement('img');
                 thumb.className = 'cf-selected-thumb';
                 thumb.src = url;
 
-                // Revoke the URL when the image is no longer needed
+                // Release the blob URL when the image is loaded or fails
                 thumb.onload = () => URL.revokeObjectURL(url);
                 thumb.onerror = () => URL.revokeObjectURL(url);
 
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'cf-remove-btn';
                 removeBtn.textContent = '✕';
+                // 🔧 Use the current DOM index, not the captured idx
                 removeBtn.onclick = (ev) => {
                     ev.stopPropagation();
-                    window.twitterImages[accId].splice(idx, 1);
-                    renderTwitterThumbnails(accId);
+                    const wrapperEl = ev.target.closest('.cf-selected-item');
+                    if (!wrapperEl) return;
+                    const currentIndex = parseInt(wrapperEl.dataset.index, 10);
+                    if (!isNaN(currentIndex) && window.twitterImages[accId][currentIndex]) {
+                        window.twitterImages[accId].splice(currentIndex, 1);
+                        renderTwitterThumbnails(accId);
+                    }
                 };
 
                 wrapper.appendChild(thumb);
@@ -127,26 +129,33 @@
                 container.appendChild(wrapper);
             });
 
-            // Install Sortable after a brief delay to let thumbnails appear
+            // Install Sortable after a short delay so thumbnails are in place
             setTimeout(() => {
+                // If another render was triggered in the meantime, skip
+                if (renderTimers[accId] !== null) return;
+
                 twitterSortables[accId] = new Sortable(container, {
                     animation: 150,
                     handle: '.cf-selected-thumb',
                     ghostClass: 'cf-sortable-ghost',
                     onEnd: function() {
+                        // Rebuild array from current DOM order
                         const newOrder = [];
                         Array.from(container.children).forEach(child => {
-                            const oldIdx = parseInt(child.dataset.index, 10);
-                            if (!isNaN(oldIdx) && window.twitterImages[accId][oldIdx]) {
-                                newOrder.push(window.twitterImages[accId][oldIdx]);
+                            const fileIndex = parseInt(child.dataset.index, 10);
+                            if (!isNaN(fileIndex) && window.twitterImages[accId][fileIndex]) {
+                                newOrder.push(window.twitterImages[accId][fileIndex]);
                             }
                         });
                         window.twitterImages[accId] = newOrder;
-                        Array.from(container.children).forEach((child, i) => child.dataset.index = i);
+                        // Update dataset indices to reflect the new order
+                        Array.from(container.children).forEach((child, i) => {
+                            child.dataset.index = i;
+                        });
                     }
                 });
             }, 60);
-        }, 20); // 20ms debounce
+        }, 20);
     }
 
     // Dropzones for Twitter
@@ -229,8 +238,6 @@
         renderTwitterThumbnails(2);
         renderTwitterThumbnails(3);
         window.renderTwitterThumbnails = renderTwitterThumbnails;
-
-        console.log('✅ Twitter composer initialized');
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
