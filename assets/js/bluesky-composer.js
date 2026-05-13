@@ -370,28 +370,68 @@
     }
     window.postToBluesky = postToBluesky;
 
-    function init() {
-        if (!masterPost) { console.warn('Bluesky Composer: Required elements not found.'); return; }
-        function installCharCounter(textarea) {
-            if (!textarea) return;
-            const parent = textarea.parentNode;
-            if (parent.querySelector('.word-counter')) return;
-            const counter = document.createElement('div');
-            counter.className = 'word-counter';
-            counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
-            parent.insertBefore(counter, textarea.nextSibling);
-            textarea._wc = counter;
-            textarea.addEventListener('input', () => updateCharCounter(textarea));
-            textarea.addEventListener('keyup', () => updateCharCounter(textarea));
-            updateCharCounter(textarea);
-        }
-        installCharCounter(post1);
-        installCharCounter(post2);
-        setupDropzones();
-        renderThumbnails(1);
-        renderThumbnails(2);
+// Inside bluesky-composer.js, replace the init() function:
+
+function init() {
+    if (!masterPost) {
+        console.warn('Bluesky Composer: Required elements not found.');
+        return;
     }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-    window.renderBlueskyThumbnails = renderThumbnails;
-})();
+
+    function installCharCounter(textarea) {
+        if (!textarea) return;
+        const parent = textarea.parentNode;
+        if (parent.querySelector('.word-counter')) return;
+        const counter = document.createElement('div');
+        counter.className = 'word-counter';
+        counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
+        parent.insertBefore(counter, textarea.nextSibling);
+        textarea._wc = counter;
+        textarea.addEventListener('input', () => updateCharCounter(textarea));
+        textarea.addEventListener('keyup', () => updateCharCounter(textarea));
+        updateCharCounter(textarea);
+    }
+
+    installCharCounter(post1);
+    installCharCounter(post2);
+
+    setupDropzones();
+    renderThumbnails(1);
+    renderThumbnails(2);
+
+    // ---------- Clear All Cells Button ----------
+    const clearBtn = document.getElementById('clearAllBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            // Clear all textareas
+            if (masterPost) masterPost.value = '';
+            if (post1) post1.value = '';
+            if (post2) post2.value = '';
+            for (let i = 1; i <= 3; i++) {
+                const tw = document.getElementById(`twitter-post-${i}`);
+                if (tw) tw.value = '';
+                // Trigger counter update
+                if (tw) tw.dispatchEvent(new Event('input'));
+            }
+            [post1, post2].forEach(el => el && el.dispatchEvent(new Event('input')));
+
+            // Clear image arrays and registry
+            window.accountImages[1] = [];
+            window.accountImages[2] = [];
+            window.imageRegistry = {};
+
+            // Re-render all thumbnails (Bluesky + Twitter)
+            if (typeof window.renderBlueskyThumbnails === 'function') {
+                window.renderBlueskyThumbnails(1);
+                window.renderBlueskyThumbnails(2);
+            }
+            if (typeof window.renderTwitterThumbnails === 'function') {
+                window.renderTwitterThumbnails(1);
+                window.renderTwitterThumbnails(2);
+                window.renderTwitterThumbnails(3);
+            }
+
+            if (typeof showToast === 'function') showToast('All cells cleared!', 'info');
+        });
+    }
+}
