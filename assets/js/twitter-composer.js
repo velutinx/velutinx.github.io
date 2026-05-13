@@ -1,4 +1,5 @@
 // velutinx.github.io/assets/js/twitter-composer.js
+// Handles master mirroring + Twitter image/posting
 
 (function() {
     'use strict';
@@ -77,9 +78,12 @@
             renderTimers[accId] = null;
         }
 
+        console.log(`🔄 Scheduling render for Twitter ${accId}`);
+
         // Wait a very short time before rendering (coalesces rapid calls)
         renderTimers[accId] = setTimeout(() => {
             renderTimers[accId] = null;
+            console.log(`🎨 Rendering Twitter ${accId} with ${(window.twitterImages[accId] || []).length} images`);
 
             container.style.display = 'flex';
             container.style.flexWrap = 'wrap';
@@ -93,39 +97,38 @@
             const files = window.twitterImages[accId] || [];
             container.innerHTML = '';
 
+            // Use URL.createObjectURL synchronously – no more FileReader race
             files.forEach((file, idx) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    // Only proceed if this render wasn't superseded
-                    if (renderTimers[accId] !== null) return;
+                const url = URL.createObjectURL(file);
 
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'cf-selected-item';
-                    wrapper.dataset.index = idx;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'cf-selected-item';
+                wrapper.dataset.index = idx;
 
-                    const thumb = document.createElement('img');
-                    thumb.className = 'cf-selected-thumb';
-                    thumb.src = e.target.result;
+                const thumb = document.createElement('img');
+                thumb.className = 'cf-selected-thumb';
+                thumb.src = url;
 
-                    const removeBtn = document.createElement('button');
-                    removeBtn.className = 'cf-remove-btn';
-                    removeBtn.textContent = '✕';
-                    removeBtn.onclick = (ev) => {
-                        ev.stopPropagation();
-                        window.twitterImages[accId].splice(idx, 1);
-                        renderTwitterThumbnails(accId);
-                    };
+                // Revoke the URL when the image is no longer needed
+                thumb.onload = () => URL.revokeObjectURL(url);
+                thumb.onerror = () => URL.revokeObjectURL(url);
 
-                    wrapper.appendChild(thumb);
-                    wrapper.appendChild(removeBtn);
-                    container.appendChild(wrapper);
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'cf-remove-btn';
+                removeBtn.textContent = '✕';
+                removeBtn.onclick = (ev) => {
+                    ev.stopPropagation();
+                    window.twitterImages[accId].splice(idx, 1);
+                    renderTwitterThumbnails(accId);
                 };
-                reader.readAsDataURL(file);
+
+                wrapper.appendChild(thumb);
+                wrapper.appendChild(removeBtn);
+                container.appendChild(wrapper);
             });
 
             // Install Sortable after a brief delay to let thumbnails appear
             setTimeout(() => {
-                if (renderTimers[accId] !== null) return; // another render superseded
                 twitterSortables[accId] = new Sortable(container, {
                     animation: 150,
                     handle: '.cf-selected-thumb',
@@ -226,6 +229,8 @@
         renderTwitterThumbnails(2);
         renderTwitterThumbnails(3);
         window.renderTwitterThumbnails = renderTwitterThumbnails;
+
+        console.log('✅ Twitter composer initialized');
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
