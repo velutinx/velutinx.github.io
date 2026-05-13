@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Token Exchange via Worker</title>
+</head>
+<body>
+    <h3>Instagram Token Exchanger (via Worker)</h3>
+    <p>Paste the authorization code from the redirect URL:</p>
+    <input id="codeInput" placeholder="Paste code here" size="80">
+    <button onclick="exchange()">Exchange Code</button>
+    <div id="output" style="margin-top:20px; white-space:pre-wrap; font-family:monospace;"></div>
+
+    <script>
+        const WORKER_URL = 'https://instagram-post.velutinx.workers.dev/exchange';
+
+        // Auto-fill if code is in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeFromUrl = urlParams.get('code');
+        if (codeFromUrl) {
+            document.getElementById('codeInput').value = codeFromUrl;
+            document.getElementById('output').textContent = 'Code detected. Click "Exchange Code".';
+        }
+
+        async function exchange() {
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code) {
+                document.getElementById('output').textContent = 'Please paste the code.';
+                return;
+            }
+
+            const out = document.getElementById('output');
+            out.textContent = 'Sending code to Worker...';
+
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    out.textContent = `✅ SUCCESS\n\nLong‑lived token:\n${data.long_lived_token}\n\nInstagram User ID:\n${data.user_id}\n\nExpires in: ${(data.expires_in / 86400).toFixed(0)} days`;
+                } else {
+                    out.textContent = `❌ Error: ${data.error}\n\nDetails: ${JSON.stringify(data.detail, null, 2)}`;
+                }
+            } catch (err) {
+                out.textContent = 'Network error: ' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>
