@@ -1,27 +1,17 @@
 // velutinx.github.io/assets/js/twitter-composer.js
-// Handles master mirroring + Twitter image/posting
-// (reads directly from Bluesky image arrays – no separate storage)
 
 (function() {
     'use strict';
 
-    // ---------- Toast ----------
-    function showToast(message, type = 'success') {
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.style.cssText = 'position:fixed; top:20px; right:20px; z-index:9999;';
-            document.body.appendChild(container);
-        }
-        const toast = document.createElement('div');
-        toast.className = `toast-notification ${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+    function showToast(msg, type = 'success') {
+        let c = document.getElementById('toast-container');
+        if (!c) { c = document.createElement('div'); c.id = 'toast-container';
+            c.style.cssText = 'position:fixed; top:20px; right:20px; z-index:9999;';
+            document.body.appendChild(c); }
+        const t = document.createElement('div'); t.className = `toast-notification ${type}`;
+        t.textContent = msg; c.appendChild(t); setTimeout(() => t.remove(), 3000);
     }
 
-    // ---------- Character counters (280 for Twitter) ----------
     const TWITTER_MAX = 280;
     function updateTwitterCounter(textarea) {
         const counter = textarea._wc;
@@ -35,26 +25,20 @@
         if (!textarea) return;
         const parent = textarea.parentNode;
         let counter = parent.querySelector('.word-counter');
-        if (!counter) {
-            counter = document.createElement('div');
-            counter.className = 'word-counter';
-            parent.insertBefore(counter, textarea.nextSibling);
-        }
+        if (!counter) { counter = document.createElement('div'); counter.className = 'word-counter';
+            parent.insertBefore(counter, textarea.nextSibling); }
         textarea._wc = counter;
         textarea.addEventListener('input', () => updateTwitterCounter(textarea));
         updateTwitterCounter(textarea);
     }
 
-    // ---------- Master mirroring ----------
+    // Master mirroring
     const master = document.getElementById('masterPost');
     const allChildren = [
-        document.getElementById('post1'),
-        document.getElementById('post2'),
-        document.getElementById('twitter-post-1'),
-        document.getElementById('twitter-post-2'),
+        document.getElementById('post1'), document.getElementById('post2'),
+        document.getElementById('twitter-post-1'), document.getElementById('twitter-post-2'),
         document.getElementById('twitter-post-3')
     ].filter(Boolean);
-
     if (master) {
         master.addEventListener('input', () => {
             allChildren.forEach(ta => { ta.value = master.value; });
@@ -62,51 +46,37 @@
         });
     }
 
-    // ---------- Mapping: Twitter ID → Bluesky account ID ----------
-    const twitterToBlueskyMap = { 1: 2, 2: 2, 3: 1 };
+    // Mapping Twitter → Bluesky source
+    const twToBluesky = { 1: 2, 2: 2, 3: 1 };
 
-    function getBlueskySourceForTwitter(twitterAccId) {
-        const blueskyId = twitterToBlueskyMap[twitterAccId];
-        return blueskyId ? window.accountImages?.[blueskyId] : null;
-    }
-
-    // ---------- Render Twitter thumbnails from Bluesky arrays ----------
+    // Twitter thumbnails use the same image IDs as the Bluesky arrays.
     const twitterSortables = {};
     const renderTimers = { 1: null, 2: null, 3: null };
 
-    function renderTwitterThumbnails(twitterAccId) {
-        const container = document.getElementById(`tw-container-${twitterAccId}`);
+    function renderTwitterThumbnails(twAccId) {
+        const container = document.getElementById(`tw-container-${twAccId}`);
         if (!container) return;
+        if (renderTimers[twAccId]) { clearTimeout(renderTimers[twAccId]); renderTimers[twAccId] = null; }
+        renderTimers[twAccId] = setTimeout(() => {
+            renderTimers[twAccId] = null;
+            container.style.display = 'flex'; container.style.flexWrap = 'wrap'; container.style.gap = '8px';
+            if (twitterSortables[twAccId]) { twitterSortables[twAccId].destroy(); twitterSortables[twAccId] = null; }
 
-        // Cancel any pending render
-        if (renderTimers[twitterAccId]) {
-            clearTimeout(renderTimers[twitterAccId]);
-            renderTimers[twitterAccId] = null;
-        }
-
-        renderTimers[twitterAccId] = setTimeout(() => {
-            renderTimers[twitterAccId] = null;
-
-            container.style.display = 'flex';
-            container.style.flexWrap = 'wrap';
-            container.style.gap = '8px';
-
-            if (twitterSortables[twitterAccId]) {
-                twitterSortables[twitterAccId].destroy();
-                twitterSortables[twitterAccId] = null;
-            }
-
-            const sourceArray = getBlueskySourceForTwitter(twitterAccId) || [];
+            const blueskySrcId = twToBluesky[twAccId];
+            const sourceIds = (blueskySrcId && window.accountImages?.[blueskySrcId]) || [];
             container.innerHTML = '';
 
-            sourceArray.forEach((file, idx) => {
+            sourceIds.forEach((id, idx) => {
+                const file = window.imageRegistry?.[id];
+                if (!file) return;
                 const url = URL.createObjectURL(file);
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'cf-selected-item';
                 wrapper.dataset.index = idx;
-                wrapper.dataset.twitterAcc = twitterAccId;
-                wrapper.dataset.blueskySource = twitterToBlueskyMap[twitterAccId];
+                wrapper.dataset.id = id;
+                wrapper.dataset.twAcc = twAccId;
+                wrapper.dataset.bsSrc = blueskySrcId;
 
                 const thumb = document.createElement('img');
                 thumb.className = 'cf-selected-thumb';
@@ -121,15 +91,27 @@
                     ev.stopPropagation();
                     const wrapperEl = ev.target.closest('.cf-selected-item');
                     if (!wrapperEl) return;
-                    const currentIndex = parseInt(wrapperEl.dataset.index, 10);
-                    const blueskySrcId = parseInt(wrapperEl.dataset.blueskySource, 10);
-                    if (!isNaN(currentIndex) && blueskySrcId && window.accountImages?.[blueskySrcId]) {
-                        window.accountImages[blueskySrcId].splice(currentIndex, 1);
-                        // Refresh the Bluesky thumbnails and this Twitter card
-                        if (typeof window.renderBlueskyThumbnails === 'function') {
-                            window.renderBlueskyThumbnails(blueskySrcId);
+                    const rid = wrapperEl.dataset.id;
+                    const srcId = parseInt(wrapperEl.dataset.bsSrc, 10);
+                    if (rid && srcId && window.accountImages?.[srcId]) {
+                        const pos = window.accountImages[srcId].indexOf(rid);
+                        if (pos !== -1) window.accountImages[srcId].splice(pos, 1);
+                        // Remove from registry if not used elsewhere
+                        let inUse = false;
+                        for (const arr of Object.values(window.accountImages)) {
+                            if (arr.includes(rid)) { inUse = true; break; }
                         }
-                        renderTwitterThumbnails(twitterAccId);
+                        if (!inUse) delete window.imageRegistry[rid];
+                        // Refresh all Bluesky/Twitter views that share this source
+                        if (typeof window.renderBlueskyThumbnails === 'function') {
+                            window.renderBlueskyThumbnails(srcId);
+                        }
+                        renderTwitterThumbnails(twAccId);
+                        // Also refresh the other Twitter card that shares the same source
+                        if (srcId === 2) {
+                            const otherTw = twAccId === 1 ? 2 : 1;
+                            renderTwitterThumbnails(otherTw);
+                        }
                         showToast('Image removed', 'info');
                     }
                 };
@@ -140,31 +122,27 @@
             });
 
             setTimeout(() => {
-                if (renderTimers[twitterAccId] !== null) return;
-                twitterSortables[twitterAccId] = new Sortable(container, {
+                if (renderTimers[twAccId] !== null) return;
+                twitterSortables[twAccId] = new Sortable(container, {
                     animation: 150,
                     handle: '.cf-selected-thumb',
                     ghostClass: 'cf-sortable-ghost',
                     onEnd: function() {
-                        const blueskySrcId = twitterToBlueskyMap[twitterAccId];
-                        if (!blueskySrcId || !window.accountImages?.[blueskySrcId]) return;
+                        const srcId = twToBluesky[twAccId];
+                        if (!srcId || !window.accountImages?.[srcId]) return;
                         const newOrder = [];
                         Array.from(container.children).forEach(child => {
-                            const fileIndex = parseInt(child.dataset.index, 10);
-                            if (!isNaN(fileIndex) && window.accountImages[blueskySrcId][fileIndex]) {
-                                newOrder.push(window.accountImages[blueskySrcId][fileIndex]);
-                            }
+                            const id = child.dataset.id;
+                            if (id && window.imageRegistry?.[id]) newOrder.push(id);
                         });
-                        window.accountImages[blueskySrcId] = newOrder;
-                        // Refresh all thumbnails that use this source
+                        window.accountImages[srcId] = newOrder;
+                        Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
                         if (typeof window.renderBlueskyThumbnails === 'function') {
-                            window.renderBlueskyThumbnails(blueskySrcId);
+                            window.renderBlueskyThumbnails(srcId);
                         }
-                        // Re-render all Twitter cards that map to this Bluesky source
-                        for (const [twId, bsId] of Object.entries(twitterToBlueskyMap)) {
-                            if (bsId === blueskySrcId) {
-                                renderTwitterThumbnails(parseInt(twId));
-                            }
+                        // Refresh all Twitter cards that use this source
+                        for (const [twId, bsId] of Object.entries(twToBluesky)) {
+                            if (bsId === srcId) renderTwitterThumbnails(parseInt(twId));
                         }
                         showToast('Order updated', 'info');
                     }
@@ -173,38 +151,41 @@
         }, 20);
     }
 
-    // ---------- Twitter dropzones (add directly to Bluesky source) ----------
+    // Twitter dropzones (add to the correct Bluesky source)
     function setupTwitterDropzones() {
-        for (let twAccId = 1; twAccId <= 3; twAccId++) {
-            const dz = document.getElementById(`tw-dz-${twAccId}`);
+        for (let twId = 1; twId <= 3; twId++) {
+            const dz = document.getElementById(`tw-dz-${twId}`);
             if (!dz) continue;
-            const blueskySrcId = twitterToBlueskyMap[twAccId];
-            if (!blueskySrcId) continue;
-
+            const srcId = twToBluesky[twId];
+            if (!srcId) continue;
             dz.addEventListener('click', () => {
                 const input = document.createElement('input');
-                input.type = 'file';
-                input.multiple = true;
-                input.accept = 'image/*';
+                input.type = 'file'; input.multiple = true; input.accept = 'image/*';
                 input.onchange = () => {
                     if (input.files.length) {
-                        const imgFiles = Array.from(input.files).filter(f => f.type.startsWith('image/'));
-                        // Ensure the Bluesky array exists
-                        if (!window.accountImages) window.accountImages = {};
-                        if (!window.accountImages[blueskySrcId]) window.accountImages[blueskySrcId] = [];
-                        window.accountImages[blueskySrcId].push(...imgFiles);
-                        // Refresh Bluesky card
+                        const files = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+                        files.forEach(f => {
+                            const id = Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 6);
+                            window.imageRegistry = window.imageRegistry || {};
+                            window.imageRegistry[id] = f;
+                            if (!window.accountImages) window.accountImages = {};
+                            if (!window.accountImages[srcId]) window.accountImages[srcId] = [];
+                            window.accountImages[srcId].push(id);
+                        });
                         if (typeof window.renderBlueskyThumbnails === 'function') {
-                            window.renderBlueskyThumbnails(blueskySrcId);
+                            window.renderBlueskyThumbnails(srcId);
                         }
-                        // Refresh this Twitter card
-                        renderTwitterThumbnails(twAccId);
-                        showToast(`+${imgFiles.length} image(s) added`, 'success');
+                        renderTwitterThumbnails(twId);
+                        // Also refresh the other Twitter card if it shares the same source
+                        if (srcId === 2) {
+                            const other = twId === 1 ? 2 : 1;
+                            renderTwitterThumbnails(other);
+                        }
+                        showToast(`+${files.length} image(s) added`, 'success');
                     }
                 };
                 input.click();
             });
-
             dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
             dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
             dz.addEventListener('drop', e => {
@@ -212,47 +193,54 @@
                 dz.style.borderColor = '#3a4050';
                 const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
                 if (files.length) {
-                    if (!window.accountImages) window.accountImages = {};
-                    if (!window.accountImages[blueskySrcId]) window.accountImages[blueskySrcId] = [];
-                    window.accountImages[blueskySrcId].push(...files);
+                    files.forEach(f => {
+                        const id = Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 6);
+                        window.imageRegistry = window.imageRegistry || {};
+                        window.imageRegistry[id] = f;
+                        if (!window.accountImages) window.accountImages = {};
+                        if (!window.accountImages[srcId]) window.accountImages[srcId] = [];
+                        window.accountImages[srcId].push(id);
+                    });
                     if (typeof window.renderBlueskyThumbnails === 'function') {
-                        window.renderBlueskyThumbnails(blueskySrcId);
+                        window.renderBlueskyThumbnails(srcId);
                     }
-                    renderTwitterThumbnails(twAccId);
+                    renderTwitterThumbnails(twId);
+                    if (srcId === 2) {
+                        const other = twId === 1 ? 2 : 1;
+                        renderTwitterThumbnails(other);
+                    }
                     showToast(`${files.length} dropped`, 'success');
                 }
             });
         }
     }
 
-    // ---------- Posting to Twitter ----------
     async function sendToWorker(accId) {
         const statusEl = document.getElementById(`tw-status-${accId}`);
         const textarea = document.getElementById(`twitter-post-${accId}`);
         if (!textarea) return;
         const text = textarea.value;
-        const sourceArray = getBlueskySourceForTwitter(accId) || [];
+        const srcId = twToBluesky[accId];
+        const sourceIds = (srcId && window.accountImages?.[srcId]) || [];
+        const images = sourceIds.map(id => window.imageRegistry?.[id]).filter(Boolean);
         statusEl.textContent = '⏳ Posting...';
         const formData = new FormData();
         formData.append('accId', accId.toString());
         formData.append('text', text);
-        sourceArray.forEach(img => formData.append('images', img));
+        images.forEach(img => formData.append('images', img));
         try {
             const res = await fetch('https://twitter-post.velutinx.workers.dev', {
-                method: 'POST',
-                body: formData
+                method: 'POST', body: formData
             });
             const data = await res.json();
             if (data.success && data.data?.data?.id) {
-                statusEl.textContent = '✅ Posted!';
-                statusEl.style.color = '#4CAF50';
+                statusEl.textContent = '✅ Posted!'; statusEl.style.color = '#4CAF50';
                 showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
-                // Clear the source array
-                const blueskySrcId = twitterToBlueskyMap[accId];
-                if (blueskySrcId && window.accountImages?.[blueskySrcId]) {
-                    window.accountImages[blueskySrcId] = [];
+                // Clear the source array and refresh
+                if (srcId && window.accountImages) {
+                    window.accountImages[srcId] = [];
                     if (typeof window.renderBlueskyThumbnails === 'function') {
-                        window.renderBlueskyThumbnails(blueskySrcId);
+                        window.renderBlueskyThumbnails(srcId);
                     }
                 }
                 renderTwitterThumbnails(accId);
@@ -262,31 +250,23 @@
                 console.error(data);
             }
         } catch (err) {
-            statusEl.textContent = '❌ Connection Failed';
-            statusEl.style.color = '#f44336';
+            statusEl.textContent = '❌ Connection Failed'; statusEl.style.color = '#f44336';
         }
     }
     window.sendToWorker = sendToWorker;
 
-    // ---------- Init ----------
     function init() {
         for (let i = 1; i <= 3; i++) {
             installTwitterCounter(document.getElementById(`twitter-post-${i}`));
         }
+        if (!window.imageRegistry) window.imageRegistry = {};
+        if (!window.accountImages) window.accountImages = { 1: [], 2: [] };
         setupTwitterDropzones();
-        // Ensure Bluesky arrays exist (they'll be created by bluesky-composer.js too)
-        if (!window.accountImages) {
-            window.accountImages = { 1: [], 2: [] };
-        }
-        // Initial renders
         renderTwitterThumbnails(1);
         renderTwitterThumbnails(2);
         renderTwitterThumbnails(3);
         window.renderTwitterThumbnails = renderTwitterThumbnails;
     }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
 })();
