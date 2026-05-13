@@ -9,8 +9,7 @@
     function updateCharCounter(textarea) {
         const counter = textarea._wc;
         if (!counter) return;
-        const length = textarea.value.length;
-        const remaining = CHARS_MAX - length;
+        const remaining = CHARS_MAX - textarea.value.length;
         counter.textContent = `Characters remaining: ${remaining}`;
         counter.style.color = remaining > 0 ? '#4caf50' : '#f44336';
         counter.style.fontWeight = remaining > 0 ? 'normal' : 'bold';
@@ -20,12 +19,6 @@
     window.accountImages = window.accountImages || { 1: [], 2: [] };
     const sortableInstances = { 1: null, 2: null };
 
-    // ---------- DOM Elements ----------
-    const masterPost = document.getElementById('masterPost');
-    const post1 = document.getElementById('post1');
-    const post2 = document.getElementById('post2');
-    // transformBtn is absent from the HTML now
-
     // ---------- Twitter mirror helper ----------
     function getTwitterTargets(blueskyAccountId) {
         if (blueskyAccountId == 1) return [3];          // SFW → Twitter 3
@@ -33,13 +26,14 @@
         return [];
     }
 
-    // Full mirror: copy the entire Bluesky array to each target Twitter account
+    // Full mirror: copy the entire Bluesky array to target Twitter accounts
     function mirrorToTwitter(blueskyAccountId) {
         if (!window.twitterImages || typeof window.renderTwitterThumbnails !== 'function') return;
         const targets = getTwitterTargets(blueskyAccountId);
         const sourceArray = window.accountImages[blueskyAccountId] || [];
         targets.forEach(twId => {
-            window.twitterImages[twId] = [...sourceArray];   // completely replace
+            // Clone the array to break references
+            window.twitterImages[twId] = [...sourceArray];
             window.renderTwitterThumbnails(twId);
         });
     }
@@ -48,10 +42,8 @@
     function renderThumbnails(accountId) {
         const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
         if (!container) return;
-        container.style.display = 'flex';
-        container.style.flexWrap = 'wrap';
-        container.style.gap = '8px';
 
+        // Cleanup Sortable before re-render
         if (sortableInstances[accountId]) {
             sortableInstances[accountId].destroy();
             sortableInstances[accountId] = null;
@@ -59,74 +51,74 @@
 
         const files = window.accountImages[accountId] || [];
         container.innerHTML = '';
+        container.style.display = 'flex';
+        container.style.flexWrap = 'wrap';
+        container.style.gap = '8px';
 
         files.forEach((file, idx) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'cf-selected-item';
-                wrapper.dataset.index = idx;
-                wrapper.dataset.account = accountId;
+            const url = URL.createObjectURL(file);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'cf-selected-item';
+            wrapper.dataset.index = idx; // Important for tracking after reorders
 
-                const thumb = document.createElement('img');
-                thumb.className = 'cf-selected-thumb';
-                thumb.src = e.target.result;
-                thumb.style.cursor = 'grab';
+            const thumb = document.createElement('img');
+            thumb.className = 'cf-selected-thumb';
+            thumb.src = url;
+            thumb.style.cursor = 'grab';
+            
+            // Memory management
+            thumb.onload = () => URL.revokeObjectURL(url);
 
-                const cropBtn = document.createElement('button');
-                cropBtn.className = 'cf-crop-btn';
-                cropBtn.innerHTML = '✂️';
-                cropBtn.title = 'Crop image (free rectangle)';
-                cropBtn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    openCropModal(file, accountId, idx);
-                };
-
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'cf-remove-btn';
-                removeBtn.textContent = '✕';
-                removeBtn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    window.accountImages[accountId].splice(idx, 1);
-                    renderThumbnails(accountId);
-                    mirrorToTwitter(accountId);   // full mirror after removal
-                    if (typeof showToast === 'function') showToast('Image removed', 'info');
-                };
-
-                wrapper.appendChild(thumb);
-                wrapper.appendChild(cropBtn);
-                wrapper.appendChild(removeBtn);
-                container.appendChild(wrapper);
+            const cropBtn = document.createElement('button');
+            cropBtn.className = 'cf-crop-btn';
+            cropBtn.innerHTML = '✂️';
+            cropBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                const currentIdx = parseInt(wrapper.dataset.index, 10);
+                openCropModal(window.accountImages[accountId][currentIdx], accountId, currentIdx);
             };
-            reader.readAsDataURL(file);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'cf-remove-btn';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                const currentIdx = parseInt(wrapper.dataset.index, 10);
+                window.accountImages[accountId].splice(currentIdx, 1);
+                renderThumbnails(accountId);
+                mirrorToTwitter(accountId);
+                if (typeof showToast === 'function') showToast('Image removed', 'info');
+            };
+
+            wrapper.appendChild(thumb);
+            wrapper.appendChild(cropBtn);
+            wrapper.appendChild(removeBtn);
+            container.appendChild(wrapper);
         });
 
+        // Initialize Sortable
         setTimeout(() => {
             sortableInstances[accountId] = new Sortable(container, {
                 animation: 150,
                 handle: '.cf-selected-thumb',
                 ghostClass: 'cf-sortable-ghost',
-                dragClass: 'cf-sortable-drag',
                 onEnd: function() {
                     const newOrder = [];
-                    Array.from(container.children).forEach(child => {
-                        const idx = parseInt(child.dataset.index, 10);
-                        if (!isNaN(idx) && window.accountImages[accountId][idx]) {
-                            newOrder.push(window.accountImages[accountId][idx]);
-                        }
+                    // Rebuild array based on current DOM order
+                    Array.from(container.children).forEach((child, newIdx) => {
+                        const oldIdx = parseInt(child.dataset.index, 10);
+                        newOrder.push(window.accountImages[accountId][oldIdx]);
+                        child.dataset.index = newIdx; // Update DOM index
                     });
                     window.accountImages[accountId] = newOrder;
-                    Array.from(container.children).forEach((child, newIdx) => {
-                        child.dataset.index = newIdx;
-                    });
-                    mirrorToTwitter(accountId);   // full mirror after reorder
+                    mirrorToTwitter(accountId);
                     if (typeof showToast === 'function') showToast('Order updated', 'info');
                 }
             });
-        }, 50);
+        }, 10);
     }
 
-    // ---------- CROP MODAL (unchanged except mirror call) ----------
+    // ---------- CROP MODAL ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -143,248 +135,109 @@
             let scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            canvas.style.width = '100%';
-            canvas.style.height = 'auto';
             redrawCanvas();
             modal.style.display = 'flex';
         };
 
-        // ---------- State ----------
-        let dragging = false,
-            isMoving = false,
-            startX, startY,
-            rect = null,
-            moveOffset = { x: 0, y: 0 };
+        let dragging = false, isMoving = false, startX, startY, rect = null, moveOffset = { x: 0, y: 0 };
 
-        function getScale() {
-            const displayWidth = canvas.clientWidth;
-            const displayHeight = canvas.clientHeight;
-            return {
-                scaleX: canvas.width / displayWidth,
-                scaleY: canvas.height / displayHeight
-            };
-        }
-
+        function getScale() { return { scaleX: canvas.width / canvas.clientWidth, scaleY: canvas.height / canvas.clientHeight }; }
         function getPos(e) {
             const canvasRect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const rawX = clientX - canvasRect.left;
-            const rawY = clientY - canvasRect.top;
             const { scaleX, scaleY } = getScale();
-            return {
-                x: rawX * scaleX,
-                y: rawY * scaleY
-            };
-        }
-
-        function isInsideRect(pos) {
-            return rect &&
-                pos.x >= rect.x && pos.x <= rect.x + rect.w &&
-                pos.y >= rect.y && pos.y <= rect.y + rect.h;
-        }
-
-        function updateCursor(pos) {
-            canvas.style.cursor = isInsideRect(pos) ? 'move' : 'crosshair';
-        }
-
-        function startDrag(e) {
-            e.preventDefault();
-            const pos = getPos(e);
-
-            if (isInsideRect(pos)) {
-                isMoving = true;
-                moveOffset.x = pos.x - rect.x;
-                moveOffset.y = pos.y - rect.y;
-                dragging = false;
-            } else {
-                isMoving = false;
-                startX = pos.x;
-                startY = pos.y;
-                dragging = true;
-                rect = null;
-            }
-        }
-
-        function moveDrag(e) {
-            e.preventDefault();
-            const pos = getPos(e);
-
-            if (isMoving && rect) {
-                let newX = pos.x - moveOffset.x;
-                let newY = pos.y - moveOffset.y;
-                newX = Math.max(0, Math.min(canvas.width - rect.w, newX));
-                newY = Math.max(0, Math.min(canvas.height - rect.h, newY));
-                rect.x = newX;
-                rect.y = newY;
-                redrawCanvas();
-            } else if (dragging) {
-                const x = Math.min(startX, pos.x);
-                const y = Math.min(startY, pos.y);
-                const w = Math.abs(pos.x - startX);
-                const h = Math.abs(pos.y - startY);
-                rect = { x, y, w, h };
-                redrawCanvas();
-            } else {
-                updateCursor(pos);
-            }
-        }
-
-        function endDrag(e) {
-            if (isMoving) isMoving = false;
-            if (dragging) {
-                dragging = false;
-                if (rect && (rect.w < 10 || rect.h < 10)) rect = null;
-            }
-            redrawCanvas();
+            return { x: (clientX - canvasRect.left) * scaleX, y: (clientY - canvasRect.top) * scaleY };
         }
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
             if (rect && rect.w > 0 && rect.h > 0) {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
                 ctx.save();
                 ctx.beginPath();
                 ctx.rect(rect.x, rect.y, rect.w, rect.h);
                 ctx.clip();
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 ctx.restore();
-
-                ctx.strokeStyle = '#2c6e2c';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#4caf50'; ctx.lineWidth = 2;
                 ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
             }
         }
 
-        // Attach events
-        canvas.addEventListener('mousedown', startDrag);
-        canvas.addEventListener('mousemove', moveDrag);
-        canvas.addEventListener('mouseup', endDrag);
-        canvas.addEventListener('touchstart', startDrag, { passive: false });
-        canvas.addEventListener('touchmove', moveDrag, { passive: false });
-        canvas.addEventListener('touchend', endDrag);
-
-        function cleanup() {
-            canvas.removeEventListener('mousedown', startDrag);
-            canvas.removeEventListener('mousemove', moveDrag);
-            canvas.removeEventListener('mouseup', endDrag);
-            canvas.removeEventListener('touchstart', startDrag);
-            canvas.removeEventListener('touchmove', moveDrag);
-            canvas.removeEventListener('touchend', endDrag);
-            modal.style.display = 'none';
-            URL.revokeObjectURL(img.src);
-        }
-
-        cancelBtn.onclick = cleanup;
-
-        doneBtn.onclick = () => {
-            if (!rect) {
-                if (typeof showToast === 'function') showToast('Please select an area first', 'error');
-                return;
-            }
-
-            const scaleOrigX = img.naturalWidth / canvas.width;
-            const scaleOrigY = img.naturalHeight / canvas.height;
-            const cropX = rect.x * scaleOrigX;
-            const cropY = rect.y * scaleOrigY;
-            const cropW = rect.w * scaleOrigX;
-            const cropH = rect.h * scaleOrigY;
-
-            const outCanvas = document.createElement('canvas');
-            outCanvas.width = cropW;
-            outCanvas.height = cropH;
-            const outCtx = outCanvas.getContext('2d');
-            outCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-            outCanvas.toBlob(blob => {
-                const croppedFile = new File([blob], file.name || 'cropped.jpg', {
-                    type: blob.type || 'image/jpeg',
-                    lastModified: Date.now()
-                });
-                window.accountImages[accountId][index] = croppedFile;
-                renderThumbnails(accountId);
-                mirrorToTwitter(accountId);   // full mirror after crop
-                if (typeof showToast === 'function') showToast('Image cropped!', 'success');
-                cleanup();
-            }, file.type || 'image/jpeg', 0.92);
+        canvas.onmousedown = (e) => {
+            const pos = getPos(e);
+            startX = pos.x; startY = pos.y; dragging = true; rect = null;
         };
+        window.onmousemove = (e) => {
+            if (!dragging) return;
+            const pos = getPos(e);
+            rect = { x: Math.min(startX, pos.x), y: Math.min(startY, pos.y), w: Math.abs(pos.x - startX), h: Math.abs(pos.y - startY) };
+            redrawCanvas();
+        };
+        window.onmouseup = () => { dragging = false; };
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) cleanup();
-        });
+        function cleanup() { modal.style.display = 'none'; URL.revokeObjectURL(img.src); canvas.onmousedown = null; window.onmousemove = null; }
+        cancelBtn.onclick = cleanup;
+        doneBtn.onclick = () => {
+            if (!rect) return;
+            const sX = img.naturalWidth / canvas.width, sY = img.naturalHeight / canvas.height;
+            const out = document.createElement('canvas');
+            out.width = rect.w * sX; out.height = rect.h * sY;
+            out.getContext('2d').drawImage(img, rect.x * sX, rect.y * sY, out.width, out.height, 0, 0, out.width, out.height);
+            out.toBlob(blob => {
+                const cropped = new File([blob], file.name, { type: file.type });
+                window.accountImages[accountId][index] = cropped;
+                renderThumbnails(accountId);
+                mirrorToTwitter(accountId);
+                cleanup();
+            }, file.type, 0.92);
+        };
     }
 
     // ---------- Setup Dropzones ----------
     function setupDropzones() {
         document.querySelectorAll('.dropzone[data-account]').forEach(dz => {
             const accountId = dz.dataset.account;
-            if (!accountId) return;
-
             dz.addEventListener('click', () => {
                 const input = document.createElement('input');
-                input.type = 'file';
-                input.multiple = true;
-                input.accept = 'image/*';
+                input.type = 'file'; input.multiple = true; input.accept = 'image/*';
                 input.onchange = () => {
-                    if (input.files.length) {
-                        const imgFiles = Array.from(input.files).filter(f => f.type.startsWith('image/'));
-                        window.accountImages[accountId].push(...imgFiles);
-                        renderThumbnails(accountId);
-                        mirrorToTwitter(accountId);   // full mirror after add
-                        if (typeof showToast === 'function') showToast(`+${imgFiles.length} images added`, 'success');
-                    }
+                    const files = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+                    window.accountImages[accountId].push(...files);
+                    renderThumbnails(accountId);
+                    mirrorToTwitter(accountId);
                 };
                 input.click();
             });
-
-            dz.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dz.style.borderColor = '#6a8e3c';
-            });
-            dz.addEventListener('dragleave', () => {
-                dz.style.borderColor = '#3a4050';
-            });
-            dz.addEventListener('drop', (e) => {
+            dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
+            dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
+            dz.addEventListener('drop', e => {
                 e.preventDefault();
                 dz.style.borderColor = '#3a4050';
                 const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                if (files.length) {
-                    window.accountImages[accountId].push(...files);
-                    renderThumbnails(accountId);
-                    mirrorToTwitter(accountId);   // full mirror after drop
-                    if (typeof showToast === 'function') showToast(`${files.length} dropped`, 'success');
-                }
+                window.accountImages[accountId].push(...files);
+                renderThumbnails(accountId);
+                mirrorToTwitter(accountId);
             });
         });
     }
 
-    // ---------- Post to Bluesky ----------
     async function postToBluesky(accountId) {
         const postEl = document.getElementById(`post${accountId}`);
-        if (!postEl) return;
-
         const text = postEl.value.trim();
         const images = window.accountImages[accountId] || [];
-
-        if (!text && images.length === 0) {
-            if (typeof showToast === 'function') showToast('Add text or image first', 'error');
-            return;
-        }
+        if (!text && images.length === 0) return;
 
         let statusDiv = document.getElementById(`post-status-${accountId}`);
         if (!statusDiv) {
             statusDiv = document.createElement('div');
             statusDiv.id = `post-status-${accountId}`;
-            statusDiv.style.marginTop = '8px';
-            statusDiv.style.fontSize = '12px';
             postEl.parentNode.appendChild(statusDiv);
         }
         statusDiv.textContent = '⏳ Posting...';
-        statusDiv.style.color = '#aaa';
 
         try {
             const formData = new FormData();
@@ -392,74 +245,34 @@
             formData.append('text', text);
             images.forEach(img => formData.append('image', img));
 
-            const response = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
-
+            const response = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', { method: 'POST', body: formData });
             if (response.ok) {
                 statusDiv.textContent = '✅ Posted!';
-                statusDiv.style.color = '#4caf50';
-                if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
-                mirrorToTwitter(accountId);   // clear Twitter mirrors
-                // cascade SFW post to Twitter
-                if (accountId == 1 && typeof window.sendToWorker === 'function') {
-                    window.sendToWorker(3);
-                }
-                setTimeout(() => statusDiv.textContent = '', 2500);
-            } else {
-                statusDiv.textContent = `❌ ${data.error || 'failed'}`;
-                if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
+                mirrorToTwitter(accountId);
+                if (accountId == 1 && typeof window.sendToWorker === 'function') window.sendToWorker(3);
+                setTimeout(() => statusDiv.textContent = '', 3000);
             }
-        } catch (err) {
-            statusDiv.textContent = `❌ ${err.message}`;
-            if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
-        }
+        } catch (err) { statusDiv.textContent = '❌ Failed'; }
     }
     window.postToBluesky = postToBluesky;
 
-    // ---------- Initialize ----------
     function init() {
-        if (!masterPost) {
-            console.warn('Bluesky Composer: Required elements not found.');
-            return;
-        }
-
-        function installCharCounter(textarea) {
-            if (!textarea) return;
-            const parent = textarea.parentNode;
-            if (parent.querySelector('.word-counter')) return;
-            const counter = document.createElement('div');
-            counter.className = 'word-counter';
-            counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
-            parent.insertBefore(counter, textarea.nextSibling);
-            textarea._wc = counter;
-            textarea.addEventListener('input', () => updateCharCounter(textarea));
-            textarea.addEventListener('keyup', () => updateCharCounter(textarea));
-            updateCharCounter(textarea);
-        }
-
-        installCharCounter(post1);
-        installCharCounter(post2);
-
-        // Master mirroring is now handled by twitter-composer.js
-
+        const p1 = document.getElementById('post1');
+        const p2 = document.getElementById('post2');
+        const install = (el) => {
+            if (!el) return;
+            const c = document.createElement('div'); c.className = 'word-counter';
+            el.parentNode.insertBefore(c, el.nextSibling); el._wc = c;
+            el.addEventListener('input', () => updateCharCounter(el));
+            updateCharCounter(el);
+        };
+        install(p1); install(p2);
         setupDropzones();
-        renderThumbnails(1);
-        renderThumbnails(2);
-        // initial mirror
-        mirrorToTwitter(1);
-        mirrorToTwitter(2);
+        renderThumbnails(1); renderThumbnails(2);
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     window.renderBlueskyThumbnails = renderThumbnails;
 })();
