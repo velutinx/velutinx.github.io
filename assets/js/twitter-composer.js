@@ -1,5 +1,6 @@
 // velutinx.github.io/assets/js/twitter-composer.js
 // Handles master mirroring + Twitter image/posting
+// (reads directly from Bluesky image arrays – no separate storage)
 
 (function() {
     'use strict';
@@ -61,66 +62,75 @@
         });
     }
 
-    // ---------- Twitter image storage ----------
-    window.twitterImages = { 1: [], 2: [], 3: [] };
-    const twitterSortables = {};
+    // ---------- Mapping: Twitter ID → Bluesky account ID ----------
+    const twitterToBlueskyMap = { 1: 2, 2: 2, 3: 1 };
 
+    function getBlueskySourceForTwitter(twitterAccId) {
+        const blueskyId = twitterToBlueskyMap[twitterAccId];
+        return blueskyId ? window.accountImages?.[blueskyId] : null;
+    }
+
+    // ---------- Render Twitter thumbnails from Bluesky arrays ----------
+    const twitterSortables = {};
     const renderTimers = { 1: null, 2: null, 3: null };
 
-    function renderTwitterThumbnails(accId) {
-        const container = document.getElementById(`tw-container-${accId}`);
+    function renderTwitterThumbnails(twitterAccId) {
+        const container = document.getElementById(`tw-container-${twitterAccId}`);
         if (!container) return;
 
         // Cancel any pending render
-        if (renderTimers[accId]) {
-            clearTimeout(renderTimers[accId]);
-            renderTimers[accId] = null;
+        if (renderTimers[twitterAccId]) {
+            clearTimeout(renderTimers[twitterAccId]);
+            renderTimers[twitterAccId] = null;
         }
 
-        // Debounce: schedule a render after 20ms
-        renderTimers[accId] = setTimeout(() => {
-            renderTimers[accId] = null;
+        renderTimers[twitterAccId] = setTimeout(() => {
+            renderTimers[twitterAccId] = null;
 
             container.style.display = 'flex';
             container.style.flexWrap = 'wrap';
             container.style.gap = '8px';
 
-            if (twitterSortables[accId]) {
-                twitterSortables[accId].destroy();
-                twitterSortables[accId] = null;
+            if (twitterSortables[twitterAccId]) {
+                twitterSortables[twitterAccId].destroy();
+                twitterSortables[twitterAccId] = null;
             }
 
-            const files = window.twitterImages[accId] || [];
+            const sourceArray = getBlueskySourceForTwitter(twitterAccId) || [];
             container.innerHTML = '';
 
-            // Create thumbnails synchronously (no FileReader)
-            files.forEach((file, idx) => {
+            sourceArray.forEach((file, idx) => {
                 const url = URL.createObjectURL(file);
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'cf-selected-item';
-                wrapper.dataset.index = idx;   // initial index
+                wrapper.dataset.index = idx;
+                wrapper.dataset.twitterAcc = twitterAccId;
+                wrapper.dataset.blueskySource = twitterToBlueskyMap[twitterAccId];
 
                 const thumb = document.createElement('img');
                 thumb.className = 'cf-selected-thumb';
                 thumb.src = url;
-
-                // Release the blob URL when the image is loaded or fails
                 thumb.onload = () => URL.revokeObjectURL(url);
                 thumb.onerror = () => URL.revokeObjectURL(url);
 
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'cf-remove-btn';
                 removeBtn.textContent = '✕';
-                // 🔧 Use the current DOM index, not the captured idx
                 removeBtn.onclick = (ev) => {
                     ev.stopPropagation();
                     const wrapperEl = ev.target.closest('.cf-selected-item');
                     if (!wrapperEl) return;
                     const currentIndex = parseInt(wrapperEl.dataset.index, 10);
-                    if (!isNaN(currentIndex) && window.twitterImages[accId][currentIndex]) {
-                        window.twitterImages[accId].splice(currentIndex, 1);
-                        renderTwitterThumbnails(accId);
+                    const blueskySrcId = parseInt(wrapperEl.dataset.blueskySource, 10);
+                    if (!isNaN(currentIndex) && blueskySrcId && window.accountImages?.[blueskySrcId]) {
+                        window.accountImages[blueskySrcId].splice(currentIndex, 1);
+                        // Refresh the Bluesky thumbnails and this Twitter card
+                        if (typeof window.renderBlueskyThumbnails === 'function') {
+                            window.renderBlueskyThumbnails(blueskySrcId);
+                        }
+                        renderTwitterThumbnails(twitterAccId);
+                        showToast('Image removed', 'info');
                     }
                 };
 
@@ -129,40 +139,48 @@
                 container.appendChild(wrapper);
             });
 
-            // Install Sortable after a short delay so thumbnails are in place
             setTimeout(() => {
-                // If another render was triggered in the meantime, skip
-                if (renderTimers[accId] !== null) return;
-
-                twitterSortables[accId] = new Sortable(container, {
+                if (renderTimers[twitterAccId] !== null) return;
+                twitterSortables[twitterAccId] = new Sortable(container, {
                     animation: 150,
                     handle: '.cf-selected-thumb',
                     ghostClass: 'cf-sortable-ghost',
                     onEnd: function() {
-                        // Rebuild array from current DOM order
+                        const blueskySrcId = twitterToBlueskyMap[twitterAccId];
+                        if (!blueskySrcId || !window.accountImages?.[blueskySrcId]) return;
                         const newOrder = [];
                         Array.from(container.children).forEach(child => {
                             const fileIndex = parseInt(child.dataset.index, 10);
-                            if (!isNaN(fileIndex) && window.twitterImages[accId][fileIndex]) {
-                                newOrder.push(window.twitterImages[accId][fileIndex]);
+                            if (!isNaN(fileIndex) && window.accountImages[blueskySrcId][fileIndex]) {
+                                newOrder.push(window.accountImages[blueskySrcId][fileIndex]);
                             }
                         });
-                        window.twitterImages[accId] = newOrder;
-                        // Update dataset indices to reflect the new order
-                        Array.from(container.children).forEach((child, i) => {
-                            child.dataset.index = i;
-                        });
+                        window.accountImages[blueskySrcId] = newOrder;
+                        // Refresh all thumbnails that use this source
+                        if (typeof window.renderBlueskyThumbnails === 'function') {
+                            window.renderBlueskyThumbnails(blueskySrcId);
+                        }
+                        // Re-render all Twitter cards that map to this Bluesky source
+                        for (const [twId, bsId] of Object.entries(twitterToBlueskyMap)) {
+                            if (bsId === blueskySrcId) {
+                                renderTwitterThumbnails(parseInt(twId));
+                            }
+                        }
+                        showToast('Order updated', 'info');
                     }
                 });
             }, 60);
         }, 20);
     }
 
-    // Dropzones for Twitter
+    // ---------- Twitter dropzones (add directly to Bluesky source) ----------
     function setupTwitterDropzones() {
-        for (let accId = 1; accId <= 3; accId++) {
-            const dz = document.getElementById(`tw-dz-${accId}`);
+        for (let twAccId = 1; twAccId <= 3; twAccId++) {
+            const dz = document.getElementById(`tw-dz-${twAccId}`);
             if (!dz) continue;
+            const blueskySrcId = twitterToBlueskyMap[twAccId];
+            if (!blueskySrcId) continue;
+
             dz.addEventListener('click', () => {
                 const input = document.createElement('input');
                 input.type = 'file';
@@ -170,13 +188,23 @@
                 input.accept = 'image/*';
                 input.onchange = () => {
                     if (input.files.length) {
-                        window.twitterImages[accId].push(...Array.from(input.files).filter(f => f.type.startsWith('image/')));
-                        renderTwitterThumbnails(accId);
-                        showToast(`+${input.files.length} image(s) added`, 'success');
+                        const imgFiles = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+                        // Ensure the Bluesky array exists
+                        if (!window.accountImages) window.accountImages = {};
+                        if (!window.accountImages[blueskySrcId]) window.accountImages[blueskySrcId] = [];
+                        window.accountImages[blueskySrcId].push(...imgFiles);
+                        // Refresh Bluesky card
+                        if (typeof window.renderBlueskyThumbnails === 'function') {
+                            window.renderBlueskyThumbnails(blueskySrcId);
+                        }
+                        // Refresh this Twitter card
+                        renderTwitterThumbnails(twAccId);
+                        showToast(`+${imgFiles.length} image(s) added`, 'success');
                     }
                 };
                 input.click();
             });
+
             dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
             dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
             dz.addEventListener('drop', e => {
@@ -184,26 +212,31 @@
                 dz.style.borderColor = '#3a4050';
                 const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
                 if (files.length) {
-                    window.twitterImages[accId].push(...files);
-                    renderTwitterThumbnails(accId);
+                    if (!window.accountImages) window.accountImages = {};
+                    if (!window.accountImages[blueskySrcId]) window.accountImages[blueskySrcId] = [];
+                    window.accountImages[blueskySrcId].push(...files);
+                    if (typeof window.renderBlueskyThumbnails === 'function') {
+                        window.renderBlueskyThumbnails(blueskySrcId);
+                    }
+                    renderTwitterThumbnails(twAccId);
                     showToast(`${files.length} dropped`, 'success');
                 }
             });
         }
     }
 
-    // Posting to Twitter
+    // ---------- Posting to Twitter ----------
     async function sendToWorker(accId) {
         const statusEl = document.getElementById(`tw-status-${accId}`);
         const textarea = document.getElementById(`twitter-post-${accId}`);
         if (!textarea) return;
         const text = textarea.value;
-        const images = window.twitterImages[accId] || [];
+        const sourceArray = getBlueskySourceForTwitter(accId) || [];
         statusEl.textContent = '⏳ Posting...';
         const formData = new FormData();
         formData.append('accId', accId.toString());
         formData.append('text', text);
-        images.forEach(img => formData.append('images', img));
+        sourceArray.forEach(img => formData.append('images', img));
         try {
             const res = await fetch('https://twitter-post.velutinx.workers.dev', {
                 method: 'POST',
@@ -214,7 +247,14 @@
                 statusEl.textContent = '✅ Posted!';
                 statusEl.style.color = '#4CAF50';
                 showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
-                window.twitterImages[accId] = [];
+                // Clear the source array
+                const blueskySrcId = twitterToBlueskyMap[accId];
+                if (blueskySrcId && window.accountImages?.[blueskySrcId]) {
+                    window.accountImages[blueskySrcId] = [];
+                    if (typeof window.renderBlueskyThumbnails === 'function') {
+                        window.renderBlueskyThumbnails(blueskySrcId);
+                    }
+                }
                 renderTwitterThumbnails(accId);
             } else {
                 statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
@@ -228,12 +268,17 @@
     }
     window.sendToWorker = sendToWorker;
 
-    // Init
+    // ---------- Init ----------
     function init() {
         for (let i = 1; i <= 3; i++) {
             installTwitterCounter(document.getElementById(`twitter-post-${i}`));
         }
         setupTwitterDropzones();
+        // Ensure Bluesky arrays exist (they'll be created by bluesky-composer.js too)
+        if (!window.accountImages) {
+            window.accountImages = { 1: [], 2: [] };
+        }
+        // Initial renders
         renderTwitterThumbnails(1);
         renderTwitterThumbnails(2);
         renderTwitterThumbnails(3);
