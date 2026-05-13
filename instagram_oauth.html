@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Instagram Token Helper</title>
+</head>
+<body>
+    <h3>Instagram Long‑Lived Token Generator</h3>
+    <p>Click the button to log in with Instagram and get your token.</p>
+    <button onclick="startAuth()">Authorize with Instagram</button>
+
+    <div id="results" style="margin-top:20px; white-space:pre-wrap; font-family: monospace;"></div>
+
+    <script>
+        // ⬇️ REPLACE THESE TWO VALUES ⬇️
+        const INSTAGRAM_APP_ID = '1532426288513731';
+        const APP_SECRET = '177e41a1e2db371e65bdc2a3916f163f';
+        // ⬆️ REPLACE THESE TWO VALUES ⬆️
+
+        const REDIRECT_URI = 'https://velutinx.com/instagram-callback';
+
+        function startAuth() {
+            const authUrl = `https://www.instagram.com/oauth/authorize?client_id=${INSTAGRAM_APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=instagram_business_basic,instagram_business_content_publish`;
+            window.location.href = authUrl;
+        }
+
+        async function exchangeCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (!code) return;
+
+            document.getElementById('results').textContent = 'Exchanging code for short‑lived token...';
+
+            const formData = new FormData();
+            formData.append('client_id', INSTAGRAM_APP_ID);
+            formData.append('client_secret', APP_SECRET);
+            formData.append('grant_type', 'authorization_code');
+            formData.append('redirect_uri', REDIRECT_URI);
+            formData.append('code', code);
+
+            try {
+                const res = await fetch('https://api.instagram.com/oauth/access_token', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.access_token) {
+                    document.getElementById('results').textContent = 'Got short‑lived token. Exchanging for long‑lived...';
+                    
+                    const longLivedRes = await fetch(`https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${APP_SECRET}&access_token=${data.access_token}`);
+                    const longLivedData = await longLivedRes.json();
+
+                    if (longLivedData.access_token) {
+                        document.getElementById('results').textContent = 
+                            '✅ SUCCESS\n\n' +
+                            'Long‑lived token (copy this):\n' + longLivedData.access_token + '\n\n' +
+                            'Instagram User ID (copy this too):\n' + data.user_id + '\n\n' +
+                            'Expires in: ' + (longLivedData.expires_in / 86400).toFixed(0) + ' days';
+                    } else {
+                        document.getElementById('results').textContent = 'Long‑lived exchange failed:\n' + JSON.stringify(longLivedData, null, 2);
+                    }
+                } else {
+                    document.getElementById('results').textContent = 'Code exchange failed:\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (err) {
+                document.getElementById('results').textContent = 'Network error: ' + err.message;
+            }
+        }
+
+        exchangeCode();
+    </script>
+</body>
+</html>
