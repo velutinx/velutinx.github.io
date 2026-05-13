@@ -24,8 +24,11 @@
         return id;
     }
 
-    // ---------- State: arrays of image IDs ----------
+    // ---------- State arrays ----------
     window.accountImages = window.accountImages || { 1: [], 2: [] };
+    // Separate storage for Twitter cards (IDs only)
+    window.twitterImageIds = window.twitterImageIds || { 1: [], 2: [], 3: [] };
+
     const sortableInstances = { 1: null, 2: null };
 
     // ---------- DOM Elements ----------
@@ -35,7 +38,6 @@
 
     // ---------- SFW Twitter button lock helpers ----------
     function getSfwTwitterBtn() {
-        // The button that calls sendToWorker(3) – SFW Twitter
         return document.querySelector('button[onclick="sendToWorker(3)"]');
     }
     function disableSfwTwitterBtn() {
@@ -62,8 +64,8 @@
             twTextarea.value = '';
             twTextarea.dispatchEvent(new Event('input'));
         }
-        // The Twitter card reads from accountImages[1], so clearing that clears the Twitter images too
-        window.accountImages[1] = [];
+        // Clear the SFW Twitter image IDs (mirrored from SFW Bluesky)
+        window.twitterImageIds[3] = [];
         if (typeof window.renderTwitterThumbnails === 'function') {
             window.renderTwitterThumbnails(3);
         }
@@ -73,8 +75,6 @@
         disableSfwTwitterBtn();
     }
     function unlockSfwTwitterIfNeeded() {
-        // Re-enable the SFW Twitter button if there's content in either
-        // the SFW Bluesky card or the SFW Twitter textarea
         const twText = (document.getElementById('twitter-post-3')?.value || '').trim();
         const bsText = (post1?.value || '').trim();
         const bsImages = window.accountImages[1]?.length || 0;
@@ -84,17 +84,24 @@
     }
 
     // ---------- Refresh Twitter cards ----------
+    // Now uses the separate twitterImageIds for accounts 1&2, and accountImages[1] for account 3
     function refreshTwitterFromBluesky(blueskyAccountId) {
         if (typeof window.renderTwitterThumbnails !== 'function') return;
         if (blueskyAccountId == 1) {
+            // SFW: Twitter 3 mirrors Bluesky 1
+            window.twitterImageIds[3] = [...window.accountImages[1]];
             window.renderTwitterThumbnails(3);
         } else if (blueskyAccountId == 2) {
+            // NSFW: copy IDs to Twitter 1 & 2 (only when adding images, not on post)
+            // This function is no longer called after post, but kept for adding
+            window.twitterImageIds[1] = [...window.accountImages[2]];
+            window.twitterImageIds[2] = [...window.accountImages[2]];
             window.renderTwitterThumbnails(1);
             window.renderTwitterThumbnails(2);
         }
     }
 
-    // ---------- Render Thumbnails ----------
+    // ---------- Render Thumbnails (Bluesky cards) ----------
     function renderThumbnails(accountId) {
         const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
         if (!container) return;
@@ -146,6 +153,16 @@
                 if (removedId) {
                     const pos = window.accountImages[accountId].indexOf(removedId);
                     if (pos !== -1) window.accountImages[accountId].splice(pos, 1);
+                    // Also remove from the corresponding Twitter arrays
+                    if (accountId == 2) {
+                        [1, 2].forEach(twId => {
+                            const twPos = window.twitterImageIds[twId].indexOf(removedId);
+                            if (twPos !== -1) window.twitterImageIds[twId].splice(twPos, 1);
+                        });
+                    } else if (accountId == 1) {
+                        const twPos = window.twitterImageIds[3].indexOf(removedId);
+                        if (twPos !== -1) window.twitterImageIds[3].splice(twPos, 1);
+                    }
                     let inUse = false;
                     for (const arr of Object.values(window.accountImages)) {
                         if (arr.includes(removedId)) { inUse = true; break; }
@@ -153,7 +170,13 @@
                     if (!inUse) delete window.imageRegistry[removedId];
                 }
                 renderThumbnails(accountId);
-                refreshTwitterFromBluesky(accountId);
+                // Refresh Twitter cards that were affected
+                if (accountId == 1) {
+                    window.renderTwitterThumbnails(3);
+                } else if (accountId == 2) {
+                    window.renderTwitterThumbnails(1);
+                    window.renderTwitterThumbnails(2);
+                }
                 // Unlock SFW Twitter if relevant
                 if (accountId == 1) unlockSfwTwitterIfNeeded();
                 if (typeof showToast === 'function') showToast('Image removed', 'info');
@@ -181,7 +204,16 @@
                     });
                     window.accountImages[accountId] = newOrder;
                     Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
-                    refreshTwitterFromBluesky(accountId);
+                    // Update the corresponding Twitter arrays
+                    if (accountId == 2) {
+                        window.twitterImageIds[1] = [...newOrder];
+                        window.twitterImageIds[2] = [...newOrder];
+                        window.renderTwitterThumbnails(1);
+                        window.renderTwitterThumbnails(2);
+                    } else if (accountId == 1) {
+                        window.twitterImageIds[3] = [...newOrder];
+                        window.renderTwitterThumbnails(3);
+                    }
                     if (typeof showToast === 'function') showToast('Order updated', 'info');
                 }
             });
@@ -318,8 +350,14 @@
                 const currentId = window.accountImages[accountId][index];
                 window.imageRegistry[currentId] = croppedFile;
                 renderThumbnails(accountId);
-                refreshTwitterFromBluesky(accountId);
-                if (accountId == 1) unlockSfwTwitterIfNeeded();
+                // Refresh the corresponding Twitter cards (they will re-fetch the updated file)
+                if (accountId == 1) {
+                    window.renderTwitterThumbnails(3);
+                    unlockSfwTwitterIfNeeded();
+                } else if (accountId == 2) {
+                    window.renderTwitterThumbnails(1);
+                    window.renderTwitterThumbnails(2);
+                }
                 if (typeof showToast === 'function') showToast('Image cropped!', 'success');
                 cleanup();
             }, file.type || 'image/jpeg', 0.92);
@@ -341,11 +379,22 @@
                         files.forEach(f => {
                             const id = addImage(f);
                             window.accountImages[accountId].push(id);
+                            // Mirror to Twitter arrays
+                            if (accountId == 2) {
+                                window.twitterImageIds[1].push(id);
+                                window.twitterImageIds[2].push(id);
+                            } else if (accountId == 1) {
+                                window.twitterImageIds[3].push(id);
+                            }
                         });
                         renderThumbnails(accountId);
-                        refreshTwitterFromBluesky(accountId);
-                        // Unlock SFW Twitter when new images are added to SFW Bluesky
-                        if (accountId == 1) unlockSfwTwitterIfNeeded();
+                        if (accountId == 2) {
+                            window.renderTwitterThumbnails(1);
+                            window.renderTwitterThumbnails(2);
+                        } else if (accountId == 1) {
+                            window.renderTwitterThumbnails(3);
+                            unlockSfwTwitterIfNeeded();
+                        }
                         if (typeof showToast === 'function') showToast(`+${files.length} images added`, 'success');
                     }
                 };
@@ -361,10 +410,21 @@
                     files.forEach(f => {
                         const id = addImage(f);
                         window.accountImages[accountId].push(id);
+                        if (accountId == 2) {
+                            window.twitterImageIds[1].push(id);
+                            window.twitterImageIds[2].push(id);
+                        } else if (accountId == 1) {
+                            window.twitterImageIds[3].push(id);
+                        }
                     });
                     renderThumbnails(accountId);
-                    refreshTwitterFromBluesky(accountId);
-                    if (accountId == 1) unlockSfwTwitterIfNeeded();
+                    if (accountId == 2) {
+                        window.renderTwitterThumbnails(1);
+                        window.renderTwitterThumbnails(2);
+                    } else if (accountId == 1) {
+                        window.renderTwitterThumbnails(3);
+                        unlockSfwTwitterIfNeeded();
+                    }
                     if (typeof showToast === 'function') showToast(`${files.length} dropped`, 'success');
                 }
             });
@@ -403,18 +463,17 @@
                 statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
 
-                // ---- SFW SAFEGUARD: lock SFW Twitter after SFW Bluesky post ----
-                if (accountId == 1) {
-                    lockSfwTwitter();
-                }
-
+                // Clear the Bluesky array
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
-                refreshTwitterFromBluesky(accountId);
-                // Cascade SFW post to Twitter account 3 (only if not locked – but we already locked it, so this won't fire)
-                if (accountId == 1 && typeof window.sendToWorker === 'function') {
-                    // Don't auto-post to Twitter; user must manually re-enable
-                    // window.sendToWorker(3);
+
+                if (accountId == 1) {
+                    // SFW: lock Twitter (already clears Twitter 3 images and text)
+                    lockSfwTwitter();
+                    // No auto-tweet
+                } else if (accountId == 2) {
+                    // NSFW: DO NOT clear Twitter arrays – they stay as they were
+                    // No refresh needed; Twitter thumbnails are unchanged
                 }
                 setTimeout(() => statusDiv.textContent = '', 2500);
             } else {
@@ -460,7 +519,7 @@
         const clearBtn = document.getElementById('clearAllBtn');
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
-                // Clear ONLY Tweeter tab textareas
+                // Clear textareas
                 if (masterPost) masterPost.value = '';
                 if (post1) post1.value = '';
                 if (post2) post2.value = '';
@@ -473,12 +532,15 @@
                 }
                 [post1, post2].forEach(el => el && el.dispatchEvent(new Event('input')));
 
-                // Clear image arrays and registry
+                // Clear all image arrays
                 window.accountImages[1] = [];
                 window.accountImages[2] = [];
+                window.twitterImageIds[1] = [];
+                window.twitterImageIds[2] = [];
+                window.twitterImageIds[3] = [];
                 window.imageRegistry = {};
 
-                // Re-render all Tweeter thumbnails
+                // Re-render all thumbnails
                 if (typeof window.renderBlueskyThumbnails === 'function') {
                     window.renderBlueskyThumbnails(1);
                     window.renderBlueskyThumbnails(2);
@@ -489,23 +551,19 @@
                     window.renderTwitterThumbnails(3);
                 }
 
-                // Re-enable SFW Twitter button (everything is cleared)
+                // Re-enable SFW Twitter button
                 enableSfwTwitterBtn();
 
                 if (typeof showToast === 'function') showToast('Tweeter cells cleared!', 'info');
             });
         }
 
-        // ---------- Unlock SFW Twitter button when text is typed ----------
-        // Monitor SFW Bluesky textarea and SFW Twitter textarea for changes
+        // Monitor for SFW unlock
         [post1, document.getElementById('twitter-post-3')].forEach(el => {
             if (!el) return;
-            el.addEventListener('input', () => {
-                unlockSfwTwitterIfNeeded();
-            });
+            el.addEventListener('input', unlockSfwTwitterIfNeeded);
         });
 
-        // Initial lock state: if SFW Bluesky already has content, unlock Twitter button
         unlockSfwTwitterIfNeeded();
     }
 
