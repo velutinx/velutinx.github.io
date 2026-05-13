@@ -1,5 +1,4 @@
 // velutinx.github.io/assets/js/twitter-composer.js
-// Handles master mirroring + Twitter image/posting
 
 (function() {
     'use strict';
@@ -57,8 +56,6 @@
     if (master) {
         master.addEventListener('input', () => {
             allChildren.forEach(ta => { ta.value = master.value; });
-            // Update counters for Bluesky ones (they have their own limit, 300)
-            // but we just trigger the event; their listeners will handle it.
             allChildren.forEach(ta => ta.dispatchEvent(new Event('input')));
         });
     }
@@ -67,59 +64,86 @@
     window.twitterImages = { 1: [], 2: [], 3: [] };
     const twitterSortables = {};
 
+    // Debounce timers – one per account
+    const renderTimers = { 1: null, 2: null, 3: null };
+
     function renderTwitterThumbnails(accId) {
         const container = document.getElementById(`tw-container-${accId}`);
         if (!container) return;
-        container.style.display = 'flex';
-        container.style.flexWrap = 'wrap';
-        container.style.gap = '8px';
-        if (twitterSortables[accId]) {
-            twitterSortables[accId].destroy();
-            twitterSortables[accId] = null;
+
+        // Cancel any pending render for this account
+        if (renderTimers[accId]) {
+            clearTimeout(renderTimers[accId]);
+            renderTimers[accId] = null;
         }
-        const files = window.twitterImages[accId] || [];
-        container.innerHTML = '';
-        files.forEach((file, idx) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'cf-selected-item';
-                wrapper.dataset.index = idx;
-                const thumb = document.createElement('img');
-                thumb.className = 'cf-selected-thumb';
-                thumb.src = e.target.result;
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'cf-remove-btn';
-                removeBtn.textContent = '✕';
-                removeBtn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    window.twitterImages[accId].splice(idx, 1);
-                    renderTwitterThumbnails(accId);
+
+        // Wait a very short time before rendering (coalesces rapid calls)
+        renderTimers[accId] = setTimeout(() => {
+            renderTimers[accId] = null;
+
+            container.style.display = 'flex';
+            container.style.flexWrap = 'wrap';
+            container.style.gap = '8px';
+
+            if (twitterSortables[accId]) {
+                twitterSortables[accId].destroy();
+                twitterSortables[accId] = null;
+            }
+
+            const files = window.twitterImages[accId] || [];
+            container.innerHTML = '';
+
+            files.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Only proceed if this render wasn't superseded
+                    if (renderTimers[accId] !== null) return;
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'cf-selected-item';
+                    wrapper.dataset.index = idx;
+
+                    const thumb = document.createElement('img');
+                    thumb.className = 'cf-selected-thumb';
+                    thumb.src = e.target.result;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'cf-remove-btn';
+                    removeBtn.textContent = '✕';
+                    removeBtn.onclick = (ev) => {
+                        ev.stopPropagation();
+                        window.twitterImages[accId].splice(idx, 1);
+                        renderTwitterThumbnails(accId);
+                    };
+
+                    wrapper.appendChild(thumb);
+                    wrapper.appendChild(removeBtn);
+                    container.appendChild(wrapper);
                 };
-                wrapper.appendChild(thumb);
-                wrapper.appendChild(removeBtn);
-                container.appendChild(wrapper);
-            };
-            reader.readAsDataURL(file);
-        });
-        setTimeout(() => {
-            twitterSortables[accId] = new Sortable(container, {
-                animation: 150,
-                handle: '.cf-selected-thumb',
-                ghostClass: 'cf-sortable-ghost',
-                onEnd: function() {
-                    const newOrder = [];
-                    Array.from(container.children).forEach(child => {
-                        const oldIdx = parseInt(child.dataset.index, 10);
-                        if (!isNaN(oldIdx) && window.twitterImages[accId][oldIdx]) {
-                            newOrder.push(window.twitterImages[accId][oldIdx]);
-                        }
-                    });
-                    window.twitterImages[accId] = newOrder;
-                    Array.from(container.children).forEach((child, i) => child.dataset.index = i);
-                }
+                reader.readAsDataURL(file);
             });
-        }, 50);
+
+            // Install Sortable after a brief delay to let thumbnails appear
+            setTimeout(() => {
+                if (renderTimers[accId] !== null) return; // another render superseded
+                twitterSortables[accId] = new Sortable(container, {
+                    animation: 150,
+                    handle: '.cf-selected-thumb',
+                    ghostClass: 'cf-sortable-ghost',
+                    onEnd: function() {
+                        const newOrder = [];
+                        Array.from(container.children).forEach(child => {
+                            const oldIdx = parseInt(child.dataset.index, 10);
+                            if (!isNaN(oldIdx) && window.twitterImages[accId][oldIdx]) {
+                                newOrder.push(window.twitterImages[accId][oldIdx]);
+                            }
+                        });
+                        window.twitterImages[accId] = newOrder;
+                        Array.from(container.children).forEach((child, i) => child.dataset.index = i);
+                    }
+                });
+            }, 60);
+        }, 20); // 20ms debounce
     }
 
     // Dropzones for Twitter
@@ -174,31 +198,29 @@
                 body: formData
             });
             const data = await res.json();
-if (data.success && data.data?.data?.id) {
-    statusEl.textContent = '✅ Posted!';
-    statusEl.style.color = '#4CAF50';
-    showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
-    window.twitterImages[accId] = [];
-    renderTwitterThumbnails(accId);
-} else {
-    statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
-    statusEl.style.color = '#f44336';
-    console.error(data);
-}
+            if (data.success && data.data?.data?.id) {
+                statusEl.textContent = '✅ Posted!';
+                statusEl.style.color = '#4CAF50';
+                showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
+                window.twitterImages[accId] = [];
+                renderTwitterThumbnails(accId);
+            } else {
+                statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
+                statusEl.style.color = '#f44336';
+                console.error(data);
+            }
         } catch (err) {
             statusEl.textContent = '❌ Connection Failed';
             statusEl.style.color = '#f44336';
         }
     }
-    window.sendToWorker = sendToWorker;   // for onclick
+    window.sendToWorker = sendToWorker;
 
     // Init
     function init() {
-        // Install counters on Twitter textareas
         for (let i = 1; i <= 3; i++) {
             installTwitterCounter(document.getElementById(`twitter-post-${i}`));
         }
-        // Also install counters on Bluesky ones (do nothing, they already have their own)
         setupTwitterDropzones();
         renderTwitterThumbnails(1);
         renderTwitterThumbnails(2);
