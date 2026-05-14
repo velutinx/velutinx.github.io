@@ -17,21 +17,21 @@
     }
 
     async function initBanner() {
-        const show = await shouldShowBanner();
-//        console.log('Banner should show:', show); // helpful debug
         const banner = document.querySelector('.sandbox-banner');
         if (!banner) {
             console.warn('Banner element not found');
             return;
         }
 
+        const show = await shouldShowBanner();
         if (!show) {
-            banner.remove();
-  //          console.log('Banner removed');
+            // Live environment – banner stays hidden (CSS display:none), nothing else to do
             return;
         }
 
-        // Banner should be shown – run the animation
+        // Show the banner and then start the animation
+        banner.classList.add('visible');
+
         const ticker = banner.querySelector('.ticker');
         const messageSpan = banner.querySelector('.text');
         if (!ticker || !messageSpan) return;
