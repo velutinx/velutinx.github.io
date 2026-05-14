@@ -1,5 +1,6 @@
 /* Sandbox Mode Banner – fixed at bottom, ticker text */
 .sandbox-banner {
+    display: none;               /* hidden by default, shown only when .visible is added */
     position: fixed;
     bottom: 0;
     left: 0;
@@ -7,11 +8,15 @@
     height: 50px;
     overflow: hidden;
     background: #200000;
-    display: flex;
     align-items: center;
     border-top: 2px solid #ff0000;
     z-index: 9999;
     box-shadow: 0 -5px 15px rgba(255, 0, 0, 0.3);
+}
+
+/* Shown state – flex layout for the ticker content */
+.sandbox-banner.visible {
+    display: flex;
 }
 
 .sandbox-banner .ticker {
