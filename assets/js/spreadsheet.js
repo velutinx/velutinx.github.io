@@ -733,8 +733,6 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-    // No zero‑hiding – lines now correctly reflect permanent totals
-
     // -------------------------------------------------------------
     // 5. Build the reference lines (last month's final values)
     // -------------------------------------------------------------
@@ -772,25 +770,36 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 6. Draw the chart
+    // 6. Draw the chart – build datasets dynamically, hide zero‑only income lines
     // -------------------------------------------------------------
+    const datasets = [];
+
+    // Helper: return true if any value in the array is non‑zero
+    const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
+
+    if (hasNonZero(patreonCum)) {
+        datasets.push({ label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 });
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (hasNonZero(websiteCum)) {
+        datasets.push({ label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 });
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (hasNonZero(kofiCum)) {
+        datasets.push({ label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 });
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+
+    // Expenses and Net Income are always shown (even if zero)
+    datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
+    datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
+    // Net Income reference (always add, but data may be all null → invisible)
+    datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            datasets: [
-                { label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Expenses (abs)', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 },
-                { label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 },
-                // Dotted reference lines (hidden from legend)
-                { label: '', data: dates.map((d, i) => ({ x: d, y: patreonRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
-                { label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
-                { label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false },
-                { label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false }
-            ]
-        },
+        data: { datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
