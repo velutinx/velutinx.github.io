@@ -413,20 +413,20 @@
     }
 
     // ==================== ADD GLOW BORDER TO PACK DETAILS ====================
-    function addPackPageGlow(pack) {
-      const gallery = document.getElementById('gallery');
-      if (!gallery) return;
+function addPackPageGlow(pack) {
+  const carousel = document.querySelector('#gallery .carousel');
+  if (!carousel) return;
 
-      const category = pack.category;   // 1 = female, 2 = femboy
-      const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
+  const category = pack.category;   // 1 = female, 2 = femboy
+  const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
 
-      // Only add glow to the gallery card, never the info panel
-      if (!gallery.querySelector('.border-glow')) {
-        const glow = document.createElement('div');
-        glow.className = 'border-glow ' + glowClass;
-        gallery.prepend(glow);
-      }
-    }
+  // Only add glow if it doesn't exist already
+  if (!carousel.querySelector('.border-glow')) {
+    const glow = document.createElement('div');
+    glow.className = 'border-glow ' + glowClass;
+    carousel.prepend(glow);
+  }
+}
 
     // ==================== INITIALISE PACK ====================
     async function initPack() {
