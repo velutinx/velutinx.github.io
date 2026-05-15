@@ -163,9 +163,7 @@ body.dark .shop-title { color: var(--accent); }
 body.dark .leaderboard-entry { background: rgba(255, 255, 255, 0.03); }
 .leaderboard-entry.moving { z-index: 10; }
 
-/* ================================================================
-   STORE PAGE – ANIMATED GLOW BORDER CARDS + LAYOUT
-   ================================================================ */
+/*  STORE PAGE – ANIMATED GLOW BORDER CARDS + LAYOUT */
 :root { --pink-glow-1: rgba(255, 105, 180, 0.15); --pink-glow-2: rgba(255, 20, 147, 0.4); --pink-glow-3: #ff1493; --pink-glow-4: #ff69b4; --blue-glow-1: rgba(30, 144, 255, 0.15); --blue-glow-2: rgba(0, 191, 255, 0.4); --blue-glow-3: #1e90ff; --blue-glow-4: #00bfff; --gold-glow-1: rgba(255, 215, 0, 0.15); --gold-glow-2: rgba(255, 180, 0, 0.4); --gold-glow-3: #ffd700; --gold-glow-4: #ffaa00; }
 .main-container { display: flex; max-width: 1600px; margin: 0 auto; padding: 1.5rem 2rem 2rem; gap: 2rem; }
 .store-filter-sidebar { width: 260px; flex-shrink: 0; }
@@ -195,15 +193,7 @@ body.dark .leaderboard-entry { background: rgba(255, 255, 255, 0.03); }
 .glow-blue { background: conic-gradient(from 0deg, transparent 0deg, transparent 260deg, var(--blue-glow-1) 280deg, var(--blue-glow-2) 295deg, var(--blue-glow-3) 315deg, var(--blue-glow-4) 325deg, #ffffff 332deg, var(--blue-glow-4) 340deg, var(--blue-glow-3) 350deg, var(--blue-glow-2) 355deg, transparent 360deg); }
 .glow-gold { background: conic-gradient(from 0deg, transparent 0deg, transparent 260deg, var(--gold-glow-1) 280deg, var(--gold-glow-2) 295deg, var(--gold-glow-3) 315deg, var(--gold-glow-4) 325deg, #ffffff 332deg, var(--gold-glow-4) 340deg, var(--gold-glow-3) 350deg, var(--gold-glow-2) 355deg, transparent 360deg); }
 @keyframes borderSpin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-.card-inner {
-  position: relative;
-  margin: 3px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--card);           /* keep this */
-  background-color: var(--card);     /* add this – ensures full opacity */
-  z-index: 3;
-}
+.card-inner { position: relative; margin: 3px; border-radius: 20px; overflow: hidden; background: var(--card); background-color: var(--card); z-index: 3; }
 .card-image { width: 100%; aspect-ratio: 3/3.5; object-fit: cover; display: block; background: #d9d4c2; }
 .card-content { padding: 1rem; }
 .card-title { font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
@@ -213,17 +203,10 @@ body.dark .leaderboard-entry { background: rgba(255, 255, 255, 0.03); }
 .cart-btn svg { width: 26px; height: 26px; }
 .cart-btn.added { background: var(--success); }
 .loading-spinner { text-align: center; padding: 3rem; font-size: 1.2rem; color: var(--text-light); }
-.product-card .card-inner .card-content {
-  min-height: 160px;    /* was 120px */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
+.product-card .card-inner .card-content { min-height: 160px; display: flex; flex-direction: column; justify-content: space-between; }
 .product-card .card-inner .price-row { min-height: 44px; align-items: center; }
 
-/* ================================================================
-   PACK DETAILS PAGE
-   ================================================================ */
+/* PACK DETAILS PAGE */
 .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
 @media (min-width: 600px) { .container { padding: 0 24px; } }
 main { padding: 40px 0; }
@@ -264,48 +247,10 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 .btn-cart.remove-mode { background: #ef4444; }
 .btn-cart:hover { filter: brightness(0.9); }
 
-
-/* ================================================================
-   FINAL GLOW OVERRIDE – force consistent thin border everywhere
-   ================================================================ */
-.product-card,
-.product-card[class] {
-  border: none !important;
-  box-shadow: none !important;
-  background: #000 !important;
-  border-radius: 24px !important;
-}
-
-.card-inner {
-  margin: 3px !important;
-  border-radius: 20px !important;
-  background-color: var(--card) !important;
-  background-image: none !important;
-}
-
-.border-glow {
-  width: 200% !important;
-  height: 200% !important;
-  top: 50% !important;
-  left: 50% !important;
-  animation: borderSpin 4s linear infinite !important;
-}
-
-/* Force all cards to have the same content height so the gap never varies */
-.product-card .card-inner .card-content {
-  min-height: 180px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-}
-
-.product-card .card-inner .price-row {
-  min-height: 44px !important;
-  align-items: center !important;
-}
-
-/* Ensure the membership card link behaves exactly like a normal button row */
-.product-card .card-inner .price-row a {
-  margin: auto !important;
-  display: inline-block !important;
-}
+/* FINAL GLOW OVERRIDE – force consistent thin border everywhere */
+.product-card, .product-card[class] { border: none !important; box-shadow: none !important; background: #000 !important; border-radius: 24px !important; }
+.card-inner { margin: 3px !important; border-radius: 20px !important; background-color: var(--card) !important; background-image: none !important; }
+.border-glow { width: 200% !important; height: 200% !important; top: 50% !important; left: 50% !important; animation: borderSpin 4s linear infinite !important; }
+.product-card .card-inner .card-content { min-height: 180px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; }
+.product-card .card-inner .price-row { min-height: 44px !important; align-items: center !important; }
+.product-card .card-inner .price-row a { margin: auto !important; display: inline-block !important; }
