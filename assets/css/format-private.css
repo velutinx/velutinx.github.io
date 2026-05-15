@@ -181,24 +181,26 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
    ================================================================ */
 
 :root {
-  /* Glow colours */
+  /* Pink glow (category 1 – Female) */
   --pink-glow-1: rgba(255, 105, 180, 0.15);
   --pink-glow-2: rgba(255, 20, 147, 0.4);
   --pink-glow-3: #ff1493;
   --pink-glow-4: #ff69b4;
 
+  /* Blue glow (category 2 – Femboy) */
   --blue-glow-1: rgba(30, 144, 255, 0.15);
   --blue-glow-2: rgba(0, 191, 255, 0.4);
   --blue-glow-3: #1e90ff;
   --blue-glow-4: #00bfff;
 
+  /* Gold glow (membership, category 3) */
   --gold-glow-1: rgba(255, 215, 0, 0.15);
   --gold-glow-2: rgba(255, 180, 0, 0.4);
   --gold-glow-3: #ffd700;
   --gold-glow-4: #ffaa00;
 }
 
-/* ---------- Store layout (moved from inline <style>) ---------- */
+/* ---------- Store layout ---------- */
 .main-container {
   display: flex;
   max-width: 1600px;
@@ -340,7 +342,7 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
-/* Thin dark frame behind the glow (optional) */
+/* Thin dark frame behind the glow */
 .product-card::before {
   content: "";
   position: absolute;
@@ -429,7 +431,7 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 /* Inner card that sits on top of the glow */
 .card-inner {
   position: relative;
-  margin: 3px;                 /* exposes the glow as a border */
+  margin: 3px;                 /* this gap exposes the glow as a border */
   border-radius: 20px;
   overflow: hidden;
   background: var(--card);    /* dark card face */
@@ -442,7 +444,7 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
   aspect-ratio: 3/3.5;
   object-fit: cover;
   display: block;
-  background: #d9d4c2;        /* fallback */
+  background: #d9d4c2;        /* fallback while image loads */
 }
 
 /* Card content area */
