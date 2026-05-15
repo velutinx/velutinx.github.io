@@ -129,9 +129,6 @@ body.dark .shop-title { color: var(--accent); }
 .input-base:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(170,158,118,0.2); }
 .input-element { flex: 1; padding: 12px; background: transparent; border: none; outline: none; color: var(--text); font-size: 0.95rem; }
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 1.8rem; }
-.product-card { background: var(--card); border-radius: 16px; overflow: hidden; transition: all 0.25s; border: 1px solid var(--border); cursor: pointer; position: relative; }
-.product-card.hidden { display: none; }
-.product-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
 .card-image { width: 100%; aspect-ratio: 3 / 3.7; object-fit: cover; display: block; }
 .card-content { padding: 1.2rem; }
 .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
