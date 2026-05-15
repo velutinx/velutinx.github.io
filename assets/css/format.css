@@ -254,3 +254,41 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 .product-card .card-inner .card-content { min-height: 180px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; }
 .product-card .card-inner .price-row { min-height: 44px !important; align-items: center !important; }
 .product-card .card-inner .price-row a { margin: auto !important; display: inline-block !important; }
+
+
+/* ================================================================
+   PACK DETAILS GLOW BORDER
+   ================================================================ */
+
+/* Make the two cards positioned containers for the glow */
+.gallery-card,
+.info-card {
+  position: relative;
+  overflow: hidden;   /* clip the rotating glow */
+}
+
+/* Glow element inside the cards – same technique as store */
+.gallery-card .border-glow,
+.info-card .border-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: 1;
+  pointer-events: none;
+  animation: borderSpin 4s linear infinite;
+}
+
+/* Keep the actual card content above the glow */
+.gallery-card > .carousel,
+.gallery-card > .thumbnails,
+.info-card > .info {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure the info panel has a solid background to cover the glow */
+.info-card > .info {
+  background: var(--card);
+}
