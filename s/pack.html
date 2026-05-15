@@ -413,20 +413,20 @@
     }
 
     // ==================== ADD GLOW BORDER TO PACK DETAILS ====================
-    function addPackPageGlow(pack) {
-      const gallery = document.getElementById('gallery');
-      const info = document.getElementById('info');   // the .info div inside .info-card
-      if (!gallery || !info) return;
+function addPackPageGlow(pack) {
+  const gallery = document.getElementById('gallery');
+  if (!gallery) return;
 
-      const category = pack.category;   // 1 = female, 2 = femboy
-      const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
+  const category = pack.category;   // 1 = female, 2 = femboy
+  const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
 
-      // Gallery card
-      if (!gallery.querySelector('.border-glow')) {
-        const glow = document.createElement('div');
-        glow.className = 'border-glow ' + glowClass;
-        gallery.prepend(glow);
-      }
+  // Only add glow to the gallery card, never the info panel
+  if (!gallery.querySelector('.border-glow')) {
+    const glow = document.createElement('div');
+    glow.className = 'border-glow ' + glowClass;
+    gallery.prepend(glow);
+  }
+}
 
       // Info card
       const infoCard = info.parentElement;   // .info-card
