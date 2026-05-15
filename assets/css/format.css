@@ -263,3 +263,49 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 .btn-cart { background: #49BEFF; color: white; }
 .btn-cart.remove-mode { background: #ef4444; }
 .btn-cart:hover { filter: brightness(0.9); }
+
+
+/* ================================================================
+   FINAL GLOW OVERRIDE – force consistent thin border everywhere
+   ================================================================ */
+.product-card,
+.product-card[class] {
+  border: none !important;
+  box-shadow: none !important;
+  background: #000 !important;
+  border-radius: 24px !important;
+}
+
+.card-inner {
+  margin: 3px !important;
+  border-radius: 20px !important;
+  background-color: var(--card) !important;
+  background-image: none !important;
+}
+
+.border-glow {
+  width: 200% !important;
+  height: 200% !important;
+  top: 50% !important;
+  left: 50% !important;
+  animation: borderSpin 4s linear infinite !important;
+}
+
+/* Force all cards to have the same content height so the gap never varies */
+.product-card .card-inner .card-content {
+  min-height: 160px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+.product-card .card-inner .price-row {
+  min-height: 44px !important;
+  align-items: center !important;
+}
+
+/* Ensure the membership card link behaves exactly like a normal button row */
+.product-card .card-inner .price-row a {
+  margin: auto !important;
+  display: inline-block !important;
+}
