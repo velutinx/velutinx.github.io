@@ -195,7 +195,15 @@ body.dark .leaderboard-entry { background: rgba(255, 255, 255, 0.03); }
 .glow-blue { background: conic-gradient(from 0deg, transparent 0deg, transparent 260deg, var(--blue-glow-1) 280deg, var(--blue-glow-2) 295deg, var(--blue-glow-3) 315deg, var(--blue-glow-4) 325deg, #ffffff 332deg, var(--blue-glow-4) 340deg, var(--blue-glow-3) 350deg, var(--blue-glow-2) 355deg, transparent 360deg); }
 .glow-gold { background: conic-gradient(from 0deg, transparent 0deg, transparent 260deg, var(--gold-glow-1) 280deg, var(--gold-glow-2) 295deg, var(--gold-glow-3) 315deg, var(--gold-glow-4) 325deg, #ffffff 332deg, var(--gold-glow-4) 340deg, var(--gold-glow-3) 350deg, var(--gold-glow-2) 355deg, transparent 360deg); }
 @keyframes borderSpin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-.card-inner { position: relative; margin: 3px; border-radius: 20px; overflow: hidden; background: var(--card); z-index: 3; }
+.card-inner {
+  position: relative;
+  margin: 3px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--card);           /* keep this */
+  background-color: var(--card);     /* add this – ensures full opacity */
+  z-index: 3;
+}
 .card-image { width: 100%; aspect-ratio: 3/3.5; object-fit: cover; display: block; background: #d9d4c2; }
 .card-content { padding: 1rem; }
 .card-title { font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
@@ -205,7 +213,12 @@ body.dark .leaderboard-entry { background: rgba(255, 255, 255, 0.03); }
 .cart-btn svg { width: 26px; height: 26px; }
 .cart-btn.added { background: var(--success); }
 .loading-spinner { text-align: center; padding: 3rem; font-size: 1.2rem; color: var(--text-light); }
-.product-card .card-inner .card-content { min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; }
+.product-card .card-inner .card-content {
+  min-height: 140px;    /* was 120px */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 .product-card .card-inner .price-row { min-height: 44px; align-items: center; }
 
 /* ================================================================
