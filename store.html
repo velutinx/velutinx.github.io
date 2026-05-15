@@ -10,165 +10,7 @@
   <script src="/s/js/sandbox-banner.js"></script>
   <!-- Translations -->
   <script src="/s/js/translations.js"></script>
-
-  <style>
-    /* store-specific styles (unchanged) */
-    .main-container {
-      display: flex;
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 1.5rem 2rem 2rem;
-      gap: 2rem;
-    }
-    .store-filter-sidebar {
-      width: 260px;
-      flex-shrink: 0;
-    }
-    .section-title {
-      font-weight: 600;
-      margin-bottom: 0.8rem;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .category-list, .sort-options {
-      list-style: none;
-      background: var(--card);
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      margin-bottom: 1.8rem;
-      overflow: hidden;
-    }
-    .category-list li, .sort-btn {
-      padding: 0.9rem 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-      color: var(--text);
-      background: var(--card);
-      border: none;
-      width: 100%;
-      text-align: left;
-      font-size: 1rem;
-    }
-    .category-list li svg, .sort-btn svg {
-      width: 22px;
-      height: 22px;
-      stroke: currentColor;
-      stroke-width: 1.8;
-      fill: none;
-    }
-    .category-list li:hover, .sort-btn:hover { background: var(--darker); }
-    .category-list li.active, .sort-btn.active {
-      background: var(--accent);
-      color: #1f1a12;
-      font-weight: 600;
-    }
-    .products-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .products-header h2 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .search-bar-wrapper { width: 280px; }
-    .input-base {
-      display: flex;
-      align-items: center;
-      background: var(--card);
-      border-radius: 40px;
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      gap: 8px;
-    }
-    .input-element {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      padding: 8px 0;
-    }
-    .product-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1.8rem;
-    }
-    @media (max-width: 1200px) {
-      .product-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-    @media (max-width: 1000px) {
-      .product-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 780px) {
-      .product-grid { grid-template-columns: repeat(2, 1fr); }
-      .main-container { flex-direction: column; }
-      .store-filter-sidebar { width: 100%; }
-    }
-    @media (max-width: 500px) {
-      .product-grid { grid-template-columns: 1fr; }
-    }
-    .product-card {
-      background: var(--card);
-      border-radius: 20px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .product-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 14px 28px rgba(0,0,0,0.2);
-    }
-    .card-image {
-      width: 100%;
-      aspect-ratio: 3/3.5;
-      object-fit: cover;
-      display: block;
-      background: #d9d4c2;
-    }
-    .card-content { padding: 1rem; }
-    .card-title { font-weight: 600; margin-bottom: 0.5rem; }
-    .price-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .price {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--red-discount);
-    }
-    .cart-btn {
-      width: 44px;
-      height: 44px;
-      background: var(--btn-cart);
-      border: none;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .cart-btn svg { width: 26px; height: 26px; }
-    .cart-btn.added { background: var(--success); }
-    .loading-spinner {
-      text-align: center;
-      padding: 3rem;
-      font-size: 1.2rem;
-      color: var(--text-light);
-    }
-  </style>
+  <!-- NO <style> block – all store styles now live in format-private.css -->
 </head>
 <body>
 
@@ -382,7 +224,6 @@ function setupCouponHandler() {
     if (data.valid) {
       activeCoupon = data;
       msg.innerHTML = `✅ <strong>${data.code}</strong>: -$${data.discount} (total: $${data.final_total})`;
-      // REMOVED inline color – uses #couponMessage rule from shared.css
       const totalSpan = document.getElementById('cartTotal');
       if (totalSpan) totalSpan.textContent = `$${data.final_total}`;
     } else {
@@ -473,7 +314,18 @@ function renderStoreGrid() {
   if (!grid) return;
   const items = getFilteredSorted();
   grid.innerHTML = '';
+
   items.forEach(p => {
+    // Determine glow class based on category
+    let glowClass = '';
+    if (p.id === 'membership') {
+      glowClass = 'glow-gold';      // gold for membership
+    } else if (p.category === 1) {
+      glowClass = 'glow-pink';      // female
+    } else if (p.category === 2) {
+      glowClass = 'glow-blue';      // femboy
+    }
+
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.id = p.id;
@@ -482,11 +334,14 @@ function renderStoreGrid() {
     if (p.id === 'membership') {
       const t = storeTranslations[currentLang];
       card.innerHTML = `
-        <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
-        <div class="card-content">
-          <div class="card-title">${escapeHtml(t.membershipTitle)}</div>
-          <div class="price-row" style="justify-content: center;">
-            <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;" data-cursor-expand>${escapeHtml(t.membershipLearnMore)}</a>
+        <div class="border-glow ${glowClass}"></div>
+        <div class="card-inner">
+          <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
+          <div class="card-content">
+            <div class="card-title">${escapeHtml(t.membershipTitle)}</div>
+            <div class="price-row" style="justify-content: center;">
+              <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin-top: 8px; display: inline-block;" data-cursor-expand>${escapeHtml(t.membershipLearnMore)}</a>
+            </div>
           </div>
         </div>
       `;
@@ -498,7 +353,21 @@ function renderStoreGrid() {
       const cartButtonSvg = inCart
         ? `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#e74c3c"/><path d="M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`
         : `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3H4.5L6.5 15H19L21 7H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="17" cy="20" r="2" stroke="white" stroke-width="2"/><circle cx="18" cy="7" r="5" fill="#2ecc71"/><path d="M18 5V9M16 7H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-      card.innerHTML = `<img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'"><div class="card-content"><div class="card-title">${escapeHtml(p.title)}</div><div class="price-row"><div class="price">${priceString}</div><button class="cart-btn ${inCart ? 'added' : ''}" data-cursor-expand>${cartButtonSvg}</button></div></div>`;
+
+      card.innerHTML = `
+        <div class="border-glow ${glowClass}"></div>
+        <div class="card-inner">
+          <img src="${imgUrl}" class="card-image" onerror="this.src='https://placehold.co/300x350?text=preview'">
+          <div class="card-content">
+            <div class="card-title">${escapeHtml(p.title)}</div>
+            <div class="price-row">
+              <div class="price">${priceString}</div>
+              <button class="cart-btn ${inCart ? 'added' : ''}" data-cursor-expand>${cartButtonSvg}</button>
+            </div>
+          </div>
+        </div>
+      `;
+
       const btn = card.querySelector('.cart-btn');
       btn.onclick = (e) => {
         e.stopPropagation();
@@ -540,7 +409,6 @@ function bindStoreEvents() {
   renderStoreGrid();
   const drawer = document.getElementById('cartDrawer');
   if (drawer && drawer.classList.contains('open')) {
-    // Remove old coupon UI and re‑inject with new language
     const oldSection = document.getElementById('couponSection');
     if (oldSection) oldSection.remove();
     const oldMsg = document.getElementById('couponMessage');
@@ -710,7 +578,6 @@ const openOurCart = (e) => {
     drawer.classList.add('open');
     overlay.classList.add('active');
     document.body.classList.add('drawer-open');
-    // Remove old coupon UI so it's re‑created with the current language
     const oldSection = document.getElementById('couponSection');
     if (oldSection) oldSection.remove();
     const oldMsg = document.getElementById('couponMessage');
