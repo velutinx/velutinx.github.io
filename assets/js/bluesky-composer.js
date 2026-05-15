@@ -101,124 +101,132 @@
         }
     }
 
-    // ---------- Render Thumbnails (Bluesky cards) ----------
-    function renderThumbnails(accountId) {
-        const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
-        if (!container) return;
-        container.style.display = 'flex';
-        container.style.flexWrap = 'wrap';
-        container.style.gap = '8px';
+// ---------- Render Thumbnails (Bluesky cards) ----------
+function renderThumbnails(accountId) {
+    const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
+    if (!container) return;
+    container.style.display = 'flex';
+    container.style.flexWrap = 'wrap';
+    container.style.gap = '8px';
 
-        if (sortableInstances[accountId]) {
-            sortableInstances[accountId].destroy();
-            sortableInstances[accountId] = null;
-        }
+    if (sortableInstances[accountId]) {
+        sortableInstances[accountId].destroy();
+        sortableInstances[accountId] = null;
+    }
 
-        const ids = window.accountImages[accountId] || [];
-        container.innerHTML = '';
+    const ids = window.accountImages[accountId] || [];
+    container.innerHTML = '';
 
-        ids.forEach((id, idx) => {
-            const file = window.imageRegistry[id];
-            if (!file) return;
-            const url = URL.createObjectURL(file);
+    ids.forEach((id, idx) => {
+        const file = window.imageRegistry[id];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
 
-            const wrapper = document.createElement('div');
-            wrapper.className = 'cf-selected-item';
-            wrapper.dataset.index = idx;
-            wrapper.dataset.id = id;
-            wrapper.dataset.account = accountId;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'cf-selected-item';
+        wrapper.dataset.index = idx;
+        wrapper.dataset.id = id;
+        wrapper.dataset.account = accountId;
 
-            const thumb = document.createElement('img');
-            thumb.className = 'cf-selected-thumb';
-            thumb.src = url;
-            thumb.style.cursor = 'grab';
-            thumb.onload = () => URL.revokeObjectURL(url);
-            thumb.onerror = () => URL.revokeObjectURL(url);
+        const thumb = document.createElement('img');
+        thumb.className = 'cf-selected-thumb';
+        thumb.src = url;
+        thumb.style.cursor = 'grab';
+        thumb.onload = () => URL.revokeObjectURL(url);
+        thumb.onerror = () => URL.revokeObjectURL(url);
 
-            const cropBtn = document.createElement('button');
-            cropBtn.className = 'cf-crop-btn';
-            cropBtn.innerHTML = '✂️';
-            cropBtn.title = 'Crop image (free rectangle)';
-            cropBtn.onclick = (ev) => {
-                ev.stopPropagation();
-                openCropModal(file, accountId, idx);
-            };
+        const cropBtn = document.createElement('button');
+        cropBtn.className = 'cf-crop-btn';
+        cropBtn.innerHTML = '✂️';
+        cropBtn.title = 'Crop image (free rectangle)';
+        cropBtn.onclick = (ev) => {
+            ev.stopPropagation();
+            openCropModal(file, accountId, idx);
+        };
 
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'cf-remove-btn';
-            removeBtn.textContent = '✕';
-            removeBtn.onclick = (ev) => {
-                ev.stopPropagation();
-                const removedId = wrapper.dataset.id;
-                if (removedId) {
-                    const pos = window.accountImages[accountId].indexOf(removedId);
-                    if (pos !== -1) window.accountImages[accountId].splice(pos, 1);
-                    // Also remove from the corresponding Twitter arrays
-                    if (accountId == 2) {
-                        [1, 2].forEach(twId => {
-                            const twPos = window.twitterImageIds[twId].indexOf(removedId);
-                            if (twPos !== -1) window.twitterImageIds[twId].splice(twPos, 1);
-                        });
-                    } else if (accountId == 1) {
-                        const twPos = window.twitterImageIds[3].indexOf(removedId);
-                        if (twPos !== -1) window.twitterImageIds[3].splice(twPos, 1);
-                    }
-                    let inUse = false;
-                    for (const arr of Object.values(window.accountImages)) {
-                        if (arr.includes(removedId)) { inUse = true; break; }
-                    }
-                    if (!inUse) delete window.imageRegistry[removedId];
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'cf-remove-btn';
+        removeBtn.textContent = '✕';
+        removeBtn.onclick = (ev) => {
+            ev.stopPropagation();
+            const removedId = wrapper.dataset.id;
+            if (removedId) {
+                const pos = window.accountImages[accountId].indexOf(removedId);
+                if (pos !== -1) window.accountImages[accountId].splice(pos, 1);
+                // Also remove from the corresponding Twitter arrays
+                if (accountId == 2) {
+                    [1, 2].forEach(twId => {
+                        const twPos = window.twitterImageIds[twId].indexOf(removedId);
+                        if (twPos !== -1) window.twitterImageIds[twId].splice(twPos, 1);
+                    });
+                } else if (accountId == 1) {
+                    const twPos = window.twitterImageIds[3].indexOf(removedId);
+                    if (twPos !== -1) window.twitterImageIds[3].splice(twPos, 1);
                 }
-                renderThumbnails(accountId);
-                // Refresh Twitter cards that were affected
-                if (accountId == 1) {
-                    window.renderTwitterThumbnails(3);
-                } else if (accountId == 2) {
+                let inUse = false;
+                for (const arr of Object.values(window.accountImages)) {
+                    if (arr.includes(removedId)) { inUse = true; break; }
+                }
+                if (!inUse) delete window.imageRegistry[removedId];
+            }
+            renderThumbnails(accountId);
+            // Refresh Twitter cards that were affected
+            if (accountId == 1) {
+                window.renderTwitterThumbnails(3);
+            } else if (accountId == 2) {
+                window.renderTwitterThumbnails(1);
+                window.renderTwitterThumbnails(2);
+                // Unlock Twitter 1 & 2 buttons after removal
+                if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                    window.unlockTwitter12IfNeeded();
+                }
+            }
+            // Unlock SFW Twitter if relevant
+            if (accountId == 1) unlockSfwTwitterIfNeeded();
+            if (typeof showToast === 'function') showToast('Image removed', 'info');
+        };
+
+        wrapper.appendChild(thumb);
+        wrapper.appendChild(cropBtn);
+        wrapper.appendChild(removeBtn);
+        container.appendChild(wrapper);
+    });
+
+    setTimeout(() => {
+        sortableInstances[accountId] = new Sortable(container, {
+            animation: 150,
+            handle: '.cf-selected-thumb',
+            ghostClass: 'cf-sortable-ghost',
+            dragClass: 'cf-sortable-drag',
+            onEnd: function() {
+                const newOrder = [];
+                Array.from(container.children).forEach(child => {
+                    const id = child.dataset.id;
+                    if (id && window.imageRegistry[id]) {
+                        newOrder.push(id);
+                    }
+                });
+                window.accountImages[accountId] = newOrder;
+                Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
+                // Update the corresponding Twitter arrays
+                if (accountId == 2) {
+                    window.twitterImageIds[1] = [...newOrder];
+                    window.twitterImageIds[2] = [...newOrder];
                     window.renderTwitterThumbnails(1);
                     window.renderTwitterThumbnails(2);
-                }
-                // Unlock SFW Twitter if relevant
-                if (accountId == 1) unlockSfwTwitterIfNeeded();
-                if (typeof showToast === 'function') showToast('Image removed', 'info');
-            };
-
-            wrapper.appendChild(thumb);
-            wrapper.appendChild(cropBtn);
-            wrapper.appendChild(removeBtn);
-            container.appendChild(wrapper);
-        });
-
-        setTimeout(() => {
-            sortableInstances[accountId] = new Sortable(container, {
-                animation: 150,
-                handle: '.cf-selected-thumb',
-                ghostClass: 'cf-sortable-ghost',
-                dragClass: 'cf-sortable-drag',
-                onEnd: function() {
-                    const newOrder = [];
-                    Array.from(container.children).forEach(child => {
-                        const id = child.dataset.id;
-                        if (id && window.imageRegistry[id]) {
-                            newOrder.push(id);
-                        }
-                    });
-                    window.accountImages[accountId] = newOrder;
-                    Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
-                    // Update the corresponding Twitter arrays
-                    if (accountId == 2) {
-                        window.twitterImageIds[1] = [...newOrder];
-                        window.twitterImageIds[2] = [...newOrder];
-                        window.renderTwitterThumbnails(1);
-                        window.renderTwitterThumbnails(2);
-                    } else if (accountId == 1) {
-                        window.twitterImageIds[3] = [...newOrder];
-                        window.renderTwitterThumbnails(3);
+                    // Unlock Twitter 1 & 2 buttons after reorder
+                    if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                        window.unlockTwitter12IfNeeded();
                     }
-                    if (typeof showToast === 'function') showToast('Order updated', 'info');
+                } else if (accountId == 1) {
+                    window.twitterImageIds[3] = [...newOrder];
+                    window.renderTwitterThumbnails(3);
                 }
-            });
-        }, 50);
-    }
+                if (typeof showToast === 'function') showToast('Order updated', 'info');
+            }
+        });
+    }, 50);
+}
 
     // ---------- CROP MODAL (unchanged) ----------
     function openCropModal(file, accountId, index) {
@@ -567,6 +575,9 @@
         unlockSfwTwitterIfNeeded();
     }
 
+if (typeof window.forceEnableTw12Buttons === 'function') window.forceEnableTw12Buttons();
+if (typeof window.forceEnableSfwTwitterBtn === 'function') window.forceEnableSfwTwitterBtn();
+    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
