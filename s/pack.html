@@ -42,7 +42,7 @@
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/price.js" type="module"></script>
 
-<script type="module">
+  <script type="module">
     // ==================== CONSTANTS ====================
     const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
     const IMAGE_BASE = 'https://www.velutinx.com/i/';
@@ -413,27 +413,18 @@
     }
 
     // ==================== ADD GLOW BORDER TO PACK DETAILS ====================
-function addPackPageGlow(pack) {
-  const gallery = document.getElementById('gallery');
-  if (!gallery) return;
+    function addPackPageGlow(pack) {
+      const gallery = document.getElementById('gallery');
+      if (!gallery) return;
 
-  const category = pack.category;   // 1 = female, 2 = femboy
-  const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
+      const category = pack.category;   // 1 = female, 2 = femboy
+      const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
 
-  // Only add glow to the gallery card, never the info panel
-  if (!gallery.querySelector('.border-glow')) {
-    const glow = document.createElement('div');
-    glow.className = 'border-glow ' + glowClass;
-    gallery.prepend(glow);
-  }
-}
-
-      // Info card
-      const infoCard = info.parentElement;   // .info-card
-      if (infoCard && !infoCard.querySelector('.border-glow')) {
+      // Only add glow to the gallery card, never the info panel
+      if (!gallery.querySelector('.border-glow')) {
         const glow = document.createElement('div');
         glow.className = 'border-glow ' + glowClass;
-        infoCard.prepend(glow);
+        gallery.prepend(glow);
       }
     }
 
@@ -617,7 +608,7 @@ function addPackPageGlow(pack) {
         init();
       }
     });
-</script>
+  </script>
 
   <div class="sandbox-banner">
     <div class="ticker">
