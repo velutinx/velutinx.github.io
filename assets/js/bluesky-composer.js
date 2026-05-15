@@ -64,7 +64,6 @@
             twTextarea.value = '';
             twTextarea.dispatchEvent(new Event('input'));
         }
-        // Clear the SFW Twitter image IDs (mirrored from SFW Bluesky)
         window.twitterImageIds[3] = [];
         if (typeof window.renderTwitterThumbnails === 'function') {
             window.renderTwitterThumbnails(3);
@@ -84,16 +83,12 @@
     }
 
     // ---------- Refresh Twitter cards ----------
-    // Now uses the separate twitterImageIds for accounts 1&2, and accountImages[1] for account 3
     function refreshTwitterFromBluesky(blueskyAccountId) {
         if (typeof window.renderTwitterThumbnails !== 'function') return;
         if (blueskyAccountId == 1) {
-            // SFW: Twitter 3 mirrors Bluesky 1
             window.twitterImageIds[3] = [...window.accountImages[1]];
             window.renderTwitterThumbnails(3);
         } else if (blueskyAccountId == 2) {
-            // NSFW: copy IDs to Twitter 1 & 2 (only when adding images, not on post)
-            // This function is no longer called after post, but kept for adding
             window.twitterImageIds[1] = [...window.accountImages[2]];
             window.twitterImageIds[2] = [...window.accountImages[2]];
             window.renderTwitterThumbnails(1);
@@ -101,134 +96,128 @@
         }
     }
 
-// ---------- Render Thumbnails (Bluesky cards) ----------
-function renderThumbnails(accountId) {
-    const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
-    if (!container) return;
-    container.style.display = 'flex';
-    container.style.flexWrap = 'wrap';
-    container.style.gap = '8px';
+    // ---------- Render Thumbnails (Bluesky cards) ----------
+    function renderThumbnails(accountId) {
+        const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
+        if (!container) return;
+        container.style.display = 'flex';
+        container.style.flexWrap = 'wrap';
+        container.style.gap = '8px';
 
-    if (sortableInstances[accountId]) {
-        sortableInstances[accountId].destroy();
-        sortableInstances[accountId] = null;
-    }
+        if (sortableInstances[accountId]) {
+            sortableInstances[accountId].destroy();
+            sortableInstances[accountId] = null;
+        }
 
-    const ids = window.accountImages[accountId] || [];
-    container.innerHTML = '';
+        const ids = window.accountImages[accountId] || [];
+        container.innerHTML = '';
 
-    ids.forEach((id, idx) => {
-        const file = window.imageRegistry[id];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
+        ids.forEach((id, idx) => {
+            const file = window.imageRegistry[id];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
 
-        const wrapper = document.createElement('div');
-        wrapper.className = 'cf-selected-item';
-        wrapper.dataset.index = idx;
-        wrapper.dataset.id = id;
-        wrapper.dataset.account = accountId;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'cf-selected-item';
+            wrapper.dataset.index = idx;
+            wrapper.dataset.id = id;
+            wrapper.dataset.account = accountId;
 
-        const thumb = document.createElement('img');
-        thumb.className = 'cf-selected-thumb';
-        thumb.src = url;
-        thumb.style.cursor = 'grab';
-        thumb.onload = () => URL.revokeObjectURL(url);
-        thumb.onerror = () => URL.revokeObjectURL(url);
+            const thumb = document.createElement('img');
+            thumb.className = 'cf-selected-thumb';
+            thumb.src = url;
+            thumb.style.cursor = 'grab';
+            thumb.onload = () => URL.revokeObjectURL(url);
+            thumb.onerror = () => URL.revokeObjectURL(url);
 
-        const cropBtn = document.createElement('button');
-        cropBtn.className = 'cf-crop-btn';
-        cropBtn.innerHTML = '✂️';
-        cropBtn.title = 'Crop image (free rectangle)';
-        cropBtn.onclick = (ev) => {
-            ev.stopPropagation();
-            openCropModal(file, accountId, idx);
-        };
+            const cropBtn = document.createElement('button');
+            cropBtn.className = 'cf-crop-btn';
+            cropBtn.innerHTML = '✂️';
+            cropBtn.title = 'Crop image (free rectangle)';
+            cropBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                openCropModal(file, accountId, idx);
+            };
 
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'cf-remove-btn';
-        removeBtn.textContent = '✕';
-        removeBtn.onclick = (ev) => {
-            ev.stopPropagation();
-            const removedId = wrapper.dataset.id;
-            if (removedId) {
-                const pos = window.accountImages[accountId].indexOf(removedId);
-                if (pos !== -1) window.accountImages[accountId].splice(pos, 1);
-                // Also remove from the corresponding Twitter arrays
-                if (accountId == 2) {
-                    [1, 2].forEach(twId => {
-                        const twPos = window.twitterImageIds[twId].indexOf(removedId);
-                        if (twPos !== -1) window.twitterImageIds[twId].splice(twPos, 1);
-                    });
-                } else if (accountId == 1) {
-                    const twPos = window.twitterImageIds[3].indexOf(removedId);
-                    if (twPos !== -1) window.twitterImageIds[3].splice(twPos, 1);
-                }
-                let inUse = false;
-                for (const arr of Object.values(window.accountImages)) {
-                    if (arr.includes(removedId)) { inUse = true; break; }
-                }
-                if (!inUse) delete window.imageRegistry[removedId];
-            }
-            renderThumbnails(accountId);
-            // Refresh Twitter cards that were affected
-            if (accountId == 1) {
-                window.renderTwitterThumbnails(3);
-            } else if (accountId == 2) {
-                window.renderTwitterThumbnails(1);
-                window.renderTwitterThumbnails(2);
-                // Unlock Twitter 1 & 2 buttons after removal
-                if (typeof window.unlockTwitter12IfNeeded === 'function') {
-                    window.unlockTwitter12IfNeeded();
-                }
-            }
-            // Unlock SFW Twitter if relevant
-            if (accountId == 1) unlockSfwTwitterIfNeeded();
-            if (typeof showToast === 'function') showToast('Image removed', 'info');
-        };
-
-        wrapper.appendChild(thumb);
-        wrapper.appendChild(cropBtn);
-        wrapper.appendChild(removeBtn);
-        container.appendChild(wrapper);
-    });
-
-    setTimeout(() => {
-        sortableInstances[accountId] = new Sortable(container, {
-            animation: 150,
-            handle: '.cf-selected-thumb',
-            ghostClass: 'cf-sortable-ghost',
-            dragClass: 'cf-sortable-drag',
-            onEnd: function() {
-                const newOrder = [];
-                Array.from(container.children).forEach(child => {
-                    const id = child.dataset.id;
-                    if (id && window.imageRegistry[id]) {
-                        newOrder.push(id);
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'cf-remove-btn';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                const removedId = wrapper.dataset.id;
+                if (removedId) {
+                    const pos = window.accountImages[accountId].indexOf(removedId);
+                    if (pos !== -1) window.accountImages[accountId].splice(pos, 1);
+                    if (accountId == 2) {
+                        [1, 2].forEach(twId => {
+                            const twPos = window.twitterImageIds[twId].indexOf(removedId);
+                            if (twPos !== -1) window.twitterImageIds[twId].splice(twPos, 1);
+                        });
+                    } else if (accountId == 1) {
+                        const twPos = window.twitterImageIds[3].indexOf(removedId);
+                        if (twPos !== -1) window.twitterImageIds[3].splice(twPos, 1);
                     }
-                });
-                window.accountImages[accountId] = newOrder;
-                Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
-                // Update the corresponding Twitter arrays
-                if (accountId == 2) {
-                    window.twitterImageIds[1] = [...newOrder];
-                    window.twitterImageIds[2] = [...newOrder];
+                    let inUse = false;
+                    for (const arr of Object.values(window.accountImages)) {
+                        if (arr.includes(removedId)) { inUse = true; break; }
+                    }
+                    if (!inUse) delete window.imageRegistry[removedId];
+                }
+                renderThumbnails(accountId);
+                if (accountId == 1) {
+                    window.renderTwitterThumbnails(3);
+                } else if (accountId == 2) {
                     window.renderTwitterThumbnails(1);
                     window.renderTwitterThumbnails(2);
-                    // Unlock Twitter 1 & 2 buttons after reorder
                     if (typeof window.unlockTwitter12IfNeeded === 'function') {
                         window.unlockTwitter12IfNeeded();
                     }
-                } else if (accountId == 1) {
-                    window.twitterImageIds[3] = [...newOrder];
-                    window.renderTwitterThumbnails(3);
                 }
-                if (typeof showToast === 'function') showToast('Order updated', 'info');
-            }
-        });
-    }, 50);
-}
+                if (accountId == 1) unlockSfwTwitterIfNeeded();
+                if (typeof showToast === 'function') showToast('Image removed', 'info');
+            };
 
-    // ---------- CROP MODAL (unchanged) ----------
+            wrapper.appendChild(thumb);
+            wrapper.appendChild(cropBtn);
+            wrapper.appendChild(removeBtn);
+            container.appendChild(wrapper);
+        });
+
+        setTimeout(() => {
+            sortableInstances[accountId] = new Sortable(container, {
+                animation: 150,
+                handle: '.cf-selected-thumb',
+                ghostClass: 'cf-sortable-ghost',
+                dragClass: 'cf-sortable-drag',
+                onEnd: function() {
+                    const newOrder = [];
+                    Array.from(container.children).forEach(child => {
+                        const id = child.dataset.id;
+                        if (id && window.imageRegistry[id]) {
+                            newOrder.push(id);
+                        }
+                    });
+                    window.accountImages[accountId] = newOrder;
+                    Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
+                    if (accountId == 2) {
+                        window.twitterImageIds[1] = [...newOrder];
+                        window.twitterImageIds[2] = [...newOrder];
+                        window.renderTwitterThumbnails(1);
+                        window.renderTwitterThumbnails(2);
+                        if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                            window.unlockTwitter12IfNeeded();
+                        }
+                    } else if (accountId == 1) {
+                        window.twitterImageIds[3] = [...newOrder];
+                        window.renderTwitterThumbnails(3);
+                    }
+                    if (typeof showToast === 'function') showToast('Order updated', 'info');
+                }
+            });
+        }, 50);
+    }
+
+    // ---------- CROP MODAL ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -358,13 +347,15 @@ function renderThumbnails(accountId) {
                 const currentId = window.accountImages[accountId][index];
                 window.imageRegistry[currentId] = croppedFile;
                 renderThumbnails(accountId);
-                // Refresh the corresponding Twitter cards (they will re-fetch the updated file)
                 if (accountId == 1) {
                     window.renderTwitterThumbnails(3);
                     unlockSfwTwitterIfNeeded();
                 } else if (accountId == 2) {
                     window.renderTwitterThumbnails(1);
                     window.renderTwitterThumbnails(2);
+                    if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                        window.unlockTwitter12IfNeeded();
+                    }
                 }
                 if (typeof showToast === 'function') showToast('Image cropped!', 'success');
                 cleanup();
@@ -387,7 +378,6 @@ function renderThumbnails(accountId) {
                         files.forEach(f => {
                             const id = addImage(f);
                             window.accountImages[accountId].push(id);
-                            // Mirror to Twitter arrays
                             if (accountId == 2) {
                                 window.twitterImageIds[1].push(id);
                                 window.twitterImageIds[2].push(id);
@@ -399,6 +389,9 @@ function renderThumbnails(accountId) {
                         if (accountId == 2) {
                             window.renderTwitterThumbnails(1);
                             window.renderTwitterThumbnails(2);
+                            if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                                window.unlockTwitter12IfNeeded();
+                            }
                         } else if (accountId == 1) {
                             window.renderTwitterThumbnails(3);
                             unlockSfwTwitterIfNeeded();
@@ -429,6 +422,9 @@ function renderThumbnails(accountId) {
                     if (accountId == 2) {
                         window.renderTwitterThumbnails(1);
                         window.renderTwitterThumbnails(2);
+                        if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                            window.unlockTwitter12IfNeeded();
+                        }
                     } else if (accountId == 1) {
                         window.renderTwitterThumbnails(3);
                         unlockSfwTwitterIfNeeded();
@@ -471,18 +467,13 @@ function renderThumbnails(accountId) {
                 statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
 
-                // Clear the Bluesky array
                 window.accountImages[accountId] = [];
                 renderThumbnails(accountId);
 
                 if (accountId == 1) {
-                    // SFW: lock Twitter (already clears Twitter 3 images and text)
                     lockSfwTwitter();
-                    // No auto-tweet
-                } else if (accountId == 2) {
-                    // NSFW: DO NOT clear Twitter arrays – they stay as they were
-                    // No refresh needed; Twitter thumbnails are unchanged
                 }
+                // NSFW: intentionally leave Twitter 1&2 untouched
                 setTimeout(() => statusDiv.textContent = '', 2500);
             } else {
                 statusDiv.textContent = `❌ ${data.error || 'failed'}`;
@@ -559,25 +550,44 @@ function renderThumbnails(accountId) {
                     window.renderTwitterThumbnails(3);
                 }
 
-                // Re-enable SFW Twitter button
+                // Re-enable all Tweet buttons
                 enableSfwTwitterBtn();
+                if (typeof window.forceEnableTw12Buttons === 'function') {
+                    window.forceEnableTw12Buttons();
+                }
 
                 if (typeof showToast === 'function') showToast('Tweeter cells cleared!', 'info');
             });
         }
 
-        // Monitor for SFW unlock
+        // ---------- Listeners for automatic unlock ----------
+        // SFW unlock: post1 or twitter-post-3
         [post1, document.getElementById('twitter-post-3')].forEach(el => {
             if (!el) return;
             el.addEventListener('input', unlockSfwTwitterIfNeeded);
         });
 
+        // Tw12 unlock: post2, twitter-post-1, twitter-post-2
+        const tw12Textareas = [
+            post2,
+            document.getElementById('twitter-post-1'),
+            document.getElementById('twitter-post-2')
+        ].filter(Boolean);
+        tw12Textareas.forEach(el => {
+            if (el) el.addEventListener('input', () => {
+                if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                    window.unlockTwitter12IfNeeded();
+                }
+            });
+        });
+
+        // Initial unlock check
         unlockSfwTwitterIfNeeded();
+        if (typeof window.unlockTwitter12IfNeeded === 'function') {
+            window.unlockTwitter12IfNeeded();
+        }
     }
 
-if (typeof window.forceEnableTw12Buttons === 'function') window.forceEnableTw12Buttons();
-if (typeof window.forceEnableSfwTwitterBtn === 'function') window.forceEnableSfwTwitterBtn();
-    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
