@@ -42,7 +42,7 @@
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/price.js" type="module"></script>
 
-  <script type="module">
+<script type="module">
     // ==================== CONSTANTS ====================
     const WORKER_URL = 'https://packs-api.velutinx.workers.dev/api/packs';
     const IMAGE_BASE = 'https://www.velutinx.com/i/';
@@ -87,7 +87,7 @@
 
     // ==================== Custom cart (unchanged) ====================
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
-    let activeCoupon = null;   // coupon state
+    let activeCoupon = null;
 
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
@@ -150,7 +150,7 @@
       updateCartButton();
     };
 
-    // ==================== Coupon handling (same as store.html) ====================
+    // ==================== Coupon handling (unchanged) ====================
     function injectCouponUI() {
       if (document.getElementById('couponSection')) return;
       const container = document.getElementById('paypal-button-container');
@@ -412,6 +412,31 @@
       }
     }
 
+    // ==================== ADD GLOW BORDER TO PACK DETAILS ====================
+    function addPackPageGlow(pack) {
+      const gallery = document.getElementById('gallery');
+      const info = document.getElementById('info');   // the .info div inside .info-card
+      if (!gallery || !info) return;
+
+      const category = pack.category;   // 1 = female, 2 = femboy
+      const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
+
+      // Gallery card
+      if (!gallery.querySelector('.border-glow')) {
+        const glow = document.createElement('div');
+        glow.className = 'border-glow ' + glowClass;
+        gallery.prepend(glow);
+      }
+
+      // Info card
+      const infoCard = info.parentElement;   // .info-card
+      if (infoCard && !infoCard.querySelector('.border-glow')) {
+        const glow = document.createElement('div');
+        glow.className = 'border-glow ' + glowClass;
+        infoCard.prepend(glow);
+      }
+    }
+
     // ==================== INITIALISE PACK ====================
     async function initPack() {
       const id = new URLSearchParams(window.location.search).get('id') || '001';
@@ -424,6 +449,7 @@
       currentPack = pack;
       document.getElementById('title').textContent = pack.title;
       await renderGallery(pack.id);
+      addPackPageGlow(pack);             // ← inject the rotating border
       refreshAllTranslations();
     }
 
@@ -513,7 +539,7 @@
             const captureID = result.transactionID;
             if (!captureID) throw new Error('No transaction ID received');
 
-            activeCoupon = null;   // reset coupon after successful purchase
+            activeCoupon = null;
             storeCart = [];
             saveStoreCart();
             window.location.href = `/s/success.html?orderID=${captureID}`;
@@ -550,7 +576,7 @@
           drawer.classList.add('open');
           overlay.classList.add('active');
           document.body.classList.add('drawer-open');
-          injectCouponUI();        // inject coupon on drawer open
+          injectCouponUI();
           renderPayPalButton();
         }
       };
@@ -591,7 +617,7 @@
         init();
       }
     });
-  </script>
+</script>
 
   <div class="sandbox-banner">
     <div class="ticker">
