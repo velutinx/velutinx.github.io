@@ -257,31 +257,36 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 
 
 /* ================================================================
-   PACK DETAILS GLOW BORDER
+   PACK DETAILS GLOW BORDER (carousel only)
    ================================================================ */
 
-/* Make the gallery card a positioned container */
-.gallery-card {
+/* Make the carousel a positioned container so the glow stays inside */
+.carousel {
   position: relative;
-  overflow: hidden;   /* keep the glow clipped */
+  overflow: hidden;        /* clip the rotating glow */
 }
 
-/* Glow element – must be absolutely positioned and behind everything */
-.gallery-card .border-glow {
+/* Glow element – absolutely positioned, covers the carousel area */
+.carousel .border-glow {
   position: absolute;
   top: 0;
   left: 0;
   width: 200%;
   height: 200%;
-  transform: translate(-50%, -50%);  /* center the huge glow square */
-  z-index: 0;                         /* behind the content */
+  transform: translate(-50%, -50%);   /* center the huge glow */
+  z-index: 0;                          /* behind the slides */
   pointer-events: none;
   animation: borderSpin 4s linear infinite;
 }
 
-/* Bring the actual gallery content to the front */
-.gallery-card .carousel,
-.gallery-card .thumbnails {
+/* Bring the slides back to the front */
+.carousel .slides,
+.carousel .arrow {
   position: relative;
   z-index: 1;
+}
+
+/* Optional: give the slides a solid background so the glow doesn't bleed */
+.carousel .slide img {
+  background: var(--card);
 }
