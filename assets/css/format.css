@@ -269,16 +269,6 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 
 /* Glow element inside the cards – same technique as store */
 .gallery-card .border-glow,
-.info-card .border-glow {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  z-index: 1;
-  pointer-events: none;
-  animation: borderSpin 4s linear infinite;
-}
 
 /* Keep the actual card content above the glow */
 .gallery-card > .carousel,
