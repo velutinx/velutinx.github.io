@@ -327,6 +327,7 @@ body.dark .leaderboard-entry { background: rgba(255, 255, 255, 0.03); }
   background: #000;
   transition: 0.25s ease;
   cursor: pointer;
+  border: none;
 }
 
 .product-card:hover {
