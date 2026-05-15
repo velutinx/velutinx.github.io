@@ -87,7 +87,7 @@
 
     // ==================== Custom cart (unchanged) ====================
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
-    let activeCoupon = null;
+    let activeCoupon = null;   // coupon state
 
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
@@ -150,7 +150,7 @@
       updateCartButton();
     };
 
-    // ==================== Coupon handling (unchanged) ====================
+    // ==================== Coupon handling (same as store.html) ====================
     function injectCouponUI() {
       if (document.getElementById('couponSection')) return;
       const container = document.getElementById('paypal-button-container');
@@ -412,22 +412,6 @@
       }
     }
 
-    // ==================== ADD GLOW BORDER TO PACK DETAILS ====================
-function addPackPageGlow(pack) {
-  const carousel = document.querySelector('#gallery .carousel');
-  if (!carousel) return;
-
-  const category = pack.category;   // 1 = female, 2 = femboy
-  const glowClass = category === 1 ? 'glow-pink' : 'glow-blue';
-
-  // Only add glow if it doesn't exist already
-  if (!carousel.querySelector('.border-glow')) {
-    const glow = document.createElement('div');
-    glow.className = 'border-glow ' + glowClass;
-    carousel.prepend(glow);
-  }
-}
-
     // ==================== INITIALISE PACK ====================
     async function initPack() {
       const id = new URLSearchParams(window.location.search).get('id') || '001';
@@ -440,7 +424,6 @@ function addPackPageGlow(pack) {
       currentPack = pack;
       document.getElementById('title').textContent = pack.title;
       await renderGallery(pack.id);
-      addPackPageGlow(pack);             // ← inject the rotating border
       refreshAllTranslations();
     }
 
@@ -530,7 +513,7 @@ function addPackPageGlow(pack) {
             const captureID = result.transactionID;
             if (!captureID) throw new Error('No transaction ID received');
 
-            activeCoupon = null;
+            activeCoupon = null;   // reset coupon after successful purchase
             storeCart = [];
             saveStoreCart();
             window.location.href = `/s/success.html?orderID=${captureID}`;
@@ -567,7 +550,7 @@ function addPackPageGlow(pack) {
           drawer.classList.add('open');
           overlay.classList.add('active');
           document.body.classList.add('drawer-open');
-          injectCouponUI();
+          injectCouponUI();        // inject coupon on drawer open
           renderPayPalButton();
         }
       };
