@@ -503,7 +503,7 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 
 /* Force membership card to match the height of a normal card */
 .product-card .card-inner .card-content {
-  min-height: 120px;          /* adjust as needed – 120px works well */
+  min-height: 130px;          /* adjust as needed – 120px works well */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
