@@ -254,39 +254,3 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 .product-card .card-inner .card-content { min-height: 180px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; }
 .product-card .card-inner .price-row { min-height: 44px !important; align-items: center !important; }
 .product-card .card-inner .price-row a { margin: auto !important; display: inline-block !important; }
-
-
-/* ================================================================
-   PACK DETAILS GLOW BORDER (carousel only)
-   ================================================================ */
-
-/* Make the carousel a positioned container so the glow stays inside */
-.carousel {
-  position: relative;
-  overflow: hidden;        /* clip the rotating glow */
-}
-
-/* Glow element – absolutely positioned, covers the carousel area */
-.carousel .border-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200%;
-  height: 200%;
-  transform: translate(-50%, -50%);   /* center the huge glow */
-  z-index: 0;                          /* behind the slides */
-  pointer-events: none;
-  animation: borderSpin 4s linear infinite;
-}
-
-/* Bring the slides back to the front */
-.carousel .slides,
-.carousel .arrow {
-  position: relative;
-  z-index: 1;
-}
-
-/* Optional: give the slides a solid background so the glow doesn't bleed */
-.carousel .slide img {
-  background: var(--card);
-}
