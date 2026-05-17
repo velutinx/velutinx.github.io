@@ -750,11 +750,8 @@ function buildChart(initialDays) {
         let stopIdx = dates.length - 1; // default: go to the end
         for (let i = lastDayIndex; i < dates.length; i++) {
             if (currentCumArray[i] > lastValue) {
-                stopIdx = i - 1; // stop right before the surpassing day? Wait, we want to include the surpassing day based on user example.
-                // As explained, we want reference on the surpassing day too, so we set stopIdx = i (include)
-                // Actually we want the line to be present on the surpassing day and gone the next day.
-                // So we can set stopIdx = i; then fill up to i inclusive.
-                // But we need to break after finding the first surpassing day.
+                // The first day where current surpasses previous month's final.
+                // We want to still show the line on this surpassing day, then hide from the next day onward.
                 stopIdx = i;
                 break;
             }
@@ -766,10 +763,11 @@ function buildChart(initialDays) {
         return ref;
     }
 
-    const netRef = new Array(dates.length).fill(null);
-    const patreonRef = new Array(dates.length).fill(null);
-    const websiteRef = new Array(dates.length).fill(null);
-    const kofiRef = new Array(dates.length).fill(null);
+    // ⚠️ These must be `let`, not `const`, because they are reassigned inside the `if` below
+    let netRef = new Array(dates.length).fill(null);
+    let patreonRef = new Array(dates.length).fill(null);
+    let websiteRef = new Array(dates.length).fill(null);
+    let kofiRef = new Array(dates.length).fill(null);
 
     if (lastDayOfPrevMonth) {
         const lastDayIndex = dates.findIndex(d => d.getTime() === lastDayOfPrevMonth.getTime());
