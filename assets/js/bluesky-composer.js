@@ -463,19 +463,24 @@
                 method: 'POST', body: formData
             });
             const data = await res.json();
-            if (res.ok) {
-                statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
-                if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+if (res.ok) {
+    statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
+    if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
 
-                window.accountImages[accountId] = [];
-                renderThumbnails(accountId);
-
-                if (accountId == 1) {
-                    lockSfwTwitter();
-                }
-                // NSFW: intentionally leave Twitter 1&2 untouched
-                setTimeout(() => statusDiv.textContent = '', 2500);
-            } else {
+    if (accountId == 1) {
+        // Cross‑post to Twitter SFW before clearing images
+        if (typeof window.sendToWorker === 'function') {
+            window.sendToWorker(3);
+        }
+        window.accountImages[1] = [];
+        renderThumbnails(1);
+        lockSfwTwitter();    // clears Twitter card + disables button
+    } else {
+        window.accountImages[accountId] = [];
+        renderThumbnails(accountId);
+    }
+    setTimeout(() => statusDiv.textContent = '', 2500);
+} else {
                 statusDiv.textContent = `❌ ${data.error || 'failed'}`;
                 if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
             }
