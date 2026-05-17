@@ -626,12 +626,10 @@ function buildChart(initialDays) {
     // -------------------------------------------------------------
     // 1. Find all ACTIVE RECURRING expenses ONLY
     // -------------------------------------------------------------
-    const subMap = new Map();   // key = concept + amount + day -> { startMonth, startDay, active, lastChargeDate }
+    const subMap = new Map();
 
     for (const e of entries) {
-        // Only consider entries that are currently recurring
         if (e.category !== 'Expenses' || !e.concept || !e.recurring) continue;
-
         const key = `${e.concept}::${e.amount}::${e.day}`;
         if (!subMap.has(key)) {
             subMap.set(key, {
@@ -642,7 +640,6 @@ function buildChart(initialDays) {
             });
         }
         const sub = subMap.get(key);
-        // Track the latest charge date for the subscription
         const chargeDate = moment(new Date(currentYear, e.month - 1, e.day));
         if (chargeDate.isBefore(now)) {
             if (!sub.lastChargeDate || chargeDate.isAfter(sub.lastChargeDate)) {
@@ -658,7 +655,6 @@ function buildChart(initialDays) {
     for (const [key, sub] of subMap) {
         if (!sub.lastChargeDate) continue;
         const startKey = moment(new Date(currentYear, sub.startMonth - 1, sub.startDay)).format('YYYY-MM-DD');
-        // Active subscriptions run until today; inactive ones stop on their last charge
         const endKey = sub.active
             ? now.format('YYYY-MM-DD')
             : sub.lastChargeDate.format('YYYY-MM-DD');
@@ -670,11 +666,10 @@ function buildChart(initialDays) {
     // 3. ALL OTHER entries (income + genuine one‑time / inactive copy expenses)
     // -------------------------------------------------------------
     const nonSubEntries = entries.filter(e => {
-        if (e.category !== 'Expenses') return true;                // income
-        if (!e.concept) return true;                               // one‑time expense
-        // Exclude entries that belong to an active recurring subscription (they are handled by recurringLines)
+        if (e.category !== 'Expenses') return true;
+        if (!e.concept) return true;
         const key = `${e.concept}::${e.amount}::${e.day}`;
-        return !subMap.has(key);   // keep only genuine one‑time expenses (including inactive copies)
+        return !subMap.has(key);
     });
 
     const dailyNonSubMap = new Map();
@@ -714,7 +709,6 @@ function buildChart(initialDays) {
         curKofi += nonSub.kofi;
         curNonRecExp += nonSub.expense;
 
-        // Recurring baseline (flat, never resets)
         let recurringTotal = 0;
         for (const line of recurringLines) {
             if (key >= line.startKey && key <= line.endKey) {
@@ -734,7 +728,7 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 5. Build the reference lines (last month's final values)
+    // 5. Build the reference lines (stops after the current month surpasses last month)
     // -------------------------------------------------------------
     const today = new Date();
     const prevMonth = today.getMonth();
@@ -747,6 +741,29 @@ function buildChart(initialDays) {
                 lastDayOfPrevMonth = dt;
             }
         }
+    }
+
+    // Helper to create reference array that stops after the current value surpasses the reference
+    function buildRefArray(lastValue, currentCumArray, lastDayIndex) {
+        const ref = new Array(dates.length).fill(null);
+        if (lastValue == null || lastValue === 0) return ref;
+        let stopIdx = dates.length - 1; // default: go to the end
+        for (let i = lastDayIndex; i < dates.length; i++) {
+            if (currentCumArray[i] > lastValue) {
+                stopIdx = i - 1; // stop right before the surpassing day? Wait, we want to include the surpassing day based on user example.
+                // As explained, we want reference on the surpassing day too, so we set stopIdx = i (include)
+                // Actually we want the line to be present on the surpassing day and gone the next day.
+                // So we can set stopIdx = i; then fill up to i inclusive.
+                // But we need to break after finding the first surpassing day.
+                stopIdx = i;
+                break;
+            }
+        }
+        // Fill from lastDayIndex to stopIdx inclusive
+        for (let i = lastDayIndex; i <= stopIdx && i < dates.length; i++) {
+            ref[i] = lastValue;
+        }
+        return ref;
     }
 
     const netRef = new Array(dates.length).fill(null);
@@ -762,10 +779,10 @@ function buildChart(initialDays) {
             const lastWebsite = websiteCum[lastDayIndex];
             const lastKofi = kofiCum[lastDayIndex];
 
-            if (lastNet != null && lastNet !== 0) { for (let i = lastDayIndex; i < dates.length; i++) netRef[i] = lastNet; }
-            if (lastPatreon != null && lastPatreon !== 0) { for (let i = lastDayIndex; i < dates.length; i++) patreonRef[i] = lastPatreon; }
-            if (lastWebsite != null && lastWebsite !== 0) { for (let i = lastDayIndex; i < dates.length; i++) websiteRef[i] = lastWebsite; }
-            if (lastKofi != null && lastKofi !== 0) { for (let i = lastDayIndex; i < dates.length; i++) kofiRef[i] = lastKofi; }
+            netRef      = buildRefArray(lastNet,     netCum,      lastDayIndex);
+            patreonRef  = buildRefArray(lastPatreon, patreonCum,  lastDayIndex);
+            websiteRef  = buildRefArray(lastWebsite, websiteCum,  lastDayIndex);
+            kofiRef     = buildRefArray(lastKofi,    kofiCum,     lastDayIndex);
         }
     }
 
@@ -773,8 +790,6 @@ function buildChart(initialDays) {
     // 6. Draw the chart – build datasets dynamically, hide zero‑only income lines
     // -------------------------------------------------------------
     const datasets = [];
-
-    // Helper: return true if any value in the array is non‑zero
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
 
     if (hasNonZero(patreonCum)) {
@@ -790,10 +805,9 @@ function buildChart(initialDays) {
         datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
 
-    // Expenses and Net Income are always shown (even if zero)
+    // Expenses and Net Income always shown
     datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
     datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
-    // Net Income reference (always add, but data may be all null → invisible)
     datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
 
     const ctx = document.getElementById('incomeChart').getContext('2d');
@@ -829,7 +843,6 @@ function buildChart(initialDays) {
         }
     });
 
-    // Expose chart for debugging (optional, safe to keep)
     window.incomeChart = incomeChart;
 }
 
