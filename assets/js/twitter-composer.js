@@ -41,7 +41,13 @@
         updateTwitterCounter(textarea);
     }
 
-    // Master mirroring
+    // ---------- Helper: strip URLs from a string ----------
+    function stripUrls(text) {
+        // Replace any http/https URL with the link-in-bio message
+        return text.replace(/https?:\/\/\S+/g, 'Full set on Patreon (link in bio)');
+    }
+
+    // ---------- Master mirroring (URLs kept for Bluesky, stripped for Twitter) ----------
     const master = document.getElementById('masterPost');
     const allChildren = [
         document.getElementById('post1'), document.getElementById('post2'),
@@ -50,7 +56,14 @@
     ].filter(Boolean);
     if (master) {
         master.addEventListener('input', () => {
-            allChildren.forEach(ta => { ta.value = master.value; });
+            const rawText = master.value;
+            const twitterText = stripUrls(rawText);   // URLs replaced for Twitter
+            allChildren.forEach(ta => {
+                // Bluesky boxes (post1, post2) keep the original text with URLs;
+                // Twitter boxes (twitter-post-*) get the stripped version
+                const isTwitter = ta.id && ta.id.startsWith('twitter-');
+                ta.value = isTwitter ? twitterText : rawText;
+            });
             allChildren.forEach(ta => ta.dispatchEvent(new Event('input')));
         });
     }
@@ -82,7 +95,6 @@
         });
     }
     function clearTwitter12() {
-        // Clear textareas
         ['twitter-post-1', 'twitter-post-2'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -90,10 +102,8 @@
                 el.dispatchEvent(new Event('input'));
             }
         });
-        // Clear image arrays
         window.twitterImageIds[1] = [];
         window.twitterImageIds[2] = [];
-        // Re-render thumbnails for both cards
         if (typeof window.renderTwitterThumbnails === 'function') {
             window.renderTwitterThumbnails(1);
             window.renderTwitterThumbnails(2);
@@ -104,7 +114,6 @@
         disableTw12Buttons();
     }
     function unlockTwitter12IfNeeded() {
-        // Check if there is any content in Twitter 1/2 or NSFW Bluesky
         const tw1Text = (document.getElementById('twitter-post-1')?.value || '').trim();
         const tw2Text = (document.getElementById('twitter-post-2')?.value || '').trim();
         const bs2Text = (document.getElementById('post2')?.value || '').trim();
@@ -115,8 +124,6 @@
             enableTw12Buttons();
         }
     }
-
-    // Make these available globally (for bluesky-composer.js to call unlock)
     window.unlockTwitter12IfNeeded = unlockTwitter12IfNeeded;
 
     // ---------- SFW Twitter lock (account 3) ----------
@@ -149,7 +156,6 @@
             enableSfwTwitterBtn();
         }
     }
-    // Expose for bluesky-composer.js
     window.unlockSfwTwitterIfNeeded = unlockSfwTwitterIfNeeded;
 
     // ---------- Render Twitter thumbnails ----------
@@ -173,7 +179,6 @@
                 twitterSortables[twAccId] = null;
             }
 
-            // Get the correct ID array
             let sourceIds;
             if (twAccId == 3) {
                 sourceIds = window.accountImages?.[1] || [];
@@ -209,11 +214,9 @@
                     if (!wrapperEl) return;
                     const rid = wrapperEl.dataset.id;
                     if (rid) {
-                        // Remove from the source array
                         const arr = (twAccId == 3) ? (window.accountImages?.[1] || []) : window.twitterImageIds[twAccId];
                         const pos = arr.indexOf(rid);
                         if (pos !== -1) arr.splice(pos, 1);
-                        // Also remove from Bluesky array if necessary
                         if (twAccId == 3 && window.accountImages?.[1]) {
                             const bsPos = window.accountImages[1].indexOf(rid);
                             if (bsPos !== -1) window.accountImages[1].splice(bsPos, 1);
@@ -221,7 +224,6 @@
                             const bsPos = window.accountImages?.[2]?.indexOf(rid) ?? -1;
                             if (bsPos !== -1) window.accountImages[2].splice(bsPos, 1);
                         }
-                        // Check if file is still used
                         let inUse = false;
                         for (const arr of [window.accountImages?.[1], window.accountImages?.[2],
                                               window.twitterImageIds[1], window.twitterImageIds[2], window.twitterImageIds[3]]) {
@@ -229,14 +231,12 @@
                         }
                         if (!inUse) delete window.imageRegistry?.[rid];
                     }
-                    // Re-render Bluesky card that was affected
                     if (twAccId == 3 && typeof window.renderBlueskyThumbnails === 'function') {
                         window.renderBlueskyThumbnails(1);
                     } else if ((twAccId == 1 || twAccId == 2) && typeof window.renderBlueskyThumbnails === 'function') {
                         window.renderBlueskyThumbnails(2);
                     }
                     renderTwitterThumbnails(twAccId);
-                    // Unlock buttons if needed (just in case)
                     if (twAccId == 1 || twAccId == 2) unlockTwitter12IfNeeded();
                     else if (twAccId == 3) unlockSfwTwitterIfNeeded();
                     showToast('Image removed', 'info');
@@ -259,7 +259,6 @@
                             const id = child.dataset.id;
                             if (id && window.imageRegistry?.[id]) newOrder.push(id);
                         });
-                        // Update the appropriate source array
                         if (twAccId == 3) {
                             window.accountImages[1] = newOrder;
                             window.twitterImageIds[3] = [...newOrder];
@@ -272,16 +271,13 @@
                             }
                         }
                         Array.from(container.children).forEach((child, i) => { child.dataset.index = i; });
-                        // Refresh Bluesky cards
                         if (twAccId == 3 && typeof window.renderBlueskyThumbnails === 'function') {
                             window.renderBlueskyThumbnails(1);
                         } else if ((twAccId == 1 || twAccId == 2) && typeof window.renderBlueskyThumbnails === 'function') {
                             window.renderBlueskyThumbnails(2);
                         }
-                        // Refresh other Twitter cards that share the same source
                         if (twAccId == 1) renderTwitterThumbnails(2);
                         else if (twAccId == 2) renderTwitterThumbnails(1);
-                        // Unlock if needed
                         if (twAccId == 1 || twAccId == 2) unlockTwitter12IfNeeded();
                         else if (twAccId == 3) unlockSfwTwitterIfNeeded();
                         showToast('Order updated', 'info');
@@ -314,13 +310,9 @@
                 statusEl.style.color = '#4CAF50';
                 showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
 
-                // After successful tweet:
                 if (accId == 1 || accId == 2) {
-                    // Lock both Twitter 1 and 2
                     lockTwitter12();
                 } else if (accId == 3) {
-                    // SFW Twitter posted directly – clear its own content but do NOT lock
-                    // (Locking is done only via Bluesky SFW post. Here we just clear the card.)
                     const tw3Text = document.getElementById('twitter-post-3');
                     if (tw3Text) {
                         tw3Text.value = '';
@@ -330,7 +322,6 @@
                     window.accountImages[1] = [];
                     if (typeof window.renderBlueskyThumbnails === 'function') window.renderBlueskyThumbnails(1);
                     renderTwitterThumbnails(3);
-                    // Do not disable button here; that's controlled by SFW lock
                 }
             } else {
                 statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
@@ -353,12 +344,10 @@
         if (!window.accountImages) window.accountImages = { 1: [], 2: [] };
         if (!window.twitterImageIds) window.twitterImageIds = { 1: [], 2: [], 3: [] };
 
-        // Set up unlock listeners for Twitter 1/2:
         ['post2', 'twitter-post-1', 'twitter-post-2'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', unlockTwitter12IfNeeded);
         });
-        // For SFW unlock:
         ['post1', 'twitter-post-3'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', unlockSfwTwitterIfNeeded);
@@ -369,7 +358,6 @@
         renderTwitterThumbnails(3);
         window.renderTwitterThumbnails = renderTwitterThumbnails;
 
-        // Initial unlock states (buttons might be disabled from a previous session, but fresh page load they're fine)
         unlockTwitter12IfNeeded();
         unlockSfwTwitterIfNeeded();
     }
