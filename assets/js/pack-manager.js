@@ -222,7 +222,6 @@
             saveLocalPacks(remotePacks);
             currentPacks = remotePacks;
             renderTable(currentPacks);
-            pmShowToast(`✅ Loaded ${remotePacks.length} packs from cloud`, 'success');
             removeOfflineWarning();
         } catch (err) {
             console.error("Pack Manager remote fetch failed:", err);
