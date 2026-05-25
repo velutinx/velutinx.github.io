@@ -4,70 +4,60 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Commissions</title>
-  <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Page‑specific CSS (commission box styles are in format.css) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Hide cart and website button on commissions page */
     .commissions-page .login-btn,
     .commissions-page .cart-wrapper,
     .commissions-page .floating-cart {
       display: none !important;
     }
-    /* Adjust top‑nav background to match page background */
     .commissions-page .top-nav {
       background: var(--bg) !important;
       border-bottom: 1px solid var(--border);
+    }
+    /* ✅ Fix: Start invisible so the reveal animation is visible */
+    #page {
+      opacity: 0;
     }
   </style>
 </head>
 <body class="commissions-page">
 
-  <!-- Header will be injected here by shared.js -->
   <div id="header-placeholder"></div>
 
-  <div class="divider"></div>
+  <!-- ✅ Wrap everything in a #page div -->
+  <div id="page">
+    <div class="divider"></div>
+    <section class="commission-wrap">
+      <div class="commission-box" id="commissionBox">
+        <h2 id="comTitle">COMMISSIONS</h2>
+        <p id="comInfo">Commission information will be added here soon.</p>
+        <p class="placeholder" id="comList">
+          ✦ Prices<br>
+          ✦ Examples<br>
+          ✦ Terms of Service<br>
+          ✦ Queue Status<br><br>
+          (Placeholder content — coming soon ♡)
+        </p>
+      </div>
+    </section>
+    <div class="divider"></div>
+  </div>
 
-  <section class="commission-wrap">
-    <div class="commission-box" id="commissionBox">
-      <h2 id="comTitle">COMMISSIONS</h2>
-      <p id="comInfo">Commission information will be added here soon.</p>
-      <p class="placeholder" id="comList">
-        ✦ Prices<br>
-        ✦ Examples<br>
-        ✦ Terms of Service<br>
-        ✦ Queue Status<br><br>
-        (Placeholder content — coming soon ♡)
-      </p>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-<!-- Shared header JS -->
-<script src="/assets/js/shared.js"></script>
-
-<!-- GSAP library – required for the custom cursor -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-<!-- Page‑specific scripts -->
-<script src="/assets/js/translt.js"></script>
-<script src="/assets/js/format.js"></script>
-<script src="/assets/js/tab-title-animation.js"></script>
+  <script src="/assets/js/shared.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="/assets/js/translt.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply commissions translations using translt.js
     function applyCommissionsTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('commissions');
       }
     }
-
-    // Initial apply (when page loads)
     applyCommissionsTranslations();
-
-    // When language changes via shared header, update translt.js and reapply
     document.addEventListener('languageChanged', (e) => {
       const newLang = e.detail.language;
       if (newLang && typeof window.setLanguage === 'function') {
@@ -77,8 +67,6 @@
       }
       applyCommissionsTranslations();
     });
-
-    // Ensure dark mode from localStorage is applied
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
