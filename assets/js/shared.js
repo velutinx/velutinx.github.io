@@ -451,9 +451,41 @@
   window.headerReady = true;
   }
 
+  // --------------------------------------------------------------
+  // 6. Smooth page reveal animation for subpages
+  // --------------------------------------------------------------
+  function initPageReveal() {
+    const path = window.location.pathname.toLowerCase();
+    const isRoot = (path === '' || path === '/' || path === '/index.html' || path === '/index');
+    if (isRoot) return;
+    
+    const page = document.getElementById('page') || document.getElementById('mainWebsite');
+    if (!page) return;
+    
+    if (!document.getElementById('pageRevealStyles')) {
+      const style = document.createElement('style');
+      style.id = 'pageRevealStyles';
+      style.textContent = `
+        @keyframes pageReveal {
+          from { opacity: 0; transform: translateY(60px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    page.style.opacity = '0';
+    page.style.transform = 'translateY(60px)';
+    page.style.animation = 'pageReveal 0.7s ease-out forwards';
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectHeader);
+    document.addEventListener('DOMContentLoaded', () => {
+      injectHeader();
+      initPageReveal();
+    });
   } else {
     injectHeader();
+    initPageReveal();
   }
 })();
