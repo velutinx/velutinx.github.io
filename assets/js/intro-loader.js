@@ -33,198 +33,217 @@
         const intro = document.createElement("div");
     intro.id = "cinematicIntro";
     intro.innerHTML = `
-      <style>
-        #cinematicIntro {
-          position: fixed;
-          inset: 0;
-          background: white;
-          z-index: 999999;
-          overflow: hidden;
-        }
-        .container {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          z-index: 10;
-        }
-        .card {
-          border: 2px solid black;
-          padding: 5px 60px;
-          background: white;
-          transform: scale(5);
-          filter: blur(12px);
-          opacity: 0;
-          animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-          cursor: pointer;
-          display: inline-block;
-        }
-        @keyframes loadIn {
-          to { transform: scale(1); filter: blur(0); opacity: 1; }
-        }
-        .japanese {
-          font-family: 'Kozuka Mincho Pr6N L', serif;
-          font-size: 20px;
-          letter-spacing: 0.35em;
-          font-weight: bold;
-        }
-        .english {
-          font-family: 'Trajan Pro Bold', serif;
-          font-size: 7px;
-          letter-spacing: 0.5em;
-          text-transform: uppercase;
-          margin-top: 20px;
-          opacity: 0;
-          animation: fadeInText 0.4s ease 0.15s forwards;
-        }
-        @keyframes fadeInText {
-          to { opacity: 1; }
-        }
-        .fade-out {
-          animation: blurFade 1.2s ease forwards;
-        }
-        @keyframes blurFade {
-          0% { filter: blur(0); opacity: 1; }
-          50% { filter: blur(8px); opacity: 0.6; }
-          100% { filter: blur(20px); opacity: 0; }
-        }
-        .tv-glitch {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 100;
-          opacity: 0;
-          background:
-            repeating-linear-gradient(to bottom,
-              transparent 0px,
-              #111 1px,
-              transparent 3px,
-              #000 4px),
-            linear-gradient(90deg,
-              rgba(255,0,0,0.15) 0%,
-              transparent 33%,
-              rgba(0,255,255,0.12) 66%,
-              transparent 100%);
-          background-size: 100% 4px, 100% 100%;
-          mix-blend-mode: multiply;
-        }
-        .tv-glitch.active {
-          opacity: 0.9;
-          animation:
-            glitchShake 1.2s steps(10) forwards,
-            verticalRoll 0.10s linear infinite;
-        }
-        @keyframes glitchShake {
-          0% { transform: translate(0,0); opacity: 0; }
-          10% { transform: translate(6px,-6px); opacity: 1; }
-          30% { transform: translate(-7px,7px); }
-          50% { transform: translate(5px,-5px); }
-          70% { transform: translate(-6px,6px); }
-          100% { transform: translate(0,0); opacity: 0; }
-        }
-        @keyframes verticalRoll {
-          0% { background-position: 0 0, 0 0; }
-          100% { background-position: 0 12px, 0 0; }
-        }
-        .white-screen {
-          position: absolute;
-          inset: 0;
-          background: white;
-          z-index: 150;
-          opacity: 0;
-          transition: opacity 0.4s ease;
-        }
-        .white-screen.active { opacity: 1; }
-        .shutdown {
-          position: absolute;
-          inset: 0;
-          background: black;
-          z-index: 200;
-          opacity: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .shutdown.active { opacity: 1; }
-        .shutdown-line {
-          width: 100%;
-          height: 100%;
-          background: white;
-          transform-origin: center;
-        }
-        @keyframes collapseY {
-          0% { transform: scaleY(1); }
-          100% { transform: scaleY(0.02); }
-        }
-        @keyframes collapseX {
-          0% { transform: scaleX(1); }
-          100% { transform: scaleX(0); }
-        }
-        .loading-screen {
-          position: absolute;
-          inset: 0;
-          background: black;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 300;
-          opacity: 0;
-        }
-        .loading-screen.active { opacity: 1; }
-        :root { --coffee: #E6D5B8; }
-        .wrapper { text-align: center; }
-        .loader {
-          position: relative;
-          width: 600px;
-          height: 32px;
-        }
-        .fill {
-          position: absolute;
-          top: 8px;
-          left: 8px;
-          height: 16px;
-          width: 0%;
-          background: var(--coffee);
-        }
-        svg {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-        }
-        rect.progress-border {
-          fill: none;
-          stroke: var(--coffee);
-          stroke-width: 3;
-          stroke-linecap: round;
-          stroke-dasharray: 1264;
-          stroke-dashoffset: 1264;
-        }
-        .percent {
-          margin-top: 18px;
-          font-size: 48px;
-          font-family: 'Trajan Pro Bold', serif;
-          color: var(--coffee);
-          letter-spacing: 2px;
-        }
-        .flash {
-          animation: flashAnim 0.18s ease-in-out 3;
-        }
-        @keyframes flashAnim {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-        @keyframes fillBar {
-          from { width: 0%; }
-          to { width: calc(100% - 16px); }
-        }
-        @keyframes borderBuild {
-          from { stroke-dashoffset: 1264; }
-          to { stroke-dashoffset: 0; }
-        }
-      </style>
+
+<style>
+  /* ========== CUSTOM FONTS (loaded from Cloudflare) ========== */
+  @font-face {
+    font-family: 'Kozuka Mincho Pr6N L';
+    src: url('/fonts/KozukaMinchoPr6NL.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;   /* helps text appear quickly */
+  }
+  @font-face {
+    font-family: 'Trajan Pro Bold';
+    src: url('/fonts/TrajanPro-Bold.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /* ========== CINEMATIC INTRO STYLES (unchanged) ========== */
+  #cinematicIntro {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 999999;
+    overflow: hidden;
+  }
+  .container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 10;
+  }
+  .card {
+    border: 2px solid black;
+    padding: 5px 60px;
+    background: white;
+    transform: scale(5);
+    filter: blur(12px);
+    opacity: 0;
+    animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+    cursor: pointer;
+    display: inline-block;
+  }
+  @keyframes loadIn {
+    to { transform: scale(1); filter: blur(0); opacity: 1; }
+  }
+  .japanese {
+    font-family: 'Kozuka Mincho Pr6N L', serif;
+    font-size: 20px;
+    letter-spacing: 0.35em;
+    font-weight: bold;
+  }
+  .english {
+    font-family: 'Trajan Pro Bold', serif;
+    font-size: 7px;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    margin-top: 20px;
+    opacity: 0;
+    animation: fadeInText 0.4s ease 0.15s forwards;
+  }
+  @keyframes fadeInText {
+    to { opacity: 1; }
+  }
+  .fade-out {
+    animation: blurFade 1.2s ease forwards;
+  }
+  @keyframes blurFade {
+    0% { filter: blur(0); opacity: 1; }
+    50% { filter: blur(8px); opacity: 0.6; }
+    100% { filter: blur(20px); opacity: 0; }
+  }
+  .tv-glitch {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    background:
+      repeating-linear-gradient(to bottom,
+        transparent 0px,
+        #111 1px,
+        transparent 3px,
+        #000 4px),
+      linear-gradient(90deg,
+        rgba(255,0,0,0.15) 0%,
+        transparent 33%,
+        rgba(0,255,255,0.12) 66%,
+        transparent 100%);
+    background-size: 100% 4px, 100% 100%;
+    mix-blend-mode: multiply;
+  }
+  .tv-glitch.active {
+    opacity: 0.9;
+    animation:
+      glitchShake 1.2s steps(10) forwards,
+      verticalRoll 0.10s linear infinite;
+  }
+  @keyframes glitchShake {
+    0% { transform: translate(0,0); opacity: 0; }
+    10% { transform: translate(6px,-6px); opacity: 1; }
+    30% { transform: translate(-7px,7px); }
+    50% { transform: translate(5px,-5px); }
+    70% { transform: translate(-6px,6px); }
+    100% { transform: translate(0,0); opacity: 0; }
+  }
+  @keyframes verticalRoll {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 0 12px, 0 0; }
+  }
+  .white-screen {
+    position: absolute;
+    inset: 0;
+    background: white;
+    z-index: 150;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .white-screen.active { opacity: 1; }
+  .shutdown {
+    position: absolute;
+    inset: 0;
+    background: black;
+    z-index: 200;
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .shutdown.active { opacity: 1; }
+  .shutdown-line {
+    width: 100%;
+    height: 100%;
+    background: white;
+    transform-origin: center;
+  }
+  @keyframes collapseY {
+    0% { transform: scaleY(1); }
+    100% { transform: scaleY(0.02); }
+  }
+  @keyframes collapseX {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
+  }
+  .loading-screen {
+    position: absolute;
+    inset: 0;
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+    opacity: 0;
+  }
+  .loading-screen.active { opacity: 1; }
+  :root { --coffee: #E6D5B8; }
+  .wrapper { text-align: center; }
+  .loader {
+    position: relative;
+    width: 600px;
+    height: 32px;
+  }
+  .fill {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    height: 16px;
+    width: 0%;
+    background: var(--coffee);
+  }
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  rect.progress-border {
+    fill: none;
+    stroke: var(--coffee);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 1264;
+    stroke-dashoffset: 1264;
+  }
+  .percent {
+    margin-top: 18px;
+    font-size: 48px;
+    font-family: 'Trajan Pro Bold', serif;
+    color: var(--coffee);
+    letter-spacing: 2px;
+  }
+  .flash {
+    animation: flashAnim 0.18s ease-in-out 3;
+  }
+  @keyframes flashAnim {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  @keyframes fillBar {
+    from { width: 0%; }
+    to { width: calc(100% - 16px); }
+  }
+  @keyframes borderBuild {
+    from { stroke-dashoffset: 1264; }
+    to { stroke-dashoffset: 0; }
+  }
+</style>
+
       <div class="container">
         <div class="card" id="card">
           <div class="japanese">入場</div>
