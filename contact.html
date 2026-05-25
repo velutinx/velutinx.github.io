@@ -4,87 +4,77 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VELUTINX — Contact</title>
-  <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Page‑specific CSS (includes contact form + new cursor + magnetic grid styles) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Hide cart and website button on contact page */
     .contact-page .login-btn,
     .contact-page .cart-wrapper,
     .contact-page .floating-cart {
       display: none !important;
     }
-    /* Adjust top‑nav background to match page background */
     .contact-page .top-nav {
       background: var(--bg) !important;
       border-bottom: 1px solid var(--border);
     }
-    /* (old menu media query removed – no longer needed) */
+    #page {
+      opacity: 0;
+    }
   </style>
 </head>
 <body class="contact-page">
 
-  <!-- Header will be injected here by shared.js -->
   <div id="header-placeholder"></div>
 
-  <div class="divider"></div>
+  <div id="page">
+    <div class="divider"></div>
 
-  <section class="contact-wrap">
-    <div class="contact-left">
-      <h2 id="contactTitle">CONTACT</h2>
-      <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
+    <section class="contact-wrap">
+      <div class="contact-left">
+        <h2 id="contactTitle">CONTACT</h2>
+        <p id="contactDesc">Use this form if you'd like to contact me via email!</p>
 
-      <form id="contactForm" action="https://formspree.io/f/xqebavbr" method="POST">
-        <input type="hidden" name="_subject" value="New Contact from Website">
+        <form id="contactForm" action="https://formspree.io/f/xqebavbr" method="POST">
+          <input type="hidden" name="_subject" value="New Contact from Website">
 
-        <div class="form-group">
-          <label id="labelName">NAME</label>
-          <input type="text" id="name" name="name" placeholder="Name">
-        </div>
-        <div class="form-group">
-          <label id="labelEmail">EMAIL</label>
-          <input type="email" id="email" name="email" placeholder="Email">
-        </div>
-        <div class="form-group">
-          <label id="labelMessage">MESSAGE</label>
-          <textarea id="message" name="message" placeholder="Message"></textarea>
-        </div>
-<div class="send-row">
-  <button class="send-btn" id="sendBtn" type="submit" data-cursor-expand>SEND</button>
-</div>
-      </form>
-    </div>
+          <div class="form-group">
+            <label id="labelName">NAME</label>
+            <input type="text" id="name" name="name" placeholder="Name">
+          </div>
+          <div class="form-group">
+            <label id="labelEmail">EMAIL</label>
+            <input type="email" id="email" name="email" placeholder="Email">
+          </div>
+          <div class="form-group">
+            <label id="labelMessage">MESSAGE</label>
+            <textarea id="message" name="message" placeholder="Message"></textarea>
+          </div>
+          <div class="send-row">
+            <button class="send-btn" id="sendBtn" type="submit" data-cursor-expand>SEND</button>
+          </div>
+        </form>
+      </div>
 
-    <!-- This container will be filled automatically by format.js with the magnetic social grid -->
-    <div class="contact-right" id="socialArea"></div>
-  </section>
+      <div class="contact-right" id="socialArea"></div>
+    </section>
 
-  <div class="divider"></div>
+    <div class="divider"></div>
+  </div>
 
-  <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
   <script src="/assets/js/shared.js"></script>
-
-  <!-- GSAP library – required for the new cursor and magnetic effects -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-  <!-- Page‑specific scripts (translations, gallery, format with magnetic grid + cursor) -->
   <script src="/assets/js/translt.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply contact translations using translt.js
     function applyContactTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('contact');
       }
     }
 
-    // Initial apply (when page loads)
     applyContactTranslations();
 
-    // When language changes via shared header, update translt.js and reapply
     document.addEventListener('languageChanged', (e) => {
       const newLang = e.detail.language;
       if (newLang && typeof window.setLanguage === 'function') {
@@ -95,7 +85,6 @@
       applyContactTranslations();
     });
 
-    // Ensure dark mode from localStorage is applied
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
