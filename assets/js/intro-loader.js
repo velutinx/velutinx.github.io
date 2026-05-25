@@ -9,7 +9,6 @@
 
   // 3. STRICT CHECK: 
   // Play long intro ONLY if path is empty OR just a single slash.
-  // We EXPLICITLY skip it if the path contains "index", ".html", or any other text.
   const isTrueRoot = (path === '' || path === '/');
   const isExplicitFile = path.includes('index') || path.includes('.html') || path.length > 1;
 
@@ -28,9 +27,7 @@
 
   // 5. Cinematic Intro (Only runs if path is exactly "/" and nothing else)
   document.addEventListener("DOMContentLoaded", function(){
-    // ... rest of your intro code ...
-    
-        const intro = document.createElement("div");
+    const intro = document.createElement("div");
     intro.id = "cinematicIntro";
     intro.innerHTML = `
 
@@ -41,7 +38,7 @@
     src: url('/fonts/KozukaMinchoPr6NL.otf') format('opentype');
     font-weight: bold;
     font-style: normal;
-    font-display: swap;   /* helps text appear quickly */
+    font-display: swap;
   }
   @font-face {
     font-family: 'Trajan Pro Bold';
@@ -51,7 +48,7 @@
     font-display: swap;
   }
 
-  /* ========== CINEMATIC INTRO STYLES (unchanged) ========== */
+  /* ========== CINEMATIC INTRO STYLES ========== */
   #cinematicIntro {
     position: fixed;
     inset: 0;
@@ -82,6 +79,12 @@
   @keyframes loadIn {
     to { transform: scale(1); filter: blur(0); opacity: 1; }
   }
+
+  /* ✅ Force intro text to always be black (light mode) */
+  .japanese, .english {
+    color: #000;
+  }
+
   .japanese {
     font-family: 'Kozuka Mincho Pr6N L', serif;
     font-size: 20px;
