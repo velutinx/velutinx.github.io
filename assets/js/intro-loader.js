@@ -39,17 +39,7 @@
   .container { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 10; }
   
   /* ✅ Scoped to the intro – dark mode will NOT override this */
-  #cinematicIntro .card {
-    border: 2px solid black;
-    padding: 5px 60px;
-    background: white;
-    transform: scale(5);
-    filter: blur(12px);
-    opacity: 0;
-    animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-    cursor: pointer;
-    display: inline-block;
-  }
+  #cinematicIntro .card { border: 2px solid black; padding: 5px 60px; background: white; transform: scale(5); filter: blur(12px); opacity: 0; animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards; cursor: pointer; display: inline-block; }
   @keyframes loadIn { to { transform: scale(1); filter: blur(0); opacity: 1; } }
 
   /* Text – also scoped to stay black */
