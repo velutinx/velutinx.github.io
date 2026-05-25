@@ -4,18 +4,14 @@
   <meta charset="utf-8">
   <title>VELUTINX</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Shared header CSS -->
   <link rel="stylesheet" href="/assets/css/shared.css">
-  <!-- Shared page styles (hero, divider, new cursor + falling stars) -->
   <link rel="stylesheet" href="/assets/css/format.css">
   <style>
-    /* Hide Website button, cart wrapper, and floating cart on index page */
     .index-page .login-btn,
     .index-page .cart-wrapper,
     .index-page .floating-cart {
       display: none !important;
     }
-    /* Adjust top‑nav background to match page background */
     .index-page .top-nav {
       background: var(--bg) !important;
       border-bottom: 1px solid var(--border);
@@ -54,30 +50,22 @@
     </div>
   </div>
 
-  <!-- Shared header JS (injects header, sidebar, cart, etc.) -->
   <script src="/assets/js/shared.js"></script>
-
-  <!-- GSAP library – required for custom cursor (and magnetic effects on other pages) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-  <!-- Page‑specific scripts -->
   <script src="/assets/js/translt.js"></script>
   <script src="/assets/js/format.js"></script>
   <script src="/assets/js/intro-loader.js"></script>
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
-    // Apply index translations using translt.js
     function applyIndexTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('index');
       }
     }
 
-    // Initial apply (when page loads, after translt.js is ready)
     applyIndexTranslations();
 
-    // When language changes via shared header, update translt.js and reapply
     document.addEventListener('languageChanged', (e) => {
       const newLang = e.detail.language;
       if (newLang && typeof window.setLanguage === 'function') {
@@ -88,12 +76,10 @@
       applyIndexTranslations();
     });
 
-    // Dark mode from localStorage
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
 
-    // Fade in main content (same as original intro-loader)
     const mainDiv = document.getElementById('mainWebsite');
     if (mainDiv) {
       setTimeout(() => {
