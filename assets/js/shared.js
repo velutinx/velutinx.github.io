@@ -451,33 +451,59 @@
   window.headerReady = true;
   }
 
-  // --------------------------------------------------------------
-  // 6. Smooth page reveal animation for subpages
-  // --------------------------------------------------------------
-  function initPageReveal() {
-    const path = window.location.pathname.toLowerCase();
-    const isRoot = (path === '' || path === '/' || path === '/index.html' || path === '/index');
-    if (isRoot) return;
-    
-    const page = document.getElementById('page') || document.getElementById('mainWebsite');
-    if (!page) return;
-    
-    if (!document.getElementById('pageRevealStyles')) {
-      const style = document.createElement('style');
-      style.id = 'pageRevealStyles';
-      style.textContent = `
-        @keyframes pageReveal {
-          from { opacity: 0; transform: translateY(60px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `;
-      document.head.appendChild(style);
+// --------------------------------------------------------------
+// 6. Smooth page reveal animation for subpages
+// --------------------------------------------------------------
+function initPageReveal() {
+  const path = window.location.pathname.toLowerCase();
+  const isRoot = (path === '' || path === '/' || path === '/index.html' || path === '/index');
+  if (isRoot) return;
+  
+  // Try multiple strategies to find the content wrapper
+  let page = document.getElementById('page') || document.getElementById('mainWebsite');
+  
+  // Fallback: find the first meaningful content after the header
+  if (!page) {
+    const header = document.getElementById('header-placeholder');
+    if (header && header.nextElementSibling) {
+      page = header.nextElementSibling;
+      // Give it an id so we don't create duplicate wrappers
+      if (!page.id) page.id = 'page';
     }
-    
-    page.style.opacity = '0';
-    page.style.transform = 'translateY(60px)';
-    page.style.animation = 'pageReveal 0.7s ease-out forwards';
   }
+  
+  // Last resort: wrap everything after the header
+  if (!page) {
+    const header = document.getElementById('header-placeholder');
+    if (header) {
+      const wrapper = document.createElement('div');
+      wrapper.id = 'page';
+      while (header.nextSibling) {
+        wrapper.appendChild(header.nextSibling);
+      }
+      header.parentNode.appendChild(wrapper);
+      page = wrapper;
+    }
+  }
+  
+  if (!page) return;
+  
+  if (!document.getElementById('pageRevealStyles')) {
+    const style = document.createElement('style');
+    style.id = 'pageRevealStyles';
+    style.textContent = `
+      @keyframes pageReveal {
+        from { opacity: 0; transform: translateY(60px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  page.style.opacity = '0';
+  page.style.transform = 'translateY(60px)';
+  page.style.animation = 'pageReveal 0.7s ease-out forwards';
+}
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
