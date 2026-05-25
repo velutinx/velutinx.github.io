@@ -80,8 +80,9 @@
     to { transform: scale(1); filter: blur(0); opacity: 1; }
   }
 
-  /* ✅ Force intro text to always be black (light mode) */
-  .japanese, .english {
+  /* ✅ Force intro text to always be black – high specificity to beat dark mode */
+  #cinematicIntro .japanese,
+  #cinematicIntro .english {
     color: #000;
   }
 
