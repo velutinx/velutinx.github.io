@@ -8,13 +8,11 @@
   }
 
   // 3. STRICT CHECK: 
-  // Play long intro ONLY if path is empty OR just a single slash.
   const isTrueRoot = (path === '' || path === '/');
   const isExplicitFile = path.includes('index') || path.includes('.html') || path.length > 1;
 
   // 4. Decide: Play Intro OR Show Website
   if (!isTrueRoot || isExplicitFile) {
-    // SKIP INTRO - Show website immediately
     document.addEventListener("DOMContentLoaded", function(){
       const main = document.getElementById('mainWebsite');
       if (main) {
@@ -22,27 +20,39 @@
         main.style.opacity = '1';
       }
     });
-    return; // Exit script
+    return;
   }
 
-  // 5. Cinematic Intro (Only runs if path is exactly "/" and nothing else)
+  // 5. Cinematic Intro (Only runs if path is exactly "/")
   document.addEventListener("DOMContentLoaded", function(){
     const intro = document.createElement("div");
     intro.id = "cinematicIntro";
     intro.innerHTML = `
 
 <style>
-  /* ========== CUSTOM FONTS (loaded from Cloudflare) ========== */
+  /* ========== CUSTOM FONTS ========== */
   @font-face { font-family: 'Kozuka Mincho Pr6N L'; src: url('/fonts/KozukaMinchoPr6NL.otf') format('opentype'); font-weight: bold; font-style: normal; font-display: swap; }
   @font-face { font-family: 'Trajan Pro Bold'; src: url('/fonts/TrajanPro-Bold.otf') format('opentype'); font-weight: bold; font-style: normal; font-display: swap; }
 
   /* ========== CINEMATIC INTRO STYLES ========== */
   #cinematicIntro { position: fixed; inset: 0; background: white; z-index: 999999; overflow: hidden; }
   .container { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 10; }
-  .card { border: 2px solid black; padding: 5px 60px; background: white; transform: scale(5); filter: blur(12px); opacity: 0; animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards; cursor: pointer; display: inline-block; }
+  
+  /* ✅ Scoped to the intro – dark mode will NOT override this */
+  #cinematicIntro .card {
+    border: 2px solid black;
+    padding: 5px 60px;
+    background: white;
+    transform: scale(5);
+    filter: blur(12px);
+    opacity: 0;
+    animation: loadIn 0.2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+    cursor: pointer;
+    display: inline-block;
+  }
   @keyframes loadIn { to { transform: scale(1); filter: blur(0); opacity: 1; } }
 
-  /* ✅ Force intro text to always be black – high specificity to beat dark mode */
+  /* Text – also scoped to stay black */
   #cinematicIntro .japanese,
   #cinematicIntro .english { color: #000; }
 
