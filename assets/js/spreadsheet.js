@@ -498,7 +498,7 @@ function renderTable() {
         `;
         tableBody.appendChild(headerTr);
 
-        for (const row of monthRows) {
+        for (const row of [...monthRows].reverse()) {
             const entry = row.entry;
             const dateStr = formatDate(entry.month, entry.day, y);
             const amountDisplay = entry.amount.toFixed(2);
