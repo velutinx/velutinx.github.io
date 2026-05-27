@@ -620,10 +620,39 @@ function buildChart(initialDays) {
     if (entries.length === 0) return;
 
     const currentYear = new Date().getFullYear();
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;          // 1‑based
     const now = moment().endOf('day');
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-    // ---------- 1. Subscriptions (active recurring expenses only) ----------
+    // -------------------------------------------------------------
+    // 1. Previous month full totals (used only for reference lines)
+    // -------------------------------------------------------------
+    let prevMonth = currentMonth - 1;
+    let prevYear = currentYear;
+    if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear--;
+    }
+
+    // Calculate the exact totals for the previous month by summing all entries in that month
+    let prevPatreon = 0, prevWebsite = 0, prevKofi = 0, prevSubscribestar = 0, prevExpense = 0;
+    for (const e of entries) {
+        if (e.month !== prevMonth) continue;                // only previous month entries
+        const amt = e.amount;
+        switch (e.category) {
+            case 'Patreon subscription':  prevPatreon += amt; break;
+            case 'Website payments':      prevWebsite += amt; break;
+            case 'Ko-Fi subscriptions':   prevKofi += amt; break;
+            case 'Subscribestar subscriptions': prevSubscribestar += amt; break;
+            case 'Expenses':              prevExpense += amt; break;
+        }
+    }
+    const refLastNet = prevPatreon + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
+
+    // -------------------------------------------------------------
+    // 2. Subscription definitions (for the visible chart lines)
+    // -------------------------------------------------------------
     const subMap = new Map();
     for (const e of entries) {
         if (e.category !== 'Expenses' || !e.concept || !e.recurring) continue;
@@ -654,7 +683,9 @@ function buildChart(initialDays) {
         recurringLines.push({ startKey, endKey, amount });
     }
 
-    // ---------- 2. All other entries (income + one‑time expenses) ----------
+    // -------------------------------------------------------------
+    // 3. Other entries (income + one‑time expenses)
+    // -------------------------------------------------------------
     const nonSubEntries = entries.filter(e => {
         if (e.category !== 'Expenses') return true;
         if (!e.concept) return true;
@@ -662,68 +693,23 @@ function buildChart(initialDays) {
         return !subMap.has(key);
     });
 
-    // Helper to build a daily map for a given date range
-    const buildDailyMap = (fromDate, toDate) => {
-        const map = new Map();
-        nonSubEntries.forEach(e => {
-            const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
-            if (date < fromDate.format('YYYY-MM-DD') || date > toDate.format('YYYY-MM-DD')) return;
-            if (!map.has(date)) {
-                map.set(date, { patreon: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 });
-            }
-            const d = map.get(date);
-            if (e.category === 'Patreon subscription') d.patreon += e.amount;
-            else if (e.category === 'Website payments') d.website += e.amount;
-            else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
-            else if (e.category === 'Subscribestar subscriptions') d.subscribestar += e.amount;
-            else if (e.category === 'Expenses') d.expense += e.amount;
-        });
-        return map;
-    };
-
-    // ---------- 3. Previous month’s final values (always full month) ----------
-    const today = new Date();
-    const prevMonth = today.getMonth() - 1; // 0‑based, April = 3, May = 4
-    const prevMonthYear = today.getFullYear();
-    // Last day of previous month
-    const lastDayPrevMonth = new Date(prevMonthYear, prevMonth + 1, 0); // e.g., April 30
-    // Start from the beginning of that month to compute its cumulative total
-    const prevMonthStart = moment(new Date(prevMonthYear, prevMonth, 1)).startOf('day');
-    const prevMonthEnd = moment(lastDayPrevMonth).endOf('day');
-
-    // Build daily map for the full previous month
-    const prevDailyMap = buildDailyMap(prevMonthStart, prevMonthEnd);
-
-    // Compute cumulative totals for the previous month (reset on 1st of that month)
-    let prevPatreon = 0, prevWebsite = 0, prevKofi = 0, prevSubscribestar = 0, prevExpense = 0;
-    for (let d = moment(prevMonthStart); d.isSameOrBefore(prevMonthEnd); d.add(1, 'day')) {
-        const key = d.format('YYYY-MM-DD');
-        const dayData = prevDailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 };
-        prevPatreon += dayData.patreon;
-        prevWebsite += dayData.website;
-        prevKofi += dayData.kofi;
-        prevSubscribestar += dayData.subscribestar;
-        prevExpense += dayData.expense;
-
-        // Recurring totals for the previous month
-        let recTotal = 0;
-        for (const line of recurringLines) {
-            if (key >= line.startKey && key <= line.endKey) {
-                recTotal += line.amount;
-            }
+    const dailyMap = new Map();
+    nonSubEntries.forEach(e => {
+        const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
+        if (!dailyMap.has(date)) {
+            dailyMap.set(date, { patreon: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 });
         }
-        prevExpense += recTotal;
-    }
+        const d = dailyMap.get(date);
+        if (e.category === 'Patreon subscription') d.patreon += e.amount;
+        else if (e.category === 'Website payments') d.website += e.amount;
+        else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
+        else if (e.category === 'Subscribestar subscriptions') d.subscribestar += e.amount;
+        else if (e.category === 'Expenses') d.expense += e.amount;
+    });
 
-    const refLastNet = prevPatreon + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
-    const refLastPatreon = prevPatreon;
-    const refLastWebsite = prevWebsite;
-    const refLastKofi = prevKofi;
-    const refLastSubscribestar = prevSubscribestar;
-
-    // ---------- 4. Visible range chart arrays ----------
-    const dailyMap = buildDailyMap(startDate, now);
-
+    // -------------------------------------------------------------
+    // 4. Visible range chart arrays
+    // -------------------------------------------------------------
     let dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
         subscribestarCum = [], totalExpCum = [], netCum = [];
 
@@ -739,12 +725,12 @@ function buildChart(initialDays) {
         }
         lastMonth = month;
 
-        const dayData = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 };
-        curPatreon += dayData.patreon;
-        curWebsite += dayData.website;
-        curKofi += dayData.kofi;
-        curSubscribestar += dayData.subscribestar;
-        curNonRecExp += dayData.expense;
+        const nonSub = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 };
+        curPatreon += nonSub.patreon;
+        curWebsite += nonSub.website;
+        curKofi += nonSub.kofi;
+        curSubscribestar += nonSub.subscribestar;
+        curNonRecExp += nonSub.expense;
 
         let recurringTotal = 0;
         for (const line of recurringLines) {
@@ -765,27 +751,29 @@ function buildChart(initialDays) {
         netCum.push(net);
     }
 
-    // ---------- 5. Reference lines (use full previous‑month values) ----------
-    // Helper: create reference array up to the day where current value surpasses reference
-    function buildRefArray(lastValue, currentCumArray, startIndex) {
+    // -------------------------------------------------------------
+    // 5. Reference lines (use full previous‑month totals)
+    // -------------------------------------------------------------
+    function buildRefArray(refValue, currentCumArray, startIndex) {
         const ref = new Array(dates.length).fill(null);
-        if (lastValue == null || lastValue === 0 || startIndex === -1) return ref;
+        if (refValue == null || refValue === 0 || startIndex === -1) return ref;
         let stopIdx = dates.length - 1;
         for (let i = startIndex; i < dates.length; i++) {
-            if (currentCumArray[i] > lastValue) {
-                stopIdx = i; // show on the surpassing day, disappear next day
+            if (currentCumArray[i] > refValue) {
+                stopIdx = i;     // show on the surpassing day, gone next day
                 break;
             }
         }
         for (let i = startIndex; i <= stopIdx && i < dates.length; i++) {
-            ref[i] = lastValue;
+            ref[i] = refValue;
         }
         return ref;
     }
 
-    // Find the index of the last day of the previous month in the visible dates array
-    const lastDayPrevMonthStr = lastDayPrevMonth.toISOString().split('T')[0];
-    const lastDayIndex = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevMonthStr);
+    // Last day of previous month in the visible dates array
+    const lastDayPrevMonth = new Date(prevYear, prevMonth, 0);   // e.g., April 30
+    const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
+    const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
 
     let netRef = new Array(dates.length).fill(null);
     let patreonRef = new Array(dates.length).fill(null);
@@ -793,15 +781,17 @@ function buildChart(initialDays) {
     let kofiRef = new Array(dates.length).fill(null);
     let subscribestarRef = new Array(dates.length).fill(null);
 
-    if (lastDayIndex !== -1) {
-        netRef = buildRefArray(refLastNet, netCum, lastDayIndex);
-        patreonRef = buildRefArray(refLastPatreon, patreonCum, lastDayIndex);
-        websiteRef = buildRefArray(refLastWebsite, websiteCum, lastDayIndex);
-        kofiRef = buildRefArray(refLastKofi, kofiCum, lastDayIndex);
-        subscribestarRef = buildRefArray(refLastSubscribestar, subscribestarCum, lastDayIndex);
+    if (lastDayIdx !== -1) {
+        netRef          = buildRefArray(refLastNet,         netCum,             lastDayIdx);
+        patreonRef      = buildRefArray(prevPatreon,       patreonCum,         lastDayIdx);
+        websiteRef      = buildRefArray(prevWebsite,       websiteCum,         lastDayIdx);
+        kofiRef         = buildRefArray(prevKofi,          kofiCum,            lastDayIdx);
+        subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum,   lastDayIdx);
     }
 
-    // ---------- 6. Build chart datasets (hide zero‑only income lines) ----------
+    // -------------------------------------------------------------
+    // 6. Build chart datasets (hide zero‑only income lines)
+    // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
 
