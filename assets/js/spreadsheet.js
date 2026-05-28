@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (solid lines start from 1st of month, not from chart edge) ----------
+// ---------- Chart (solid from 1st of month, dotted reference lines always present when available) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -621,12 +621,12 @@ function buildChart(initialDays) {
 
     const currentYear = new Date().getFullYear();
     const today = new Date();
-    const currentMonth = today.getMonth() + 1;          // 1‑based
+    const currentMonth = today.getMonth() + 1;
     const now = moment().endOf('day');
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
     // -------------------------------------------------------------
-    // 1. Previous month FULL totals (used only for reference lines)
+    // 1. Previous month FULL totals
     // -------------------------------------------------------------
     let prevMonth = currentMonth - 1;
     let prevYear = currentYear;
@@ -694,7 +694,6 @@ function buildChart(initialDays) {
         return !subMap.has(key);
     });
 
-    // Build a daily map for the entire year (needed to compute cumulative from 1st of month)
     const fullDailyMap = new Map();
     nonSubEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
@@ -723,11 +722,9 @@ function buildChart(initialDays) {
     let dates = [], patreonAllCum = [], websiteCum = [], kofiCum = [],
         subscribestarCum = [], totalExpCum = [], netCum = [];
 
-    // Determine the first month that appears in the visible range
-    const firstVisibleMonth = startDate.month() + 1;   // 1‑based
+    const firstVisibleMonth = startDate.month() + 1;
     const firstVisibleYear = startDate.year();
 
-    // Start accumulating from the 1st of that month
     let curDate = moment(new Date(firstVisibleYear, firstVisibleMonth - 1, 1)).startOf('day');
     let curPatreonAll = 0, curWebsite = 0, curKofi = 0, curSubscribestar = 0, curNonRecExp = 0;
     let lastMonth = null;
@@ -736,7 +733,6 @@ function buildChart(initialDays) {
         const key = curDate.format('YYYY-MM-DD');
         const month = curDate.month() + 1;
 
-        // Reset on month boundaries
         if (lastMonth !== null && month !== lastMonth) {
             curPatreonAll = 0; curWebsite = 0; curKofi = 0; curSubscribestar = 0; curNonRecExp = 0;
         }
@@ -761,7 +757,6 @@ function buildChart(initialDays) {
         const totalExp = curNonRecExp + recurringTotal;
         const net = curPatreonAll + curWebsite + curKofi + curSubscribestar - totalExp;
 
-        // Only add to the chart if we are at or past the visible start date
         if (curDate.isSameOrAfter(startDate)) {
             dates.push(curDate.toDate());
             patreonAllCum.push(curPatreonAll);
@@ -813,31 +808,45 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 6. Build chart datasets (combined Patreon, hide zero lines)
+    // 6. Build chart datasets (always show dotted reference if previous month had data)
     // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
 
+    // Solid lines
     if (hasNonZero(patreonAllCum)) {
         datasets.push({ label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonAllCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 });
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (hasNonZero(websiteCum)) {
         datasets.push({ label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 });
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (hasNonZero(kofiCum)) {
         datasets.push({ label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 });
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (hasNonZero(subscribestarCum)) {
         datasets.push({ label: 'Subscribestar', data: dates.map((d, i) => ({ x: d, y: subscribestarCum[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, tension: 0 });
+    }
+
+    // Dotted reference lines – added whenever the previous month had a non‑zero total for that category
+    if (prevPatreonAll > 0) {
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (prevWebsite > 0) {
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (prevKofi > 0) {
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (prevSubscribestar > 0) {
         datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
 
+    // Expenses and Net Income (solid + dotted)
     datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
     datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
-    datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    if (refLastNet !== 0) {
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
 
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
