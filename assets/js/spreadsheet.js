@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (solid from 1st of month, dotted reference always when available) ----------
+// ---------- Chart (solid from 1st of month, dotted reference lines always visible) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -650,10 +650,6 @@ function buildChart(initialDays) {
         }
     }
     const refLastNet = prevPatreonAll + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
-
-    console.log('DEBUG prevMonth:', prevMonth,
-                'prevSubscribestar:', prevSubscribestar,
-                'prevPatreonAll:', prevPatreonAll);
 
     // -------------------------------------------------------------
     // 2. Active recurring expenses
@@ -797,10 +793,6 @@ function buildChart(initialDays) {
     const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
     const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
 
-    console.log('DEBUG lastDayPrevStr:', lastDayPrevStr,
-                'lastDayIdx:', lastDayIdx,
-                'dates length:', dates.length);
-
     let netRef = new Array(dates.length).fill(null);
     let patreonAllRef = new Array(dates.length).fill(null);
     let websiteRef = new Array(dates.length).fill(null);
@@ -813,13 +805,10 @@ function buildChart(initialDays) {
         websiteRef = buildRefArray(prevWebsite, websiteCum, lastDayIdx);
         kofiRef = buildRefArray(prevKofi, kofiCum, lastDayIdx);
         subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, lastDayIdx);
-        console.log('DEBUG subscribestarRef has non-null:', subscribestarRef.some(v => v !== null));
-    } else {
-        console.log('DEBUG lastDayIdx is -1, no reference lines will appear');
     }
 
     // -------------------------------------------------------------
-    // 6. Build chart datasets (always show dotted reference if previous month had data)
+    // 6. Build chart datasets – ALL datasets have proper labels, legend filter OFF
     // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
@@ -838,29 +827,36 @@ function buildChart(initialDays) {
         datasets.push({ label: 'Subscribestar', data: dates.map((d, i) => ({ x: d, y: subscribestarCum[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, tension: 0 });
     }
 
-    // Dotted reference lines – added whenever the previous month had a non‑zero total for that category
+    // Dotted reference lines – now with visible labels (or at least non‑empty) so they show up
     if (prevPatreonAll > 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Patreon (prev)', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (prevWebsite > 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Website (prev)', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (prevKofi > 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Ko‑fi (prev)', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
-    // This is the crucial block for Subscribestar – it uses the same condition as others
     if (prevSubscribestar > 0) {
-        console.log('DEBUG Adding Subscribestar dotted reference');
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    } else {
-        console.log('DEBUG Subscribestar dotted reference skipped because prevSubscribestar =', prevSubscribestar);
+        // Make it extra obvious – bright purple, thicker
+        datasets.push({
+            label: 'Sub (prev)',
+            data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })),
+            borderColor: '#c084fc',       // bright light-purple
+            backgroundColor: 'transparent',
+            borderWidth: 4,                // thick
+            pointRadius: 0,
+            borderDash: [8, 4],
+            tension: 0,
+            fill: false
+        });
     }
 
-    // Expenses and Net Income (solid + dotted)
+    // Expenses & Net Income
     datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
     datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
     if (refLastNet !== 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Net (prev)', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
 
     const ctx = document.getElementById('incomeChart').getContext('2d');
@@ -872,7 +868,7 @@ function buildChart(initialDays) {
             maintainAspectRatio: false,
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             plugins: {
-                legend: { labels: { color: '#aaa', filter: (item) => item.text !== '' } },
+                legend: { labels: { color: '#aaa' } },   // NO filter – everything shown
                 zoom: {
                     zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
                     pan: { enabled: true, mode: 'x' },
