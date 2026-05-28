@@ -235,7 +235,7 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 .contents-list { list-style: none; padding-left: 0; margin: 0; }
 .contents-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 1rem; color: var(--text); margin-bottom: 16px; line-height: 1.4; }
 .bullet-svg { flex-shrink: 0; width: 28px; height: 28px; }
-.divider { border-top: 1px solid var(--border); margin: 16px 0 16px 0; }
+.info .divider { border-top: 1px solid var(--border); margin: 16px 0 16px 0; }
 .price-section { margin: 28px 0; padding: 20px; background: rgba(250,137,107,0.08); border-radius: 12px; border: 1px solid rgba(250,137,107,0.25); }
 .price-label { color: var(--text); font-size: 0.95rem; }
 .old-price { text-decoration: line-through; color: var(--text-light); margin-left: 12px; }
