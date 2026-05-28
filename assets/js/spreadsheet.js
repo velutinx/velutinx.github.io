@@ -716,8 +716,10 @@ function buildChart(initialDays) {
         const ref = new Array(dates.length).fill(null);
         if (refValue == null || refValue === 0 || startIndex === -1) return ref;
         let stopIdx = dates.length - 1;
-        for (let i = startIndex; i < dates.length; i++) {
-            if (currentCumArray[i] > refValue) { stopIdx = i; break; }
+        // FIX: Start checking on the day AFTER the reference starts, 
+        // and add a small 0.001 epsilon to prevent floating-point mismatches from instantly breaking the loop.
+        for (let i = startIndex + 1; i < dates.length; i++) {
+            if (currentCumArray[i] > refValue + 0.001) { stopIdx = i; break; }
         }
         for (let i = startIndex; i <= stopIdx && i < dates.length; i++) ref[i] = refValue;
         return ref;
@@ -727,33 +729,21 @@ function buildChart(initialDays) {
     let patreonAllRef = buildRefArray(prevPatreonAll, patreonAllCum, refStartIdx);
     let websiteRef = buildRefArray(prevWebsite, websiteCum, refStartIdx);
     let kofiRef = buildRefArray(prevKofi, kofiCum, refStartIdx);
+    // FIX: Replaced the buggy manual loop with the standard buildRefArray function
+    let subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, refStartIdx);
 
-    // Subscribestar reference: start at refStartIdx, fill until surpassed
-    let subscribestarRef = new Array(dates.length).fill(null);
-    if (prevSubscribestar > 0 && refStartIdx !== -1) {
-        let stopIdx = dates.length - 1;
-        for (let i = refStartIdx; i < dates.length; i++) {
-            if (subscribestarCum[i] > prevSubscribestar) { stopIdx = i; break; }
-        }
-        for (let i = refStartIdx; i <= stopIdx && i < dates.length; i++) {
-            subscribestarRef[i] = prevSubscribestar;
-        }
-    }
-
-    // 6. Datasets – Subscribestar is now YELLOW
+    // 6. Datasets
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
     if (hasNonZero(patreonAllCum)) datasets.push({ label: 'Patreon', data: dates.map((d,i)=>({x:d,y:patreonAllCum[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, tension:0 });
     if (hasNonZero(websiteCum)) datasets.push({ label: 'Website', data: dates.map((d,i)=>({x:d,y:websiteCum[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, tension:0 });
     if (hasNonZero(kofiCum)) datasets.push({ label: 'Ko‑fi', data: dates.map((d,i)=>({x:d,y:kofiCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
-    // Subscribestar – solid yellow
     if (hasNonZero(subscribestarCum)) datasets.push({ label: 'Subscribestar', data: dates.map((d,i)=>({x:d,y:subscribestarCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
 
     // Reference lines
     if (prevPatreonAll > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:patreonAllRef[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevWebsite > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:websiteRef[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevKofi > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:kofiRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
-    // Subscribestar dotted – yellow, 2px, starts at refStartIdx
     if (prevSubscribestar > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:subscribestarRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
 
     datasets.push({ label: 'Expenses', data: dates.map((d,i)=>({x:d,y:totalExpCum[i]})), borderColor:'#ef4444', borderWidth:2, pointRadius:0, tension:0 });
