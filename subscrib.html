@@ -6,10 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zip to Post · Patreon + Bluesky + Pack Manager (Nightmode)</title>
     <link rel="stylesheet" href="/assets/css/format-private.css">
-    <!-- External libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <!-- Spreadsheet CDN dependencies -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
@@ -17,7 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
-    <!-- Feature modules -->
     <script src="/assets/js/zip-to-post.js" defer></script>
     <script src="/assets/js/bluesky-composer.js" defer></script>
     <script src="/assets/js/pack-manager.js" defer></script>
@@ -46,11 +43,14 @@
             <div class="upload-label">📂 Drag & drop zip or click</div>
         </div>
         <div class="columns">
+            <!-- Pixiv column commented out -->
+            <!--
             <div class="column">
                 <h2>🎨 Pixiv Post (JP/EN)</h2>
                 <textarea id="pixivOutput" class="output" readonly>Waiting...</textarea>
                 <button class="copy-btn" data-copy="pixivOutput">Copy</button>
             </div>
+            -->
             <div class="column">
                 <h2>📌 Subscriber (Subscribestar)</h2>
                 <textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea>
@@ -81,7 +81,6 @@
 <!-- Tweeter Tab (Bluesky + Twitter combined) -->
 <div id="bluesky" class="tab-content">
     <div style="margin-bottom: 20px;">
-        <!-- Master textarea, no label, no counter, no button -->
         <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
     </div>
 
@@ -115,7 +114,6 @@
         <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter" style="height:1.2em; vertical-align:middle;"> Twitter
     </h3>
     <div class="accounts-grid" style="margin-top:12px;">
-        <!-- Twitter account cards: dropzones removed, images reflected from Bluesky -->
         <div class="account-card" data-twitter-account="1">
             <h3>@Velutinx2</h3>
             <textarea id="twitter-post-1" class="account-post" rows="4" placeholder="Twitter post"></textarea>
