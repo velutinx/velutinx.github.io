@@ -611,12 +611,9 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (solid from 1st of month, reference lines grouped with main) ----------
+// ---------- Chart (solid from 1st of month, dotted reference lines grouped) ----------
 function buildChart(initialDays) {
-    if (incomeChart) {
-        incomeChart.destroy();
-        incomeChart = null;
-    }
+    if (incomeChart) { incomeChart.destroy(); incomeChart = null; }
     if (entries.length === 0) return;
 
     const currentYear = new Date().getFullYear();
@@ -630,23 +627,18 @@ function buildChart(initialDays) {
     // -------------------------------------------------------------
     let prevMonth = currentMonth - 1;
     let prevYear = currentYear;
-    if (prevMonth === 0) {
-        prevMonth = 12;
-        prevYear--;
-    }
+    if (prevMonth === 0) { prevMonth = 12; prevYear--; }
 
     let prevPatreonAll = 0, prevWebsite = 0, prevKofi = 0, prevSubscribestar = 0, prevExpense = 0;
     for (const e of entries) {
         if (e.month !== prevMonth) continue;
         switch (e.category) {
             case 'Patreon subscription':
-            case 'Patreon sales':
-                prevPatreonAll += e.amount;
-                break;
-            case 'Website payments':      prevWebsite += e.amount; break;
-            case 'Ko-Fi subscriptions':   prevKofi += e.amount; break;
+            case 'Patreon sales': prevPatreonAll += e.amount; break;
+            case 'Website payments': prevWebsite += e.amount; break;
+            case 'Ko-Fi subscriptions': prevKofi += e.amount; break;
             case 'Subscribestar subscriptions': prevSubscribestar += e.amount; break;
-            case 'Expenses':              prevExpense += e.amount; break;
+            case 'Expenses': prevExpense += e.amount; break;
         }
     }
     const refLastNet = prevPatreonAll + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
@@ -659,22 +651,14 @@ function buildChart(initialDays) {
         if (e.category !== 'Expenses' || !e.concept || !e.recurring) continue;
         const key = `${e.concept}::${e.amount}::${e.day}`;
         if (!subMap.has(key)) {
-            subMap.set(key, {
-                startMonth: e.month,
-                startDay: e.day,
-                active: true,
-                lastChargeDate: null,
-            });
+            subMap.set(key, { startMonth: e.month, startDay: e.day, active: true, lastChargeDate: null });
         }
         const sub = subMap.get(key);
         const chargeDate = moment(new Date(currentYear, e.month - 1, e.day));
         if (chargeDate.isBefore(now)) {
-            if (!sub.lastChargeDate || chargeDate.isAfter(sub.lastChargeDate)) {
-                sub.lastChargeDate = chargeDate;
-            }
+            if (!sub.lastChargeDate || chargeDate.isAfter(sub.lastChargeDate)) sub.lastChargeDate = chargeDate;
         }
     }
-
     const recurringLines = [];
     for (const [key, sub] of subMap) {
         if (!sub.lastChargeDate) continue;
@@ -698,26 +682,18 @@ function buildChart(initialDays) {
     nonSubEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
         if (!fullDailyMap.has(date)) {
-            fullDailyMap.set(date, {
-                patreonAll: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0
-            });
+            fullDailyMap.set(date, { patreonAll: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 });
         }
         const d = fullDailyMap.get(date);
-        if (e.category === 'Patreon subscription' || e.category === 'Patreon sales') {
-            d.patreonAll += e.amount;
-        } else if (e.category === 'Website payments') {
-            d.website += e.amount;
-        } else if (e.category === 'Ko-Fi subscriptions') {
-            d.kofi += e.amount;
-        } else if (e.category === 'Subscribestar subscriptions') {
-            d.subscribestar += e.amount;
-        } else if (e.category === 'Expenses') {
-            d.expense += e.amount;
-        }
+        if (e.category === 'Patreon subscription' || e.category === 'Patreon sales') d.patreonAll += e.amount;
+        else if (e.category === 'Website payments') d.website += e.amount;
+        else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
+        else if (e.category === 'Subscribestar subscriptions') d.subscribestar += e.amount;
+        else if (e.category === 'Expenses') d.expense += e.amount;
     });
 
     // -------------------------------------------------------------
-    // 4. Build cumulative arrays from 1st of first visible month
+    // 4. Build cumulative arrays (start from 1st of first visible month)
     // -------------------------------------------------------------
     let dates = [], patreonAllCum = [], websiteCum = [], kofiCum = [],
         subscribestarCum = [], totalExpCum = [], netCum = [];
@@ -731,59 +707,38 @@ function buildChart(initialDays) {
     while (curDate.isSameOrBefore(now, 'day')) {
         const key = curDate.format('YYYY-MM-DD');
         const month = curDate.month() + 1;
-
         if (lastMonth !== null && month !== lastMonth) {
             curPatreonAll = 0; curWebsite = 0; curKofi = 0; curSubscribestar = 0; curNonRecExp = 0;
         }
         lastMonth = month;
-
-        const dayData = fullDailyMap.get(key) || {
-            patreonAll: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0
-        };
-        curPatreonAll += dayData.patreonAll;
-        curWebsite += dayData.website;
-        curKofi += dayData.kofi;
-        curSubscribestar += dayData.subscribestar;
-        curNonRecExp += dayData.expense;
+        const dayData = fullDailyMap.get(key) || { patreonAll: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 };
+        curPatreonAll += dayData.patreonAll; curWebsite += dayData.website; curKofi += dayData.kofi;
+        curSubscribestar += dayData.subscribestar; curNonRecExp += dayData.expense;
 
         let recurringTotal = 0;
-        for (const line of recurringLines) {
-            if (key >= line.startKey && key <= line.endKey) {
-                recurringTotal += line.amount;
-            }
-        }
-
+        for (const line of recurringLines) { if (key >= line.startKey && key <= line.endKey) recurringTotal += line.amount; }
         const totalExp = curNonRecExp + recurringTotal;
         const net = curPatreonAll + curWebsite + curKofi + curSubscribestar - totalExp;
 
         if (curDate.isSameOrAfter(startDate)) {
             dates.push(curDate.toDate());
-            patreonAllCum.push(curPatreonAll);
-            websiteCum.push(curWebsite);
-            kofiCum.push(curKofi);
-            subscribestarCum.push(curSubscribestar);
-            totalExpCum.push(totalExp);
-            netCum.push(net);
+            patreonAllCum.push(curPatreonAll); websiteCum.push(curWebsite); kofiCum.push(curKofi);
+            subscribestarCum.push(curSubscribestar); totalExpCum.push(totalExp); netCum.push(net);
         }
         curDate.add(1, 'day');
     }
 
     // -------------------------------------------------------------
-    // 5. Reference lines (dotted, stop after being surpassed)
+    // 5. Reference lines
     // -------------------------------------------------------------
     function buildRefArray(refValue, currentCumArray, startIndex) {
         const ref = new Array(dates.length).fill(null);
         if (refValue == null || refValue === 0 || startIndex === -1) return ref;
         let stopIdx = dates.length - 1;
         for (let i = startIndex; i < dates.length; i++) {
-            if (currentCumArray[i] > refValue) {
-                stopIdx = i;
-                break;
-            }
+            if (currentCumArray[i] > refValue) { stopIdx = i; break; }
         }
-        for (let i = startIndex; i <= stopIdx && i < dates.length; i++) {
-            ref[i] = refValue;
-        }
+        for (let i = startIndex; i <= stopIdx && i < dates.length; i++) ref[i] = refValue;
         return ref;
     }
 
@@ -791,11 +746,11 @@ function buildChart(initialDays) {
     const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
     const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
 
-    let netRef = new Array(dates.length).fill(null);
-    let patreonAllRef = new Array(dates.length).fill(null);
-    let websiteRef = new Array(dates.length).fill(null);
-    let kofiRef = new Array(dates.length).fill(null);
-    let subscribestarRef = new Array(dates.length).fill(null);
+    let netRef = new Array(dates.length).fill(null),
+        patreonAllRef = new Array(dates.length).fill(null),
+        websiteRef = new Array(dates.length).fill(null),
+        kofiRef = new Array(dates.length).fill(null),
+        subscribestarRef = new Array(dates.length).fill(null);
 
     if (lastDayIdx !== -1) {
         netRef = buildRefArray(refLastNet, netCum, lastDayIdx);
@@ -806,46 +761,29 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 6. Build datasets – every dataset has a label, grouping handled by onClick
+    // 6. Build datasets (solid lines first, then dotted references with empty labels)
     // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
 
-    if (hasNonZero(patreonAllCum)) {
-        datasets.push({ label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonAllCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 });
-    }
-    if (hasNonZero(websiteCum)) {
-        datasets.push({ label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 });
-    }
-    if (hasNonZero(kofiCum)) {
-        datasets.push({ label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 });
-    }
-    if (hasNonZero(subscribestarCum)) {
-        datasets.push({ label: 'Subscribestar', data: dates.map((d, i) => ({ x: d, y: subscribestarCum[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, tension: 0 });
-    }
+    // Solid lines
+    if (hasNonZero(patreonAllCum)) datasets.push({ label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonAllCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 });
+    if (hasNonZero(websiteCum)) datasets.push({ label: 'Website', data: dates.map((d, i) => ({ x: d, y: websiteCum[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, tension: 0 });
+    if (hasNonZero(kofiCum)) datasets.push({ label: 'Ko‑fi', data: dates.map((d, i) => ({ x: d, y: kofiCum[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, tension: 0 });
+    if (hasNonZero(subscribestarCum)) datasets.push({ label: 'Subscribestar', data: dates.map((d, i) => ({ x: d, y: subscribestarCum[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, tension: 0 });
 
-    // Dotted reference lines – now with visible labels (grouping will be handled by the onClick)
-    if (prevPatreonAll > 0) {
-        datasets.push({ label: 'Patreon (prev)', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
-    if (prevWebsite > 0) {
-        datasets.push({ label: 'Website (prev)', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
-    if (prevKofi > 0) {
-        datasets.push({ label: 'Ko‑fi (prev)', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
-    if (prevSubscribestar > 0) {
-        datasets.push({ label: 'Subscribestar (prev)', data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
+    // Dotted reference lines – empty labels keep them out of the legend
+    if (prevPatreonAll > 0) datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    if (prevWebsite > 0) datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    if (prevKofi > 0) datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    if (prevSubscribestar > 0) datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
 
     datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
     datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
-    if (refLastNet !== 0) {
-        datasets.push({ label: 'Net Income (prev)', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
+    if (refLastNet !== 0) datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
 
     // -------------------------------------------------------------
-    // 7. Chart with custom legend onClick (grouped toggle)
+    // 7. Chart with grouped legend toggle
     // -------------------------------------------------------------
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
@@ -857,28 +795,36 @@ function buildChart(initialDays) {
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             plugins: {
                 legend: {
-                    labels: { color: '#aaa' },
-                    // Custom click handler to toggle both solid and reference lines
+                    labels: {
+                        color: '#aaa',
+                        // only show labels that are not empty
+                        filter: (item) => item.text !== ''
+                    },
                     onClick: function(e, legendItem, legend) {
                         const index = legendItem.datasetIndex;
                         const ci = legend.chart;
-                        const meta = ci.getDatasetMeta(index);
                         const label = ci.data.datasets[index].label;
 
-                        // Determine the base name (e.g., "Patreon" from "Patreon" or "Patreon (prev)")
-                        const baseName = label.replace(' (prev)', '');
-                        const isRef = label.includes('(prev)');
+                        // if the clicked item is a reference line (empty label), ignore
+                        if (!label) return;
 
-                        // Toggle all datasets that share the same base name
+                        // toggle all datasets that share the same base name
                         ci.data.datasets.forEach((ds, i) => {
-                            if (ds.label === baseName || ds.label === baseName + ' (prev)') {
+                            if (ds.label === label || ds.label === '') {
+                                // for dotted references we need to match by colour? 
+                                // better: match by prefix (remove ' (prev)')
+                                // we'll just toggle the solid and its following dotted (they are inserted right after)
+                            }
+                        });
+
+                        // simpler: find all datasets that have the same colour and toggle them
+                        const clickedColor = ci.data.datasets[index].borderColor;
+                        ci.data.datasets.forEach((ds, i) => {
+                            if (ds.borderColor === clickedColor) {
                                 const meta = ci.getDatasetMeta(i);
                                 meta.hidden = !meta.hidden;
                             }
                         });
-
-                        // If we are toggling a reference line itself, also toggle the base?
-                        // Actually the loop above already covers both, so we just need to update
                         ci.update();
                     }
                 },
