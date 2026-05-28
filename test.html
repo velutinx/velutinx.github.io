@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Anime Hashtag Generator</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#0f1115;
+    color:#fff;
+    font-family:Arial, Helvetica, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+}
+
+.container{
+    width:100%;
+    max-width:900px;
+    background:#171a21;
+    border:1px solid #2a2f3a;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+
+h1{
+    margin-top:0;
+    font-size:32px;
+    margin-bottom:10px;
+}
+
+.desc{
+    color:#9ca3af;
+    margin-bottom:25px;
+    line-height:1.5;
+}
+
+textarea{
+    width:100%;
+    min-height:120px;
+    resize:vertical;
+    background:#0d1015;
+    border:1px solid #303846;
+    border-radius:14px;
+    color:#fff;
+    padding:16px;
+    font-size:16px;
+    outline:none;
+}
+
+textarea:focus{
+    border-color:#5b8cff;
+}
+
+.actions{
+    display:flex;
+    gap:12px;
+    margin-top:18px;
+    flex-wrap:wrap;
+}
+
+button{
+    border:none;
+    background:#5b8cff;
+    color:#fff;
+    padding:14px 22px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:bold;
+    transition:.2s;
+}
+
+button:hover{
+    transform:translateY(-1px);
+    background:#79a0ff;
+}
+
+button.secondary{
+    background:#262d38;
+}
+
+button.secondary:hover{
+    background:#313948;
+}
+
+.output{
+    margin-top:30px;
+    background:#0d1015;
+    border:1px solid #303846;
+    border-radius:14px;
+    padding:20px;
+}
+
+.output h2{
+    margin-top:0;
+    font-size:20px;
+}
+
+.result{
+    margin-top:16px;
+    font-size:18px;
+    line-height:1.8;
+    word-break:break-word;
+}
+
+.loading{
+    color:#8ea5d9;
+}
+
+.error{
+    color:#ff7b7b;
+}
+
+.info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-top:20px;
+}
+
+.info-card{
+    background:#151922;
+    border:1px solid #2b3342;
+    border-radius:14px;
+    padding:16px;
+}
+
+.info-card-title{
+    color:#7f91b5;
+    font-size:13px;
+    text-transform:uppercase;
+    margin-bottom:10px;
+    letter-spacing:.08em;
+}
+
+.info-card-content{
+    font-size:17px;
+    line-height:1.5;
+}
+
+@media(max-width:700px){
+    .info-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Anime Hashtag Generator</h1>
+
+    <div class="desc">
+        Enter format:<br><br>
+        <b>Character Name - Anime Name</b><br><br>
+
+        Example:<br>
+        <code>Nagi Arato - Ruri no Houseki</code>
+    </div>
+
+    <textarea id="input">Nagi Arato - Ruri no Houseki</textarea>
+
+    <div class="actions">
+        <button id="generateBtn">Generate Hashtags</button>
+        <button class="secondary" id="copyBtn">Copy Output</button>
+    </div>
+
+    <div class="output">
+
+        <h2>Output</h2>
+
+        <div class="result" id="result">
+            Waiting...
+        </div>
+
+        <div class="info-grid">
+
+            <div class="info-card">
+                <div class="info-card-title">Character</div>
+                <div class="info-card-content" id="characterInfo">
+                    —
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-title">Series</div>
+                <div class="info-card-content" id="seriesInfo">
+                    —
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const resultEl = document.getElementById("result");
+const characterInfo = document.getElementById("characterInfo");
+const seriesInfo = document.getElementById("seriesInfo");
+
+function cleanTag(str){
+    return str
+        .replace(/[^\p{L}\p{N}]/gu, "")
+        .trim();
+}
+
+function makeHashtag(str){
+    if(!str) return null;
+
+    const cleaned = cleanTag(str);
+
+    if(!cleaned.length) return null;
+
+    return "#" + cleaned;
+}
+
+async function fetchAniList(query, variables){
+
+    const response = await fetch("https://graphql.anilist.co", {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "Accept":"application/json"
+        },
+        body:JSON.stringify({
+            query,
+            variables
+        })
+    });
+
+    return response.json();
+}
+
+async function generate(){
+
+    const input = document.getElementById("input").value.trim();
+
+    if(!input.includes("-")){
+        resultEl.innerHTML = `<span class="error">Input must be: Character - Anime</span>`;
+        return;
+    }
+
+    const parts = input.split("-");
+
+    const characterName = parts[0].trim();
+    const animeName = parts.slice(1).join("-").trim();
+
+    resultEl.innerHTML = `<span class="loading">Searching AniList...</span>`;
+
+    characterInfo.textContent = "Loading...";
+    seriesInfo.textContent = "Loading...";
+
+    try{
+
+        // CHARACTER SEARCH
+        const characterQuery = `
+        query ($search: String) {
+            Character(search: $search) {
+                name {
+                    full
+                    native
+                }
+            }
+        }`;
+
+        const charData = await fetchAniList(characterQuery, {
+            search: characterName
+        });
+
+        // ANIME SEARCH
+        const animeQuery = `
+        query ($search: String) {
+            Media(search: $search, type: ANIME) {
+                title {
+                    romaji
+                    english
+                    native
+                }
+            }
+        }`;
+
+        const animeData = await fetchAniList(animeQuery, {
+            search: animeName
+        });
+
+        const character = charData?.data?.Character;
+        const anime = animeData?.data?.Media;
+
+        const charNative = character?.name?.native || "";
+        const charFull = character?.name?.full || characterName;
+
+        const animeNative = anime?.title?.native || "";
+        const animeRomaji = anime?.title?.romaji || animeName;
+        const animeEnglish = anime?.title?.english || "";
+
+        const hashtags = [];
+
+        // CHARACTER TAGS
+        hashtags.push(makeHashtag(charNative));
+
+        const splitChar = charFull.split(" ");
+
+        if(splitChar.length >= 2){
+
+            const normalOrder = splitChar.join("").toLowerCase();
+            const reverseOrder = [...splitChar].reverse().join("").toLowerCase();
+
+            hashtags.push("#" + normalOrder);
+            hashtags.push("#" + reverseOrder);
+
+        }else{
+            hashtags.push(makeHashtag(charFull.toLowerCase()));
+        }
+
+        // SERIES TAGS
+        hashtags.push(makeHashtag(animeNative));
+        hashtags.push(makeHashtag(animeRomaji.toLowerCase()));
+
+        if(animeEnglish){
+            hashtags.push(makeHashtag(animeEnglish));
+        }
+
+        // REMOVE DUPLICATES / EMPTY
+        const finalTags = [...new Set(
+            hashtags.filter(Boolean)
+        )];
+
+        resultEl.textContent = finalTags.join(" ");
+
+        characterInfo.innerHTML = `
+            <b>Input:</b> ${characterName}<br><br>
+            <b>Official:</b> ${charFull}<br>
+            <b>Native:</b> ${charNative || "N/A"}
+        `;
+
+        seriesInfo.innerHTML = `
+            <b>Input:</b> ${animeName}<br><br>
+            <b>Romaji:</b> ${animeRomaji}<br>
+            <b>English:</b> ${animeEnglish || "N/A"}<br>
+            <b>Native:</b> ${animeNative || "N/A"}
+        `;
+
+    }catch(err){
+
+        console.error(err);
+
+        resultEl.innerHTML = `
+            <span class="error">
+                Failed to fetch data from AniList API.
+            </span>
+        `;
+
+        characterInfo.textContent = "—";
+        seriesInfo.textContent = "—";
+    }
+}
+
+document.getElementById("generateBtn")
+.addEventListener("click", generate);
+
+document.getElementById("copyBtn")
+.addEventListener("click", async () => {
+
+    const text = resultEl.textContent.trim();
+
+    if(!text || text === "Waiting...") return;
+
+    await navigator.clipboard.writeText(text);
+
+    const btn = document.getElementById("copyBtn");
+
+    const old = btn.textContent;
+
+    btn.textContent = "Copied!";
+
+    setTimeout(() => {
+        btn.textContent = old;
+    }, 1500);
+});
+
+generate();
+
+</script>
+
+</body>
+</html>
