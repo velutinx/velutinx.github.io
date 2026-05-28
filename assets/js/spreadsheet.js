@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (solid from 1st of month, dotted reference lines always visible) ----------
+// ---------- Chart (solid from 1st of month, reference lines forced visible) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -717,14 +717,13 @@ function buildChart(initialDays) {
     });
 
     // -------------------------------------------------------------
-    // 4. Build cumulative arrays starting from the 1st of the first visible month
+    // 4. Build cumulative arrays from 1st of first visible month
     // -------------------------------------------------------------
     let dates = [], patreonAllCum = [], websiteCum = [], kofiCum = [],
         subscribestarCum = [], totalExpCum = [], netCum = [];
 
     const firstVisibleMonth = startDate.month() + 1;
     const firstVisibleYear = startDate.year();
-
     let curDate = moment(new Date(firstVisibleYear, firstVisibleMonth - 1, 1)).startOf('day');
     let curPatreonAll = 0, curWebsite = 0, curKofi = 0, curSubscribestar = 0, curNonRecExp = 0;
     let lastMonth = null;
@@ -766,7 +765,6 @@ function buildChart(initialDays) {
             totalExpCum.push(totalExp);
             netCum.push(net);
         }
-
         curDate.add(1, 'day');
     }
 
@@ -808,12 +806,12 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 6. Build chart datasets – ALL datasets have proper labels, legend filter OFF
+    // 6. Build datasets – reference lines are drawn LAST so they are on top
     // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
 
-    // Solid lines
+    // Solid lines (main data)
     if (hasNonZero(patreonAllCum)) {
         datasets.push({ label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonAllCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 });
     }
@@ -827,36 +825,36 @@ function buildChart(initialDays) {
         datasets.push({ label: 'Subscribestar', data: dates.map((d, i) => ({ x: d, y: subscribestarCum[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, tension: 0 });
     }
 
-    // Dotted reference lines – now with visible labels (or at least non‑empty) so they show up
-    if (prevPatreonAll > 0) {
-        datasets.push({ label: 'Patreon (prev)', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
-    if (prevWebsite > 0) {
-        datasets.push({ label: 'Website (prev)', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
-    if (prevKofi > 0) {
-        datasets.push({ label: 'Ko‑fi (prev)', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
-    }
-    if (prevSubscribestar > 0) {
-        // Make it extra obvious – bright purple, thicker
-        datasets.push({
-            label: 'Sub (prev)',
-            data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })),
-            borderColor: '#c084fc',       // bright light-purple
-            backgroundColor: 'transparent',
-            borderWidth: 4,                // thick
-            pointRadius: 0,
-            borderDash: [8, 4],
-            tension: 0,
-            fill: false
-        });
-    }
-
-    // Expenses & Net Income
+    // Expenses & Net Income (solid, always shown)
     datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
     datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
+
+    // Reference lines (drawn last, empty labels → not in legend)
+    if (prevPatreonAll > 0) {
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (prevWebsite > 0) {
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (prevKofi > 0) {
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    if (prevSubscribestar > 0) {
+        // Forced visibility: solid bright magenta, thick, no dashes – impossible to miss
+        datasets.push({
+            label: '',
+            data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })),
+            borderColor: '#ff00ff',        // magenta
+            backgroundColor: 'transparent',
+            borderWidth: 4,                 // thick
+            pointRadius: 0,
+            tension: 0,
+            fill: false,
+            // No borderDash → solid line
+        });
+    }
     if (refLastNet !== 0) {
-        datasets.push({ label: 'Net (prev)', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
 
     const ctx = document.getElementById('incomeChart').getContext('2d');
@@ -868,7 +866,7 @@ function buildChart(initialDays) {
             maintainAspectRatio: false,
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             plugins: {
-                legend: { labels: { color: '#aaa' } },   // NO filter – everything shown
+                legend: { labels: { color: '#aaa', filter: (item) => item.text !== '' } },
                 zoom: {
                     zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
                     pan: { enabled: true, mode: 'x' },
