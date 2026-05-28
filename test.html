@@ -328,12 +328,28 @@ async function generate(){
         }
 
         // SERIES TAGS
-        hashtags.push(makeHashtag(animeNative));
-        hashtags.push(makeHashtag(animeRomaji.toLowerCase()));
+hashtags.push(makeHashtag(animeNative));
 
-        if(animeEnglish){
-            hashtags.push(makeHashtag(animeEnglish));
-        }
+const romajiTag = makeHashtag(animeRomaji);
+const englishTag = makeHashtag(animeEnglish);
+
+if(
+    romajiTag &&
+    englishTag &&
+    romajiTag.toLowerCase() === englishTag.toLowerCase()
+){
+    hashtags.push(englishTag);
+
+}else{
+
+    if(romajiTag){
+        hashtags.push(romajiTag.toLowerCase());
+    }
+
+    if(englishTag){
+        hashtags.push(englishTag);
+    }
+}
 
         // REMOVE DUPLICATES / EMPTY
         const finalTags = [...new Set(
