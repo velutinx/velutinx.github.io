@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (solid from 1st of month, dotted reference lines always present when available) ----------
+// ---------- Chart (solid from 1st of month, dotted reference always when available) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -650,6 +650,10 @@ function buildChart(initialDays) {
         }
     }
     const refLastNet = prevPatreonAll + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
+
+    console.log('DEBUG prevMonth:', prevMonth,
+                'prevSubscribestar:', prevSubscribestar,
+                'prevPatreonAll:', prevPatreonAll);
 
     // -------------------------------------------------------------
     // 2. Active recurring expenses
@@ -793,6 +797,10 @@ function buildChart(initialDays) {
     const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
     const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
 
+    console.log('DEBUG lastDayPrevStr:', lastDayPrevStr,
+                'lastDayIdx:', lastDayIdx,
+                'dates length:', dates.length);
+
     let netRef = new Array(dates.length).fill(null);
     let patreonAllRef = new Array(dates.length).fill(null);
     let websiteRef = new Array(dates.length).fill(null);
@@ -805,6 +813,9 @@ function buildChart(initialDays) {
         websiteRef = buildRefArray(prevWebsite, websiteCum, lastDayIdx);
         kofiRef = buildRefArray(prevKofi, kofiCum, lastDayIdx);
         subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, lastDayIdx);
+        console.log('DEBUG subscribestarRef has non-null:', subscribestarRef.some(v => v !== null));
+    } else {
+        console.log('DEBUG lastDayIdx is -1, no reference lines will appear');
     }
 
     // -------------------------------------------------------------
@@ -837,8 +848,12 @@ function buildChart(initialDays) {
     if (prevKofi > 0) {
         datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
+    // This is the crucial block for Subscribestar – it uses the same condition as others
     if (prevSubscribestar > 0) {
+        console.log('DEBUG Adding Subscribestar dotted reference');
         datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    } else {
+        console.log('DEBUG Subscribestar dotted reference skipped because prevSubscribestar =', prevSubscribestar);
     }
 
     // Expenses and Net Income (solid + dotted)
