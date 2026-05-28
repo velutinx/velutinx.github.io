@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (combined Patreon + Patreon Sales) ----------
+// ---------- Chart (solid lines start from 1st of month, not from chart edge) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -621,12 +621,12 @@ function buildChart(initialDays) {
 
     const currentYear = new Date().getFullYear();
     const today = new Date();
-    const currentMonth = today.getMonth() + 1;
+    const currentMonth = today.getMonth() + 1;          // 1‑based
     const now = moment().endOf('day');
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
     // -------------------------------------------------------------
-    // 1. Previous month FULL totals (combined Patreon)
+    // 1. Previous month FULL totals (used only for reference lines)
     // -------------------------------------------------------------
     let prevMonth = currentMonth - 1;
     let prevYear = currentYear;
@@ -643,18 +643,10 @@ function buildChart(initialDays) {
             case 'Patreon sales':
                 prevPatreonAll += e.amount;
                 break;
-            case 'Website payments':
-                prevWebsite += e.amount;
-                break;
-            case 'Ko-Fi subscriptions':
-                prevKofi += e.amount;
-                break;
-            case 'Subscribestar subscriptions':
-                prevSubscribestar += e.amount;
-                break;
-            case 'Expenses':
-                prevExpense += e.amount;
-                break;
+            case 'Website payments':      prevWebsite += e.amount; break;
+            case 'Ko-Fi subscriptions':   prevKofi += e.amount; break;
+            case 'Subscribestar subscriptions': prevSubscribestar += e.amount; break;
+            case 'Expenses':              prevExpense += e.amount; break;
         }
     }
     const refLastNet = prevPatreonAll + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
@@ -702,15 +694,16 @@ function buildChart(initialDays) {
         return !subMap.has(key);
     });
 
-    const dailyMap = new Map();
+    // Build a daily map for the entire year (needed to compute cumulative from 1st of month)
+    const fullDailyMap = new Map();
     nonSubEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
-        if (!dailyMap.has(date)) {
-            dailyMap.set(date, {
+        if (!fullDailyMap.has(date)) {
+            fullDailyMap.set(date, {
                 patreonAll: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0
             });
         }
-        const d = dailyMap.get(date);
+        const d = fullDailyMap.get(date);
         if (e.category === 'Patreon subscription' || e.category === 'Patreon sales') {
             d.patreonAll += e.amount;
         } else if (e.category === 'Website payments') {
@@ -725,24 +718,31 @@ function buildChart(initialDays) {
     });
 
     // -------------------------------------------------------------
-    // 4. Visible‑range cumulative arrays (combined Patreon)
+    // 4. Build cumulative arrays starting from the 1st of the first visible month
     // -------------------------------------------------------------
     let dates = [], patreonAllCum = [], websiteCum = [], kofiCum = [],
         subscribestarCum = [], totalExpCum = [], netCum = [];
 
+    // Determine the first month that appears in the visible range
+    const firstVisibleMonth = startDate.month() + 1;   // 1‑based
+    const firstVisibleYear = startDate.year();
+
+    // Start accumulating from the 1st of that month
+    let curDate = moment(new Date(firstVisibleYear, firstVisibleMonth - 1, 1)).startOf('day');
     let curPatreonAll = 0, curWebsite = 0, curKofi = 0, curSubscribestar = 0, curNonRecExp = 0;
     let lastMonth = null;
 
-    for (let d = moment(startDate); d.isSameOrBefore(now); d.add(1, 'day')) {
-        const key = d.format('YYYY-MM-DD');
-        const month = d.month() + 1;
+    while (curDate.isSameOrBefore(now, 'day')) {
+        const key = curDate.format('YYYY-MM-DD');
+        const month = curDate.month() + 1;
 
+        // Reset on month boundaries
         if (lastMonth !== null && month !== lastMonth) {
             curPatreonAll = 0; curWebsite = 0; curKofi = 0; curSubscribestar = 0; curNonRecExp = 0;
         }
         lastMonth = month;
 
-        const dayData = dailyMap.get(key) || {
+        const dayData = fullDailyMap.get(key) || {
             patreonAll: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0
         };
         curPatreonAll += dayData.patreonAll;
@@ -761,13 +761,18 @@ function buildChart(initialDays) {
         const totalExp = curNonRecExp + recurringTotal;
         const net = curPatreonAll + curWebsite + curKofi + curSubscribestar - totalExp;
 
-        dates.push(d.toDate());
-        patreonAllCum.push(curPatreonAll);
-        websiteCum.push(curWebsite);
-        kofiCum.push(curKofi);
-        subscribestarCum.push(curSubscribestar);
-        totalExpCum.push(totalExp);
-        netCum.push(net);
+        // Only add to the chart if we are at or past the visible start date
+        if (curDate.isSameOrAfter(startDate)) {
+            dates.push(curDate.toDate());
+            patreonAllCum.push(curPatreonAll);
+            websiteCum.push(curWebsite);
+            kofiCum.push(curKofi);
+            subscribestarCum.push(curSubscribestar);
+            totalExpCum.push(totalExp);
+            netCum.push(net);
+        }
+
+        curDate.add(1, 'day');
     }
 
     // -------------------------------------------------------------
@@ -808,7 +813,7 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 6. Build chart datasets (no separate Patreon Sales line)
+    // 6. Build chart datasets (combined Patreon, hide zero lines)
     // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
