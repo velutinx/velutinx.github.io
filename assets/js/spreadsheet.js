@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (solid from 1st of month, reference lines visible) ----------
+// ---------- Chart (brute‑force Subscribestar reference) ----------
 function buildChart(initialDays) {
     if (incomeChart) { incomeChart.destroy(); incomeChart = null; }
     if (entries.length === 0) return;
@@ -706,12 +706,10 @@ function buildChart(initialDays) {
         curDate.add(1, 'day');
     }
 
-    // 5. Reference arrays – force Subscribestar to be visible from first date
+    // 5. Reference arrays – brute force Subscribestar line from first date to today
     const lastDayPrevMonth = new Date(prevYear, prevMonth, 0);
     const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
     const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
-
-    // If last day not found, use index 0 as fallback
     const refStartIdx = lastDayIdx !== -1 ? lastDayIdx : 0;
 
     function buildRefArray(refValue, currentCumArray, startIndex) {
@@ -719,14 +717,9 @@ function buildChart(initialDays) {
         if (refValue == null || refValue === 0 || startIndex === -1) return ref;
         let stopIdx = dates.length - 1;
         for (let i = startIndex; i < dates.length; i++) {
-            if (currentCumArray[i] > refValue) {
-                stopIdx = i;      // include the surpassing day
-                break;
-            }
+            if (currentCumArray[i] > refValue) { stopIdx = i; break; }
         }
-        for (let i = startIndex; i <= stopIdx && i < dates.length; i++) {
-            ref[i] = refValue;
-        }
+        for (let i = startIndex; i <= stopIdx && i < dates.length; i++) ref[i] = refValue;
         return ref;
     }
 
@@ -734,7 +727,8 @@ function buildChart(initialDays) {
     let patreonAllRef = buildRefArray(prevPatreonAll, patreonAllCum, refStartIdx);
     let websiteRef = buildRefArray(prevWebsite, websiteCum, refStartIdx);
     let kofiRef = buildRefArray(prevKofi, kofiCum, refStartIdx);
-    let subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, refStartIdx);
+    // Force Subscribestar: fill entire array with prevSubscribestar
+    let subscribestarRef = new Array(dates.length).fill(prevSubscribestar);
 
     // 6. Datasets
     const datasets = [];
@@ -744,16 +738,16 @@ function buildChart(initialDays) {
     if (hasNonZero(kofiCum)) datasets.push({ label: 'Ko‑fi', data: dates.map((d,i)=>({x:d,y:kofiCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
     if (hasNonZero(subscribestarCum)) datasets.push({ label: 'Subscribestar', data: dates.map((d,i)=>({x:d,y:subscribestarCum[i]})), borderColor:'#a855f7', borderWidth:2, pointRadius:0, tension:0 });
 
-    // Reference lines (empty labels, not in legend)
+    // Reference lines
     if (prevPatreonAll > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:patreonAllRef[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevWebsite > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:websiteRef[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevKofi > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:kofiRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
+    // Subscribestar reference – yellow, thick, impossible to miss
     if (prevSubscribestar > 0) {
-        // temporary magenta to prove it works
         datasets.push({
-            label: '',                                    // no legend entry
-            data: dates.map((d,i)=>({x:d,y:subscribestarRef[i]})),
-            borderColor: '#ff00ff',                      // magenta
+            label: '',
+            data: dates.map((d,i) => ({ x: d, y: subscribestarRef[i] })),
+            borderColor: '#ffff00',   // bright yellow
             borderWidth: 4,
             pointRadius: 0,
             borderDash: [6,4],
