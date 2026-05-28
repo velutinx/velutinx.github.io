@@ -706,27 +706,35 @@ function buildChart(initialDays) {
         curDate.add(1, 'day');
     }
 
-    // 5. Reference arrays
+    // 5. Reference arrays – force Subscribestar to be visible from first date
+    const lastDayPrevMonth = new Date(prevYear, prevMonth, 0);
+    const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
+    const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
+
+    // If last day not found, use index 0 as fallback
+    const refStartIdx = lastDayIdx !== -1 ? lastDayIdx : 0;
+
     function buildRefArray(refValue, currentCumArray, startIndex) {
         const ref = new Array(dates.length).fill(null);
         if (refValue == null || refValue === 0 || startIndex === -1) return ref;
         let stopIdx = dates.length - 1;
-        for (let i = startIndex; i < dates.length; i++) if (currentCumArray[i] > refValue) { stopIdx = i; break; }
-        for (let i = startIndex; i <= stopIdx && i < dates.length; i++) ref[i] = refValue;
+        for (let i = startIndex; i < dates.length; i++) {
+            if (currentCumArray[i] > refValue) {
+                stopIdx = i;      // include the surpassing day
+                break;
+            }
+        }
+        for (let i = startIndex; i <= stopIdx && i < dates.length; i++) {
+            ref[i] = refValue;
+        }
         return ref;
     }
-    const lastDayPrevMonth = new Date(prevYear, prevMonth, 0);
-    const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
-    const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
-    let netRef, patreonAllRef, websiteRef, kofiRef, subscribestarRef;
-    netRef = patreonAllRef = websiteRef = kofiRef = subscribestarRef = new Array(dates.length).fill(null);
-    if (lastDayIdx !== -1) {
-        netRef = buildRefArray(refLastNet, netCum, lastDayIdx);
-        patreonAllRef = buildRefArray(prevPatreonAll, patreonAllCum, lastDayIdx);
-        websiteRef = buildRefArray(prevWebsite, websiteCum, lastDayIdx);
-        kofiRef = buildRefArray(prevKofi, kofiCum, lastDayIdx);
-        subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, lastDayIdx);
-    }
+
+    let netRef = buildRefArray(refLastNet, netCum, refStartIdx);
+    let patreonAllRef = buildRefArray(prevPatreonAll, patreonAllCum, refStartIdx);
+    let websiteRef = buildRefArray(prevWebsite, websiteCum, refStartIdx);
+    let kofiRef = buildRefArray(prevKofi, kofiCum, refStartIdx);
+    let subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, refStartIdx);
 
     // 6. Datasets
     const datasets = [];
@@ -736,19 +744,19 @@ function buildChart(initialDays) {
     if (hasNonZero(kofiCum)) datasets.push({ label: 'Ko‑fi', data: dates.map((d,i)=>({x:d,y:kofiCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
     if (hasNonZero(subscribestarCum)) datasets.push({ label: 'Subscribestar', data: dates.map((d,i)=>({x:d,y:subscribestarCum[i]})), borderColor:'#a855f7', borderWidth:2, pointRadius:0, tension:0 });
 
-    // Reference lines (always added if previous month had data)
+    // Reference lines (empty labels, not in legend)
     if (prevPatreonAll > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:patreonAllRef[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevWebsite > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:websiteRef[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevKofi > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:kofiRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevSubscribestar > 0) {
+        // temporary magenta to prove it works
         datasets.push({
-            label: 'Sub (prev)',                        // visible label for debugging
+            label: '',                                    // no legend entry
             data: dates.map((d,i)=>({x:d,y:subscribestarRef[i]})),
-            borderColor: '#ff00ff',                     // magenta – impossible to miss
-            borderWidth: 4,                             // thick
-            pointRadius: 3,                             // show points
-            pointBackgroundColor: '#ff00ff',
-            borderDash: [8,4],
+            borderColor: '#ff00ff',                      // magenta
+            borderWidth: 4,
+            pointRadius: 0,
+            borderDash: [6,4],
             tension: 0,
             fill: false
         });
@@ -766,7 +774,21 @@ function buildChart(initialDays) {
             responsive: true, maintainAspectRatio: false,
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             plugins: {
-                legend: { labels: { color: '#aaa', filter: (item) => item.text !== 'Sub (prev)' } }, // hide from legend after you see it
+                legend: {
+                    labels: { color: '#aaa', filter: (item) => item.text !== '' },
+                    onClick: function(e, legendItem, legend) {
+                        const index = legendItem.datasetIndex;
+                        const ci = legend.chart;
+                        const clickedColor = ci.data.datasets[index].borderColor;
+                        ci.data.datasets.forEach((ds, i) => {
+                            if (ds.borderColor === clickedColor) {
+                                const meta = ci.getDatasetMeta(i);
+                                meta.hidden = !meta.hidden;
+                            }
+                        });
+                        ci.update();
+                    }
+                },
                 zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
             },
             scales: {
