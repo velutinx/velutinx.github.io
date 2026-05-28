@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (Subscribestar reference starts at April 30, purple & thin) ----------
+// ---------- Chart (Subscribestar yellow solid + yellow dotted from April 30) ----------
 function buildChart(initialDays) {
     if (incomeChart) { incomeChart.destroy(); incomeChart = null; }
     if (entries.length === 0) return;
@@ -676,7 +676,7 @@ function buildChart(initialDays) {
         else if (e.category === 'Expenses') d.expense += e.amount;
     });
 
-    // 4. Cumulative arrays (start from 1st of first visible month)
+    // 4. Cumulative arrays
     let dates = [], patreonAllCum = [], websiteCum = [], kofiCum = [],
         subscribestarCum = [], totalExpCum = [], netCum = [];
     const firstVisibleMonth = startDate.month() + 1;
@@ -706,7 +706,7 @@ function buildChart(initialDays) {
         curDate.add(1, 'day');
     }
 
-    // 5. Reference arrays – use findIndex for April 30, start only from there
+    // 5. Reference arrays – fix start position
     const lastDayPrevMonth = new Date(prevYear, prevMonth, 0);
     const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
     const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
@@ -727,7 +727,8 @@ function buildChart(initialDays) {
     let patreonAllRef = buildRefArray(prevPatreonAll, patreonAllCum, refStartIdx);
     let websiteRef = buildRefArray(prevWebsite, websiteCum, refStartIdx);
     let kofiRef = buildRefArray(prevKofi, kofiCum, refStartIdx);
-    // Subscribestar reference – start only from refStartIdx, fill with prevSubscribestar
+
+    // Subscribestar reference: start at refStartIdx, fill until surpassed
     let subscribestarRef = new Array(dates.length).fill(null);
     if (prevSubscribestar > 0 && refStartIdx !== -1) {
         let stopIdx = dates.length - 1;
@@ -739,19 +740,21 @@ function buildChart(initialDays) {
         }
     }
 
-    // 6. Datasets
+    // 6. Datasets – Subscribestar is now YELLOW
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
     if (hasNonZero(patreonAllCum)) datasets.push({ label: 'Patreon', data: dates.map((d,i)=>({x:d,y:patreonAllCum[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, tension:0 });
     if (hasNonZero(websiteCum)) datasets.push({ label: 'Website', data: dates.map((d,i)=>({x:d,y:websiteCum[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, tension:0 });
     if (hasNonZero(kofiCum)) datasets.push({ label: 'Ko‑fi', data: dates.map((d,i)=>({x:d,y:kofiCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
-    if (hasNonZero(subscribestarCum)) datasets.push({ label: 'Subscribestar', data: dates.map((d,i)=>({x:d,y:subscribestarCum[i]})), borderColor:'#a855f7', borderWidth:2, pointRadius:0, tension:0 });
+    // Subscribestar – solid yellow
+    if (hasNonZero(subscribestarCum)) datasets.push({ label: 'Subscribestar', data: dates.map((d,i)=>({x:d,y:subscribestarCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
 
     // Reference lines
     if (prevPatreonAll > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:patreonAllRef[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevWebsite > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:websiteRef[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevKofi > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:kofiRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
-    if (prevSubscribestar > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:subscribestarRef[i]})), borderColor:'#a855f7', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
+    // Subscribestar dotted – yellow, 2px, starts at refStartIdx
+    if (prevSubscribestar > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:subscribestarRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
 
     datasets.push({ label: 'Expenses', data: dates.map((d,i)=>({x:d,y:totalExpCum[i]})), borderColor:'#ef4444', borderWidth:2, pointRadius:0, tension:0 });
     datasets.push({ label: 'Net Income', data: dates.map((d,i)=>({x:d,y:netCum[i]})), borderColor:'#22c55e', borderWidth:3, pointRadius:0, tension:0 });
@@ -790,7 +793,6 @@ function buildChart(initialDays) {
     });
     window.incomeChart = incomeChart;
 }
-
   
     function refreshAll() {
         renderTable();
