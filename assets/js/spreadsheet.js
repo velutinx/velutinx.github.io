@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (solid from 1st of month, reference lines forced visible) ----------
+// ---------- Chart (solid from 1st of month, reference lines grouped with main) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -806,12 +806,11 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 6. Build datasets – reference lines are drawn LAST so they are on top
+    // 6. Build datasets – every dataset has a label, grouping handled by onClick
     // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
 
-    // Solid lines (main data)
     if (hasNonZero(patreonAllCum)) {
         datasets.push({ label: 'Patreon', data: dates.map((d, i) => ({ x: d, y: patreonAllCum[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, tension: 0 });
     }
@@ -825,38 +824,29 @@ function buildChart(initialDays) {
         datasets.push({ label: 'Subscribestar', data: dates.map((d, i) => ({ x: d, y: subscribestarCum[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, tension: 0 });
     }
 
-    // Expenses & Net Income (solid, always shown)
-    datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
-    datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
-
-    // Reference lines (drawn last, empty labels → not in legend)
+    // Dotted reference lines – now with visible labels (grouping will be handled by the onClick)
     if (prevPatreonAll > 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Patreon (prev)', data: dates.map((d, i) => ({ x: d, y: patreonAllRef[i] })), borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (prevWebsite > 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Website (prev)', data: dates.map((d, i) => ({ x: d, y: websiteRef[i] })), borderColor: '#f97316', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (prevKofi > 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Ko‑fi (prev)', data: dates.map((d, i) => ({ x: d, y: kofiRef[i] })), borderColor: '#eab308', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
     if (prevSubscribestar > 0) {
-        // Forced visibility: solid bright magenta, thick, no dashes – impossible to miss
-        datasets.push({
-            label: '',
-            data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })),
-            borderColor: '#ff00ff',        // magenta
-            backgroundColor: 'transparent',
-            borderWidth: 4,                 // thick
-            pointRadius: 0,
-            tension: 0,
-            fill: false,
-            // No borderDash → solid line
-        });
-    }
-    if (refLastNet !== 0) {
-        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+        datasets.push({ label: 'Subscribestar (prev)', data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
 
+    datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
+    datasets.push({ label: 'Net Income', data: dates.map((d, i) => ({ x: d, y: netCum[i] })), borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0 });
+    if (refLastNet !== 0) {
+        datasets.push({ label: 'Net Income (prev)', data: dates.map((d, i) => ({ x: d, y: netRef[i] })), borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+
+    // -------------------------------------------------------------
+    // 7. Chart with custom legend onClick (grouped toggle)
+    // -------------------------------------------------------------
     const ctx = document.getElementById('incomeChart').getContext('2d');
     incomeChart = new Chart(ctx, {
         type: 'line',
@@ -866,7 +856,32 @@ function buildChart(initialDays) {
             maintainAspectRatio: false,
             interaction: { mode: 'nearest', axis: 'x', intersect: false },
             plugins: {
-                legend: { labels: { color: '#aaa', filter: (item) => item.text !== '' } },
+                legend: {
+                    labels: { color: '#aaa' },
+                    // Custom click handler to toggle both solid and reference lines
+                    onClick: function(e, legendItem, legend) {
+                        const index = legendItem.datasetIndex;
+                        const ci = legend.chart;
+                        const meta = ci.getDatasetMeta(index);
+                        const label = ci.data.datasets[index].label;
+
+                        // Determine the base name (e.g., "Patreon" from "Patreon" or "Patreon (prev)")
+                        const baseName = label.replace(' (prev)', '');
+                        const isRef = label.includes('(prev)');
+
+                        // Toggle all datasets that share the same base name
+                        ci.data.datasets.forEach((ds, i) => {
+                            if (ds.label === baseName || ds.label === baseName + ' (prev)') {
+                                const meta = ci.getDatasetMeta(i);
+                                meta.hidden = !meta.hidden;
+                            }
+                        });
+
+                        // If we are toggling a reference line itself, also toggle the base?
+                        // Actually the loop above already covers both, so we just need to update
+                        ci.update();
+                    }
+                },
                 zoom: {
                     zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
                     pan: { enabled: true, mode: 'x' },
