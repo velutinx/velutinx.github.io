@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (recurring baseline with hard stop on cancellation) ----------
+// ---------- Chart (full previous month reference + Patreon Sales) ----------
 function buildChart(initialDays) {
     if (incomeChart) {
         incomeChart.destroy();
@@ -626,7 +626,7 @@ function buildChart(initialDays) {
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
     // -------------------------------------------------------------
-    // 1. Previous month full totals (used only for reference lines)
+    // 1. Previous month FULL totals (computed from all entries)
     // -------------------------------------------------------------
     let prevMonth = currentMonth - 1;
     let prevYear = currentYear;
@@ -635,23 +635,24 @@ function buildChart(initialDays) {
         prevYear--;
     }
 
-    // Calculate the exact totals for the previous month by summing all entries in that month
-    let prevPatreon = 0, prevWebsite = 0, prevKofi = 0, prevSubscribestar = 0, prevExpense = 0;
+    let prevPatreon = 0, prevWebsite = 0, prevKofi = 0, prevSubscribestar = 0,
+        prevPatreonSales = 0, prevExpense = 0;
+
     for (const e of entries) {
-        if (e.month !== prevMonth) continue;                // only previous month entries
-        const amt = e.amount;
+        if (e.month !== prevMonth) continue;          // only entries from previous month
         switch (e.category) {
-            case 'Patreon subscription':  prevPatreon += amt; break;
-            case 'Website payments':      prevWebsite += amt; break;
-            case 'Ko-Fi subscriptions':   prevKofi += amt; break;
-            case 'Subscribestar subscriptions': prevSubscribestar += amt; break;
-            case 'Expenses':              prevExpense += amt; break;
+            case 'Patreon subscription':  prevPatreon += e.amount; break;
+            case 'Website payments':      prevWebsite += e.amount; break;
+            case 'Ko-Fi subscriptions':   prevKofi += e.amount; break;
+            case 'Subscribestar subscriptions': prevSubscribestar += e.amount; break;
+            case 'Patreon sales':         prevPatreonSales += e.amount; break;
+            case 'Expenses':              prevExpense += e.amount; break;
         }
     }
-    const refLastNet = prevPatreon + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
+    const refLastNet = prevPatreon + prevWebsite + prevKofi + prevSubscribestar + prevPatreonSales - prevExpense;
 
     // -------------------------------------------------------------
-    // 2. Subscription definitions (for the visible chart lines)
+    // 2. Active recurring expenses (subscriptions)
     // -------------------------------------------------------------
     const subMap = new Map();
     for (const e of entries) {
@@ -684,7 +685,7 @@ function buildChart(initialDays) {
     }
 
     // -------------------------------------------------------------
-    // 3. Other entries (income + one‑time expenses)
+    // 3. All other entries (income + one‑time expenses)
     // -------------------------------------------------------------
     const nonSubEntries = entries.filter(e => {
         if (e.category !== 'Expenses') return true;
@@ -697,23 +698,28 @@ function buildChart(initialDays) {
     nonSubEntries.forEach(e => {
         const date = moment(new Date(currentYear, e.month - 1, e.day)).format('YYYY-MM-DD');
         if (!dailyMap.has(date)) {
-            dailyMap.set(date, { patreon: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 });
+            dailyMap.set(date, {
+                patreon: 0, website: 0, kofi: 0, subscribestar: 0,
+                patreonSales: 0, expense: 0
+            });
         }
         const d = dailyMap.get(date);
         if (e.category === 'Patreon subscription') d.patreon += e.amount;
         else if (e.category === 'Website payments') d.website += e.amount;
         else if (e.category === 'Ko-Fi subscriptions') d.kofi += e.amount;
         else if (e.category === 'Subscribestar subscriptions') d.subscribestar += e.amount;
+        else if (e.category === 'Patreon sales') d.patreonSales += e.amount;
         else if (e.category === 'Expenses') d.expense += e.amount;
     });
 
     // -------------------------------------------------------------
-    // 4. Visible range chart arrays
+    // 4. Visible‑range cumulative arrays
     // -------------------------------------------------------------
     let dates = [], patreonCum = [], websiteCum = [], kofiCum = [],
-        subscribestarCum = [], totalExpCum = [], netCum = [];
+        subscribestarCum = [], patreonSalesCum = [], totalExpCum = [], netCum = [];
 
-    let curPatreon = 0, curWebsite = 0, curKofi = 0, curSubscribestar = 0, curNonRecExp = 0;
+    let curPatreon = 0, curWebsite = 0, curKofi = 0, curSubscribestar = 0,
+        curPatreonSales = 0, curNonRecExp = 0;
     let lastMonth = null;
 
     for (let d = moment(startDate); d.isSameOrBefore(now); d.add(1, 'day')) {
@@ -721,16 +727,21 @@ function buildChart(initialDays) {
         const month = d.month() + 1;
 
         if (lastMonth !== null && month !== lastMonth) {
-            curPatreon = 0; curWebsite = 0; curKofi = 0; curSubscribestar = 0; curNonRecExp = 0;
+            curPatreon = 0; curWebsite = 0; curKofi = 0; curSubscribestar = 0;
+            curPatreonSales = 0; curNonRecExp = 0;
         }
         lastMonth = month;
 
-        const nonSub = dailyMap.get(key) || { patreon: 0, website: 0, kofi: 0, subscribestar: 0, expense: 0 };
-        curPatreon += nonSub.patreon;
-        curWebsite += nonSub.website;
-        curKofi += nonSub.kofi;
-        curSubscribestar += nonSub.subscribestar;
-        curNonRecExp += nonSub.expense;
+        const dayData = dailyMap.get(key) || {
+            patreon: 0, website: 0, kofi: 0, subscribestar: 0,
+            patreonSales: 0, expense: 0
+        };
+        curPatreon += dayData.patreon;
+        curWebsite += dayData.website;
+        curKofi += dayData.kofi;
+        curSubscribestar += dayData.subscribestar;
+        curPatreonSales += dayData.patreonSales;
+        curNonRecExp += dayData.expense;
 
         let recurringTotal = 0;
         for (const line of recurringLines) {
@@ -740,19 +751,20 @@ function buildChart(initialDays) {
         }
 
         const totalExp = curNonRecExp + recurringTotal;
-        const net = curPatreon + curWebsite + curKofi + curSubscribestar - totalExp;
+        const net = curPatreon + curWebsite + curKofi + curSubscribestar + curPatreonSales - totalExp;
 
         dates.push(d.toDate());
         patreonCum.push(curPatreon);
         websiteCum.push(curWebsite);
         kofiCum.push(curKofi);
         subscribestarCum.push(curSubscribestar);
+        patreonSalesCum.push(curPatreonSales);
         totalExpCum.push(totalExp);
         netCum.push(net);
     }
 
     // -------------------------------------------------------------
-    // 5. Reference lines (use full previous‑month totals)
+    // 5. Reference lines (dotted, stop after being surpassed)
     // -------------------------------------------------------------
     function buildRefArray(refValue, currentCumArray, startIndex) {
         const ref = new Array(dates.length).fill(null);
@@ -760,7 +772,7 @@ function buildChart(initialDays) {
         let stopIdx = dates.length - 1;
         for (let i = startIndex; i < dates.length; i++) {
             if (currentCumArray[i] > refValue) {
-                stopIdx = i;     // show on the surpassing day, gone next day
+                stopIdx = i;     // include the surpassing day, disappear next day
                 break;
             }
         }
@@ -780,17 +792,19 @@ function buildChart(initialDays) {
     let websiteRef = new Array(dates.length).fill(null);
     let kofiRef = new Array(dates.length).fill(null);
     let subscribestarRef = new Array(dates.length).fill(null);
+    let patreonSalesRef = new Array(dates.length).fill(null);
 
     if (lastDayIdx !== -1) {
-        netRef          = buildRefArray(refLastNet,         netCum,             lastDayIdx);
-        patreonRef      = buildRefArray(prevPatreon,       patreonCum,         lastDayIdx);
-        websiteRef      = buildRefArray(prevWebsite,       websiteCum,         lastDayIdx);
-        kofiRef         = buildRefArray(prevKofi,          kofiCum,            lastDayIdx);
-        subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum,   lastDayIdx);
+        netRef = buildRefArray(refLastNet, netCum, lastDayIdx);
+        patreonRef = buildRefArray(prevPatreon, patreonCum, lastDayIdx);
+        websiteRef = buildRefArray(prevWebsite, websiteCum, lastDayIdx);
+        kofiRef = buildRefArray(prevKofi, kofiCum, lastDayIdx);
+        subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, lastDayIdx);
+        patreonSalesRef = buildRefArray(prevPatreonSales, patreonSalesCum, lastDayIdx);
     }
 
     // -------------------------------------------------------------
-    // 6. Build chart datasets (hide zero‑only income lines)
+    // 6. Build chart datasets (hide zero‑only lines)
     // -------------------------------------------------------------
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
@@ -810,6 +824,11 @@ function buildChart(initialDays) {
     if (hasNonZero(subscribestarCum)) {
         datasets.push({ label: 'Subscribestar', data: dates.map((d, i) => ({ x: d, y: subscribestarCum[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, tension: 0 });
         datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: subscribestarRef[i] })), borderColor: '#a855f7', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
+    }
+    // 🆕 Patreon Sales (teal)
+    if (hasNonZero(patreonSalesCum)) {
+        datasets.push({ label: 'Patreon Sales', data: dates.map((d, i) => ({ x: d, y: patreonSalesCum[i] })), borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, tension: 0 });
+        datasets.push({ label: '', data: dates.map((d, i) => ({ x: d, y: patreonSalesRef[i] })), borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, borderDash: [6, 4], tension: 0, fill: false });
     }
 
     datasets.push({ label: 'Expenses', data: dates.map((d, i) => ({ x: d, y: totalExpCum[i] })), borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, tension: 0 });
