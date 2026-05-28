@@ -611,7 +611,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (brute‑force Subscribestar reference) ----------
+// ---------- Chart (Subscribestar reference starts at April 30, purple & thin) ----------
 function buildChart(initialDays) {
     if (incomeChart) { incomeChart.destroy(); incomeChart = null; }
     if (entries.length === 0) return;
@@ -706,7 +706,7 @@ function buildChart(initialDays) {
         curDate.add(1, 'day');
     }
 
-    // 5. Reference arrays – brute force Subscribestar line from first date to today
+    // 5. Reference arrays – use findIndex for April 30, start only from there
     const lastDayPrevMonth = new Date(prevYear, prevMonth, 0);
     const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
     const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
@@ -727,8 +727,17 @@ function buildChart(initialDays) {
     let patreonAllRef = buildRefArray(prevPatreonAll, patreonAllCum, refStartIdx);
     let websiteRef = buildRefArray(prevWebsite, websiteCum, refStartIdx);
     let kofiRef = buildRefArray(prevKofi, kofiCum, refStartIdx);
-    // Force Subscribestar: fill entire array with prevSubscribestar
-    let subscribestarRef = new Array(dates.length).fill(prevSubscribestar);
+    // Subscribestar reference – start only from refStartIdx, fill with prevSubscribestar
+    let subscribestarRef = new Array(dates.length).fill(null);
+    if (prevSubscribestar > 0 && refStartIdx !== -1) {
+        let stopIdx = dates.length - 1;
+        for (let i = refStartIdx; i < dates.length; i++) {
+            if (subscribestarCum[i] > prevSubscribestar) { stopIdx = i; break; }
+        }
+        for (let i = refStartIdx; i <= stopIdx && i < dates.length; i++) {
+            subscribestarRef[i] = prevSubscribestar;
+        }
+    }
 
     // 6. Datasets
     const datasets = [];
@@ -742,19 +751,7 @@ function buildChart(initialDays) {
     if (prevPatreonAll > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:patreonAllRef[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevWebsite > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:websiteRef[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevKofi > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:kofiRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
-    // Subscribestar reference – yellow, thick, impossible to miss
-    if (prevSubscribestar > 0) {
-        datasets.push({
-            label: '',
-            data: dates.map((d,i) => ({ x: d, y: subscribestarRef[i] })),
-            borderColor: '#ffff00',   // bright yellow
-            borderWidth: 4,
-            pointRadius: 0,
-            borderDash: [6,4],
-            tension: 0,
-            fill: false
-        });
-    }
+    if (prevSubscribestar > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:subscribestarRef[i]})), borderColor:'#a855f7', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
 
     datasets.push({ label: 'Expenses', data: dates.map((d,i)=>({x:d,y:totalExpCum[i]})), borderColor:'#ef4444', borderWidth:2, pointRadius:0, tension:0 });
     datasets.push({ label: 'Net Income', data: dates.map((d,i)=>({x:d,y:netCum[i]})), borderColor:'#22c55e', borderWidth:3, pointRadius:0, tension:0 });
