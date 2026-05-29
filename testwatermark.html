@@ -94,16 +94,15 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const status = document.getElementById('status');
 
-        // Watermark URLs
-        const centerWmUrl = 'https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png';
-        const cornerWmUrl = 'https://www.velutinx.com/images/Watermark/Watermark%20Corner.png';
+        // *** FIXED: Use the same domain as the page to avoid CORS ***
+        const centerWmUrl = 'https://velutinx.com/images/Watermark/Rotated%20Watermark.png';
+        const cornerWmUrl = 'https://velutinx.com/images/Watermark/Watermark%20Corner.png';
 
         let centerWmImg = null;
         let cornerWmImg = null;
-        let currentImage = null;       // user's original image File
-        let currentCanvas = null;      // final watermarked canvas
+        let currentImage = null;
+        let currentCanvas = null;
 
-        // Load watermarks once
         async function loadWatermarks() {
             try {
                 const [center, corner] = await Promise.all([
@@ -129,7 +128,6 @@
             });
         }
 
-        // Process image when dropped/selected
         function handleFile(file) {
             if (!file || !file.type.startsWith('image/')) {
                 status.textContent = 'Please drop a valid image file.';
@@ -165,30 +163,24 @@
             // 1. Draw user image
             ctx.drawImage(userImg, 0, 0, width, height);
 
-            // 2. Draw center watermark at 20% opacity, centered
+            // 2. Center watermark at 20% opacity, centered
             ctx.globalAlpha = 0.20;
             const centerX = (width - centerWmImg.width) / 2;
             const centerY = (height - centerWmImg.height) / 2;
             ctx.drawImage(centerWmImg, centerX, centerY);
             ctx.globalAlpha = 1.0;
 
-            // 3. Draw corner watermark at northeast with offset +70+30
-            // Northeast gravity means right edge, top edge.
-            // Geometry +70+30 means 70 pixels left from right edge, 30 pixels down from top.
+            // 3. Corner watermark at northeast with offset +70+30
             const cornerX = width - cornerWmImg.width - 70;
             const cornerY = 30;
             ctx.drawImage(cornerWmImg, cornerX, cornerY);
 
-            // Store final canvas
             currentCanvas = canvas;
-
-            // Show preview
             canvas.style.display = 'block';
             downloadBtn.style.display = 'block';
             status.textContent = '✅ Ready. Click download to save.';
         }
 
-        // Download as JPEG (quality 70% to match your script)
         function downloadImage() {
             if (!currentCanvas) return;
             const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
@@ -203,7 +195,6 @@
             status.textContent = '✅ Downloaded!';
         }
 
-        // Event listeners
         dropArea.addEventListener('click', () => fileInput.click());
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -224,7 +215,6 @@
         });
         downloadBtn.addEventListener('click', downloadImage);
 
-        // Kick off loading watermarks
         loadWatermarks();
     })();
 </script>
