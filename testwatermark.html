@@ -94,9 +94,16 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const status = document.getElementById('status');
 
-        // *** FIXED: Use the same domain as the page to avoid CORS ***
-        const centerWmUrl = 'https://velutinx.com/images/Watermark/Rotated%20Watermark.png';
-        const cornerWmUrl = 'https://velutinx.com/images/Watermark/Watermark%20Corner.png';
+        // Proxy base URL – already deployed in your instagram-post worker
+        const PROXY_BASE = 'https://instagram-post.velutinx.workers.dev/proxy?url=';
+
+        // The actual image URLs (with correct folder and filenames)
+        const centerWmDirect = 'https://www.velutinx.com/images/instagram/Rotated%20Warermark.png';
+        const cornerWmDirect = 'https://www.velutinx.com/images/instagram/Watermark%20Corner.png';
+
+        // Proxy-wrapped URLs – these work around CORS
+        const centerWmUrl = PROXY_BASE + encodeURIComponent(centerWmDirect);
+        const cornerWmUrl = PROXY_BASE + encodeURIComponent(cornerWmDirect);
 
         let centerWmImg = null;
         let cornerWmImg = null;
@@ -113,7 +120,7 @@
                 cornerWmImg = corner;
                 status.textContent = '✅ Watermarks loaded. Drop an image.';
             } catch (err) {
-                status.textContent = '⚠️ Could not load watermarks. Check CORS/network.';
+                status.textContent = '❌ Could not load watermarks via proxy. Check your Worker.';
                 console.error(err);
             }
         }
@@ -139,9 +146,7 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
-                img.onload = () => {
-                    composeImage(img);
-                };
+                img.onload = () => composeImage(img);
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
@@ -170,7 +175,7 @@
             ctx.drawImage(centerWmImg, centerX, centerY);
             ctx.globalAlpha = 1.0;
 
-            // 3. Corner watermark at northeast with offset +70+30
+            // 3. Corner watermark at northeast +70+30
             const cornerX = width - cornerWmImg.width - 70;
             const cornerY = 30;
             ctx.drawImage(cornerWmImg, cornerX, cornerY);
