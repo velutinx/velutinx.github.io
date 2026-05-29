@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    // ----- Character/series overrides (same as standalone) -----
+    // ----- Character/series overrides -----
     const franchiseOverrides = {
         "genshin impact": { native: "原神", english: "GenshinImpact" },
         "wuthering waves": { native: "鸣潮", english: "WutheringWaves" },
@@ -34,19 +34,47 @@
         return title.replace(/:.*/, '').trim();
     }
 
+    // ----- Improved parser: handles both "Character - Series" and "Preview: … — … — Pack #…" -----
     function parseInput(raw) {
         let text = raw.trim();
+
+        // Remove common file extensions and brackets
         text = text.replace(/\.(zip|rar|7z)$/i, '');
         text = text.replace(/^\[[^\]]+\]\s*/i, '');
         text = text.replace(/\([^)]*\)/g, '');
         text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
-        const splitIndex = text.indexOf('-');
-        if (splitIndex === -1) return { character: text.trim(), series: '' };
-        return {
-            character: text.slice(0, splitIndex).trim(),
-            series: text.slice(splitIndex + 1).trim()
-        };
+        // 1) "Preview: … — Series — Pack #…" format
+        if (text.startsWith("Preview:")) {
+            const afterPreview = text.replace(/^Preview:\s*/i, '');
+            // Take only the part before " — Pack #" (or " — Pack")
+            const packIndex = afterPreview.indexOf(" — Pack");
+            if (packIndex !== -1) {
+                text = afterPreview.substring(0, packIndex).trim();
+            } else {
+                // If no " — Pack", just use everything after "Preview:"
+                text = afterPreview;
+            }
+        }
+
+        // 2) Split on either " — " (em dash with spaces) or " - " (hyphen with spaces)
+        const separators = [' — ', ' - '];
+        let splitIndex = -1;
+        for (const sep of separators) {
+            const idx = text.indexOf(sep);
+            if (idx !== -1) {
+                splitIndex = idx;
+                break;
+            }
+        }
+
+        if (splitIndex === -1) {
+            return { character: text.trim(), series: '' };
+        }
+
+        const character = text.slice(0, splitIndex).trim();
+        const series = text.slice(splitIndex + 3).trim();   // length of each separator is 3
+        return { character, series };
     }
 
     async function fetchAniList(query, variables) {
@@ -58,6 +86,7 @@
         return response.json();
     }
 
+    // ----- Generate hashtags and return them as an ordered array -----
     async function generateHashtags(characterName, animeName) {
         const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
         const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
@@ -91,26 +120,53 @@
             charNative = over.native || charNative;
         }
 
-        const tags = [];
-        tags.push(makeHashtag(charNative));
+        // ----- Build ordered tag lists -----
+        const engCharTags = [];
         const splitChar = charFull.split(' ');
         if (splitChar.length >= 2) {
-            tags.push('#' + splitChar.join(''));
-            tags.push('#' + [...splitChar].reverse().join(''));
+            // First the normal concatenation, then the reversed order
+            const normal = splitChar.join('');
+            const reversed = [...splitChar].reverse().join('');
+            if (normal) engCharTags.push(makeHashtag(normal));
+            if (reversed && reversed !== normal) engCharTags.push(makeHashtag(reversed));
         } else {
-            tags.push(makeHashtag(charFull));
+            const tag = makeHashtag(charFull);
+            if (tag) engCharTags.push(tag);
         }
-        tags.push(makeHashtag(animeNative));
+
+        const engSeriesTags = [];
         const romajiTag = makeHashtag(animeRomaji);
         const englishTag = makeHashtag(animeEnglish);
         if (romajiTag && englishTag && romajiTag.toLowerCase() === englishTag.toLowerCase()) {
-            tags.push(englishTag);
+            engSeriesTags.push(englishTag);
         } else {
-            if (romajiTag) tags.push(romajiTag.toLowerCase());
-            if (englishTag) tags.push(englishTag);
+            if (romajiTag) engSeriesTags.push(romajiTag);
+            if (englishTag) engSeriesTags.push(englishTag);
         }
 
-        return [...new Set(tags.filter(Boolean))];
+        const jpCharTag = makeHashtag(charNative);
+        const jpSeriesTag = makeHashtag(animeNative);
+
+        // Combine in desired order: eng char, eng series, jp char, jp series
+        const allTags = [
+            ...engCharTags.filter(Boolean),
+            ...engSeriesTags.filter(Boolean),
+            jpCharTag,
+            jpSeriesTag
+        ].filter(Boolean);
+
+        // Remove duplicates (keeping first occurrence)
+        const seen = new Set();
+        const uniqueTags = [];
+        for (const tag of allTags) {
+            const lower = tag.toLowerCase();
+            if (!seen.has(lower)) {
+                seen.add(lower);
+                uniqueTags.push(tag);
+            }
+        }
+
+        return uniqueTags;
     }
 
     // ----- Auto‑generation on input (debounced) -----
@@ -140,15 +196,14 @@
             const hashtags = await generateHashtags(parsed.character, parsed.series);
             const hashtagString = hashtags.join(' ');
 
-            let current = masterPost.value.trimEnd();
-            if (current) current += '\n';
-            masterPost.value = current + hashtagString;
+            const seriesDisplay = parsed.series || 'Unknown Series';
+            const fullPost = `New work released.\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
 
-            // Trigger mirroring
+            masterPost.value = fullPost;
             masterPost.dispatchEvent(new Event('input'));
 
-            status.textContent = '✅ Hashtags added!';
-            if (typeof showToast === 'function') showToast('Hashtags generated!', 'success');
+            status.textContent = '✅ Post ready!';
+            if (typeof showToast === 'function') showToast('Post generated!', 'success');
         } catch (err) {
             console.error(err);
             status.textContent = '❌ AniList fetch failed';
@@ -159,17 +214,14 @@
         const input = document.getElementById('hashgenInput');
         if (!input) return;
 
-        // Debounced input listener
         input.addEventListener('input', () => {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(handleInput, 800);   // 0.8s after last keystroke/paste
+            debounceTimer = setTimeout(handleInput, 800);
         });
 
-        // Also immediately trigger on paste for faster response
         input.addEventListener('paste', () => {
-            // After paste, the input event will fire anyway, but we can shorten the debounce
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(handleInput, 300);   // faster after paste
+            debounceTimer = setTimeout(handleInput, 300);
         });
     }
 
