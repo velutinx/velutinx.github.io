@@ -26,7 +26,6 @@
 
     // ---------- State arrays ----------
     window.accountImages = window.accountImages || { 1: [], 2: [] };
-    // Separate storage for Twitter cards (IDs only)
     window.twitterImageIds = window.twitterImageIds || { 1: [], 2: [], 3: [] };
 
     const sortableInstances = { 1: null, 2: null };
@@ -35,6 +34,89 @@
     const masterPost = document.getElementById('masterPost');
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
+
+    // ---------- Watermark images (loaded once) ----------
+    const PROXY_BASE = 'https://watermark-worker.velutinx.workers.dev/proxy?url=';
+    const CENTER_WM_URL = 'https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png';
+    const CORNER_WM_URL = 'https://www.velutinx.com/images/Watermark/Watermark%20Corner.png';
+
+    let centerWmImg = null;
+    let cornerWmImg = null;
+
+    function loadImageViaProxy(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`Failed to load ${url}`));
+            img.src = PROXY_BASE + encodeURIComponent(url);
+        });
+    }
+
+    async function loadWatermarks() {
+        try {
+            [centerWmImg, cornerWmImg] = await Promise.all([
+                loadImageViaProxy(CENTER_WM_URL),
+                loadImageViaProxy(CORNER_WM_URL)
+            ]);
+            console.log('Watermarks loaded successfully.');
+        } catch (err) {
+            console.error('Failed to load watermarks:', err);
+        }
+    }
+
+    // Apply both watermarks to a file, return a new File
+    function applyWatermark(file) {
+        return new Promise((resolve, reject) => {
+            if (!centerWmImg || !cornerWmImg) {
+                reject(new Error('Watermarks not loaded'));
+                return;
+            }
+
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+
+                // 1. Draw original image
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+
+                // 2. Center watermark at 20% opacity, centered
+                ctx.globalAlpha = 0.20;
+                const centerX = (img.width - centerWmImg.width) / 2;
+                const centerY = (img.height - centerWmImg.height) / 2;
+                ctx.drawImage(centerWmImg, centerX, centerY);
+                ctx.globalAlpha = 1.0;
+
+                // 3. Corner watermark at northeast +70+30
+                const cornerX = img.width - cornerWmImg.width - 70;
+                const cornerY = 30;
+                ctx.drawImage(cornerWmImg, cornerX, cornerY);
+
+                canvas.toBlob(blob => {
+                    const watermarkedFile = new File([blob], file.name || 'image.jpg', {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve(watermarkedFile);
+                }, 'image/jpeg', 0.92);
+            };
+            img.onerror = () => reject(new Error('Failed to load image file'));
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    // Upload a watermarked file to R2 (fire-and-forget)
+    function uploadToR2(blob, filename) {
+        const formData = new FormData();
+        formData.append('image', blob, filename || 'watermarked.jpg');
+        fetch('https://watermark-worker.velutinx.workers.dev/upload', {
+            method: 'POST',
+            body: formData
+        }).catch(err => console.warn('R2 upload failed:', err));
+    }
 
     // ---------- SFW Twitter button lock helpers ----------
     function getSfwTwitterBtn() {
@@ -217,7 +299,7 @@
         }, 50);
     }
 
-    // ---------- CROP MODAL ----------
+    // ---------- CROP MODAL (watermark reapplied after crop) ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -329,7 +411,7 @@
         }
 
         cancelBtn.onclick = cleanup;
-        doneBtn.onclick = () => {
+        doneBtn.onclick = async () => {
             if (!rect) {
                 if (typeof showToast === 'function') showToast('Please select an area first', 'error');
                 return;
@@ -340,42 +422,69 @@
             outCanvas.width = cropW; outCanvas.height = cropH;
             const outCtx = outCanvas.getContext('2d');
             outCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-            outCanvas.toBlob(blob => {
-                const croppedFile = new File([blob], file.name || 'cropped.jpg', {
-                    type: blob.type || 'image/jpeg', lastModified: Date.now()
-                });
-                const currentId = window.accountImages[accountId][index];
-                window.imageRegistry[currentId] = croppedFile;
-                renderThumbnails(accountId);
-                if (accountId == 1) {
-                    window.renderTwitterThumbnails(3);
-                    unlockSfwTwitterIfNeeded();
-                } else if (accountId == 2) {
-                    window.renderTwitterThumbnails(1);
-                    window.renderTwitterThumbnails(2);
-                    if (typeof window.unlockTwitter12IfNeeded === 'function') {
-                        window.unlockTwitter12IfNeeded();
+            outCanvas.toBlob(async blob => {
+                // Re-apply watermarks to the cropped image
+                try {
+                    const croppedFile = new File([blob], file.name || 'cropped.jpg', {
+                        type: blob.type || 'image/jpeg', lastModified: Date.now()
+                    });
+                    const watermarkedFile = await applyWatermark(croppedFile);
+                    const currentId = window.accountImages[accountId][index];
+                    window.imageRegistry[currentId] = watermarkedFile;
+                    renderThumbnails(accountId);
+                    if (accountId == 1) {
+                        window.renderTwitterThumbnails(3);
+                        unlockSfwTwitterIfNeeded();
+                    } else if (accountId == 2) {
+                        window.renderTwitterThumbnails(1);
+                        window.renderTwitterThumbnails(2);
+                        if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                            window.unlockTwitter12IfNeeded();
+                        }
                     }
+                    uploadToR2(watermarkedFile, watermarkedFile.name || 'cropped.jpg');
+                    if (typeof showToast === 'function') showToast('Image cropped & watermarked!', 'success');
+                } catch (err) {
+                    console.error('Watermark after crop failed:', err);
+                    // Fallback: keep cropped but not watermarked
+                    const croppedFile = new File([blob], file.name || 'cropped.jpg', {
+                        type: blob.type || 'image/jpeg', lastModified: Date.now()
+                    });
+                    window.imageRegistry[window.accountImages[accountId][index]] = croppedFile;
+                    renderThumbnails(accountId);
                 }
-                if (typeof showToast === 'function') showToast('Image cropped!', 'success');
                 cleanup();
             }, file.type || 'image/jpeg', 0.92);
         };
         modal.addEventListener('click', (e) => { if (e.target === modal) cleanup(); });
     }
 
-    // ---------- Setup Dropzones ----------
+    // ---------- Setup Dropzones (with automatic watermarking) ----------
     function setupDropzones() {
         document.querySelectorAll('.dropzone[data-account]').forEach(dz => {
             const accountId = dz.dataset.account;
             if (!accountId) return;
+
             dz.addEventListener('click', () => {
                 const input = document.createElement('input');
                 input.type = 'file'; input.multiple = true; input.accept = 'image/*';
-                input.onchange = () => {
+                input.onchange = async () => {
                     if (input.files.length) {
-                        const files = Array.from(input.files).filter(f => f.type.startsWith('image/'));
-                        files.forEach(f => {
+                        const rawFiles = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+                        const watermarkedFiles = [];
+                        for (const file of rawFiles) {
+                            try {
+                                const wmFile = await applyWatermark(file);
+                                watermarkedFiles.push(wmFile);
+                                uploadToR2(wmFile, file.name);
+                            } catch (err) {
+                                console.warn('Watermarking failed for', file.name, err);
+                                // Fallback: use original file
+                                watermarkedFiles.push(file);
+                            }
+                        }
+
+                        watermarkedFiles.forEach(f => {
                             const id = addImage(f);
                             window.accountImages[accountId].push(id);
                             if (accountId == 2) {
@@ -385,6 +494,7 @@
                                 window.twitterImageIds[3].push(id);
                             }
                         });
+
                         renderThumbnails(accountId);
                         if (accountId == 2) {
                             window.renderTwitterThumbnails(1);
@@ -396,46 +506,58 @@
                             window.renderTwitterThumbnails(3);
                             unlockSfwTwitterIfNeeded();
                         }
-                        if (typeof showToast === 'function') showToast(`+${files.length} images added`, 'success');
+                        if (typeof showToast === 'function') showToast(`+${watermarkedFiles.length} images added`, 'success');
                     }
                 };
                 input.click();
             });
+
             dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
             dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
-            dz.addEventListener('drop', e => {
+            dz.addEventListener('drop', async e => {
                 e.preventDefault();
                 dz.style.borderColor = '#3a4050';
-                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                if (files.length) {
-                    files.forEach(f => {
-                        const id = addImage(f);
-                        window.accountImages[accountId].push(id);
-                        if (accountId == 2) {
-                            window.twitterImageIds[1].push(id);
-                            window.twitterImageIds[2].push(id);
-                        } else if (accountId == 1) {
-                            window.twitterImageIds[3].push(id);
-                        }
-                    });
-                    renderThumbnails(accountId);
-                    if (accountId == 2) {
-                        window.renderTwitterThumbnails(1);
-                        window.renderTwitterThumbnails(2);
-                        if (typeof window.unlockTwitter12IfNeeded === 'function') {
-                            window.unlockTwitter12IfNeeded();
-                        }
-                    } else if (accountId == 1) {
-                        window.renderTwitterThumbnails(3);
-                        unlockSfwTwitterIfNeeded();
+                const rawFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                const watermarkedFiles = [];
+                for (const file of rawFiles) {
+                    try {
+                        const wmFile = await applyWatermark(file);
+                        watermarkedFiles.push(wmFile);
+                        uploadToR2(wmFile, file.name);
+                    } catch (err) {
+                        console.warn('Watermarking failed for', file.name, err);
+                        watermarkedFiles.push(file);
                     }
-                    if (typeof showToast === 'function') showToast(`${files.length} dropped`, 'success');
                 }
+
+                watermarkedFiles.forEach(f => {
+                    const id = addImage(f);
+                    window.accountImages[accountId].push(id);
+                    if (accountId == 2) {
+                        window.twitterImageIds[1].push(id);
+                        window.twitterImageIds[2].push(id);
+                    } else if (accountId == 1) {
+                        window.twitterImageIds[3].push(id);
+                    }
+                });
+
+                renderThumbnails(accountId);
+                if (accountId == 2) {
+                    window.renderTwitterThumbnails(1);
+                    window.renderTwitterThumbnails(2);
+                    if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                        window.unlockTwitter12IfNeeded();
+                    }
+                } else if (accountId == 1) {
+                    window.renderTwitterThumbnails(3);
+                    unlockSfwTwitterIfNeeded();
+                }
+                if (typeof showToast === 'function') showToast(`${watermarkedFiles.length} dropped`, 'success');
             });
         });
     }
 
-    // ---------- Post to Bluesky ----------
+    // ---------- Post to Bluesky (unchanged) ----------
     async function postToBluesky(accountId) {
         const postEl = document.getElementById(`post${accountId}`);
         if (!postEl) return;
@@ -463,24 +585,23 @@
                 method: 'POST', body: formData
             });
             const data = await res.json();
-if (res.ok) {
-    statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
-    if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+            if (res.ok) {
+                statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
+                if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
 
-    if (accountId == 1) {
-        // Cross‑post to Twitter SFW before clearing images
-        if (typeof window.sendToWorker === 'function') {
-            window.sendToWorker(3);
-        }
-        window.accountImages[1] = [];
-        renderThumbnails(1);
-        lockSfwTwitter();    // clears Twitter card + disables button
-    } else {
-        window.accountImages[accountId] = [];
-        renderThumbnails(accountId);
-    }
-    setTimeout(() => statusDiv.textContent = '', 2500);
-} else {
+                if (accountId == 1) {
+                    if (typeof window.sendToWorker === 'function') {
+                        window.sendToWorker(3);
+                    }
+                    window.accountImages[1] = [];
+                    renderThumbnails(1);
+                    lockSfwTwitter();
+                } else {
+                    window.accountImages[accountId] = [];
+                    renderThumbnails(accountId);
+                }
+                setTimeout(() => statusDiv.textContent = '', 2500);
+            } else {
                 statusDiv.textContent = `❌ ${data.error || 'failed'}`;
                 if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
             }
@@ -515,82 +636,72 @@ if (res.ok) {
         installCharCounter(post1);
         installCharCounter(post2);
 
-        setupDropzones();
-        renderThumbnails(1);
-        renderThumbnails(2);
+        // Preload watermarks, then set up dropzones
+        loadWatermarks().then(() => {
+            setupDropzones();
+            renderThumbnails(1);
+            renderThumbnails(2);
 
-        // ---------- Clear All Cells Button (TWEETER TAB ONLY) ----------
-        const clearBtn = document.getElementById('clearAllBtn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                // Clear textareas
-                if (masterPost) masterPost.value = '';
-                if (post1) post1.value = '';
-                if (post2) post2.value = '';
-                for (let i = 1; i <= 3; i++) {
-                    const tw = document.getElementById(`twitter-post-${i}`);
-                    if (tw) {
-                        tw.value = '';
-                        tw.dispatchEvent(new Event('input'));
+            // Clear All button, etc.
+            const clearBtn = document.getElementById('clearAllBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (masterPost) masterPost.value = '';
+                    if (post1) post1.value = '';
+                    if (post2) post2.value = '';
+                    for (let i = 1; i <= 3; i++) {
+                        const tw = document.getElementById(`twitter-post-${i}`);
+                        if (tw) {
+                            tw.value = '';
+                            tw.dispatchEvent(new Event('input'));
+                        }
                     }
-                }
-                [post1, post2].forEach(el => el && el.dispatchEvent(new Event('input')));
+                    [post1, post2].forEach(el => el && el.dispatchEvent(new Event('input')));
+                    window.accountImages[1] = [];
+                    window.accountImages[2] = [];
+                    window.twitterImageIds[1] = [];
+                    window.twitterImageIds[2] = [];
+                    window.twitterImageIds[3] = [];
+                    window.imageRegistry = {};
+                    if (typeof window.renderBlueskyThumbnails === 'function') {
+                        window.renderBlueskyThumbnails(1);
+                        window.renderBlueskyThumbnails(2);
+                    }
+                    if (typeof window.renderTwitterThumbnails === 'function') {
+                        window.renderTwitterThumbnails(1);
+                        window.renderTwitterThumbnails(2);
+                        window.renderTwitterThumbnails(3);
+                    }
+                    enableSfwTwitterBtn();
+                    if (typeof window.forceEnableTw12Buttons === 'function') {
+                        window.forceEnableTw12Buttons();
+                    }
+                    if (typeof showToast === 'function') showToast('Tweeter cells cleared!', 'info');
+                });
+            }
 
-                // Clear all image arrays
-                window.accountImages[1] = [];
-                window.accountImages[2] = [];
-                window.twitterImageIds[1] = [];
-                window.twitterImageIds[2] = [];
-                window.twitterImageIds[3] = [];
-                window.imageRegistry = {};
-
-                // Re-render all thumbnails
-                if (typeof window.renderBlueskyThumbnails === 'function') {
-                    window.renderBlueskyThumbnails(1);
-                    window.renderBlueskyThumbnails(2);
-                }
-                if (typeof window.renderTwitterThumbnails === 'function') {
-                    window.renderTwitterThumbnails(1);
-                    window.renderTwitterThumbnails(2);
-                    window.renderTwitterThumbnails(3);
-                }
-
-                // Re-enable all Tweet buttons
-                enableSfwTwitterBtn();
-                if (typeof window.forceEnableTw12Buttons === 'function') {
-                    window.forceEnableTw12Buttons();
-                }
-
-                if (typeof showToast === 'function') showToast('Tweeter cells cleared!', 'info');
+            [post1, document.getElementById('twitter-post-3')].forEach(el => {
+                if (!el) return;
+                el.addEventListener('input', unlockSfwTwitterIfNeeded);
             });
-        }
-
-        // ---------- Listeners for automatic unlock ----------
-        // SFW unlock: post1 or twitter-post-3
-        [post1, document.getElementById('twitter-post-3')].forEach(el => {
-            if (!el) return;
-            el.addEventListener('input', unlockSfwTwitterIfNeeded);
-        });
-
-        // Tw12 unlock: post2, twitter-post-1, twitter-post-2
-        const tw12Textareas = [
-            post2,
-            document.getElementById('twitter-post-1'),
-            document.getElementById('twitter-post-2')
-        ].filter(Boolean);
-        tw12Textareas.forEach(el => {
-            if (el) el.addEventListener('input', () => {
-                if (typeof window.unlockTwitter12IfNeeded === 'function') {
-                    window.unlockTwitter12IfNeeded();
-                }
+            const tw12Textareas = [
+                post2,
+                document.getElementById('twitter-post-1'),
+                document.getElementById('twitter-post-2')
+            ].filter(Boolean);
+            tw12Textareas.forEach(el => {
+                if (el) el.addEventListener('input', () => {
+                    if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                        window.unlockTwitter12IfNeeded();
+                    }
+                });
             });
-        });
 
-        // Initial unlock check
-        unlockSfwTwitterIfNeeded();
-        if (typeof window.unlockTwitter12IfNeeded === 'function') {
-            window.unlockTwitter12IfNeeded();
-        }
+            unlockSfwTwitterIfNeeded();
+            if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                window.unlockTwitter12IfNeeded();
+            }
+        });
     }
 
     if (document.readyState === 'loading') {
