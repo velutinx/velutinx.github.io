@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    // ----- Character/series overrides (exactly from your standalone version) -----
+    // ----- Character/series overrides (same as standalone) -----
     const franchiseOverrides = {
         "genshin impact": { native: "原神", english: "GenshinImpact" },
         "wuthering waves": { native: "鸣潮", english: "WutheringWaves" },
@@ -36,19 +36,13 @@
 
     function parseInput(raw) {
         let text = raw.trim();
-        // Remove file extensions
         text = text.replace(/\.(zip|rar|7z)$/i, '');
-        // Remove leading [Pack XXX] or [Artist] etc.
         text = text.replace(/^\[[^\]]+\]\s*/i, '');
-        // Remove parentheses content
         text = text.replace(/\([^)]*\)/g, '');
-        // Normalise spaces
         text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
         const splitIndex = text.indexOf('-');
-        if (splitIndex === -1) {
-            return { character: text.trim(), series: '' };
-        }
+        if (splitIndex === -1) return { character: text.trim(), series: '' };
         return {
             character: text.slice(0, splitIndex).trim(),
             series: text.slice(splitIndex + 1).trim()
@@ -65,20 +59,8 @@
     }
 
     async function generateHashtags(characterName, animeName) {
-        const charQuery = `
-            query ($search: String) {
-                Character(search: $search) {
-                    name { full, native }
-                }
-            }
-        `;
-        const animeQuery = `
-            query ($search: String) {
-                Media(search: $search, type: ANIME) {
-                    title { romaji, english, native }
-                }
-            }
-        `;
+        const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
+        const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
 
         const [charData, animeData] = await Promise.all([
             fetchAniList(charQuery, { search: characterName }),
@@ -97,7 +79,6 @@
         animeRomaji = cleanupSeriesTitle(animeRomaji);
         animeEnglish = cleanupSeriesTitle(animeEnglish);
 
-        // Overrides
         const lowerSeries = animeName.toLowerCase();
         const lowerCharacter = characterName.toLowerCase();
         if (franchiseOverrides[lowerSeries]) {
@@ -110,7 +91,6 @@
             charNative = over.native || charNative;
         }
 
-        // Build tags
         const tags = [];
         tags.push(makeHashtag(charNative));
         const splitChar = charFull.split(' ');
@@ -130,69 +110,66 @@
             if (englishTag) tags.push(englishTag);
         }
 
-        // Remove duplicates and empty
         return [...new Set(tags.filter(Boolean))];
     }
 
-    // ----- Initialisation (waits for Tweeter tab elements) -----
-    function init() {
+    // ----- Auto‑generation on input (debounced) -----
+    let debounceTimer;
+
+    async function handleInput() {
         const input = document.getElementById('hashgenInput');
-        const btn = document.getElementById('hashgenBtn');
         const status = document.getElementById('hashgenStatus');
         const masterPost = document.getElementById('masterPost');
 
-        if (!input || !btn || !masterPost) {
-            // Elements missing – maybe the tab isn't visible yet; that's fine.
+        if (!input || !masterPost) return;
+
+        const raw = input.value.trim();
+        if (!raw) {
+            status.textContent = '';
             return;
         }
 
-        btn.addEventListener('click', async () => {
-            const raw = input.value.trim();
-            if (!raw) {
-                if (typeof showToast === 'function') showToast('Paste a filename or Character - Series', 'error');
-                return;
-            }
+        const parsed = parseInput(raw);
+        if (!parsed.character && !parsed.series) {
+            status.textContent = 'Could not parse character or series';
+            return;
+        }
 
-            const parsed = parseInput(raw);
-            if (!parsed.character && !parsed.series) {
-                if (typeof showToast === 'function') showToast('Could not parse character or series', 'error');
-                return;
-            }
+        status.textContent = 'Fetching AniList…';
+        try {
+            const hashtags = await generateHashtags(parsed.character, parsed.series);
+            const hashtagString = hashtags.join(' ');
 
-            btn.disabled = true;
-            btn.textContent = 'Generating...';
-            status.textContent = 'Fetching AniList…';
+            let current = masterPost.value.trimEnd();
+            if (current) current += '\n';
+            masterPost.value = current + hashtagString;
 
-            try {
-                const hashtags = await generateHashtags(parsed.character, parsed.series);
-                const hashtagString = hashtags.join(' ');
+            // Trigger mirroring
+            masterPost.dispatchEvent(new Event('input'));
 
-                // Append to master post (add newline if there's already text)
-                let current = masterPost.value.trimEnd();
-                if (current) current += '\n';
-                masterPost.value = current + hashtagString;
+            status.textContent = '✅ Hashtags added!';
+            if (typeof showToast === 'function') showToast('Hashtags generated!', 'success');
+        } catch (err) {
+            console.error(err);
+            status.textContent = '❌ AniList fetch failed';
+        }
+    }
 
-                // Trigger mirroring to other boxes
-                masterPost.dispatchEvent(new Event('input'));
+    function init() {
+        const input = document.getElementById('hashgenInput');
+        if (!input) return;
 
-                if (typeof showToast === 'function') showToast('Hashtags generated!', 'success');
-                status.textContent = '';
-            } catch (err) {
-                console.error(err);
-                if (typeof showToast === 'function') showToast('AniList fetch failed', 'error');
-                status.textContent = '❌ Failed to fetch AniList';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Generate Hashtags';
-            }
+        // Debounced input listener
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 800);   // 0.8s after last keystroke/paste
         });
 
-        // Optional: allow Enter key in input to trigger generation
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                btn.click();
-            }
+        // Also immediately trigger on paste for faster response
+        input.addEventListener('paste', () => {
+            // After paste, the input event will fire anyway, but we can shorten the debounce
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 300);   // faster after paste
         });
     }
 
