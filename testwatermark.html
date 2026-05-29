@@ -94,14 +94,13 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const status = document.getElementById('status');
 
-        // Proxy base URL – already deployed in your instagram-post worker
-        const PROXY_BASE = 'https://instagram-post.velutinx.workers.dev/proxy?url=';
+        // ✅ New dedicated proxy worker
+        const PROXY_BASE = 'https://watermark-worker.velutinx.workers.dev/proxy?url=';
 
-        // The actual image URLs (with correct folder and filenames)
-        const centerWmDirect = 'https://www.velutinx.com/images/instagram/Rotated%20Warermark.png';
-        const cornerWmDirect = 'https://www.velutinx.com/images/instagram/Watermark%20Corner.png';
+        // ✅ Corrected watermark image URLs (using your fixed paths)
+        const centerWmDirect = 'https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png';
+        const cornerWmDirect = 'https://www.velutinx.com/images/Watermark/Watermark%20Corner.png';
 
-        // Proxy-wrapped URLs – these work around CORS
         const centerWmUrl = PROXY_BASE + encodeURIComponent(centerWmDirect);
         const cornerWmUrl = PROXY_BASE + encodeURIComponent(cornerWmDirect);
 
@@ -120,7 +119,7 @@
                 cornerWmImg = corner;
                 status.textContent = '✅ Watermarks loaded. Drop an image.';
             } catch (err) {
-                status.textContent = '❌ Could not load watermarks via proxy. Check your Worker.';
+                status.textContent = '❌ Could not load watermarks via proxy. Check the new Worker.';
                 console.error(err);
             }
         }
