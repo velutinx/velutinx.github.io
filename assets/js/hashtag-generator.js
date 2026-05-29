@@ -2,18 +2,25 @@
 (function() {
     'use strict';
 
-    // ----- Character/series overrides -----
-    const franchiseOverrides = {
-        "genshin impact": { native: "原神", english: "GenshinImpact" },
-        "wuthering waves": { native: "鸣潮", english: "WutheringWaves" },
-        "rwby": { native: "RWBY", english: "RWBY" },
-        "goddess of victory nikke": { native: "勝利の女神", english: "Nikke" }
-    };
-    const characterOverrides = {
-        "diluc": { native: "ディルック" },
-        "neopolitan": { native: "ネオポリタン" },
-        "noir": { native: "ノワール" }
-    };
+    // Override storage
+    let overrideData = { franchise: {}, character: {} };
+
+    async function loadOverrides() {
+        try {
+            const res = await fetch('/assets/js/utils/overrides.json');
+            if (res.ok) {
+                const json = await res.json();
+                overrideData = {
+                    franchise: json.franchise || {},
+                    character: json.character || {}
+                };
+            } else {
+                console.warn('Overrides file not found, using AniList only.');
+            }
+        } catch (err) {
+            console.warn('Failed to load overrides, using AniList only.', err);
+        }
+    }
 
     function cleanTag(str) {
         if (!str) return '';
@@ -34,30 +41,25 @@
         return title.replace(/:.*/, '').trim();
     }
 
-    // ----- Improved parser: handles both "Character - Series" and "Preview: … — … — Pack #…" -----
+    // ----- Parser (unchanged) -----
     function parseInput(raw) {
         let text = raw.trim();
 
-        // Remove common file extensions and brackets
         text = text.replace(/\.(zip|rar|7z)$/i, '');
         text = text.replace(/^\[[^\]]+\]\s*/i, '');
         text = text.replace(/\([^)]*\)/g, '');
         text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
-        // 1) "Preview: … — Series — Pack #…" format
         if (text.startsWith("Preview:")) {
             const afterPreview = text.replace(/^Preview:\s*/i, '');
-            // Take only the part before " — Pack #" (or " — Pack")
             const packIndex = afterPreview.indexOf(" — Pack");
             if (packIndex !== -1) {
                 text = afterPreview.substring(0, packIndex).trim();
             } else {
-                // If no " — Pack", just use everything after "Preview:"
                 text = afterPreview;
             }
         }
 
-        // 2) Split on either " — " (em dash with spaces) or " - " (hyphen with spaces)
         const separators = [' — ', ' - '];
         let splitIndex = -1;
         for (const sep of separators) {
@@ -73,7 +75,7 @@
         }
 
         const character = text.slice(0, splitIndex).trim();
-        const series = text.slice(splitIndex + 3).trim();   // length of each separator is 3
+        const series = text.slice(splitIndex + 3).trim();
         return { character, series };
     }
 
@@ -86,7 +88,7 @@
         return response.json();
     }
 
-    // ----- Generate hashtags and return them as an ordered array -----
+    // ----- Generate hashtags (now uses overrides) -----
     async function generateHashtags(characterName, animeName) {
         const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
         const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
@@ -108,23 +110,29 @@
         animeRomaji = cleanupSeriesTitle(animeRomaji);
         animeEnglish = cleanupSeriesTitle(animeEnglish);
 
+        // Apply overrides (case‑insensitive key matching)
         const lowerSeries = animeName.toLowerCase();
         const lowerCharacter = characterName.toLowerCase();
-        if (franchiseOverrides[lowerSeries]) {
-            const over = franchiseOverrides[lowerSeries];
+
+        if (overrideData.franchise[lowerSeries]) {
+            const over = overrideData.franchise[lowerSeries];
             animeNative = over.native || animeNative;
             animeEnglish = over.english || animeEnglish;
         }
-        if (characterOverrides[lowerCharacter]) {
-            const over = characterOverrides[lowerCharacter];
+        if (overrideData.character[lowerCharacter]) {
+            const over = overrideData.character[lowerCharacter];
             charNative = over.native || charNative;
         }
 
-        // ----- Build ordered tag lists -----
+        // Build tag arrays in the required order:
+        // English character tags (full name + reversed)
+        // English series tag(s)
+        // Japanese character tag
+        // Japanese series tag
+
         const engCharTags = [];
         const splitChar = charFull.split(' ');
         if (splitChar.length >= 2) {
-            // First the normal concatenation, then the reversed order
             const normal = splitChar.join('');
             const reversed = [...splitChar].reverse().join('');
             if (normal) engCharTags.push(makeHashtag(normal));
@@ -147,7 +155,6 @@
         const jpCharTag = makeHashtag(charNative);
         const jpSeriesTag = makeHashtag(animeNative);
 
-        // Combine in desired order: eng char, eng series, jp char, jp series
         const allTags = [
             ...engCharTags.filter(Boolean),
             ...engSeriesTags.filter(Boolean),
@@ -155,7 +162,7 @@
             jpSeriesTag
         ].filter(Boolean);
 
-        // Remove duplicates (keeping first occurrence)
+        // Remove duplicates (case insensitive)
         const seen = new Set();
         const uniqueTags = [];
         for (const tag of allTags) {
@@ -169,7 +176,7 @@
         return uniqueTags;
     }
 
-    // ----- Auto‑generation on input (debounced) -----
+    // ----- Auto‑generation (debounced) -----
     let debounceTimer;
 
     async function handleInput() {
@@ -211,17 +218,20 @@
     }
 
     function init() {
-        const input = document.getElementById('hashgenInput');
-        if (!input) return;
+        // Load overrides first, then listen for input
+        loadOverrides().then(() => {
+            const input = document.getElementById('hashgenInput');
+            if (!input) return;
 
-        input.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(handleInput, 800);
-        });
+            input.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(handleInput, 800);
+            });
 
-        input.addEventListener('paste', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(handleInput, 300);
+            input.addEventListener('paste', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(handleInput, 300);
+            });
         });
     }
 
