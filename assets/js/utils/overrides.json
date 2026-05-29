@@ -1,0 +1,13 @@
+{
+  "franchise": {
+    "genshin impact": { "native": "原神", "english": "GenshinImpact" },
+    "wuthering waves": { "native": "鸣潮", "english": "WutheringWaves" },
+    "rwby": { "native": "RWBY", "english": "RWBY" },
+    "goddess of victory nikke": { "native": "勝利の女神", "english": "Nikke" }
+  },
+  "character": {
+    "diluc": { "native": "ディルック" },
+    "neopolitan": { "native": "ネオポリタン" },
+    "noir": { "native": "ノワール" }
+  }
+}
