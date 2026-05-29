@@ -7,6 +7,7 @@
 <title>Anime Hashtag Generator</title>
 
 <style>
+
 *{
     box-sizing:border-box;
 }
@@ -25,7 +26,7 @@ body{
 
 .container{
     width:100%;
-    max-width:900px;
+    max-width:1000px;
     background:#171a21;
     border:1px solid #2a2f3a;
     border-radius:20px;
@@ -42,20 +43,21 @@ h1{
 .desc{
     color:#9ca3af;
     margin-bottom:25px;
-    line-height:1.5;
+    line-height:1.7;
 }
 
 textarea{
     width:100%;
-    min-height:120px;
+    min-height:140px;
     resize:vertical;
     background:#0d1015;
     border:1px solid #303846;
     border-radius:14px;
     color:#fff;
     padding:16px;
-    font-size:16px;
+    font-size:15px;
     outline:none;
+    line-height:1.6;
 }
 
 textarea:focus{
@@ -145,15 +147,27 @@ button.secondary:hover{
 }
 
 .info-card-content{
-    font-size:17px;
-    line-height:1.5;
+    font-size:16px;
+    line-height:1.6;
+}
+
+.small{
+    color:#93a0ba;
+    font-size:13px;
+    margin-top:10px;
 }
 
 @media(max-width:700px){
+
+    body{
+        padding:20px;
+    }
+
     .info-grid{
         grid-template-columns:1fr;
     }
 }
+
 </style>
 </head>
 <body>
@@ -163,14 +177,26 @@ button.secondary:hover{
     <h1>Anime Hashtag Generator</h1>
 
     <div class="desc">
-        Enter format:<br><br>
-        <b>Character Name - Anime Name</b><br><br>
 
-        Example:<br>
-        <code>Nagi Arato - Ruri no Houseki</code>
+        Supports:
+        <br><br>
+
+        <code>Character - Series</code>
+        <br>
+        <code>[Pack 088] Character - Series.zip</code>
+        <br>
+        <code>[Artist] Character - Series.rar</code>
+
+        <br><br>
+
+        Example:
+        <br><br>
+
+        <code>[Pack 088] Nagi Arato - Ruri no Houseki.zip</code>
+
     </div>
 
-    <textarea id="input">Nagi Arato - Ruri no Houseki</textarea>
+<textarea id="input">[Pack 088] Nagi Arato - Ruri no Houseki.zip</textarea>
 
     <div class="actions">
         <button id="generateBtn">Generate Hashtags</button>
@@ -203,6 +229,10 @@ button.secondary:hover{
 
         </div>
 
+        <div class="small">
+            Note: API quality varies heavily for games, gacha franchises, and alternate adaptations.
+        </div>
+
     </div>
 
 </div>
@@ -213,13 +243,57 @@ const resultEl = document.getElementById("result");
 const characterInfo = document.getElementById("characterInfo");
 const seriesInfo = document.getElementById("seriesInfo");
 
+const franchiseOverrides = {
+
+    "genshin impact": {
+        native: "原神",
+        english: "GenshinImpact"
+    },
+
+    "wuthering waves": {
+        native: "鸣潮",
+        english: "WutheringWaves"
+    },
+
+    "rwby": {
+        native: "RWBY",
+        english: "RWBY"
+    },
+
+    "goddess of victory nikke": {
+        native: "勝利の女神",
+        english: "Nikke"
+    }
+};
+
+const characterOverrides = {
+
+    "diluc": {
+        native: "ディルック"
+    },
+
+    "neopolitan": {
+        native: "ネオポリタン"
+    },
+
+    "noir": {
+        native: "ノワール"
+    }
+};
+
 function cleanTag(str){
+
+    if(!str) return "";
+
     return str
-        .replace(/[^\p{L}\p{N}]/gu, "")
+        .normalize("NFKC")
+        .replace(/[\s\-_]+/g, "")
+        .replace(/[^\w\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/g, "")
         .trim();
 }
 
 function makeHashtag(str){
+
     if(!str) return null;
 
     const cleaned = cleanTag(str);
@@ -227,6 +301,53 @@ function makeHashtag(str){
     if(!cleaned.length) return null;
 
     return "#" + cleaned;
+}
+
+function parseInput(raw){
+
+    let text = raw.trim();
+
+    text = text.replace(/\.(zip|rar|7z)$/i, "");
+
+    text = text.replace(/^\[[^\]]+\]\s*/i, "");
+
+    text = text.replace(/\([^)]*\)/g, "");
+
+    text = text.replace(/_/g, " ");
+
+    text = text.replace(/\s+/g, " ").trim();
+
+    const splitIndex = text.indexOf("-");
+
+    if(splitIndex === -1){
+
+        return {
+            character: text.trim(),
+            series: ""
+        };
+    }
+
+    const character = text
+        .slice(0, splitIndex)
+        .trim();
+
+    const series = text
+        .slice(splitIndex + 1)
+        .trim();
+
+    return {
+        character,
+        series
+    };
+}
+
+function cleanupSeriesTitle(title){
+
+    if(!title) return "";
+
+    return title
+        .replace(/:.*/,"")
+        .trim();
 }
 
 async function fetchAniList(query, variables){
@@ -250,15 +371,10 @@ async function generate(){
 
     const input = document.getElementById("input").value.trim();
 
-    if(!input.includes("-")){
-        resultEl.innerHTML = `<span class="error">Input must be: Character - Anime</span>`;
-        return;
-    }
+    const parsed = parseInput(input);
 
-    const parts = input.split("-");
-
-    const characterName = parts[0].trim();
-    const animeName = parts.slice(1).join("-").trim();
+    const characterName = parsed.character;
+    const animeName = parsed.series;
 
     resultEl.innerHTML = `<span class="loading">Searching AniList...</span>`;
 
@@ -267,7 +383,6 @@ async function generate(){
 
     try{
 
-        // CHARACTER SEARCH
         const characterQuery = `
         query ($search: String) {
             Character(search: $search) {
@@ -278,11 +393,6 @@ async function generate(){
             }
         }`;
 
-        const charData = await fetchAniList(characterQuery, {
-            search: characterName
-        });
-
-        // ANIME SEARCH
         const animeQuery = `
         query ($search: String) {
             Media(search: $search, type: ANIME) {
@@ -294,6 +404,10 @@ async function generate(){
             }
         }`;
 
+        const charData = await fetchAniList(characterQuery, {
+            search: characterName
+        });
+
         const animeData = await fetchAniList(animeQuery, {
             search: animeName
         });
@@ -301,72 +415,129 @@ async function generate(){
         const character = charData?.data?.Character;
         const anime = animeData?.data?.Media;
 
-        const charNative = character?.name?.native || "";
-        const charFull = character?.name?.full || characterName;
+        let charNative =
+            character?.name?.native ||
+            "";
 
-        const animeNative = anime?.title?.native || "";
-        const animeRomaji = anime?.title?.romaji || animeName;
-        const animeEnglish = anime?.title?.english || "";
+        let charFull =
+            character?.name?.full ||
+            characterName;
+
+        let animeNative =
+            anime?.title?.native ||
+            "";
+
+        let animeRomaji =
+            anime?.title?.romaji ||
+            animeName;
+
+        let animeEnglish =
+            anime?.title?.english ||
+            "";
+
+        animeRomaji = cleanupSeriesTitle(animeRomaji);
+        animeEnglish = cleanupSeriesTitle(animeEnglish);
+
+        const lowerSeries = animeName.toLowerCase();
+        const lowerCharacter = characterName.toLowerCase();
+
+        // SERIES OVERRIDES
+        if(franchiseOverrides[lowerSeries]){
+
+            const override = franchiseOverrides[lowerSeries];
+
+            animeNative = override.native || animeNative;
+            animeEnglish = override.english || animeEnglish;
+        }
+
+        // CHARACTER OVERRIDES
+        if(characterOverrides[lowerCharacter]){
+
+            const override = characterOverrides[lowerCharacter];
+
+            charNative = override.native || charNative;
+        }
 
         const hashtags = [];
 
-        // CHARACTER TAGS
+        // CHARACTER
         hashtags.push(makeHashtag(charNative));
 
         const splitChar = charFull.split(" ");
 
         if(splitChar.length >= 2){
 
-            const normalOrder = splitChar.join("").toLowerCase();
-            const reverseOrder = [...splitChar].reverse().join("").toLowerCase();
+            hashtags.push(
+                "#" +
+                splitChar.join("")
+            );
 
-            hashtags.push("#" + normalOrder);
-            hashtags.push("#" + reverseOrder);
+            hashtags.push(
+                "#" +
+                [...splitChar]
+                .reverse()
+                .join("")
+            );
 
         }else{
-            hashtags.push(makeHashtag(charFull.toLowerCase()));
+
+            hashtags.push(
+                makeHashtag(charFull)
+            );
         }
 
-        // SERIES TAGS
-hashtags.push(makeHashtag(animeNative));
+        // SERIES
+        hashtags.push(
+            makeHashtag(animeNative)
+        );
 
-const romajiTag = makeHashtag(animeRomaji);
-const englishTag = makeHashtag(animeEnglish);
+        const romajiTag =
+            makeHashtag(animeRomaji);
 
-if(
-    romajiTag &&
-    englishTag &&
-    romajiTag.toLowerCase() === englishTag.toLowerCase()
-){
-    hashtags.push(englishTag);
+        const englishTag =
+            makeHashtag(animeEnglish);
 
-}else{
+        if(
+            romajiTag &&
+            englishTag &&
+            romajiTag.toLowerCase() === englishTag.toLowerCase()
+        ){
 
-    if(romajiTag){
-        hashtags.push(romajiTag.toLowerCase());
-    }
+            hashtags.push(englishTag);
 
-    if(englishTag){
-        hashtags.push(englishTag);
-    }
-}
+        }else{
 
-        // REMOVE DUPLICATES / EMPTY
-        const finalTags = [...new Set(
-            hashtags.filter(Boolean)
-        )];
+            if(romajiTag){
+                hashtags.push(
+                    romajiTag.toLowerCase()
+                );
+            }
 
-        resultEl.textContent = finalTags.join(" ");
+            if(englishTag){
+                hashtags.push(
+                    englishTag
+                );
+            }
+        }
+
+        const finalTags = [
+            ...new Set(
+                hashtags.filter(Boolean)
+            )
+        ];
+
+        resultEl.textContent =
+            finalTags.join(" ");
 
         characterInfo.innerHTML = `
-            <b>Input:</b> ${characterName}<br><br>
+            <b>Parsed:</b> ${characterName}<br><br>
             <b>Official:</b> ${charFull}<br>
             <b>Native:</b> ${charNative || "N/A"}
         `;
 
         seriesInfo.innerHTML = `
-            <b>Input:</b> ${animeName}<br><br>
-            <b>Romaji:</b> ${animeRomaji}<br>
+            <b>Parsed:</b> ${animeName}<br><br>
+            <b>Romaji:</b> ${animeRomaji || "N/A"}<br>
             <b>English:</b> ${animeEnglish || "N/A"}<br>
             <b>Native:</b> ${animeNative || "N/A"}
         `;
@@ -377,7 +548,11 @@ if(
 
         resultEl.innerHTML = `
             <span class="error">
-                Failed to fetch data from AniList API.
+                Failed to fetch AniList API.
+                <br><br>
+                Neocities free hosting blocks external fetch() requests.
+                <br>
+                Use GitHub Pages instead.
             </span>
         `;
 
@@ -409,7 +584,9 @@ document.getElementById("copyBtn")
     }, 1500);
 });
 
-generate();
+window.addEventListener("load", () => {
+    generate();
+});
 
 </script>
 
