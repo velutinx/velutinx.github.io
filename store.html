@@ -74,7 +74,7 @@ function escapeHtml(str) {
   return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
 }
 
-// ==================== Store-specific translations ====================
+// ==================== Store‑specific translations ====================
 const storeTranslations = {
   en: {
     filterTitle: "Filter by Category",    sortTitle: "Sort by",    catAll: "All Products",    catFemale: "Female Models",    catFemboy: "Femboy Models",    catMembership: "Memberships",
@@ -219,13 +219,13 @@ const t = storeTranslations[currentLang || "en"];
 if (data.valid) {
   activeCoupon = data;
 
-const discountText = window.formatPrice(
-  parseFloat(data.discount || 0)
-);
+  const discountText = window.formatPrice
+    ? window.formatPrice(data.discount)
+    : `$${data.discount}`;
 
-const totalText = window.formatPrice(
-  parseFloat(data.final_total || 0)
-);
+  const totalText = window.formatPrice
+    ? window.formatPrice(data.final_total)
+    : `$${data.final_total}`;
 
   msg.innerHTML =
     `✅ <strong>${data.code}</strong>: -${discountText} (${t.totalLabel}: ${totalText})`;
@@ -509,14 +509,11 @@ function renderPayPalButton() {
   isRendering = true;
 
   const cart = storeCart;
-  const t = storeTranslations[currentLang || "en"];
-
-if (cart.length === 0) {
-  container.innerHTML =
-    `<p style="text-align:center; margin-top:1rem;">${t.emptyCheckout}</p>`;
-  isRendering = false;
-  return;
-}
+  if (cart.length === 0) {
+    container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
+    isRendering = false;
+    return;
+  }
 
   container.innerHTML = '';
   if (!window.paypal) {
