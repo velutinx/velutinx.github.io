@@ -219,13 +219,13 @@ const t = storeTranslations[currentLang || "en"];
 if (data.valid) {
   activeCoupon = data;
 
-  const discountText = window.formatPrice
-    ? window.formatPrice(data.discount)
-    : `$${data.discount}`;
+const discountText = window.formatPrice(
+  parseFloat(data.discount || 0)
+);
 
-  const totalText = window.formatPrice
-    ? window.formatPrice(data.final_total)
-    : `$${data.final_total}`;
+const totalText = window.formatPrice(
+  parseFloat(data.final_total || 0)
+);
 
   msg.innerHTML =
     `✅ <strong>${data.code}</strong>: -${discountText} (${t.totalLabel}: ${totalText})`;
