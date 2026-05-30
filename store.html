@@ -74,51 +74,43 @@ function escapeHtml(str) {
   return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
 }
 
-// ==================== Store‑specific translations ====================
+// ==================== Store-specific translations ====================
 const storeTranslations = {
   en: {
-    filterTitle: "Filter by Category", sortTitle: "Sort by", catAll: "All Products",
-    catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
-    sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
-    latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
-    addedMsg: "Added to cart", removedMsg: "Removed from cart",
-    membershipTitle: "Requests & Membership",
-    membershipLearnMore: "Learn More",
-    couponPlaceholder: "Coupon code",
-    applyBtn: "Apply"
+    filterTitle: "Filter by Category",    sortTitle: "Sort by",    catAll: "All Products",    catFemale: "Female Models",    catFemboy: "Femboy Models",    catMembership: "Memberships",
+    sortNewest: "Newest",    sortOldest: "Oldest",    sortLow: "Price: Low to High",    sortHigh: "Price: High to Low",
+    latestTitle: "Latest Content",    searchPlaceholder: "Search...",    emptyCart: "Your cart is empty",    emptyCheckout: "Add items to checkout",
+    addedMsg: "Added to cart",    removedMsg: "Removed from cart",    membershipTitle: "Requests & Membership",    membershipLearnMore: "Learn More",
+    couponPlaceholder: "Coupon code",    applyBtn: "Apply",
+    invalidCoupon: "❌ Invalid coupon code",    minimumOrder: "❌ Minimum order of $3 required",
+    totalLabel: "Total"
   },
+
   ja: {
-    filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
-    catFemale: "婦人", catFemboy: "男の娘", catMembership: "メンバーシップ",
-    sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
-    latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
-    addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
-    membershipTitle: "リクエスト＆メンバーシップ",
-    membershipLearnMore: "詳細を見る",
-    couponPlaceholder: "クーポンコード",
-    applyBtn: "適用"
+    filterTitle: "カテゴリで絞り込み",    sortTitle: "並び替え",    catAll: "すべて",    catFemale: "婦人",    catFemboy: "男の娘",    catMembership: "メンバーシップ",
+    sortNewest: "新着順",    sortOldest: "古い順",    sortLow: "価格: 安い順",    sortHigh: "価格: 高い順",
+    latestTitle: "最新コンテンツ",    searchPlaceholder: "検索...",    emptyCart: "カートは空です",    emptyCheckout: "商品を追加してお支払いへ進んでください",
+    addedMsg: "カートに追加しました",    removedMsg: "カートから削除しました",    membershipTitle: "リクエスト＆メンバーシップ",    membershipLearnMore: "詳細を見る",
+    couponPlaceholder: "クーポンコード",    applyBtn: "適用",    invalidCoupon: "❌ 無効なクーポンコードです",    minimumOrder: "❌ 最低注文額に達していません",
+    totalLabel: "合計"
   },
+
   zh: {
-    filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
-    catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
-    sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
-    latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
-    addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
-    membershipTitle: "请求与会员资格",
-    membershipLearnMore: "了解更多",
-    couponPlaceholder: "优惠码",
-    applyBtn: "应用"
+    filterTitle: "按分类筛选",    sortTitle: "排序方式",    catAll: "所有商品",    catFemale: "女性模型",    catFemboy: "伪娘模型",    catMembership: "会员资格",
+    sortNewest: "最新",    sortOldest: "最旧",    sortLow: "价格: 从低到高",    sortHigh: "价格: 从高到低",
+    latestTitle: "最新内容",    searchPlaceholder: "搜索...",    emptyCart: "购物车是空的",    emptyCheckout: "添加商品后即可结账",
+    addedMsg: "已添加到购物车",    removedMsg: "已从购物车移除",    membershipTitle: "请求与会员资格",    membershipLearnMore: "了解更多",
+    couponPlaceholder: "优惠码",    applyBtn: "应用",    invalidCoupon: "❌ 优惠码无效",    minimumOrder: "❌ 未达到最低订单金额",
+    totalLabel: "总计"
   },
+
   es: {
-    filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
-    catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
-    sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
-    latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
-    addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito",
-    membershipTitle: "Solicitudes y Membresía",
-    membershipLearnMore: "Más información",
-    couponPlaceholder: "Código de cupón",
-    applyBtn: "Aplicar"
+    filterTitle: "Filtrar por Categoría",    sortTitle: "Ordenar por",    catAll: "Todos los productos",    catFemale: "Modelos Femeninos",    catFemboy: "Modelos Femboy",    catMembership: "Membresías",
+    sortNewest: "Más reciente",    sortOldest: "Más antiguo",    sortLow: "Precio: menor a mayor",    sortHigh: "Precio: mayor a menor",
+    latestTitle: "Último Contenido",    searchPlaceholder: "Buscar...",    emptyCart: "Tu carrito está vacío",    emptyCheckout: "Añade productos para finalizar la compra",
+    addedMsg: "Añadido al carrito",    removedMsg: "Eliminado del carrito",    membershipTitle: "Solicitudes y Membresía",    membershipLearnMore: "Más información",
+    couponPlaceholder: "Código de cupón",    applyBtn: "Aplicar",    invalidCoupon: "❌ Código de cupón inválido",    minimumOrder: "❌ No se alcanzó el pedido mínimo requerido",
+    totalLabel: "Total"
   }
 };
 
@@ -222,17 +214,41 @@ function setupCouponHandler() {
     });
     const data = await resp.json();
 
-    if (data.valid) {
-      activeCoupon = data;
-      msg.innerHTML = `✅ <strong>${data.code}</strong>: -$${data.discount} (total: $${data.final_total})`;
-      const totalSpan = document.getElementById('cartTotal');
-      if (totalSpan) totalSpan.textContent = `$${data.final_total}`;
-    } else {
-      activeCoupon = null;
-      msg.innerHTML = `❌ ${data.error}`;
-      msg.style.color = '#ef4444';
-      updateStoreCartUI();
-    }
+const t = storeTranslations[currentLang || "en"];
+
+if (data.valid) {
+  activeCoupon = data;
+
+  const discountText = window.formatPrice
+    ? window.formatPrice(data.discount)
+    : `$${data.discount}`;
+
+  const totalText = window.formatPrice
+    ? window.formatPrice(data.final_total)
+    : `$${data.final_total}`;
+
+  msg.innerHTML =
+    `✅ <strong>${data.code}</strong>: -${discountText} (${t.totalLabel}: ${totalText})`;
+
+  msg.style.color = "#22c55e";
+
+  const totalSpan = document.getElementById("cartTotal");
+  if (totalSpan) totalSpan.textContent = totalText;
+
+} else {
+  activeCoupon = null;
+
+  if (data.error === "Invalid coupon code") {
+    msg.innerHTML = t.invalidCoupon;
+  } else if (data.error.includes("Minimum order")) {
+    msg.innerHTML = t.minimumOrder;
+  } else {
+    msg.innerHTML = `❌ ${data.error}`;
+  }
+
+  msg.style.color = "#ef4444";
+  updateStoreCartUI();
+}
   });
 }
 
@@ -493,11 +509,14 @@ function renderPayPalButton() {
   isRendering = true;
 
   const cart = storeCart;
-  if (cart.length === 0) {
-    container.innerHTML = '<p style="text-align:center; margin-top:1rem;">Add items to checkout</p>';
-    isRendering = false;
-    return;
-  }
+  const t = storeTranslations[currentLang || "en"];
+
+if (cart.length === 0) {
+  container.innerHTML =
+    `<p style="text-align:center; margin-top:1rem;">${t.emptyCheckout}</p>`;
+  isRendering = false;
+  return;
+}
 
   container.innerHTML = '';
   if (!window.paypal) {
