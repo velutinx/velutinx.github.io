@@ -127,7 +127,7 @@ function updateStoreCartUI() {
   const container = document.getElementById('cartItems');
   const totalSpan = document.getElementById('cartTotal');
   if (!container) return;
-const t = storeTranslations[currentLang || 'en'];
+cns[currentLang || 'en'];
   container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
   let total = 0;
   storeCart.forEach((item, idx) => {
@@ -167,7 +167,7 @@ function showSnackbar(msg, isRemove) {
 
 window.addOrToggleCart = function(product) {
   const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
-const t = storeTranslations[currentLang || 'en'];
+cns[currentLang || 'en'];
   if (idx > -1) {
     storeCart.splice(idx, 1);
     showSnackbar(t.removedMsg, true);
@@ -185,7 +185,7 @@ function injectCouponUI() {
   const container = document.getElementById('paypal-button-container');
   if (!container) return;
 
-  const t = storeTranslations[window.currentLanguage || 'en'];
+  cns[window.currentLanguage || 'en'];
 
   const couponHTML = `
     <div id="couponSection">
@@ -235,18 +235,10 @@ if (data.valid) {
   const totalSpan = document.getElementById("cartTotal");
   if (totalSpan) totalSpan.textContent = totalText;
 
-} else {
-  activeCoupon = null;
-
-  if (data.error === "Invalid coupon code") {
-    msg.innerHTML = t.invalidCoupon;
-  } else if (data.error.includes("Minimum order")) {
-    msg.innerHTML = t.minimumOrder;
-  } else {
-    msg.innerHTML = `❌ ${data.error}`;
-  }
-
-  msg.style.color = "#ef4444";
+} else { 
+  activeCoupon = null; 
+     msg.innerHTML = ❌ ${data.error};
+     msg.style.color = '#ef4444'; 
   updateStoreCartUI();
 }
   });
@@ -260,7 +252,7 @@ let searchQuery = "";
 let currentLang = localStorage.getItem('language') || 'en';
 
 function applyStoreTranslations() {
-  const t = storeTranslations[currentLang];
+  cns[currentLang];
   const filterSpan = document.querySelector('#filterTitle span');
   if (filterSpan) filterSpan.innerText = t.filterTitle;
   const sortSpan = document.querySelector('#sortTitle span');
@@ -349,7 +341,7 @@ function renderStoreGrid() {
     card.setAttribute('data-cursor-expand', '');
 
     if (p.id === 'membership') {
-      const t = storeTranslations[currentLang];
+      cns[currentLang];
 
 // Inside the membership card part of renderStoreGrid()
 card.innerHTML = `
