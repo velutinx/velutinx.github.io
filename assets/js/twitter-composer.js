@@ -41,19 +41,23 @@
         updateTwitterCounter(textarea);
     }
 
-    // ---------- Helper: shorten Patreon links, replace other URLs ----------
-    function stripUrls(text) {
+    // ---------- Link transformation helpers ----------
+
+    // Shorten Patreon post links to just the numeric ID, leave other URLs untouched
+    function shortenPatreonLinks(text) {
         return text.replace(/https?:\/\/\S+/g, function(url) {
-            // Match Patreon post URLs like:
-            // https://www.patreon.com/posts/lusamine-pack-159739829
-            // -> becomes https://www.patreon.com/posts/159739829
             const patreonMatch = url.match(/^https?:\/\/www\.patreon\.com\/posts\/(?:[^\/]*?-)?(\d+)(?:[?#].*)?$/);
             if (patreonMatch) {
                 return 'https://www.patreon.com/posts/' + patreonMatch[1];
             }
-            // Any other URL gets replaced with the link‑in‑bio message
-            return 'Full set on Patreon (link in bio)';
+            // Non-Patreon URLs are left as they are
+            return url;
         });
+    }
+
+    // Replace ALL URLs with the link‑in‑bio message (used for Twitter)
+    function replaceUrlsWithBio(text) {
+        return text.replace(/https?:\/\/\S+/g, 'Full set on Patreon (link in bio)');
     }
 
     // ---------- Master mirroring ----------
@@ -66,12 +70,18 @@
     if (master) {
         master.addEventListener('input', () => {
             const rawText = master.value;
-            const twitterText = stripUrls(rawText);   // shorten Patreon links, strip others
+            // Bluesky: shorten Patreon links, keep other URLs
+            const blueskyText = shortenPatreonLinks(rawText);
+            // Twitter: replace all URLs with link‑in‑bio message
+            const twitterText = replaceUrlsWithBio(rawText);
+
             allChildren.forEach(ta => {
-                // Bluesky boxes (post1, post2) keep the original text with full URLs;
-                // Twitter boxes (twitter-post-*) get the processed version
-                const isTwitter = ta.id && ta.id.startsWith('twitter-');
-                ta.value = isTwitter ? twitterText : rawText;
+                if (ta.id && ta.id.startsWith('twitter-')) {
+                    ta.value = twitterText;
+                } else {
+                    // post1, post2 (Bluesky)
+                    ta.value = blueskyText;
+                }
             });
             allChildren.forEach(ta => ta.dispatchEvent(new Event('input')));
         });
