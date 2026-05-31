@@ -41,13 +41,22 @@
         updateTwitterCounter(textarea);
     }
 
-    // ---------- Helper: strip URLs from a string ----------
+    // ---------- Helper: shorten Patreon links, replace other URLs ----------
     function stripUrls(text) {
-        // Replace any http/https URL with the link-in-bio message
-        return text.replace(/https?:\/\/\S+/g, 'Full set on Patreon (link in bio)');
+        return text.replace(/https?:\/\/\S+/g, function(url) {
+            // Match Patreon post URLs like:
+            // https://www.patreon.com/posts/lusamine-pack-159739829
+            // -> becomes https://www.patreon.com/posts/159739829
+            const patreonMatch = url.match(/^https?:\/\/www\.patreon\.com\/posts\/(?:[^\/]*?-)?(\d+)(?:[?#].*)?$/);
+            if (patreonMatch) {
+                return 'https://www.patreon.com/posts/' + patreonMatch[1];
+            }
+            // Any other URL gets replaced with the link‑in‑bio message
+            return 'Full set on Patreon (link in bio)';
+        });
     }
 
-    // ---------- Master mirroring (URLs kept for Bluesky, stripped for Twitter) ----------
+    // ---------- Master mirroring ----------
     const master = document.getElementById('masterPost');
     const allChildren = [
         document.getElementById('post1'), document.getElementById('post2'),
@@ -57,10 +66,10 @@
     if (master) {
         master.addEventListener('input', () => {
             const rawText = master.value;
-            const twitterText = stripUrls(rawText);   // URLs replaced for Twitter
+            const twitterText = stripUrls(rawText);   // shorten Patreon links, strip others
             allChildren.forEach(ta => {
-                // Bluesky boxes (post1, post2) keep the original text with URLs;
-                // Twitter boxes (twitter-post-*) get the stripped version
+                // Bluesky boxes (post1, post2) keep the original text with full URLs;
+                // Twitter boxes (twitter-post-*) get the processed version
                 const isTwitter = ta.id && ta.id.startsWith('twitter-');
                 ta.value = isTwitter ? twitterText : rawText;
             });
