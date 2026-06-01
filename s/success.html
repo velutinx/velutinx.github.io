@@ -8,7 +8,6 @@
     <!-- Translations file (must contain Spanish success keys) -->
     <script src="/s/js/translations.js"></script>
     <style>
-        /* (same as before, unchanged) */
         body { background: var(--bg); }
         .success-wrapper { max-width: 650px; margin: 60px auto; padding: 20px; }
         .success-container { background: var(--card); border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border); }
@@ -49,9 +48,8 @@
 </div>
 
 <script>
+// The PayPal checkout worker – handles orders and now also provides language fallback
 const WORKER_URL = 'https://paypal-checkout-website.velutinx.workers.dev';
-const SUPABASE_URL = 'https://knbvlyngmjaxndkiqggl.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08';
 
 const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get("orderID") || urlParams.get("token");
@@ -65,30 +63,24 @@ function getTranslation(key, lang, fallback = '') {
 
 // Update page texts with the given language
 function setPageLanguage(lang) {
-//  console.log(`Applying language: ${lang}`);
-  // Update heading
   const h1 = document.querySelector('h1');
   if (h1) h1.textContent = getTranslation('purchaseConfirmed', lang, h1.textContent);
 
-  // Update order number label
   const orderLabel = document.getElementById('order-id-label');
   if (orderLabel) orderLabel.textContent = getTranslation('orderNumber', lang, orderLabel.textContent);
 
-  // Update support paragraph
   const supportP = document.querySelector('.support-text');
   if (supportP) {
     const supportText = getTranslation('support', lang, '');
     supportP.innerHTML = supportText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   }
 
-  // Update identification paragraph (both class and id)
   const identP = document.getElementById('support-note');
   if (identP) {
     const identText = getTranslation('identification', lang, '');
     identP.innerHTML = identText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   }
 
-  // Update notice paragraph
   const noticeP = document.getElementById('notice-text');
   if (noticeP) {
     const noticeText = getTranslation('notice', lang, '');
@@ -96,20 +88,15 @@ function setPageLanguage(lang) {
   }
 }
 
-// Fetch language directly from Supabase as a fallback
-async function fetchLanguageFromSupabase(orderId) {
+// Fetch language from D1 via the worker (fallback)
+async function fetchLanguageFromD1(orderId) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/successs?paypal_token=eq.${orderId}&select=language`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    });
+    const res = await fetch(`${WORKER_URL}/api/order-language?orderID=${orderId}`);
     if (!res.ok) return null;
     const data = await res.json();
-    return data[0]?.language || null;
+    return data.language || null;
   } catch (err) {
-    console.error('Supabase fallback error:', err);
+    console.error('D1 language fetch error:', err);
     return null;
   }
 }
@@ -119,7 +106,7 @@ if (!orderId) {
 } else {
   document.getElementById("order-id").textContent = `#${orderId}`;
 
-  // Fetch order data from combined worker
+  // Fetch order data from the worker
   fetch(`${WORKER_URL}?orderID=${orderId}`)
     .then(async res => {
       if (res.status === 404) {
@@ -130,14 +117,12 @@ if (!orderId) {
       return res.json();
     })
     .then(async data => {
-//      console.log('Worker response:', data);
       let language = data.language || null;
       const items = data.items || [];
 
-      // If language is missing, try to get it from Supabase
+      // If language is missing, try the D1 fallback
       if (!language) {
-        console.log('Language missing from worker, trying Supabase...');
-        language = await fetchLanguageFromSupabase(orderId);
+        language = await fetchLanguageFromD1(orderId);
       }
       language = language || 'en'; // fallback to English
 
@@ -164,8 +149,8 @@ if (!orderId) {
     })
     .catch(err => {
       console.error("Order fetch failed:", err);
-      // Even on error, try to get language from Supabase to show at least the error message in the right language
-      fetchLanguageFromSupabase(orderId).then(lang => {
+      // Even on error, try to get language from D1 to show the error in the right language
+      fetchLanguageFromD1(orderId).then(lang => {
         const language = lang || 'en';
         setPageLanguage(language);
         const errorMsg = getTranslation('errorLoading', language)
