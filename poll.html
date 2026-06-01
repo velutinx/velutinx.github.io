@@ -1,4 +1,4 @@
-<!-- This is poll.html (dynamic image count + corrected card sizing) -->
+<!-- poll.html – dynamic image count + D1 backend -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +8,6 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/assets/css/shared.css">
   <link rel="stylesheet" href="/assets/css/format.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
   <style>
     .poll-page .login-btn,
@@ -69,6 +68,9 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
+    // ---------- Cloudflare D1 API ----------
+    const API_BASE = 'https://database-one-time-setup.velutinx.workers.dev';
+
     function applyPollTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('poll');
@@ -84,10 +86,6 @@
       }
       applyPollTranslations();
     });
-
-    const S_URL = "https://knbvlyngmjaxndkiqggl.supabase.co".trim();
-    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08".trim();
-    const sb = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
 
     const POLL_ID = "character_poll_new";
     const MIN_CARDS = 8;
@@ -146,68 +144,65 @@
           currentIp = ipData.ip;
         } catch (e) { console.error("IP fetch failed", e); }
 
-        const { data: charData, error: charError } = await sb
-          .from('poll_votes_final')
-          .select('character_name')
-          .eq('poll_id', POLL_ID)
-          .eq('option_id', id)
-          .maybeSingle();
-        const characterName = charData?.character_name || `Option ${id}`;
+        // Get character name
+        let characterName = `Option ${id}`;
+        try {
+          const charRes = await fetch(`${API_BASE}/api/poll/results`);
+          const chars = await charRes.json();
+          const found = chars.find(c => c.option_id === id);
+          if (found) characterName = found.character_name || characterName;
+        } catch (e) {}
 
-        const { error } = await sb.from('poll_voting_website').upsert(
-          { voter_id: visitorId, user_ip: currentIp, option_id: id, poll_id: POLL_ID, character_name: characterName },
-          { onConflict: 'poll_id, user_ip' }
-        );
-        if (error) throw error;
+        // Send vote
+        const res = await fetch(`${API_BASE}/api/poll/vote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            option_id: id,
+            voter_id: visitorId,
+            user_ip: currentIp,
+            character_name: characterName
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Vote failed');
 
         localStorage.setItem('voted_id', id);
         setVoteCookie(id);
         updateCardStyles(id);
         fetchGridResults();
+        fetchLeaderboard();
       } catch (err) {
         console.error("Vote failed:", err.message);
-        if (err.message.includes("voting quota")) {
-          alert("This network range (VPN/Proxy) is restricted to 1 vote total. Your vote was not counted.");
-        } else if (err.message.includes("fingerprint")) {
-          alert("Security check failed. Please refresh or disable ad-blockers.");
-        } else if (err.message.includes("unique_ip_per_poll")) {
-          alert("You have already voted from this IP address.");
-        } else if (err.message.includes("relation") || err.message.includes("does not exist")) {
-          alert("Database table missing. Please contact the administrator.");
-        } else {
-          alert("Something went wrong. Please try again.");
-        }
+        alert("Something went wrong. Please try again.");
       }
     }
 
     async function fetchGridResults() {
-      const { data, error } = await sb.from('poll_voting_website').select('option_id').eq('poll_id', POLL_ID);
-      if (error) return;
-      const counts = {};
-      for (let i = 1; i <= TOTAL_CARDS; i++) counts[i] = 0;
-      data.forEach(v => { if (counts[v.option_id] !== undefined) counts[v.option_id]++; });
-      const total = data.length || 1;
-      document.querySelectorAll(".card").forEach(card => {
-        const id = Number(card.dataset.id);
-        const percent = Math.round((counts[id] / total) * 100);
-        card.querySelector(".progress-fill").style.width = percent + "%";
-        card.querySelector(".progress-text").textContent = percent + "%";
-      });
+      try {
+        const res = await fetch(`${API_BASE}/api/poll/website-votes`);
+        const data = await res.json();
+        const counts = {};
+        for (let i = 1; i <= TOTAL_CARDS; i++) counts[i] = 0;
+        data.forEach(v => { if (counts[v.option_id] !== undefined) counts[v.option_id]++; });
+        const total = data.length || 1;
+        document.querySelectorAll(".card").forEach(card => {
+          const id = Number(card.dataset.id);
+          const percent = Math.round((counts[id] / total) * 100);
+          card.querySelector(".progress-fill").style.width = percent + "%";
+          card.querySelector(".progress-text").textContent = percent + "%";
+        });
+      } catch (e) {
+        console.error("Grid results error:", e);
+      }
     }
 
     async function fetchLeaderboard() {
       try {
-        const { data: rows, error } = await sb
-          .from('poll_votes_final')
-          .select('option_id, character_name, score, selected_at')
-          .eq('poll_id', POLL_ID)
-          .in('option_id', Array.from({ length: TOTAL_CARDS }, (_, i) => i + 1))
-          .order('score', { ascending: false });
-
-        if (error) throw error;
+        const res = await fetch(`${API_BASE}/api/poll/results`);
+        const rows = await res.json();
 
         const resultsBox = document.getElementById("results");
-        
         const entries = Array.from(resultsBox.querySelectorAll('.leaderboard-entry'));
         const oldPositions = new Map();
         entries.forEach(el => {
@@ -217,7 +212,7 @@
         rows.forEach((row) => {
           const id = String(row.option_id);
           let el = resultsBox.querySelector(`.leaderboard-entry[data-id="${id}"]`);
-          
+
           if (!el) {
             el = document.createElement('div');
             el.className = 'leaderboard-entry';
@@ -226,12 +221,9 @@
             resultsBox.appendChild(el);
           }
 
-          const nameSpan = el.children[0];
-          const scoreSpan = el.children[1];
-          
-          nameSpan.textContent = row.character_name || `Option ${id}`;
-          scoreSpan.textContent = Number(row.score || 0).toFixed(1);
-          
+          el.children[0].textContent = row.character_name || `Option ${id}`;
+          el.children[1].textContent = Number(row.score || 0).toFixed(1);
+
           if (row.selected_at) el.classList.add('spoiled');
           else el.classList.remove('spoiled');
         });
@@ -251,22 +243,21 @@
             const dy = oldPos.top - newPos.top;
 
             if (dy !== 0) {
-              gsap.fromTo(el, 
-                { y: dy, zIndex: 10 }, 
+              gsap.fromTo(el,
+                { y: dy, zIndex: 10 },
                 { y: 0, duration: 0.35, ease: "back.out(1.2)", clearProps: "all" }
               );
-              
-              gsap.fromTo(el, 
-                { backgroundColor: "rgba(90, 140, 255, 0.4)" }, 
+              gsap.fromTo(el,
+                { backgroundColor: "rgba(90, 140, 255, 0.4)" },
                 { backgroundColor: "rgba(0, 0, 0, 0.03)", duration: 0.4 }
               );
             }
           } else {
-            gsap.from(el, { 
-              opacity: 0, 
-              filter: "blur(5px)", 
-              scale: 0.9, 
-              duration: 0.3 
+            gsap.from(el, {
+              opacity: 0,
+              filter: "blur(5px)",
+              scale: 0.9,
+              duration: 0.3
             });
           }
         });
@@ -320,23 +311,11 @@
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      let debounceTimer;
-
-      sb.channel('poll-live')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_voting_website' }, () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            fetchGridResults();
-            fetchLeaderboard();
-          }, 200); 
-        })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'poll_votes_final' }, () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            fetchLeaderboard();
-          }, 300);
-        })
-        .subscribe();
+      // Poll every 10 seconds instead of realtime
+      setInterval(() => {
+        fetchGridResults();
+        fetchLeaderboard();
+      }, 10000);
 
       let rotateIndex = 1;
       function rotate() {
