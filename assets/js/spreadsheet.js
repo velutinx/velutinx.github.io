@@ -1,13 +1,12 @@
 // spreadsheet.js – Centralized Income & Expenses (Cloud Sync)
 (function() {
     const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev';
-    const SUPABASE_URL = "https://knbvlyngmjaxndkiqggl.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuYnZseW5nbWpheG5ka2lxZ2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjI0NzEsImV4cCI6MjA4NjM5ODQ3MX0.mxthCDB6dCaHcEDMFN48pFnaJmcBbilXfP7tL-YAV08";
+    // Endpoint that returns all completed orders from D1 (purchase_success)
+    const WEBSITE_PAYMENTS_URL = 'https://paypal-checkout-website.velutinx.workers.dev/api/website-payments';
 
     let entries = [];
     window.entries = entries;
 
-    let supabaseClient = null;
     let incomeChart = null;
 
     let monthSelect, daySelect, amountInput, currencySelect, categorySelect;
@@ -131,8 +130,6 @@
             });
             if (!res.ok) throw new Error('Failed to update');
             entry.recurring = newRecurring;
-            // If turning off, we don't delete copies; they will just become inactive in the table.
-            // If turning on, ensure past copies exist (they should already be present, but just in case).
             if (newRecurring) {
                 await ensurePastRecurringOccurrences();
             }
@@ -159,14 +156,13 @@
     // Reactivate subscription from an inactive copy (set original recurring=true)
     async function reactivateSubscriptionFromCopy(copyEntry) {
         const original = entries.find(e =>
-            e.category === 'Expenses' && !e.recurring &&   // original is currently inactive
+            e.category === 'Expenses' && !e.recurring &&
             e.concept === copyEntry.concept && e.amount === copyEntry.amount && e.day === copyEntry.day
         );
         if (!original) {
             showToast('Original subscription not found (maybe already active).', 'error');
             return;
         }
-        // Toggle it on
         await toggleRecurring(entries.indexOf(original));
     }
 
@@ -216,7 +212,7 @@
             if (e.category !== 'Expenses' || !e.recurring) continue;
 
             let month = e.month;
-            let year = currentYear; // assume same year (can be extended later)
+            let year = currentYear;
             while (true) {
                 if (year > currentYear || (year === currentYear && month > currentMonth) ||
                     (year === currentYear && month === currentMonth && e.day >= currentDay)) {
@@ -236,7 +232,7 @@
                         currency: e.currency,
                         category: 'Expenses',
                         concept: e.concept,
-                        recurring: false   // auto-generated copies are non-recurring
+                        recurring: false
                     });
                 }
 
@@ -249,19 +245,17 @@
     // ---------- Determine if an entry is an auto-generated copy and its subscription status ----------
     function getCopyInfo(entry) {
         if (entry.category !== 'Expenses' || entry.recurring) return null;
-        // Find the original recurring entry with same concept, amount, day
         const original = entries.find(e =>
             e.category === 'Expenses' && e.recurring &&
             e.concept === entry.concept && e.amount === entry.amount && e.day === entry.day
         );
-        if (!original) return null; // no original found (shouldn't happen)
+        if (!original) return null;
         return {
             isCopy: true,
-            active: original.recurring   // true if original is still recurring
+            active: original.recurring
         };
     }
 
-    // Check if an entry is an inactive copy (original exists but inactive)
     function isInactiveCopy(entry) {
         const info = getCopyInfo(entry);
         return info && !info.active;
@@ -282,44 +276,37 @@
         return { month: nextMonth, day: entry.day, year: nextYear };
     }
 
-    // ---------- Website sync ----------
+    // ---------- Website sync (now uses D1 endpoint) ----------
     const IMPORTED_IDS_KEY = 'imported_website_order_ids';
     function getImportedIds() { return JSON.parse(localStorage.getItem(IMPORTED_IDS_KEY) || '[]'); }
     function addImportedId(id) {
         const ids = getImportedIds();
         if (!ids.includes(id)) { ids.push(id); localStorage.setItem(IMPORTED_IDS_KEY, JSON.stringify(ids)); }
     }
-    function buildWebsiteDescription(order) {
-        const email = order.paypal_email || 'unknown';
-        let items = '';
-        if (order.cart) {
-            try { const parsed = JSON.parse(order.cart); items = parsed || ''; } catch (e) { items = order.cart; }
-        }
-        return `${email} – ${items}`;
-    }
+
     async function autoSyncWebsitePayments() {
-        if (!supabaseClient) return;
         try {
-            const { data, error } = await supabaseClient
-                .from('successs')
-                .select('*')
-                .eq('status', 'completed')
-                .order('purchased_at', { ascending: true });
-            if (error) throw error;
+            const res = await fetch(WEBSITE_PAYMENTS_URL);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const orders = await res.json(); // array of purchase_success rows
             const importedIds = getImportedIds();
             let addedCount = 0;
-            for (const order of data) {
+
+            for (const order of orders) {
                 if (importedIds.includes(order.id)) continue;
+
                 const date = new Date(order.purchased_at);
                 const month = date.getUTCMonth() + 1;
                 const day = date.getUTCDate();
                 const amount = parseFloat(order.amount);
                 const currency = order.currency || 'USD';
-                const description = buildWebsiteDescription(order);
+                const description = `${order.paypal_email} – ${order.cart}`;
+
                 const duplicate = entries.some(e =>
                     e.month === month && e.day === day && e.amount === amount &&
                     e.currency === currency && e.category === 'Website payments');
                 if (duplicate) { addImportedId(order.id); continue; }
+
                 const success = await addEntry({
                     month, day, amount, currency,
                     category: 'Website payments',
@@ -338,7 +325,7 @@
         }
     }
 
-    // ---------- Patreon sync ----------
+    // ---------- Patreon sync (unchanged) ----------
     const PATREON_PROXY = 'https://patreon-api-proxy.velutinx.workers.dev';
     const IMPORTED_PATREON_KEY = 'imported_patreon_charges';
     function getImportedPatreonCharges() {
@@ -389,7 +376,7 @@
         }
     }
 
-// ---------- Table rendering ----------
+// ---------- Table rendering (unchanged) ----------
 function renderTable() {
     tableBody.innerHTML = '';
     if (entries.length === 0) {
@@ -402,7 +389,6 @@ function renderTable() {
     const currentMonth = new Date().getMonth() + 1;
     const currentDay = new Date().getDate();
 
-    // Build all rows: actual entries + future projections
     const allRows = [];
     entries.forEach(e => allRows.push({ entry: e, isFuture: false }));
 
@@ -425,7 +411,6 @@ function renderTable() {
 
     allRows.sort((a, b) => (a.entry.month * 100 + a.entry.day) - (b.entry.month * 100 + b.entry.day));
 
-    // Group by month
     const groups = new Map();
     for (const row of allRows) {
         const key = `${currentYear}-${row.entry.month}`;
@@ -433,7 +418,6 @@ function renderTable() {
         groups.get(key).push(row);
     }
 
-    // ---------- Custom month ordering ----------
     const currentKey = `${currentYear}-${currentMonth}`;
     const upcomingKeys = [];
     const pastKeys = [];
@@ -463,7 +447,6 @@ function renderTable() {
     if (groups.has(currentKey)) sortedKeys.push(currentKey);
     sortedKeys.push(...upcomingKeys, ...pastKeys);
 
-    // futureMonths is only used for the (upcoming) label – no longer affects visibility
     const futureMonths = new Set();
     allRows.forEach(r => { if (r.isFuture) futureMonths.add(`${currentYear}-${r.entry.month}`); });
 
@@ -481,7 +464,6 @@ function renderTable() {
         const hasFuture = monthRows.some(r => r.isFuture);
         const upcomingLabel = (hasFuture && !isCurrent) ? ' <span style="color:#888; font-size:0.8rem;">(upcoming)</span>' : '';
 
-        // Month header row
         const headerTr = document.createElement('tr');
         headerTr.className = 'month-header';
         headerTr.dataset.monthKey = key;
@@ -533,7 +515,6 @@ function renderTable() {
                 ? `<button class="delete-btn" data-index="${entries.indexOf(entry)}" title="Delete">✕</button>`
                 : '';
 
-            // Row visibility: only current month rows are shown initially; future and past rows are hidden
             const rowClass = 'entry-row ' +
                 (isCurrent ? '' : 'hidden-row ') +
                 (entry.category === 'Expenses' ? 'row-expense' : 'row-income') +
@@ -611,7 +592,7 @@ function renderTable() {
     exportBtn.disabled = false;
 }
 
-// ---------- Chart (Subscribestar yellow solid + yellow dotted from April 30) ----------
+// ---------- Chart (unchanged) ----------
 function buildChart(initialDays) {
     if (incomeChart) { incomeChart.destroy(); incomeChart = null; }
     if (entries.length === 0) return;
@@ -622,7 +603,6 @@ function buildChart(initialDays) {
     const now = moment().endOf('day');
     const startDate = moment().subtract(initialDays - 1, 'days').startOf('day');
 
-    // 1. Previous month totals
     let prevMonth = currentMonth - 1, prevYear = currentYear;
     if (prevMonth === 0) { prevMonth = 12; prevYear--; }
     let prevPatreonAll = 0, prevWebsite = 0, prevKofi = 0, prevSubscribestar = 0, prevExpense = 0;
@@ -638,7 +618,6 @@ function buildChart(initialDays) {
     }
     const refLastNet = prevPatreonAll + prevWebsite + prevKofi + prevSubscribestar - prevExpense;
 
-    // 2. Recurring expenses
     const subMap = new Map();
     for (const e of entries) {
         if (e.category !== 'Expenses' || !e.concept || !e.recurring) continue;
@@ -658,7 +637,6 @@ function buildChart(initialDays) {
         recurringLines.push({ startKey, endKey, amount: parseFloat(key.split('::')[1]) });
     }
 
-    // 3. Other entries
     const nonSubEntries = entries.filter(e => {
         if (e.category !== 'Expenses') return true;
         if (!e.concept) return true;
@@ -676,7 +654,6 @@ function buildChart(initialDays) {
         else if (e.category === 'Expenses') d.expense += e.amount;
     });
 
-    // 4. Cumulative arrays
     let dates = [], patreonAllCum = [], websiteCum = [], kofiCum = [],
         subscribestarCum = [], totalExpCum = [], netCum = [];
     const firstVisibleMonth = startDate.month() + 1;
@@ -706,7 +683,6 @@ function buildChart(initialDays) {
         curDate.add(1, 'day');
     }
 
-    // 5. Reference arrays – fix start position
     const lastDayPrevMonth = new Date(prevYear, prevMonth, 0);
     const lastDayPrevStr = moment(lastDayPrevMonth).format('YYYY-MM-DD');
     const lastDayIdx = dates.findIndex(d => moment(d).format('YYYY-MM-DD') === lastDayPrevStr);
@@ -716,8 +692,6 @@ function buildChart(initialDays) {
         const ref = new Array(dates.length).fill(null);
         if (refValue == null || refValue === 0 || startIndex === -1) return ref;
         let stopIdx = dates.length - 1;
-        // FIX: Start checking on the day AFTER the reference starts, 
-        // and add a small 0.001 epsilon to prevent floating-point mismatches from instantly breaking the loop.
         for (let i = startIndex + 1; i < dates.length; i++) {
             if (currentCumArray[i] > refValue + 0.001) { stopIdx = i; break; }
         }
@@ -729,10 +703,8 @@ function buildChart(initialDays) {
     let patreonAllRef = buildRefArray(prevPatreonAll, patreonAllCum, refStartIdx);
     let websiteRef = buildRefArray(prevWebsite, websiteCum, refStartIdx);
     let kofiRef = buildRefArray(prevKofi, kofiCum, refStartIdx);
-    // FIX: Replaced the buggy manual loop with the standard buildRefArray function
     let subscribestarRef = buildRefArray(prevSubscribestar, subscribestarCum, refStartIdx);
 
-    // 6. Datasets
     const datasets = [];
     const hasNonZero = arr => arr.some(v => v !== 0 && v !== null);
     if (hasNonZero(patreonAllCum)) datasets.push({ label: 'Patreon', data: dates.map((d,i)=>({x:d,y:patreonAllCum[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, tension:0 });
@@ -740,7 +712,6 @@ function buildChart(initialDays) {
     if (hasNonZero(kofiCum)) datasets.push({ label: 'Ko‑fi', data: dates.map((d,i)=>({x:d,y:kofiCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
     if (hasNonZero(subscribestarCum)) datasets.push({ label: 'Subscribestar', data: dates.map((d,i)=>({x:d,y:subscribestarCum[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, tension:0 });
 
-    // Reference lines
     if (prevPatreonAll > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:patreonAllRef[i]})), borderColor:'#3b82f6', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevWebsite > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:websiteRef[i]})), borderColor:'#f97316', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
     if (prevKofi > 0) datasets.push({ label: '', data: dates.map((d,i)=>({x:d,y:kofiRef[i]})), borderColor:'#eab308', borderWidth:2, pointRadius:0, borderDash:[6,4], tension:0, fill:false });
@@ -843,13 +814,6 @@ function buildChart(initialDays) {
         addBtn = document.getElementById('addEntryBtn');
         tableBody = document.getElementById('tableBody');
         exportBtn = document.getElementById('exportBtn');
-
-        if (typeof supabase === 'undefined') {
-            showToast('Supabase library missing – auto‑sync disabled.', 'error');
-            supabaseClient = null;
-        } else {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
-        }
 
         setDefaultDate();
         updateConceptState();
