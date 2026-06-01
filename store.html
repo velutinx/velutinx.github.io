@@ -221,15 +221,31 @@ function setupCouponHandler() {
       body: JSON.stringify({ code, cart: storeCart })
     });
     const data = await resp.json();
+    const t = storeTranslations[currentLang] || storeTranslations.en;
 
     if (data.valid) {
       activeCoupon = data;
-      msg.innerHTML = `✅ <strong>${data.code}</strong>: -$${data.discount} (total: $${data.final_total})`;
+      const discount = window.formatPriceTotal(
+        window.getNumericPrice(parseFloat(data.discount), currentCurrency),
+        currentCurrency
+      );
+      const newTotal = window.formatPriceTotal(
+        window.getNumericPrice(parseFloat(data.final_total), currentCurrency),
+        currentCurrency
+      );
+      msg.innerHTML = t.couponApplied
+        .replace('{code}', data.code)
+        .replace('{discount}', discount)
+        .replace('{total}', newTotal);
       const totalSpan = document.getElementById('cartTotal');
-      if (totalSpan) totalSpan.textContent = `$${data.final_total}`;
+      if (totalSpan) totalSpan.textContent = newTotal;
     } else {
       activeCoupon = null;
-      msg.innerHTML = `❌ ${data.error}`;
+      if (data.error === 'Minimum order required') {
+        msg.innerHTML = t.couponMinOrder.replace('{amount}', data.required);
+      } else {
+        msg.innerHTML = t.couponInvalid;
+      }
       msg.style.color = '#ef4444';
       updateStoreCartUI();
     }
