@@ -53,41 +53,97 @@
       return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
 
-    // ==================== Store‑specific translations (unchanged) ====================
+    // ==================== Store‑specific translations (including coupon keys) ====================
     const storeTranslations = {
       en: {
         filterTitle: "Filter by Category", sortTitle: "Sort by", catAll: "All Products",
         catFemale: "Female Models", catFemboy: "Femboy Models", catMembership: "Memberships",
         sortNewest: "Newest", sortOldest: "Oldest", sortLow: "Price: Low to High", sortHigh: "Price: High to Low",
         latestTitle: "Latest Content", searchPlaceholder: "Search...", emptyCart: "Your cart is empty",
-        addedMsg: "Added to cart", removedMsg: "Removed from cart"
+        addedMsg: "Added to cart", removedMsg: "Removed from cart",
+        membershipTitle: "Requests & Membership", membershipLearnMore: "Learn More",
+        couponPlaceholder: "Coupon code", applyBtn: "Apply",
+        couponInvalid: "❌ Invalid coupon code",
+        couponMinOrder: "❌ Minimum order of {amount} required",
+        couponApplied: "✅ {code}: -{discount} (total: {total})"
       },
       ja: {
         filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
         catFemale: "婦人", catFemboy: "男の娘", catMembership: "メンバーシップ",
         sortNewest: "新着順", sortOldest: "古い順", sortLow: "価格: 安い順", sortHigh: "価格: 高い順",
         latestTitle: "最新コンテンツ", searchPlaceholder: "検索...", emptyCart: "カートは空です",
-        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました"
+        addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
+        membershipTitle: "リクエスト＆メンバーシップ", membershipLearnMore: "詳細を見る",
+        couponPlaceholder: "クーポンコード", applyBtn: "適用",
+        couponInvalid: "❌ 無効なクーポンコード",
+        couponMinOrder: "❌ 最低注文金額 {amount} が必要です",
+        couponApplied: "✅ {code}: -{discount} (合計: {total})"
       },
       zh: {
         filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
         catFemale: "女性模型", catFemboy: "伪娘模型", catMembership: "会员资格",
         sortNewest: "最新", sortOldest: "最旧", sortLow: "价格: 从低到高", sortHigh: "价格: 从高到低",
         latestTitle: "最新内容", searchPlaceholder: "搜索...", emptyCart: "购物车是空的",
-        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除"
+        addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
+        membershipTitle: "请求与会员资格", membershipLearnMore: "了解更多",
+        couponPlaceholder: "优惠码", applyBtn: "应用",
+        couponInvalid: "❌ 无效的优惠码",
+        couponMinOrder: "❌ 最低订单金额为 {amount}",
+        couponApplied: "✅ {code}: -{discount} (总计: {total})"
       },
       es: {
         filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
         catFemale: "Modelos Femeninos", catFemboy: "Modelos Femboy", catMembership: "Membresías",
         sortNewest: "Más reciente", sortOldest: "Más antiguo", sortLow: "Precio: menor a mayor", sortHigh: "Precio: mayor a menor",
         latestTitle: "Último Contenido", searchPlaceholder: "Buscar...", emptyCart: "Tu carrito está vacío",
-        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito"
+        addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito",
+        membershipTitle: "Solicitudes y Membresía", membershipLearnMore: "Más información",
+        couponPlaceholder: "Código de cupón", applyBtn: "Aplicar",
+        couponInvalid: "❌ Código de cupón no válido",
+        couponMinOrder: "❌ Se requiere un pedido mínimo de {amount}",
+        couponApplied: "✅ {code}: -{discount} (total: {total})"
       }
     };
 
-    // ==================== Custom cart (unchanged) ====================
+    // ==================== Pack‑specific translations (unchanged) ====================
+    const packTranslations = {
+      en: {
+        catFemale: "Female", catFemboy: "Femboy",
+        currentPrice: "Current Price", contentsTitle: "Contents:",
+        contentsDesc: "ZIP file containing {count} AI-generated illustrations",
+        disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
+        disclaimerRefund: "Digital products are non-refundable after purchase.",
+        addToCart: "Add to Cart", removeFromCart: "Remove from Cart"
+      },
+      ja: {
+        catFemale: "婦人", catFemboy: "男の娘",
+        currentPrice: "現在の価格", contentsTitle: "内容：",
+        contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
+        disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
+        disclaimerRefund: "デジタル商品は購入後の返金はできません。",
+        addToCart: "カートに追加", removeFromCart: "カートから削除"
+      },
+      zh: {
+        catFemale: "女性模型", catFemboy: "伪娘模型",
+        currentPrice: "现价", contentsTitle: "内容：",
+        contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
+        disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
+        disclaimerRefund: "数字产品购买后不可退款。",
+        addToCart: "加入购物车", removeFromCart: "从购物车移除"
+      },
+      es: {
+        catFemale: "Femeninos", catFemboy: "Femboy",
+        currentPrice: "Precio actual", contentsTitle: "Contenido:",
+        contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
+        disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
+        disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
+        addToCart: "Añadir al carrito", removeFromCart: "Eliminar del carrito"
+      }
+    };
+
+    // ==================== Custom cart ====================
     let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
-    let activeCoupon = null;   // coupon state
+    let activeCoupon = null;
 
     function saveStoreCart() {
       localStorage.setItem('velutinx_store_cart', JSON.stringify(storeCart));
@@ -98,17 +154,33 @@
       const container = document.getElementById('cartItems');
       const totalSpan = document.getElementById('cartTotal');
       if (!container) return;
-      const t = storeTranslations[window.currentLanguage || 'en'];
-      container.innerHTML = storeCart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
-      let total = 0;
+
+      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      const t = storeTranslations[lang] || storeTranslations.en;
+      const cur = window.currentCurrency || 'USD';
+
+      container.innerHTML = storeCart.length === 0
+        ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
+
+      let totalLocal = 0;
+
       storeCart.forEach((item, idx) => {
         const priceStr = window.getFormattedPrice(item.priceKey);
-        total += window.priceKeyMap[item.priceKey] || 0;
+        const usd = window.priceKeyMap[item.priceKey] || 0;
+        const localPrice = window.getNumericPrice(usd, cur);
+        totalLocal += localPrice;
+
         const div = document.createElement('div');
         div.className = 'cart-item';
-        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${escapeHtml(item.title)}</div><div class="cart-item-price">${priceStr}</div></div><button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}">
+          <div class="cart-item-info">
+            <div class="cart-item-title">${escapeHtml(item.title)}</div>
+            <div class="cart-item-price">${priceStr}</div>
+          </div>
+          <button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
         container.appendChild(div);
       });
+
       document.querySelectorAll('.cart-item-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(btn.dataset.idx);
@@ -118,8 +190,14 @@
           updateCartButton();
         });
       });
-      if (totalSpan) totalSpan.innerText = window.formatPrice(total);
-      document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
+
+      if (totalSpan) {
+        totalSpan.innerText = window.formatPriceTotal(totalLocal, cur);
+      }
+
+      document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
+        if (el) el.textContent = storeCart.length;
+      });
 
       const cartDrawer = document.getElementById('cartDrawer');
       if (cartDrawer && cartDrawer.classList.contains('open')) renderPayPalButton();
@@ -137,8 +215,9 @@
     }
 
     window.addOrToggleCart = function(product) {
+      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      const t = storeTranslations[lang] || storeTranslations.en;
       const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
-      const t = storeTranslations[window.currentLanguage || 'en'];
       if (idx > -1) {
         storeCart.splice(idx, 1);
         showSnackbar(t.removedMsg, true);
@@ -150,16 +229,19 @@
       updateCartButton();
     };
 
-    // ==================== Coupon handling (same as store.html) ====================
+    // ==================== Coupon handling (translated + currency aware) ====================
     function injectCouponUI() {
       if (document.getElementById('couponSection')) return;
       const container = document.getElementById('paypal-button-container');
       if (!container) return;
 
+      const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+      const t = storeTranslations[lang] || storeTranslations.en;
+
       const couponHTML = `
         <div id="couponSection">
-          <input type="text" id="couponCode" placeholder="Coupon code" class="coupon-input" data-cursor-expand>
-          <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>Apply</button>
+          <input type="text" id="couponCode" placeholder="${t.couponPlaceholder}" class="coupon-input" data-cursor-expand>
+          <button id="applyCouponBtn" class="coupon-apply-btn" data-cursor-expand>${t.applyBtn}</button>
         </div>
         <div id="couponMessage"></div>
       `;
@@ -183,68 +265,49 @@
         });
         const data = await resp.json();
 
+        const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+        const t = storeTranslations[lang] || storeTranslations.en;
+        const cur = window.currentCurrency || 'USD';
+
         if (data.valid) {
           activeCoupon = data;
-          msg.innerHTML = `✅ <strong>${data.code}</strong>: -$${data.discount} (total: $${data.final_total})`;
+
+          const discountNum = parseFloat(data.discount);
+          const totalNum = parseFloat(data.final_total);
+
+          const discountFormatted = window.formatPriceTotal(
+            window.getNumericPrice(discountNum, cur), cur
+          );
+          const totalFormatted = window.formatPriceTotal(
+            window.getNumericPrice(totalNum, cur), cur
+          );
+
+          msg.innerHTML = t.couponApplied
+            .replace('{code}', data.code)
+            .replace('{discount}', discountFormatted)
+            .replace('{total}', totalFormatted);
+          msg.style.color = '#10b981';
+
           const totalSpan = document.getElementById('cartTotal');
-          if (totalSpan) totalSpan.textContent = `$${data.final_total}`;
+          if (totalSpan) totalSpan.textContent = totalFormatted;
         } else {
           activeCoupon = null;
-          msg.innerHTML = `❌ ${data.error}`;
           msg.style.color = '#ef4444';
+
+          if (data.error === 'Minimum order not met') {
+            const minOrderFormatted = window.formatPriceTotal(
+              window.getNumericPrice(parseFloat(data.required), cur), cur
+            );
+            msg.innerHTML = t.couponMinOrder.replace('{amount}', minOrderFormatted);
+          } else {
+            msg.innerHTML = t.couponInvalid;
+          }
           updateStoreCartUI();
         }
       });
     }
 
-    // ==================== Pack‑specific translations ====================
-    const packTranslations = {
-      en: {
-        catFemale: "Female",
-        catFemboy: "Femboy",
-        currentPrice: "Current Price",
-        contentsTitle: "Contents:",
-        contentsDesc: "ZIP file containing {count} AI-generated illustrations",
-        disclaimerAge: "Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.",
-        disclaimerRefund: "Digital products are non-refundable after purchase.",
-        addToCart: "Add to Cart",
-        removeFromCart: "Remove from Cart"
-      },
-      ja: {
-        catFemale: "婦人",
-        catFemboy: "男の娘",
-        currentPrice: "現在の価格",
-        contentsTitle: "内容：",
-        contentsDesc: "{count}枚のAI生成イラストを含むZIPファイル",
-        disclaimerAge: "免責事項：描かれているすべてのキャラクターは18歳以上として描かれています。これはフィクションであり、合意に基づく描写です。",
-        disclaimerRefund: "デジタル商品は購入後の返金はできません。",
-        addToCart: "カートに追加",
-        removeFromCart: "カートから削除"
-      },
-      zh: {
-        catFemale: "女性模型",
-        catFemboy: "伪娘模型",
-        currentPrice: "现价",
-        contentsTitle: "内容：",
-        contentsDesc: "包含 {count} 张 AI 生成插图的 ZIP 文件",
-        disclaimerAge: "免责声明：所有描绘的角色均被描绘为18岁以上。这是虚构的、双方同意的描绘。",
-        disclaimerRefund: "数字产品购买后不可退款。",
-        addToCart: "加入购物车",
-        removeFromCart: "从购物车移除"
-      },
-      es: {
-        catFemale: "Femeninos",
-        catFemboy: "Femboy",
-        currentPrice: "Precio actual",
-        contentsTitle: "Contenido:",
-        contentsDesc: "Archivo ZIP que contiene {count} ilustraciones generadas por IA",
-        disclaimerAge: "Descargo de responsabilidad: Todos los personajes representados se muestran como mayores de 18 años. Esta es una representación ficticia y consensuada.",
-        disclaimerRefund: "Los productos digitales no son reembolsables después de la compra.",
-        addToCart: "Añadir al carrito",
-        removeFromCart: "Eliminar del carrito"
-      }
-    };
-
+    // ==================== Pack‑specific rendering (unchanged) ====================
     let currentPack = null;
     let currentLang = localStorage.getItem('language') || 'en';
 
@@ -513,7 +576,7 @@
             const captureID = result.transactionID;
             if (!captureID) throw new Error('No transaction ID received');
 
-            activeCoupon = null;   // reset coupon after successful purchase
+            activeCoupon = null;
             storeCart = [];
             saveStoreCart();
             window.location.href = `/s/success.html?orderID=${captureID}`;
@@ -550,7 +613,11 @@
           drawer.classList.add('open');
           overlay.classList.add('active');
           document.body.classList.add('drawer-open');
-          injectCouponUI();        // inject coupon on drawer open
+          const oldSection = document.getElementById('couponSection');
+          if (oldSection) oldSection.remove();
+          const oldMsg = document.getElementById('couponMessage');
+          if (oldMsg) oldMsg.remove();
+          injectCouponUI();
           renderPayPalButton();
         }
       };
