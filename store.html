@@ -167,7 +167,7 @@ const t = storeTranslations[currentLang || 'en'];
       renderStoreGrid();
     });
   });
-  if (totalSpan) totalSpan.innerText = window.formatPrice(total);
+  if (totalSpan) totalSpan.innerText = window.formatPrice(total, window.currentCurrency || 'USD');
   document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = storeCart.length; });
 
   const cartDrawer = document.getElementById('cartDrawer');
