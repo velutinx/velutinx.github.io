@@ -59,7 +59,7 @@
                 loadImageViaProxy(CENTER_WM_URL),
                 loadImageViaProxy(CORNER_WM_URL)
             ]);
-            console.log('Watermarks loaded successfully.');
+    //        console.log('Watermarks loaded successfully.');
         } catch (err) {
             console.error('Failed to load watermarks:', err);
         }
