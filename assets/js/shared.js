@@ -1,4 +1,4 @@
-// This is     velutinx.github.io/assets/js/shared.js – Injects header, sidebar, cart, etc. into any page.
+// velutinx.github.io/assets/js/shared.js – Corrected cart totals per currency
 
 (function() {
   // --------------------------------------------------------------
@@ -48,22 +48,39 @@
   // --------------------------------------------------------------
   let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
   let currentLang = localStorage.getItem('language') || 'en';
-  let currentCurrency = currentLang === 'en' ? 'USD' : (currentLang === 'ja' ? 'JPY' : (currentLang === 'zh' ? 'CNY' : 'MXN'));
-  const STATIC_USD = 3.0;
+  let currentCurrency = currentLang === 'en' ? 'USD' :
+                        (currentLang === 'ja' ? 'JPY' :
+                        (currentLang === 'zh' ? 'CNY' : 'MXN'));
+  const STATIC_USD = 3.0;               // used only for non‑store pages
   const tierMap = { 3.0: { JPY: 500, CNY: 21.0, MXN: 50 } };
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
-  window.formatPrice = function(usd = STATIC_USD, currency = currentCurrency) {
-    if (currency === "USD") return `US$${usd.toFixed(2)}`;
+  // --------------------------------------------------------------
+  // Price helpers
+  // --------------------------------------------------------------
+  window.getNumericPrice = function(usd, currency) {
+    if (currency === "USD") return usd;
     const exact = tierMap[usd]?.[currency];
-    if (exact !== undefined) {
-      const sym = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-      return `${sym}${exact}`;
-    }
+    if (exact !== undefined) return exact;
     let converted = usd * (approxRates[currency] || 1);
-    converted = (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) : Math.ceil(converted * 10) / 10;
-    const sym = currency === "JPY" ? "円" : currency === "CNY" ? "元" : "MXN$";
-    return `${sym}${converted}`;
+    return (currency === "JPY" || currency === "MXN") ? Math.ceil(converted) :
+           Math.ceil(converted * 10) / 10;
+  };
+
+  window.formatPrice = function(usd, currency = currentCurrency) {
+    const numeric = window.getNumericPrice(usd, currency);
+    const sym = currency === "USD" ? "$" :
+                 currency === "JPY" ? "円" :
+                 currency === "CNY" ? "元" : "MXN$";
+    return `${sym}${numeric}`;
+  };
+
+  // Total formatter – always shows currency symbol
+  window.formatPriceTotal = function(numeric, currency = currentCurrency) {
+    const sym = currency === "USD" ? "US$" :
+                 currency === "JPY" ? "¥" :
+                 currency === "CNY" ? "元" : "MXN$";
+    return `${sym}${numeric}`;
   };
 
   // Cart icons (add/remove) for product cards
@@ -88,32 +105,6 @@
     if (window.syncCartButtons) window.syncCartButtons();
   }
 
-  function updateCartUI() {
-    const count = cart.length;
-    const total = cart.reduce((s, i) => s + STATIC_USD, 0);
-    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => { if (el) el.textContent = count; });
-    const container = document.getElementById('cartItems');
-    const t = translations[currentLang] || translations.en;
-    if (container) {
-      container.innerHTML = cart.length === 0 ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
-      cart.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `<img src="${item.image}" alt="${item.title}"><div class="cart-item-info"><div class="cart-item-title">${item.title}</div><div class="cart-item-price">${window.formatPrice(STATIC_USD)}</div></div><button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
-        container.appendChild(div);
-      });
-      document.querySelectorAll('.cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const idx = parseInt(btn.dataset.idx);
-          cart.splice(idx, 1);
-          saveCart();
-          showSnack(t.removedMsg, true);
-        });
-      });
-      document.getElementById('cartTotal').innerText = window.formatPrice(total);
-    }
-  }
-
   function showSnack(msg, isRemove = false) {
     const sb = document.getElementById('snackbar');
     const text = document.getElementById('snackText');
@@ -122,6 +113,57 @@
       text.innerText = msg;
       sb.classList.add('show');
       setTimeout(() => sb.classList.remove('show'), 2000);
+    }
+  }
+
+  // --------------------------------------------------------------
+  // UPDATED: cart UI now shows correct per‑currency totals
+  // --------------------------------------------------------------
+  function updateCartUI() {
+    const count = cart.length;
+    const totalNumeric = cart.reduce(
+      (sum, item) => sum + window.getNumericPrice(item.price || STATIC_USD, currentCurrency),
+      0
+    );
+
+    document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
+      if (el) el.textContent = count;
+    });
+
+    const container = document.getElementById('cartItems');
+    const t = translations[currentLang] || translations.en;
+
+    if (container) {
+      container.innerHTML = cart.length === 0
+        ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
+
+      cart.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        const itemPrice = window.formatPrice(item.price || STATIC_USD);
+        div.innerHTML = `<img src="${item.image}" alt="${item.title}">
+          <div class="cart-item-info">
+            <div class="cart-item-title">${item.title}</div>
+            <div class="cart-item-price">${itemPrice}</div>
+          </div>
+          <button class="cart-item-remove" data-idx="${idx}" data-cursor-expand>✕</button>`;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll('.cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.dataset.idx);
+          cart.splice(idx, 1);
+          saveCart();
+          showSnack(t.removedMsg, true);
+        });
+      });
+    }
+
+    // Set total display
+    const totalEl = document.getElementById('cartTotal');
+    if (totalEl) {
+      totalEl.innerText = window.formatPriceTotal(totalNumeric, currentCurrency);
     }
   }
 
@@ -195,7 +237,6 @@
     updateCartUI();
   }
 
-  // Corrected setLanguage function – properly closed, dispatches event
   function setLanguage(lang) {
     if (lang === currentLang) return;
     currentLang = lang;
@@ -204,12 +245,10 @@
     applyHeaderTranslations();
     updateCartUI();
 
-    // Sync with translt.js
     if (typeof window.syncLanguage === 'function') {
       window.syncLanguage(lang);
     }
 
-    // Dispatch event for the whole page
     document.dispatchEvent(new CustomEvent('languageChanged', {
       detail: { language: lang, currency: currentCurrency }
     }));
@@ -227,7 +266,7 @@
   }
 
   // --------------------------------------------------------------
-  // 4. Header HTML (embedded as a string – exactly from your working page)
+  // 4. Header HTML (embedded as a string)
   // --------------------------------------------------------------
   const headerHTML = `
 <nav class="top-nav">
@@ -308,7 +347,6 @@
     }
     placeholder.innerHTML = headerHTML;
 
-    // Now the DOM elements exist, so we can attach event listeners
     applyHeaderTranslations();
     updateCartUI();
 
@@ -379,7 +417,7 @@
 
     initTheme();
 
-    // ----- PayPal checkout support -----
+    // PayPal checkout support
     window.setupStoreCheckout = function(getCartItems, onSuccess) {
       window._storeGetCartItems = getCartItems;
       window._storeOnSuccess = onSuccess;
@@ -435,7 +473,6 @@
         renderPayPalButton();
       }
     };
-    // Expose setLanguage globally (already done above, but keep for clarity)
     window.setLanguage = setLanguage;
 
     // Update cart UI and refresh PayPal if drawer is open
@@ -447,63 +484,59 @@
       }
     };
 
-  document.dispatchEvent(new CustomEvent('headerReady'));
-  window.headerReady = true;
+    document.dispatchEvent(new CustomEvent('headerReady'));
+    window.headerReady = true;
   }
 
-// --------------------------------------------------------------
-// 6. Smooth page reveal animation for subpages
-// --------------------------------------------------------------
-function initPageReveal() {
-  const path = window.location.pathname.toLowerCase();
-  const isRoot = (path === '' || path === '/' || path === '/index.html' || path === '/index');
-  if (isRoot) return;
-  
-  // Try multiple strategies to find the content wrapper
-  let page = document.getElementById('page') || document.getElementById('mainWebsite');
-  
-  // Fallback: find the first meaningful content after the header
-  if (!page) {
-    const header = document.getElementById('header-placeholder');
-    if (header && header.nextElementSibling) {
-      page = header.nextElementSibling;
-      // Give it an id so we don't create duplicate wrappers
-      if (!page.id) page.id = 'page';
-    }
-  }
-  
-  // Last resort: wrap everything after the header
-  if (!page) {
-    const header = document.getElementById('header-placeholder');
-    if (header) {
-      const wrapper = document.createElement('div');
-      wrapper.id = 'page';
-      while (header.nextSibling) {
-        wrapper.appendChild(header.nextSibling);
+  // --------------------------------------------------------------
+  // 6. Smooth page reveal animation for subpages
+  // --------------------------------------------------------------
+  function initPageReveal() {
+    const path = window.location.pathname.toLowerCase();
+    const isRoot = (path === '' || path === '/' || path === '/index.html' || path === '/index');
+    if (isRoot) return;
+    
+    let page = document.getElementById('page') || document.getElementById('mainWebsite');
+    
+    if (!page) {
+      const header = document.getElementById('header-placeholder');
+      if (header && header.nextElementSibling) {
+        page = header.nextElementSibling;
+        if (!page.id) page.id = 'page';
       }
-      header.parentNode.appendChild(wrapper);
-      page = wrapper;
     }
-  }
-  
-  if (!page) return;
-  
-  if (!document.getElementById('pageRevealStyles')) {
-    const style = document.createElement('style');
-    style.id = 'pageRevealStyles';
-    style.textContent = `
-      @keyframes pageReveal {
-        from { opacity: 0; transform: translateY(60px); }
-        to { opacity: 1; transform: translateY(0); }
+    
+    if (!page) {
+      const header = document.getElementById('header-placeholder');
+      if (header) {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'page';
+        while (header.nextSibling) {
+          wrapper.appendChild(header.nextSibling);
+        }
+        header.parentNode.appendChild(wrapper);
+        page = wrapper;
       }
-    `;
-    document.head.appendChild(style);
+    }
+    
+    if (!page) return;
+    
+    if (!document.getElementById('pageRevealStyles')) {
+      const style = document.createElement('style');
+      style.id = 'pageRevealStyles';
+      style.textContent = `
+        @keyframes pageReveal {
+          from { opacity: 0; transform: translateY(60px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    page.style.opacity = '0';
+    page.style.transform = 'translateY(60px)';
+    page.style.animation = 'pageReveal 0.7s ease-out forwards';
   }
-  
-  page.style.opacity = '0';
-  page.style.transform = 'translateY(60px)';
-  page.style.animation = 'pageReveal 0.7s ease-out forwards';
-}
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
