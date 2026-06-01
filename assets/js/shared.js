@@ -4,44 +4,52 @@
   // --------------------------------------------------------------
   // 1. Translation dictionary (for header, cart, sidebar)
   // --------------------------------------------------------------
-  const translations = {
-    en: {
-      cartTitle: "Shopping Cart", totalLabel: "Total", emptyCart: "Your cart is empty",
-      addedMsg: "Added successfully", removedMsg: "Removed from cart",
-      checkoutBtn: "Proceed to checkout (DEMO)", menuHome: "HOME", menuCommissions: "COMMISSIONS",
-      menuArtwork: "ARTWORK", menuPoll: "POLL", menuStore: "STORE", menuContact: "CONTACT",
-      websiteBtn: "Website",
-      couponPlaceholder: "Coupon code",
-      applyBtn: "Apply"
-    },
-    ja: {
-      cartTitle: "ショッピングカート", totalLabel: "合計", emptyCart: "カートは空です",
-      addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
-      checkoutBtn: "レジに進む (デモ)", menuHome: "ホーム", menuCommissions: "コミッション",
-      menuArtwork: "アートワーク", menuPoll: "投票", menuStore: "ストア", menuContact: "お問い合わせ",
-      websiteBtn: "ウェブサイト",
-      couponPlaceholder: "クーポンコード",
-      applyBtn: "適用"
-    },
-    zh: {
-      cartTitle: "购物车", totalLabel: "总计", emptyCart: "购物车是空的",
-      addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
-      checkoutBtn: "去结账 (演示)", menuHome: "主页", menuCommissions: "委托",
-      menuArtwork: "作品集", menuPoll: "投票", menuStore: "商店", menuContact: "联系",
-      websiteBtn: "网站",
-      couponPlaceholder: "优惠码",
-      applyBtn: "应用"
-    },
-    es: {
-      cartTitle: "Carrito de Compras", totalLabel: "Total", emptyCart: "Tu carrito está vacío",
-      addedMsg: "Añadido correctamente", removedMsg: "Eliminado del carrito",
-      checkoutBtn: "Proceder al pago (DEMO)", menuHome: "INICIO", menuCommissions: "COMISIONES",
-      menuArtwork: "OBRAS", menuPoll: "ENCUESTA", menuStore: "TIENDA", menuContact: "CONTACTO",
-      websiteBtn: "Sitio web",
-      couponPlaceholder: "Código de cupón",
-      applyBtn: "Aplicar"
-    }
-  };
+const translations = {
+  en: {
+    cartTitle: "Shopping Cart", totalLabel: "Total", emptyCart: "Your cart is empty",
+    addedMsg: "Added successfully", removedMsg: "Removed from cart",
+    checkoutBtn: "Proceed to checkout (DEMO)", menuHome: "HOME", menuCommissions: "COMMISSIONS",
+    menuArtwork: "ARTWORK", menuPoll: "POLL", menuStore: "STORE", menuContact: "CONTACT",
+    websiteBtn: "Website",
+    couponPlaceholder: "Coupon code", applyBtn: "Apply",
+    couponInvalid: "❌ Invalid coupon code",
+    couponMinOrder: "❌ Minimum order of {amount} required",
+    couponApplied: "✅ {code}: -{discount} (total: {total})"
+  },
+  ja: {
+    cartTitle: "ショッピングカート", totalLabel: "合計", emptyCart: "カートは空です",
+    addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
+    checkoutBtn: "レジに進む (デモ)", menuHome: "ホーム", menuCommissions: "コミッション",
+    menuArtwork: "アートワーク", menuPoll: "投票", menuStore: "ストア", menuContact: "お問い合わせ",
+    websiteBtn: "ウェブサイト",
+    couponPlaceholder: "クーポンコード", applyBtn: "適用",
+    couponInvalid: "❌ 無効なクーポンコード",
+    couponMinOrder: "❌ 最低注文金額 {amount} が必要です",
+    couponApplied: "✅ {code}: -{discount} (合計: {total})"
+  },
+  zh: {
+    cartTitle: "购物车", totalLabel: "总计", emptyCart: "购物车是空的",
+    addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
+    checkoutBtn: "去结账 (演示)", menuHome: "主页", menuCommissions: "委托",
+    menuArtwork: "作品集", menuPoll: "投票", menuStore: "商店", menuContact: "联系",
+    websiteBtn: "网站",
+    couponPlaceholder: "优惠码", applyBtn: "应用",
+    couponInvalid: "❌ 无效的优惠码",
+    couponMinOrder: "❌ 最低订单金额为 {amount}",
+    couponApplied: "✅ {code}: -{discount} (总计: {total})"
+  },
+  es: {
+    cartTitle: "Carrito de Compras", totalLabel: "Total", emptyCart: "Tu carrito está vacío",
+    addedMsg: "Añadido correctamente", removedMsg: "Eliminado del carrito",
+    checkoutBtn: "Proceder al pago (DEMO)", menuHome: "INICIO", menuCommissions: "COMISIONES",
+    menuArtwork: "OBRAS", menuPoll: "ENCUESTA", menuStore: "TIENDA", menuContact: "CONTACTO",
+    websiteBtn: "Sitio web",
+    couponPlaceholder: "Código de cupón", applyBtn: "Aplicar",
+    couponInvalid: "❌ Código de cupón no válido",
+    couponMinOrder: "❌ Se requiere un pedido mínimo de {amount}",
+    couponApplied: "✅ {code}: -{discount} (total: {total})"
+  }
+};
 
   // --------------------------------------------------------------
   // 2. Cart state & helpers
