@@ -221,32 +221,44 @@ function setupCouponHandler() {
       body: JSON.stringify({ code, cart: storeCart })
     });
     const data = await resp.json();
-    const t = storeTranslations[currentLang] || storeTranslations.en;
+
+    const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
+    const t = storeTranslations[lang] || storeTranslations.en;
+    const cur = window.currentCurrency || 'USD';
 
     if (data.valid) {
       activeCoupon = data;
-      const discount = window.formatPriceTotal(
-        window.getNumericPrice(parseFloat(data.discount), currentCurrency),
-        currentCurrency
+
+      const discountNum = parseFloat(data.discount);
+      const totalNum = parseFloat(data.final_total);
+
+      const discountFormatted = window.formatPriceTotal(
+        window.getNumericPrice(discountNum, cur), cur
       );
-      const newTotal = window.formatPriceTotal(
-        window.getNumericPrice(parseFloat(data.final_total), currentCurrency),
-        currentCurrency
+      const totalFormatted = window.formatPriceTotal(
+        window.getNumericPrice(totalNum, cur), cur
       );
+
       msg.innerHTML = t.couponApplied
         .replace('{code}', data.code)
-        .replace('{discount}', discount)
-        .replace('{total}', newTotal);
+        .replace('{discount}', discountFormatted)
+        .replace('{total}', totalFormatted);
+      msg.style.color = '#10b981';
+
       const totalSpan = document.getElementById('cartTotal');
-      if (totalSpan) totalSpan.textContent = newTotal;
+      if (totalSpan) totalSpan.textContent = totalFormatted;
     } else {
       activeCoupon = null;
-      if (data.error === 'Minimum order required') {
-        msg.innerHTML = t.couponMinOrder.replace('{amount}', data.required);
+      msg.style.color = '#ef4444';
+
+      if (data.error === 'Minimum order not met') {
+        const minOrderFormatted = window.formatPriceTotal(
+          window.getNumericPrice(parseFloat(data.required), cur), cur
+        );
+        msg.innerHTML = t.couponMinOrder.replace('{amount}', minOrderFormatted);
       } else {
         msg.innerHTML = t.couponInvalid;
       }
-      msg.style.color = '#ef4444';
       updateStoreCartUI();
     }
   });
