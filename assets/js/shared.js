@@ -56,6 +56,7 @@ const translations = {
   // --------------------------------------------------------------
   let cart = JSON.parse(localStorage.getItem('velutinx_cart') || '[]');
   let currentLang = localStorage.getItem('language') || 'en';
+  window.currentLanguage = currentLang;
   let currentCurrency = currentLang === 'en' ? 'USD' :
                         (currentLang === 'ja' ? 'JPY' :
                         (currentLang === 'zh' ? 'CNY' : 'MXN'));
@@ -249,6 +250,7 @@ const translations = {
   function setLanguage(lang) {
     if (lang === currentLang) return;
     currentLang = lang;
+    window.currentLanguage = currentLang;
     localStorage.setItem('language', lang);
     currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
     window.currentCurrency = currentCurrency;
