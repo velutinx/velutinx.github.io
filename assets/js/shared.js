@@ -59,7 +59,8 @@ const translations = {
   let currentCurrency = currentLang === 'en' ? 'USD' :
                         (currentLang === 'ja' ? 'JPY' :
                         (currentLang === 'zh' ? 'CNY' : 'MXN'));
-  const STATIC_USD = 3.0;               // used only for non‑store pages
+  window.currentCurrency = currentCurrency;
+  const STATIC_USD = 3.0;
   const tierMap = { 3.0: { JPY: 500, CNY: 21.0, MXN: 50 } };
   const approxRates = { JPY: 158, CNY: 6.9, MXN: 18 };
 
@@ -250,6 +251,7 @@ const translations = {
     currentLang = lang;
     localStorage.setItem('language', lang);
     currentCurrency = lang === 'en' ? 'USD' : (lang === 'ja' ? 'JPY' : (lang === 'zh' ? 'CNY' : 'MXN'));
+    window.currentCurrency = currentCurrency;
     applyHeaderTranslations();
     updateCartUI();
 
