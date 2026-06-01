@@ -4,11 +4,12 @@
     "wuthering waves": { "native": "鸣潮", "english": "WutheringWaves" },
     "rwby": { "native": "RWBY", "english": "RWBY" },
     "goddess of victory nikke": { "native": "勝利の女神", "english": "Nikke" },
-    "pokemon": { "native": "ポケモン", "english": "Pokemon" }
+    "pokemon": { "native": "ポケットモンスター", "english": "Pokemon" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
     "neopolitan": { "native": "ネオポリタン" },
-    "noir": { "native": "ノワール" }
+    "noir": { "native": "ノワール" },
+    "lynae": { "native": "リンネー" }
   }
 }
