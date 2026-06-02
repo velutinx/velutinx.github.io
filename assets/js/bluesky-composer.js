@@ -59,7 +59,6 @@
                 loadImageViaProxy(CENTER_WM_URL),
                 loadImageViaProxy(CORNER_WM_URL)
             ]);
-    //        console.log('Watermarks loaded successfully.');
         } catch (err) {
             console.error('Failed to load watermarks:', err);
         }
@@ -557,17 +556,27 @@
         });
     }
 
-    // ---------- Post to Bluesky (unchanged) ----------
+    // ---------- Post to Bluesky (UPDATED with logging) ----------
     async function postToBluesky(accountId) {
         const postEl = document.getElementById(`post${accountId}`);
-        if (!postEl) return;
+        if (!postEl) {
+            console.error(`❌ Element #post${accountId} not found`);
+            return;
+        }
         const text = postEl.value.trim();
         const ids = window.accountImages[accountId] || [];
         const images = ids.map(id => window.imageRegistry[id]).filter(Boolean);
+
+        console.log(`📤 Bluesky post: account ${accountId}, text length ${text.length}, images ${images.length}`);
+        console.log('Image IDs:', ids);
+        console.log('Image objects:', images);
+
         if (!text && images.length === 0) {
+            console.warn('No text and no images — aborting');
             if (typeof showToast === 'function') showToast('Add text or image first', 'error');
             return;
         }
+
         let statusDiv = document.getElementById(`post-status-${accountId}`);
         if (!statusDiv) {
             statusDiv = document.createElement('div');
@@ -576,20 +585,35 @@
             postEl.parentNode.appendChild(statusDiv);
         }
         statusDiv.textContent = '⏳ Posting...'; statusDiv.style.color = '#aaa';
+
         try {
             const formData = new FormData();
             formData.append('account', accountId);
             formData.append('text', text);
-            images.forEach(img => formData.append('image', img));
+
+            images.forEach((img, i) => {
+                if (!(img instanceof File)) {
+                    console.error(`❌ Image at index ${i} is not a File`, img);
+                    throw new Error('Invalid image file');
+                }
+                console.log(`  Appending image ${i}: name="${img.name}", size=${img.size}, type=${img.type}`);
+                formData.append('image', img, img.name || 'image.jpg');
+            });
+
+            console.log('🚀 Sending to Bluesky worker...');
             const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
-                method: 'POST', body: formData
+                method: 'POST',
+                body: formData
             });
             const data = await res.json();
+            console.log('Bluesky response:', data);
+
             if (res.ok) {
                 statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
 
                 if (accountId == 1) {
+                    console.log('🔁 Triggering Twitter SFW cross-post...');
                     if (typeof window.sendToWorker === 'function') {
                         window.sendToWorker(3);
                     }
@@ -603,9 +627,11 @@
                 setTimeout(() => statusDiv.textContent = '', 2500);
             } else {
                 statusDiv.textContent = `❌ ${data.error || 'failed'}`;
+                console.error('Bluesky post error:', data);
                 if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
             }
         } catch (err) {
+            console.error('❌ Bluesky fetch error:', err);
             statusDiv.textContent = `❌ ${err.message}`;
             if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
         }
