@@ -4,7 +4,8 @@
     "wuthering waves": { "native": "鸣潮", "english": "WutheringWaves" },
     "rwby": { "native": "RWBY", "english": "RWBY" },
     "goddess of victory nikke": { "native": "勝利の女神", "english": "Nikke" },
-    "pokemon": { "native": "ポケットモンスター", "english": "Pokemon" }
+    "pokemon": { "native": "ポケットモンスター", "english": "Pokemon" },
+    "naruto": { "native": "ナルト", "english": "Naruto" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
