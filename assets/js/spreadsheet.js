@@ -344,8 +344,8 @@ async function runPatreonTierCleanup() {
     console.log("Starting Patreon tier correction cleanup...");
     let updatedCount = 0;
 
-    // Loop through all entries currently loaded in the client memory
     for (let entry of entries) {
+        // Look for Patreon entries that currently have a "Free" tier label
         if (entry.category === 'Patreon subscription' && entry.concept.includes('– Free')) {
             let correctTier = '';
             
@@ -354,38 +354,27 @@ async function runPatreonTierCleanup() {
             else if (entry.amount === 18) correctTier = 'Request';
 
             if (correctTier) {
-                // Generate the correct description text
                 const newDesc = entry.concept.replace('– Free', `– ${correctTier}`);
                 
-                console.log(`Fixing: "${entry.concept}" -> "${newDesc}"`);
-                
-                try {
-                    // Update the entry in your D1 cloud database using your existing addEntry/update infrastructure
-                    // We call your backend update endpoint via a PUT/POST request
-                    const res = await fetch(`${WORKER_URL}/api/entries/${entry.id || entry.entry_id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            ...entry,
-                            concept: newDesc
-                        })
-                    });
+                // Use your existing updateEntry function from your JS file
+                const success = await updateEntry(entry.id, {
+                    ...entry,
+                    concept: newDesc
+                });
 
-                    if (res.ok) {
-                        updatedCount++;
-                    }
-                } catch (e) {
-                    console.error(`Failed to update entry ID ${entry.id}:`, e);
+                if (success) {
+                    console.log(`Successfully updated: ${entry.concept} -> ${newDesc}`);
+                    updatedCount++;
                 }
             }
         }
     }
 
     if (updatedCount > 0) {
-        console.log(`🎉 Cleanup finished! Corrected ${updatedCount} past Patreon rows.`);
-        refreshAll(); // Refresh table view to reflect changes
+        console.log(`🎉 Cleanup finished! Corrected ${updatedCount} entries.`);
+        refreshAll(); 
     } else {
-        console.log("No incorrect 'Free' rows found to correct.");
+        console.log("No incorrect entries found.");
     }
 }
 
