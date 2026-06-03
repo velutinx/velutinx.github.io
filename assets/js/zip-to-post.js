@@ -106,24 +106,27 @@ document.addEventListener('DOMContentLoaded', function() {
         return str.toLowerCase().replace(/[^a-z0-9]/g, '');
     }
     async function findPackId(character, fileCount) {
-        try {
-            const module = await import('/assets/js/packs-data.js');
-            const packs = module.default;
-            const normalizedChar = normalize(character);
-            for (const pack of packs) {
-                const match = pack.title.match(/^\[Pack \d+\]\s+(.+?)\s*-\s*(.+)$/i);
-                if (!match) continue;
-                const packChar = match[1].trim();
-                if (normalize(packChar) === normalizedChar && pack.illustrationCount === fileCount) {
-                    return pack.id;
-                }
+    try {
+        // Use the same API endpoint the Pack Manager already uses
+        const response = await fetch('https://packs-api.velutinx.workers.dev/api/packs');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const packs = await response.json();   // array of pack objects
+
+        const normalizedChar = normalize(character);
+        for (const pack of packs) {
+            const match = pack.title.match(/^\[Pack \d+\]\s+(.+?)\s*-\s*(.+)$/i);
+            if (!match) continue;
+            const packChar = match[1].trim();
+            if (normalize(packChar) === normalizedChar && pack.illustrationCount === fileCount) {
+                return pack.id;
             }
-            return null;
-        } catch (err) {
-            console.warn('Failed to load packs-data.js', err);
-            return null;
         }
+        return null;
+    } catch (err) {
+        console.warn('Failed to fetch packs from API, falling back', err);
+        return null;
     }
+}
 
     async function handleFile(file) {
         if (!file.name.toLowerCase().endsWith('.zip')) {
