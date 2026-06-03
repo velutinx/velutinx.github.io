@@ -345,7 +345,6 @@ async function runPatreonTierCleanup() {
     let updatedCount = 0;
 
     for (let entry of entries) {
-        // Look for Patreon entries that currently have a "Free" tier label
         if (entry.category === 'Patreon subscription' && entry.concept.includes('– Free')) {
             let correctTier = '';
             
@@ -356,14 +355,14 @@ async function runPatreonTierCleanup() {
             if (correctTier) {
                 const newDesc = entry.concept.replace('– Free', `– ${correctTier}`);
                 
-                // Use your existing updateEntry function from your JS file
-                const success = await updateEntry(entry.id, {
+                // Use your existing updateEntry function
+                const success = await updateEntry(entry.id || entry.entry_id, {
                     ...entry,
                     concept: newDesc
                 });
 
                 if (success) {
-                    console.log(`Successfully updated: ${entry.concept} -> ${newDesc}`);
+                    console.log(`Fixed: ${entry.concept} -> ${newDesc}`);
                     updatedCount++;
                 }
             }
@@ -866,7 +865,7 @@ function buildChart(initialDays) {
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    // ---------- Init ----------
+// ---------- Init ----------
     document.addEventListener('DOMContentLoaded', async () => {
         monthSelect = document.getElementById('monthSelect');
         daySelect = document.getElementById('daySelect');
@@ -888,6 +887,10 @@ function buildChart(initialDays) {
         setupRangeButtons();
 
         await fetchEntries();
+        
+        // 🛠️ RUN THIS ONCE TO CLEAN UP PAST ENTRIES:
+        await runPatreonTierCleanup();
+
         await autoSyncWebsitePayments();
         await autoSyncPatreon();
 
