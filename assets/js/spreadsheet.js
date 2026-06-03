@@ -339,44 +339,56 @@
             localStorage.setItem(IMPORTED_PATREON_KEY, JSON.stringify(keys));
         }
     }
-    async function autoSyncPatreon() {
-        try {
-            const res = await fetch(PATREON_PROXY);
-            if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
-            const members = await res.json();
-            const importedKeys = getImportedPatreonCharges();
-            let addedCount = 0;
-            for (const m of members) {
-                const chargeDate = new Date(m.lastChargeDate);
-                const month = chargeDate.getUTCMonth() + 1;
-                const day = chargeDate.getUTCDate();
-                const amount = m.amountCents / 100;
-                const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
-                if (importedKeys.includes(chargeKey)) continue;
-                const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
-                const duplicate = entries.some(e =>
-                    e.month === month && e.day === day && e.amount === amount &&
-                    e.currency === 'USD' && e.category === 'Patreon subscription');
-                    e.concept === desc
-                if (duplicate) { addImportedPatreonCharge(chargeKey); continue; }
-                const success = await addEntry({
-                    month, day, amount,
-                    currency: 'USD',
-                    category: 'Patreon subscription',
-                    concept: desc,
-                    recurring: false,
-                });
-                if (success) { addImportedPatreonCharge(chargeKey); addedCount++; } else break;
-            }
-            if (addedCount > 0) {
-                refreshAll();
-                showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
-            }
-        } catch (err) {
-            console.error('Patreon sync error:', err);
-            showToast(`❌ Patreon sync error: ${err.message}`, 'error');
+async function autoSyncPatreon() {
+    try {
+        const res = await fetch(PATREON_PROXY);
+        if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+        const members = await res.json();
+        const importedKeys = getImportedPatreonCharges();
+        let addedCount = 0;
+        
+        for (const m of members) {
+            const chargeDate = new Date(m.lastChargeDate);
+            const month = chargeDate.getUTCMonth() + 1;
+            const day = chargeDate.getUTCDate();
+            const amount = m.amountCents / 100;
+            const chargeKey = `${m.memberId}_${m.lastChargeDate}`;
+            
+            if (importedKeys.includes(chargeKey)) continue;
+            
+            const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
+            
+            // FIXED LINE BELOW: Included e.concept inside the .some() loop properly
+            const duplicate = entries.some(e =>
+                e.month === month && 
+                e.day === day && 
+                e.amount === amount &&
+                e.currency === 'USD' && 
+                e.category === 'Patreon subscription' &&
+                e.concept === desc
+            );
+            
+            if (duplicate) { addImportedPatreonCharge(chargeKey); continue; }
+            
+            const success = await addEntry({
+                month, day, amount,
+                currency: 'USD',
+                category: 'Patreon subscription',
+                concept: desc,
+                recurring: false,
+            });
+            if (success) { addImportedPatreonCharge(chargeKey); addedCount++; } else break;
         }
+        
+        if (addedCount > 0) {
+            refreshAll();
+            showToast(`✅ Synced ${addedCount} new Patreon subscriptions.`, 'success');
+        }
+    } catch (err) {
+        console.error('Patreon sync error:', err);
+        showToast(`❌ Patreon sync error: ${err.message}`, 'error');
     }
+}
 
 // ---------- Table rendering (unchanged) ----------
 function renderTable() {
