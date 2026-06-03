@@ -305,6 +305,7 @@
                 const duplicate = entries.some(e =>
                     e.month === month && e.day === day && e.amount === amount &&
                     e.currency === currency && e.category === 'Website payments');
+                    e.concept === description
                 if (duplicate) { addImportedId(order.id); continue; }
 
                 const success = await addEntry({
@@ -356,6 +357,7 @@
                 const duplicate = entries.some(e =>
                     e.month === month && e.day === day && e.amount === amount &&
                     e.currency === 'USD' && e.category === 'Patreon subscription');
+                    e.concept === desc
                 if (duplicate) { addImportedPatreonCharge(chargeKey); continue; }
                 const success = await addEntry({
                     month, day, amount,
