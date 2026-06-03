@@ -356,7 +356,17 @@ async function autoSyncPatreon() {
             
             if (importedKeys.includes(chargeKey)) continue;
             
-            const desc = `${m.name} (${m.email}) – ${m.tierTitle}`;
+// Map amounts explicitly to their respective tier titles to bypass API synchronization lag
+let tier = m.tierTitle;
+if (amount === 3) {
+    tier = 'Weekly Access (Sneak Peak)';
+} else if (amount === 6) {
+    tier = 'Archive';
+} else if (amount === 18) {
+    tier = 'Request';
+}
+
+            const desc = `${m.name} (${m.email}) – ${tier}`;
             
             // FIXED LINE BELOW: Included e.concept inside the .some() loop properly
             const duplicate = entries.some(e =>
