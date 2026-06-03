@@ -339,52 +339,6 @@
             localStorage.setItem(IMPORTED_PATREON_KEY, JSON.stringify(keys));
         }
     }
-
-async function runPatreonTierCleanup() {
-    console.log("Starting Patreon tier correction cleanup...");
-    let updatedCount = 0;
-
-    for (let entry of entries) {
-        // Only target Patreon entries currently labeled as "Free"
-        if (entry.category === 'Patreon subscription' && entry.concept.includes('– Free')) {
-            let correctTier = '';
-            
-            if (entry.amount === 3) correctTier = 'Weekly Access (Sneak Peak)';
-            else if (entry.amount === 6) correctTier = 'Archive';
-            else if (entry.amount === 18) correctTier = 'Request';
-
-            if (correctTier) {
-                const newDesc = entry.concept.replace('– Free', `– ${correctTier}`);
-                
-                try {
-                    // Send update directly to your D1 worker API
-                    const res = await fetch(`${WORKER_URL}/entries/${entry.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ...entry, concept: newDesc })
-                    });
-
-                    if (res.ok) {
-                        console.log(`Successfully updated: ${entry.concept} -> ${newDesc}`);
-                        entry.concept = newDesc; // Update local memory
-                        updatedCount++;
-                    }
-                } catch (e) {
-                    console.error(`Failed to update entry ID ${entry.id}:`, e);
-                }
-            }
-        }
-    }
-
-    if (updatedCount > 0) {
-        console.log(`🎉 Cleanup finished! Corrected ${updatedCount} entries.`);
-        refreshAll(); // Update the UI
-    } else {
-        console.log("No incorrect entries found.");
-    }
-}
-
-    
 async function autoSyncPatreon() {
     try {
         const res = await fetch(PATREON_PROXY);
@@ -872,7 +826,7 @@ function buildChart(initialDays) {
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-// ---------- Init ----------
+    // ---------- Init ----------
     document.addEventListener('DOMContentLoaded', async () => {
         monthSelect = document.getElementById('monthSelect');
         daySelect = document.getElementById('daySelect');
@@ -894,10 +848,6 @@ function buildChart(initialDays) {
         setupRangeButtons();
 
         await fetchEntries();
-        
-        // 🛠️ RUN THIS ONCE TO CLEAN UP PAST ENTRIES:
-        await runPatreonTierCleanup();
-
         await autoSyncWebsitePayments();
         await autoSyncPatreon();
 
