@@ -345,6 +345,7 @@ async function runPatreonTierCleanup() {
     let updatedCount = 0;
 
     for (let entry of entries) {
+        // Only target Patreon entries currently labeled as "Free"
         if (entry.category === 'Patreon subscription' && entry.concept.includes('– Free')) {
             let correctTier = '';
             
@@ -355,15 +356,21 @@ async function runPatreonTierCleanup() {
             if (correctTier) {
                 const newDesc = entry.concept.replace('– Free', `– ${correctTier}`);
                 
-                // Use your existing updateEntry function
-                const success = await updateEntry(entry.id || entry.entry_id, {
-                    ...entry,
-                    concept: newDesc
-                });
+                try {
+                    // Send update directly to your D1 worker API
+                    const res = await fetch(`${WORKER_URL}/entries/${entry.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...entry, concept: newDesc })
+                    });
 
-                if (success) {
-                    console.log(`Fixed: ${entry.concept} -> ${newDesc}`);
-                    updatedCount++;
+                    if (res.ok) {
+                        console.log(`Successfully updated: ${entry.concept} -> ${newDesc}`);
+                        entry.concept = newDesc; // Update local memory
+                        updatedCount++;
+                    }
+                } catch (e) {
+                    console.error(`Failed to update entry ID ${entry.id}:`, e);
                 }
             }
         }
@@ -371,7 +378,7 @@ async function runPatreonTierCleanup() {
 
     if (updatedCount > 0) {
         console.log(`🎉 Cleanup finished! Corrected ${updatedCount} entries.`);
-        refreshAll(); 
+        refreshAll(); // Update the UI
     } else {
         console.log("No incorrect entries found.");
     }
