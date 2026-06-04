@@ -302,10 +302,15 @@
                 const currency = order.currency || 'USD';
                 const description = `${order.paypal_email} – ${order.cart}`;
 
-                const duplicate = entries.some(e =>
-                    e.month === month && e.day === day && e.amount === amount &&
-                    e.currency === currency && e.category === 'Website payments');
-                    e.concept === description
+// ✅ THE FIXED CODE: The parenthesis now wraps the entire logic.
+const duplicate = entries.some(e =>
+    e.month === month && 
+    e.day === day && 
+    e.amount === amount &&
+    e.currency === currency && 
+    e.category === 'Website payments' &&
+    e.concept === description
+);
                 if (duplicate) { addImportedId(order.id); continue; }
 
                 const success = await addEntry({
