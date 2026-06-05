@@ -134,6 +134,24 @@ const storeTranslations = {
   }
 };
 
+// ==================== Price helpers (local exact total) ====================
+function getNumericPrice(usd, currency) {
+  const priceObj = window.priceUsdMap?.[usd];
+  if (!priceObj) return usd;
+  const cur = (currency || 'usd').toLowerCase();
+  return priceObj[cur] || usd;
+}
+
+function formatPriceTotal(amount, currency) {
+  const cur = (currency || 'usd').toLowerCase();
+  const symbol = cur === 'usd' ? 'US$' :
+                 cur === 'cny' ? '¥' :
+                 cur === 'jpy' ? '¥' :
+                 cur === 'mxn' ? 'MX$' : '';
+  const decimals = (cur === 'jpy' || cur === 'mxn') ? 0 : 2;
+  return `${symbol}${amount.toFixed(decimals)}`;
+}
+
 // ==================== Store cart ====================
 let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 let activeCoupon = null;
@@ -160,7 +178,7 @@ function updateStoreCartUI() {
     // Individual item price in local currency
     const priceStr = window.getFormattedPrice(item.priceKey);
     const usd = window.priceKeyMap[item.priceKey] || 0;
-    const localPrice = window.getNumericPrice(usd, cur);
+    const localPrice = getNumericPrice(usd, cur);
     totalLocal += localPrice;
 
     const div = document.createElement('div');
@@ -186,7 +204,7 @@ function updateStoreCartUI() {
 
   // Show total in the correct currency
   if (totalSpan) {
-    totalSpan.innerText = window.formatPriceTotal(totalLocal, cur);
+    totalSpan.innerText = formatPriceTotal(totalLocal, cur);
   }
 
   document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
@@ -267,11 +285,11 @@ function setupCouponHandler() {
       const discountNum = parseFloat(data.discount);
       const totalNum = parseFloat(data.final_total);
 
-      const discountFormatted = window.formatPriceTotal(
-        window.getNumericPrice(discountNum, cur), cur
+      const discountFormatted = formatPriceTotal(
+        getNumericPrice(discountNum, cur), cur
       );
-      const totalFormatted = window.formatPriceTotal(
-        window.getNumericPrice(totalNum, cur), cur
+      const totalFormatted = formatPriceTotal(
+        getNumericPrice(totalNum, cur), cur
       );
 
       msg.innerHTML = t.couponApplied
@@ -287,8 +305,8 @@ function setupCouponHandler() {
       msg.style.color = '#ef4444';
 
       if (data.error === 'Minimum order not met') {
-        const minOrderFormatted = window.formatPriceTotal(
-          window.getNumericPrice(parseFloat(data.required), cur), cur
+        const minOrderFormatted = formatPriceTotal(
+          getNumericPrice(parseFloat(data.required), cur), cur
         );
         msg.innerHTML = t.couponMinOrder.replace('{amount}', minOrderFormatted);
       } else {
