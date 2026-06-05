@@ -84,11 +84,11 @@ const storeTranslations = {
     addedMsg: "Added to cart", removedMsg: "Removed from cart",
     membershipTitle: "Requests & Membership",
     membershipLearnMore: "Learn More",
-  couponPlaceholder: "Coupon code",
-  applyBtn: "Apply",
-  couponInvalid: "❌ Invalid coupon code",
-  couponMinOrder: "❌ Minimum order of {amount} required",
-  couponApplied: "✅ {code}: -{discount} (total: {total})"
+    couponPlaceholder: "Coupon code",
+    applyBtn: "Apply",
+    couponInvalid: "❌ Invalid coupon code",
+    couponMinOrder: "❌ Minimum order of {amount} required",
+    couponApplied: "✅ {code}: -{discount} (total: {total})"
   },
   ja: {
     filterTitle: "カテゴリで絞り込み", sortTitle: "並び替え", catAll: "すべて",
@@ -98,11 +98,11 @@ const storeTranslations = {
     addedMsg: "カートに追加しました", removedMsg: "カートから削除しました",
     membershipTitle: "リクエスト＆メンバーシップ",
     membershipLearnMore: "詳細を見る",
-  couponPlaceholder: "クーポンコード",
-  applyBtn: "適用",
-  couponInvalid: "❌ 無効なクーポンコード",
-  couponMinOrder: "❌ 最低注文金額 {amount} が必要です",
-  couponApplied: "✅ {code}: -{discount} (合計: {total})"
+    couponPlaceholder: "クーポンコード",
+    applyBtn: "適用",
+    couponInvalid: "❌ 無効なクーポンコード",
+    couponMinOrder: "❌ 最低注文金額 {amount} が必要です",
+    couponApplied: "✅ {code}: -{discount} (合計: {total})"
   },
   zh: {
     filterTitle: "按分类筛选", sortTitle: "排序方式", catAll: "所有商品",
@@ -112,11 +112,11 @@ const storeTranslations = {
     addedMsg: "已添加到购物车", removedMsg: "已从购物车移除",
     membershipTitle: "请求与会员资格",
     membershipLearnMore: "了解更多",
-  couponPlaceholder: "优惠码",
-  applyBtn: "应用",
-  couponInvalid: "❌ 无效的优惠码",
-  couponMinOrder: "❌ 最低订单金额为 {amount}",
-  couponApplied: "✅ {code}: -{discount} (总计: {total})"
+    couponPlaceholder: "优惠码",
+    applyBtn: "应用",
+    couponInvalid: "❌ 无效的优惠码",
+    couponMinOrder: "❌ 最低订单金额为 {amount}",
+    couponApplied: "✅ {code}: -{discount} (总计: {total})"
   },
   es: {
     filterTitle: "Filtrar por Categoría", sortTitle: "Ordenar por", catAll: "Todos los productos",
@@ -126,31 +126,13 @@ const storeTranslations = {
     addedMsg: "Añadido al carrito", removedMsg: "Eliminado del carrito",
     membershipTitle: "Solicitudes y Membresía",
     membershipLearnMore: "Más información",
-  couponPlaceholder: "Código de cupón",
-  applyBtn: "Aplicar",
-  couponInvalid: "❌ Código de cupón no válido",
-  couponMinOrder: "❌ Se requiere un pedido mínimo de {amount}",
-  couponApplied: "✅ {code}: -{discount} (total: {total})"
+    couponPlaceholder: "Código de cupón",
+    applyBtn: "Aplicar",
+    couponInvalid: "❌ Código de cupón no válido",
+    couponMinOrder: "❌ Se requiere un pedido mínimo de {amount}",
+    couponApplied: "✅ {code}: -{discount} (total: {total})"
   }
 };
-
-// ==================== Price helpers (local exact total) ====================
-function getNumericPrice(usd, currency) {
-  const priceObj = window.priceUsdMap?.[usd];
-  if (!priceObj) return usd;
-  const cur = (currency || 'usd').toLowerCase();
-  return priceObj[cur] || usd;
-}
-
-function formatPriceTotal(amount, currency) {
-  const cur = (currency || 'usd').toLowerCase();
-  const symbol = cur === 'usd' ? 'US$' :
-                 cur === 'cny' ? '¥' :
-                 cur === 'jpy' ? '¥' :
-                 cur === 'mxn' ? 'MX$' : '';
-  const decimals = (cur === 'jpy' || cur === 'mxn') ? 0 : 2;
-  return `${symbol}${amount.toFixed(decimals)}`;
-}
 
 // ==================== Store cart ====================
 let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
@@ -167,19 +149,16 @@ function updateStoreCartUI() {
   if (!container) return;
 
   const t = storeTranslations[currentLang || 'en'];
-  const cur = window.currentCurrency || 'USD';
 
   container.innerHTML = storeCart.length === 0
     ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
 
-  let totalLocal = 0;
+  let totalUSD = 0;
 
   storeCart.forEach((item, idx) => {
-    // Individual item price in local currency
     const priceStr = window.getFormattedPrice(item.priceKey);
     const usd = window.priceKeyMap[item.priceKey] || 0;
-    const localPrice = getNumericPrice(usd, cur);
-    totalLocal += localPrice;
+    totalUSD += usd;
 
     const div = document.createElement('div');
     div.className = 'cart-item';
@@ -202,9 +181,8 @@ function updateStoreCartUI() {
     });
   });
 
-  // Show total in the correct currency
   if (totalSpan) {
-    totalSpan.innerText = formatPriceTotal(totalLocal, cur);
+    totalSpan.innerText = `US$${totalUSD.toFixed(2)}`;
   }
 
   document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
@@ -228,7 +206,7 @@ function showSnackbar(msg, isRemove) {
 
 window.addOrToggleCart = function(product) {
   const idx = storeCart.findIndex(i => String(i.id) === String(product.id));
-const t = storeTranslations[currentLang || 'en'];
+  const t = storeTranslations[currentLang || 'en'];
   if (idx > -1) {
     storeCart.splice(idx, 1);
     showSnackbar(t.removedMsg, true);
@@ -277,20 +255,12 @@ function setupCouponHandler() {
 
     const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
     const t = storeTranslations[lang] || storeTranslations.en;
-    const cur = window.currentCurrency || 'USD';
 
     if (data.valid) {
       activeCoupon = data;
 
-      const discountNum = parseFloat(data.discount);
-      const totalNum = parseFloat(data.final_total);
-
-      const discountFormatted = formatPriceTotal(
-        getNumericPrice(discountNum, cur), cur
-      );
-      const totalFormatted = formatPriceTotal(
-        getNumericPrice(totalNum, cur), cur
-      );
+      const discountFormatted = `US$${parseFloat(data.discount).toFixed(2)}`;
+      const totalFormatted = `US$${parseFloat(data.final_total).toFixed(2)}`;
 
       msg.innerHTML = t.couponApplied
         .replace('{code}', data.code)
@@ -305,9 +275,7 @@ function setupCouponHandler() {
       msg.style.color = '#ef4444';
 
       if (data.error === 'Minimum order not met') {
-        const minOrderFormatted = formatPriceTotal(
-          getNumericPrice(parseFloat(data.required), cur), cur
-        );
+        const minOrderFormatted = `US$${parseFloat(data.required).toFixed(2)}`;
         msg.innerHTML = t.couponMinOrder.replace('{amount}', minOrderFormatted);
       } else {
         msg.innerHTML = t.couponInvalid;
@@ -398,14 +366,13 @@ function renderStoreGrid() {
   grid.innerHTML = '';
 
   items.forEach(p => {
-    // Determine glow class based on category
     let glowClass = '';
     if (p.id === 'membership') {
-      glowClass = 'glow-gold';      // gold for membership
+      glowClass = 'glow-gold';
     } else if (p.category === 1) {
-      glowClass = 'glow-pink';      // female
+      glowClass = 'glow-pink';
     } else if (p.category === 2) {
-      glowClass = 'glow-blue';      // femboy
+      glowClass = 'glow-blue';
     }
 
     const card = document.createElement('div');
@@ -415,21 +382,18 @@ function renderStoreGrid() {
 
     if (p.id === 'membership') {
       const t = storeTranslations[currentLang];
-
-// Inside the membership card part of renderStoreGrid()
-card.innerHTML = `
-  <div class="border-glow ${glowClass}"></div>
-  <div class="card-inner">
-    <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
-    <div class="card-content">
-      <div class="card-title">${escapeHtml(t.membershipTitle)}</div>
-      <div class="price-row">
-      <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin: auto; display: inline-block;" data-cursor-expand>${escapeHtml(t.membershipLearnMore)}</a>
-</div>
-    </div>
-  </div>
-`;
-
+      card.innerHTML = `
+        <div class="border-glow ${glowClass}"></div>
+        <div class="card-inner">
+          <img src="https://www.velutinx.com/i/packmembership-1-1.jpg" class="card-image" onerror="this.src='https://placehold.co/300x350?text=Membership'">
+          <div class="card-content">
+            <div class="card-title">${escapeHtml(t.membershipTitle)}</div>
+            <div class="price-row">
+              <a href="/s/membership" style="background: var(--accent); color: white; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; font-weight: 600; margin: auto; display: inline-block;" data-cursor-expand>${escapeHtml(t.membershipLearnMore)}</a>
+            </div>
+          </div>
+        </div>
+      `;
       card.onclick = () => { window.location.href = '/s/membership'; };
     } else {
       const imgUrl = `https://www.velutinx.com/i/pack${String(p.id).padStart(3, '0')}-1.jpg`;
@@ -489,19 +453,19 @@ function bindStoreEvents() {
   });
 
   document.addEventListener('languageChanged', () => {
-  currentLang = localStorage.getItem('language') || 'en';
-  applyStoreTranslations();
-  renderStoreGrid();
-  const drawer = document.getElementById('cartDrawer');
-  if (drawer && drawer.classList.contains('open')) {
-    const oldSection = document.getElementById('couponSection');
-    if (oldSection) oldSection.remove();
-    const oldMsg = document.getElementById('couponMessage');
-    if (oldMsg) oldMsg.remove();
-    injectCouponUI();
-    updateStoreCartUI();
-  }
-});
+    currentLang = localStorage.getItem('language') || 'en';
+    applyStoreTranslations();
+    renderStoreGrid();
+    const drawer = document.getElementById('cartDrawer');
+    if (drawer && drawer.classList.contains('open')) {
+      const oldSection = document.getElementById('couponSection');
+      if (oldSection) oldSection.remove();
+      const oldMsg = document.getElementById('couponMessage');
+      if (oldMsg) oldMsg.remove();
+      injectCouponUI();
+      updateStoreCartUI();
+    }
+  });
 }
 
 // ==================== Fetch packs from Worker ====================
@@ -654,23 +618,23 @@ function interceptCartButtons() {
   const floatCartBtn = document.getElementById('floatingCartBtn');
   if (!cartBtn && !floatCartBtn) return;
 
-const openOurCart = (e) => {
-  e.stopPropagation();
-  e.preventDefault();
-  const drawer = document.getElementById('cartDrawer');
-  const overlay = document.getElementById('cartOverlay');
-  if (drawer && !drawer.classList.contains('open')) {
-    drawer.classList.add('open');
-    overlay.classList.add('active');
-    document.body.classList.add('drawer-open');
-    const oldSection = document.getElementById('couponSection');
-    if (oldSection) oldSection.remove();
-    const oldMsg = document.getElementById('couponMessage');
-    if (oldMsg) oldMsg.remove();
-    injectCouponUI();
-    renderPayPalButton();
-  }
-};
+  const openOurCart = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const drawer = document.getElementById('cartDrawer');
+    const overlay = document.getElementById('cartOverlay');
+    if (drawer && !drawer.classList.contains('open')) {
+      drawer.classList.add('open');
+      overlay.classList.add('active');
+      document.body.classList.add('drawer-open');
+      const oldSection = document.getElementById('couponSection');
+      if (oldSection) oldSection.remove();
+      const oldMsg = document.getElementById('couponMessage');
+      if (oldMsg) oldMsg.remove();
+      injectCouponUI();
+      renderPayPalButton();
+    }
+  };
 
   if (cartBtn) cartBtn.addEventListener('click', openOurCart, true);
   if (floatCartBtn) floatCartBtn.addEventListener('click', openOurCart, true);
