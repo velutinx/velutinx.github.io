@@ -5,7 +5,8 @@
     "rwby": { "native": "RWBY", "english": "RWBY" },
     "goddess of victory nikke": { "native": "勝利の女神", "english": "Nikke" },
     "pokemon": { "native": "ポケットモンスター", "english": "Pokemon" },
-    "naruto": { "native": "ナルト", "english": "Naruto" }
+    "naruto": { "native": "ナルト", "english": "Naruto" },
+    "high school dxd": { "native": "ハイスクールDxD", "english": "HighSchoolDxD" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
