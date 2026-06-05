@@ -290,15 +290,19 @@
         if (data.valid) {
           activeCoupon = data;
 
-          const discountNum = parseFloat(data.discount);
-          const totalNum = parseFloat(data.final_total);
+          // Compute exact local total from current cart
+          let totalLocal = 0;
+          storeCart.forEach(item => {
+            const usd = window.priceKeyMap[item.priceKey] || 0;
+            totalLocal += getNumericPrice(usd, cur);
+          });
 
-          const discountFormatted = formatPriceTotal(
-            getNumericPrice(discountNum, cur), cur
-          );
-          const totalFormatted = formatPriceTotal(
-            getNumericPrice(totalNum, cur), cur
-          );
+          const discountPercent = parseFloat(data.value); // e.g. 10 for 10%
+          const discountLocal = totalLocal * (discountPercent / 100);
+          const finalLocal = totalLocal - discountLocal;
+
+          const discountFormatted = formatPriceTotal(discountLocal, cur);
+          const totalFormatted = formatPriceTotal(finalLocal, cur);
 
           msg.innerHTML = t.couponApplied
             .replace('{code}', data.code)
@@ -313,9 +317,8 @@
           msg.style.color = '#ef4444';
 
           if (data.error === 'Minimum order not met') {
-            const minOrderFormatted = formatPriceTotal(
-              getNumericPrice(parseFloat(data.required), cur), cur
-            );
+            // Minimum order is always defined in USD, so display it in USD
+            const minOrderFormatted = `US$${parseFloat(data.required).toFixed(2)}`;
             msg.innerHTML = t.couponMinOrder.replace('{amount}', minOrderFormatted);
           } else {
             msg.innerHTML = t.couponInvalid;
