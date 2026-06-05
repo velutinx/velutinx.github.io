@@ -134,6 +134,24 @@ const storeTranslations = {
   }
 };
 
+// ==================== Local‑price helpers ====================
+function getNumericPrice(usd, currency) {
+  const priceObj = window.priceUsdMap?.[usd];
+  if (!priceObj) return usd;
+  const cur = (currency || 'usd').toLowerCase();
+  return priceObj[cur] || usd;
+}
+
+function formatPriceTotal(amount, currency) {
+  const cur = (currency || 'usd').toLowerCase();
+  const symbol = cur === 'usd' ? 'US$' :
+                 cur === 'cny' ? '¥' :
+                 cur === 'jpy' ? '¥' :
+                 cur === 'mxn' ? 'MX$' : '';
+  const decimals = (cur === 'jpy' || cur === 'mxn') ? 0 : 2;
+  return `${symbol}${amount.toFixed(decimals)}`;
+}
+
 // ==================== Store cart ====================
 let storeCart = JSON.parse(localStorage.getItem('velutinx_store_cart') || '[]');
 let activeCoupon = null;
@@ -149,16 +167,18 @@ function updateStoreCartUI() {
   if (!container) return;
 
   const t = storeTranslations[currentLang || 'en'];
+  const cur = window.currentCurrency || 'USD';
 
   container.innerHTML = storeCart.length === 0
     ? `<div style="padding:1rem;">${t.emptyCart}</div>` : '';
 
-  let totalUSD = 0;
+  let totalLocal = 0;
 
   storeCart.forEach((item, idx) => {
     const priceStr = window.getFormattedPrice(item.priceKey);
     const usd = window.priceKeyMap[item.priceKey] || 0;
-    totalUSD += usd;
+    const localPrice = getNumericPrice(usd, cur);
+    totalLocal += localPrice;
 
     const div = document.createElement('div');
     div.className = 'cart-item';
@@ -182,7 +202,7 @@ function updateStoreCartUI() {
   });
 
   if (totalSpan) {
-    totalSpan.innerText = `US$${totalUSD.toFixed(2)}`;
+    totalSpan.innerText = formatPriceTotal(totalLocal, cur);
   }
 
   document.querySelectorAll('#cartCount, #floatingCartCount').forEach(el => {
@@ -255,12 +275,24 @@ function setupCouponHandler() {
 
     const lang = window.currentLanguage || localStorage.getItem('language') || 'en';
     const t = storeTranslations[lang] || storeTranslations.en;
+    const cur = window.currentCurrency || 'USD';
 
     if (data.valid) {
       activeCoupon = data;
 
-      const discountFormatted = `US$${parseFloat(data.discount).toFixed(2)}`;
-      const totalFormatted = `US$${parseFloat(data.final_total).toFixed(2)}`;
+      // Compute exact local total from current cart
+      let totalLocal = 0;
+      storeCart.forEach(item => {
+        const usd = window.priceKeyMap[item.priceKey] || 0;
+        totalLocal += getNumericPrice(usd, cur);
+      });
+
+      const discountPercent = parseFloat(data.value); // e.g. 10 for 10%
+      const discountLocal = totalLocal * (discountPercent / 100);
+      const finalLocal = totalLocal - discountLocal;
+
+      const discountFormatted = formatPriceTotal(discountLocal, cur);
+      const totalFormatted = formatPriceTotal(finalLocal, cur);
 
       msg.innerHTML = t.couponApplied
         .replace('{code}', data.code)
@@ -275,7 +307,12 @@ function setupCouponHandler() {
       msg.style.color = '#ef4444';
 
       if (data.error === 'Minimum order not met') {
-        const minOrderFormatted = `US$${parseFloat(data.required).toFixed(2)}`;
+        let totalLocal = 0;
+        storeCart.forEach(item => {
+          const usd = window.priceKeyMap[item.priceKey] || 0;
+          totalLocal += getNumericPrice(usd, cur);
+        });
+        const minOrderFormatted = formatPriceTotal(parseFloat(data.required), cur);
         msg.innerHTML = t.couponMinOrder.replace('{amount}', minOrderFormatted);
       } else {
         msg.innerHTML = t.couponInvalid;
