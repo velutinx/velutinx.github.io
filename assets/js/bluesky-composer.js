@@ -94,19 +94,60 @@
                 const cornerY = 30;
                 ctx.drawImage(cornerWmImg, cornerX, cornerY);
 
-                canvas.toBlob(blob => {
-                    const watermarkedFile = new File([blob], file.name || 'image.jpg', {
-                        type: 'image/jpeg',
-                        lastModified: Date.now()
-                    });
-                    resolve(watermarkedFile);
-                }, 'image/jpeg', 0.92);
+canvas.toBlob(async blob => {
+  const resizedBlob = await ensureSizeLimit(blob);
+  const watermarkedFile = new File([resizedBlob], file.name || 'image.jpg', {
+    type: 'image/jpeg',
+    lastModified: Date.now()
+  });
+  resolve(watermarkedFile);
+}, 'image/jpeg', 0.92);
             };
             img.onerror = () => reject(new Error('Failed to load image file'));
             img.src = URL.createObjectURL(file);
         });
     }
 
+// Resize / re‑encode an image blob so it's ≤ maxBytes (default 1 MB)
+async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
+  if (blob.size <= maxBytes) return blob;
+
+  const img = await createImageBitmap(blob);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Try a small quality drop first
+  for (let quality = 0.85; quality >= 0.5; quality -= 0.1) {
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    const newBlob = await new Promise(resolve =>
+      canvas.toBlob(resolve, 'image/jpeg', quality)
+    );
+    if (newBlob.size <= maxBytes) return newBlob;
+  }
+
+  // If still too large, scale down dimensions
+  let scale = 0.9;
+  while (scale > 0.2) {
+    canvas.width = Math.floor(img.width * scale);
+    canvas.height = Math.floor(img.height * scale);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const newBlob = await new Promise(resolve =>
+      canvas.toBlob(resolve, 'image/jpeg', 0.8)
+    );
+    if (newBlob.size <= maxBytes) return newBlob;
+    scale -= 0.1;
+  }
+
+  // Last resort – very small
+  canvas.width = 800;
+  canvas.height = Math.floor(800 * (img.height / img.width));
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
+}
+
+    
     // Upload a watermarked file to R2 (fire-and-forget)
     function uploadToR2(blob, filename) {
         const formData = new FormData();
