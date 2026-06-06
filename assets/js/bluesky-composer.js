@@ -647,7 +647,7 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
 
                 if (accountId == 1) {
-                    console.log('🔁 Triggering Twitter SFW cross-post...');
+      //              console.log('🔁 Triggering Twitter SFW cross-post...');
                     if (typeof window.sendToWorker === 'function') {
                         window.sendToWorker(3);
                     }
