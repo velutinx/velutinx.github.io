@@ -608,10 +608,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         const ids = window.accountImages[accountId] || [];
         const images = ids.map(id => window.imageRegistry[id]).filter(Boolean);
 
-        console.log(`📤 Bluesky post: account ${accountId}, text length ${text.length}, images ${images.length}`);
-        console.log('Image IDs:', ids);
-        console.log('Image objects:', images);
-
         if (!text && images.length === 0) {
             console.warn('No text and no images — aborting');
             if (typeof showToast === 'function') showToast('Add text or image first', 'error');
@@ -637,17 +633,14 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
                     console.error(`❌ Image at index ${i} is not a File`, img);
                     throw new Error('Invalid image file');
                 }
-                console.log(`  Appending image ${i}: name="${img.name}", size=${img.size}, type=${img.type}`);
                 formData.append('image', img, img.name || 'image.jpg');
             });
 
-            console.log('🚀 Sending to Bluesky worker...');
             const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
                 method: 'POST',
                 body: formData
             });
             const data = await res.json();
-            console.log('Bluesky response:', data);
 
             if (res.ok) {
                 statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
