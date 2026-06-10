@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fake Countdown Timer</title>
+
+<style>
+
+@font-face{
+    font-family:"Welbut";
+    src:url("https://www.velutinx.com/fonts/welbut__.ttf") format("truetype");
+    font-weight:normal;
+    font-style:normal;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#111;
+    color:#fff;
+    font-family:Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.container{
+    text-align:center;
+}
+
+h2{
+    margin-bottom:20px;
+    font-weight:normal;
+}
+
+input{
+    width:260px;
+    padding:10px;
+    font-size:24px;
+    text-align:center;
+    border:none;
+    border-radius:5px;
+}
+
+button{
+    padding:10px 20px;
+    font-size:20px;
+    margin-left:10px;
+    cursor:pointer;
+}
+
+#display{
+
+    margin-top:40px;
+
+    font-family:"Welbut",monospace;
+
+    font-size:130px;
+    line-height:1;
+
+    letter-spacing:2px;
+
+    color:#fafafa;
+
+    text-shadow:
+        0 0 1px #fff,
+        0 0 4px rgba(255,255,255,.45),
+        1px 1px 0 rgba(0,0,0,.5);
+
+    transform:scaleY(1.05);
+
+    user-select:none;
+
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Starting Time (HH:MM:SS)</h2>
+
+    <input
+        id="timeInput"
+        type="text"
+        value="01:35:50"
+    >
+
+    <button onclick="startTimer()">
+        Start
+    </button>
+
+    <div id="display">
+        01:35:50
+    </div>
+
+</div>
+
+<script>
+
+let timeoutId=null;
+
+let startSeconds=0;
+let startTimestamp=0;
+
+function parseTime(str){
+
+    const p=str.split(":").map(Number);
+
+    if(p.length!==3)return 0;
+
+    return (
+        p[0]*3600+
+        p[1]*60+
+        p[2]
+    );
+
+}
+
+function format(sec){
+
+    sec=Math.max(0,sec);
+
+    const h=Math.floor(sec/3600);
+    const m=Math.floor((sec%3600)/60);
+    const s=sec%60;
+
+    return [
+        String(h).padStart(2,"0"),
+        String(m).padStart(2,"0"),
+        String(s).padStart(2,"0")
+    ].join(":");
+
+}
+
+function update(){
+
+    const elapsed=
+        Math.floor(
+            (Date.now()-startTimestamp)/1000
+        );
+
+    const realRemaining=
+        startSeconds-elapsed;
+
+    if(realRemaining<=0){
+
+        document.getElementById(
+            "display"
+        ).textContent="00:00:00";
+
+        return;
+
+    }
+
+    // Random offset from -10 to +10 seconds.
+
+    const fakeOffset=
+        Math.floor(Math.random()*21)-10;
+
+    const shownTime=
+        realRemaining+fakeOffset;
+
+    document.getElementById(
+        "display"
+    ).textContent=
+        format(shownTime);
+
+    // Single timer controlling everything.
+
+    timeoutId=
+        setTimeout(
+            update,
+            200
+        );
+
+}
+
+function startTimer(){
+
+    if(timeoutId){
+        clearTimeout(timeoutId);
+    }
+
+    startSeconds=
+        parseTime(
+            document.getElementById(
+                "timeInput"
+            ).value
+        );
+
+    startTimestamp=
+        Date.now();
+
+    update();
+
+}
+
+startTimer();
+
+</script>
+
+</body>
+</html>
