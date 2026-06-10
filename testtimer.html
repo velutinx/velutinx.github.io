@@ -2,18 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="preload" href="/fonts/welbut__.woff2" as="font" type="font/woff2" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fake Countdown Timer</title>
 
 <style>
 
-@font-face{
-    font-family:"Welbut";
-    src: url("/fonts/welbut__.ttf") format("truetype");
-    font-weight:normal;
-    font-style:normal;
+@font-face {
+    font-family: "Welbut";
+    src: url("/fonts/welbut__.woff2") format("woff2"),
+         url("/fonts/welbut__.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
-
 *{
     margin:0;
     padding:0;
