@@ -43,17 +43,20 @@
 
     // ---------- Link transformation helpers ----------
 
-    // Shorten Patreon post links to just the numeric ID, leave other URLs untouched
-    function shortenPatreonLinks(text) {
-        return text.replace(/https?:\/\/\S+/g, function(url) {
-            const patreonMatch = url.match(/^https?:\/\/www\.patreon\.com\/posts\/(?:[^\/]*?-)?(\d+)(?:[?#].*)?$/);
-            if (patreonMatch) {
-                return 'https://www.patreon.com/posts/' + patreonMatch[1];
-            }
-            // Non-Patreon URLs are left as they are
-            return url;
-        });
-    }
+function shortenPatreonLinks(text) {
+    return text.replace(/https?:\/\/\S+/g, function(url) {
+        // matches both:
+        // https://www.patreon.com/posts/erza-scarlet-100-160763107?pr=true...
+        // https://www.patreon.com/Velutinx_/posts/erza-scarlet-100-160763107?pr=true...
+        const patreonRegex = /^(https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/)(?:.*?-)?(\d+)(?:[?#].*)?$/;
+        const match = url.match(patreonRegex);
+        if (match) {
+            return match[1] + match[2];  // prefix + numeric ID
+        }
+        // leave other URLs unchanged (they will be handled by the Twitter-specific replacement later)
+        return url;
+    });
+}
 
     // Replace ALL URLs with the link‑in‑bio message (used for Twitter)
     function replaceUrlsWithBio(text) {
