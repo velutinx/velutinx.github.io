@@ -45,15 +45,18 @@
 
 function shortenPatreonLinks(text) {
     return text.replace(/https?:\/\/\S+/g, function(url) {
-        // matches both:
-        // https://www.patreon.com/posts/erza-scarlet-100-160763107?pr=true...
-        // https://www.patreon.com/Velutinx_/posts/erza-scarlet-100-160763107?pr=true...
-        const patreonRegex = /^(https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/)(?:.*?-)?(\d+)(?:[?#].*)?$/;
+        // Match any Patreon post URL (with or without username) and capture the numeric post ID.
+        // Examples:
+        //   https://www.patreon.com/posts/erza-scarlet-100-160763107?pr=true...
+        //   https://www.patreon.com/Velutinx_/posts/erza-scarlet-100-160763107?pr=true...
+        //   https://www.patreon.com/Velutinx_/posts/159510330
+        const patreonRegex = /^https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/(?:.*?-)?(\d+)(?:[?#].*)?$/;
         const match = url.match(patreonRegex);
         if (match) {
-            return match[1] + match[2];  // prefix + numeric ID
+            // Always rewrite to the canonical format
+            return 'https://www.patreon.com/posts/' + match[1];
         }
-        // leave other URLs unchanged (they will be handled by the Twitter-specific replacement later)
+        // Leave other URLs unchanged (they will be handled by the Twitter-specific replacement later)
         return url;
     });
 }
