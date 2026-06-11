@@ -179,43 +179,47 @@
     // ----- Auto‑generation (debounced) -----
     let debounceTimer;
 
-    async function handleInput() {
-        const input = document.getElementById('hashgenInput');
-        const status = document.getElementById('hashgenStatus');
-        const masterPost = document.getElementById('masterPost');
+async function handleInput() {
+    const input = document.getElementById('hashgenInput');
+    const status = document.getElementById('hashgenStatus');
+    const masterPost = document.getElementById('masterPost');
 
-        if (!input || !masterPost) return;
+    if (!input || !masterPost) return;
 
-        const raw = input.value.trim();
-        if (!raw) {
-            status.textContent = '';
-            return;
-        }
-
-        const parsed = parseInput(raw);
-        if (!parsed.character && !parsed.series) {
-            status.textContent = 'Could not parse character or series';
-            return;
-        }
-
-        status.textContent = 'Fetching AniList…';
-        try {
-            const hashtags = await generateHashtags(parsed.character, parsed.series);
-            const hashtagString = hashtags.join(' ');
-
-            const seriesDisplay = parsed.series || 'Unknown Series';
-            const fullPost = `New work released.\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
-
-            masterPost.value = fullPost;
-            masterPost.dispatchEvent(new Event('input'));
-
-            status.textContent = '✅ Post ready!';
-            if (typeof showToast === 'function') showToast('Post generated!', 'success');
-        } catch (err) {
-            console.error(err);
-            status.textContent = '❌ AniList fetch failed';
-        }
+    const raw = input.value.trim();
+    if (!raw) {
+        status.textContent = '';
+        return;
     }
+
+    const parsed = parseInput(raw);
+    if (!parsed.character && !parsed.series) {
+        status.textContent = 'Could not parse character or series';
+        return;
+    }
+
+    status.textContent = 'Fetching AniList…';
+    try {
+        const hashtags = await generateHashtags(parsed.character, parsed.series);
+        const hashtagString = hashtags.join(' ');
+
+        // Detect if the input contains " — Request" (case‑insensitive)
+        const isRequest = / — Request/i.test(raw);
+        const openingLine = isRequest ? 'New request released.' : 'New work released.';
+
+        const seriesDisplay = parsed.series || 'Unknown Series';
+        const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
+
+        masterPost.value = fullPost;
+        masterPost.dispatchEvent(new Event('input'));
+
+        status.textContent = '✅ Post ready!';
+        if (typeof showToast === 'function') showToast('Post generated!', 'success');
+    } catch (err) {
+        console.error(err);
+        status.textContent = '❌ AniList fetch failed';
+    }
+}
 
     function init() {
         // Load overrides first, then listen for input
