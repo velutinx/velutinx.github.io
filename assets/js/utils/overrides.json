@@ -7,7 +7,8 @@
     "pokemon": { "native": "ポケットモンスター", "english": "Pokemon" },
     "naruto": { "native": "ナルト", "english": "Naruto" },
     "high school dxd": { "native": "ハイスクールDxD", "english": "HighSchoolDxD" },
-    "mass effect": { "native": "マスエフェクト", "english": "MassEffect" }
+    "mass effect": { "native": "マスエフェクト", "english": "MassEffect" },
+    "blue archive": { "native": "ブルーアーカイブ", "english": "BlueArchive" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
