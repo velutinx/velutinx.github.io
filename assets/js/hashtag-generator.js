@@ -42,42 +42,61 @@
     }
 
     // ----- Parser (unchanged) -----
-    function parseInput(raw) {
-        let text = raw.trim();
+function parseInput(raw) {
+    let text = raw.trim();
 
-        text = text.replace(/\.(zip|rar|7z)$/i, '');
-        text = text.replace(/^\[[^\]]+\]\s*/i, '');
-        text = text.replace(/\([^)]*\)/g, '');
-        text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+    // Remove common file extensions and brackets
+    text = text.replace(/\.(zip|rar|7z)$/i, '');
+    text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
-        if (text.startsWith("Preview:")) {
-            const afterPreview = text.replace(/^Preview:\s*/i, '');
-            const packIndex = afterPreview.indexOf(" — Pack");
-            if (packIndex !== -1) {
-                text = afterPreview.substring(0, packIndex).trim();
-            } else {
-                text = afterPreview;
+    // ---- NEW: Handle [SERIES] Character — … format ----
+    if (/^\[[^\]]+\]/.test(text)) {
+        const bracketMatch = text.match(/^\[([^\]]+)\]\s*(.+)/);
+        if (bracketMatch) {
+            const series = bracketMatch[1].trim();
+            let rest = bracketMatch[2].trim();
+            // Remove anything after the first separator (em dash or hyphen)
+            const sepIndex = rest.search(/ — | - /);
+            if (sepIndex !== -1) {
+                rest = rest.substring(0, sepIndex).trim();
             }
+            return { character: rest, series };
         }
-
-        const separators = [' — ', ' - '];
-        let splitIndex = -1;
-        for (const sep of separators) {
-            const idx = text.indexOf(sep);
-            if (idx !== -1) {
-                splitIndex = idx;
-                break;
-            }
-        }
-
-        if (splitIndex === -1) {
-            return { character: text.trim(), series: '' };
-        }
-
-        const character = text.slice(0, splitIndex).trim();
-        const series = text.slice(splitIndex + 3).trim();
-        return { character, series };
     }
+
+    // ---- Existing Preview: … — Series — Pack #… format ----
+    if (text.startsWith("Preview:")) {
+        const afterPreview = text.replace(/^Preview:\s*/i, '');
+        const packIndex = afterPreview.indexOf(" — Pack");
+        if (packIndex !== -1) {
+            text = afterPreview.substring(0, packIndex).trim();
+        } else {
+            text = afterPreview;
+        }
+    }
+
+    // ---- Remove parenthesised notes like (Femshep) ----
+    text = text.replace(/\([^)]*\)/g, '').trim();
+
+    // ---- Split on either " — " or " - " ----
+    const separators = [' — ', ' - '];
+    let splitIndex = -1;
+    for (const sep of separators) {
+        const idx = text.indexOf(sep);
+        if (idx !== -1) {
+            splitIndex = idx;
+            break;
+        }
+    }
+
+    if (splitIndex === -1) {
+        return { character: text.trim(), series: '' };
+    }
+
+    const character = text.slice(0, splitIndex).trim();
+    const series = text.slice(splitIndex + 3).trim();
+    return { character, series };
+}
 
     async function fetchAniList(query, variables) {
         const response = await fetch("https://graphql.anilist.co", {
