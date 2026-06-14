@@ -1,4 +1,4 @@
-// zip-to-post.js – Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
+// zip-to-post.js
 
 document.addEventListener('DOMContentLoaded', function() {
     // ----- Toast notification (global, reusable) -----
@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ----- Helper: update shared state and notify Cloudflare tab -----
     function updateSharedState(zipData) {
         window.sharedZipData = zipData;
-        // Dispatch a custom event so Cloudflare tab can react
         window.dispatchEvent(new CustomEvent('zipDataUpdated', { detail: zipData }));
     }
 
@@ -85,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.value = '';
     });
 
-    // Clean filename, parseFilename, normalize, findPackId same as before...
     function cleanFilename(rawName) {
         let name = rawName.replace(/\.zip$/i, '');
         name = name.replace(/\s*\(\d+\)\s*$/, '');
@@ -106,27 +104,25 @@ document.addEventListener('DOMContentLoaded', function() {
         return str.toLowerCase().replace(/[^a-z0-9]/g, '');
     }
     async function findPackId(character, fileCount) {
-    try {
-        // Use the same API endpoint the Pack Manager already uses
-        const response = await fetch('https://packs-api.velutinx.workers.dev/api/packs');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const packs = await response.json();   // array of pack objects
-
-        const normalizedChar = normalize(character);
-        for (const pack of packs) {
-            const match = pack.title.match(/^\[Pack \d+\]\s+(.+?)\s*-\s*(.+)$/i);
-            if (!match) continue;
-            const packChar = match[1].trim();
-            if (normalize(packChar) === normalizedChar && pack.illustrationCount === fileCount) {
-                return pack.id;
+        try {
+            const response = await fetch('https://packs-api.velutinx.workers.dev/api/packs');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const packs = await response.json();
+            const normalizedChar = normalize(character);
+            for (const pack of packs) {
+                const match = pack.title.match(/^\[Pack \d+\]\s+(.+?)\s*-\s*(.+)$/i);
+                if (!match) continue;
+                const packChar = match[1].trim();
+                if (normalize(packChar) === normalizedChar && pack.illustrationCount === fileCount) {
+                    return pack.id;
+                }
             }
+            return null;
+        } catch (err) {
+            console.warn('Failed to fetch packs from API, falling back', err);
+            return null;
         }
-        return null;
-    } catch (err) {
-        console.warn('Failed to fetch packs from API, falling back', err);
-        return null;
     }
-}
 
     async function handleFile(file) {
         if (!file.name.toLowerCase().endsWith('.zip')) {
@@ -160,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let fileCount = 0;
             zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
 
-            // Generate posts (same as before)
+            // Generate existing outputs
             subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
             publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
             patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
@@ -173,7 +169,24 @@ document.addEventListener('DOMContentLoaded', function() {
             filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
             showToast(`✅ Processed ${fileCount} images`, 'success');
 
-            // ----- Extract first 10 images for shared state -----
+            // ----- NEW: Auto‑update master post for Twitter/Bluesky -----
+            const masterPost = document.getElementById('masterPost');
+            if (masterPost) {
+                // Extract words from character name: e.g., "Jane Shepard (Femshep)" → ["Jane","Shepard","Femshep"]
+                const words = character.match(/[\w]+/g);
+                if (words && words.length > 0) {
+                    const normalTag = words.join('');               // "JaneShepardFemshep"
+                    const reversedTag = [...words].reverse().join(''); // "FemshepShepardJane"
+                    const packTag = `Pack${pack}`;
+                    const hashtagString = `#${normalTag} #${reversedTag} #${packTag}`;
+
+                    const fullPost = `New work released.\n\n${character} from Pack ${pack}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
+                    masterPost.value = fullPost;
+                    masterPost.dispatchEvent(new Event('input')); // triggers mirroring
+                }
+            }
+
+            // Shared state for Cloudflare tab
             const imageEntries = [];
             zip.forEach((path, entry) => {
                 if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
