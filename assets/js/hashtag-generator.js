@@ -2,7 +2,6 @@
 (function() {
     'use strict';
 
-    // Override storage
     let overrideData = { franchise: {}, character: {} };
 
     async function loadOverrides() {
@@ -42,61 +41,56 @@
     }
 
     // ----- Parser (unchanged) -----
-function parseInput(raw) {
-    let text = raw.trim();
+    function parseInput(raw) {
+        let text = raw.trim();
 
-    // Remove common file extensions and brackets
-    text = text.replace(/\.(zip|rar|7z)$/i, '');
-    text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+        text = text.replace(/\.(zip|rar|7z)$/i, '');
+        text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // ---- NEW: Handle [SERIES] Character — … format ----
-    if (/^\[[^\]]+\]/.test(text)) {
-        const bracketMatch = text.match(/^\[([^\]]+)\]\s*(.+)/);
-        if (bracketMatch) {
-            const series = bracketMatch[1].trim();
-            let rest = bracketMatch[2].trim();
-            // Remove anything after the first separator (em dash or hyphen)
-            const sepIndex = rest.search(/ — | - /);
-            if (sepIndex !== -1) {
-                rest = rest.substring(0, sepIndex).trim();
+        // ---- NEW: Handle [SERIES] Character — … format ----
+        if (/^\[[^\]]+\]/.test(text)) {
+            const bracketMatch = text.match(/^\[([^\]]+)\]\s*(.+)/);
+            if (bracketMatch) {
+                const series = bracketMatch[1].trim();
+                let rest = bracketMatch[2].trim();
+                const sepIndex = rest.search(/ — | - /);
+                if (sepIndex !== -1) {
+                    rest = rest.substring(0, sepIndex).trim();
+                }
+                return { character: rest, series };
             }
-            return { character: rest, series };
         }
-    }
 
-    // ---- Existing Preview: … — Series — Pack #… format ----
-    if (text.startsWith("Preview:")) {
-        const afterPreview = text.replace(/^Preview:\s*/i, '');
-        const packIndex = afterPreview.indexOf(" — Pack");
-        if (packIndex !== -1) {
-            text = afterPreview.substring(0, packIndex).trim();
-        } else {
-            text = afterPreview;
+        if (text.startsWith("Preview:")) {
+            const afterPreview = text.replace(/^Preview:\s*/i, '');
+            const packIndex = afterPreview.indexOf(" — Pack");
+            if (packIndex !== -1) {
+                text = afterPreview.substring(0, packIndex).trim();
+            } else {
+                text = afterPreview;
+            }
         }
-    }
 
-    // ---- Remove parenthesised notes like (Femshep) ----
-    text = text.replace(/\([^)]*\)/g, '').trim();
+        text = text.replace(/\([^)]*\)/g, '').trim();
 
-    // ---- Split on either " — " or " - " ----
-    const separators = [' — ', ' - '];
-    let splitIndex = -1;
-    for (const sep of separators) {
-        const idx = text.indexOf(sep);
-        if (idx !== -1) {
-            splitIndex = idx;
-            break;
+        const separators = [' — ', ' - '];
+        let splitIndex = -1;
+        for (const sep of separators) {
+            const idx = text.indexOf(sep);
+            if (idx !== -1) {
+                splitIndex = idx;
+                break;
+            }
         }
-    }
 
-    if (splitIndex === -1) {
-        return { character: text.trim(), series: '' };
-    }
+        if (splitIndex === -1) {
+            return { character: text.trim(), series: '' };
+        }
 
-    const character = text.slice(0, splitIndex).trim();
-    const series = text.slice(splitIndex + 3).trim();
-    return { character, series };
-}
+        const character = text.slice(0, splitIndex).trim();
+        const series = text.slice(splitIndex + 3).trim();
+        return { character, series };
+    }
 
     async function fetchAniList(query, variables) {
         const response = await fetch("https://graphql.anilist.co", {
@@ -107,7 +101,7 @@ function parseInput(raw) {
         return response.json();
     }
 
-    // ----- Generate hashtags (now uses overrides) -----
+    // ----- Generate hashtags (now supports arrays in overrides) -----
     async function generateHashtags(characterName, animeName) {
         const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
         const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
@@ -129,26 +123,37 @@ function parseInput(raw) {
         animeRomaji = cleanupSeriesTitle(animeRomaji);
         animeEnglish = cleanupSeriesTitle(animeEnglish);
 
-        // Apply overrides (case‑insensitive key matching)
         const lowerSeries = animeName.toLowerCase();
         const lowerCharacter = characterName.toLowerCase();
 
-        if (overrideData.franchise[lowerSeries]) {
-            const over = overrideData.franchise[lowerSeries];
-            animeNative = over.native || animeNative;
-            animeEnglish = over.english || animeEnglish;
-        }
-        if (overrideData.character[lowerCharacter]) {
-            const over = overrideData.character[lowerCharacter];
-            charNative = over.native || charNative;
+        // Apply overrides – convert to arrays if needed
+        let franchiseOverride = overrideData.franchise[lowerSeries];
+        let characterOverride = overrideData.character[lowerCharacter];
+
+        // For franchise: override animeNative and animeEnglish
+        if (franchiseOverride) {
+            if (franchiseOverride.native) {
+                animeNative = Array.isArray(franchiseOverride.native)
+                    ? franchiseOverride.native
+                    : [franchiseOverride.native];
+            }
+            if (franchiseOverride.english) {
+                animeEnglish = Array.isArray(franchiseOverride.english)
+                    ? franchiseOverride.english
+                    : [franchiseOverride.english];
+            }
         }
 
-        // Build tag arrays in the required order:
-        // English character tags (full name + reversed)
-        // English series tag(s)
-        // Japanese character tag
-        // Japanese series tag
+        // For character: override charNative
+        if (characterOverride) {
+            if (characterOverride.native) {
+                charNative = Array.isArray(characterOverride.native)
+                    ? characterOverride.native
+                    : [characterOverride.native];
+            }
+        }
 
+        // Build English character tags
         const engCharTags = [];
         const splitChar = charFull.split(' ');
         if (splitChar.length >= 2) {
@@ -161,25 +166,56 @@ function parseInput(raw) {
             if (tag) engCharTags.push(tag);
         }
 
+        // Build English series tags
         const engSeriesTags = [];
-        const romajiTag = makeHashtag(animeRomaji);
-        const englishTag = makeHashtag(animeEnglish);
-        if (romajiTag && englishTag && romajiTag.toLowerCase() === englishTag.toLowerCase()) {
-            engSeriesTags.push(englishTag);
+        if (Array.isArray(animeEnglish)) {
+            for (const eng of animeEnglish) {
+                const tag = makeHashtag(eng);
+                if (tag) engSeriesTags.push(tag);
+            }
         } else {
-            if (romajiTag) engSeriesTags.push(romajiTag);
-            if (englishTag) engSeriesTags.push(englishTag);
+            // single string – keep old behavior
+            const romajiTag = makeHashtag(animeRomaji);
+            const englishTag = makeHashtag(animeEnglish);
+            if (romajiTag && englishTag && romajiTag.toLowerCase() === englishTag.toLowerCase()) {
+                engSeriesTags.push(englishTag);
+            } else {
+                if (romajiTag) engSeriesTags.push(romajiTag);
+                if (englishTag) engSeriesTags.push(englishTag);
+            }
         }
 
-        const jpCharTag = makeHashtag(charNative);
-        const jpSeriesTag = makeHashtag(animeNative);
+        // Build Japanese character tags
+        const jpCharTags = [];
+        if (Array.isArray(charNative)) {
+            for (const nat of charNative) {
+                const tag = makeHashtag(nat);
+                if (tag) jpCharTags.push(tag);
+            }
+        } else {
+            const tag = makeHashtag(charNative);
+            if (tag) jpCharTags.push(tag);
+        }
 
+        // Build Japanese series tags
+        const jpSeriesTags = [];
+        if (Array.isArray(animeNative)) {
+            for (const nat of animeNative) {
+                const tag = makeHashtag(nat);
+                if (tag) jpSeriesTags.push(tag);
+            }
+        } else {
+            const tag = makeHashtag(animeNative);
+            if (tag) jpSeriesTags.push(tag);
+        }
+
+        // Combine in desired order: eng char, eng series, jp char, jp series
         const allTags = [
             ...engCharTags.filter(Boolean),
             ...engSeriesTags.filter(Boolean),
-            jpCharTag,
-            jpSeriesTag
-        ].filter(Boolean);
+            ...jpCharTags.filter(Boolean),
+            ...jpSeriesTags.filter(Boolean)
+        ];
 
         // Remove duplicates (case insensitive)
         const seen = new Set();
@@ -198,50 +234,48 @@ function parseInput(raw) {
     // ----- Auto‑generation (debounced) -----
     let debounceTimer;
 
-async function handleInput() {
-    const input = document.getElementById('hashgenInput');
-    const status = document.getElementById('hashgenStatus');
-    const masterPost = document.getElementById('masterPost');
+    async function handleInput() {
+        const input = document.getElementById('hashgenInput');
+        const status = document.getElementById('hashgenStatus');
+        const masterPost = document.getElementById('masterPost');
 
-    if (!input || !masterPost) return;
+        if (!input || !masterPost) return;
 
-    const raw = input.value.trim();
-    if (!raw) {
-        status.textContent = '';
-        return;
+        const raw = input.value.trim();
+        if (!raw) {
+            status.textContent = '';
+            return;
+        }
+
+        const parsed = parseInput(raw);
+        if (!parsed.character && !parsed.series) {
+            status.textContent = 'Could not parse character or series';
+            return;
+        }
+
+        status.textContent = 'Fetching AniList…';
+        try {
+            const hashtags = await generateHashtags(parsed.character, parsed.series);
+            const hashtagString = hashtags.join(' ');
+
+            const isRequest = / — Request/i.test(raw);
+            const openingLine = isRequest ? 'New request released.' : 'New work released.';
+
+            const seriesDisplay = parsed.series || 'Unknown Series';
+            const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
+
+            masterPost.value = fullPost;
+            masterPost.dispatchEvent(new Event('input'));
+
+            status.textContent = '✅ Post ready!';
+            if (typeof showToast === 'function') showToast('Post generated!', 'success');
+        } catch (err) {
+            console.error(err);
+            status.textContent = '❌ AniList fetch failed';
+        }
     }
-
-    const parsed = parseInput(raw);
-    if (!parsed.character && !parsed.series) {
-        status.textContent = 'Could not parse character or series';
-        return;
-    }
-
-    status.textContent = 'Fetching AniList…';
-    try {
-        const hashtags = await generateHashtags(parsed.character, parsed.series);
-        const hashtagString = hashtags.join(' ');
-
-        // Detect if the input contains " — Request" (case‑insensitive)
-        const isRequest = / — Request/i.test(raw);
-        const openingLine = isRequest ? 'New request released.' : 'New work released.';
-
-        const seriesDisplay = parsed.series || 'Unknown Series';
-        const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
-
-        masterPost.value = fullPost;
-        masterPost.dispatchEvent(new Event('input'));
-
-        status.textContent = '✅ Post ready!';
-        if (typeof showToast === 'function') showToast('Post generated!', 'success');
-    } catch (err) {
-        console.error(err);
-        status.textContent = '❌ AniList fetch failed';
-    }
-}
 
     function init() {
-        // Load overrides first, then listen for input
         loadOverrides().then(() => {
             const input = document.getElementById('hashgenInput');
             if (!input) return;
