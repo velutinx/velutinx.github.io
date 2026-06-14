@@ -8,12 +8,19 @@
     "naruto": { "native": "ナルト", "english": "Naruto" },
     "high school dxd": { "native": "ハイスクールDxD", "english": "HighSchoolDxD" },
     "mass effect": { "native": "マスエフェクト", "english": "MassEffect" },
-    "blue archive": { "native": "ブルーアーカイブ", "english": "BlueArchive" }
+    "blue archive": { "native": "ブルーアーカイブ", "english": "BlueArchive" },
+    "fate grand order": {
+      "english": ["FGO", "FateGrandOrder"],
+      "native": ["フェイト・グランドオーダー"]
+    }
   },
   "character": {
     "diluc": { "native": "ディルック" },
     "neopolitan": { "native": "ネオポリタン" },
     "noir": { "native": "ノワール" },
-    "lynae": { "native": "リンネー" }
+    "lynae": { "native": "リンネー" },
+    "jack the ripper": {
+      "native": ["ジャック・ザ・リッパー", "黒のアサシン"]
+    }
   }
 }
