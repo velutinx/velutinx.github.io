@@ -1,4 +1,4 @@
-// zip-to-post.js
+// zip-to-post.js – Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
 
 document.addEventListener('DOMContentLoaded', function() {
     // ----- Toast notification (global, reusable) -----
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let fileCount = 0;
             zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
 
-            // Generate existing outputs
+            // Generate existing outputs (unchanged)
             subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
             publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
             patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
@@ -169,21 +169,13 @@ document.addEventListener('DOMContentLoaded', function() {
             filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
             showToast(`✅ Processed ${fileCount} images`, 'success');
 
-            // ----- NEW: Auto‑update master post for Twitter/Bluesky -----
-            const masterPost = document.getElementById('masterPost');
-            if (masterPost) {
-                // Extract words from character name: e.g., "Jane Shepard (Femshep)" → ["Jane","Shepard","Femshep"]
-                const words = character.match(/[\w]+/g);
-                if (words && words.length > 0) {
-                    const normalTag = words.join('');               // "JaneShepardFemshep"
-                    const reversedTag = [...words].reverse().join(''); // "FemshepShepardJane"
-                    const packTag = `Pack${pack}`;
-                    const hashtagString = `#${normalTag} #${reversedTag} #${packTag}`;
-
-                    const fullPost = `New work released.\n\n${character} from Pack ${pack}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
-                    masterPost.value = fullPost;
-                    masterPost.dispatchEvent(new Event('input')); // triggers mirroring
-                }
+            // ----- Trigger the same hashtag generator used in the Tweeter tab -----
+            const hashgenInput = document.getElementById('hashgenInput');
+            if (hashgenInput) {
+                // Build a preview string exactly like the one you'd paste manually
+                const previewString = `Preview: ${character} — ${series} — Pack #${pack}`;
+                hashgenInput.value = previewString;
+                hashgenInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
 
             // Shared state for Cloudflare tab
