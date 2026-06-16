@@ -41,25 +41,34 @@
         updateTwitterCounter(textarea);
     }
 
+    // ---------- Auto‑resize textarea ----------
+    function autoResize(textarea) {
+        if (!textarea) return;
+        // Reset height to auto so we can read the natural scrollHeight
+        textarea.style.height = 'auto';
+        // Set height to scrollHeight plus a small buffer (prevents unnecessary scrollbar)
+        textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+    }
+
     // ---------- Link transformation helpers ----------
 
-function shortenPatreonLinks(text) {
-    return text.replace(/https?:\/\/\S+/g, function(url) {
-        // Match any Patreon post URL (with or without username) and capture the numeric post ID.
-        // Examples:
-        //   https://www.patreon.com/posts/erza-scarlet-100-160763107?pr=true...
-        //   https://www.patreon.com/Velutinx_/posts/erza-scarlet-100-160763107?pr=true...
-        //   https://www.patreon.com/Velutinx_/posts/159510330
-        const patreonRegex = /^https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/(?:.*?-)?(\d+)(?:[?#].*)?$/;
-        const match = url.match(patreonRegex);
-        if (match) {
-            // Always rewrite to the canonical format
-            return 'https://www.patreon.com/posts/' + match[1];
-        }
-        // Leave other URLs unchanged (they will be handled by the Twitter-specific replacement later)
-        return url;
-    });
-}
+    function shortenPatreonLinks(text) {
+        return text.replace(/https?:\/\/\S+/g, function(url) {
+            // Match any Patreon post URL (with or without username) and capture the numeric post ID.
+            // Examples:
+            //   https://www.patreon.com/posts/erza-scarlet-100-160763107?pr=true...
+            //   https://www.patreon.com/Velutinx_/posts/erza-scarlet-100-160763107?pr=true...
+            //   https://www.patreon.com/Velutinx_/posts/159510330
+            const patreonRegex = /^https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/(?:.*?-)?(\d+)(?:[?#].*)?$/;
+            const match = url.match(patreonRegex);
+            if (match) {
+                // Always rewrite to the canonical format
+                return 'https://www.patreon.com/posts/' + match[1];
+            }
+            // Leave other URLs unchanged (they will be handled by the Twitter-specific replacement later)
+            return url;
+        });
+    }
 
     // Replace ALL URLs with the link‑in‑bio message (used for Twitter)
     function replaceUrlsWithBio(text) {
@@ -75,6 +84,8 @@ function shortenPatreonLinks(text) {
     ].filter(Boolean);
     if (master) {
         master.addEventListener('input', () => {
+            autoResize(master);   // resize master as user types
+
             const rawText = master.value;
             // Bluesky: shorten Patreon links, keep other URLs
             const blueskyText = shortenPatreonLinks(rawText);
@@ -89,7 +100,10 @@ function shortenPatreonLinks(text) {
                     ta.value = blueskyText;
                 }
             });
-            allChildren.forEach(ta => ta.dispatchEvent(new Event('input')));
+            allChildren.forEach(ta => {
+                ta.dispatchEvent(new Event('input'));
+                autoResize(ta);   // resize after value change
+            });
         });
     }
 
@@ -362,9 +376,14 @@ function shortenPatreonLinks(text) {
 
     // ---------- Init ----------
     function init() {
+        // Install counters and auto‑resize for Twitter boxes
         for (let i = 1; i <= 3; i++) {
-            installTwitterCounter(document.getElementById(`twitter-post-${i}`));
+            const ta = document.getElementById(`twitter-post-${i}`);
+            installTwitterCounter(ta);
+            // Auto‑resize on input
+            ta.addEventListener('input', () => autoResize(ta));
         }
+
         if (!window.imageRegistry) window.imageRegistry = {};
         if (!window.accountImages) window.accountImages = { 1: [], 2: [] };
         if (!window.twitterImageIds) window.twitterImageIds = { 1: [], 2: [], 3: [] };
@@ -385,6 +404,13 @@ function shortenPatreonLinks(text) {
 
         unlockTwitter12IfNeeded();
         unlockSfwTwitterIfNeeded();
+
+        // Initial auto‑resize for any pre‑filled content
+        if (master) autoResize(master);
+        for (let i = 1; i <= 3; i++) {
+            const ta = document.getElementById(`twitter-post-${i}`);
+            if (ta) autoResize(ta);
+        }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
