@@ -762,6 +762,15 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
                 window.unlockTwitter12IfNeeded();
             }
         });
+
+        // After installCharCounter(post1) and installCharCounter(post2)
+const autoResize = (ta) => {
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = (ta.scrollHeight + 2) + 'px';
+};
+post1.addEventListener('input', () => autoResize(post1));
+post2.addEventListener('input', () => autoResize(post2));
     }
 
     if (document.readyState === 'loading') {
