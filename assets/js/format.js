@@ -1,7 +1,33 @@
-// format.js – custom cursor, magnetic social grid, gallery, zoom, & commission sparkles
+// format.js – custom cursor, magnetic social grid (with wavy rainbow ring),
+// gallery, zoom, commission sparkles, contact form & falling stars
 (function() {
   function init() {
-    // ---------- 1. INJECT CURSOR ELEMENTS ----------
+    // ─────────── 0. GENERATE WAVY SVG MASK (shared across all magnetic-wrap ::after) ───────────
+    function createWavyRingSVG(cx, cy, R, A, waves, numPoints, strokeWidth) {
+      let pathData = '';
+      for (let i = 0; i <= numPoints; i++) {
+        const angle = (i / numPoints) * 2 * Math.PI;
+        const r = R + A * Math.sin(waves * angle);
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        if (i === 0) {
+          pathData += `M ${x.toFixed(2)},${y.toFixed(2)} `;
+        } else {
+          pathData += `L ${x.toFixed(2)},${y.toFixed(2)} `;
+        }
+      }
+      pathData += 'Z';
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cx * 2}" height="${cy * 2}" viewBox="0 0 ${cx * 2} ${cy * 2}">
+        <path d="${pathData}" fill="none" stroke="white" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      return svg;
+    }
+
+    const wavySVG = createWavyRingSVG(51, 51, 43, 2.5, 16, 180, 3);
+    const dataUri = 'data:image/svg+xml,' + encodeURIComponent(wavySVG);
+    document.documentElement.style.setProperty('--wavy-mask-url', `url(${dataUri})`);
+
+    // ─────────── 1. INJECT CURSOR ELEMENTS ───────────
     const cursorDot = document.createElement('div');
     cursorDot.className = 'cursor-dot';
     document.body.appendChild(cursorDot);
@@ -12,14 +38,13 @@
 
     document.body.classList.add('custom-cursor-active');
 
-    // ---------- 2. GSAP CURSOR TRACKING ----------
+    // ─────────── 2. GSAP CURSOR TRACKING ───────────
     let mouse = { x: 0, y: 0 };
     let ring = { x: 0, y: 0 };
 
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
-
       gsap.to(cursorDot, {
         x: mouse.x,
         y: mouse.y,
@@ -34,28 +59,20 @@
       gsap.set(cursorRing, { x: ring.x, y: ring.y });
     });
 
-    // ---------- 3. CURSOR RING EXPAND ON HOVER ----------
-    // Generic listener for any element with data-cursor-expand
+    // ─────────── 3. CURSOR RING EXPAND ON HOVER (data-cursor-expand) ───────────
     function addCursorExpandListeners() {
       document.querySelectorAll('[data-cursor-expand]').forEach(el => {
-        // Avoid adding multiple listeners if the script runs again
         if (el.dataset.cursorExpandBound) return;
         el.dataset.cursorExpandBound = 'true';
-
-        el.addEventListener('mouseenter', () => {
-          cursorRing.classList.add('active');
-        });
-        el.addEventListener('mouseleave', () => {
-          cursorRing.classList.remove('active');
-        });
+        el.addEventListener('mouseenter', () => cursorRing.classList.add('active'));
+        el.addEventListener('mouseleave', () => cursorRing.classList.remove('active'));
       });
     }
-    // Initial run and also observe for dynamically added elements
     addCursorExpandListeners();
     const observer = new MutationObserver(() => addCursorExpandListeners());
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // ---------- 4. BUILD MAGNETIC SOCIAL GRID ----------
+    // ─────────── 4. BUILD MAGNETIC SOCIAL GRID (with wavy rainbow ring) ───────────
     const socialArea = document.getElementById('socialArea');
     if (socialArea) {
       socialArea.innerHTML = '';
@@ -82,7 +99,7 @@
         const a = document.createElement('a');
         a.href = link.href;
         a.target = '_blank';
-        a.className = 'magnetic-wrap';
+        a.className = 'magnetic-wrap hyperlink-wave';   // ← added hyperlink-wave
         a.setAttribute('data-magnetic', '');
 
         const inner = document.createElement('span');
@@ -97,7 +114,7 @@
       container.appendChild(ul);
       socialArea.appendChild(container);
 
-      // ---------- 5. MAGNETIC EFFECT ----------
+      // ─────────── 5. MAGNETIC EFFECT + WAVE FOCUS ───────────
       const magnetics = document.querySelectorAll('[data-magnetic]');
       magnetics.forEach((el) => {
         const inner = el.querySelector('.magnetic-inner');
@@ -108,40 +125,42 @@
           const cy = rect.top + rect.height / 2;
           const dx = (e.clientX - cx) * 0.4;
           const dy = (e.clientY - cy) * 0.4;
-
           gsap.to(el, { x: dx, y: dy, duration: 0.3, ease: 'power2.out' });
           gsap.to(inner, { x: dx * 0.5, y: dy * 0.5, duration: 0.3, ease: 'power2.out' });
         });
 
-        el.addEventListener('mouseenter', () => {
-          cursorRing.classList.add('active');
-        });
-
+        el.addEventListener('mouseenter', () => cursorRing.classList.add('active'));
         el.addEventListener('mouseleave', () => {
           cursorRing.classList.remove('active');
           gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.3)' });
           gsap.to(inner, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.3)' });
         });
       });
+
+      // ── Keyboard focus toggles .active for the rainbow wave ──
+      document.querySelectorAll('.hyperlink-wave').forEach((link) => {
+        link.addEventListener('focus', () => link.classList.add('active'));
+        link.addEventListener('blur', () => link.classList.remove('active'));
+      });
     }
 
-    // ---------- 6. GALLERY LOADING (unchanged) ----------
-const gallery = document.getElementById("gallery");
-if (gallery) {
-  const MAX_IMAGES = 12;
-  const BASE = "https://www.velutinx.com/images/artwork/";
-  for (let i = 1; i <= MAX_IMAGES; i++) {
-    const img = document.createElement("img");
-    img.src = BASE + i + ".jpg";
-    img.alt = `Artwork sample ${i}`;
-    img.onerror = () => img.remove();
-    img.loading = "lazy";
-    img.setAttribute('data-cursor-expand', '');   // ← this line added
-    gallery.appendChild(img);
-  }
-}
+    // ─────────── 6. GALLERY LOADING (unchanged) ───────────
+    const gallery = document.getElementById("gallery");
+    if (gallery) {
+      const MAX_IMAGES = 12;
+      const BASE = "https://www.velutinx.com/images/artwork/";
+      for (let i = 1; i <= MAX_IMAGES; i++) {
+        const img = document.createElement("img");
+        img.src = BASE + i + ".jpg";
+        img.alt = `Artwork sample ${i}`;
+        img.onerror = () => img.remove();
+        img.loading = "lazy";
+        img.setAttribute('data-cursor-expand', '');
+        gallery.appendChild(img);
+      }
+    }
 
-    // ---------- 7. ZOOM FUNCTIONALITY (unchanged) ----------
+    // ─────────── 7. ZOOM FUNCTIONALITY (unchanged) ───────────
     let activeClone = null;
     let originRect = null;
     document.addEventListener("click", (e) => {
@@ -210,7 +229,7 @@ if (gallery) {
       };
     }
 
-    // ---------- 8. COMMISSION BOX SPARKLES (keep) ----------
+    // ─────────── 8. COMMISSION BOX SPARKLES (unchanged) ───────────
     const commissionBox = document.getElementById("commissionBox");
     if (commissionBox) {
       setInterval(() => {
@@ -224,7 +243,7 @@ if (gallery) {
       }, 700);
     }
 
-    // ---------- 9. CONTACT FORM HANDLING (unchanged) ----------
+    // ─────────── 9. CONTACT FORM HANDLING (unchanged) ───────────
     const contactForm = document.getElementById("contactForm");
     if (contactForm) {
       contactForm.addEventListener("submit", async (e) => {
@@ -260,7 +279,7 @@ if (gallery) {
       });
     }
 
-    // ---------- 10. GLOBAL FALLING STARS (keep) ----------
+    // ─────────── 10. GLOBAL FALLING STARS (unchanged) ───────────
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "falling-star";
