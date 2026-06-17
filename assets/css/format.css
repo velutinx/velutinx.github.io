@@ -50,15 +50,187 @@ body.dark .send-btn { background: var(--divider-dark, #6f6a4e); color: var(--tex
 body.custom-cursor-active,
 body.custom-cursor-active * { cursor: none !important; }
 
-/* ==================== MAGNETIC SOCIAL GRID (replaces old circular menu) ==================== */
-.contact-right { display: flex; align-items: center; justify-content: center; }
-.social-container { width: 100%; max-width: 400px; padding: 20px; }
-.box-social { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 30px; justify-items: center; }
-.box-social li { position: relative; }
-.magnetic-wrap { display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; border-radius: 50%; border: 1px solid var(--divider, #aa9e76); color: var(--text, #fff); text-decoration: none; position: relative; transition: border-color 0.3s ease, background-color 0.3s ease; }
-.magnetic-wrap:hover { border-color: var(--accent); background-color: rgba(170, 158, 118, 0.15); }
-.magnetic-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-.magnetic-inner img { width: 24px; height: 24px; margin-bottom: 8px; image-rendering: -webkit-optimize-contrast; filter: none; }
+/* ==================== MAGNETIC SOCIAL GRID (with wavy rainbow ring) ==================== */
+.contact-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.social-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.box-social {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 30px;
+    justify-items: center;
+}
+
+.box-social li {
+    position: relative;
+}
+
+/* ── Magnetic Wrap (the circle) ── */
+.magnetic-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    text-decoration: none;
+    color: var(--text);
+    overflow: visible;
+    outline: none;
+    z-index: 1;
+
+    /* Clearly visible brown ring – uses your divider color for consistency */
+    border: 2.5px solid var(--divider, #aa9e76);
+    background: transparent;
+    transition:
+        border-color 0.35s ease,
+        border-width 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+.magnetic-wrap:hover {
+    box-shadow: 0 0 18px rgba(180, 120, 70, 0.15);
+    border-color: rgba(122, 74, 44, 0.15);
+}
+
+.magnetic-wrap:focus-visible,
+.magnetic-wrap.active {
+    box-shadow: 0 0 18px rgba(180, 120, 70, 0.18);
+    border-color: rgba(122, 74, 44, 0.15);
+}
+
+/* ── Rainbow Wavy Ring (appears on hover/focus) ── */
+.magnetic-wrap::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+
+    background: linear-gradient(90deg,
+            #ff0000 0%, #ff7a00 14%, #ffd500 28%,
+            #00ff66 42%, #00cfff 57%, #004cff 71%,
+            #7a00ff 85%, #ff008c 100%);
+    background-size: 300% 100%;
+
+    /* The actual wavy mask URL is injected by JavaScript as --wavy-mask-url */
+    -webkit-mask-image: var(--wavy-mask-url);
+    mask-image: var(--wavy-mask-url);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.magnetic-wrap:hover::after,
+.magnetic-wrap:focus-visible::after,
+.magnetic-wrap.active::after {
+    opacity: 1;
+    animation:
+        rainbow-shift 5s linear infinite,
+        wavy-spin 10s linear infinite;
+}
+
+/* ── Inner Content ── */
+.magnetic-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+}
+
+.magnetic-inner img {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 6px;
+    image-rendering: -webkit-optimize-contrast;
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
+}
+
+/* ── Keyframes for the rainbow wave ── */
+@keyframes rainbow-shift {
+    from { background-position: 0% 0%; }
+    to   { background-position: 300% 0%; }
+}
+
+@keyframes wavy-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* ── Custom Cursor (keep existing, just ensure it uses site accent) ── */
+.cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    background-color: var(--divider, #aa9e76);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+}
+
+.cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--divider, #aa9e76);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+    transition:
+        width 0.2s ease,
+        height 0.2s ease,
+        background 0.2s ease,
+        border 0.2s ease;
+}
+
+.cursor-ring.active {
+    width: 72px;
+    height: 72px;
+    background: rgba(170, 158, 118, 0.15);
+    border-color: transparent;
+}
+
+body.custom-cursor-active,
+body.custom-cursor-active * {
+    cursor: none !important;
+}
 
 /* ==================== POLL PAGE STYLES ==================== */
 .poll-section { max-width: 1600px; margin: 0 auto; padding: 40px 24px; position: relative; }
