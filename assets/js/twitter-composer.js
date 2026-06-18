@@ -1,5 +1,4 @@
 // velutinx.github.io/assets/js/twitter-composer.js
-
 (function() {
     'use strict';
 
@@ -44,33 +43,20 @@
     // ---------- Auto‑resize textarea ----------
     function autoResize(textarea) {
         if (!textarea) return;
-        // Reset height to auto so we can read the natural scrollHeight
         textarea.style.height = 'auto';
-        // Set height to scrollHeight plus a small buffer (prevents unnecessary scrollbar)
         textarea.style.height = (textarea.scrollHeight + 2) + 'px';
     }
 
     // ---------- Link transformation helpers ----------
-
     function shortenPatreonLinks(text) {
         return text.replace(/https?:\/\/\S+/g, function(url) {
-            // Match any Patreon post URL (with or without username) and capture the numeric post ID.
-            // Examples:
-            //   https://www.patreon.com/posts/erza-scarlet-100-160763107?pr=true...
-            //   https://www.patreon.com/Velutinx_/posts/erza-scarlet-100-160763107?pr=true...
-            //   https://www.patreon.com/Velutinx_/posts/159510330
             const patreonRegex = /^https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/(?:.*?-)?(\d+)(?:[?#].*)?$/;
             const match = url.match(patreonRegex);
-            if (match) {
-                // Always rewrite to the canonical format
-                return 'https://www.patreon.com/posts/' + match[1];
-            }
-            // Leave other URLs unchanged (they will be handled by the Twitter-specific replacement later)
+            if (match) return 'https://www.patreon.com/posts/' + match[1];
             return url;
         });
     }
 
-    // Replace ALL URLs with the link‑in‑bio message (used for Twitter)
     function replaceUrlsWithBio(text) {
         return text.replace(/https?:\/\/\S+/g, 'Full set on Patreon (link in bio)');
     }
@@ -84,25 +70,21 @@
     ].filter(Boolean);
     if (master) {
         master.addEventListener('input', () => {
-            autoResize(master);   // resize master as user types
-
+            autoResize(master);
             const rawText = master.value;
-            // Bluesky: shorten Patreon links, keep other URLs
             const blueskyText = shortenPatreonLinks(rawText);
-            // Twitter: replace all URLs with link‑in‑bio message
             const twitterText = replaceUrlsWithBio(rawText);
 
             allChildren.forEach(ta => {
                 if (ta.id && ta.id.startsWith('twitter-')) {
                     ta.value = twitterText;
                 } else {
-                    // post1, post2 (Bluesky)
                     ta.value = blueskyText;
                 }
             });
             allChildren.forEach(ta => {
                 ta.dispatchEvent(new Event('input'));
-                autoResize(ta);   // resize after value change
+                autoResize(ta);
             });
         });
     }
@@ -376,11 +358,9 @@
 
     // ---------- Init ----------
     function init() {
-        // Install counters and auto‑resize for Twitter boxes
         for (let i = 1; i <= 3; i++) {
             const ta = document.getElementById(`twitter-post-${i}`);
             installTwitterCounter(ta);
-            // Auto‑resize on input
             ta.addEventListener('input', () => autoResize(ta));
         }
 
@@ -405,11 +385,26 @@
         unlockTwitter12IfNeeded();
         unlockSfwTwitterIfNeeded();
 
-        // Initial auto‑resize for any pre‑filled content
+        // Initial resize
         if (master) autoResize(master);
         for (let i = 1; i <= 3; i++) {
             const ta = document.getElementById(`twitter-post-${i}`);
             if (ta) autoResize(ta);
+        }
+
+        // 🔁 Force resize when the Tweeter tab is activated
+        const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
+        if (tweeterTabBtn) {
+            tweeterTabBtn.addEventListener('click', () => {
+                // Use a small delay to allow the tab to become visible
+                setTimeout(() => {
+                    if (master) autoResize(master);
+                    for (let i = 1; i <= 3; i++) {
+                        const ta = document.getElementById(`twitter-post-${i}`);
+                        if (ta) autoResize(ta);
+                    }
+                }, 0);
+            });
         }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
