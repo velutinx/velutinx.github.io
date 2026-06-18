@@ -672,118 +672,123 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
     }
     window.postToBluesky = postToBluesky;
 
-// ---------- Initialize ----------
-function init() {
-    if (!masterPost) {
-        console.warn('Bluesky Composer: Required elements not found.');
-        return;
-    }
+    // ---------- Initialize ----------
+    function init() {
+        if (!masterPost) {
+            console.warn('Bluesky Composer: Required elements not found.');
+            return;
+        }
 
-    function installCharCounter(textarea) {
-        if (!textarea) return;
-        const parent = textarea.parentNode;
-        if (parent.querySelector('.word-counter')) return;
-        const counter = document.createElement('div');
-        counter.className = 'word-counter';
-        counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
-        parent.insertBefore(counter, textarea.nextSibling);
-        textarea._wc = counter;
-        textarea.addEventListener('input', () => updateCharCounter(textarea));
-        textarea.addEventListener('keyup', () => updateCharCounter(textarea));
-        updateCharCounter(textarea);
-    }
+        function installCharCounter(textarea) {
+            if (!textarea) return;
+            const parent = textarea.parentNode;
+            if (parent.querySelector('.word-counter')) return;
+            const counter = document.createElement('div');
+            counter.className = 'word-counter';
+            counter.style.cssText = 'margin-top: 6px; font-size: 0.85rem;';
+            parent.insertBefore(counter, textarea.nextSibling);
+            textarea._wc = counter;
+            textarea.addEventListener('input', () => updateCharCounter(textarea));
+            textarea.addEventListener('keyup', () => updateCharCounter(textarea));
+            updateCharCounter(textarea);
+        }
 
-    installCharCounter(post1);
-    installCharCounter(post2);
+        installCharCounter(post1);
+        installCharCounter(post2);
 
-    // Auto‑resize Bluesky textareas – register immediately, before async operations
-    const autoResize = (ta) => {
-        if (!ta) return;
-        ta.style.height = 'auto';
-        ta.style.height = (ta.scrollHeight + 2) + 'px';
-    };
-    post1.addEventListener('input', () => autoResize(post1));
-    post2.addEventListener('input', () => autoResize(post2));
-    // Optionally resize initially if content already present
-    autoResize(post1);
-    autoResize(post2);
+        // Auto‑resize Bluesky textareas – register immediately
+        const autoResize = (ta) => {
+            if (!ta) return;
+            ta.style.height = 'auto';
+            ta.style.height = (ta.scrollHeight + 2) + 'px';
+        };
+        post1.addEventListener('input', () => autoResize(post1));
+        post2.addEventListener('input', () => autoResize(post2));
+        autoResize(post1);
+        autoResize(post2);
 
-    // Preload watermarks, then set up dropzones (the rest of init remains the same)
-    loadWatermarks().then(() => {
-        setupDropzones();
-        renderThumbnails(1);
-        renderThumbnails(2);
-
-        // Clear All button, etc.
-        const clearBtn = document.getElementById('clearAllBtn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (masterPost) masterPost.value = '';
-                if (post1) post1.value = '';
-                if (post2) post2.value = '';
-                for (let i = 1; i <= 3; i++) {
-                    const tw = document.getElementById(`twitter-post-${i}`);
-                    if (tw) {
-                        tw.value = '';
-                        tw.dispatchEvent(new Event('input'));
+        // 🔁 Force resize when the Tweeter tab is activated
+        const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
+        if (tweeterTabBtn) {
+            tweeterTabBtn.addEventListener('click', () => {
+                setTimeout(() => {
+                    autoResize(post1);
+                    autoResize(post2);
+                    // Also resize master and Twitter boxes (handled by twitter-composer, but just in case)
+                    if (masterPost) {
+                        masterPost.style.height = 'auto';
+                        masterPost.style.height = (masterPost.scrollHeight + 2) + 'px';
                     }
-                }
-                [post1, post2].forEach(el => el && el.dispatchEvent(new Event('input')));
-                window.accountImages[1] = [];
-                window.accountImages[2] = [];
-                window.twitterImageIds[1] = [];
-                window.twitterImageIds[2] = [];
-                window.twitterImageIds[3] = [];
-                window.imageRegistry = {};
-                if (typeof window.renderBlueskyThumbnails === 'function') {
-                    window.renderBlueskyThumbnails(1);
-                    window.renderBlueskyThumbnails(2);
-                }
-                if (typeof window.renderTwitterThumbnails === 'function') {
-                    window.renderTwitterThumbnails(1);
-                    window.renderTwitterThumbnails(2);
-                    window.renderTwitterThumbnails(3);
-                }
-                enableSfwTwitterBtn();
-                if (typeof window.forceEnableTw12Buttons === 'function') {
-                    window.forceEnableTw12Buttons();
-                }
-                if (typeof showToast === 'function') showToast('Tweeter cells cleared!', 'info');
+                }, 0);
             });
         }
 
-        [post1, document.getElementById('twitter-post-3')].forEach(el => {
-            if (!el) return;
-            el.addEventListener('input', unlockSfwTwitterIfNeeded);
-        });
-        const tw12Textareas = [
-            post2,
-            document.getElementById('twitter-post-1'),
-            document.getElementById('twitter-post-2')
-        ].filter(Boolean);
-        tw12Textareas.forEach(el => {
-            if (el) el.addEventListener('input', () => {
-                if (typeof window.unlockTwitter12IfNeeded === 'function') {
-                    window.unlockTwitter12IfNeeded();
-                }
+        // Preload watermarks, then set up dropzones
+        loadWatermarks().then(() => {
+            setupDropzones();
+            renderThumbnails(1);
+            renderThumbnails(2);
+
+            // Clear All button, etc.
+            const clearBtn = document.getElementById('clearAllBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (masterPost) masterPost.value = '';
+                    if (post1) post1.value = '';
+                    if (post2) post2.value = '';
+                    for (let i = 1; i <= 3; i++) {
+                        const tw = document.getElementById(`twitter-post-${i}`);
+                        if (tw) {
+                            tw.value = '';
+                            tw.dispatchEvent(new Event('input'));
+                        }
+                    }
+                    [post1, post2].forEach(el => el && el.dispatchEvent(new Event('input')));
+                    window.accountImages[1] = [];
+                    window.accountImages[2] = [];
+                    window.twitterImageIds[1] = [];
+                    window.twitterImageIds[2] = [];
+                    window.twitterImageIds[3] = [];
+                    window.imageRegistry = {};
+                    if (typeof window.renderBlueskyThumbnails === 'function') {
+                        window.renderBlueskyThumbnails(1);
+                        window.renderBlueskyThumbnails(2);
+                    }
+                    if (typeof window.renderTwitterThumbnails === 'function') {
+                        window.renderTwitterThumbnails(1);
+                        window.renderTwitterThumbnails(2);
+                        window.renderTwitterThumbnails(3);
+                    }
+                    enableSfwTwitterBtn();
+                    if (typeof window.forceEnableTw12Buttons === 'function') {
+                        window.forceEnableTw12Buttons();
+                    }
+                    if (typeof showToast === 'function') showToast('Tweeter cells cleared!', 'info');
+                });
+            }
+
+            [post1, document.getElementById('twitter-post-3')].forEach(el => {
+                if (!el) return;
+                el.addEventListener('input', unlockSfwTwitterIfNeeded);
             });
+            const tw12Textareas = [
+                post2,
+                document.getElementById('twitter-post-1'),
+                document.getElementById('twitter-post-2')
+            ].filter(Boolean);
+            tw12Textareas.forEach(el => {
+                if (el) el.addEventListener('input', () => {
+                    if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                        window.unlockTwitter12IfNeeded();
+                    }
+                });
+            });
+
+            unlockSfwTwitterIfNeeded();
+            if (typeof window.unlockTwitter12IfNeeded === 'function') {
+                window.unlockTwitter12IfNeeded();
+            }
         });
-
-        unlockSfwTwitterIfNeeded();
-        if (typeof window.unlockTwitter12IfNeeded === 'function') {
-            window.unlockTwitter12IfNeeded();
-        }
-    });
-}
-
-        // After installCharCounter(post1) and installCharCounter(post2)
-const autoResize = (ta) => {
-    if (!ta) return;
-    ta.style.height = 'auto';
-    ta.style.height = (ta.scrollHeight + 2) + 'px';
-};
-post1.addEventListener('input', () => autoResize(post1));
-post2.addEventListener('input', () => autoResize(post2));
     }
 
     if (document.readyState === 'loading') {
