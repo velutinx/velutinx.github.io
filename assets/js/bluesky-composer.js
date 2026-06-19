@@ -597,80 +597,149 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         });
     }
 
-    // ---------- Post to Bluesky (UPDATED with logging) ----------
-    async function postToBluesky(accountId) {
-        const postEl = document.getElementById(`post${accountId}`);
-        if (!postEl) {
-            console.error(`❌ Element #post${accountId} not found`);
-            return;
-        }
-        const text = postEl.value.trim();
-        const ids = window.accountImages[accountId] || [];
-        const images = ids.map(id => window.imageRegistry[id]).filter(Boolean);
+// Helper: Convert text to UTF-8 byte array (for index calculations)
+function getUtf8Bytes(str) {
+    return new TextEncoder().encode(str);
+}
 
-        if (!text && images.length === 0) {
-            console.warn('No text and no images — aborting');
-            if (typeof showToast === 'function') showToast('Add text or image first', 'error');
-            return;
-        }
+// Helper: character index → byte index
+function charIndexToByteIndex(text, charIndex) {
+    const bytes = getUtf8Bytes(text.slice(0, charIndex));
+    return bytes.length;
+}
 
-        let statusDiv = document.getElementById(`post-status-${accountId}`);
-        if (!statusDiv) {
-            statusDiv = document.createElement('div');
-            statusDiv.id = `post-status-${accountId}`;
-            statusDiv.style.marginTop = '8px'; statusDiv.style.fontSize = '12px';
-            postEl.parentNode.appendChild(statusDiv);
-        }
-        statusDiv.textContent = '⏳ Posting...'; statusDiv.style.color = '#aaa';
+// Extract URLs (same regex as the worker)
+function extractLinks(text) {
+    const links = [];
+    const urlRegex = /https?:\/\/[^\s<>"(){}|\\^`[\]]+/g;
+    let match;
+    while ((match = urlRegex.exec(text)) !== null) {
+        links.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            url: match[0],
+        });
+    }
+    return links;
+}
 
-        try {
-            const formData = new FormData();
-            formData.append('account', accountId);
-            formData.append('text', text);
-
-            images.forEach((img, i) => {
-                if (!(img instanceof File)) {
-                    console.error(`❌ Image at index ${i} is not a File`, img);
-                    throw new Error('Invalid image file');
-                }
-                formData.append('image', img, img.name || 'image.jpg');
-            });
-
-            const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-
-            if (res.ok) {
-                statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
-                if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
-
-                if (accountId == 1) {
-      //              console.log('🔁 Triggering Twitter SFW cross-post...');
-                    if (typeof window.sendToWorker === 'function') {
-                        window.sendToWorker(3);
-                    }
-                    window.accountImages[1] = [];
-                    renderThumbnails(1);
-                    lockSfwTwitter();
-                } else {
-                    window.accountImages[accountId] = [];
-                    renderThumbnails(accountId);
-                }
-                setTimeout(() => statusDiv.textContent = '', 2500);
-            } else {
-                statusDiv.textContent = `❌ ${data.error || 'failed'}`;
-                console.error('Bluesky post error:', data);
-                if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
-            }
-        } catch (err) {
-            console.error('❌ Bluesky fetch error:', err);
-            statusDiv.textContent = `❌ ${err.message}`;
-            if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
+// Extract hashtags, skipping any inside a URL
+function extractHashtags(text, links) {
+    const hashtags = [];
+    const regex = /#([^\s#@]+)/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+        const start = match.index;
+        const end = start + match[0].length;
+        const insideLink = links.some(link => start >= link.start && end <= link.end);
+        if (!insideLink) {
+            hashtags.push({ start, end, tag: match[1] });
         }
     }
-    window.postToBluesky = postToBluesky;
+    return hashtags;
+}
+
+// Build the facets array (same as the worker)
+function buildFacets(text) {
+    const facets = [];
+    const links = extractLinks(text);
+    for (const { start, end, url } of links) {
+        const byteStart = charIndexToByteIndex(text, start);
+        const byteEnd = charIndexToByteIndex(text, end);
+        facets.push({
+            index: { byteStart, byteEnd },
+            features: [{ $type: 'app.bsky.richtext.facet#link', uri: url }]
+        });
+    }
+    const hashtags = extractHashtags(text, links);
+    for (const { start, end, tag } of hashtags) {
+        const byteStart = charIndexToByteIndex(text, start);
+        const byteEnd = charIndexToByteIndex(text, end);
+        facets.push({
+            index: { byteStart, byteEnd },
+            features: [{ $type: 'app.bsky.richtext.facet#tag', tag }]
+        });
+    }
+    return facets;
+}
+
+// ---------- Post to Bluesky (updated) ----------
+async function postToBluesky(accountId) {
+    const postEl = document.getElementById(`post${accountId}`);
+    if (!postEl) {
+        console.error(`❌ Element #post${accountId} not found`);
+        return;
+    }
+    const text = postEl.value.trim();
+    const ids = window.accountImages[accountId] || [];
+    const images = ids.map(id => window.imageRegistry[id]).filter(Boolean);
+
+    if (!text && images.length === 0) {
+        console.warn('No text and no images — aborting');
+        if (typeof showToast === 'function') showToast('Add text or image first', 'error');
+        return;
+    }
+
+    let statusDiv = document.getElementById(`post-status-${accountId}`);
+    if (!statusDiv) {
+        statusDiv = document.createElement('div');
+        statusDiv.id = `post-status-${accountId}`;
+        statusDiv.style.marginTop = '8px'; statusDiv.style.fontSize = '12px';
+        postEl.parentNode.appendChild(statusDiv);
+    }
+    statusDiv.textContent = '⏳ Posting...'; statusDiv.style.color = '#aaa';
+
+    try {
+        const formData = new FormData();
+        formData.append('account', accountId);
+        formData.append('text', text);
+
+        // Pre‑build facets and send as JSON
+        const facets = buildFacets(text);
+        formData.append('facets', JSON.stringify(facets));
+
+        images.forEach((img, i) => {
+            if (!(img instanceof File)) {
+                console.error(`❌ Image at index ${i} is not a File`, img);
+                throw new Error('Invalid image file');
+            }
+            formData.append('image', img, img.name || 'image.jpg');
+        });
+
+        const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
+            if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+
+            if (accountId == 1) {
+                if (typeof window.sendToWorker === 'function') {
+                    window.sendToWorker(3);
+                }
+                window.accountImages[1] = [];
+                renderThumbnails(1);
+                lockSfwTwitter();
+            } else {
+                window.accountImages[accountId] = [];
+                renderThumbnails(accountId);
+            }
+            setTimeout(() => statusDiv.textContent = '', 2500);
+        } else {
+            statusDiv.textContent = `❌ ${data.error || 'failed'}`;
+            console.error('Bluesky post error:', data);
+            if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
+        }
+    } catch (err) {
+        console.error('❌ Bluesky fetch error:', err);
+        statusDiv.textContent = `❌ ${err.message}`;
+        if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
+    }
+}
+window.postToBluesky = postToBluesky;
 
     // ---------- Initialize ----------
     function init() {
