@@ -336,7 +336,7 @@ const translations = {
   </div>
   <div class="sidebar-footer">
     <div id="sidebarClock">00:00:00</div>
-    <div style="border-top: 1px solid var(--border); margin: 6px auto; width: 60%;"></div>
+
     <div>© VELUTINX</div>
 </div>
 </aside>
