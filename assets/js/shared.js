@@ -334,10 +334,9 @@ const translations = {
     <a href="https://velutinx.com/store" class="menu-item" data-cursor-expand><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/><circle cx="12" cy="15" r="2"/></svg><span id="menuStore">STORE</span></a>
     <a href="https://velutinx.com/contact" class="menu-item" data-cursor-expand><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H4z"/><path d="M22 6L12 13L2 6"/></svg><span id="menuContact">CONTACT</span></a>
   </div>
+  <div id="sidebarClock">00:00:00</div>
   <div class="sidebar-footer">
-    <div id="sidebarClock">00:00:00</div>
-
-    <div>© VELUTINX</div>
+  <div>© VELUTINX</div>
 </div>
 </aside>
 
