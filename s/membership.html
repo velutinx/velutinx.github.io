@@ -349,38 +349,92 @@ body.dark .discord-help-link { color: #ffffff !important; }
     return `${sym}${formatted}`;
   }
 
-  async function fetchConversions() {
+async function fetchConversions() {
+    // Map tier number → price key from your database
+    const TIER_PRICE_KEY = {
+        1: 'PRICE_3',   // Bronze  → 5.0 USD
+        2: 'PRICE_4',   // Copper  → 10.0 USD
+        3: 'PRICE_5',   // Silver  → 18.0 USD
+        4: 'PRICE_6',   // Gold    → 30.0 USD
+        5: 'PRICE_7'    // Platinum → 40.0 USD
+    };
+
+    // Fallback local rates (used only if API fails)
+    const fallbackRates = { JPY: 158, CNY: 6.9, MXN: 18 };
+
     try {
-      const resp = await fetch(`${WORKER_URL}/api/price`);
-      if (!resp.ok) throw new Error('HTTP '+resp.status);
-      const data = await resp.json();
-      if (data.tiers && Array.isArray(data.tiers)) {
-        for (const tier of data.tiers) {
-          const tierNum = tier.tier;
-          if (tierNum >= 1 && tierNum <= 5) {
-            usdMonthly[tierNum] = parseFloat(tier.usd);
-            localMonthlyPrice[tierNum] = {
-              JPY: tier.jpy,
-              CNY: tier.cny,
-              MXN: tier.mxn
-            };
-          }
+        const resp = await fetch(`${WORKER_URL}/api/price`);
+        if (!resp.ok) throw new Error('HTTP '+resp.status);
+        const data = await resp.json();
+
+        // Build lookup maps from the API response
+        const usdByKey = {};
+        const conversionByUsd = {};
+
+        if (data.keys && Array.isArray(data.keys)) {
+            for (const item of data.keys) {
+                usdByKey[item.key] = parseFloat(item.usd);
+            }
         }
-      }
+        if (data.tiers && Array.isArray(data.tiers)) {
+            for (const tier of data.tiers) {
+                const usd = parseFloat(tier.usd);
+                if (!isNaN(usd) && tier.jpy !== undefined) {
+                    conversionByUsd[usd] = {
+                        JPY: tier.jpy,
+                        CNY: tier.cny,
+                        MXN: tier.mxn
+                    };
+                }
+            }
+        }
+
+        // For each membership tier, get the USD from the correct key
+        for (let t = 1; t <= 5; t++) {
+            const key = TIER_PRICE_KEY[t];
+            let usd = usdByKey[key];
+            if (usd === undefined) {
+                // Fallback if key missing – use hardcoded values
+                const fallbackUsd = { 1:5, 2:10, 3:18, 4:30, 5:40 }[t];
+                usd = fallbackUsd;
+                console.warn(`Missing price for key ${key}, using fallback ${usd}`);
+            }
+            usdMonthly[t] = usd;
+
+            // Get local conversion for this USD amount
+            const local = conversionByUsd[usd];
+            if (local) {
+                localMonthlyPrice[t] = {
+                    JPY: local.JPY,
+                    CNY: local.CNY,
+                    MXN: local.MXN
+                };
+            } else {
+                // Fallback local prices
+                const rates = fallbackRates;
+                localMonthlyPrice[t] = {
+                    JPY: Math.round(usd * rates.JPY),
+                    CNY: usd * rates.CNY,
+                    MXN: usd * rates.MXN
+                };
+            }
+        }
     } catch (err) {
-      console.error('Failed to load conversions', err);
-      const approx = { JPY: 158, CNY: 6.9, MXN: 18 };
-      const usdValues = {1:5, 2:10, 3:15, 4:30, 5:40};
-      for (let t=1; t<=5; t++) {
-        usdMonthly[t] = usdValues[t];
-        localMonthlyPrice[t] = {
-          JPY: Math.round(usdValues[t] * approx.JPY),
-          CNY: usdValues[t] * approx.CNY,
-          MXN: usdValues[t] * approx.MXN
-        };
-      }
+        console.error('Failed to load conversions, using fallback', err);
+        // Hardcoded fallback USD + approximate local prices
+        const fallbackUsd = { 1:5, 2:10, 3:18, 4:30, 5:40 };
+        const rates = { JPY: 158, CNY: 6.9, MXN: 18 };
+        for (let t = 1; t <= 5; t++) {
+            const usd = fallbackUsd[t];
+            usdMonthly[t] = usd;
+            localMonthlyPrice[t] = {
+                JPY: Math.round(usd * rates.JPY),
+                CNY: usd * rates.CNY,
+                MXN: usd * rates.MXN
+            };
+        }
     }
-  }
+}
 
   function getLocalMonthlyPrice(tier, lang) {
     const prices = localMonthlyPrice[tier];
