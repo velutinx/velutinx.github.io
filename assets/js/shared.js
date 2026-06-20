@@ -334,7 +334,11 @@ const translations = {
     <a href="https://velutinx.com/store" class="menu-item" data-cursor-expand><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 3L21 9L12 15L3 9Z"/><path d="M5 12v6h14v-6"/><circle cx="12" cy="15" r="2"/></svg><span id="menuStore">STORE</span></a>
     <a href="https://velutinx.com/contact" class="menu-item" data-cursor-expand><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H4z"/><path d="M22 6L12 13L2 6"/></svg><span id="menuContact">CONTACT</span></a>
   </div>
-  <div class="sidebar-footer">© VELUTINX</div>
+  <div class="sidebar-footer">
+    <div id="sidebarClock">00:00:00</div>
+    <div style="border-top: 1px solid var(--border); margin: 6px auto; width: 60%;"></div>
+    <div>© VELUTINX</div>
+</div>
 </aside>
 
 <div class="cart-overlay" id="cartOverlay"></div>
@@ -358,6 +362,40 @@ const translations = {
       return;
     }
     placeholder.innerHTML = headerHTML;
+
+    // ── Sidebar clock (local time with random offset) ──
+function startSidebarClock() {
+    const clockEl = document.getElementById('sidebarClock');
+    if (!clockEl) return;
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function format(sec) {
+        sec = Math.max(0, sec);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const totalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        // Random offset between -10 and +10 seconds
+        const fakeOffset = Math.floor(Math.random() * 21) - 10;
+        const shown = totalSeconds + fakeOffset;
+        // Clamp to 00:00:00 – 23:59:59
+        const clamped = Math.max(0, Math.min(shown, 86400 - 1));
+        clockEl.textContent = format(clamped);
+    }
+
+    // Update every 200ms to keep the "jitter" effect
+    setInterval(updateClock, 200);
+    updateClock(); // initial draw
+}
+
+// Call it after the header is fully injected
+startSidebarClock();
 
     applyHeaderTranslations();
     updateCartUI();
