@@ -12,7 +12,8 @@
     "fate grand order": {
       "english": ["FGO", "FateGrandOrder"],
       "native": ["フェイト・グランドオーダー"]
-    }
+    },
+    "mushoku tensei": { "native": "無職転生", "english": "MushokuTensei" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
