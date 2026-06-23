@@ -14,7 +14,8 @@
       "native": ["フェイト・グランドオーダー"]
     },
     "mushoku tensei": { "native": "無職転生", "english": "MushokuTensei" },
-    "teenage mutant ninja turtles": { "native": "ミュータント・タートルズ", "english": "TMNT" }
+    "teenage mutant ninja turtles": { "native": "ミュータント・タートルズ", "english": "TMNT" },
+    "metroid": { "native": "メトロイド", "english": "METROID" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
