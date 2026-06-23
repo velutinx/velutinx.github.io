@@ -13,7 +13,8 @@
       "english": ["FGO", "FateGrandOrder"],
       "native": ["フェイト・グランドオーダー"]
     },
-    "mushoku tensei": { "native": "無職転生", "english": "MushokuTensei" }
+    "mushoku tensei": { "native": "無職転生", "english": "MushokuTensei" },
+    "teenage mutant ninja turtles": { "native": "ミュータント・タートルズ", "english": "TMNT" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
@@ -22,6 +23,7 @@
     "lynae": { "native": "リンネー" },
     "jack the ripper": {
       "native": ["ジャック・ザ・リッパー", "黒のアサシン"]
-    }
+    },
+    "april o'neil": { "native": "エイプリル・オニール" }
   }
 }
