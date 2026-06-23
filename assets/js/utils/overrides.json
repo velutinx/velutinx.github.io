@@ -15,7 +15,11 @@
     },
     "mushoku tensei": { "native": "無職転生", "english": "MushokuTensei" },
     "teenage mutant ninja turtles": { "native": "ミュータント・タートルズ", "english": "TMNT" },
-    "metroid": { "native": "メトロイド", "english": "METROID" }
+    "metroid": { "native": "メトロイド", "english": "METROID" },
+    "shokugeki no soma": {
+      "english": ["ShokugekinoSouma", "FoodWars"],
+      "native": "食戟のソーマ"
+    }
   },
   "character": {
     "diluc": { "native": "ディルック" },
