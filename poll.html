@@ -1,4 +1,4 @@
-<!-- poll.html – dynamic image count + D1 backend -->
+<!-- poll.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -128,7 +128,8 @@
       return null;
     }
 
-    async function castVote(id) {
+    // ✅ FIXED: single try/catch, uses passed characterName directly
+    async function castVote(id, characterName) {
       let visitorId = 'unknown_fp';
       let currentIp = '0.0.0.0';
       try {
@@ -144,16 +145,6 @@
           currentIp = ipData.ip;
         } catch (e) { console.error("IP fetch failed", e); }
 
-        // Get character name
-        let characterName = `Option ${id}`;
-        try {
-          const charRes = await fetch(`${API_BASE}/api/poll/results`);
-          const chars = await charRes.json();
-          const found = chars.find(c => c.option_id === id);
-          if (found) characterName = found.character_name || characterName;
-        } catch (e) {}
-
-        // Send vote
         const res = await fetch(`${API_BASE}/api/poll/vote`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -286,6 +277,8 @@
 
       const grid = document.getElementById("grid");
       grid.innerHTML = '';
+
+      // Create cards
       for (let i = 1; i <= TOTAL_CARDS; i++) {
         const card = document.createElement("div");
         card.className = "card";
@@ -296,7 +289,11 @@
           <div class="progress"><div class="progress-fill"></div><div class="progress-text">0%</div></div>
           <div class="label"></div>
         `;
-        card.onclick = () => { showSelected(i); castVote(i); };
+        card.onclick = () => {
+          const name = card.querySelector('.label').textContent;
+          showSelected(i);
+          castVote(i, name);
+        };
         grid.appendChild(card);
       }
 
@@ -311,7 +308,7 @@
       const saved = localStorage.getItem('voted_id') || getVoteCookie();
       if (saved) updateCardStyles(Number(saved));
 
-      // Poll every 10 seconds instead of realtime
+      // Refresh every 10 seconds
       setInterval(() => {
         fetchGridResults();
         fetchLeaderboard();
