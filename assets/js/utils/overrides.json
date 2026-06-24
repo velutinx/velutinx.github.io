@@ -29,6 +29,7 @@
     "jack the ripper": {
       "native": ["ジャック・ザ・リッパー", "黒のアサシン"]
     },
-    "april o'neil": { "native": "エイプリル・オニール" }
+    "april o'neil": { "native": "エイプリル・オニール" },
+    "raiden shogun": { "native": "雷電将軍" }
   }
 }
