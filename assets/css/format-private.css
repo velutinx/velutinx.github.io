@@ -182,3 +182,38 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .hashgen-btn:hover { background: #3e8e3e; }
 .hashgen-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
 .hashgen-status { margin-top: 6px; font-size: 12px; color: #aaa; min-height: 18px; }
+
+/* ========== ZIP Extractor styles ========== */
+.extractor-wrapper { margin-top: 10px; }
+.extractor-header h2 { margin: 0 0 4px 0; color: #f0f0f0; font-weight: 500; letter-spacing: -0.3px; }
+.extractor-header .subtitle { font-size: 15px; color: #aaa; margin-bottom: 28px; }
+.extractor-header .subtitle small { color: #666; }
+.extractor-drop-zone { border: 2px dashed #3a4050; border-radius: 14px; padding: 48px 20px; text-align: center; background: #0f131a; transition: border-color 0.25s, background 0.2s; cursor: pointer; position: relative; }
+.extractor-drop-zone:hover { border-color: #5a6e3c; background: #131a24; }
+.extractor-drop-zone.dragover { border-color: #1f883d; background: #1a2a1a; }
+.extractor-drop-zone .icon { font-size: 48px; line-height: 1; margin-bottom: 10px; display: block; }
+.extractor-drop-zone p { font-size: 17px; color: #ddd; font-weight: 500; }
+.extractor-drop-zone .hint { font-size: 14px; color: #888; margin-top: 6px; }
+.extractor-drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.extractor-status { margin-top: 18px; font-size: 15px; color: #8bc34a; font-weight: 500; min-height: 28px; display: flex; align-items: center; gap: 8px; }
+.extractor-status.error { color: #f44336; }
+.extractor-status .spinner { display: inline-block; width: 18px; height: 18px; border: 2.5px solid #3a4050; border-top-color: #8bc34a; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.extractor-output-section { margin-top: 28px; }
+.extractor-output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+.extractor-output-header label { font-weight: 500; font-size: 16px; color: #ddd; }
+.extractor-file-count { font-weight: 400; font-size: 14px; color: #aaa; background: #1a1f2a; padding: 2px 14px; border-radius: 30px; border: 1px solid #2a2f38; }
+#extractorOutput { width: 100%; min-height: 340px; max-height: 600px; padding: 16px 18px; font-family: 'Courier New', 'SF Mono', monospace; font-size: 14px; line-height: 1.65; border: 1px solid #2a2f38; border-radius: 12px; background: #03060b; color: #ddd; resize: vertical; transition: border-color 0.2s, box-shadow 0.2s; white-space: pre-wrap; word-break: break-word; }
+#extractorOutput:focus { outline: none; border-color: #5a6e3c; box-shadow: 0 0 0 3px rgba(90, 110, 60, 0.2); }
+#extractorOutput:disabled { opacity: 0.6; cursor: not-allowed; }
+.extractor-actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.extractor-actions .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; font-size: 15px; font-weight: 500; border: none; border-radius: 40px; background: #1a1f2a; color: #ddd; cursor: pointer; transition: background 0.2s, transform 0.1s, box-shadow 0.2s; text-decoration: none; }
+.extractor-actions .btn:hover { background: #2a2f38; }
+.extractor-actions .btn:active { transform: scale(0.97); }
+.extractor-actions .btn-primary { background: #2c6e2c; color: #fff; }
+.extractor-actions .btn-primary:hover { background: #3e8e3e; box-shadow: 0 4px 12px rgba(44, 110, 44, 0.3); }
+.extractor-actions .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; background: #4a5a4a; }
+.extractor-actions .btn-secondary { background: #1a1f2a; color: #ccc; }
+.extractor-actions .btn-secondary:hover { background: #2a2f38; }
+.extractor-actions .icon-small { font-size: 18px; line-height: 1; }
+@media (max-width: 600px) { .extractor-drop-zone { padding: 32px 16px; } #extractorOutput { min-height: 220px; font-size: 13px; padding: 12px 14px; } .extractor-actions .btn { padding: 8px 18px; font-size: 14px; } .extractor-actions { flex-direction: column; } .extractor-actions .btn { justify-content: center; } }
