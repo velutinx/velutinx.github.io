@@ -1,13 +1,14 @@
+// assets/js/extractor.js – ZIP Text Extractor (shared)
 (function() {
     'use strict';
 
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const statusEl = document.getElementById('status');
-    const outputText = document.getElementById('outputText');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const fileCount = document.getElementById('fileCount');
+    const dropZone = document.getElementById('extractorDropZone');
+    const fileInput = document.getElementById('extractorFileInput');
+    const statusEl = document.getElementById('extractorStatus');
+    const outputText = document.getElementById('extractorOutput');
+    const downloadBtn = document.getElementById('extractorDownloadBtn');
+    const clearBtn = document.getElementById('extractorClearBtn');
+    const fileCount = document.getElementById('extractorFileCount');
 
     const IGNORED_FILES = new Set([
         'metadata.json',
@@ -24,13 +25,13 @@
 
     function setStatus(msg, isError = false) {
         statusEl.textContent = msg;
-        statusEl.className = 'status' + (isError ? ' error' : '');
+        statusEl.className = 'extractor-status' + (isError ? ' error' : '');
     }
 
     function setLoading(loading) {
         if (loading) {
             statusEl.innerHTML = '<span class="spinner"></span> Extracting…';
-            statusEl.className = 'status';
+            statusEl.className = 'extractor-status';
         }
     }
 
@@ -190,7 +191,7 @@
     });
 
     dropZone.addEventListener('click', (e) => {
-        if (e.target === dropZone || e.target.closest('.drop-zone') === dropZone) {
+        if (e.target === dropZone || e.target.closest('.extractor-drop-zone') === dropZone) {
             fileInput.click();
         }
     });
@@ -234,5 +235,4 @@
         }
         if (files.length > 0) handleFiles(files);
     });
-
 })();
