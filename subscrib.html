@@ -21,19 +21,22 @@
     <script src="/assets/js/spreadsheet.js" defer></script>
     <script src="/assets/js/twitter-composer.js" defer></script>
     <script src="/assets/js/hashtag-generator.js" defer></script>
+    <!-- ZIP Extractor -->
+    <script src="/assets/js/extractor.js" defer></script>
 </head>
 <body>
 <div class="container">
     <h1></h1>
     <div class="tab-bar">
         <button class="tab-button active" data-tab="subscribestar">📦 Subscribestar / Patreon</button>
-<button class="tab-button" data-tab="bluesky">
-    <img src="https://www.velutinx.com/images/LogoBluesky.png" alt="Bluesky" style="height:1em;vertical-align:middle;">
-    <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter" style="height:1em;vertical-align:middle;">
-    Tweeter
-</button>
+        <button class="tab-button" data-tab="bluesky">
+            <img src="https://www.velutinx.com/images/LogoBluesky.png" alt="Bluesky" style="height:1em;vertical-align:middle;">
+            <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter" style="height:1em;vertical-align:middle;">
+            Tweeter
+        </button>
         <button class="tab-button" data-tab="packmanager">📦 Pack Manager + Cloudflare</button>
         <button class="tab-button" data-tab="spreadsheet">💰 Spreadsheet</button>
+        <button class="tab-button" data-tab="zipextractor">📄 ZIP Extractor</button>
     </div>
 
     <!-- Subscribestar / Patreon Tab -->
@@ -44,14 +47,6 @@
             <div class="upload-label">📂 Drag & drop zip or click</div>
         </div>
         <div class="columns">
-            <!-- Pixiv column commented out -->
-            <!--
-            <div class="column">
-                <h2>🎨 Pixiv Post (JP/EN)</h2>
-                <textarea id="pixivOutput" class="output" readonly>Waiting...</textarea>
-                <button class="copy-btn" data-copy="pixivOutput">Copy</button>
-            </div>
-            -->
             <div class="column">
                 <h2>📌 Subscriber (Subscribestar)</h2>
                 <textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea>
@@ -79,73 +74,70 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-<!-- Tweeter Tab (Bluesky + Twitter combined) -->
-<div id="bluesky" class="tab-content">
-<!-- Anime Hashtag Generator -->
-<div class="hashgen-container">
-    <input type="text" id="hashgenInput" class="hashgen-input" placeholder="Paste filename here (e.g. [Pack 088] Nagi Arato - Ruri no Houseki.zip)">
-</div>
-<div id="hashgenStatus" class="hashgen-status"></div>
+    <!-- Tweeter Tab (Bluesky + Twitter combined) -->
+    <div id="bluesky" class="tab-content">
+        <!-- Anime Hashtag Generator -->
+        <div class="hashgen-container">
+            <input type="text" id="hashgenInput" class="hashgen-input" placeholder="Paste filename here (e.g. [Pack 088] Nagi Arato - Ruri no Houseki.zip)">
+        </div>
+        <div id="hashgenStatus" class="hashgen-status"></div>
 
-    <div style="margin-bottom: 20px;">
-        <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
+        <div style="margin-bottom: 20px;">
+            <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
+        </div>
+
+        <!-- Bluesky Accounts -->
+        <h3 style="margin-top:0; color:#ddd;">
+            <img src="https://www.velutinx.com/images/LogoBluesky.png" alt="Bluesky" style="height:1.2em; vertical-align:middle;"> Bluesky
+        </h3>
+        <div class="accounts-grid">
+            <div class="account-card" data-account="2">
+                <h3>🔥 NSFW Account</h3>
+                <textarea id="post2" class="account-post" rows="4" placeholder="NSFW post"></textarea>
+                <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
+                <div class="thumbnail-container" data-account="2"></div>
+                <button class="post-btn" style="background:#2c6e2c; margin-top:12px; width:100%;" onclick="postToBluesky(2)">🚀 Post to Bluesky</button>
+                <div id="post-status-2" class="status-msg"></div>
+            </div>
+            <div class="account-card" data-account="1">
+                <h3>🌸 SFW Account</h3>
+                <textarea id="post1" class="account-post" rows="4" placeholder="SFW post"></textarea>
+                <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
+                <div class="thumbnail-container" data-account="1"></div>
+                <button class="post-btn" style="background:#2c6e2c; margin-top:12px; width:100%;" onclick="postToBluesky(1)">🚀 Post to Bluesky</button>
+                <div id="post-status-1" class="status-msg"></div>
+            </div>
+        </div>
+
+        <!-- Twitter Accounts -->
+        <h3 style="margin-top:30px; color:#ddd;">
+            <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter" style="height:1.2em; vertical-align:middle;"> Twitter
+        </h3>
+        <div class="accounts-grid" style="margin-top:12px;">
+            <div class="account-card" data-twitter-account="1">
+                <h3>@Velutinx2</h3>
+                <textarea id="twitter-post-1" class="account-post" rows="4" placeholder="Twitter post"></textarea>
+                <div class="thumbnail-container" id="tw-container-1"></div>
+                <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(1)">🚀 Tweet</button>
+                <div id="tw-status-1" class="status-msg"></div>
+            </div>
+            <div class="account-card" data-twitter-account="2">
+                <h3>NSFW Twitter</h3>
+                <textarea id="twitter-post-2" class="account-post" rows="4" placeholder="Twitter post"></textarea>
+                <div class="thumbnail-container" id="tw-container-2"></div>
+                <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(2)">🚀 Tweet</button>
+                <div id="tw-status-2" class="status-msg"></div>
+            </div>
+            <div class="account-card" data-twitter-account="3">
+                <h3>SFW Twitter</h3>
+                <textarea id="twitter-post-3" class="account-post" rows="4" placeholder="Twitter post"></textarea>
+                <div class="thumbnail-container" id="tw-container-3"></div>
+                <button id="tw-post-btn-3" class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(3)">🚀 Tweet</button>
+                <div id="tw-status-3" class="status-msg"></div>
+            </div>
+        </div>
+        <button id="clearAllBtn" style="display:block; width:100%; margin-top:20px; background:#b71c1c; color:white; border:none; padding:12px; border-radius:30px; font-size:1rem; cursor:pointer;">🗑️ Clear All Cells</button>
     </div>
-
-    <!-- Bluesky Accounts -->
-    <h3 style="margin-top:0; color:#ddd;">
-        <img src="https://www.velutinx.com/images/LogoBluesky.png" alt="Bluesky" style="height:1.2em; vertical-align:middle;"> Bluesky
-    </h3>
-    <div class="accounts-grid">
-        <!-- NSFW Account (left) -->
-        <div class="account-card" data-account="2">
-            <h3>🔥 NSFW Account</h3>
-            <textarea id="post2" class="account-post" rows="4" placeholder="NSFW post"></textarea>
-            <div class="dropzone" data-account="2">📸 Drag & drop images or click to add (NSFW)</div>
-            <div class="thumbnail-container" data-account="2"></div>
-            <button class="post-btn" style="background:#2c6e2c; margin-top:12px; width:100%;" onclick="postToBluesky(2)">🚀 Post to Bluesky</button>
-            <div id="post-status-2" class="status-msg"></div>
-        </div>
-        <!-- SFW Account (right) -->
-        <div class="account-card" data-account="1">
-            <h3>🌸 SFW Account</h3>
-            <textarea id="post1" class="account-post" rows="4" placeholder="SFW post"></textarea>
-            <div class="dropzone" data-account="1">📸 Drag & drop images or click to add (SFW)</div>
-            <div class="thumbnail-container" data-account="1"></div>
-            <button class="post-btn" style="background:#2c6e2c; margin-top:12px; width:100%;" onclick="postToBluesky(1)">🚀 Post to Bluesky</button>
-            <div id="post-status-1" class="status-msg"></div>
-        </div>
-    </div>
-
-    <!-- Twitter Accounts -->
-    <h3 style="margin-top:30px; color:#ddd;">
-        <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter" style="height:1.2em; vertical-align:middle;"> Twitter
-    </h3>
-    <div class="accounts-grid" style="margin-top:12px;">
-        <div class="account-card" data-twitter-account="1">
-            <h3>@Velutinx2</h3>
-            <textarea id="twitter-post-1" class="account-post" rows="4" placeholder="Twitter post"></textarea>
-            <div class="thumbnail-container" id="tw-container-1"></div>
-            <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(1)">🚀 Tweet</button>
-            <div id="tw-status-1" class="status-msg"></div>
-        </div>
-        <div class="account-card" data-twitter-account="2">
-            <h3>NSFW Twitter</h3>
-            <textarea id="twitter-post-2" class="account-post" rows="4" placeholder="Twitter post"></textarea>
-            <div class="thumbnail-container" id="tw-container-2"></div>
-            <button class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(2)">🚀 Tweet</button>
-            <div id="tw-status-2" class="status-msg"></div>
-        </div>
-        <div class="account-card" data-twitter-account="3">
-            <h3>SFW Twitter</h3>
-            <textarea id="twitter-post-3" class="account-post" rows="4" placeholder="Twitter post"></textarea>
-            <div class="thumbnail-container" id="tw-container-3"></div>
-            <button id="tw-post-btn-3" class="post-btn" style="background:#1da1f2;" onclick="sendToWorker(3)">🚀 Tweet</button>
-            <div id="tw-status-3" class="status-msg"></div>
-        </div>
-    </div>
-<button id="clearAllBtn" style="display:block; width:100%; margin-top:20px; background:#b71c1c; color:white; border:none; padding:12px; border-radius:30px; font-size:1rem; cursor:pointer;">🗑️ Clear All Cells</button>
-
-</div>
 
     <!-- CROP MODAL -->
     <div id="cropModal" class="crop-modal" style="display:none;">
@@ -305,6 +297,46 @@
             </div>
         </div>
     </div>
+
+    <!-- 📄 ZIP Extractor Tab -->
+    <div id="zipextractor" class="tab-content">
+        <div class="extractor-wrapper">
+            <div class="extractor-header">
+                <h2>📦 ZIP Text Extractor</h2>
+                <p class="subtitle">
+                    Drag &amp; drop <strong>one or more .zip</strong> files – extracts all text files,
+                    lists root files first, then folders, prefixes with <code>*/</code>.
+                    <br><small>Ignored files: metadata.json, github‑auto‑backup.js, worker‑auto‑backup.js, .gitignore, sitemap.xml, wrangler.toml, robots.txt, README.md, CNAME, .nojekyll</small>
+                </p>
+            </div>
+
+            <div class="extractor-drop-zone" id="extractorDropZone">
+                <span class="icon">📂</span>
+                <p>Drop your ZIP files here</p>
+                <span class="hint">or click to browse (multiple allowed)</span>
+                <input type="file" id="extractorFileInput" accept=".zip" multiple />
+            </div>
+
+            <div class="extractor-status" id="extractorStatus"><span>✨ Ready</span></div>
+
+            <div class="extractor-output-section">
+                <div class="extractor-output-header">
+                    <label for="extractorOutput">📄 Combined text</label>
+                    <span class="extractor-file-count" id="extractorFileCount">0 files</span>
+                </div>
+                <textarea id="extractorOutput" readonly placeholder="Extracted content will appear here…"></textarea>
+                <div class="extractor-actions">
+                    <button class="btn btn-primary" id="extractorDownloadBtn" disabled>
+                        <span class="icon-small">⬇️</span> Download as .txt
+                    </button>
+                    <button class="btn btn-secondary" id="extractorClearBtn">
+                        <span class="icon-small">🗑️</span> Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -317,7 +349,7 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // ========== TAB SWITCHING (4 tabs) ==========
+    // ========== TAB SWITCHING (now 5 tabs) ==========
     (function() {
         const tabBtns = document.querySelectorAll('.tab-button');
         const tabs = document.querySelectorAll('.tab-content');
