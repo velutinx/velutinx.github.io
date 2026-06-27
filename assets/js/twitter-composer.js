@@ -57,9 +57,26 @@
         });
     }
 
-    function replaceUrlsWithBio(text) {
-        return text.replace(/https?:\/\/\S+/g, 'Full set on Patreon (link in bio)');
-    }
+function replaceUrlsWithBio(text) {
+    const urls = text.match(/https?:\/\/\S+/g);
+    if (!urls) return text;
+
+    // Check if any URL is a SubscribeStar domain
+    const isSubscribestar = urls.some(url => {
+        try {
+            const hostname = new URL(url).hostname;
+            return /subscribestar/.test(hostname);
+        } catch {
+            return false;
+        }
+    });
+
+    const replacement = isSubscribestar
+        ? 'Full set on SubscribeStar (link in bio)'
+        : 'Full set on Patreon (link in bio)';
+
+    return text.replace(/https?:\/\/\S+/g, replacement);
+}
 
     // ---------- Master mirroring ----------
     const master = document.getElementById('masterPost');
