@@ -1,7 +1,6 @@
 // zip-to-post.js – Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ----- Toast notification (global, reusable) -----
     function showToast(message, type = 'info') {
         let container = document.getElementById('toast-container');
         if (!container) {
@@ -31,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 2500);
     }
 
-    // ----- Attach copy handlers to all buttons with data-copy attribute -----
     document.querySelectorAll('.copy-btn').forEach(btn => {
         const targetId = btn.getAttribute('data-copy');
         if (targetId) {
@@ -47,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ----- DOM elements for zip processing -----
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const subscriberOutput = document.getElementById('subscriberOutput');
@@ -59,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!dropZone || !fileInput) return;
 
-    // ----- Helper: update shared state and notify Cloudflare tab -----
     function updateSharedState(zipData) {
         window.sharedZipData = zipData;
         window.dispatchEvent(new CustomEvent('zipDataUpdated', { detail: zipData }));
@@ -156,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let fileCount = 0;
             zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
 
-            // Generate existing outputs (unchanged)
             subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
             publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
             patreonSubOutput.value = `${character} — Pack #${pack}\n\n${fileCount} Total Images\n\n📌 Suggestive previews are shown in the gallery below. The full archive link contains the complete uncensored collection.\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
@@ -169,10 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
             filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
             showToast(`✅ Processed ${fileCount} images`, 'success');
 
-            // ----- Trigger the same hashtag generator used in the Tweeter tab -----
             const hashgenInput = document.getElementById('hashgenInput');
             if (hashgenInput) {
-                // Build a preview string exactly like the one you'd paste manually
                 const previewString = `Preview: ${character} — ${series} — Pack #${pack}`;
                 hashgenInput.value = previewString;
                 hashgenInput.dispatchEvent(new Event('input', { bubbles: true }));
