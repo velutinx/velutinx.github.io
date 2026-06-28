@@ -40,69 +40,69 @@
         return title.replace(/:.*/, '').trim();
     }
 
-// ----- Parser -----
-function parseInput(raw) {
-    let text = raw.trim();
+    // ----- Parser -----
+    function parseInput(raw) {
+        let text = raw.trim();
 
-    // Remove file extensions
-    text = text.replace(/\.(zip|rar|7z)$/i, '');
-    text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+        // Remove file extensions
+        text = text.replace(/\.(zip|rar|7z)$/i, '');
+        text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // ---- Handle [SERIES] Character — … OR [Pack 123] Character - Series ----
-    if (/^\[[^\]]+\]/.test(text)) {
-        const bracketMatch = text.match(/^\[([^\]]+)\]\s*(.+)/);
-        if (bracketMatch) {
-            const bracketContent = bracketMatch[1].trim();
-            let rest = bracketMatch[2].trim();
+        // ---- Handle [SERIES] Character — … OR [Pack 123] Character - Series ----
+        if (/^\[[^\]]+\]/.test(text)) {
+            const bracketMatch = text.match(/^\[([^\]]+)\]\s*(.+)/);
+            if (bracketMatch) {
+                const bracketContent = bracketMatch[1].trim();
+                let rest = bracketMatch[2].trim();
 
-            // If the bracket is just a pack number (e.g., "Pack 103"), ignore it
-            if (/^Pack \d+$/i.test(bracketContent)) {
-                // Use the rest as the full input
-                text = rest;
-            } else {
-                // It's a genuine [SERIES] bracket, extract series and character
-                const sepIndex = rest.search(/ — | - /);
-                if (sepIndex !== -1) {
-                    rest = rest.substring(0, sepIndex).trim();
+                // If the bracket is just a pack number (e.g., "Pack 103"), ignore it
+                if (/^Pack \d+$/i.test(bracketContent)) {
+                    // Use the rest as the full input
+                    text = rest;
+                } else {
+                    // It's a genuine [SERIES] bracket, extract series and character
+                    const sepIndex = rest.search(/ — | - /);
+                    if (sepIndex !== -1) {
+                        rest = rest.substring(0, sepIndex).trim();
+                    }
+                    return { character: rest, series: bracketContent };
                 }
-                return { character: rest, series: bracketContent };
             }
         }
-    }
 
-    // ---- Preview: … — Series — Pack #… format ----
-    if (text.startsWith("Preview:")) {
-        const afterPreview = text.replace(/^Preview:\s*/i, '');
-        const packIndex = afterPreview.indexOf(" — Pack");
-        if (packIndex !== -1) {
-            text = afterPreview.substring(0, packIndex).trim();
-        } else {
-            text = afterPreview;
+        // ---- Preview: … — Series — Pack #… format ----
+        if (text.startsWith("Preview:")) {
+            const afterPreview = text.replace(/^Preview:\s*/i, '');
+            const packIndex = afterPreview.indexOf(" — Pack");
+            if (packIndex !== -1) {
+                text = afterPreview.substring(0, packIndex).trim();
+            } else {
+                text = afterPreview;
+            }
         }
-    }
 
-    // Remove parenthesised notes
-    text = text.replace(/\([^)]*\)/g, '').trim();
+        // Remove parenthesised notes
+        text = text.replace(/\([^)]*\)/g, '').trim();
 
-    // Split on " — " or " - "
-    const separators = [' — ', ' - '];
-    let splitIndex = -1;
-    for (const sep of separators) {
-        const idx = text.indexOf(sep);
-        if (idx !== -1) {
-            splitIndex = idx;
-            break;
+        // Split on " — " or " - "
+        const separators = [' — ', ' - '];
+        let splitIndex = -1;
+        for (const sep of separators) {
+            const idx = text.indexOf(sep);
+            if (idx !== -1) {
+                splitIndex = idx;
+                break;
+            }
         }
-    }
 
-    if (splitIndex === -1) {
-        return { character: text.trim(), series: '' };
-    }
+        if (splitIndex === -1) {
+            return { character: text.trim(), series: '' };
+        }
 
-    const character = text.slice(0, splitIndex).trim();
-    const series = text.slice(splitIndex + 3).trim();
-    return { character, series };
-}
+        const character = text.slice(0, splitIndex).trim();
+        const series = text.slice(splitIndex + 3).trim();
+        return { character, series };
+    }
 
     async function fetchAniList(query, variables) {
         const response = await fetch("https://graphql.anilist.co", {
@@ -270,8 +270,17 @@ function parseInput(raw) {
             const hashtags = await generateHashtags(parsed.character, parsed.series);
             const hashtagString = hashtags.join(' ');
 
+            // Determine opening line
             const isRequest = / — Request/i.test(raw);
-            const openingLine = isRequest ? 'New request released.' : 'New work released.';
+            const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
+            let openingLine;
+            if (isRequest) {
+                openingLine = 'New request released.';
+            } else if (upcomingChecked) {
+                openingLine = 'Upcoming new work.';
+            } else {
+                openingLine = 'New work released.';
+            }
 
             const seriesDisplay = parsed.series || 'Unknown Series';
             const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
