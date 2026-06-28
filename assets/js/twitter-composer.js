@@ -376,53 +376,63 @@
     }
     window.sendToWorker = sendToWorker;
 
-    function init() {
-        for (let i = 1; i <= 3; i++) {
-            const ta = document.getElementById(`twitter-post-${i}`);
-            installTwitterCounter(ta);
-            ta.addEventListener('input', () => autoResize(ta));
-        }
-
-        if (!window.imageRegistry) window.imageRegistry = {};
-        if (!window.accountImages) window.accountImages = { 1: [], 2: [] };
-        if (!window.twitterImageIds) window.twitterImageIds = { 1: [], 2: [], 3: [] };
-
-        ['post2', 'twitter-post-1', 'twitter-post-2'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', unlockTwitter12IfNeeded);
-        });
-        ['post1', 'twitter-post-3'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', unlockSfwTwitterIfNeeded);
-        });
-
-        renderTwitterThumbnails(1);
-        renderTwitterThumbnails(2);
-        renderTwitterThumbnails(3);
-        window.renderTwitterThumbnails = renderTwitterThumbnails;
-
-        unlockTwitter12IfNeeded();
-        unlockSfwTwitterIfNeeded();
-
-        if (master) autoResize(master);
-        for (let i = 1; i <= 3; i++) {
-            const ta = document.getElementById(`twitter-post-${i}`);
-            if (ta) autoResize(ta);
-        }
-
-        const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
-        if (tweeterTabBtn) {
-            tweeterTabBtn.addEventListener('click', () => {
-                setTimeout(() => {
-                    if (master) autoResize(master);
-                    for (let i = 1; i <= 3; i++) {
-                        const ta = document.getElementById(`twitter-post-${i}`);
-                        if (ta) autoResize(ta);
-                    }
-                }, 0);
-            });
-        }
+function init() {
+    for (let i = 1; i <= 3; i++) {
+        const ta = document.getElementById(`twitter-post-${i}`);
+        installTwitterCounter(ta);
+        ta.addEventListener('input', () => autoResize(ta));
     }
+
+    if (!window.imageRegistry) window.imageRegistry = {};
+    if (!window.accountImages) window.accountImages = { 1: [], 2: [] };
+    if (!window.twitterImageIds) window.twitterImageIds = { 1: [], 2: [], 3: [] };
+
+    ['post2', 'twitter-post-1', 'twitter-post-2'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', unlockTwitter12IfNeeded);
+    });
+    ['post1', 'twitter-post-3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', unlockSfwTwitterIfNeeded);
+    });
+
+    renderTwitterThumbnails(1);
+    renderTwitterThumbnails(2);
+    renderTwitterThumbnails(3);
+    window.renderTwitterThumbnails = renderTwitterThumbnails;
+
+    unlockTwitter12IfNeeded();
+    unlockSfwTwitterIfNeeded();
+
+    // Initial resize
+    if (master) autoResize(master);
+    for (let i = 1; i <= 3; i++) {
+        const ta = document.getElementById(`twitter-post-${i}`);
+        if (ta) autoResize(ta);
+    }
+
+    // 🔁 Force resize when the Tweeter tab is activated
+    const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
+    if (tweeterTabBtn) {
+        tweeterTabBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                if (master) autoResize(master);
+                for (let i = 1; i <= 3; i++) {
+                    const ta = document.getElementById(`twitter-post-${i}`);
+                    if (ta) autoResize(ta);
+                }
+            }, 0);
+        });
+    }
+
+    // ✅ Re‑mirror when upcoming checkbox is toggled (so Twitter bio text updates instantly)
+    const upcomingCb = document.getElementById('upcomingCheckbox');
+    if (upcomingCb && master) {
+        upcomingCb.addEventListener('change', () => {
+            master.dispatchEvent(new Event('input'));
+        });
+    }
+}
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();
