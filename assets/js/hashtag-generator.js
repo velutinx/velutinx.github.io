@@ -296,22 +296,27 @@
         }
     }
 
-    function init() {
-        loadOverrides().then(() => {
-            const input = document.getElementById('hashgenInput');
-            if (!input) return;
+function init() {
+    loadOverrides().then(() => {
+        const input = document.getElementById('hashgenInput');
+        if (!input) return;
 
-            input.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(handleInput, 800);
-            });
-
-            input.addEventListener('paste', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(handleInput, 300);
-            });
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 800);
         });
-    }
+
+        input.addEventListener('paste', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 300);
+        });
+
+        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+        if (upcomingCheckbox) {
+            upcomingCheckbox.addEventListener('change', handleInput);
+        }
+    });
+}
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
