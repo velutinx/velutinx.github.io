@@ -57,26 +57,31 @@
         });
     }
 
-function replaceUrlsWithBio(text) {
-    const urls = text.match(/https?:\/\/\S+/g);
-    if (!urls) return text;
+    function replaceUrlsWithBio(text) {
+        const urls = text.match(/https?:\/\/\S+/g);
+        if (!urls) return text;
 
-    // Check if any URL is a SubscribeStar domain
-    const isSubscribestar = urls.some(url => {
-        try {
-            const hostname = new URL(url).hostname;
-            return /subscribestar/.test(hostname);
-        } catch {
-            return false;
+        const isSubscribestar = urls.some(url => {
+            try {
+                const hostname = new URL(url).hostname;
+                return /subscribestar/.test(hostname);
+            } catch {
+                return false;
+            }
+        });
+
+        const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
+        let replacement;
+        if (isSubscribestar) {
+            replacement = 'Full set on SubscribeStar (link in bio)';
+        } else if (upcomingChecked) {
+            replacement = 'Link to preview on Patreon (link in bio)';
+        } else {
+            replacement = 'Full set on Patreon (link in bio)';
         }
-    });
 
-    const replacement = isSubscribestar
-        ? 'Full set on SubscribeStar (link in bio)'
-        : 'Full set on Patreon (link in bio)';
-
-    return text.replace(/https?:\/\/\S+/g, replacement);
-}
+        return text.replace(/https?:\/\/\S+/g, replacement);
+    }
 
     // ---------- Master mirroring ----------
     const master = document.getElementById('masterPost');
@@ -106,10 +111,8 @@ function replaceUrlsWithBio(text) {
         });
     }
 
-    // Twitter image ID arrays (separate from Bluesky)
     window.twitterImageIds = window.twitterImageIds || { 1: [], 2: [], 3: [] };
 
-    // ---------- Lock / Unlock for Twitter accounts 1 & 2 ----------
     function getTw12Buttons() {
         return [
             document.querySelector('button[onclick="sendToWorker(1)"]'),
@@ -373,7 +376,6 @@ function replaceUrlsWithBio(text) {
     }
     window.sendToWorker = sendToWorker;
 
-    // ---------- Init ----------
     function init() {
         for (let i = 1; i <= 3; i++) {
             const ta = document.getElementById(`twitter-post-${i}`);
@@ -402,18 +404,15 @@ function replaceUrlsWithBio(text) {
         unlockTwitter12IfNeeded();
         unlockSfwTwitterIfNeeded();
 
-        // Initial resize
         if (master) autoResize(master);
         for (let i = 1; i <= 3; i++) {
             const ta = document.getElementById(`twitter-post-${i}`);
             if (ta) autoResize(ta);
         }
 
-        // 🔁 Force resize when the Tweeter tab is activated
         const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
         if (tweeterTabBtn) {
             tweeterTabBtn.addEventListener('click', () => {
-                // Use a small delay to allow the tab to become visible
                 setTimeout(() => {
                     if (master) autoResize(master);
                     for (let i = 1; i <= 3; i++) {
