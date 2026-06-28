@@ -19,7 +19,8 @@
     "shokugeki no soma": {
       "english": ["ShokugekinoSouma", "FoodWars"],
       "native": "食戟のソーマ"
-    }
+    },
+    "re:zero": { "native": "Reゼロ", "english": "ReZero" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
