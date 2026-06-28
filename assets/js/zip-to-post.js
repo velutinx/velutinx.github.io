@@ -1,4 +1,4 @@
-// zip-to-post.js – Handles zip parsing, Subscribestar & Patreon post generation, copy with toast notifications
+//     /assets/js/zip-to-post.js 
 
 document.addEventListener('DOMContentLoaded', function() {
     function showToast(message, type = 'info') {
@@ -55,6 +55,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const filenameHint = document.getElementById('filenameHint');
 
     if (!dropZone || !fileInput) return;
+
+    function autoResize(textarea) {
+        if (!textarea) return;
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+    }
+
+    function resizeAllOutputs() {
+        [subscriberOutput, publicOutput, patreonSubOutput, patreonPublicOutput, pixivOutput].forEach(ta => {
+            if (ta) autoResize(ta);
+        });
+    }
 
     function updateSharedState(zipData) {
         window.sharedZipData = zipData;
@@ -164,6 +176,8 @@ document.addEventListener('DOMContentLoaded', function() {
             filenameHint.textContent = `✅ Found ${fileCount} files. | Pixiv post ready.`;
             showToast(`✅ Processed ${fileCount} images`, 'success');
 
+            resizeAllOutputs();
+
             const hashgenInput = document.getElementById('hashgenInput');
             if (hashgenInput) {
                 const previewString = `Preview: ${character} — ${series} — Pack #${pack}`;
@@ -171,7 +185,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 hashgenInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
 
-            // Shared state for Cloudflare tab
             const imageEntries = [];
             zip.forEach((path, entry) => {
                 if (!entry.dir && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
@@ -212,5 +225,12 @@ document.addEventListener('DOMContentLoaded', function() {
             filenameHint.textContent = 'Error: could not read zip contents.';
             showToast('❌ Failed to read zip file', 'error');
         }
+    }
+
+    const subscribestarTabBtn = document.querySelector('.tab-button[data-tab="subscribestar"]');
+    if (subscribestarTabBtn) {
+        subscribestarTabBtn.addEventListener('click', () => {
+            setTimeout(resizeAllOutputs, 0);
+        });
     }
 });
