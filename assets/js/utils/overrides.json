@@ -20,7 +20,8 @@
       "english": ["ShokugekinoSouma", "FoodWars"],
       "native": "食戟のソーマ"
     },
-    "re:zero": { "native": "Reゼロ", "english": "ReZero" }
+    "re:zero": { "native": "Reゼロ", "english": "ReZero" },
+    "brown dust": { "native": "ブラウンダスト", "english": "BROWNDUST" }
   },
   "character": {
     "diluc": { "native": "ディルック" },
@@ -32,6 +33,7 @@
     },
     "april o'neil": { "native": "エイプリル・オニール" },
     "raiden shogun": { "native": "雷電将軍" },
-    "goryou nagusa": { "native": "御稜ナグサ" }
+    "goryou nagusa": { "native": "御稜ナグサ" },
+    "palette": { "native": "パレット" }
   }
 }
