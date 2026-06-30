@@ -20,7 +20,10 @@
       "english": ["ShokugekinoSouma", "FoodWars"],
       "native": "食戟のソーマ"
     },
-    "re:zero": { "native": "Reゼロ", "english": "ReZero" },
+"re:zero": { "native": "Reゼロ", "english": "ReZero" },
+"re_zero": { "native": "Reゼロ", "english": "ReZero" },
+"re zero": { "native": "Reゼロ", "english": "ReZero" }
+    
     "brown dust": { "native": "ブラウンダスト", "english": "BROWNDUST" }
   },
   "character": {
