@@ -40,27 +40,21 @@
         return title.replace(/:.*/, '').trim();
     }
 
-    // ----- Parser -----
     function parseInput(raw) {
         let text = raw.trim();
 
-        // Remove file extensions
         text = text.replace(/\.(zip|rar|7z)$/i, '');
         text = text.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
-        // ---- Handle [SERIES] Character — … OR [Pack 123] Character - Series ----
         if (/^\[[^\]]+\]/.test(text)) {
             const bracketMatch = text.match(/^\[([^\]]+)\]\s*(.+)/);
             if (bracketMatch) {
                 const bracketContent = bracketMatch[1].trim();
                 let rest = bracketMatch[2].trim();
 
-                // If the bracket is just a pack number (e.g., "Pack 103"), ignore it
                 if (/^Pack \d+$/i.test(bracketContent)) {
-                    // Use the rest as the full input
                     text = rest;
                 } else {
-                    // It's a genuine [SERIES] bracket, extract series and character
                     const sepIndex = rest.search(/ — | - /);
                     if (sepIndex !== -1) {
                         rest = rest.substring(0, sepIndex).trim();
@@ -70,7 +64,6 @@
             }
         }
 
-        // ---- Preview: … — Series — Pack #… format ----
         if (text.startsWith("Preview:")) {
             const afterPreview = text.replace(/^Preview:\s*/i, '');
             const packIndex = afterPreview.indexOf(" — Pack");
@@ -81,10 +74,8 @@
             }
         }
 
-        // Remove parenthesised notes
         text = text.replace(/\([^)]*\)/g, '').trim();
 
-        // Split on " — " or " - "
         const separators = [' — ', ' - '];
         let splitIndex = -1;
         for (const sep of separators) {
@@ -113,7 +104,6 @@
         return response.json();
     }
 
-    // ----- Generate hashtags (now supports arrays in overrides) -----
     async function generateHashtags(characterName, animeName) {
         const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
         const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
@@ -138,11 +128,9 @@
         const lowerSeries = animeName.toLowerCase();
         const lowerCharacter = characterName.toLowerCase();
 
-        // Apply overrides – convert to arrays if needed
         let franchiseOverride = overrideData.franchise[lowerSeries];
         let characterOverride = overrideData.character[lowerCharacter];
 
-        // For franchise: override animeNative and animeEnglish
         if (franchiseOverride) {
             if (franchiseOverride.native) {
                 animeNative = Array.isArray(franchiseOverride.native)
@@ -156,7 +144,6 @@
             }
         }
 
-        // For character: override charNative
         if (characterOverride) {
             if (characterOverride.native) {
                 charNative = Array.isArray(characterOverride.native)
@@ -165,7 +152,6 @@
             }
         }
 
-        // Build English character tags
         const engCharTags = [];
         const splitChar = charFull.split(' ');
         if (splitChar.length >= 2) {
@@ -178,7 +164,6 @@
             if (tag) engCharTags.push(tag);
         }
 
-        // Build English series tags
         const engSeriesTags = [];
         if (Array.isArray(animeEnglish)) {
             for (const eng of animeEnglish) {
@@ -186,7 +171,6 @@
                 if (tag) engSeriesTags.push(tag);
             }
         } else {
-            // single string – keep old behavior
             const romajiTag = makeHashtag(animeRomaji);
             const englishTag = makeHashtag(animeEnglish);
             if (romajiTag && englishTag && romajiTag.toLowerCase() === englishTag.toLowerCase()) {
@@ -197,7 +181,6 @@
             }
         }
 
-        // Build Japanese character tags
         const jpCharTags = [];
         if (Array.isArray(charNative)) {
             for (const nat of charNative) {
@@ -221,7 +204,6 @@
             if (tag) jpSeriesTags.push(tag);
         }
 
-        // Combine in desired order: eng char, eng series, jp char, jp series
         const allTags = [
             ...engCharTags.filter(Boolean),
             ...engSeriesTags.filter(Boolean),
@@ -229,7 +211,6 @@
             ...jpSeriesTags.filter(Boolean)
         ];
 
-        // Remove duplicates (case insensitive)
         const seen = new Set();
         const uniqueTags = [];
         for (const tag of allTags) {
@@ -243,7 +224,6 @@
         return uniqueTags;
     }
 
-    // ----- Auto‑generation (debounced) -----
     let debounceTimer;
 
     async function handleInput() {
@@ -269,17 +249,14 @@
         try {
             const hashtags = await generateHashtags(parsed.character, parsed.series);
             const hashtagString = hashtags.join(' ');
-
-            // Determine opening line
-            const isRequest = / — Request/i.test(raw);
             const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
+            const requestChecked = document.getElementById('requestCheckbox')?.checked || false;
+
             let openingLine;
-            if (isRequest) {
-                openingLine = 'New request released.';
-            } else if (upcomingChecked) {
-                openingLine = 'Upcoming new work.';
+            if (requestChecked) {
+                openingLine = upcomingChecked ? 'Upcoming new request.' : 'New request released.';
             } else {
-                openingLine = 'New work released.';
+                openingLine = upcomingChecked ? 'Upcoming new work.' : 'New work released.';
             }
 
             const seriesDisplay = parsed.series || 'Unknown Series';
@@ -296,27 +273,32 @@
         }
     }
 
-function init() {
-    loadOverrides().then(() => {
-        const input = document.getElementById('hashgenInput');
-        if (!input) return;
+    function init() {
+        loadOverrides().then(() => {
+            const input = document.getElementById('hashgenInput');
+            if (!input) return;
 
-        input.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(handleInput, 800);
+            input.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(handleInput, 800);
+            });
+
+            input.addEventListener('paste', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(handleInput, 300);
+            });
+
+            const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+            if (upcomingCheckbox) {
+                upcomingCheckbox.addEventListener('change', handleInput);
+            }
+
+            const requestCheckbox = document.getElementById('requestCheckbox');
+            if (requestCheckbox) {
+                requestCheckbox.addEventListener('change', handleInput);
+            }
         });
-
-        input.addEventListener('paste', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(handleInput, 300);
-        });
-
-        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
-        if (upcomingCheckbox) {
-            upcomingCheckbox.addEventListener('change', handleInput);
-        }
-    });
-}
+    }
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
