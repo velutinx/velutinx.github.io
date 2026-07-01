@@ -216,4 +216,14 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .extractor-actions .btn-secondary { background: #1a1f2a; color: #ccc; }
 .extractor-actions .btn-secondary:hover { background: #2a2f38; }
 .extractor-actions .icon-small { font-size: 18px; line-height: 1; }
+
+/* ========== SQUARE TOGGLES (Upcoming / Request) ========== */
+.toggle-switch { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-switch .slider { position: relative; display: inline-block; width: 50px; height: 28px; background: #3a4050; transition: .3s; border-radius: 4px; flex-shrink: 0; }
+.toggle-switch .slider::before { content: ""; position: absolute; width: 20px; height: 20px; left: 4px; bottom: 4px; background: white; transition: .3s; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.toggle-switch input:checked + .slider { background: #4CAF50; }
+.toggle-switch input:checked + .slider::before { transform: translateX(22px); }
+.toggle-switch .toggle-label { color: #ccc; font-size: 0.9rem; }
+
 @media (max-width: 600px) { .extractor-drop-zone { padding: 32px 16px; } #extractorOutput { min-height: 220px; font-size: 13px; padding: 12px 14px; } .extractor-actions .btn { padding: 8px 18px; font-size: 14px; } .extractor-actions { flex-direction: column; } .extractor-actions .btn { justify-content: center; } }
