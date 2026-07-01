@@ -79,11 +79,19 @@
         </div>
         <div id="hashgenStatus" class="hashgen-status"></div>
 
-        <!-- ✅ NEW CHECKBOX -->
-        <div class="upcoming-toggle" style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-          <input type="checkbox" id="upcomingCheckbox" style="transform: scale(1.2);">
-          <label for="upcomingCheckbox" style="color:#ccc; cursor:pointer;">Upcoming release</label>
-        </div>
+<!-- Toggles: Upcoming + Request -->
+<div class="toggles-container" style="display:flex; gap:24px; margin-bottom:16px; flex-wrap:wrap;">
+  <label class="toggle-switch">
+    <input type="checkbox" id="upcomingCheckbox">
+    <span class="slider"></span>
+    <span class="toggle-label">Upcoming release</span>
+  </label>
+  <label class="toggle-switch">
+    <input type="checkbox" id="requestCheckbox">
+    <span class="slider"></span>
+    <span class="toggle-label">Request</span>
+  </label>
+</div>
 
         <div style="margin-bottom: 20px;">
             <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
