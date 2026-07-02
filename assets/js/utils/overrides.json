@@ -27,6 +27,14 @@
     "tensura": {
       "english": ["TenseiShitaraSlimeDattaKen", "ThatTimeIGotReincarnatedasaSlime", "TenSura"],
       "native": ["転生したらスライムだった件", "転スラ"]
+    },
+    "tales of symphonia": {
+      "english": "TalesofSymphonia",
+      "native": "テイルズオブシンフォニア"
+    },
+    "tales of symphonia the animation": {
+      "english": "TalesofSymphonia",
+      "native": "テイルズオブシンフォニア"
     }
   },
   "character": {
@@ -41,6 +49,7 @@
     "raiden shogun": { "native": "雷電将軍" },
     "goryou nagusa": { "native": "御稜ナグサ" },
     "palette": { "native": "パレット" },
-    "rimuru tempest": { "native": "リムル・テンペスト" }
+    "rimuru tempest": { "native": "リムル・テンペスト" },
+    "sheena fujibayashi": { "native": "藤林しいな" }
   }
 }
