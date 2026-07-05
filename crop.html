@@ -1,0 +1,804 @@
+<!-- standalone-pack-editor.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pack Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js">
+    </script>
+    <style>
+        /* ─── BASE (mirrors format-private.css) ─── */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0c10;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1800px;
+            width: 100%;
+            background: #11151c;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2f38;
+        }
+        h1 {
+            margin-top: 0;
+            color: #f0f0f0;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+
+        /* ─── TABLE ─── */
+        .table-wrapper {
+            margin-top: 16px;
+            background: #0c1017;
+            border-radius: 14px;
+            border: 1px solid #252b33;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            color: #ddd;
+        }
+        th,
+        td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid #252b33;
+            vertical-align: middle;
+        }
+        th {
+            background: #0a0e14;
+            color: #aaa;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            color: #fff;
+        }
+        .clickable-row {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .clickable-row:hover {
+            background: #1a1f2a;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .category-badge.female {
+            background: #ec489933;
+            color: #ec4899;
+        }
+        .category-badge.femboy {
+            background: #3b82f633;
+            color: #3b82f6;
+        }
+        .download-link {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        .download-link:hover {
+            text-decoration: underline;
+        }
+        .expand-icon {
+            margin-left: 8px;
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+        }
+
+        /* ─── EXPANDED ROW (image grid) ─── */
+        .expanded-row td {
+            padding: 16px 16px 24px 16px;
+            background: #0f131a;
+        }
+        .expanded-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .image-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .image-grid .thumb-wrap {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #334155;
+            background: #0a0e14;
+            cursor: grab;
+            flex-shrink: 0;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .image-grid .thumb-wrap:hover {
+            border-color: #5a6e3c;
+            transform: scale(1.04);
+            z-index: 2;
+        }
+        .image-grid .thumb-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+        .image-grid .thumb-wrap .image-index {
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ccc;
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        /* ─── CROP MODAL ─── */
+        .crop-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(6px);
+            display: none;
+            /* flex by JS */
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .crop-modal.active {
+            display: flex;
+        }
+        .crop-modal-content {
+            background: #11151c;
+            border: 1px solid #2a2f38;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 92vw;
+            max-height: 92vh;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .crop-modal-content h2 {
+            margin: 0 0 12px 0;
+            color: #f0f0f0;
+            font-weight: 400;
+            font-size: 1.2rem;
+            align-self: flex-start;
+        }
+        .crop-canvas-wrapper {
+            position: relative;
+            max-width: 100%;
+        }
+        #cropCanvas {
+            display: block;
+            max-width: 100%;
+            max-height: 65vh;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: #03060b;
+            border: 1px solid #2a2f38;
+        }
+        .crop-instructions {
+            text-align: center;
+            color: #888;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        .crop-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+            width: 100%;
+        }
+        .crop-btn {
+            padding: 8px 24px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .crop-btn.cancel {
+            background: #3a3a44;
+            color: #ccc;
+        }
+        .crop-btn.cancel:hover {
+            background: #4a4a54;
+        }
+        .crop-btn.confirm {
+            background: #2c6e2c;
+            color: white;
+        }
+        .crop-btn.confirm:hover {
+            background: #3e8e3e;
+        }
+
+        /* ─── TOAST ─── */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1e2a1e;
+            color: #d4ffd4;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 10001;
+            box-shadow: 0 4px 12px black;
+            backdrop-filter: blur(4px);
+            border-left: 4px solid #4caf50;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast-notification.error {
+            background: #2c1a1a;
+            border-left-color: #f44336;
+            color: #ffc9c9;
+        }
+        .toast-notification.info {
+            background: #1a2530;
+            border-left-color: #2196F3;
+        }
+
+        /* ─── LOADING / STATUS ─── */
+        .status-msg {
+            margin: 12px 0;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .pm-loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #aaa;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            .container {
+                padding: 12px;
+            }
+            .image-grid .thumb-wrap {
+                width: 80px;
+                height: 80px;
+            }
+            th,
+            td {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+            }
+            .crop-modal-content {
+                padding: 16px;
+            }
+            #cropCanvas {
+                max-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📦 Pack Editor</h1>
+        <div id="statusMsg" class="status-msg"><span class="pm-loading"></span> Loading packs...</div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th data-sort="id">ID <span class="sort-arrow"></span></th>
+                        <th data-sort="title">Title <span class="sort-arrow"></span></th>
+                        <th data-sort="category">Category <span class="sort-arrow"></span></th>
+                        <th data-sort="price">Price <span class="sort-arrow"></span></th>
+                        <th data-sort="illustrationCount">Illustrations <span class="sort-arrow"></span></th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody id="packTableBody">
+                    <tr><td colspan="6" class="empty-message">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ─── CROP MODAL ─── -->
+    <div class="crop-modal" id="cropModal">
+        <div class="crop-modal-content">
+            <h2>✂️ Crop Thumbnail</h2>
+            <div class="crop-canvas-wrapper">
+                <canvas id="cropCanvas"></canvas>
+                <div class="crop-instructions">Drag to select the area you want to keep.</div>
+            </div>
+            <div class="crop-controls">
+                <button class="crop-btn cancel" id="cropCancelBtn">Cancel</button>
+                <button class="crop-btn confirm" id="cropDoneBtn">Crop &amp; Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── TOAST ─── -->
+    <div id="toast" class="toast-notification"></div>
+
+    <script>
+        // ============================================================
+        // 1.  STATE
+        // ============================================================
+        let allPacks = [];
+        let expandedPackId = null; // currently expanded row (pack id)
+        let sortKey = 'id';
+        let sortAsc = true;
+
+        // Crop state
+        let cropData = null; // { packId, imageIndex, imageUrl, file }
+        let cropRect = null; // { x, y, w, h } in canvas coords
+        let isDragging = false;
+        let isMoving = false;
+        let startX = 0,
+            startY = 0;
+        let moveOffsetX = 0,
+            moveOffsetY = 0;
+        let cropCanvas = document.getElementById('cropCanvas');
+        let ctx = cropCanvas.getContext('2d');
+        let cropImage = null;
+
+        // ============================================================
+        // 2.  FETCH PACKS
+        // ============================================================
+        async function fetchPacks() {
+            const status = document.getElementById('statusMsg');
+            status.innerHTML = '<span class="pm-loading"></span> Loading packs...';
+            try {
+                const resp = await fetch('https://packs-api.velutinx.workers.dev/api/packs');
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                allPacks = Array.isArray(data) ? data : [];
+                renderTable();
+                status.textContent = `✅ ${allPacks.length} packs loaded.`;
+            } catch (err) {
+                console.error(err);
+                status.innerHTML = `❌ Failed to load packs: ${err.message}`;
+                document.querySelector('#packTableBody').innerHTML =
+                    `<tr><td colspan="6" class="empty-message">Error loading packs.</td></tr>`;
+            }
+        }
+
+        // ============================================================
+        // 3.  RENDER TABLE
+        // ============================================================
+        function renderTable() {
+            const tbody = document.getElementById('packTableBody');
+            if (!allPacks.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-message">No packs found.</td></tr>`;
+                return;
+            }
+
+            // Sort
+            const sorted = [...allPacks].sort((a, b) => {
+                let va = a[sortKey] ?? '';
+                let vb = b[sortKey] ?? '';
+                if (sortKey === 'id' || sortKey === 'illustrationCount') {
+                    va = Number(va);
+                    vb = Number(vb);
+                } else if (sortKey === 'category') {
+                    va = va === 1 ? 'Female' : 'Femboy';
+                    vb = vb === 1 ? 'Female' : 'Femboy';
+                } else {
+                    va = String(va).toLowerCase();
+                    vb = String(vb).toLowerCase();
+                }
+                if (va < vb) return sortAsc ? -1 : 1;
+                if (va > vb) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            // Update sort arrows
+            document.querySelectorAll('th .sort-arrow').forEach(el => el.textContent = '');
+            const th = document.querySelector(`th[data-sort="${sortKey}"]`);
+            if (th) {
+                th.querySelector('.sort-arrow').textContent = sortAsc ? ' ▲' : ' ▼';
+            }
+
+            let html = '';
+            for (const pack of sorted) {
+                const cat = pack.category === 1 ? 'Female' : 'Femboy';
+                const catClass = pack.category === 1 ? 'female' : 'femboy';
+                const isExpanded = expandedPackId === pack.id;
+                const priceDisplay = pack.price || '—';
+
+                html += `<tr class="clickable-row" data-pack-id="${pack.id}" data-expanded="${isExpanded}">
+                    <td>${pack.id}</td>
+                    <td>${escapeHtml(pack.title)} <span class="expand-icon">${isExpanded ? '▼' : '▶'}</span></td>
+                    <td><span class="category-badge ${catClass}">${cat}</span></td>
+                    <td>${priceDisplay}</td>
+                    <td>${pack.illustrationCount ?? '?'}</td>
+                    <td>${pack.downloadUrl ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>` : '—'}</td>
+                </tr>`;
+
+                // Expanded row
+                if (isExpanded) {
+                    const imageCount = pack.illustrationCount || 0;
+                    const images = [];
+                    for (let i = 1; i <= Math.min(imageCount, 50); i++) {
+                        images.push(`https://www.velutinx.com/i/pack${pack.id}-${i}.jpg`);
+                    }
+
+                    html += `<tr class="expanded-row" data-parent="${pack.id}">
+                        <td colspan="6">
+                            <div class="expanded-inner">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                    <span style="font-weight:500; color:#ccc;">${images.length} images (first ${Math.min(imageCount, 50)} shown)</span>
+                                    <span style="font-size:0.8rem; color:#888;">Drag to reorder · Click image to crop</span>
+                                </div>
+                                <div class="image-grid" data-pack-id="${pack.id}">
+                                    ${images.map((url, idx) => `
+                                        <div class="thumb-wrap" data-pack="${pack.id}" data-index="${idx}" data-url="${url}">
+                                            <img src="${url}" loading="lazy" onerror="this.style.display='none'" />
+                                            <span class="image-index">#${idx+1}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            }
+
+            tbody.innerHTML = html;
+
+            // ─── Click row to expand/collapse ───
+            document.querySelectorAll('.clickable-row').forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Ignore if click on a link inside the row
+                    if (e.target.closest('a')) return;
+                    const id = this.dataset.packId;
+                    toggleExpand(id);
+                });
+            });
+
+            // ─── Click image to crop ───
+            document.querySelectorAll('.thumb-wrap').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const packId = this.dataset.pack;
+                    const index = parseInt(this.dataset.index, 10);
+                    const url = this.dataset.url;
+                    openCropModal(packId, index, url);
+                });
+            });
+
+            // ─── Sortable (reorder) ───
+            document.querySelectorAll('.image-grid').forEach(grid => {
+                if (grid.children.length < 2) return;
+                new Sortable(grid, {
+                    animation: 150,
+                    handle: '.thumb-wrap',
+                    ghostClass: 'cf-sortable-ghost',
+                    onEnd: function(evt) {
+                        // Just visual reorder; no save needed for this tool.
+                        showToast('Order updated (visual only)', 'info');
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        // 4.  EXPAND / COLLAPSE
+        // ============================================================
+        function toggleExpand(packId) {
+            if (expandedPackId === packId) {
+                expandedPackId = null;
+            } else {
+                expandedPackId = packId;
+            }
+            renderTable();
+        }
+
+        // ============================================================
+        // 5.  CROP MODAL
+        // ============================================================
+        function openCropModal(packId, imageIndex, imageUrl) {
+            cropData = { packId, imageIndex, imageUrl };
+            const modal = document.getElementById('cropModal');
+            modal.classList.add('active');
+
+            // Load image
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                cropImage = img;
+                const maxW = Math.min(800, window.innerWidth * 0.8);
+                const maxH = Math.min(700, window.innerHeight * 0.65);
+                let scale = Math.min(maxW / img.width, maxH / img.height, 1);
+                cropCanvas.width = img.width * scale;
+                cropCanvas.height = img.height * scale;
+                cropRect = null;
+                redrawCanvas();
+            };
+            img.onerror = function() {
+                showToast('Failed to load image for cropping.', 'error');
+                closeCropModal();
+            };
+            img.src = imageUrl;
+        }
+
+        function closeCropModal() {
+            document.getElementById('cropModal').classList.remove('active');
+            cropData = null;
+            cropImage = null;
+            cropRect = null;
+        }
+
+        function redrawCanvas() {
+            if (!cropImage) return;
+            const cw = cropCanvas.width,
+                ch = cropCanvas.height;
+            ctx.clearRect(0, 0, cw, ch);
+            ctx.drawImage(cropImage, 0, 0, cw, ch);
+
+            if (cropRect && cropRect.w > 0 && cropRect.h > 0) {
+                // Dim outside
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, 0, cw, ch);
+                // Clip and draw the selected area
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+                ctx.clip();
+                ctx.drawImage(cropImage, 0, 0, cw, ch);
+                ctx.restore();
+                // Draw border
+                ctx.strokeStyle = '#2c6e2c';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+            }
+        }
+
+        // ─── Canvas mouse / touch events ───
+        function getCanvasPos(e) {
+            const rect = cropCanvas.getBoundingClientRect();
+            const scaleX = cropCanvas.width / rect.width;
+            const scaleY = cropCanvas.height / rect.height;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function isInsideRect(pos) {
+            if (!cropRect) return false;
+            return pos.x >= cropRect.x && pos.x <= cropRect.x + cropRect.w &&
+                pos.y >= cropRect.y && pos.y <= cropRect.y + cropRect.h;
+        }
+
+        function onPointerDown(e) {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+            if (isInsideRect(pos)) {
+                isMoving = true;
+                moveOffsetX = pos.x - cropRect.x;
+                moveOffsetY = pos.y - cropRect.y;
+                isDragging = false;
+            } else {
+                isMoving = false;
+                isDragging = true;
+                startX = pos.x;
+                startY = pos.y;
+                cropRect = null;
+            }
+        }
+
+        function onPointerMove(e) {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+            if (isMoving && cropRect) {
+                let nx = pos.x - moveOffsetX;
+                let ny = pos.y - moveOffsetY;
+                nx = Math.max(0, Math.min(cropCanvas.width - cropRect.w, nx));
+                ny = Math.max(0, Math.min(cropCanvas.height - cropRect.h, ny));
+                cropRect.x = nx;
+                cropRect.y = ny;
+                redrawCanvas();
+            } else if (isDragging) {
+                const x = Math.min(startX, pos.x);
+                const y = Math.min(startY, pos.y);
+                const w = Math.abs(pos.x - startX);
+                const h = Math.abs(pos.y - startY);
+                cropRect = { x, y, w, h };
+                redrawCanvas();
+            } else {
+                // Update cursor
+                cropCanvas.style.cursor = isInsideRect(pos) ? 'move' : 'crosshair';
+            }
+        }
+
+        function onPointerUp(e) {
+            if (isMoving) isMoving = false;
+            if (isDragging) {
+                isDragging = false;
+                if (cropRect && (cropRect.w < 5 || cropRect.h < 5)) cropRect = null;
+                redrawCanvas();
+            }
+        }
+
+        // Bind events
+        cropCanvas.addEventListener('mousedown', onPointerDown);
+        cropCanvas.addEventListener('mousemove', onPointerMove);
+        cropCanvas.addEventListener('mouseup', onPointerUp);
+        cropCanvas.addEventListener('mouseleave', onPointerUp);
+        cropCanvas.addEventListener('touchstart', onPointerDown, { passive: false });
+        cropCanvas.addEventListener('touchmove', onPointerMove, { passive: false });
+        cropCanvas.addEventListener('touchend', onPointerUp);
+
+        // ─── Modal buttons ───
+        document.getElementById('cropCancelBtn').addEventListener('click', closeCropModal);
+        document.getElementById('cropDoneBtn').addEventListener('click', function() {
+            if (!cropData || !cropRect || cropRect.w < 5 || cropRect.h < 5) {
+                showToast('Please select an area to crop.', 'error');
+                return;
+            }
+            performCrop();
+        });
+
+        // Close modal on overlay click
+        document.getElementById('cropModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCropModal();
+        });
+
+        // ─── Perform crop ───
+        async function performCrop() {
+            const { packId, imageIndex, imageUrl } = cropData;
+            const cw = cropCanvas.width,
+                ch = cropCanvas.height;
+            const scaleX = cropImage.naturalWidth / cw;
+            const scaleY = cropImage.naturalHeight / ch;
+            const sx = cropRect.x * scaleX;
+            const sy = cropRect.y * scaleY;
+            const sw = cropRect.w * scaleX;
+            const sh = cropRect.h * scaleY;
+
+            // Create cropped image
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = sw;
+            outCanvas.height = sh;
+            const outCtx = outCanvas.getContext('2d');
+            outCtx.drawImage(cropImage, sx, sy, sw, sh, 0, 0, sw, sh);
+
+            try {
+                const blob = await new Promise(resolve => outCanvas.toBlob(resolve, 'image/jpeg', 0.92));
+                const file = new File([blob], `pack${packId}-${imageIndex + 1}.jpg`, { type: 'image/jpeg' });
+
+                // Upload to R2 via the existing worker
+                const formData = new FormData();
+                formData.append('packNumber', packId);
+                // The worker expects 'images' field
+                formData.append('images', file);
+
+                const uploadResp = await fetch('https://i2-uploader.velutinx.workers.dev', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!uploadResp.ok) {
+                    const errText = await uploadResp.text();
+                    throw new Error(`Upload failed: ${uploadResp.status} ${errText}`);
+                }
+
+                const result = await uploadResp.json();
+                showToast(`✅ Cropped image saved! (${result.urls?.length || 1} file(s))`, 'success');
+
+                // Refresh the expanded row to show the new image (hard reload of the thumbnail)
+                // We'll just re-render the table.
+                renderTable();
+                closeCropModal();
+
+            } catch (err) {
+                console.error(err);
+                showToast(`❌ Crop failed: ${err.message}`, 'error');
+            }
+        }
+
+        // ============================================================
+        // 6.  SORTING
+        // ============================================================
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', function() {
+                const key = this.dataset.sort;
+                if (sortKey === key) {
+                    sortAsc = !sortAsc;
+                } else {
+                    sortKey = key;
+                    sortAsc = true;
+                }
+                renderTable();
+            });
+        });
+
+        // ============================================================
+        // 7.  HELPERS
+        // ============================================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        let toastTimeout = null;
+
+        function showToast(message, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = message;
+            el.className = 'toast-notification show';
+            if (type === 'error') el.classList.add('error');
+            else if (type === 'info') el.classList.add('info');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                el.classList.remove('show');
+            }, 3000);
+        }
+
+        // ============================================================
+        // 8.  INIT
+        // ============================================================
+        fetchPacks();
+    </script>
+
+</body>
+</html>
