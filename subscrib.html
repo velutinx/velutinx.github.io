@@ -1,11 +1,9 @@
-    <!-- subscrib.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zip to Post · Patreon + Bluesky + Pack Manager (Nightmode)</title>
+    <title>Velutinx Helpful sites</title>
     <link rel="stylesheet" href="/assets/css/format-private.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -29,12 +27,8 @@
     <h1></h1>
     <div class="tab-bar">
         <button class="tab-button active" data-tab="subscribestar">📦 Subscribestar / Patreon</button>
-        <button class="tab-button" data-tab="bluesky">
-            <img src="https://www.velutinx.com/images/LogoBluesky.png" alt="Bluesky" style="height:1em;vertical-align:middle;">
-            <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter" style="height:1em;vertical-align:middle;">
-            Tweeter
-        </button>
-        <button class="tab-button" data-tab="retweet">🗂️ Retweet Queue</button>
+        <button class="tab-button" data-tab="bluesky">🐦 Tweeter</button>
+        <button class="tab-button" id="retweet-tab" data-tab="retweet">🗂️ Retweet Queue</button>
         <button class="tab-button" data-tab="packmanager">📦 Pack Manager + Cloudflare</button>
         <button class="tab-button" data-tab="spreadsheet">💰 Spreadsheet</button>
         <button class="tab-button" data-tab="zipextractor">📄 ZIP Extractor</button>
@@ -49,24 +43,24 @@
         </div>
         <div class="columns">
             <div class="column">
-                <h2>📌 Subscriber (Subscribestar)</h2>
+                <h2>📌 Subscriber (<strong>Subscribestar</strong>)</h2>
                 <textarea id="subscriberOutput" class="output" readonly>Waiting...</textarea>
                 <button class="copy-btn" data-copy="subscriberOutput">Copy</button>
             </div>
             <div class="column">
-                <h2>⚠️ Public Teaser (Subscribestar)</h2>
+                <h2>⚠️ Public Teaser (<strong>Subscribestar</strong>)</h2>
                 <textarea id="publicOutput" class="output" readonly>Waiting...</textarea>
                 <button class="copy-btn" data-copy="publicOutput">Copy</button>
             </div>
         </div>
         <div class="columns" style="margin-top: 20px;">
             <div class="column">
-                <h2>🎯 Patreon Subscriber</h2>
+                <h2>🎯 Subscriber (<strong>Patreon</strong>)</h2>
                 <textarea id="patreonSubOutput" class="output" readonly>Waiting...</textarea>
                 <button class="copy-btn" data-copy="patreonSubOutput">Copy</button>
             </div>
             <div class="column">
-                <h2>🔓 Patreon Public Teaser</h2>
+                <h2>🔓 Public Teaser (<strong>Patreon</strong>)</h2>
                 <textarea id="patreonPublicOutput" class="output" readonly>Waiting...</textarea>
                 <button class="copy-btn" data-copy="patreonPublicOutput">Copy</button>
             </div>
@@ -386,6 +380,29 @@
                 document.getElementById(id).classList.add('active');
             });
         });
+    })();
+
+    // ========== RETWEET QUEUE TAB VISIBILITY ==========
+    (function() {
+        const retweetTab = document.getElementById('retweet-tab');
+        if (!retweetTab) return;
+
+        function updateRetweetTabVisibility() {
+            const queueItems = document.querySelectorAll('#retweet-list .queue-item');
+            const hasItems = queueItems.length > 0;
+            retweetTab.classList.toggle('has-items', hasItems);
+            retweetTab.style.display = hasItems ? '' : 'none';
+        }
+
+        const observer = new MutationObserver(updateRetweetTabVisibility);
+        const retweetList = document.getElementById('retweet-list');
+        if (retweetList) {
+            observer.observe(retweetList, { childList: true, subtree: true });
+        }
+
+        setTimeout(updateRetweetTabVisibility, 500);
+
+        document.addEventListener('queueUpdated', updateRetweetTabVisibility);
     })();
 </script>
 </body>
