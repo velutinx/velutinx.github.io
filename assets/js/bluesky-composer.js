@@ -35,34 +35,35 @@
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
 
-    // ---------- Watermark images (loaded once) ----------
-    const PROXY_BASE = 'https://watermark-worker.velutinx.workers.dev/proxy?url=';
-    const CENTER_WM_URL = 'https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png';
-    const CORNER_WM_URL = 'https://www.velutinx.com/images/Watermark/Watermark%20Corner.png';
+// ---------- Watermark images (loaded directly) ----------
+// PROXY_BASE is no longer needed
+const CENTER_WM_URL = 'https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png';
+const CORNER_WM_URL = 'https://www.velutinx.com/images/Watermark/Watermark%20Corner.png';
 
-    let centerWmImg = null;
-    let cornerWmImg = null;
+let centerWmImg = null;
+let cornerWmImg = null;
 
-    function loadImageViaProxy(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error(`Failed to load ${url}`));
-            img.src = PROXY_BASE + encodeURIComponent(url);
-        });
+function loadImageDirect(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed to load ${url}`));
+        img.src = url;
+    });
+}
+
+async function loadWatermarks() {
+    try {
+        [centerWmImg, cornerWmImg] = await Promise.all([
+            loadImageDirect(CENTER_WM_URL),
+            loadImageDirect(CORNER_WM_URL)
+        ]);
+        console.log('✅ Watermarks loaded successfully');
+    } catch (err) {
+        console.error('Failed to load watermarks:', err);
     }
-
-    async function loadWatermarks() {
-        try {
-            [centerWmImg, cornerWmImg] = await Promise.all([
-                loadImageViaProxy(CENTER_WM_URL),
-                loadImageViaProxy(CORNER_WM_URL)
-            ]);
-        } catch (err) {
-            console.error('Failed to load watermarks:', err);
-        }
-    }
+}
 
     // Apply both watermarks to a file, return a new File
     function applyWatermark(file) {
