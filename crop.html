@@ -118,7 +118,6 @@
         let expandedPackId = null;
         let sortKey = 'id';
         let sortAsc = true;
-        // Cache for image lists per pack
         const imageCache = {};
 
         let cropData = null;
@@ -142,7 +141,6 @@
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const data = await resp.json();
                 allPacks = Array.isArray(data) ? data : [];
-                // Clear cache when reloading packs
                 for (const key in imageCache) delete imageCache[key];
                 renderTable();
                 status.textContent = `✅ ${allPacks.length} packs loaded.`;
@@ -155,20 +153,34 @@
         }
 
         // ============================================================
-        // 3.  FETCH IMAGES FOR A PACK
+        // 3.  FETCH IMAGES FOR A PACK (capped to illustrationCount)
         // ============================================================
         async function fetchImagesForPack(packId) {
             if (imageCache[packId]) return imageCache[packId];
+            const pack = allPacks.find(p => p.id === packId);
+            const maxCount = pack?.illustrationCount || 0;
+            if (maxCount === 0) return [];
+
             try {
                 const resp = await fetch(`https://packs-api.velutinx.workers.dev/api/images?pack=${packId}`);
                 if (!resp.ok) throw new Error('Failed to fetch images');
                 const data = await resp.json();
-                const images = data.images || [];
+                let images = data.images || [];
+                // Cap to maxCount
+                if (images.length > maxCount) {
+                    images = images.slice(0, maxCount);
+                }
                 imageCache[packId] = images;
                 return images;
             } catch (err) {
                 console.error(err);
-                return [];
+                // Fallback: generate URLs up to maxCount
+                const fallback = [];
+                for (let i = 1; i <= maxCount; i++) {
+                    fallback.push(`https://www.velutinx.com/i/pack${packId}-${i}.jpg`);
+                }
+                imageCache[packId] = fallback;
+                return fallback;
             }
         }
 
@@ -218,7 +230,6 @@
                     <td>${pack.downloadUrl ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>` : '—'}</td>
                 </tr>`;
 
-                // Expanded row – will be filled asynchronously
                 if (isExpanded) {
                     html += `<tr class="expanded-row" data-parent="${pack.id}">
                         <td colspan="6">
@@ -244,7 +255,7 @@
                 });
             });
 
-            // ─── For each expanded row, load images ───
+            // ─── Load images for expanded rows ───
             document.querySelectorAll('.expanded-row').forEach(row => {
                 const packId = row.dataset.parent;
                 loadExpandedImages(packId);
@@ -270,7 +281,6 @@
 
             if (loadingSpan) loadingSpan.textContent = `${images.length} images`;
 
-            // Build thumbnails
             grid.innerHTML = '';
             images.forEach((url, idx) => {
                 const wrap = document.createElement('div');
@@ -290,7 +300,6 @@
                 grid.appendChild(wrap);
             });
 
-            // Attach crop click
             grid.querySelectorAll('.thumb-wrap').forEach(el => {
                 el.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -301,7 +310,6 @@
                 });
             });
 
-            // ─── Sortable (reorder) ───
             if (grid.children.length > 1) {
                 new Sortable(grid, {
                     animation: 150,
@@ -309,12 +317,10 @@
                     ghostClass: 'cf-sortable-ghost',
                     onEnd: function(evt) {
                         const packId = grid.dataset.packId;
-                        // Build new order: array of URLs in the new order
                         const newOrder = [];
                         grid.querySelectorAll('.thumb-wrap').forEach(el => {
                             newOrder.push(el.dataset.url);
                         });
-                        // Convert URLs to keys (remove domain)
                         const keys = newOrder.map(url => url.replace('https://www.velutinx.com/', ''));
                         reorderImages(packId, keys);
                     }
@@ -330,7 +336,6 @@
                 expandedPackId = null;
             } else {
                 expandedPackId = packId;
-                // Clear cache for this pack so it reloads fresh on next expand
                 delete imageCache[packId];
             }
             renderTable();
@@ -350,17 +355,15 @@
                 const data = await resp.json();
                 if (data.success) {
                     showToast('✅ Order saved!', 'success');
-                    // Update cache with new order
                     const base = 'https://www.velutinx.com/';
                     const newUrls = order.map(key => base + key);
                     imageCache[packId] = newUrls;
-                    // Reload the expanded row to reflect the new order
+                    // Refresh expanded row
                     const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
                     if (row) {
                         const grid = row.querySelector('.image-grid');
                         const loadingSpan = row.querySelector('.expanded-inner > div:first-child span');
                         if (loadingSpan) loadingSpan.textContent = 'Refreshing…';
-                        // Rebuild grid from cache
                         const images = imageCache[packId];
                         grid.innerHTML = '';
                         images.forEach((url, idx) => {
@@ -381,7 +384,7 @@
                             grid.appendChild(wrap);
                         });
                         if (loadingSpan) loadingSpan.textContent = `${images.length} images`;
-                        // Re-attach crop and sortable (same as above)
+                        // Re‑attach events
                         grid.querySelectorAll('.thumb-wrap').forEach(el => {
                             el.addEventListener('click', function(e) {
                                 e.stopPropagation();
@@ -420,9 +423,6 @@
         // ============================================================
         // 8.  CROP MODAL (with 1:2 aspect ratio)
         // ============================================================
-        // ... (same as before, no changes needed) ...
-        // I'll include the full crop code for completeness, but it's identical to earlier.
-
         function openCropModal(packId, imageIndex, imageUrl) {
             cropData = { packId, imageIndex, imageUrl };
             document.getElementById('cropModal').classList.add('active');
@@ -566,6 +566,7 @@
             if (e.target === this) closeCropModal();
         });
 
+        // ─── Perform crop using packs-api/crop ──────────────────────────
         async function performCrop() {
             const { packId, imageIndex, imageUrl } = cropData;
             const cw = cropCanvas.width, ch = cropCanvas.height;
@@ -588,19 +589,20 @@
 
                 const formData = new FormData();
                 formData.append('packNumber', packId);
-                formData.append('images', file);
+                formData.append('index', imageIndex + 1);
+                formData.append('image', file);
 
-                const uploadResp = await fetch('https://i2-uploader.velutinx.workers.dev', {
+                const uploadResp = await fetch('https://packs-api.velutinx.workers.dev/api/packs/crop', {
                     method: 'POST',
                     body: formData,
                 });
+
                 if (!uploadResp.ok) {
                     const errText = await uploadResp.text();
                     throw new Error(`Upload failed: ${uploadResp.status} ${errText}`);
                 }
                 const result = await uploadResp.json();
-                showToast(`✅ Cropped image saved! (${result.urls?.length || 1} file(s))`, 'success');
-                // Invalidate cache and refresh expanded row
+                showToast(`✅ Cropped image saved!`, 'success');
                 delete imageCache[packId];
                 const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
                 if (row) loadExpandedImages(packId);
