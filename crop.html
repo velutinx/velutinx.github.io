@@ -64,6 +64,20 @@
         .pm-loading { display: inline-block; width: 18px; height: 18px; border: 2px solid #aaa; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ─── FIX BUTTON ─── */
+        .fix-btn {
+            background: #f59e0b;
+            color: #1a1a1a;
+            border: none;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .fix-btn:hover { background: #d97706; }
+
         @media (max-width: 700px) { .container { padding: 12px; } .image-grid .thumb-wrap { width: 80px; height: 80px; } th, td { padding: 8px 10px; font-size: 0.75rem; } .crop-modal-content { padding: 16px; } #cropCanvas { max-height: 50vh; } }
     </style>
 </head>
@@ -173,14 +187,9 @@
                 imageCache[packId] = images;
                 return images;
             } catch (err) {
-                console.error(err);
-                // Fallback: generate URLs up to maxCount
-                const fallback = [];
-                for (let i = 1; i <= maxCount; i++) {
-                    fallback.push(`https://www.velutinx.com/i/pack${packId}-${i}.jpg`);
-                }
-                imageCache[packId] = fallback;
-                return fallback;
+                console.error('Error fetching images for pack', packId, err);
+                imageCache[packId] = [];
+                return [];
             }
         }
 
@@ -237,6 +246,7 @@
                                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                                     <span style="font-weight:500; color:#ccc;">Loading images…</span>
                                     <span style="font-size:0.8rem; color:#888;">Drag to reorder · Click image to crop</span>
+                                    <button class="fix-btn" data-pack="${pack.id}">🛠️ Fix Pack</button>
                                 </div>
                                 <div class="image-grid" data-pack-id="${pack.id}"></div>
                             </div>
@@ -259,6 +269,46 @@
             document.querySelectorAll('.expanded-row').forEach(row => {
                 const packId = row.dataset.parent;
                 loadExpandedImages(packId);
+            });
+
+            // ─── Fix Pack button ───
+            document.querySelectorAll('.fix-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.stopPropagation();
+                    const packId = this.dataset.pack;
+                    if (!packId) return;
+                    this.disabled = true;
+                    this.textContent = '⏳ ...';
+                    try {
+                        const resp = await fetch('https://packs-api.velutinx.workers.dev/api/packs/fix', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ packId })
+                        });
+                        const data = await resp.json();
+                        if (data.success) {
+                            showToast(`✅ Fixed! Found ${data.count} images.`, 'success');
+                            delete imageCache[packId];
+                            // Reload the expanded row
+                            const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
+                            if (row) loadExpandedImages(packId);
+                            // Also update the main table's illustration count
+                            const mainRow = document.querySelector(`.clickable-row[data-pack-id="${packId}"]`);
+                            if (mainRow) {
+                                const countCell = mainRow.querySelector('td:nth-child(5)');
+                                if (countCell) countCell.textContent = data.count;
+                            }
+                        } else {
+                            showToast('❌ ' + (data.error || 'Fix failed'), 'error');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showToast('❌ ' + err.message, 'error');
+                    } finally {
+                        this.disabled = false;
+                        this.textContent = '🛠️ Fix Pack';
+                    }
+                });
             });
         }
 
