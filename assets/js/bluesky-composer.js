@@ -1,9 +1,8 @@
-// velutinx.github.io/assets/js/bluesky-composer.js
+// ========== bluesky-composer.js ==========
 
 (function() {
     'use strict';
 
-    // ---------- Character Counter ----------
     const CHARS_MAX = 300;
     function updateCharCounter(textarea) {
         const counter = textarea._wc;
@@ -15,7 +14,6 @@
         counter.style.fontWeight = remaining > 0 ? 'normal' : 'bold';
     }
 
-    // ---------- Global Image Registry ----------
     window.imageRegistry = window.imageRegistry || {};
 
     function addImage(file) {
@@ -24,48 +22,40 @@
         return id;
     }
 
-    // ---------- State arrays ----------
     window.accountImages = window.accountImages || { 1: [], 2: [] };
     window.twitterImageIds = window.twitterImageIds || { 1: [], 2: [], 3: [] };
 
     const sortableInstances = { 1: null, 2: null };
-
-    // ---------- DOM Elements ----------
     const masterPost = document.getElementById('masterPost');
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
+    const CENTER_WM_URL = 'https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png';
+    const CORNER_WM_URL = 'https://www.velutinx.com/images/Watermark/Watermark%20Corner.png';
+    let centerWmImg = null;
+    let cornerWmImg = null;
 
-// ---------- Watermark images (loaded directly) ----------
-// PROXY_BASE is no longer needed
-const CENTER_WM_URL = 'https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png';
-const CORNER_WM_URL = 'https://www.velutinx.com/images/Watermark/Watermark%20Corner.png';
-
-let centerWmImg = null;
-let cornerWmImg = null;
-
-function loadImageDirect(url) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error(`Failed to load ${url}`));
-        img.src = url;
-    });
-}
-
-async function loadWatermarks() {
-    try {
-        [centerWmImg, cornerWmImg] = await Promise.all([
-            loadImageDirect(CENTER_WM_URL),
-            loadImageDirect(CORNER_WM_URL)
-        ]);
-        console.log('✅ Watermarks loaded successfully');
-    } catch (err) {
-        console.error('Failed to load watermarks:', err);
+    function loadImageDirect(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`Failed to load ${url}`));
+            img.src = url;
+        });
     }
-}
 
-    // Apply both watermarks to a file, return a new File
+    async function loadWatermarks() {
+        try {
+            [centerWmImg, cornerWmImg] = await Promise.all([
+                loadImageDirect(CENTER_WM_URL),
+                loadImageDirect(CORNER_WM_URL)
+            ]);
+            console.log('✅ Watermarks loaded successfully');
+        } catch (err) {
+            console.error('Failed to load watermarks:', err);
+        }
+    }
+
     function applyWatermark(file) {
         return new Promise((resolve, reject) => {
             if (!centerWmImg || !cornerWmImg) {
@@ -79,77 +69,64 @@ async function loadWatermarks() {
                 canvas.width = img.width;
                 canvas.height = img.height;
                 const ctx = canvas.getContext('2d');
-
-                // 1. Draw original image
                 ctx.drawImage(img, 0, 0, img.width, img.height);
-
-                // 2. Center watermark at 20% opacity, centered
                 ctx.globalAlpha = 0.20;
                 const centerX = (img.width - centerWmImg.width) / 2;
                 const centerY = (img.height - centerWmImg.height) / 2;
                 ctx.drawImage(centerWmImg, centerX, centerY);
                 ctx.globalAlpha = 1.0;
-
-                // 3. Corner watermark at northeast +70+30
                 const cornerX = img.width - cornerWmImg.width - 70;
                 const cornerY = 30;
                 ctx.drawImage(cornerWmImg, cornerX, cornerY);
-
-canvas.toBlob(async blob => {
-  const resizedBlob = await ensureSizeLimit(blob);
-  const watermarkedFile = new File([resizedBlob], file.name || 'image.jpg', {
-    type: 'image/jpeg',
-    lastModified: Date.now()
-  });
-  resolve(watermarkedFile);
-}, 'image/jpeg', 0.92);
+                canvas.toBlob(async blob => {
+                    const resizedBlob = await ensureSizeLimit(blob);
+                    const watermarkedFile = new File([resizedBlob], file.name || 'image.jpg', {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve(watermarkedFile);
+                }, 'image/jpeg', 0.92);
             };
             img.onerror = () => reject(new Error('Failed to load image file'));
             img.src = URL.createObjectURL(file);
         });
     }
 
-// Resize / re‑encode an image blob so it's ≤ maxBytes (default 1 MB)
-async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
-  if (blob.size <= maxBytes) return blob;
+    async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
+        if (blob.size <= maxBytes) return blob;
 
-  const img = await createImageBitmap(blob);
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+        const img = await createImageBitmap(blob);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
-  // Try a small quality drop first
-  for (let quality = 0.85; quality >= 0.5; quality -= 0.1) {
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    const newBlob = await new Promise(resolve =>
-      canvas.toBlob(resolve, 'image/jpeg', quality)
-    );
-    if (newBlob.size <= maxBytes) return newBlob;
-  }
+        for (let quality = 0.85; quality >= 0.5; quality -= 0.1) {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const newBlob = await new Promise(resolve =>
+                canvas.toBlob(resolve, 'image/jpeg', quality)
+            );
+            if (newBlob.size <= maxBytes) return newBlob;
+        }
 
-  // If still too large, scale down dimensions
-  let scale = 0.9;
-  while (scale > 0.2) {
-    canvas.width = Math.floor(img.width * scale);
-    canvas.height = Math.floor(img.height * scale);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const newBlob = await new Promise(resolve =>
-      canvas.toBlob(resolve, 'image/jpeg', 0.8)
-    );
-    if (newBlob.size <= maxBytes) return newBlob;
-    scale -= 0.1;
-  }
+        let scale = 0.9;
+        while (scale > 0.2) {
+            canvas.width = Math.floor(img.width * scale);
+            canvas.height = Math.floor(img.height * scale);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const newBlob = await new Promise(resolve =>
+                canvas.toBlob(resolve, 'image/jpeg', 0.8)
+            );
+            if (newBlob.size <= maxBytes) return newBlob;
+            scale -= 0.1;
+        }
 
-  // Last resort – very small
-  canvas.width = 800;
-  canvas.height = Math.floor(800 * (img.height / img.width));
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
-}
+        canvas.width = 800;
+        canvas.height = Math.floor(800 * (img.height / img.width));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
+    }
 
-    
-    // Upload a watermarked file to R2 (fire-and-forget)
     function uploadToR2(blob, filename) {
         const formData = new FormData();
         formData.append('image', blob, filename || 'watermarked.jpg');
@@ -159,7 +136,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         }).catch(err => console.warn('R2 upload failed:', err));
     }
 
-    // ---------- SFW Twitter button lock helpers ----------
     function getSfwTwitterBtn() {
         return document.querySelector('button[onclick="sendToWorker(3)"]');
     }
@@ -205,7 +181,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         }
     }
 
-    // ---------- Refresh Twitter cards ----------
     function refreshTwitterFromBluesky(blueskyAccountId) {
         if (typeof window.renderTwitterThumbnails !== 'function') return;
         if (blueskyAccountId == 1) {
@@ -219,7 +194,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         }
     }
 
-    // ---------- Render Thumbnails (Bluesky cards) ----------
     function renderThumbnails(accountId) {
         const container = document.querySelector(`.thumbnail-container[data-account="${accountId}"]`);
         if (!container) return;
@@ -340,7 +314,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         }, 50);
     }
 
-    // ---------- CROP MODAL (watermark reapplied after crop) ----------
     function openCropModal(file, accountId, index) {
         const modal = document.getElementById('cropModal');
         const canvas = document.getElementById('cropCanvas');
@@ -464,7 +437,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
             const outCtx = outCanvas.getContext('2d');
             outCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
             outCanvas.toBlob(async blob => {
-                // Re-apply watermarks to the cropped image
                 try {
                     const croppedFile = new File([blob], file.name || 'cropped.jpg', {
                         type: blob.type || 'image/jpeg', lastModified: Date.now()
@@ -487,7 +459,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
                     if (typeof showToast === 'function') showToast('Image cropped & watermarked!', 'success');
                 } catch (err) {
                     console.error('Watermark after crop failed:', err);
-                    // Fallback: keep cropped but not watermarked
                     const croppedFile = new File([blob], file.name || 'cropped.jpg', {
                         type: blob.type || 'image/jpeg', lastModified: Date.now()
                     });
@@ -500,7 +471,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         modal.addEventListener('click', (e) => { if (e.target === modal) cleanup(); });
     }
 
-    // ---------- Setup Dropzones (with automatic watermarking) ----------
     function setupDropzones() {
         document.querySelectorAll('.dropzone[data-account]').forEach(dz => {
             const accountId = dz.dataset.account;
@@ -520,7 +490,6 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
                                 uploadToR2(wmFile, file.name);
                             } catch (err) {
                                 console.warn('Watermarking failed for', file.name, err);
-                                // Fallback: use original file
                                 watermarkedFiles.push(file);
                             }
                         }
@@ -598,151 +567,143 @@ async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         });
     }
 
-// Helper: Convert text to UTF-8 byte array (for index calculations)
-function getUtf8Bytes(str) {
-    return new TextEncoder().encode(str);
-}
-
-// Helper: character index → byte index
-function charIndexToByteIndex(text, charIndex) {
-    const bytes = getUtf8Bytes(text.slice(0, charIndex));
-    return bytes.length;
-}
-
-// Extract URLs (same regex as the worker)
-function extractLinks(text) {
-    const links = [];
-    const urlRegex = /https?:\/\/[^\s<>"(){}|\\^`[\]]+/g;
-    let match;
-    while ((match = urlRegex.exec(text)) !== null) {
-        links.push({
-            start: match.index,
-            end: match.index + match[0].length,
-            url: match[0],
-        });
+    function getUtf8Bytes(str) {
+        return new TextEncoder().encode(str);
     }
-    return links;
-}
 
-// Extract hashtags, skipping any inside a URL
-function extractHashtags(text, links) {
-    const hashtags = [];
-    const regex = /#([^\s#@]+)/g;
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-        const start = match.index;
-        const end = start + match[0].length;
-        const insideLink = links.some(link => start >= link.start && end <= link.end);
-        if (!insideLink) {
-            hashtags.push({ start, end, tag: match[1] });
+    function charIndexToByteIndex(text, charIndex) {
+        const bytes = getUtf8Bytes(text.slice(0, charIndex));
+        return bytes.length;
+    }
+
+    function extractLinks(text) {
+        const links = [];
+        const urlRegex = /https?:\/\/[^\s<>"(){}|\\^`[\]]+/g;
+        let match;
+        while ((match = urlRegex.exec(text)) !== null) {
+            links.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                url: match[0],
+            });
         }
-    }
-    return hashtags;
-}
-
-// Build the facets array (same as the worker)
-function buildFacets(text) {
-    const facets = [];
-    const links = extractLinks(text);
-    for (const { start, end, url } of links) {
-        const byteStart = charIndexToByteIndex(text, start);
-        const byteEnd = charIndexToByteIndex(text, end);
-        facets.push({
-            index: { byteStart, byteEnd },
-            features: [{ $type: 'app.bsky.richtext.facet#link', uri: url }]
-        });
-    }
-    const hashtags = extractHashtags(text, links);
-    for (const { start, end, tag } of hashtags) {
-        const byteStart = charIndexToByteIndex(text, start);
-        const byteEnd = charIndexToByteIndex(text, end);
-        facets.push({
-            index: { byteStart, byteEnd },
-            features: [{ $type: 'app.bsky.richtext.facet#tag', tag }]
-        });
-    }
-    return facets;
-}
-
-// ---------- Post to Bluesky (updated) ----------
-async function postToBluesky(accountId) {
-    const postEl = document.getElementById(`post${accountId}`);
-    if (!postEl) {
-        console.error(`❌ Element #post${accountId} not found`);
-        return;
-    }
-    const text = postEl.value.trim();
-    const ids = window.accountImages[accountId] || [];
-    const images = ids.map(id => window.imageRegistry[id]).filter(Boolean);
-
-    if (!text && images.length === 0) {
-        console.warn('No text and no images — aborting');
-        if (typeof showToast === 'function') showToast('Add text or image first', 'error');
-        return;
+        return links;
     }
 
-    let statusDiv = document.getElementById(`post-status-${accountId}`);
-    if (!statusDiv) {
-        statusDiv = document.createElement('div');
-        statusDiv.id = `post-status-${accountId}`;
-        statusDiv.style.marginTop = '8px'; statusDiv.style.fontSize = '12px';
-        postEl.parentNode.appendChild(statusDiv);
-    }
-    statusDiv.textContent = '⏳ Posting...'; statusDiv.style.color = '#aaa';
-
-    try {
-        const formData = new FormData();
-        formData.append('account', accountId);
-        formData.append('text', text);
-
-        // Pre‑build facets and send as JSON
-        const facets = buildFacets(text);
-        formData.append('facets', JSON.stringify(facets));
-
-        images.forEach((img, i) => {
-            if (!(img instanceof File)) {
-                console.error(`❌ Image at index ${i} is not a File`, img);
-                throw new Error('Invalid image file');
+    function extractHashtags(text, links) {
+        const hashtags = [];
+        const regex = /#([^\s#@]+)/g;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            const start = match.index;
+            const end = start + match[0].length;
+            const insideLink = links.some(link => start >= link.start && end <= link.end);
+            if (!insideLink) {
+                hashtags.push({ start, end, tag: match[1] });
             }
-            formData.append('image', img, img.name || 'image.jpg');
-        });
+        }
+        return hashtags;
+    }
 
-        const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await res.json();
+    function buildFacets(text) {
+        const facets = [];
+        const links = extractLinks(text);
+        for (const { start, end, url } of links) {
+            const byteStart = charIndexToByteIndex(text, start);
+            const byteEnd = charIndexToByteIndex(text, end);
+            facets.push({
+                index: { byteStart, byteEnd },
+                features: [{ $type: 'app.bsky.richtext.facet#link', uri: url }]
+            });
+        }
+        const hashtags = extractHashtags(text, links);
+        for (const { start, end, tag } of hashtags) {
+            const byteStart = charIndexToByteIndex(text, start);
+            const byteEnd = charIndexToByteIndex(text, end);
+            facets.push({
+                index: { byteStart, byteEnd },
+                features: [{ $type: 'app.bsky.richtext.facet#tag', tag }]
+            });
+        }
+        return facets;
+    }
 
-        if (res.ok) {
-            statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
-            if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+    async function postToBluesky(accountId) {
+        const postEl = document.getElementById(`post${accountId}`);
+        if (!postEl) {
+            console.error(`❌ Element #post${accountId} not found`);
+            return;
+        }
+        const text = postEl.value.trim();
+        const ids = window.accountImages[accountId] || [];
+        const images = ids.map(id => window.imageRegistry[id]).filter(Boolean);
 
-            if (accountId == 1) {
-                if (typeof window.sendToWorker === 'function') {
-                    window.sendToWorker(3);
+        if (!text && images.length === 0) {
+            console.warn('No text and no images — aborting');
+            if (typeof showToast === 'function') showToast('Add text or image first', 'error');
+            return;
+        }
+
+        let statusDiv = document.getElementById(`post-status-${accountId}`);
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            statusDiv.id = `post-status-${accountId}`;
+            statusDiv.style.marginTop = '8px'; statusDiv.style.fontSize = '12px';
+            postEl.parentNode.appendChild(statusDiv);
+        }
+        statusDiv.textContent = '⏳ Posting...'; statusDiv.style.color = '#aaa';
+
+        try {
+            const formData = new FormData();
+            formData.append('account', accountId);
+            formData.append('text', text);
+
+            const facets = buildFacets(text);
+            formData.append('facets', JSON.stringify(facets));
+
+            images.forEach((img, i) => {
+                if (!(img instanceof File)) {
+                    console.error(`❌ Image at index ${i} is not a File`, img);
+                    throw new Error('Invalid image file');
                 }
-                window.accountImages[1] = [];
-                renderThumbnails(1);
-                lockSfwTwitter();
-            } else {
-                window.accountImages[accountId] = [];
-                renderThumbnails(accountId);
-            }
-            setTimeout(() => statusDiv.textContent = '', 2500);
-        } else {
-            statusDiv.textContent = `❌ ${data.error || 'failed'}`;
-            console.error('Bluesky post error:', data);
-            if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
-        }
-    } catch (err) {
-        console.error('❌ Bluesky fetch error:', err);
-        statusDiv.textContent = `❌ ${err.message}`;
-        if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
-    }
-}
-window.postToBluesky = postToBluesky;
+                formData.append('image', img, img.name || 'image.jpg');
+            });
 
-    // ---------- Initialize ----------
+            const res = await fetch('https://bluesky-post-proxy-final.velutinx.workers.dev', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
+                if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+
+                if (accountId == 1) {
+                    if (typeof window.sendToWorker === 'function') {
+                        window.sendToWorker(3);
+                    }
+                    window.accountImages[1] = [];
+                    renderThumbnails(1);
+                    lockSfwTwitter();
+                } else {
+                    window.accountImages[accountId] = [];
+                    renderThumbnails(accountId);
+                }
+                setTimeout(() => statusDiv.textContent = '', 2500);
+            } else {
+                statusDiv.textContent = `❌ ${data.error || 'failed'}`;
+                console.error('Bluesky post error:', data);
+                if (typeof showToast === 'function') showToast(`Error: ${data.error || 'server error'}`, 'error');
+            }
+        } catch (err) {
+            console.error('❌ Bluesky fetch error:', err);
+            statusDiv.textContent = `❌ ${err.message}`;
+            if (typeof showToast === 'function') showToast(`Network error: ${err.message}`, 'error');
+        }
+    }
+    window.postToBluesky = postToBluesky;
+
     function init() {
         if (!masterPost) {
             console.warn('Bluesky Composer: Required elements not found.');
@@ -766,7 +727,6 @@ window.postToBluesky = postToBluesky;
         installCharCounter(post1);
         installCharCounter(post2);
 
-        // Auto‑resize Bluesky textareas – register immediately
         const autoResize = (ta) => {
             if (!ta) return;
             ta.style.height = 'auto';
@@ -777,14 +737,12 @@ window.postToBluesky = postToBluesky;
         autoResize(post1);
         autoResize(post2);
 
-        // 🔁 Force resize when the Tweeter tab is activated
         const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
         if (tweeterTabBtn) {
             tweeterTabBtn.addEventListener('click', () => {
                 setTimeout(() => {
                     autoResize(post1);
                     autoResize(post2);
-                    // Also resize master and Twitter boxes (handled by twitter-composer, but just in case)
                     if (masterPost) {
                         masterPost.style.height = 'auto';
                         masterPost.style.height = (masterPost.scrollHeight + 2) + 'px';
@@ -793,13 +751,11 @@ window.postToBluesky = postToBluesky;
             });
         }
 
-        // Preload watermarks, then set up dropzones
         loadWatermarks().then(() => {
             setupDropzones();
             renderThumbnails(1);
             renderThumbnails(2);
 
-            // Clear All button, etc.
             const clearBtn = document.getElementById('clearAllBtn');
             if (clearBtn) {
                 clearBtn.addEventListener('click', () => {
