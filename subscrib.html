@@ -1,4 +1,3 @@
-<!-- This is velutinx.github.io/subscrib.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,6 +20,7 @@
     <script src="/assets/js/twitter-composer.js" defer></script>
     <script src="/assets/js/hashtag-generator.js" defer></script>
     <script src="/assets/js/extractor.js" defer></script>
+    <script src="/assets/js/retweet-queue.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -163,6 +163,17 @@
         </div>
     </div>
 
+    <!-- NEW: Retweet Queue Tab -->
+    <div id="retweet" class="tab-content">
+        <div class="retweet-container">
+            <h2>📋 Retweet Queue</h2>
+            <p>Posts that need manual retweeting. Click <strong>Retweet</strong> to publish, or <strong>Delete</strong> to remove from queue.</p>
+            <div id="retweet-list">
+                <div class="loading">Loading queue...</div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Pack Manager Tab -->
     <div id="packmanager" class="tab-content">
         <div class="pm-container">
