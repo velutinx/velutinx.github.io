@@ -415,79 +415,36 @@
         // ============================================================
         // 7.  REORDER IMAGES (persist to KV)
         // ============================================================
-        async function reorderImages(packId, order) {
-            try {
-                const resp = await fetch('https://packs-api.velutinx.workers.dev/api/packs/reorder', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ packId, order })
-                });
-                if (!resp.ok) throw new Error('Reorder failed');
-                const data = await resp.json();
-                if (data.success) {
-                    showToast('✅ Order saved!', 'success');
-                    const base = 'https://www.velutinx.com/';
-                    const newUrls = order.map(key => base + key);
-                    imageCache[packId] = newUrls;
-                    const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
-                    if (row) {
-                        const grid = row.querySelector('.image-grid');
-                        const loadingSpan = row.querySelector('.expanded-inner > div:first-child span');
-                        if (loadingSpan) loadingSpan.textContent = 'Refreshing…';
-                        const images = imageCache[packId];
-                        grid.innerHTML = '';
-                        images.forEach((url, idx) => {
-                            const wrap = document.createElement('div');
-                            wrap.className = 'thumb-wrap';
-                            wrap.dataset.pack = packId;
-                            wrap.dataset.index = idx;
-                            wrap.dataset.url = url;
-                            const img = document.createElement('img');
-                            img.src = url;
-                            img.loading = 'lazy';
-                            img.onerror = () => { img.style.display = 'none'; };
-                            const indexSpan = document.createElement('span');
-                            indexSpan.className = 'image-index';
-                            indexSpan.textContent = '#' + (idx + 1);
-                            wrap.appendChild(img);
-                            wrap.appendChild(indexSpan);
-                            grid.appendChild(wrap);
-                        });
-                        if (loadingSpan) loadingSpan.textContent = `${images.length} images`;
-                        grid.querySelectorAll('.thumb-wrap').forEach(el => {
-                            el.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                const packId = this.dataset.pack;
-                                const index = parseInt(this.dataset.index, 10);
-                                const url = this.dataset.url;
-                                openCropModal(packId, index, url);
-                            });
-                        });
-                        if (grid.children.length > 1) {
-                            new Sortable(grid, {
-                                animation: 150,
-                                handle: '.thumb-wrap',
-                                ghostClass: 'cf-sortable-ghost',
-                                onEnd: function(evt) {
-                                    const packId = grid.dataset.packId;
-                                    const newOrder = [];
-                                    grid.querySelectorAll('.thumb-wrap').forEach(el => {
-                                        newOrder.push(el.dataset.url);
-                                    });
-                                    const keys = newOrder.map(url => url.replace('https://www.velutinx.com/', ''));
-                                    reorderImages(packId, keys);
-                                }
-                            });
-                        }
-                    }
-                } else {
-                    showToast('❌ ' + (data.error || 'Unknown error'), 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('❌ Reorder failed: ' + err.message, 'error');
+// ─── REPLACE the existing reorderImages function with this ───
+async function reorderImages(packId, order) {
+    // order is an array of full keys (e.g., "i/pack001-5.jpg")
+    try {
+        const resp = await fetch('https://packs-api.velutinx.workers.dev/api/packs/rename', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ packId, order })
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+            showToast('✅ Order saved and files renamed!', 'success');
+            // Clear the cache and reload the expanded row
+            delete imageCache[packId];
+            const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
+            if (row) loadExpandedImages(packId);
+            // Also update the main table count if it changed
+            const mainRow = document.querySelector(`.clickable-row[data-pack-id="${packId}"]`);
+            if (mainRow) {
+                const countCell = mainRow.querySelector('td:nth-child(5)');
+                if (countCell) countCell.textContent = data.count;
             }
+        } else {
+            showToast('❌ ' + (data.error || 'Rename failed'), 'error');
         }
+    } catch (err) {
+        console.error(err);
+        showToast('❌ Reorder failed: ' + err.message, 'error');
+    }
+}
 
         // ============================================================
         // 8.  CROP MODAL (with 1:2 aspect ratio)
