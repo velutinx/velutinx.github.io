@@ -311,7 +311,70 @@
                 });
             });
         }
+// ─── POST /api/packs/fix-all ──────────────────────────────────────────
+if (method === 'POST' && path === '/api/packs/fix-all') {
+  try {
+    let packs = await env.PACKS_KV.get('packs_list', 'json');
+    if (!Array.isArray(packs)) packs = [];
+    if (packs.length === 0) {
+      return withCors(new Response(JSON.stringify({ error: 'No packs found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      }));
+    }
 
+    const results = [];
+    for (const pack of packs) {
+      const packId = pack.id;
+      const prefix = `i/pack${packId}-`;
+      const objects = await env.PACKS_R2.list({ prefix });
+      const actualKeys = objects.objects.map(obj => obj.key);
+      const actualUrls = actualKeys.map(key => `https://www.velutinx.com/${key}`);
+      const actualCount = actualKeys.length;
+
+      if (actualCount === 0) {
+        results.push({ packId, status: 'no images', count: 0 });
+        continue;
+      }
+
+      // Update pack metadata
+      const packData = await env.PACKS_KV.get(`pack:${packId}`, 'json');
+      if (packData) {
+        packData.illustrationCount = actualCount;
+        await env.PACKS_KV.put(`pack:${packId}`, JSON.stringify(packData));
+      }
+
+      // Update image list
+      await env.PACKS_KV.put(`images:${packId}`, JSON.stringify(actualUrls));
+
+      // Update main list
+      const idx = packs.findIndex(p => p.id === packId);
+      if (idx !== -1) {
+        packs[idx].illustrationCount = actualCount;
+      }
+
+      results.push({ packId, status: 'fixed', count: actualCount });
+    }
+
+    // Save the updated packs list
+    await env.PACKS_KV.put('packs_list', JSON.stringify(packs));
+
+    return withCors(new Response(JSON.stringify({
+      success: true,
+      total: packs.length,
+      results,
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+  } catch (err) {
+    console.error(err);
+    return withCors(new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+  }
+}
         // ============================================================
         // 5.  LOAD IMAGES INTO EXPANDED ROW
         // ============================================================
