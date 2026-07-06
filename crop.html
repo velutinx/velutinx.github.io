@@ -79,12 +79,36 @@
         .fix-btn:hover { background: #d97706; }
 
         @media (max-width: 700px) { .container { padding: 12px; } .image-grid .thumb-wrap { width: 80px; height: 80px; } th, td { padding: 8px 10px; font-size: 0.75rem; } .crop-modal-content { padding: 16px; } #cropCanvas { max-height: 50vh; } }
+
+        /* ─── HEADER WITH FIX ALL BUTTON ─── */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .fix-all-btn {
+            background: #f59e0b;
+            color: #1a1a1a;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .fix-all-btn:hover { background: #d97706; }
+        .fix-all-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>📦 Pack Editor</h1>
+        <div class="header-row">
+            <h1>📦 Pack Editor</h1>
+            <button id="fixAllBtn" class="fix-all-btn">🔧 Fix All Packs</button>
+        </div>
         <div id="statusMsg" class="status-msg"><span class="pm-loading"></span> Loading packs...</div>
 
         <div class="table-wrapper">
@@ -180,7 +204,6 @@
                 if (!resp.ok) throw new Error('Failed to fetch images');
                 const data = await resp.json();
                 let images = data.images || [];
-                // Cap to maxCount
                 if (images.length > maxCount) {
                     images = images.slice(0, maxCount);
                 }
@@ -289,10 +312,8 @@
                         if (data.success) {
                             showToast(`✅ Fixed! Found ${data.count} images.`, 'success');
                             delete imageCache[packId];
-                            // Reload the expanded row
                             const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
                             if (row) loadExpandedImages(packId);
-                            // Also update the main table's illustration count
                             const mainRow = document.querySelector(`.clickable-row[data-pack-id="${packId}"]`);
                             if (mainRow) {
                                 const countCell = mainRow.querySelector('td:nth-child(5)');
@@ -311,70 +332,7 @@
                 });
             });
         }
-// ─── POST /api/packs/fix-all ──────────────────────────────────────────
-if (method === 'POST' && path === '/api/packs/fix-all') {
-  try {
-    let packs = await env.PACKS_KV.get('packs_list', 'json');
-    if (!Array.isArray(packs)) packs = [];
-    if (packs.length === 0) {
-      return withCors(new Response(JSON.stringify({ error: 'No packs found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      }));
-    }
 
-    const results = [];
-    for (const pack of packs) {
-      const packId = pack.id;
-      const prefix = `i/pack${packId}-`;
-      const objects = await env.PACKS_R2.list({ prefix });
-      const actualKeys = objects.objects.map(obj => obj.key);
-      const actualUrls = actualKeys.map(key => `https://www.velutinx.com/${key}`);
-      const actualCount = actualKeys.length;
-
-      if (actualCount === 0) {
-        results.push({ packId, status: 'no images', count: 0 });
-        continue;
-      }
-
-      // Update pack metadata
-      const packData = await env.PACKS_KV.get(`pack:${packId}`, 'json');
-      if (packData) {
-        packData.illustrationCount = actualCount;
-        await env.PACKS_KV.put(`pack:${packId}`, JSON.stringify(packData));
-      }
-
-      // Update image list
-      await env.PACKS_KV.put(`images:${packId}`, JSON.stringify(actualUrls));
-
-      // Update main list
-      const idx = packs.findIndex(p => p.id === packId);
-      if (idx !== -1) {
-        packs[idx].illustrationCount = actualCount;
-      }
-
-      results.push({ packId, status: 'fixed', count: actualCount });
-    }
-
-    // Save the updated packs list
-    await env.PACKS_KV.put('packs_list', JSON.stringify(packs));
-
-    return withCors(new Response(JSON.stringify({
-      success: true,
-      total: packs.length,
-      results,
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }));
-  } catch (err) {
-    console.error(err);
-    return withCors(new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    }));
-  }
-}
         // ============================================================
         // 5.  LOAD IMAGES INTO EXPANDED ROW
         // ============================================================
@@ -471,7 +429,6 @@ if (method === 'POST' && path === '/api/packs/fix-all') {
                     const base = 'https://www.velutinx.com/';
                     const newUrls = order.map(key => base + key);
                     imageCache[packId] = newUrls;
-                    // Refresh expanded row
                     const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
                     if (row) {
                         const grid = row.querySelector('.image-grid');
@@ -497,7 +454,6 @@ if (method === 'POST' && path === '/api/packs/fix-all') {
                             grid.appendChild(wrap);
                         });
                         if (loadingSpan) loadingSpan.textContent = `${images.length} images`;
-                        // Re‑attach events
                         grid.querySelectorAll('.thumb-wrap').forEach(el => {
                             el.addEventListener('click', function(e) {
                                 e.stopPropagation();
@@ -679,7 +635,6 @@ if (method === 'POST' && path === '/api/packs/fix-all') {
             if (e.target === this) closeCropModal();
         });
 
-        // ─── Perform crop using packs-api/crop ──────────────────────────
         async function performCrop() {
             const { packId, imageIndex, imageUrl } = cropData;
             const cw = cropCanvas.width, ch = cropCanvas.height;
@@ -743,7 +698,37 @@ if (method === 'POST' && path === '/api/packs/fix-all') {
         });
 
         // ============================================================
-        // 10. HELPERS
+        // 10. FIX ALL PACKS
+        // ============================================================
+        document.getElementById('fixAllBtn').addEventListener('click', async function() {
+            if (!confirm('This will scan all packs in R2 and update their image lists and counts. Continue?')) return;
+            this.disabled = true;
+            this.textContent = '⏳ Fixing...';
+            try {
+                const resp = await fetch('https://packs-api.velutinx.workers.dev/api/packs/fix-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    const fixed = data.results.filter(r => r.status === 'fixed').length;
+                    const noImages = data.results.filter(r => r.status === 'no images').length;
+                    showToast(`✅ Fixed ${fixed} packs, ${noImages} had no images.`, 'success');
+                    // Reload after 1.5s to refresh everything
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('❌ ' + (data.error || 'Failed'), 'error');
+                }
+            } catch (err) {
+                showToast('❌ ' + err.message, 'error');
+            } finally {
+                this.disabled = false;
+                this.textContent = '🔧 Fix All Packs';
+            }
+        });
+
+        // ============================================================
+        // 11. HELPERS
         // ============================================================
         function escapeHtml(str) {
             if (!str) return '';
@@ -762,10 +747,9 @@ if (method === 'POST' && path === '/api/packs/fix-all') {
         }
 
         // ============================================================
-        // 11. INIT
+        // 12. INIT
         // ============================================================
         fetchPacks();
     </script>
-
 </body>
 </html>
