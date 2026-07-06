@@ -40,11 +40,11 @@
     let cornerWmImg = null;
 
     function loadImageDirect(url) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error(`Failed to load ${url}`));
+            img.onerror = () => resolve(null);
             img.src = url;
         });
     }
@@ -55,16 +55,20 @@
                 loadImageDirect(CENTER_WM_URL),
                 loadImageDirect(CORNER_WM_URL)
             ]);
-            console.log('✅ Watermarks loaded successfully');
+            if (centerWmImg && cornerWmImg) {
+                console.log('✅ Watermarks loaded successfully');
+            } else {
+                console.warn('⚠️ Watermarks failed to load – images will be uploaded without watermarks.');
+            }
         } catch (err) {
-            console.error('Failed to load watermarks:', err);
+            console.warn('⚠️ Watermarks failed to load – images will be uploaded without watermarks.');
         }
     }
 
     function applyWatermark(file) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (!centerWmImg || !cornerWmImg) {
-                reject(new Error('Watermarks not loaded'));
+                resolve(file);
                 return;
             }
 
@@ -92,7 +96,7 @@
                     resolve(watermarkedFile);
                 }, 'image/jpeg', 0.92);
             };
-            img.onerror = () => reject(new Error('Failed to load image file'));
+            img.onerror = () => resolve(file);
             img.src = URL.createObjectURL(file);
         });
     }
