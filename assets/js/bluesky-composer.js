@@ -29,9 +29,12 @@
     const masterPost = document.getElementById('masterPost');
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
+    // ---------- Watermark images (loaded via CORS proxy) ----------
     const PROXY_BASE = 'https://watermark-worker.velutinx.workers.dev/proxy?url=';
-    const CENTER_WM_URL = PROXY_BASE + encodeURIComponent('https://www.velutinx.com/images/Watermark/Rotated%20Watermark.png');
-    const CORNER_WM_URL = PROXY_BASE + encodeURIComponent('https://www.velutinx.com/images/Watermark/Watermark%20Corner.png');
+    const CENTER_RAW_URL = 'https://www.velutinx.com/images/Watermark/Rotated Watermark.png';
+    const CORNER_RAW_URL = 'https://www.velutinx.com/images/Watermark/Watermark Corner.png';
+    const CENTER_WM_URL = PROXY_BASE + encodeURIComponent(CENTER_RAW_URL);
+    const CORNER_WM_URL = PROXY_BASE + encodeURIComponent(CORNER_RAW_URL);
 
     let centerWmImg = null;
     let cornerWmImg = null;
