@@ -64,7 +64,6 @@
         .pm-loading { display: inline-block; width: 18px; height: 18px; border: 2px solid #aaa; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ─── RESPONSIVE ─── */
         @media (max-width: 700px) { .container { padding: 12px; } .image-grid .thumb-wrap { width: 80px; height: 80px; } th, td { padding: 8px 10px; font-size: 0.75rem; } .crop-modal-content { padding: 16px; } #cropCanvas { max-height: 50vh; } }
     </style>
 </head>
@@ -99,7 +98,7 @@
             <h2>✂️ Crop Thumbnail (1:2 ratio)</h2>
             <div class="crop-canvas-wrapper">
                 <canvas id="cropCanvas"></canvas>
-                <div class="crop-instructions">Drag to select the area – height will be 2× width.</div>
+                <div class="crop-instructions">Drag to select – height = 2× width.</div>
             </div>
             <div class="crop-controls">
                 <button class="crop-btn cancel" id="cropCancelBtn">Cancel</button>
@@ -119,6 +118,8 @@
         let expandedPackId = null;
         let sortKey = 'id';
         let sortAsc = true;
+        // Cache for image lists per pack
+        const imageCache = {};
 
         let cropData = null;
         let cropRect = null;
@@ -141,6 +142,8 @@
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const data = await resp.json();
                 allPacks = Array.isArray(data) ? data : [];
+                // Clear cache when reloading packs
+                for (const key in imageCache) delete imageCache[key];
                 renderTable();
                 status.textContent = `✅ ${allPacks.length} packs loaded.`;
             } catch (err) {
@@ -152,7 +155,25 @@
         }
 
         // ============================================================
-        // 3.  RENDER TABLE
+        // 3.  FETCH IMAGES FOR A PACK
+        // ============================================================
+        async function fetchImagesForPack(packId) {
+            if (imageCache[packId]) return imageCache[packId];
+            try {
+                const resp = await fetch(`https://packs-api.velutinx.workers.dev/api/images?pack=${packId}`);
+                if (!resp.ok) throw new Error('Failed to fetch images');
+                const data = await resp.json();
+                const images = data.images || [];
+                imageCache[packId] = images;
+                return images;
+            } catch (err) {
+                console.error(err);
+                return [];
+            }
+        }
+
+        // ============================================================
+        // 4.  RENDER TABLE
         // ============================================================
         function renderTable() {
             const tbody = document.getElementById('packTableBody');
@@ -197,28 +218,16 @@
                     <td>${pack.downloadUrl ? `<a href="${escapeHtml(pack.downloadUrl)}" target="_blank" class="download-link">🔗 Link</a>` : '—'}</td>
                 </tr>`;
 
+                // Expanded row – will be filled asynchronously
                 if (isExpanded) {
-                    const imageCount = pack.illustrationCount || 0;
-                    const images = [];
-                    for (let i = 1; i <= Math.min(imageCount, 50); i++) {
-                        images.push(`https://www.velutinx.com/i/pack${pack.id}-${i}.jpg`);
-                    }
-
                     html += `<tr class="expanded-row" data-parent="${pack.id}">
                         <td colspan="6">
                             <div class="expanded-inner">
                                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                                    <span style="font-weight:500; color:#ccc;">${images.length} images (first ${Math.min(imageCount, 50)} shown)</span>
+                                    <span style="font-weight:500; color:#ccc;">Loading images…</span>
                                     <span style="font-size:0.8rem; color:#888;">Drag to reorder · Click image to crop</span>
                                 </div>
-                                <div class="image-grid" data-pack-id="${pack.id}">
-                                    ${images.map((url, idx) => `
-                                        <div class="thumb-wrap" data-pack="${pack.id}" data-index="${idx}" data-url="${url}">
-                                            <img src="${url}" loading="lazy" onerror="this.style.display='none'" />
-                                            <span class="image-index">#${idx+1}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
+                                <div class="image-grid" data-pack-id="${pack.id}"></div>
                             </div>
                         </td>
                     </tr>`;
@@ -235,8 +244,54 @@
                 });
             });
 
-            // ─── Click image to crop ───
-            document.querySelectorAll('.thumb-wrap').forEach(el => {
+            // ─── For each expanded row, load images ───
+            document.querySelectorAll('.expanded-row').forEach(row => {
+                const packId = row.dataset.parent;
+                loadExpandedImages(packId);
+            });
+        }
+
+        // ============================================================
+        // 5.  LOAD IMAGES INTO EXPANDED ROW
+        // ============================================================
+        async function loadExpandedImages(packId) {
+            const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
+            if (!row) return;
+            const grid = row.querySelector('.image-grid');
+            if (!grid) return;
+            const loadingSpan = row.querySelector('.expanded-inner > div:first-child span');
+            if (loadingSpan) loadingSpan.textContent = 'Loading images…';
+
+            const images = await fetchImagesForPack(packId);
+            if (images.length === 0) {
+                if (loadingSpan) loadingSpan.textContent = 'No images found.';
+                return;
+            }
+
+            if (loadingSpan) loadingSpan.textContent = `${images.length} images`;
+
+            // Build thumbnails
+            grid.innerHTML = '';
+            images.forEach((url, idx) => {
+                const wrap = document.createElement('div');
+                wrap.className = 'thumb-wrap';
+                wrap.dataset.pack = packId;
+                wrap.dataset.index = idx;
+                wrap.dataset.url = url;
+                const img = document.createElement('img');
+                img.src = url;
+                img.loading = 'lazy';
+                img.onerror = () => { img.style.display = 'none'; };
+                const indexSpan = document.createElement('span');
+                indexSpan.className = 'image-index';
+                indexSpan.textContent = '#' + (idx + 1);
+                wrap.appendChild(img);
+                wrap.appendChild(indexSpan);
+                grid.appendChild(wrap);
+            });
+
+            // Attach crop click
+            grid.querySelectorAll('.thumb-wrap').forEach(el => {
                 el.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const packId = this.dataset.pack;
@@ -247,40 +302,42 @@
             });
 
             // ─── Sortable (reorder) ───
-            document.querySelectorAll('.image-grid').forEach(grid => {
-                if (grid.children.length < 2) return;
+            if (grid.children.length > 1) {
                 new Sortable(grid, {
                     animation: 150,
                     handle: '.thumb-wrap',
                     ghostClass: 'cf-sortable-ghost',
                     onEnd: function(evt) {
-                        // Get new order of image keys
                         const packId = grid.dataset.packId;
+                        // Build new order: array of URLs in the new order
                         const newOrder = [];
                         grid.querySelectorAll('.thumb-wrap').forEach(el => {
-                            const idx = parseInt(el.dataset.index, 10);
-                            // Build the image key from the URL
-                            const url = el.dataset.url;
-                            const key = url.replace('https://www.velutinx.com/', '');
-                            newOrder.push(key);
+                            newOrder.push(el.dataset.url);
                         });
-                        // Send reorder request
-                        reorderImages(packId, newOrder);
+                        // Convert URLs to keys (remove domain)
+                        const keys = newOrder.map(url => url.replace('https://www.velutinx.com/', ''));
+                        reorderImages(packId, keys);
                     }
                 });
-            });
+            }
         }
 
         // ============================================================
-        // 4.  EXPAND / COLLAPSE
+        // 6.  EXPAND / COLLAPSE
         // ============================================================
         function toggleExpand(packId) {
-            expandedPackId = (expandedPackId === packId) ? null : packId;
+            if (expandedPackId === packId) {
+                expandedPackId = null;
+            } else {
+                expandedPackId = packId;
+                // Clear cache for this pack so it reloads fresh on next expand
+                delete imageCache[packId];
+            }
             renderTable();
         }
 
         // ============================================================
-        // 5.  REORDER IMAGES (persist to KV)
+        // 7.  REORDER IMAGES (persist to KV)
         // ============================================================
         async function reorderImages(packId, order) {
             try {
@@ -293,6 +350,64 @@
                 const data = await resp.json();
                 if (data.success) {
                     showToast('✅ Order saved!', 'success');
+                    // Update cache with new order
+                    const base = 'https://www.velutinx.com/';
+                    const newUrls = order.map(key => base + key);
+                    imageCache[packId] = newUrls;
+                    // Reload the expanded row to reflect the new order
+                    const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
+                    if (row) {
+                        const grid = row.querySelector('.image-grid');
+                        const loadingSpan = row.querySelector('.expanded-inner > div:first-child span');
+                        if (loadingSpan) loadingSpan.textContent = 'Refreshing…';
+                        // Rebuild grid from cache
+                        const images = imageCache[packId];
+                        grid.innerHTML = '';
+                        images.forEach((url, idx) => {
+                            const wrap = document.createElement('div');
+                            wrap.className = 'thumb-wrap';
+                            wrap.dataset.pack = packId;
+                            wrap.dataset.index = idx;
+                            wrap.dataset.url = url;
+                            const img = document.createElement('img');
+                            img.src = url;
+                            img.loading = 'lazy';
+                            img.onerror = () => { img.style.display = 'none'; };
+                            const indexSpan = document.createElement('span');
+                            indexSpan.className = 'image-index';
+                            indexSpan.textContent = '#' + (idx + 1);
+                            wrap.appendChild(img);
+                            wrap.appendChild(indexSpan);
+                            grid.appendChild(wrap);
+                        });
+                        if (loadingSpan) loadingSpan.textContent = `${images.length} images`;
+                        // Re-attach crop and sortable (same as above)
+                        grid.querySelectorAll('.thumb-wrap').forEach(el => {
+                            el.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const packId = this.dataset.pack;
+                                const index = parseInt(this.dataset.index, 10);
+                                const url = this.dataset.url;
+                                openCropModal(packId, index, url);
+                            });
+                        });
+                        if (grid.children.length > 1) {
+                            new Sortable(grid, {
+                                animation: 150,
+                                handle: '.thumb-wrap',
+                                ghostClass: 'cf-sortable-ghost',
+                                onEnd: function(evt) {
+                                    const packId = grid.dataset.packId;
+                                    const newOrder = [];
+                                    grid.querySelectorAll('.thumb-wrap').forEach(el => {
+                                        newOrder.push(el.dataset.url);
+                                    });
+                                    const keys = newOrder.map(url => url.replace('https://www.velutinx.com/', ''));
+                                    reorderImages(packId, keys);
+                                }
+                            });
+                        }
+                    }
                 } else {
                     showToast('❌ ' + (data.error || 'Unknown error'), 'error');
                 }
@@ -303,12 +418,14 @@
         }
 
         // ============================================================
-        // 6.  CROP MODAL (with 1:2 aspect ratio)
+        // 8.  CROP MODAL (with 1:2 aspect ratio)
         // ============================================================
+        // ... (same as before, no changes needed) ...
+        // I'll include the full crop code for completeness, but it's identical to earlier.
+
         function openCropModal(packId, imageIndex, imageUrl) {
             cropData = { packId, imageIndex, imageUrl };
             document.getElementById('cropModal').classList.add('active');
-
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function() {
@@ -340,7 +457,6 @@
             const cw = cropCanvas.width, ch = cropCanvas.height;
             ctx.clearRect(0, 0, cw, ch);
             ctx.drawImage(cropImage, 0, 0, cw, ch);
-
             if (cropRect && cropRect.w > 0 && cropRect.h > 0) {
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
                 ctx.fillRect(0, 0, cw, ch);
@@ -356,7 +472,6 @@
             }
         }
 
-        // ─── Canvas events (with 1:2 ratio) ───
         function getCanvasPos(e) {
             const rect = cropCanvas.getBoundingClientRect();
             const scaleX = cropCanvas.width / rect.width;
@@ -404,9 +519,7 @@
                 let x = Math.min(startX, pos.x);
                 let y = Math.min(startY, pos.y);
                 let w = Math.abs(pos.x - startX);
-                let h = w * 2; // enforce 1:2 ratio
-
-                // Clamp to image bounds
+                let h = w * 2;
                 if (y + h > cropCanvas.height) {
                     h = cropCanvas.height - y;
                     w = h / 2;
@@ -415,10 +528,8 @@
                     w = cropCanvas.width - x;
                     h = w * 2;
                 }
-                // Ensure minimum size
                 if (w < 5) w = 5;
                 if (h < 10) h = 10;
-
                 cropRect = { x, y, w, h };
                 redrawCanvas();
             } else {
@@ -489,7 +600,10 @@
                 }
                 const result = await uploadResp.json();
                 showToast(`✅ Cropped image saved! (${result.urls?.length || 1} file(s))`, 'success');
-                renderTable();
+                // Invalidate cache and refresh expanded row
+                delete imageCache[packId];
+                const row = document.querySelector(`.expanded-row[data-parent="${packId}"]`);
+                if (row) loadExpandedImages(packId);
                 closeCropModal();
             } catch (err) {
                 console.error(err);
@@ -498,7 +612,7 @@
         }
 
         // ============================================================
-        // 7.  SORTING
+        // 9.  SORTING
         // ============================================================
         document.querySelectorAll('th[data-sort]').forEach(th => {
             th.addEventListener('click', function() {
@@ -514,7 +628,7 @@
         });
 
         // ============================================================
-        // 8.  HELPERS
+        // 10. HELPERS
         // ============================================================
         function escapeHtml(str) {
             if (!str) return '';
@@ -533,7 +647,7 @@
         }
 
         // ============================================================
-        // 9.  INIT
+        // 11. INIT
         // ============================================================
         fetchPacks();
     </script>
