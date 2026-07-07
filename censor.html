@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Image Censorship Tool</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    margin:0;
+    background:#222;
+    color:#fff;
+}
+
+#layout{
+    display:flex;
+    height:100vh;
+}
+
+#left{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:auto;
+    background:#333;
+}
+
+#right{
+    width:220px;
+    background:#2a2a2a;
+    padding:20px;
+    border-left:1px solid #444;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-bottom:10px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+#dropZone{
+    width:90%;
+    height:90%;
+    border:3px dashed #666;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:#aaa;
+    font-size:22px;
+    position:relative;
+}
+
+canvas{
+    display:none;
+    cursor:default;
+    max-width:100%;
+    max-height:100%;
+}
+</style>
+</head>
+<body>
+
+<div id="layout">
+
+<div id="left">
+
+<div id="dropZone">
+    Drag JPG or PNG Here
+    <canvas id="canvas"></canvas>
+</div>
+
+</div>
+
+<div id="right">
+
+<button id="addBtn">Add Censorship</button>
+<button id="saveBtn">Save File</button>
+
+<p>
+<b>Controls</b><br><br>
+
+• Drag image onto page<br><br>
+
+• Left Click + Drag = Move censor<br><br>
+
+• Mouse Wheel = Resize square
+</p>
+
+</div>
+
+</div>
+
+<script>
+
+const CENSOR_URL="https://www.velutinx.com/images/Censoring.png";
+
+const drop=document.getElementById("dropZone");
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+let originalImage=null;
+let censorImage=new Image();
+
+let fileName="image";
+
+let censor={
+    visible:false,
+    x:100,
+    y:100,
+    size:200
+};
+
+let dragging=false;
+let offsetX=0;
+let offsetY=0;
+
+censorImage.src=CENSOR_URL;
+
+function draw(){
+
+    if(!originalImage) return;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Main image at 80%
+    ctx.globalAlpha=0.8;
+    ctx.drawImage(originalImage,0,0);
+
+    // Censor at 100%
+    if(censor.visible){
+
+        ctx.globalAlpha=1;
+
+        ctx.drawImage(
+            censorImage,
+            censor.x,
+            censor.y,
+            censor.size,
+            censor.size
+        );
+
+    }
+
+    ctx.globalAlpha=1;
+
+}
+
+drop.addEventListener("dragover",(e)=>{
+    e.preventDefault();
+    drop.style.borderColor="#00aaff";
+});
+
+drop.addEventListener("dragleave",()=>{
+    drop.style.borderColor="#666";
+});
+
+drop.addEventListener("drop",(e)=>{
+
+    e.preventDefault();
+
+    drop.style.borderColor="#666";
+
+    const file=e.dataTransfer.files[0];
+
+    if(!file) return;
+
+    if(!file.type.startsWith("image/")) return;
+
+    fileName=file.name.replace(/\.[^/.]+$/,"");
+
+    const reader=new FileReader();
+
+    reader.onload=function(ev){
+
+        const img=new Image();
+
+        img.onload=function(){
+
+            originalImage=img;
+
+            canvas.width=img.width;
+            canvas.height=img.height;
+
+            canvas.style.display="block";
+            drop.firstChild.textContent="";
+
+            censor.x=img.width/2-100;
+            censor.y=img.height/2-100;
+            censor.size=Math.min(img.width,img.height)/4;
+
+            draw();
+
+        };
+
+        img.src=ev.target.result;
+
+    };
+
+    reader.readAsDataURL(file);
+
+});
+
+document.getElementById("addBtn").onclick=function(){
+
+    if(!originalImage) return;
+
+    censor.visible=true;
+
+    draw();
+
+};
+
+canvas.addEventListener("mousedown",(e)=>{
+
+    if(!censor.visible) return;
+
+    const rect=canvas.getBoundingClientRect();
+
+    const scaleX=canvas.width/rect.width;
+    const scaleY=canvas.height/rect.height;
+
+    const x=(e.clientX-rect.left)*scaleX;
+    const y=(e.clientY-rect.top)*scaleY;
+
+    if(
+        x>=censor.x &&
+        x<=censor.x+censor.size &&
+        y>=censor.y &&
+        y<=censor.y+censor.size
+    ){
+
+        dragging=true;
+
+        offsetX=x-censor.x;
+        offsetY=y-censor.y;
+
+    }
+
+});
+
+window.addEventListener("mouseup",()=>{
+
+    dragging=false;
+
+});
+
+canvas.addEventListener("mousemove",(e)=>{
+
+    if(!dragging) return;
+
+    const rect=canvas.getBoundingClientRect();
+
+    const scaleX=canvas.width/rect.width;
+    const scaleY=canvas.height/rect.height;
+
+    const x=(e.clientX-rect.left)*scaleX;
+    const y=(e.clientY-rect.top)*scaleY;
+
+    censor.x=x-offsetX;
+    censor.y=y-offsetY;
+
+    draw();
+
+});
+
+canvas.addEventListener("wheel",(e)=>{
+
+    if(!censor.visible) return;
+
+    e.preventDefault();
+
+    if(e.deltaY<0)
+        censor.size*=1.05;
+    else
+        censor.size*=0.95;
+
+    if(censor.size<20) censor.size=20;
+
+    draw();
+
+});
+
+document.getElementById("saveBtn").onclick=function(){
+
+    if(!originalImage) return;
+
+    const out=document.createElement("canvas");
+
+    out.width=canvas.width;
+    out.height=canvas.height;
+
+    const octx=out.getContext("2d");
+
+    // Save original at full brightness
+    octx.drawImage(originalImage,0,0);
+
+    if(censor.visible){
+
+        octx.drawImage(
+            censorImage,
+            censor.x,
+            censor.y,
+            censor.size,
+            censor.size
+        );
+
+    }
+
+    const a=document.createElement("a");
+
+    a.download=fileName+".jpg";
+
+    a.href=out.toDataURL("image/jpeg",0.95);
+
+    a.click();
+
+};
+
+</script>
+
+</body>
+</html>
