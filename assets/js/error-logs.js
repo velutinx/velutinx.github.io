@@ -8,17 +8,16 @@
     const tbody = document.getElementById('logBody');
     const muteBtn = document.getElementById('muteBtn');
 
-    let toastTimeout;
-
+    // ─── Toast (same pattern as helper page) ──────────────────
     function showToast(msg, isError) {
-        const el = document.getElementById('toast');
-        if (!el) return;
-        el.textContent = msg;
-        el.className = 'toast-notification show' + (isError ? ' error' : '');
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(function() { el.classList.remove('show'); }, 3000);
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification' + (isError ? ' error' : '');
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 3000);
     }
 
+    // ─── Seen IDs as a Set ──────────────────────────────────────
     function getSeenIds() {
         try {
             const raw = localStorage.getItem(SEEN_IDS_KEY);
@@ -48,6 +47,7 @@
             .replace(/'/g, '&#039;');
     }
 
+    // ─── Render ──────────────────────────────────────────────────
     function renderLogs(logs) {
         const seenIds = getSeenIds();
 
@@ -77,6 +77,7 @@
         tbody.innerHTML = html;
     }
 
+    // ─── Fetch ──────────────────────────────────────────────────
     function fetchLogs() {
         fetch(LOGGER_URL + '/logs')
             .then(function(res) {
@@ -92,6 +93,7 @@
             });
     }
 
+    // ─── Mute All ─────────────────────────────────────────────────
     function muteCurrent() {
         var rows = tbody.querySelectorAll('.log-row');
         var ids = [];
@@ -108,6 +110,7 @@
         showToast('🔇 Muted ' + ids.length + ' log' + (ids.length > 1 ? 's' : '') + '.', false);
     }
 
+    // ─── Auto‑refresh ────────────────────────────────────────────
     var refreshInterval;
 
     function startAutoRefresh() {
