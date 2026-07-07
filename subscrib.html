@@ -21,8 +21,8 @@
     <script src="/assets/js/hashtag-generator.js" defer></script>
     <script src="/assets/js/extractor.js" defer></script>
     <script src="/assets/js/retweet-queue.js" defer></script>
-    <!-- Censor tool JS -->
     <script src="/assets/js/censor.js" defer></script>
+    <script src="/assets/js/error-logs.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -31,10 +31,10 @@
         <button class="tab-button active" data-tab="subscribestar">📦 Subscribestar / Patreon</button>
         <button class="tab-button" data-tab="bluesky">🐦 Tweeter</button>
         <button class="tab-button" id="retweet-tab" data-tab="retweet">🗂️ Retweet Queue</button>
+        <button class="tab-button" id="errorlogs-tab" data-tab="errorlogs">📋 Error Logs</button>
         <button class="tab-button" data-tab="packmanager">📦 Pack Manager + Cloudflare</button>
         <button class="tab-button" data-tab="spreadsheet">💰 Spreadsheet</button>
         <button class="tab-button" data-tab="zipextractor">📄 ZIP Extractor</button>
-        <!-- NEW: Censor Tab -->
         <button class="tab-button" data-tab="censor">🔞 Censor</button>
     </div>
 
@@ -164,13 +164,39 @@
         </div>
     </div>
 
-    <!-- NEW: Retweet Queue Tab Content -->
+    <!-- Retweet Queue Tab Content -->
     <div id="retweet" class="tab-content">
         <div class="retweet-container">
             <h2>📋 Retweet Queue</h2>
             <p>Posts that need manual retweeting. Click <strong>Retweet</strong> to publish, or <strong>Delete</strong> to remove from queue.</p>
             <div id="retweet-list">
                 <div class="loading">Loading queue...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📋 Error Logs Tab Content -->
+    <div id="errorlogs" class="tab-content">
+        <div class="container" style="padding:0; background:transparent; border:none; box-shadow:none;">
+            <div class="error-logs-header">
+                <h1>📋 Central Error Logs</h1>
+                <button class="btn" id="muteBtn">🔇 Mute All</button>
+            </div>
+            <div class="table-wrapper error-logs-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Worker</th>
+                            <th>Error</th>
+                            <th>URL</th>
+                            <th>Stack</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logBody">
+                        <tr class="empty-row"><td colspan="5">Loading logs…</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -436,5 +462,6 @@
         document.addEventListener('queueUpdated', updateRetweetTabVisibility);
     })();
 </script>
+
 </body>
 </html>
