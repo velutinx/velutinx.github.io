@@ -175,8 +175,8 @@
         if (!editor.visible) return;
         e.preventDefault();
 
-        const delta = e.deltaY > 0 ? -1 : 1;
-        const step = e.shiftKey ? 20 : 5;
+        const delta = e.deltaY > 0 ? -1 : 3;
+        const step = e.shiftKey ? 20 : 10;
         let newSize = editor.size + delta * step;
         newSize = Math.max(MIN_SIZE, Math.min(newSize, maxSize));
         editor.size = newSize;
