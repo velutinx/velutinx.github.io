@@ -300,3 +300,4 @@ html, .censor-tool-body { height: 100vh; margin: 0; overflow: hidden; }
 .error-logs-table .stack { font-family: 'Courier New', monospace; font-size: 0.75rem; color: #aaa; word-break: break-word; max-width: 400px; white-space: pre-wrap; }
 .log-row.muted { opacity: 0.35; filter: grayscale(0.9); background-color: #16161e; }
 .log-row.muted .error, .log-row.muted .worker, .log-row.muted .time, .log-row.muted .stack { color: #555 !important; }
+function showToast(msg, isError) { const toast = document.createElement('div'); toast.className = 'toast-notification' + (isError ? ' error' : ''); toast.textContent = msg; document.body.appendChild(toast); setTimeout(function() { toast.remove(); }, 3000); }
