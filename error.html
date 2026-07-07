@@ -40,21 +40,30 @@
             gap: 12px;
             margin-bottom: 20px;
         }
-        .refresh-btn {
-            background: #2c6e2c;
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #2a2f38;
             color: white;
             border: none;
-            padding: 8px 20px;
+            padding: 8px 18px;
             border-radius: 30px;
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
-            font-size: 0.9rem;
             transition: 0.15s;
         }
-        .refresh-btn:hover { background: #3e8e3e; }
-        .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:hover { background: #3a4050; }
+        .btn-primary { background: #2c6e2c; }
+        .btn-primary:hover { background: #3e8e3e; }
+        .btn-danger { background: #b71c1c; }
+        .btn-danger:hover { background: #c62828; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ── Table styles (same as your site) ── */
+        /* ── Table styles ── */
         .table-wrapper {
             margin-top: 16px;
             background: #0c1017;
@@ -93,6 +102,18 @@
             max-width: 400px;
             white-space: pre-wrap;
         }
+
+        /* ── MUTED ROW STYLES ── */
+        .log-row.muted {
+            opacity: 0.5;
+            filter: grayscale(0.8);
+            background-color: #1a1a24;
+        }
+        .log-row.muted .error { color: #777; }
+        .log-row.muted .worker { color: #777; }
+        .log-row.muted .time { color: #555; }
+        .log-row.muted .stack { color: #555; }
+
         .empty-row td {
             text-align: center;
             padding: 40px;
@@ -152,9 +173,11 @@
     <div class="container">
         <div class="header-actions">
             <h1>📋 Central Error Logs</h1>
-            <div>
+            <div class="btn-group">
                 <span class="status-badge online" id="statusBadge">● Online</span>
-                <button class="refresh-btn" id="refreshBtn">⟳ Refresh</button>
+                <button class="btn btn-primary" id="muteBtn">🔇 Mute All</button>
+                <button class="btn" id="unmuteBtn">🔊 Unmute All</button>
+                <button class="btn" id="refreshBtn">⟳ Refresh</button>
             </div>
         </div>
         <div class="table-wrapper">
@@ -182,15 +205,18 @@
 
     <script>
         // ============================================================
-        // CONFIG – point to your error-logger worker
+        // CONFIG
         // ============================================================
         const LOGGER_URL = 'https://error-logger.velutinx.workers.dev';
+        const SEEN_IDS_KEY = 'error_logs_seen_ids';
 
         // ============================================================
         // DOM refs
         // ============================================================
         const tbody = document.getElementById('logBody');
         const refreshBtn = document.getElementById('refreshBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const unmuteBtn = document.getElementById('unmuteBtn');
         const statusBadge = document.getElementById('statusBadge');
         const lastUpdateSpan = document.getElementById('lastUpdate');
 
@@ -208,7 +234,66 @@
         }
 
         // ============================================================
-        // Fetch and render logs
+        // Manage seen IDs in localStorage
+        // ============================================================
+        function getSeenIds() {
+            try {
+                return JSON.parse(localStorage.getItem(SEEN_IDS_KEY) || '[]');
+            } catch { return []; }
+        }
+
+        function setSeenIds(ids) {
+            localStorage.setItem(SEEN_IDS_KEY, JSON.stringify(ids));
+        }
+
+        function addSeenIds(newIds) {
+            const current = getSeenIds();
+            const combined = [...current, ...newIds];
+            // deduplicate
+            const unique = [...new Set(combined)];
+            setSeenIds(unique);
+        }
+
+        function clearSeenIds() {
+            localStorage.removeItem(SEEN_IDS_KEY);
+        }
+
+        // ============================================================
+        // Render logs
+        // ============================================================
+        function renderLogs(logs) {
+            const seenIds = getSeenIds();
+
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr class="empty-row"><td colspan="5">✨ No errors logged yet.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            logs.forEach(log => {
+                const id = log.id || '';
+                const isMuted = seenIds.includes(id);
+                const time = log.received || log.timestamp || '—';
+                const worker = log.worker || 'unknown';
+                const error = log.error || '—';
+                const url = log.url || '—';
+                const stack = log.stack || '—';
+
+                html += `
+                    <tr class="log-row ${isMuted ? 'muted' : ''}" data-id="${id}">
+                        <td class="time">${escapeHtml(time)}</td>
+                        <td class="worker">${escapeHtml(worker)}</td>
+                        <td class="error">${escapeHtml(error)}</td>
+                        <td>${escapeHtml(url)}</td>
+                        <td class="stack">${escapeHtml(stack)}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ============================================================
+        // Fetch and update
         // ============================================================
         async function fetchLogs() {
             refreshBtn.disabled = true;
@@ -221,37 +306,11 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const logs = await res.json();
 
-                // Update status
                 statusBadge.textContent = '● Online';
                 statusBadge.className = 'status-badge online';
                 lastUpdateSpan.textContent = new Date().toLocaleString();
 
-                if (!logs || logs.length === 0) {
-                    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">✨ No errors logged yet.</td></tr>';
-                    return;
-                }
-
-                // Build table rows
-                let html = '';
-                logs.forEach(log => {
-                    const time = log.received || log.timestamp || '—';
-                    const worker = log.worker || 'unknown';
-                    const error = log.error || '—';
-                    const url = log.url || '—';
-                    const stack = log.stack || '—';
-
-                    html += `
-                        <tr>
-                            <td class="time">${escapeHtml(time)}</td>
-                            <td class="worker">${escapeHtml(worker)}</td>
-                            <td class="error">${escapeHtml(error)}</td>
-                            <td>${escapeHtml(url)}</td>
-                            <td class="stack">${escapeHtml(stack)}</td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-
+                renderLogs(logs);
             } catch (err) {
                 console.error('Fetch error:', err);
                 statusBadge.textContent = '● Offline';
@@ -265,7 +324,35 @@
         }
 
         // ============================================================
-        // Escape HTML to prevent injection
+        // Mute / Unmute
+        // ============================================================
+        function muteCurrent() {
+            // Get all row IDs currently displayed
+            const rows = tbody.querySelectorAll('.log-row');
+            const ids = [];
+            rows.forEach(row => {
+                const id = row.dataset.id;
+                if (id) ids.push(id);
+            });
+            if (ids.length === 0) {
+                showToast('No logs to mute.', false);
+                return;
+            }
+            addSeenIds(ids);
+            // Apply muted class to all rows
+            rows.forEach(row => row.classList.add('muted'));
+            showToast(`🔇 Muted ${ids.length} log${ids.length > 1 ? 's' : ''}.`);
+        }
+
+        function unmuteAll() {
+            clearSeenIds();
+            // Remove muted class from all rows
+            tbody.querySelectorAll('.log-row').forEach(row => row.classList.remove('muted'));
+            showToast('🔊 All logs unmuted.');
+        }
+
+        // ============================================================
+        // Escape HTML
         // ============================================================
         function escapeHtml(str) {
             if (!str) return '';
@@ -278,7 +365,7 @@
         }
 
         // ============================================================
-        // Auto-refresh every 10 seconds
+        // Auto-refresh
         // ============================================================
         let refreshInterval;
 
@@ -292,14 +379,15 @@
         // ============================================================
         refreshBtn.addEventListener('click', () => {
             fetchLogs();
-            // Reset timer so it doesn't fire immediately after manual refresh
             startAutoRefresh();
         });
+
+        muteBtn.addEventListener('click', muteCurrent);
+        unmuteBtn.addEventListener('click', unmuteAll);
 
         fetchLogs();
         startAutoRefresh();
 
-        // Also refresh when page becomes visible again (e.g., after tab switch)
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 fetchLogs();
