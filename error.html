@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central Error Logs – Velutinx</title>
+    <style>
+        /* ── Same dark theme as your helper site ── */
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0c10;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1800px;
+            width: 100%;
+            background: #11151c;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            border: 1px solid #2a2f38;
+        }
+        h1 {
+            margin-top: 0;
+            color: #f0f0f0;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .refresh-btn {
+            background: #2c6e2c;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.15s;
+        }
+        .refresh-btn:hover { background: #3e8e3e; }
+        .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── Table styles (same as your site) ── */
+        .table-wrapper {
+            margin-top: 16px;
+            background: #0c1017;
+            border-radius: 14px;
+            border: 1px solid #252b33;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            color: #ddd;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid #252b33;
+            vertical-align: top;
+        }
+        th {
+            background: #0a0e14;
+            color: #aaa;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .error { color: #f87171; }
+        .worker { color: #60a5fa; }
+        .time { color: #888; font-size: 0.8rem; white-space: nowrap; }
+        .stack {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: #aaa;
+            word-break: break-word;
+            max-width: 400px;
+            white-space: pre-wrap;
+        }
+        .empty-row td {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8899a6;
+        }
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1e2a1e;
+            color: #d4ffd4;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 12px black;
+            backdrop-filter: blur(4px);
+            border-left: 4px solid #4caf50;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: 0.2s;
+        }
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast-notification.error {
+            background: #2c1a1a;
+            border-left-color: #f44336;
+            color: #ffc9c9;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #2a2f38;
+        }
+        .status-badge.online { background: #2e5a3e; color: #a3f0b0; }
+        .status-badge.offline { background: #5a3a3a; color: #ffb0b0; }
+
+        @media (max-width: 700px) {
+            .container { padding: 16px; }
+            th, td { padding: 8px 10px; font-size: 0.75rem; }
+            .stack { max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-actions">
+            <h1>📋 Central Error Logs</h1>
+            <div>
+                <span class="status-badge online" id="statusBadge">● Online</span>
+                <button class="refresh-btn" id="refreshBtn">⟳ Refresh</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Worker</th>
+                        <th>Error</th>
+                        <th>URL</th>
+                        <th>Stack</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    <tr class="empty-row"><td colspan="5">Loading logs…</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 16px; font-size: 0.8rem; color: #666; text-align: center;">
+            Auto‑refreshes every 10 seconds &nbsp;·&nbsp; Last updated: <span id="lastUpdate">—</span>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-notification"></div>
+
+    <script>
+        // ============================================================
+        // CONFIG – point to your error-logger worker
+        // ============================================================
+        const LOGGER_URL = 'https://error-logger.velutinx.workers.dev';
+
+        // ============================================================
+        // DOM refs
+        // ============================================================
+        const tbody = document.getElementById('logBody');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const statusBadge = document.getElementById('statusBadge');
+        const lastUpdateSpan = document.getElementById('lastUpdate');
+
+        // ============================================================
+        // Toast helper
+        // ============================================================
+        let toastTimeout;
+
+        function showToast(msg, isError = false) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast-notification show' + (isError ? ' error' : '');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // Fetch and render logs
+        // ============================================================
+        async function fetchLogs() {
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = '⏳ Loading…';
+            statusBadge.textContent = '● Connecting…';
+            statusBadge.className = 'status-badge offline';
+
+            try {
+                const res = await fetch(LOGGER_URL + '/logs');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const logs = await res.json();
+
+                // Update status
+                statusBadge.textContent = '● Online';
+                statusBadge.className = 'status-badge online';
+                lastUpdateSpan.textContent = new Date().toLocaleString();
+
+                if (!logs || logs.length === 0) {
+                    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">✨ No errors logged yet.</td></tr>';
+                    return;
+                }
+
+                // Build table rows
+                let html = '';
+                logs.forEach(log => {
+                    const time = log.received || log.timestamp || '—';
+                    const worker = log.worker || 'unknown';
+                    const error = log.error || '—';
+                    const url = log.url || '—';
+                    const stack = log.stack || '—';
+
+                    html += `
+                        <tr>
+                            <td class="time">${escapeHtml(time)}</td>
+                            <td class="worker">${escapeHtml(worker)}</td>
+                            <td class="error">${escapeHtml(error)}</td>
+                            <td>${escapeHtml(url)}</td>
+                            <td class="stack">${escapeHtml(stack)}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                statusBadge.textContent = '● Offline';
+                statusBadge.className = 'status-badge offline';
+                tbody.innerHTML = `<tr class="empty-row"><td colspan="5">❌ Failed to load logs: ${escapeHtml(err.message)}</td></tr>`;
+                showToast('Error fetching logs: ' + err.message, true);
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = '⟳ Refresh';
+            }
+        }
+
+        // ============================================================
+        // Escape HTML to prevent injection
+        // ============================================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ============================================================
+        // Auto-refresh every 10 seconds
+        // ============================================================
+        let refreshInterval;
+
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(fetchLogs, 10000);
+        }
+
+        // ============================================================
+        // Init
+        // ============================================================
+        refreshBtn.addEventListener('click', () => {
+            fetchLogs();
+            // Reset timer so it doesn't fire immediately after manual refresh
+            startAutoRefresh();
+        });
+
+        fetchLogs();
+        startAutoRefresh();
+
+        // Also refresh when page becomes visible again (e.g., after tab switch)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                fetchLogs();
+            }
+        });
+    </script>
+</body>
+</html>
