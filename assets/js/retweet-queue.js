@@ -35,6 +35,14 @@
         const container = document.getElementById('retweet-list');
         if (!container) return;
 
+        // Show/hide the tab directly
+        const tab = document.getElementById('retweet-tab');
+        const hasItems = queue && queue.length > 0;
+        if (tab) {
+            tab.style.display = hasItems ? '' : 'none';
+            tab.classList.toggle('has-items', hasItems);
+        }
+
         if (!queue || queue.length === 0) {
             container.innerHTML = '<div class="empty-queue">✨ Queue is empty – new posts will appear here.</div>';
             return;
@@ -63,6 +71,7 @@
         });
         container.innerHTML = html;
 
+        // Attach event listeners (no confirmation on delete)
         container.querySelectorAll('.retweet-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const tweetId = btn.dataset.id;
@@ -82,7 +91,9 @@
                     showRetweetToast('✅ Retweeted successfully');
                     const item = btn.closest('.queue-item');
                     item.remove();
-                    if (!document.querySelector('.queue-item')) {
+                    // Re‑check emptiness
+                    const remaining = container.querySelectorAll('.queue-item').length;
+                    if (remaining === 0) {
                         renderRetweetQueue([]);
                     }
                 } catch (err) {
@@ -95,7 +106,7 @@
 
         container.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                if (!confirm('Remove this item from the queue?')) return;
+                // No confirmation – delete and blacklist immediately
                 const tweetId = btn.dataset.id;
                 btn.disabled = true;
                 btn.textContent = '⏳ ...';
@@ -109,10 +120,11 @@
                         body: JSON.stringify({ tweetId })
                     });
                     if (!res.ok) throw new Error('Delete failed');
-                    showRetweetToast('🗑️ Removed from queue');
+                    showRetweetToast('🗑️ Removed from queue and blacklisted');
                     const item = btn.closest('.queue-item');
                     item.remove();
-                    if (!document.querySelector('.queue-item')) {
+                    const remaining = container.querySelectorAll('.queue-item').length;
+                    if (remaining === 0) {
                         renderRetweetQueue([]);
                     }
                 } catch (err) {
@@ -136,7 +148,12 @@
         renderRetweetQueue(queue);
     }
 
+    // ─── Initial load ────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
+        // Load queue immediately so tab shows if items exist
+        refreshQueue();
+
+        // Also refresh when tab is clicked
         const tabBtn = document.querySelector('.tab-button[data-tab="retweet"]');
         if (tabBtn) {
             tabBtn.addEventListener('click', () => {
@@ -144,10 +161,7 @@
             });
         }
 
-        if (document.getElementById('retweet').classList.contains('active')) {
-            refreshQueue();
-        }
-
+        // Auto-refresh every 30 seconds if tab is visible
         setInterval(() => {
             const retweetTab = document.getElementById('retweet');
             if (retweetTab && retweetTab.classList.contains('active')) {
