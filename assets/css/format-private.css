@@ -260,12 +260,12 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 /* ========== CENSORSHIP TOOL ========== */
 .censor-tool-body { display: flex; width: 100%; height: 100%; overflow: hidden; background: #0a0c10; color: #e0e0e0; }
 #censor-main { flex: 1; display: flex; overflow: hidden; }
-#censor-viewer { flex: 1; position: relative; background: #090b0f; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; }
-#censor-dropZone { width: 100%; height: 100%; min-height: 300px; border: 2px dashed #3a4050; border-radius: 16px; display: flex; justify-content: center; align-items: center; color: #888; font-size: 24px; transition: 0.15s; text-align: center; padding: 20px; }
+#censor-viewer { flex: 1; position: relative; background: #090b0f; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; height: 100%; }
+#censor-dropZone { width: 100%; height: 100%; min-height: 300px; border: 2px dashed #3a4050; border-radius: 16px; display: flex; justify-content: center; align-items: center; color: #888; font-size: 24px; transition: 0.15s; text-align: center; padding: 20px; box-sizing: border-box; flex-shrink: 0; }
 #censor-dropZone.drag { border-color: #5a6e3c; background: #10151b; }
 #censor-canvasWrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
 #censor-canvasWrapper canvas { display: none; border-radius: 10px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); max-width: 100%; max-height: 100%; image-rendering: auto; }
-#censor-sidebar { width: 280px; background: #11151c; border-left: 1px solid #2a2f38; padding: 22px; display: flex; flex-direction: column; gap: 14px; flex-shrink: 0; overflow-y: auto; }
+#censor-sidebar { width: 280px; background: #11151c; border-left: 1px solid #2a2f38; padding: 22px; display: flex; flex-direction: column; gap: 14px; flex-shrink: 0; overflow-y: auto; height: 100vh; }
 #censor-sidebar .title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 6px; }
 #censor-sidebar .subtitle { color: #888; font-size: 13px; margin-bottom: 20px; }
 #censor-sidebar button { border: none; border-radius: 30px; background: #2c6e2c; color: white; font-size: 15px; padding: 12px; cursor: pointer; transition: 0.15s; }
