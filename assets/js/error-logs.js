@@ -1,4 +1,4 @@
-// error-logs.js – Central error logs viewer
+// error-logs.js – Central error logs viewer (with tab visibility)
 (function() {
     'use strict';
 
@@ -7,8 +7,9 @@
 
     const tbody = document.getElementById('logBody');
     const muteBtn = document.getElementById('muteBtn');
+    const tabButton = document.getElementById('errorlogs-tab');
 
-    // ─── Toast (same pattern as helper page) ──────────────────
+    // ─── Toast ──────────────────────────────────────────────────
     function showToast(msg, isError) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification' + (isError ? ' error' : '');
@@ -17,7 +18,7 @@
         setTimeout(function() { toast.remove(); }, 3000);
     }
 
-    // ─── Seen IDs as a Set ──────────────────────────────────────
+    // ─── Seen IDs ──────────────────────────────────────────────
     function getSeenIds() {
         try {
             const raw = localStorage.getItem(SEEN_IDS_KEY);
@@ -37,6 +38,7 @@
         saveSeenIds(set);
     }
 
+    // ─── Escape ──────────────────────────────────────────────────
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -53,13 +55,16 @@
 
         if (!logs || logs.length === 0) {
             tbody.innerHTML = '<tr class="empty-row"><td colspan="5">✨ No errors logged yet.</td></tr>';
+            updateTabVisibility(); // no unmuted logs
             return;
         }
 
         var html = '';
+        var hasUnmuted = false;
         logs.forEach(function(log) {
             var id = log.id !== undefined && log.id !== null ? String(log.id) : '';
             var isMuted = seenIds.has(id);
+            if (!isMuted) hasUnmuted = true;
             var time = log.received || log.timestamp || '—';
             var worker = log.worker || 'unknown';
             var error = log.error || '—';
@@ -75,6 +80,21 @@
                 '</tr>';
         });
         tbody.innerHTML = html;
+        updateTabVisibility(hasUnmuted);
+    }
+
+    // ─── Tab visibility ──────────────────────────────────────────
+    function updateTabVisibility(hasUnmuted) {
+        if (!tabButton) return;
+        // If we didn't get a boolean, compute from the DOM
+        if (hasUnmuted === undefined) {
+            const rows = tbody.querySelectorAll('.log-row');
+            hasUnmuted = false;
+            rows.forEach(function(row) {
+                if (!row.classList.contains('muted')) hasUnmuted = true;
+            });
+        }
+        tabButton.classList.toggle('has-items', hasUnmuted);
     }
 
     // ─── Fetch ──────────────────────────────────────────────────
@@ -90,6 +110,7 @@
             .catch(function(err) {
                 console.error('Fetch error:', err);
                 tbody.innerHTML = '<tr class="empty-row"><td colspan="5">❌ Failed to load logs: ' + escapeHtml(err.message) + '</td></tr>';
+                updateTabVisibility(false);
             });
     }
 
@@ -107,6 +128,8 @@
         }
         addSeenIds(ids);
         rows.forEach(function(row) { row.classList.add('muted'); });
+        // Update tab visibility after muting
+        updateTabVisibility(false); // all muted, so no unmuted
         showToast('🔇 Muted ' + ids.length + ' log' + (ids.length > 1 ? 's' : '') + '.', false);
     }
 
@@ -126,6 +149,7 @@
     fetchLogs();
     startAutoRefresh();
 
+    // Refresh when tab becomes visible (if hidden)
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) fetchLogs();
     });
