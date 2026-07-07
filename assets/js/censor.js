@@ -34,7 +34,7 @@
 
     let canvasScale = 1;
 
-    // ----- Fit canvas to cover the wrapper (cover behavior) -----
+    // ----- Fit canvas inside wrapper (contain, with slight upscale) -----
     function fitCanvas(img) {
         const wrapperRect = canvasWrapper.getBoundingClientRect();
         const availWidth = wrapperRect.width - 12;
@@ -43,23 +43,25 @@
         const imgW = img.width;
         const imgH = img.height;
 
-        // Compute scale to cover the entire wrapper (may crop)
-        const scaleX = availWidth / imgW;
-        const scaleY = availHeight / imgH;
-        canvasScale = Math.max(scaleX, scaleY); // cover – allows upscaling
+        // Compute scale to fit inside (contain)
+        let scaleX = availWidth / imgW;
+        let scaleY = availHeight / imgH;
+        let scale = Math.min(scaleX, scaleY);
 
-        // Keep canvas internal size at original image dimensions
+        // Allow moderate upscaling (max 1.2x) to fill more space without cropping
+        scale = Math.min(scale, 1.2);
+
+        canvasScale = scale;
+
         canvas.width = imgW;
         canvas.height = imgH;
 
-        // Scale CSS size to cover the wrapper (will be clipped by overflow:hidden)
         canvas.style.width = (imgW * canvasScale) + 'px';
         canvas.style.height = (imgH * canvasScale) + 'px';
 
         canvas.style.display = 'block';
         dropZone.style.display = 'none';
 
-        // Set max censor size to 2/3 of the smaller dimension
         maxSize = Math.min(imgW, imgH) / 1.5;
         if (editor.size > maxSize) editor.size = maxSize;
     }
@@ -95,7 +97,7 @@
         ctx.restore();
     }
 
-    // ----- Coordinate conversion (mouse → canvas) -----
+    // ----- Coordinate conversion -----
     function canvasPoint(event) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
