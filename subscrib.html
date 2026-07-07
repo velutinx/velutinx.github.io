@@ -21,6 +21,8 @@
     <script src="/assets/js/hashtag-generator.js" defer></script>
     <script src="/assets/js/extractor.js" defer></script>
     <script src="/assets/js/retweet-queue.js" defer></script>
+    <!-- Censor tool JS -->
+    <script src="/assets/js/censor.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -32,6 +34,8 @@
         <button class="tab-button" data-tab="packmanager">📦 Pack Manager + Cloudflare</button>
         <button class="tab-button" data-tab="spreadsheet">💰 Spreadsheet</button>
         <button class="tab-button" data-tab="zipextractor">📄 ZIP Extractor</button>
+        <!-- NEW: Censor Tab -->
+        <button class="tab-button" data-tab="censor">🔞 Censor</button>
     </div>
 
     <!-- Subscribestar / Patreon Tab -->
@@ -350,6 +354,33 @@
                     <button class="btn btn-secondary" id="extractorClearBtn">
                         <span class="icon-small">🗑️</span> Clear
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔞 CENSOR TAB -->
+    <div id="censor" class="tab-content censor-tab-content">
+        <div id="censor-main">
+            <div id="censor-viewer">
+                <div id="censor-dropZone">Drop PNG or JPG Here</div>
+                <div id="censor-canvasWrapper">
+                    <canvas id="censorCanvas"></canvas>
+                </div>
+            </div>
+            <div id="censor-sidebar">
+                <div class="title">Image Censorship</div>
+                <div class="subtitle">Drag an image into the editor.</div>
+                <button id="censor-addBtn" disabled>Add Censorship</button>
+                <button id="censor-saveBtn" disabled>Save JPG</button>
+                <div class="section">
+                    <div class="label">Controls</div>
+                    <div class="info">
+                        <kbd>Drag</kbd> Move censor<br /><br />
+                        <kbd>Corner</kbd> Resize<br /><br />
+                        <kbd>Scroll</kbd> Resize (up/down)<br /><br />
+                        Always stays square
+                    </div>
                 </div>
             </div>
         </div>
