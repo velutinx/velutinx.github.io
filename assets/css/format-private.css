@@ -300,3 +300,6 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .log-row.muted { opacity: 0.35; filter: grayscale(0.9); background-color: #16161e; }
 .log-row.muted .error, .log-row.muted .worker, .log-row.muted .time, .log-row.muted .stack { color: #555 !important; }
 function showToast(msg, isError) { const toast = document.createElement('div'); toast.className = 'toast-notification' + (isError ? ' error' : ''); toast.textContent = msg; document.body.appendChild(toast); setTimeout(function() { toast.remove(); }, 3000); }
+#errorlogs-tab { display: none; }
+#errorlogs-tab.has-items { display: inline-block; animation: flash-red 1.5s ease-in-out infinite; }
+#errorlogs-tab.has-items:hover { animation: none; background-color: #b71c1c; }
