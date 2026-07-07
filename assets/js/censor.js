@@ -4,6 +4,8 @@
 
     // ----- DOM refs -----
     const canvas = document.getElementById('censorCanvas');
+    if (!canvas) return; // Failsafe: Stops script if element doesn't exist on page
+    
     const ctx = canvas.getContext('2d');
     const dropZone = document.getElementById('censor-dropZone');
     const addButton = document.getElementById('censor-addBtn');
@@ -37,7 +39,7 @@
     // ----- Helper: Check if tab is active -----
     function isCensorTabActive() {
         const censorTab = document.getElementById('censor');
-        return censorTab && censorTab.classList.contains('active');
+        return censorTab ? censorTab.classList.contains('active') : false;
     }
 
     // ----- Fit canvas inside wrapper (contain, with slight upscale) -----
@@ -53,7 +55,9 @@
         let scaleY = availHeight / imgH;
         let scale = Math.min(scaleX, scaleY);
 
+        // Allow moderate upscaling (max 1.2x) to fill more space without cropping
         scale = Math.min(scale, 1.2);
+
         canvasScale = scale;
 
         canvas.width = imgW;
@@ -65,6 +69,7 @@
         canvas.style.display = 'block';
         dropZone.style.display = 'none';
 
+        // Allow box to scale up to the longest side of the image
         maxSize = Math.max(imgW, imgH);
         if (editor.size > maxSize) editor.size = maxSize;
     }
@@ -164,6 +169,7 @@
             return;
         }
         
+        // Limit the maximum square size based on its distance to the edges
         if (resizing) {
             const rawSize = Math.max(p.x - editor.x, p.y - editor.y);
             const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
@@ -191,6 +197,14 @@
         const style = window.getComputedStyle(canvas);
         if (style.display === 'none') return;
 
+        const p = canvasPoint(e);
+        
+        // FIX: Only hijack the scroll wheel if the mouse is ACTUALLY inside the green censor box.
+        // If you are hovering over the background image, the page will scroll normally!
+        if (!insideEditor(p.x, p.y) && !insideHandle(p.x, p.y)) {
+            return; 
+        }
+
         e.preventDefault();
 
         const delta = e.deltaY > 0 ? -1 : 1;
@@ -214,6 +228,7 @@
 
     // ----- Keyboard arrows -----
     window.addEventListener('keydown', function(e) {
+        // FIX: This now stops the arrow keys from hijacking your scroll on the main page.
         if (!isCensorTabActive() || !editor.visible) return;
         
         const step = e.shiftKey ? 10 : 1;
@@ -227,7 +242,7 @@
         
         clamp();
         draw();
-        e.preventDefault(); // Only block scrolling if an arrow key was used on the active tab
+        e.preventDefault(); 
     });
 
     // ----- Drop zone -----
@@ -299,6 +314,7 @@
         const link = document.createElement('a');
         link.download = originalFileName + '.jpg';
         
+        // Standardize to 70% quality threshold
         link.href = out.toDataURL('image/jpeg', 0.7);
         link.click();
     });
