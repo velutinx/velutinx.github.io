@@ -55,13 +55,9 @@
                 loadImageDirect(CENTER_WM_URL),
                 loadImageDirect(CORNER_WM_URL)
             ]);
-            if (centerWmImg && cornerWmImg) {
-                console.log('✅ Watermarks loaded successfully');
-            } else {
-                console.warn('⚠️ Watermarks failed to load – images will be uploaded without watermarks.');
-            }
+            // Silently proceed – no warnings
         } catch (err) {
-            console.warn('⚠️ Watermarks failed to load – images will be uploaded without watermarks.');
+            // Silently proceed – no warnings
         }
     }
 
