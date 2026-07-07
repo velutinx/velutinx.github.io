@@ -183,10 +183,16 @@
 
 // ----- Mouse wheel resize -----
 canvas.addEventListener('wheel', function(e) {
+    // 1. Check if the censor tab is active
     const censorTab = document.getElementById('censor');
     if (!censorTab || !censorTab.classList.contains('active')) return;
 
+    // 2. Also check if the canvas is actually visible (display not 'none')
+    const style = window.getComputedStyle(canvas);
+    if (style.display === 'none') return;
+
     if (!editor.visible) return;
+
     e.preventDefault();
 
     const delta = e.deltaY > 0 ? -1 : 1;
