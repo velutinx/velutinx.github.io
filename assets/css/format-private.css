@@ -263,8 +263,6 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 #censor-viewer { flex: 1; position: relative; background: #090b0f; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; height: 100%; }
 #censor-dropZone { width: 100%; height: 100%; min-height: 300px; border: 2px dashed #3a4050; border-radius: 16px; display: flex; justify-content: center; align-items: center; color: #888; font-size: 24px; transition: 0.15s; text-align: center; padding: 20px; box-sizing: border-box; flex-shrink: 0; }
 #censor-dropZone.drag { border-color: #5a6e3c; background: #10151b; }
-#censor-canvasWrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
-#censor-canvasWrapper canvas { display: none; border-radius: 10px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); max-width: 100%; max-height: 100%; image-rendering: auto; }
 #censor-sidebar { width: 280px; background: #11151c; border-left: 1px solid #2a2f38; padding: 22px; display: flex; flex-direction: column; gap: 14px; flex-shrink: 0; overflow-y: auto; height: 100vh; }
 #censor-sidebar .title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 6px; }
 #censor-sidebar .subtitle { color: #888; font-size: 13px; margin-bottom: 20px; }
@@ -276,3 +274,6 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 #censor-sidebar .info { font-size: 13px; line-height: 22px; color: #aaa; }
 #censor-sidebar kbd { background: #0b0f15; border: 1px solid #2a2f38; border-radius: 6px; padding: 2px 6px; }
 #censor-sidebar .footer { margin-top: auto; color: #666; font-size: 12px; }
+html, .censor-tool-body { height: 100vh; margin: 0; overflow: hidden; }
+#censor-canvasWrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+#censor-canvasWrapper canvas { display: none; border-radius: 10px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); max-width: 100%; max-height: 100%; width: auto !important; height: auto !important; image-rendering: auto; }
