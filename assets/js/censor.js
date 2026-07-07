@@ -181,22 +181,24 @@
         }
     });
 
-    // ----- Mouse wheel resize -----
-    canvas.addEventListener('wheel', function(e) {
-        if (!editor.visible) return;
-        e.preventDefault();
+// ----- Mouse wheel resize -----
+canvas.addEventListener('wheel', function(e) {
+    const censorTab = document.getElementById('censor');
+    if (!censorTab || !censorTab.classList.contains('active')) return;
 
-        const delta = e.deltaY > 0 ? -1 : 1;
-        const step = e.shiftKey ? 20 : 5;
-        let rawSize = editor.size + delta * step;
+    if (!editor.visible) return;
+    e.preventDefault();
 
-        // Fix 2 (Wheel): Constrain by distance to the edges
-        const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
-        editor.size = Math.max(MIN_SIZE, Math.min(rawSize, maxSquareSize, maxSize));
+    const delta = e.deltaY > 0 ? -1 : 1;
+    const step = e.shiftKey ? 20 : 5;
+    let rawSize = editor.size + delta * step;
 
-        clamp();
-        draw();
-    }, { passive: false });
+    const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
+    editor.size = Math.max(MIN_SIZE, Math.min(rawSize, maxSquareSize, maxSize));
+
+    clamp();
+    draw();
+}, { passive: false });
 
     // ----- Clamp editor inside canvas -----
     function clamp() {
