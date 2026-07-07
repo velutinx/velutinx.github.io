@@ -1,97 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<title>Image Censorship Tool</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Velutinx - Censorship Tool</title>
 
 <style>
+
 *{
+    margin:0;
+    padding:0;
     box-sizing:border-box;
-    font-family:Arial,Helvetica,sans-serif;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:#0a0c10;
+    color:#e0e0e0;
 }
 
 body{
-    margin:0;
-    background:#222;
-    color:#fff;
-}
-
-#layout{
     display:flex;
-    height:100vh;
 }
 
-#left{
+#main{
+
     flex:1;
+    display:flex;
+    overflow:hidden;
+
+}
+
+#viewer{
+
+    flex:1;
+    position:relative;
+    background:#090b0f;
     display:flex;
     justify-content:center;
     align-items:center;
     overflow:auto;
-    background:#333;
+
 }
 
-#right{
-    width:220px;
-    background:#2a2a2a;
-    padding:20px;
-    border-left:1px solid #444;
+#sidebar{
+
+    width:280px;
+    background:#11151c;
+    border-left:1px solid #2a2f38;
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+
+}
+
+.title{
+
+    font-size:22px;
+    font-weight:600;
+    color:#ffffff;
+    margin-bottom:6px;
+
+}
+
+.subtitle{
+
+    color:#888;
+    font-size:13px;
+    margin-bottom:20px;
+
 }
 
 button{
-    width:100%;
+
+    border:none;
+    border-radius:30px;
+    background:#2c6e2c;
+    color:white;
+    font-size:15px;
     padding:12px;
-    margin-bottom:10px;
-    font-size:16px;
     cursor:pointer;
+    transition:.15s;
+
+}
+
+button:hover{
+
+    background:#3f8f3f;
+
+}
+
+button:disabled{
+
+    opacity:.45;
+    cursor:not-allowed;
+
 }
 
 #dropZone{
-    width:90%;
-    height:90%;
-    border:3px dashed #666;
+
+    width:92%;
+    height:92%;
+
+    border:2px dashed #3a4050;
+
+    border-radius:16px;
+
     display:flex;
+
     justify-content:center;
+
     align-items:center;
-    color:#aaa;
-    font-size:22px;
-    position:relative;
+
+    color:#888;
+
+    font-size:24px;
+
+    transition:.15s;
+
+}
+
+#dropZone.drag{
+
+    border-color:#5a6e3c;
+    background:#10151b;
+
 }
 
 canvas{
+
     display:none;
-    cursor:default;
-    max-width:100%;
-    max-height:100%;
+    border-radius:10px;
+    box-shadow:0 8px 20px rgba(0,0,0,.5);
+
 }
+
+.section{
+
+    border-top:1px solid #2a2f38;
+    padding-top:16px;
+
+}
+
+.label{
+
+    font-size:13px;
+    color:#9aa0aa;
+    margin-bottom:8px;
+
+}
+
+.info{
+
+    font-size:13px;
+    line-height:22px;
+    color:#aaa;
+
+}
+
+kbd{
+
+    background:#0b0f15;
+    border:1px solid #2a2f38;
+    border-radius:6px;
+    padding:2px 6px;
+
+}
+
+.footer{
+
+    margin-top:auto;
+    color:#666;
+    font-size:12px;
+
+}
+
 </style>
+
 </head>
+
 <body>
 
-<div id="layout">
+<div id="main">
 
-<div id="left">
+<div id="viewer">
 
 <div id="dropZone">
-    Drag JPG or PNG Here
-    <canvas id="canvas"></canvas>
+
+Drop PNG or JPG Here
+
+</div>
+
+<canvas id="editorCanvas"></canvas>
+
+</div>
+
+<div id="sidebar">
+
+<div class="title">
+
+Image Censorship
+
+</div>
+
+<div class="subtitle">
+
+Drag an image into the editor.
+
+</div>
+
+<button id="addButton" disabled>
+
+Add Censorship
+
+</button>
+
+<button id="saveButton" disabled>
+
+Save JPG
+
+</button>
+
+<div class="section">
+
+<div class="label">
+
+Controls
+
+</div>
+
+<div class="info">
+
+<kbd>Drag</kbd> Move censor
+
+<br><br>
+
+<kbd>Corner</kbd> Resize
+
+<br><br>
+
+Always stays square
+
 </div>
 
 </div>
 
-<div id="right">
+<div class="footer">
 
-<button id="addBtn">Add Censorship</button>
-<button id="saveBtn">Save File</button>
+Velutinx Tool
 
-<p>
-<b>Controls</b><br><br>
-
-• Drag image onto page<br><br>
-
-• Left Click + Drag = Move censor<br><br>
-
-• Mouse Wheel = Resize square
-</p>
+</div>
 
 </div>
 
@@ -99,231 +263,551 @@ canvas{
 
 <script>
 
-const CENSOR_URL="https://www.velutinx.com/images/Censoring.png";
+const canvas=document.getElementById("editorCanvas");
 
-const drop=document.getElementById("dropZone");
-const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
+const dropZone=document.getElementById("dropZone");
+
+const addButton=document.getElementById("addButton");
+
+const saveButton=document.getElementById("saveButton");
+
+const censorImage=new Image();
+
+censorImage.src="Censoring.png";
+
 let originalImage=null;
-let censorImage=new Image();
 
-let fileName="image";
+let originalFileName="image";
 
-let censor={
-    visible:false,
-    x:100,
-    y:100,
-    size:200
-};
+let imageLoaded=false;
 
 let dragging=false;
-let offsetX=0;
-let offsetY=0;
 
-censorImage.src=CENSOR_URL;
+let resizing=false;
 
-function draw(){
+let darkOverlay=false;
 
-    if(!originalImage) return;
+const HANDLE_SIZE=16;
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+const MIN_SIZE=32;
 
-    // Main image at 80%
-    ctx.globalAlpha=0.8;
-    ctx.drawImage(originalImage,0,0);
+const editor={
 
-    // Censor at 100%
-    if(censor.visible){
+x:0,
 
-        ctx.globalAlpha=1;
+y:0,
 
-        ctx.drawImage(
-            censorImage,
-            censor.x,
-            censor.y,
-            censor.size,
-            censor.size
-        );
+size:180,
 
-    }
+visible:false,
 
-    ctx.globalAlpha=1;
+selected:true
+
+};
+
+function fitCanvas(img){
+
+canvas.width=img.width;
+
+canvas.height=img.height;
+
+canvas.style.display="block";
+
+dropZone.style.display="none";
 
 }
 
-drop.addEventListener("dragover",(e)=>{
-    e.preventDefault();
-    drop.style.borderColor="#00aaff";
-});
+function draw(){
 
-drop.addEventListener("dragleave",()=>{
-    drop.style.borderColor="#666";
-});
+if(!imageLoaded)return;
 
-drop.addEventListener("drop",(e)=>{
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    e.preventDefault();
+ctx.drawImage(
 
-    drop.style.borderColor="#666";
+originalImage,
 
-    const file=e.dataTransfer.files[0];
+0,
 
-    if(!file) return;
+0,
 
-    if(!file.type.startsWith("image/")) return;
+canvas.width,
 
-    fileName=file.name.replace(/\.[^/.]+$/,"");
+canvas.height
 
-    const reader=new FileReader();
+);
 
-    reader.onload=function(ev){
+if(darkOverlay){
 
-        const img=new Image();
+ctx.fillStyle="rgba(0,0,0,.35)";
 
-        img.onload=function(){
+ctx.fillRect(
 
-            originalImage=img;
+0,
 
-            canvas.width=img.width;
-            canvas.height=img.height;
+0,
 
-            canvas.style.display="block";
-            drop.firstChild.textContent="";
+canvas.width,
 
-            censor.x=img.width/2-100;
-            censor.y=img.height/2-100;
-            censor.size=Math.min(img.width,img.height)/4;
+canvas.height
 
-            draw();
+);
 
-        };
+}
 
-        img.src=ev.target.result;
+if(editor.visible){
 
-    };
+ctx.drawImage(
 
-    reader.readAsDataURL(file);
+censorImage,
 
-});
+editor.x,
 
-document.getElementById("addBtn").onclick=function(){
+editor.y,
 
-    if(!originalImage) return;
+editor.size,
 
-    censor.visible=true;
+editor.size
 
-    draw();
+);
+
+drawSelection();
+
+}
+
+}
+
+function drawSelection(){
+
+ctx.save();
+
+ctx.strokeStyle="#45ff45";
+
+ctx.lineWidth=2;
+
+ctx.strokeRect(
+
+editor.x,
+
+editor.y,
+
+editor.size,
+
+editor.size
+
+);
+
+ctx.fillStyle="#45ff45";
+
+ctx.fillRect(
+
+editor.x+
+
+editor.size-
+
+HANDLE_SIZE/2,
+
+editor.y+
+
+editor.size-
+
+HANDLE_SIZE/2,
+
+HANDLE_SIZE,
+
+HANDLE_SIZE
+
+);
+
+ctx.restore();
+
+}
+
+function canvasPoint(event){
+
+const rect=canvas.getBoundingClientRect();
+
+const scaleX=canvas.width/rect.width;
+
+const scaleY=canvas.height/rect.height;
+
+return{
+
+x:(event.clientX-rect.left)*scaleX,
+
+y:(event.clientY-rect.top)*scaleY
 
 };
 
-canvas.addEventListener("mousedown",(e)=>{
+}
 
-    if(!censor.visible) return;
+function insideEditor(x,y){
 
-    const rect=canvas.getBoundingClientRect();
+return(
 
-    const scaleX=canvas.width/rect.width;
-    const scaleY=canvas.height/rect.height;
+x>=editor.x&&
 
-    const x=(e.clientX-rect.left)*scaleX;
-    const y=(e.clientY-rect.top)*scaleY;
+x<=editor.x+editor.size&&
 
-    if(
-        x>=censor.x &&
-        x<=censor.x+censor.size &&
-        y>=censor.y &&
-        y<=censor.y+censor.size
-    ){
+y>=editor.y&&
 
-        dragging=true;
+y<=editor.y+editor.size
 
-        offsetX=x-censor.x;
-        offsetY=y-censor.y;
+);
 
-    }
+}
+
+function insideHandle(x,y){
+
+return(
+
+x>=editor.x+editor.size-HANDLE_SIZE&&
+
+x<=editor.x+editor.size+HANDLE_SIZE&&
+
+y>=editor.y+editor.size-HANDLE_SIZE&&
+
+y<=editor.y+editor.size+HANDLE_SIZE
+
+);
+
+}
+
+let dragOffsetX=0;
+
+let dragOffsetY=0;
+
+canvas.addEventListener("mousedown",e=>{
+
+if(!editor.visible)return;
+
+const p=canvasPoint(e);
+
+if(insideHandle(p.x,p.y)){
+
+resizing=true;
+
+return;
+
+}
+
+if(insideEditor(p.x,p.y)){
+
+dragging=true;
+
+dragOffsetX=p.x-editor.x;
+
+dragOffsetY=p.y-editor.y;
+
+}
 
 });
 
 window.addEventListener("mouseup",()=>{
 
-    dragging=false;
+dragging=false;
+
+resizing=false;
 
 });
 
-canvas.addEventListener("mousemove",(e)=>{
+canvas.addEventListener("mousemove",e=>{
 
-    if(!dragging) return;
+if(!editor.visible)return;
 
-    const rect=canvas.getBoundingClientRect();
+const p=canvasPoint(e);
 
-    const scaleX=canvas.width/rect.width;
-    const scaleY=canvas.height/rect.height;
+if(dragging){
 
-    const x=(e.clientX-rect.left)*scaleX;
-    const y=(e.clientY-rect.top)*scaleY;
+editor.x=p.x-dragOffsetX;
 
-    censor.x=x-offsetX;
-    censor.y=y-offsetY;
+editor.y=p.y-dragOffsetY;
 
-    draw();
+draw();
+
+return;
+
+}
+
+if(resizing){
+
+let s=Math.max(
+
+MIN_SIZE,
+
+Math.max(
+
+p.x-editor.x,
+
+p.y-editor.y
+
+)
+
+);
+
+editor.size=s;
+
+draw();
+
+}
+
+});
+dropZone.addEventListener("dragover",e=>{
+
+e.preventDefault();
+
+dropZone.classList.add("drag");
 
 });
 
-canvas.addEventListener("wheel",(e)=>{
+dropZone.addEventListener("dragleave",()=>{
 
-    if(!censor.visible) return;
-
-    e.preventDefault();
-
-    if(e.deltaY<0)
-        censor.size*=1.05;
-    else
-        censor.size*=0.95;
-
-    if(censor.size<20) censor.size=20;
-
-    draw();
+dropZone.classList.remove("drag");
 
 });
 
-document.getElementById("saveBtn").onclick=function(){
+dropZone.addEventListener("drop",e=>{
 
-    if(!originalImage) return;
+e.preventDefault();
 
-    const out=document.createElement("canvas");
+dropZone.classList.remove("drag");
 
-    out.width=canvas.width;
-    out.height=canvas.height;
+const file=e.dataTransfer.files[0];
 
-    const octx=out.getContext("2d");
+if(!file)return;
 
-    // Save original at full brightness
-    octx.drawImage(originalImage,0,0);
+if(!file.type.startsWith("image/"))return;
 
-    if(censor.visible){
+originalFileName=file.name.replace(/\.[^.]+$/,"");
 
-        octx.drawImage(
-            censorImage,
-            censor.x,
-            censor.y,
-            censor.size,
-            censor.size
-        );
+const reader=new FileReader();
 
-    }
+reader.onload=function(ev){
 
-    const a=document.createElement("a");
+const img=new Image();
 
-    a.download=fileName+".jpg";
+img.onload=function(){
 
-    a.href=out.toDataURL("image/jpeg",0.95);
+originalImage=img;
 
-    a.click();
+imageLoaded=true;
+
+fitCanvas(img);
+
+editor.size=Math.min(
+
+img.width,
+
+img.height
+
+)/4;
+
+editor.x=(img.width-editor.size)/2;
+
+editor.y=(img.height-editor.size)/2;
+
+addButton.disabled=false;
+
+saveButton.disabled=false;
+
+draw();
 
 };
+
+img.src=ev.target.result;
+
+};
+
+reader.readAsDataURL(file);
+
+});
+
+addButton.addEventListener("click",()=>{
+
+editor.visible=true;
+
+darkOverlay=true;
+
+draw();
+
+});
+
+saveButton.addEventListener("click",()=>{
+
+if(!imageLoaded)return;
+
+const out=document.createElement("canvas");
+
+out.width=canvas.width;
+
+out.height=canvas.height;
+
+const octx=out.getContext("2d");
+
+octx.drawImage(
+
+originalImage,
+
+0,
+
+0,
+
+out.width,
+
+out.height
+
+);
+
+if(editor.visible){
+
+octx.drawImage(
+
+censorImage,
+
+editor.x,
+
+editor.y,
+
+editor.size,
+
+editor.size
+
+);
+
+}
+
+const link=document.createElement("a");
+
+link.download=originalFileName+".jpg";
+
+link.href=out.toDataURL(
+
+"image/jpeg",
+
+0.95
+
+);
+
+link.click();
+
+});
+
+window.addEventListener("keydown",e=>{
+
+if(!editor.visible)return;
+
+const step=e.shiftKey?10:1;
+
+switch(e.key){
+
+case"ArrowLeft":
+
+editor.x-=step;
+
+break;
+
+case"ArrowRight":
+
+editor.x+=step;
+
+break;
+
+case"ArrowUp":
+
+editor.y-=step;
+
+break;
+
+case"ArrowDown":
+
+editor.y+=step;
+
+break;
+
+default:
+
+return;
+
+}
+
+draw();
+
+});
+
+function clamp(){
+
+if(editor.x<0)
+
+editor.x=0;
+
+if(editor.y<0)
+
+editor.y=0;
+
+if(editor.x+editor.size>canvas.width)
+
+editor.x=canvas.width-editor.size;
+
+if(editor.y+editor.size>canvas.height)
+
+editor.y=canvas.height-editor.size;
+
+}
+
+setInterval(()=>{
+
+if(!imageLoaded)return;
+
+clamp();
+
+},16);
+
+canvas.addEventListener("mousemove",e=>{
+
+if(!editor.visible)return;
+
+const p=canvasPoint(e);
+
+if(insideHandle(p.x,p.y)){
+
+canvas.style.cursor="nwse-resize";
+
+return;
+
+}
+
+if(insideEditor(p.x,p.y)){
+
+canvas.style.cursor="move";
+
+return;
+
+}
+
+canvas.style.cursor="default";
+
+});
+
+censorImage.onload=()=>{
+
+if(imageLoaded)
+
+draw();
+
+};
+
+window.addEventListener("resize",()=>{
+
+if(imageLoaded)
+
+draw();
+
+});
 
 </script>
 
 </body>
+
 </html>
