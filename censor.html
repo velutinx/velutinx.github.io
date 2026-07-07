@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Velutinx - Censorship Tool</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Velutinx – Censorship Tool</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -33,8 +34,42 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: auto;
       padding: 20px;
+      overflow: auto;
+    }
+    #dropZone {
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      border: 2px dashed #3a4050;
+      border-radius: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #888;
+      font-size: 24px;
+      transition: 0.15s;
+      text-align: center;
+      padding: 20px;
+    }
+    #dropZone.drag {
+      border-color: #5a6e3c;
+      background: #10151b;
+    }
+    #canvasWrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+    canvas {
+      display: none;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      max-width: 100%;
+      max-height: 100%;
+      image-rendering: auto;
     }
     #sidebar {
       width: 280px;
@@ -66,41 +101,14 @@
       font-size: 15px;
       padding: 12px;
       cursor: pointer;
-      transition: .15s;
+      transition: 0.15s;
     }
     button:hover:not(:disabled) {
       background: #3f8f3f;
     }
     button:disabled {
-      opacity: .45;
+      opacity: 0.45;
       cursor: not-allowed;
-    }
-    #dropZone {
-      width: 100%;
-      height: 100%;
-      min-height: 300px;
-      border: 2px dashed #3a4050;
-      border-radius: 16px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #888;
-      font-size: 24px;
-      transition: .15s;
-      text-align: center;
-      padding: 20px;
-    }
-    #dropZone.drag {
-      border-color: #5a6e3c;
-      background: #10151b;
-    }
-    canvas {
-      display: none;
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,.5);
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
     }
     .section {
       border-top: 1px solid #2a2f38;
@@ -127,343 +135,335 @@
       color: #666;
       font-size: 12px;
     }
-    .canvas-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 100%;
-    }
   </style>
 </head>
 <body>
-<div id="main">
-  <div id="viewer">
-    <div id="dropZone">
-      Drop PNG or JPG Here
-    </div>
-    <div class="canvas-wrapper" id="canvasWrapper">
-      <canvas id="editorCanvas"></canvas>
-    </div>
-  </div>
-  <div id="sidebar">
-    <div class="title">Image Censorship</div>
-    <div class="subtitle">Drag an image into the editor.</div>
-    <button id="addButton" disabled>Add Censorship</button>
-    <button id="saveButton" disabled>Save JPG</button>
-    <div class="section">
-      <div class="label">Controls</div>
-      <div class="info">
-        <kbd>Drag</kbd> Move censor<br><br>
-        <kbd>Corner</kbd> Resize<br><br>
-        Always stays square
+  <div id="main">
+    <div id="viewer">
+      <div id="dropZone">Drop PNG or JPG Here</div>
+      <div id="canvasWrapper">
+        <canvas id="editorCanvas"></canvas>
       </div>
     </div>
-    <div class="footer">Velutinx Tool</div>
+    <div id="sidebar">
+      <div class="title">Image Censorship</div>
+      <div class="subtitle">Drag an image into the editor.</div>
+      <button id="addButton" disabled>Add Censorship</button>
+      <button id="saveButton" disabled>Save JPG</button>
+      <div class="section">
+        <div class="label">Controls</div>
+        <div class="info">
+          <kbd>Drag</kbd> Move censor<br /><br />
+          <kbd>Corner</kbd> Resize<br /><br />
+          Always stays square
+        </div>
+      </div>
+      <div class="footer">Velutinx Tool</div>
+    </div>
   </div>
-</div>
 
-<script>
-  (function() {
-    const canvas = document.getElementById('editorCanvas');
-    const ctx = canvas.getContext('2d');
-    const dropZone = document.getElementById('dropZone');
-    const addButton = document.getElementById('addButton');
-    const saveButton = document.getElementById('saveButton');
-    const canvasWrapper = document.getElementById('canvasWrapper');
+  <script>
+    (function() {
+      // ----- DOM refs -----
+      const canvas = document.getElementById('editorCanvas');
+      const ctx = canvas.getContext('2d');
+      const dropZone = document.getElementById('dropZone');
+      const addButton = document.getElementById('addButton');
+      const saveButton = document.getElementById('saveButton');
+      const canvasWrapper = document.getElementById('canvasWrapper');
 
-    // Load censor image from the correct URL
-    const censorImage = new Image();
-    censorImage.crossOrigin = 'anonymous';
-    censorImage.src = 'https://www.velutinx.com/images/Censoring.png';
+      // ----- Load censorship image from absolute URL -----
+      const censorImage = new Image();
+      censorImage.crossOrigin = 'anonymous';
+      censorImage.src = 'https://www.velutinx.com/images/Censoring.png';
 
-    let originalImage = null;          // the loaded image object
-    let originalFileName = 'image';
-    let imageLoaded = false;
-    let darkOverlay = false;
+      // ----- State -----
+      let originalImage = null;          // the loaded Image object
+      let originalFileName = 'image';
+      let imageLoaded = false;
+      let darkOverlay = false;
 
-    // Editor state
-    const editor = {
-      x: 0,
-      y: 0,
-      size: 180,
-      visible: false,
-      selected: true
-    };
-
-    // Scale factor between canvas and CSS display
-    let scale = 1;
-
-    // Constants
-    const HANDLE_SIZE = 16;
-    const MIN_SIZE = 32;
-
-    // ----- Helper: fit canvas inside wrapper -----
-    function fitCanvas(img) {
-      const wrapperRect = canvasWrapper.getBoundingClientRect();
-      const availWidth = wrapperRect.width - 20;  // some padding
-      const availHeight = wrapperRect.height - 20;
-
-      const imgW = img.width;
-      const imgH = img.height;
-      const ratio = Math.min(availWidth / imgW, availHeight / imgH, 1);
-      scale = ratio;
-
-      // Set canvas internal size to image dimensions
-      canvas.width = imgW;
-      canvas.height = imgH;
-
-      // Set CSS size to scaled dimensions
-      canvas.style.width = (imgW * scale) + 'px';
-      canvas.style.height = (imgH * scale) + 'px';
-
-      canvas.style.display = 'block';
-      dropZone.style.display = 'none';
-    }
-
-    // ----- Drawing -----
-    function draw() {
-      if (!imageLoaded) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw original image
-      ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
-
-      // Dark overlay if censorship active
-      if (darkOverlay) {
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      // Draw censor overlay if visible
-      if (editor.visible && censorImage.complete && censorImage.naturalWidth > 0) {
-        ctx.drawImage(censorImage, editor.x, editor.y, editor.size, editor.size);
-        drawSelection();
-      }
-    }
-
-    function drawSelection() {
-      ctx.save();
-      ctx.strokeStyle = '#45ff45';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(editor.x, editor.y, editor.size, editor.size);
-
-      // Resize handle
-      ctx.fillStyle = '#45ff45';
-      const hx = editor.x + editor.size - HANDLE_SIZE / 2;
-      const hy = editor.y + editor.size - HANDLE_SIZE / 2;
-      ctx.fillRect(hx, hy, HANDLE_SIZE, HANDLE_SIZE);
-      ctx.restore();
-    }
-
-    // ----- Coordinate conversion (mouse -> canvas) -----
-    function canvasPoint(event) {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      return {
-        x: (event.clientX - rect.left) * scaleX,
-        y: (event.clientY - rect.top) * scaleY
+      // Editor rectangle
+      const editor = {
+        x: 0,
+        y: 0,
+        size: 180,
+        visible: false,
       };
-    }
 
-    // ----- Hit testing -----
-    function insideEditor(x, y) {
-      return x >= editor.x && x <= editor.x + editor.size &&
-             y >= editor.y && y <= editor.y + editor.size;
-    }
+      const HANDLE_SIZE = 16;
+      const MIN_SIZE = 32;
 
-    function insideHandle(x, y) {
-      const hx = editor.x + editor.size - HANDLE_SIZE / 2;
-      const hy = editor.y + editor.size - HANDLE_SIZE / 2;
-      return x >= hx && x <= hx + HANDLE_SIZE &&
-             y >= hy && y <= hy + HANDLE_SIZE;
-    }
+      // Scale factor between canvas pixels and CSS pixels
+      let canvasScale = 1;
 
-    // ----- Drag/resize state -----
-    let dragging = false;
-    let resizing = false;
-    let dragOffsetX = 0;
-    let dragOffsetY = 0;
+      // ----- Fit canvas inside wrapper (preserve aspect ratio) -----
+      function fitCanvas(img) {
+        const wrapperRect = canvasWrapper.getBoundingClientRect();
+        // leave a small margin
+        const availWidth = wrapperRect.width - 12;
+        const availHeight = wrapperRect.height - 12;
 
-    // ----- Mouse events -----
-    canvas.addEventListener('mousedown', function(e) {
-      if (!editor.visible) return;
-      const p = canvasPoint(e);
-      if (insideHandle(p.x, p.y)) {
-        resizing = true;
-        return;
-      }
-      if (insideEditor(p.x, p.y)) {
-        dragging = true;
-        dragOffsetX = p.x - editor.x;
-        dragOffsetY = p.y - editor.y;
-      }
-    });
+        const imgW = img.width;
+        const imgH = img.height;
 
-    window.addEventListener('mouseup', function() {
-      dragging = false;
-      resizing = false;
-    });
+        // Compute scale to fit inside wrapper
+        const scaleX = availWidth / imgW;
+        const scaleY = availHeight / imgH;
+        canvasScale = Math.min(scaleX, scaleY, 1); // never upscale beyond 1
 
-    canvas.addEventListener('mousemove', function(e) {
-      if (!editor.visible) return;
-      const p = canvasPoint(e);
+        // Set canvas internal size to original image dimensions
+        canvas.width = imgW;
+        canvas.height = imgH;
 
-      if (dragging) {
-        editor.x = p.x - dragOffsetX;
-        editor.y = p.y - dragOffsetY;
-        clamp();
-        draw();
-        return;
+        // Set CSS size to scaled dimensions
+        canvas.style.width = (imgW * canvasScale) + 'px';
+        canvas.style.height = (imgH * canvasScale) + 'px';
+
+        canvas.style.display = 'block';
+        dropZone.style.display = 'none';
       }
 
-      if (resizing) {
-        const newSize = Math.max(MIN_SIZE, Math.max(p.x - editor.x, p.y - editor.y));
-        editor.size = newSize;
-        clamp();
-        draw();
-        return;
+      // ----- Drawing -----
+      function draw() {
+        if (!imageLoaded) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw original image
+        ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+
+        // Dark overlay
+        if (darkOverlay) {
+          ctx.fillStyle = 'rgba(0,0,0,0.35)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Draw censor if visible and loaded
+        if (editor.visible && censorImage.complete && censorImage.naturalWidth > 0) {
+          ctx.drawImage(censorImage, editor.x, editor.y, editor.size, editor.size);
+          drawSelection();
+        }
       }
 
-      // Update cursor
-      if (insideHandle(p.x, p.y)) {
-        canvas.style.cursor = 'nwse-resize';
-      } else if (insideEditor(p.x, p.y)) {
-        canvas.style.cursor = 'move';
-      } else {
-        canvas.style.cursor = 'default';
+      function drawSelection() {
+        ctx.save();
+        ctx.strokeStyle = '#45ff45';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(editor.x, editor.y, editor.size, editor.size);
+
+        // Resize handle (bottom‑right corner)
+        ctx.fillStyle = '#45ff45';
+        const hx = editor.x + editor.size - HANDLE_SIZE / 2;
+        const hy = editor.y + editor.size - HANDLE_SIZE / 2;
+        ctx.fillRect(hx, hy, HANDLE_SIZE, HANDLE_SIZE);
+        ctx.restore();
       }
-    });
 
-    // ----- Clamp editor inside canvas -----
-    function clamp() {
-      if (editor.x < 0) editor.x = 0;
-      if (editor.y < 0) editor.y = 0;
-      if (editor.x + editor.size > canvas.width) editor.x = canvas.width - editor.size;
-      if (editor.y + editor.size > canvas.height) editor.y = canvas.height - editor.size;
-    }
-
-    // ----- Keyboard arrows -----
-    window.addEventListener('keydown', function(e) {
-      if (!editor.visible) return;
-      const step = e.shiftKey ? 10 : 1;
-      switch (e.key) {
-        case 'ArrowLeft':  editor.x -= step; break;
-        case 'ArrowRight': editor.x += step; break;
-        case 'ArrowUp':    editor.y -= step; break;
-        case 'ArrowDown':  editor.y += step; break;
-        default: return;
-      }
-      clamp();
-      draw();
-      e.preventDefault();
-    });
-
-    // ----- Drop zone events -----
-    dropZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      dropZone.classList.add('drag');
-    });
-
-    dropZone.addEventListener('dragleave', function() {
-      dropZone.classList.remove('drag');
-    });
-
-    dropZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      dropZone.classList.remove('drag');
-      const file = e.dataTransfer.files[0];
-      if (!file) return;
-      if (!file.type.startsWith('image/')) return;
-
-      originalFileName = file.name.replace(/\.[^.]+$/, '');
-
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        const img = new Image();
-        img.onload = function() {
-          originalImage = img;
-          imageLoaded = true;
-          fitCanvas(img);
-
-          // Set initial censor size to ~1/4 of image
-          editor.size = Math.min(img.width, img.height) / 4;
-          editor.x = (img.width - editor.size) / 2;
-          editor.y = (img.height - editor.size) / 2;
-
-          addButton.disabled = false;
-          saveButton.disabled = false;
-          draw();
+      // ----- Mouse coordinate to canvas space -----
+      function canvasPoint(event) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+          x: (event.clientX - rect.left) * scaleX,
+          y: (event.clientY - rect.top) * scaleY,
         };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    // ----- Add Censorship button -----
-    addButton.addEventListener('click', function() {
-      editor.visible = !editor.visible;
-      darkOverlay = editor.visible;
-      draw();
-      addButton.textContent = editor.visible ? 'Remove Censorship' : 'Add Censorship';
-    });
-
-    // ----- Save button -----
-    saveButton.addEventListener('click', function() {
-      if (!imageLoaded) return;
-
-      // Create a new canvas with the original image and apply the censor
-      const out = document.createElement('canvas');
-      out.width = canvas.width;
-      out.height = canvas.height;
-      const octx = out.getContext('2d');
-
-      octx.drawImage(originalImage, 0, 0, out.width, out.height);
-
-      if (editor.visible && censorImage.complete && censorImage.naturalWidth > 0) {
-        octx.drawImage(censorImage, editor.x, editor.y, editor.size, editor.size);
       }
 
-      const link = document.createElement('a');
-      link.download = originalFileName + '.jpg';
-      link.href = out.toDataURL('image/jpeg', 0.95);
-      link.click();
-    });
+      // ----- Hit testing -----
+      function insideEditor(x, y) {
+        return x >= editor.x && x <= editor.x + editor.size &&
+               y >= editor.y && y <= editor.y + editor.size;
+      }
 
-    // ----- Periodic clamp (safety) -----
-    setInterval(() => {
-      if (imageLoaded) {
+      function insideHandle(x, y) {
+        const hx = editor.x + editor.size - HANDLE_SIZE / 2;
+        const hy = editor.y + editor.size - HANDLE_SIZE / 2;
+        return x >= hx && x <= hx + HANDLE_SIZE &&
+               y >= hy && y <= hy + HANDLE_SIZE;
+      }
+
+      // ----- Drag / Resize state -----
+      let dragging = false;
+      let resizing = false;
+      let dragOffsetX = 0;
+      let dragOffsetY = 0;
+
+      // ----- Canvas mouse events -----
+      canvas.addEventListener('mousedown', function(e) {
+        if (!editor.visible) return;
+        const p = canvasPoint(e);
+        if (insideHandle(p.x, p.y)) {
+          resizing = true;
+          return;
+        }
+        if (insideEditor(p.x, p.y)) {
+          dragging = true;
+          dragOffsetX = p.x - editor.x;
+          dragOffsetY = p.y - editor.y;
+        }
+      });
+
+      window.addEventListener('mouseup', function() {
+        dragging = false;
+        resizing = false;
+      });
+
+      canvas.addEventListener('mousemove', function(e) {
+        if (!editor.visible) return;
+        const p = canvasPoint(e);
+
+        if (dragging) {
+          editor.x = p.x - dragOffsetX;
+          editor.y = p.y - dragOffsetY;
+          clamp();
+          draw();
+          return;
+        }
+        if (resizing) {
+          const newSize = Math.max(MIN_SIZE, Math.max(p.x - editor.x, p.y - editor.y));
+          editor.size = newSize;
+          clamp();
+          draw();
+          return;
+        }
+
+        // Update cursor
+        if (insideHandle(p.x, p.y)) {
+          canvas.style.cursor = 'nwse-resize';
+        } else if (insideEditor(p.x, p.y)) {
+          canvas.style.cursor = 'move';
+        } else {
+          canvas.style.cursor = 'default';
+        }
+      });
+
+      // ----- Clamp editor inside canvas -----
+      function clamp() {
+        if (editor.x < 0) editor.x = 0;
+        if (editor.y < 0) editor.y = 0;
+        if (editor.x + editor.size > canvas.width) editor.x = canvas.width - editor.size;
+        if (editor.y + editor.size > canvas.height) editor.y = canvas.height - editor.size;
+      }
+
+      // ----- Keyboard arrows -----
+      window.addEventListener('keydown', function(e) {
+        if (!editor.visible) return;
+        const step = e.shiftKey ? 10 : 1;
+        switch (e.key) {
+          case 'ArrowLeft':  editor.x -= step; break;
+          case 'ArrowRight': editor.x += step; break;
+          case 'ArrowUp':    editor.y -= step; break;
+          case 'ArrowDown':  editor.y += step; break;
+          default: return;
+        }
         clamp();
-        // If something changed, redraw? Only redraw if needed to avoid flicker.
-        // We'll redraw only if the clamp changed something.
-        // Simple approach: just redraw every 200ms if visible (but we already redraw on interactions)
-        // We can skip redraw here to avoid flicker.
-      }
-    }, 200);
-
-    // ----- Handle resize of window to re-fit canvas -----
-    window.addEventListener('resize', function() {
-      if (imageLoaded) {
-        fitCanvas(originalImage);
         draw();
+        e.preventDefault();
+      });
+
+      // ----- Drop zone -----
+      dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('drag');
+      });
+
+      dropZone.addEventListener('dragleave', function() {
+        dropZone.classList.remove('drag');
+      });
+
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('drag');
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          alert('Please drop a PNG or JPG image.');
+          return;
+        }
+
+        originalFileName = file.name.replace(/\.[^.]+$/, '');
+
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const img = new Image();
+          img.onload = function() {
+            originalImage = img;
+            imageLoaded = true;
+            fitCanvas(img);
+
+            // Initial censor size: 1/4 of smaller dimension
+            editor.size = Math.min(img.width, img.height) / 4;
+            editor.x = (img.width - editor.size) / 2;
+            editor.y = (img.height - editor.size) / 2;
+
+            addButton.disabled = false;
+            saveButton.disabled = false;
+            draw();
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // ----- Add / Remove censorship -----
+      addButton.addEventListener('click', function() {
+        editor.visible = !editor.visible;
+        darkOverlay = editor.visible;
+        draw();
+        addButton.textContent = editor.visible ? 'Remove Censorship' : 'Add Censorship';
+      });
+
+      // ----- Save as JPG -----
+      saveButton.addEventListener('click', function() {
+        if (!imageLoaded) return;
+
+        const out = document.createElement('canvas');
+        out.width = canvas.width;
+        out.height = canvas.height;
+        const octx = out.getContext('2d');
+
+        octx.drawImage(originalImage, 0, 0, out.width, out.height);
+
+        if (editor.visible && censorImage.complete && censorImage.naturalWidth > 0) {
+          octx.drawImage(censorImage, editor.x, editor.y, editor.size, editor.size);
+        }
+
+        const link = document.createElement('a');
+        link.download = originalFileName + '.jpg';
+        link.href = out.toDataURL('image/jpeg', 0.95);
+        link.click();
+      });
+
+      // ----- Handle window resize -----
+      window.addEventListener('resize', function() {
+        if (imageLoaded) {
+          fitCanvas(originalImage);
+          draw();
+        }
+      });
+
+      // ----- Censor image load -----
+      censorImage.onload = function() {
+        if (imageLoaded) draw();
+      };
+      censorImage.onerror = function() {
+        console.warn('Failed to load censorship image. Check URL.');
+        // Fallback: try a relative path
+        const fallback = new Image();
+        fallback.src = 'Censoring.png';
+        fallback.onload = function() {
+          // Replace the broken image with the fallback
+          censorImage.src = fallback.src;
+        };
+      };
+
+      // If the image is already loaded (cached), draw if needed
+      if (censorImage.complete && censorImage.naturalWidth > 0) {
+        // nothing else needed, draw() will use it
       }
-    });
-
-    // ----- Censor image load handler -----
-    censorImage.onload = function() {
-      if (imageLoaded) draw();
-    };
-    censorImage.onerror = function() {
-      console.warn('Censor image failed to load. Check URL.');
-    };
-
-    // If censor image already loaded (rare), handle it
-    if (censorImage.complete && censorImage.naturalWidth > 0) {
-      // Already loaded, nothing else needed
-    }
-  })();
-</script>
+    })();
+  </script>
 </body>
 </html>
