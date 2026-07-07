@@ -155,6 +155,7 @@
         <div class="info">
           <kbd>Drag</kbd> Move censor<br /><br />
           <kbd>Corner</kbd> Resize<br /><br />
+          <kbd>Scroll</kbd> Resize (up/down)<br /><br />
           Always stays square
         </div>
       </div>
@@ -178,7 +179,7 @@
       censorImage.src = 'https://www.velutinx.com/images/Censoring.png';
 
       // ----- State -----
-      let originalImage = null;          // the loaded Image object
+      let originalImage = null;
       let originalFileName = 'image';
       let imageLoaded = false;
       let darkOverlay = false;
@@ -193,6 +194,7 @@
 
       const HANDLE_SIZE = 16;
       const MIN_SIZE = 32;
+      let maxSize = 2000; // will be set when image loads
 
       // Scale factor between canvas pixels and CSS pixels
       let canvasScale = 1;
@@ -200,28 +202,28 @@
       // ----- Fit canvas inside wrapper (preserve aspect ratio) -----
       function fitCanvas(img) {
         const wrapperRect = canvasWrapper.getBoundingClientRect();
-        // leave a small margin
         const availWidth = wrapperRect.width - 12;
         const availHeight = wrapperRect.height - 12;
 
         const imgW = img.width;
         const imgH = img.height;
 
-        // Compute scale to fit inside wrapper
         const scaleX = availWidth / imgW;
         const scaleY = availHeight / imgH;
-        canvasScale = Math.min(scaleX, scaleY, 1); // never upscale beyond 1
+        canvasScale = Math.min(scaleX, scaleY, 1);
 
-        // Set canvas internal size to original image dimensions
         canvas.width = imgW;
         canvas.height = imgH;
 
-        // Set CSS size to scaled dimensions
         canvas.style.width = (imgW * canvasScale) + 'px';
         canvas.style.height = (imgH * canvasScale) + 'px';
 
         canvas.style.display = 'block';
         dropZone.style.display = 'none';
+
+        // Set max size for censorship to half the smaller dimension
+        maxSize = Math.min(imgW, imgH) / 1.5;
+        if (editor.size > maxSize) editor.size = maxSize;
       }
 
       // ----- Drawing -----
@@ -229,17 +231,13 @@
         if (!imageLoaded) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw original image
         ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
 
-        // Dark overlay
         if (darkOverlay) {
           ctx.fillStyle = 'rgba(0,0,0,0.35)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        // Draw censor if visible and loaded
         if (editor.visible && censorImage.complete && censorImage.naturalWidth > 0) {
           ctx.drawImage(censorImage, editor.x, editor.y, editor.size, editor.size);
           drawSelection();
@@ -252,7 +250,6 @@
         ctx.lineWidth = 2;
         ctx.strokeRect(editor.x, editor.y, editor.size, editor.size);
 
-        // Resize handle (bottom‑right corner)
         ctx.fillStyle = '#45ff45';
         const hx = editor.x + editor.size - HANDLE_SIZE / 2;
         const hy = editor.y + editor.size - HANDLE_SIZE / 2;
@@ -323,13 +320,12 @@
         }
         if (resizing) {
           const newSize = Math.max(MIN_SIZE, Math.max(p.x - editor.x, p.y - editor.y));
-          editor.size = newSize;
+          editor.size = Math.min(newSize, maxSize);
           clamp();
           draw();
           return;
         }
 
-        // Update cursor
         if (insideHandle(p.x, p.y)) {
           canvas.style.cursor = 'nwse-resize';
         } else if (insideEditor(p.x, p.y)) {
@@ -338,6 +334,20 @@
           canvas.style.cursor = 'default';
         }
       });
+
+      // ----- Mouse wheel resize -----
+      canvas.addEventListener('wheel', function(e) {
+        if (!editor.visible) return;
+        e.preventDefault(); // prevent page scroll
+
+        const delta = e.deltaY > 0 ? -1 : 1; // scroll down = smaller, up = bigger
+        const step = e.shiftKey ? 20 : 5;    // shift for finer control
+        let newSize = editor.size + delta * step;
+        newSize = Math.max(MIN_SIZE, Math.min(newSize, maxSize));
+        editor.size = newSize;
+        clamp();
+        draw();
+      }, { passive: false });
 
       // ----- Clamp editor inside canvas -----
       function clamp() {
@@ -450,18 +460,10 @@
       };
       censorImage.onerror = function() {
         console.warn('Failed to load censorship image. Check URL.');
-        // Fallback: try a relative path
-        const fallback = new Image();
-        fallback.src = 'Censoring.png';
-        fallback.onload = function() {
-          // Replace the broken image with the fallback
-          censorImage.src = fallback.src;
-        };
       };
 
-      // If the image is already loaded (cached), draw if needed
       if (censorImage.complete && censorImage.naturalWidth > 0) {
-        // nothing else needed, draw() will use it
+        // already loaded, nothing else
       }
     })();
   </script>
