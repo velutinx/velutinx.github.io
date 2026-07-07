@@ -34,6 +34,12 @@
 
     let canvasScale = 1;
 
+    // ----- Helper: Check if tab is active -----
+    function isCensorTabActive() {
+        const censorTab = document.getElementById('censor');
+        return censorTab && censorTab.classList.contains('active');
+    }
+
     // ----- Fit canvas inside wrapper (contain, with slight upscale) -----
     function fitCanvas(img) {
         const wrapperRect = canvasWrapper.getBoundingClientRect();
@@ -43,14 +49,11 @@
         const imgW = img.width;
         const imgH = img.height;
 
-        // Compute scale to fit inside (contain)
         let scaleX = availWidth / imgW;
         let scaleY = availHeight / imgH;
         let scale = Math.min(scaleX, scaleY);
 
-        // Allow moderate upscaling (max 1.2x) to fill more space without cropping
         scale = Math.min(scale, 1.2);
-
         canvasScale = scale;
 
         canvas.width = imgW;
@@ -62,7 +65,6 @@
         canvas.style.display = 'block';
         dropZone.style.display = 'none';
 
-        // Fix 1: Allow box to scale up to the longest side of the image
         maxSize = Math.max(imgW, imgH);
         if (editor.size > maxSize) editor.size = maxSize;
     }
@@ -130,7 +132,8 @@
 
     // ----- Canvas mouse events -----
     canvas.addEventListener('mousedown', function(e) {
-        if (!editor.visible) return;
+        if (!isCensorTabActive() || !editor.visible) return;
+        
         const p = canvasPoint(e);
         if (insideHandle(p.x, p.y)) {
             resizing = true;
@@ -149,7 +152,8 @@
     });
 
     canvas.addEventListener('mousemove', function(e) {
-        if (!editor.visible) return;
+        if (!isCensorTabActive() || !editor.visible) return;
+        
         const p = canvasPoint(e);
 
         if (dragging) {
@@ -160,7 +164,6 @@
             return;
         }
         
-        // Fix 2: Limit the maximum square size based on its distance to the edges
         if (resizing) {
             const rawSize = Math.max(p.x - editor.x, p.y - editor.y);
             const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
@@ -181,30 +184,25 @@
         }
     });
 
-// ----- Mouse wheel resize -----
-canvas.addEventListener('wheel', function(e) {
-    // 1. Check if the censor tab is active
-    const censorTab = document.getElementById('censor');
-    if (!censorTab || !censorTab.classList.contains('active')) return;
+    // ----- Mouse wheel resize -----
+    canvas.addEventListener('wheel', function(e) {
+        if (!isCensorTabActive() || !editor.visible) return;
+        
+        const style = window.getComputedStyle(canvas);
+        if (style.display === 'none') return;
 
-    // 2. Also check if the canvas is actually visible (display not 'none')
-    const style = window.getComputedStyle(canvas);
-    if (style.display === 'none') return;
+        e.preventDefault();
 
-    if (!editor.visible) return;
+        const delta = e.deltaY > 0 ? -1 : 1;
+        const step = e.shiftKey ? 20 : 5;
+        let rawSize = editor.size + delta * step;
 
-    e.preventDefault();
+        const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
+        editor.size = Math.max(MIN_SIZE, Math.min(rawSize, maxSquareSize, maxSize));
 
-    const delta = e.deltaY > 0 ? -1 : 1;
-    const step = e.shiftKey ? 20 : 5;
-    let rawSize = editor.size + delta * step;
-
-    const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
-    editor.size = Math.max(MIN_SIZE, Math.min(rawSize, maxSquareSize, maxSize));
-
-    clamp();
-    draw();
-}, { passive: false });
+        clamp();
+        draw();
+    }, { passive: false });
 
     // ----- Clamp editor inside canvas -----
     function clamp() {
@@ -216,18 +214,20 @@ canvas.addEventListener('wheel', function(e) {
 
     // ----- Keyboard arrows -----
     window.addEventListener('keydown', function(e) {
-        if (!editor.visible) return;
+        if (!isCensorTabActive() || !editor.visible) return;
+        
         const step = e.shiftKey ? 10 : 1;
         switch (e.key) {
             case 'ArrowLeft':  editor.x -= step; break;
             case 'ArrowRight': editor.x += step; break;
             case 'ArrowUp':    editor.y -= step; break;
             case 'ArrowDown':  editor.y += step; break;
-            default: return;
+            default: return; // Let default scroll happen if not an arrow key
         }
+        
         clamp();
         draw();
-        e.preventDefault();
+        e.preventDefault(); // Only block scrolling if an arrow key was used on the active tab
     });
 
     // ----- Drop zone -----
@@ -299,7 +299,6 @@ canvas.addEventListener('wheel', function(e) {
         const link = document.createElement('a');
         link.download = originalFileName + '.jpg';
         
-        // Fix 3: Standardize to 70% quality threshold
         link.href = out.toDataURL('image/jpeg', 0.7);
         link.click();
     });
@@ -319,8 +318,4 @@ canvas.addEventListener('wheel', function(e) {
     censorImage.onerror = function() {
         console.warn('Failed to load censorship image. Check URL.');
     };
-
-    if (censorImage.complete && censorImage.naturalWidth > 0) {
-        // already loaded
-    }
 })();
