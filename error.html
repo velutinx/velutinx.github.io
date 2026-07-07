@@ -90,7 +90,7 @@
 
         /* ── MUTED ROW STYLES ── */
         .log-row.muted {
-            opacity: 0.4;
+            opacity: 0.35;
             filter: grayscale(0.9);
             background-color: #16161e;
         }
@@ -183,27 +183,29 @@
             toastTimeout = setTimeout(() => el.classList.remove('show'), 3000);
         }
 
+        // ─── Seen IDs as a Set ──────────────────────────────────────
         function getSeenIds() {
             try {
-                return JSON.parse(localStorage.getItem(SEEN_IDS_KEY) || '[]');
-            } catch { return []; }
+                const raw = localStorage.getItem(SEEN_IDS_KEY);
+                return raw ? new Set(JSON.parse(raw)) : new Set();
+            } catch { return new Set(); }
         }
 
-        function setSeenIds(ids) {
-            localStorage.setItem(SEEN_IDS_KEY, JSON.stringify(ids));
+        function saveSeenIds(set) {
+            localStorage.setItem(SEEN_IDS_KEY, JSON.stringify([...set]));
         }
 
         function addSeenIds(newIds) {
-            const current = getSeenIds();
-            const combined = [...current, ...newIds];
-            const unique = [...new Set(combined)];
-            setSeenIds(unique);
+            const set = getSeenIds();
+            newIds.forEach(id => set.add(id));
+            saveSeenIds(set);
         }
 
         function clearSeenIds() {
             localStorage.removeItem(SEEN_IDS_KEY);
         }
 
+        // ─── Render ──────────────────────────────────────────────────
         function renderLogs(logs) {
             const seenIds = getSeenIds();
 
@@ -214,8 +216,9 @@
 
             let html = '';
             logs.forEach(log => {
-                const id = log.id || '';   // <-- each row has a unique ID from the DB
-                const isMuted = seenIds.includes(id);
+                // Ensure ID is a string – this is the FIX
+                const id = log.id !== undefined && log.id !== null ? String(log.id) : '';
+                const isMuted = seenIds.has(id);
                 const time = log.received || log.timestamp || '—';
                 const worker = log.worker || 'unknown';
                 const error = log.error || '—';
@@ -233,6 +236,13 @@
                 `;
             });
             tbody.innerHTML = html;
+
+            // Debug: log the first 3 IDs (open browser console to see this)
+            if (logs.length > 0) {
+                const sample = logs.slice(0, 3).map(l => l.id);
+                console.log('🧾 Log IDs from database:', sample);
+                console.log('🔒 Seen IDs in localStorage:', [...seenIds]);
+            }
         }
 
         function escapeHtml(str) {
@@ -245,7 +255,7 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // ─── Fetch ──────────────────────────────────────────────
+        // ─── Fetch ──────────────────────────────────────────────────
         async function fetchLogs() {
             try {
                 const res = await fetch(LOGGER_URL + '/logs');
@@ -258,7 +268,7 @@
             }
         }
 
-        // ─── Mute All ─────────────────────────────────────────────
+        // ─── Mute All ─────────────────────────────────────────────────
         function muteCurrent() {
             const rows = tbody.querySelectorAll('.log-row');
             const ids = [];
@@ -275,7 +285,7 @@
             showToast(`🔇 Muted ${ids.length} log${ids.length > 1 ? 's' : ''}.`);
         }
 
-        // ─── Auto‑refresh every 10 seconds ──────────────────────
+        // ─── Auto‑refresh ────────────────────────────────────────────
         let refreshInterval;
 
         function startAutoRefresh() {
@@ -283,13 +293,12 @@
             refreshInterval = setInterval(fetchLogs, 10000);
         }
 
-        // ─── Init ──────────────────────────────────────────────
+        // ─── Init ──────────────────────────────────────────────────
         muteBtn.addEventListener('click', muteCurrent);
 
         fetchLogs();
         startAutoRefresh();
 
-        // Also refresh when tab becomes visible
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) fetchLogs();
         });
