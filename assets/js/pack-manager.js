@@ -51,20 +51,22 @@
     }
 
     // ---------- MEGA link auto-fetch ----------
-    async function fetchMegaLink(filename) {
-        try {
-            const resp = await fetch(
-                `https://i2-uploader.velutinx.workers.dev/mega-link?filename=${encodeURIComponent(filename)}`
-            );
-            const data = await resp.json();
-            if (data.url) {
-                document.getElementById('pm-downloadUrl').value = data.url;
-                pmShowToast('✅ MEGA link auto‑filled!', 'success');
-            }
-        } catch (err) {
-            console.error('MEGA fetch error:', err);
+async function fetchMegaLink(filename) {
+    try {
+        const url = `https://i2-uploader.velutinx.workers.dev/mega-link?filename=${encodeURIComponent(filename)}`;
+        console.log('Fetching MEGA link:', url);
+        const resp = await fetch(url);
+        console.log('Response status:', resp.status);
+        const data = await resp.json();
+        console.log('MEGA data:', data);
+        if (data.url) {
+            document.getElementById('pm-downloadUrl').value = data.url;
+            pmShowToast('✅ MEGA link auto‑filled!', 'success');
         }
+    } catch (err) {
+        console.error('MEGA fetch error:', err);
     }
+}
 
     // ---------- Local Storage ----------
     function getLocalPacks() {
