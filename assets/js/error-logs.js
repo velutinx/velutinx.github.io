@@ -138,7 +138,6 @@
 
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(fetchLogs, 10000);
     }
 
     // ─── Init ──────────────────────────────────────────────────
