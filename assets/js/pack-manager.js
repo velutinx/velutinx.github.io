@@ -1,5 +1,4 @@
-// pack-manager.js – Full combined: metadata upload + image selector + R2 upload + MEGA link auto-fetch
-// (no local download)
+// pack-manager.js
 
 (function() {
     'use strict';
@@ -11,19 +10,15 @@
     const UPLOAD_WORKER_URL = 'https://i2-uploader.velutinx.workers.dev';
     const STORAGE_KEY       = 'packs_offline_db';
 
-    // Temporary state for the current ZIP & pack
     let currentZipFile          = null;
     let currentPackEntry        = null;
     let currentIllustrationCount = 0;
-
-    // Image selection state
     let allImages       = [];
     let selectedIndices = new Set();
     let selectedOrder   = [];
-    let packNumber      = null;   // from ZIP filename
+    let packNumber      = null;
     let sortable        = null;
 
-    // DOM elements
     const pmDropzone       = document.getElementById('pm-dropzone');
     const pmFileInput      = document.getElementById('pm-fileInput');
     const pmDownloadUrl    = document.getElementById('pm-downloadUrl');
@@ -37,36 +32,32 @@
     const pmOriginalGrid   = document.getElementById('pm-originalGrid');
     const pmSelectedGrid   = document.getElementById('pm-selectedGrid');
 
-    // Remote state
     let remoteReachable = false;
     let pendingSync     = false;
     let currentPacks    = [];
     let sortColumn      = null;
     let sortDirection   = 'asc';
 
-    // ---------- Toast ----------
     function pmShowToast(message, type = 'success') {
         if (typeof showToast === 'function') showToast(`[Pack Manager] ${message}`, type);
         else console.warn('showToast not available:', message);
     }
 
-    // ---------- MEGA link auto-fetch ----------
-async function fetchMegaLink(filename) {
-    try {
-        const resp = await fetch(
-            `https://poll-san-production-bfc0.up.railway.app/api/mega-link?filename=${encodeURIComponent(filename)}`
-        );
-        const data = await resp.json();
-        if (data.url) {
-            document.getElementById('pm-downloadUrl').value = data.url;
-            pmShowToast('✅ MEGA link auto‑filled!', 'success');
+    async function fetchMegaLink(filename) {
+        try {
+            const resp = await fetch(
+                `https://poll-san-production-bfc0.up.railway.app/api/mega-link?filename=${encodeURIComponent(filename)}`
+            );
+            const data = await resp.json();
+            if (data.url) {
+                document.getElementById('pm-downloadUrl').value = data.url;
+                pmShowToast('✅ MEGA link auto‑filled!', 'success');
+            }
+        } catch (err) {
+            console.error('MEGA fetch error:', err);
         }
-    } catch (err) {
-        console.error('MEGA fetch error:', err);
     }
-}
 
-    // ---------- Local Storage ----------
     function getLocalPacks() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return [];
@@ -84,7 +75,6 @@ async function fetchMegaLink(filename) {
         return packs;
     }
 
-    // ---------- Remote API ----------
     async function fetchWithTimeout(url, options, timeout = 8000) {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), timeout);
@@ -146,7 +136,6 @@ async function fetchMegaLink(filename) {
         }
     }
 
-    // ---------- Table rendering ----------
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
@@ -212,7 +201,6 @@ async function fetchMegaLink(filename) {
         });
     }
 
-    // ---------- Load / Sync ----------
     async function loadAllPacks() {
         pmTableBody.innerHTML = '<tr class="pm-empty-row"><td colspan="6"><span class="pm-loading"></span> Loading packs...</td></tr>';
         try {
@@ -300,7 +288,6 @@ async function fetchMegaLink(filename) {
         return failCount === 0;
     }
 
-    // ---------- Filename parsing ----------
     function cleanFilename(rawName) {
         let name = rawName.replace(/\.zip$/i, '');
         name = name.replace(/\s*\(\d+\)\s*$/, '');
@@ -311,8 +298,28 @@ async function fetchMegaLink(filename) {
         const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
         const match = base.match(regex);
         if (!match) return null;
-        return { pack: match[1], character: match[2].trim(), series: match[3].trim().toUpperCase() };
+        return { pack: match[1], character: match[2].trim(), series: match[3].trim() };
     }
+
+    function toTitleCase(str) {
+        if (!str) return str;
+        const exceptions = new Set([
+            'FGO', 'RWBY', 'DC', 'MARVEL', 'FATE', 'NIKKE', 'TENSURA',
+            'RE:ZERO', 'REZERO', 'KONOSUBA', 'OREGAIRU', 'KANCOLLE'
+        ]);
+        const words = str.split(/\s+/);
+        return words.map(word => {
+            const upper = word.toUpperCase();
+            if (exceptions.has(upper)) return upper;
+            if (word.includes('-')) {
+                return word.split('-').map(part =>
+                    part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                ).join('-');
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+    }
+
     async function storePackWithFallback(packEntry) {
         if (remoteReachable) {
             try {
@@ -332,7 +339,6 @@ async function fetchMegaLink(filename) {
         return { success: true, source: 'local' };
     }
 
-    // ========== IMAGE GRID HELPERS ==========
     function revokeAllImageURLs() {
         allImages.forEach(img => { if (img.url) URL.revokeObjectURL(img.url); });
     }
@@ -412,14 +418,12 @@ async function fetchMegaLink(filename) {
         }
     }
 
-    // ========== UPLOAD ACTION (metadata + selected images only) ==========
     async function uploadPackMetadataAndImages() {
         if (!currentPackEntry) {
             pmShowToast('No ZIP processed yet – drop a file first', 'error');
             return;
         }
 
-        // Capture current toggle and download link
         currentPackEntry.category    = pmCategoryToggle.checked ? 1 : 2;
         currentPackEntry.downloadUrl = pmDownloadUrl.value.trim() || null;
 
@@ -431,7 +435,6 @@ async function fetchMegaLink(filename) {
         pmUploadBtn.disabled = true;
         pmUploadBtn.textContent = '⏳ Uploading...';
 
-        // 1) Save pack metadata
         try {
             await storePackWithFallback(currentPackEntry);
             pmStatus.textContent = `✅ Pack #${currentPackEntry.id} stored | ${currentIllustrationCount} images`;
@@ -443,17 +446,14 @@ async function fetchMegaLink(filename) {
             return;
         }
 
-        // 2) If images selected, upload to R2 (no local download)
         if (selectedOrder.length > 0) {
             await uploadSelectedToR2();
         }
 
-        // 3) Refresh table and reset
         await loadAllPacks();
         pmUploadBtn.disabled = false;
         pmUploadBtn.textContent = '📤 Upload to Cloudflare';
 
-        // Clear state
         currentZipFile = null;
         currentPackEntry = null;
         currentIllustrationCount = 0;
@@ -497,9 +497,6 @@ async function fetchMegaLink(filename) {
         }
     }
 
-    // (Removed downloadSelectedLocally function – no local download needed)
-
-    // ========== PROCESS ZIP (metadata + image previews) ==========
     async function processZip(file) {
         pmStatus.textContent = '📂 Reading ZIP...';
         try {
@@ -520,12 +517,13 @@ async function fetchMegaLink(filename) {
                 return;
             }
 
-            // Metadata
+            const seriesTitle = toTitleCase(parsed.series);
+            const properTitle = `[Pack ${parsed.pack}] ${parsed.character} - ${seriesTitle}`;
             const illustrationCount = imageEntries.length;
             const price = illustrationCount <= 45 ? "PRICE_1" : "PRICE_2";
             const isFemale = pmCategoryToggle.checked;
             const category = isFemale ? 1 : 2;
-            const title = cleanFilename(file.name);
+            const title = properTitle;
             const id = String(parsed.pack).padStart(3, '0');
             const downloadUrl = pmDownloadUrl.value.trim() || null;
 
@@ -534,7 +532,6 @@ async function fetchMegaLink(filename) {
             currentIllustrationCount = illustrationCount;
             packNumber = id;
 
-            // Image previews
             imageEntries.sort((a, b) => {
                 const numA = parseInt((a.name.match(/\d+/) || ['0'])[0], 10) || 0;
                 const numB = parseInt((b.name.match(/\d+/) || ['0'])[0], 10) || 0;
@@ -560,7 +557,6 @@ async function fetchMegaLink(filename) {
             pmUploadBtn.disabled = false;
             pmShowToast(`✅ ZIP analysed. Select images, set category & link, then click "Upload".`, 'info');
 
-            // Automatically fetch MEGA download link
             const megaSearchName = cleanFilename(file.name) + '.zip';
             fetchMegaLink(megaSearchName);
             
@@ -574,7 +570,6 @@ async function fetchMegaLink(filename) {
         }
     }
 
-    // ========== EVENT LISTENERS ==========
     if (pmDropzone) {
         pmDropzone.addEventListener('click', () => pmFileInput.click());
         pmDropzone.addEventListener('dragover', e => { e.preventDefault(); pmDropzone.style.borderColor = '#5a6e3c'; });
@@ -623,7 +618,6 @@ async function fetchMegaLink(filename) {
 
     bindSortHandlers();
 
-    // Init
     (async function init() {
         await checkRemoteHealth();
         await loadAllPacks();
