@@ -57,31 +57,33 @@
         });
     }
 
-    function replaceUrlsWithBio(text) {
-        const urls = text.match(/https?:\/\/\S+/g);
-        if (!urls) return text;
+function replaceUrlsWithBio(text) {
+    const urls = text.match(/https?:\/\/\S+/g);
+    if (!urls) return text;
 
-        const isSubscribestar = urls.some(url => {
-            try {
-                const hostname = new URL(url).hostname;
-                return /subscribestar/.test(hostname);
-            } catch {
-                return false;
-            }
-        });
-
-        const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
-        let replacement;
-        if (isSubscribestar) {
-            replacement = 'Full set on SubscribeStar (link in bio)';
-        } else if (upcomingChecked) {
-            replacement = 'Link to preview on Patreon (link in bio)';
-        } else {
-            replacement = 'Full set on Patreon (link in bio)';
+    const isSubscribestar = urls.some(url => {
+        try {
+            const hostname = new URL(url).hostname;
+            return /subscribestar/.test(hostname);
+        } catch {
+            return false;
         }
+    });
 
-        return text.replace(/https?:\/\/\S+/g, replacement);
+    const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
+    let replacement;
+    if (isSubscribestar) {
+        replacement = upcomingChecked 
+            ? 'Full set upcoming to SubscribeStar (link in bio)'
+            : 'Full set on SubscribeStar (link in bio)';
+    } else if (upcomingChecked) {
+        replacement = 'Full set upcoming to Patreon (link in bio)';
+    } else {
+        replacement = 'Full set on Patreon (link in bio)';
     }
+
+    return text.replace(/https?:\/\/\S+/g, replacement);
+}
 
     // ---------- Master mirroring ----------
     const master = document.getElementById('masterPost');
