@@ -1,14 +1,10 @@
-// error-logs.js – Central error logs viewer with Clear All
+// error-logs.js
 (function() {
     'use strict';
-
     const LOGGER_URL = 'https://error-logger.velutinx.workers.dev';
-
     const tbody = document.getElementById('logBody');
     const clearBtn = document.getElementById('clearBtn');
     const tabButton = document.getElementById('errorlogs-tab');
-
-    // ─── Toast ──────────────────────────────────────────────────
     function showToast(msg, isError) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification' + (isError ? ' error' : '');
@@ -17,7 +13,6 @@
         setTimeout(function() { toast.remove(); }, 3000);
     }
 
-    // ─── Escape ──────────────────────────────────────────────────
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -28,7 +23,45 @@
             .replace(/'/g, '&#039;');
     }
 
-    // ─── Render ──────────────────────────────────────────────────
+    function groupLogs(logs) {
+        const groups = new Map();
+
+        logs.forEach(log => {
+            const key = JSON.stringify({
+                worker: log.worker || 'unknown',
+                error: log.error || '',
+                stack: log.stack || '',
+                url: log.url || '',
+                method: log.method || ''
+            });
+
+            if (!groups.has(key)) {
+                groups.set(key, {
+                    worker: log.worker || 'unknown',
+                    error: log.error || '',
+                    stack: log.stack || '',
+                    url: log.url || '',
+                    method: log.method || '',
+                    occurrences: []
+                });
+            }
+            groups.get(key).occurrences.push({
+                timestamp: log.timestamp || log.received || '—',
+                received: log.received || log.timestamp || '—',
+                id: log.id
+            });
+        });
+
+        const sortedGroups = Array.from(groups.values());
+        sortedGroups.sort((a, b) => {
+            const aLatest = a.occurrences.reduce((max, o) => o.timestamp > max ? o.timestamp : max, '');
+            const bLatest = b.occurrences.reduce((max, o) => o.timestamp > max ? o.timestamp : max, '');
+            return bLatest.localeCompare(aLatest);
+        });
+
+        return sortedGroups;
+    }
+
     function renderLogs(logs) {
         if (!logs || logs.length === 0) {
             tbody.innerHTML = '<tr class="empty-row"><td colspan="5">✨ No errors logged yet.</td></tr>';
@@ -36,33 +69,89 @@
             return;
         }
 
+        const groups = groupLogs(logs);
         let html = '';
-        logs.forEach(function(log) {
-            const time = log.received || log.timestamp || '—';
-            const worker = log.worker || 'unknown';
-            const error = log.error || '—';
-            const url = log.url || '—';
-            const stack = log.stack || '—';
 
-            html += '<tr class="log-row">' +
-                '<td class="time">' + escapeHtml(time) + '</td>' +
-                '<td class="worker">' + escapeHtml(worker) + '</td>' +
-                '<td class="error">' + escapeHtml(error) + '</td>' +
-                '<td>' + escapeHtml(url) + '</td>' +
-                '<td class="stack">' + escapeHtml(stack) + '</td>' +
-                '</tr>';
+        groups.forEach((group, index) => {
+            const count = group.occurrences.length;
+            const latestTime = group.occurrences[0].timestamp || '—';
+            const worker = group.worker;
+            const error = group.error;
+            const url = group.url || '—';
+            const stack = group.stack || '—';
+
+            html += `
+                <tr class="group-row" data-group="${index}">
+                    <td class="time">${escapeHtml(latestTime)}</td>
+                    <td class="worker">${escapeHtml(worker)}</td>
+                    <td class="error">${escapeHtml(error)}</td>
+                    <td>${escapeHtml(url)}</td>
+                    <td>
+                        <span class="group-toggle" data-group="${index}">
+                            <span class="toggle-icon">▶</span> ${count} occurrence${count > 1 ? 's' : ''}
+                        </span>
+                    </td>
+                </tr>
+                <tr class="group-detail" data-group="${index}" style="display:none;">
+                    <td colspan="5">
+                        <div style="background: #0a0e14; border-radius: 8px; padding: 8px; margin: 4px 0;">
+                            <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left; padding:4px 8px; color:#888;">Timestamp</th>
+                                        <th style="text-align:left; padding:4px 8px; color:#888;">Received</th>
+                                        <th style="text-align:left; padding:4px 8px; color:#888;">Stack</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${group.occurrences.map(occ => `
+                                        <tr>
+                                            <td style="padding:4px 8px; color:#ddd;">${escapeHtml(occ.timestamp)}</td>
+                                            <td style="padding:4px 8px; color:#ddd;">${escapeHtml(occ.received)}</td>
+                                            <td style="padding:4px 8px; color:#aaa; font-family:monospace; font-size:0.7rem; word-break:break-word;">${escapeHtml(stack)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            `;
         });
+
         tbody.innerHTML = html;
+
+        document.querySelectorAll('.group-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                const groupIndex = this.dataset.group;
+                const detailRow = document.querySelector(`tr.group-detail[data-group="${groupIndex}"]`);
+                const icon = this.querySelector('.toggle-icon');
+                if (detailRow.style.display === 'none') {
+                    detailRow.style.display = 'table-row';
+                    icon.textContent = '▼';
+                } else {
+                    detailRow.style.display = 'none';
+                    icon.textContent = '▶';
+                }
+                e.stopPropagation();
+            });
+        });
+
+        document.querySelectorAll('.group-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const toggle = this.querySelector('.group-toggle');
+                if (toggle) toggle.click();
+            });
+        });
+
         updateTabVisibility(true);
     }
 
-    // ─── Tab visibility ──────────────────────────────────────────
     function updateTabVisibility(hasItems) {
         if (!tabButton) return;
         tabButton.classList.toggle('has-items', hasItems);
     }
 
-    // ─── Fetch logs ──────────────────────────────────────────────
     function fetchLogs() {
         fetch(LOGGER_URL + '/logs')
             .then(function(res) {
@@ -79,7 +168,6 @@
             });
     }
 
-    // ─── Clear All ────────────────────────────────────────────────
     function clearAll() {
         if (!confirm('⚠️ Delete ALL error logs from the database? This cannot be undone.')) {
             return;
@@ -98,7 +186,7 @@
         })
         .then(function(data) {
             showToast('🗑️ All logs cleared from database.', false);
-            fetchLogs(); // Refresh the table
+            fetchLogs();
         })
         .catch(function(err) {
             console.error('Clear error:', err);
@@ -110,10 +198,15 @@
         });
     }
 
-    // ─── Init ──────────────────────────────────────────────────
     if (clearBtn) {
         clearBtn.addEventListener('click', clearAll);
     }
 
     fetchLogs();
+
+    setInterval(function() {
+        if (!document.hidden) {
+            fetchLogs();
+        }
+    }, 10000);
 })();
