@@ -81,18 +81,22 @@
         <div id="hashgenStatus" class="hashgen-status"></div>
 
         <!-- Toggles: Upcoming + Request -->
-        <div class="toggles-container" style="display:flex; gap:24px; margin-bottom:16px; flex-wrap:wrap;">
-            <label class="toggle-switch">
-                <input type="checkbox" id="upcomingCheckbox">
-                <span class="slider"></span>
-                <span class="toggle-label">Upcoming release</span>
-            </label>
-            <label class="toggle-switch">
-                <input type="checkbox" id="requestCheckbox">
-                <span class="slider"></span>
-                <span class="toggle-label">Request</span>
-            </label>
-        </div>
+<div class="toggles-container" style="display:flex; gap:24px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+    <label class="toggle-switch">
+        <input type="checkbox" id="upcomingCheckbox">
+        <span class="slider"></span>
+        <span class="toggle-label">Upcoming release</span>
+    </label>
+    <label class="toggle-switch">
+        <input type="checkbox" id="requestCheckbox">
+        <span class="slider"></span>
+        <span class="toggle-label">Request</span>
+    </label>
+    <div class="square-btn-wrapper">
+        <button id="sneakPeakBtn" class="square-btn" aria-label="Sneak Peak"></button>
+        <span class="toggle-label">Sneak Peak</span>
+    </div>
+</div>
 
         <div style="margin-bottom: 20px;">
             <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
