@@ -310,3 +310,37 @@ function showToast(msg, isError) { const toast = document.createElement('div'); 
 .square-btn:hover { filter: brightness(1.08); }
 .square-btn:active { transform: scale(.98); }
 .square-btn.on { background: #4CAF50; }
+
+                                  /* ========== Sneak Peak Button ========== */
+
+.square-btn-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.square-btn {
+    width: 56px;
+    height: 30px;
+
+    background: #555;
+    border: none;
+    border-radius: 4px;
+
+    cursor: pointer;
+    transition: background .2s ease;
+
+    flex-shrink: 0;
+}
+
+.square-btn:hover {
+    filter: brightness(1.08);
+}
+
+.square-btn.on {
+    background: #4CAF50;
+}
+
+.square-btn:active {
+    transform: scale(.96);
+}
