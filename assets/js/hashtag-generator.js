@@ -224,81 +224,102 @@
         return uniqueTags;
     }
 
-    let debounceTimer;
+let debounceTimer;
 
-    async function handleInput() {
+async function handleInput() {
+    const input = document.getElementById('hashgenInput');
+    const status = document.getElementById('hashgenStatus');
+    const masterPost = document.getElementById('masterPost');
+
+    if (!input || !masterPost) return;
+
+    const sneakBtn = document.getElementById('sneakPeakBtn');
+    if (sneakBtn && sneakBtn.classList.contains('on')) {
+        return;
+    }
+
+    const raw = input.value.trim();
+    if (!raw) {
+        status.textContent = '';
+        return;
+    }
+
+    const parsed = parseInput(raw);
+    if (!parsed.character && !parsed.series) {
+        status.textContent = 'Could not parse character or series';
+        return;
+    }
+
+    status.textContent = 'Fetching AniList…';
+    try {
+        const hashtags = await generateHashtags(parsed.character, parsed.series);
+        const hashtagString = hashtags.join(' ');
+
+        const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
+        const requestChecked = document.getElementById('requestCheckbox')?.checked || false;
+
+        let openingLine;
+        if (requestChecked) {
+            openingLine = upcomingChecked ? 'Upcoming new request.' : 'New request released.';
+        } else {
+            openingLine = upcomingChecked ? 'Upcoming new work.' : 'New work released.';
+        }
+
+        const seriesDisplay = parsed.series || 'Unknown Series';
+        const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
+
+        masterPost.value = fullPost;
+        masterPost.dispatchEvent(new Event('input'));
+
+        status.textContent = '✅ Post ready!';
+        if (typeof showToast === 'function') showToast('Post generated!', 'success');
+    } catch (err) {
+        console.error(err);
+        status.textContent = '❌ AniList fetch failed';
+    }
+}
+
+function init() {
+    loadOverrides().then(() => {
         const input = document.getElementById('hashgenInput');
-        const status = document.getElementById('hashgenStatus');
-        const masterPost = document.getElementById('masterPost');
+        if (!input) return;
 
-        if (!input || !masterPost) return;
-
-        const raw = input.value.trim();
-        if (!raw) {
-            status.textContent = '';
-            return;
-        }
-
-        const parsed = parseInput(raw);
-        if (!parsed.character && !parsed.series) {
-            status.textContent = 'Could not parse character or series';
-            return;
-        }
-
-        status.textContent = 'Fetching AniList…';
-        try {
-            const hashtags = await generateHashtags(parsed.character, parsed.series);
-            const hashtagString = hashtags.join(' ');
-            const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
-            const requestChecked = document.getElementById('requestCheckbox')?.checked || false;
-
-            let openingLine;
-            if (requestChecked) {
-                openingLine = upcomingChecked ? 'Upcoming new request.' : 'New request released.';
-            } else {
-                openingLine = upcomingChecked ? 'Upcoming new work.' : 'New work released.';
-            }
-
-            const seriesDisplay = parsed.series || 'Unknown Series';
-            const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
-
-            masterPost.value = fullPost;
-            masterPost.dispatchEvent(new Event('input'));
-
-            status.textContent = '✅ Post ready!';
-            if (typeof showToast === 'function') showToast('Post generated!', 'success');
-        } catch (err) {
-            console.error(err);
-            status.textContent = '❌ AniList fetch failed';
-        }
-    }
-
-    function init() {
-        loadOverrides().then(() => {
-            const input = document.getElementById('hashgenInput');
-            if (!input) return;
-
-            input.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(handleInput, 800);
-            });
-
-            input.addEventListener('paste', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(handleInput, 300);
-            });
-
-            const upcomingCheckbox = document.getElementById('upcomingCheckbox');
-            if (upcomingCheckbox) {
-                upcomingCheckbox.addEventListener('change', handleInput);
-            }
-
-            const requestCheckbox = document.getElementById('requestCheckbox');
-            if (requestCheckbox) {
-                requestCheckbox.addEventListener('change', handleInput);
-            }
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 800);
         });
-    }
+
+        input.addEventListener('paste', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 300);
+        });
+
+        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+        if (upcomingCheckbox) {
+            upcomingCheckbox.addEventListener('change', handleInput);
+        }
+
+        const requestCheckbox = document.getElementById('requestCheckbox');
+        if (requestCheckbox) {
+            requestCheckbox.addEventListener('change', handleInput);
+        }
+
+        const sneakBtn = document.getElementById('sneakPeakBtn');
+        if (sneakBtn) {
+            sneakBtn.addEventListener('click', function() {
+                const isOn = this.classList.toggle('on');
+                const master = document.getElementById('masterPost');
+                if (isOn) {
+                    master.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
+                    master.dispatchEvent(new Event('input'));
+                } else {
+                    const inputEvent = new Event('input', { bubbles: true });
+                    document.getElementById('hashgenInput').dispatchEvent(inputEvent);
+                }
+            });
+        }
+    });
+}
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
