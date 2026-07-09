@@ -1,4 +1,5 @@
 // velutinx.github.io/assets/js/twitter-composer.js
+
 (function() {
     'use strict';
 
@@ -40,14 +41,12 @@
         updateTwitterCounter(textarea);
     }
 
-    // ---------- Auto‑resize textarea ----------
     function autoResize(textarea) {
         if (!textarea) return;
         textarea.style.height = 'auto';
         textarea.style.height = (textarea.scrollHeight + 2) + 'px';
     }
 
-    // ---------- Link transformation helpers ----------
     function shortenPatreonLinks(text) {
         return text.replace(/https?:\/\/\S+/g, function(url) {
             const patreonRegex = /^https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/(?:.*?-)?(\d+)(?:[?#].*)?$/;
@@ -57,35 +56,34 @@
         });
     }
 
-function replaceUrlsWithBio(text) {
-    const urls = text.match(/https?:\/\/\S+/g);
-    if (!urls) return text;
+    function replaceUrlsWithBio(text) {
+        const urls = text.match(/https?:\/\/\S+/g);
+        if (!urls) return text;
 
-    const isSubscribestar = urls.some(url => {
-        try {
-            const hostname = new URL(url).hostname;
-            return /subscribestar/.test(hostname);
-        } catch {
-            return false;
+        const isSubscribestar = urls.some(url => {
+            try {
+                const hostname = new URL(url).hostname;
+                return /subscribestar/.test(hostname);
+            } catch {
+                return false;
+            }
+        });
+
+        const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
+        let replacement;
+        if (isSubscribestar) {
+            replacement = upcomingChecked
+                ? 'Full set upcoming to SubscribeStar (link in bio)'
+                : 'Full set on SubscribeStar (link in bio)';
+        } else if (upcomingChecked) {
+            replacement = 'Full set upcoming to Patreon (link in bio)';
+        } else {
+            replacement = 'Full set on Patreon (link in bio)';
         }
-    });
 
-    const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
-    let replacement;
-    if (isSubscribestar) {
-        replacement = upcomingChecked 
-            ? 'Full set upcoming to SubscribeStar (link in bio)'
-            : 'Full set on SubscribeStar (link in bio)';
-    } else if (upcomingChecked) {
-        replacement = 'Full set upcoming to Patreon (link in bio)';
-    } else {
-        replacement = 'Full set on Patreon (link in bio)';
+        return text.replace(/https?:\/\/\S+/g, replacement);
     }
 
-    return text.replace(/https?:\/\/\S+/g, replacement);
-}
-
-    // ---------- Master mirroring ----------
     const master = document.getElementById('masterPost');
     const allChildren = [
         document.getElementById('post1'), document.getElementById('post2'),
@@ -169,7 +167,6 @@ function replaceUrlsWithBio(text) {
     }
     window.unlockTwitter12IfNeeded = unlockTwitter12IfNeeded;
 
-    // ---------- SFW Twitter lock (account 3) ----------
     function getSfwTwitterBtn() {
         return document.querySelector('button[onclick="sendToWorker(3)"]');
     }
@@ -201,7 +198,6 @@ function replaceUrlsWithBio(text) {
     }
     window.unlockSfwTwitterIfNeeded = unlockSfwTwitterIfNeeded;
 
-    // ---------- Render Twitter thumbnails ----------
     const twitterSortables = {};
     const renderTimers = { 1: null, 2: null, 3: null };
 
@@ -330,7 +326,6 @@ function replaceUrlsWithBio(text) {
         }, 20);
     }
 
-    // ---------- Posting to Twitter ----------
     async function sendToWorker(accId) {
         const statusEl = document.getElementById(`tw-status-${accId}`);
         const textarea = document.getElementById(`twitter-post-${accId}`);
@@ -378,63 +373,63 @@ function replaceUrlsWithBio(text) {
     }
     window.sendToWorker = sendToWorker;
 
-function init() {
-    for (let i = 1; i <= 3; i++) {
-        const ta = document.getElementById(`twitter-post-${i}`);
-        installTwitterCounter(ta);
-        ta.addEventListener('input', () => autoResize(ta));
-    }
+    function init() {
+        for (let i = 1; i <= 3; i++) {
+            const ta = document.getElementById(`twitter-post-${i}`);
+            installTwitterCounter(ta);
+            ta.addEventListener('input', () => autoResize(ta));
+        }
 
-    if (!window.imageRegistry) window.imageRegistry = {};
-    if (!window.accountImages) window.accountImages = { 1: [], 2: [] };
-    if (!window.twitterImageIds) window.twitterImageIds = { 1: [], 2: [], 3: [] };
+        if (!window.imageRegistry) window.imageRegistry = {};
+        if (!window.accountImages) window.accountImages = { 1: [], 2: [] };
+        if (!window.twitterImageIds) window.twitterImageIds = { 1: [], 2: [], 3: [] };
 
-    ['post2', 'twitter-post-1', 'twitter-post-2'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', unlockTwitter12IfNeeded);
-    });
-    ['post1', 'twitter-post-3'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', unlockSfwTwitterIfNeeded);
-    });
-
-    renderTwitterThumbnails(1);
-    renderTwitterThumbnails(2);
-    renderTwitterThumbnails(3);
-    window.renderTwitterThumbnails = renderTwitterThumbnails;
-
-    unlockTwitter12IfNeeded();
-    unlockSfwTwitterIfNeeded();
-
-    // Initial resize
-    if (master) autoResize(master);
-    for (let i = 1; i <= 3; i++) {
-        const ta = document.getElementById(`twitter-post-${i}`);
-        if (ta) autoResize(ta);
-    }
-
-    // 🔁 Force resize when the Tweeter tab is activated
-    const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
-    if (tweeterTabBtn) {
-        tweeterTabBtn.addEventListener('click', () => {
-            setTimeout(() => {
-                if (master) autoResize(master);
-                for (let i = 1; i <= 3; i++) {
-                    const ta = document.getElementById(`twitter-post-${i}`);
-                    if (ta) autoResize(ta);
-                }
-            }, 0);
+        ['post2', 'twitter-post-1', 'twitter-post-2'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', unlockTwitter12IfNeeded);
         });
+        ['post1', 'twitter-post-3'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', unlockSfwTwitterIfNeeded);
+        });
+
+        renderTwitterThumbnails(1);
+        renderTwitterThumbnails(2);
+        renderTwitterThumbnails(3);
+        window.renderTwitterThumbnails = renderTwitterThumbnails;
+
+        unlockTwitter12IfNeeded();
+        unlockSfwTwitterIfNeeded();
+
+        if (master) autoResize(master);
+        for (let i = 1; i <= 3; i++) {
+            const ta = document.getElementById(`twitter-post-${i}`);
+            if (ta) autoResize(ta);
+        }
+
+        const tweeterTabBtn = document.querySelector('.tab-button[data-tab="bluesky"]');
+        if (tweeterTabBtn) {
+            tweeterTabBtn.addEventListener('click', () => {
+                setTimeout(() => {
+                    if (master) autoResize(master);
+                    for (let i = 1; i <= 3; i++) {
+                        const ta = document.getElementById(`twitter-post-${i}`);
+                        if (ta) autoResize(ta);
+                    }
+                }, 0);
+            });
+        }
+
+        const upcomingCb = document.getElementById('upcomingCheckbox');
+        if (upcomingCb && master) {
+            upcomingCb.addEventListener('change', () => {
+                setTimeout(() => {
+                    master.dispatchEvent(new Event('input'));
+                }, 50);
+            });
+        }
     }
 
-    // ✅ Re‑mirror when upcoming checkbox is toggled (so Twitter bio text updates instantly)
-    const upcomingCb = document.getElementById('upcomingCheckbox');
-    if (upcomingCb && master) {
-        upcomingCb.addEventListener('change', () => {
-            master.dispatchEvent(new Event('input'));
-        });
-    }
-}
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();
