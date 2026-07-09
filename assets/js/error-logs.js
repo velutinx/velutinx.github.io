@@ -1,10 +1,13 @@
-// error-logs.js
+// error-logs.js – Grouped error logs with expandable details
 (function() {
     'use strict';
+
     const LOGGER_URL = 'https://error-logger.velutinx.workers.dev';
+
     const tbody = document.getElementById('logBody');
     const clearBtn = document.getElementById('clearBtn');
     const tabButton = document.getElementById('errorlogs-tab');
+
     function showToast(msg, isError) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification' + (isError ? ' error' : '');
@@ -23,6 +26,7 @@
             .replace(/'/g, '&#039;');
     }
 
+    // ─── Group logs by everything except timestamp ──────────────
     function groupLogs(logs) {
         const groups = new Map();
 
@@ -52,6 +56,7 @@
             });
         });
 
+        // Sort groups by most recent occurrence (descending)
         const sortedGroups = Array.from(groups.values());
         sortedGroups.sort((a, b) => {
             const aLatest = a.occurrences.reduce((max, o) => o.timestamp > max ? o.timestamp : max, '');
@@ -62,6 +67,7 @@
         return sortedGroups;
     }
 
+    // ─── Render grouped logs ─────────────────────────────────────
     function renderLogs(logs) {
         if (!logs || logs.length === 0) {
             tbody.innerHTML = '<tr class="empty-row"><td colspan="5">✨ No errors logged yet.</td></tr>';
@@ -121,6 +127,7 @@
 
         tbody.innerHTML = html;
 
+        // ─── Toggle expand/collapse ──────────────────────────────
         document.querySelectorAll('.group-toggle').forEach(toggle => {
             toggle.addEventListener('click', function(e) {
                 const groupIndex = this.dataset.group;
