@@ -306,7 +306,7 @@ function showToast(msg, isError) { const toast = document.createElement('div'); 
 
 /* ========== SQUARE BUTTON (Sneak Peak) ========== */
 .square-btn-wrapper { display: inline-flex; align-items: center; gap: 10px; }
-.square-btn { width: 50px; height: 28px; background: #3a4050; border: none; border-radius: 4px; cursor: pointer; transition: background .3s; position: relative; flex-shrink: 0; }
-.square-btn::after { content: ''; position: absolute; width: 20px; height: 20px; left: 4px; bottom: 4px; background: white; transition: transform .3s; border-radius: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.square-btn { width: 90px; height: 36px; border: none; border-radius: 4px; background: #555; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s ease, transform .1s ease; }
+.square-btn:hover { filter: brightness(1.08); }
+.square-btn:active { transform: scale(.98); }
 .square-btn.on { background: #4CAF50; }
-.square-btn.on::after { transform: translateX(22px); }
