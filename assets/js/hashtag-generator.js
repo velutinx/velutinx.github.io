@@ -234,9 +234,19 @@ async function handleInput() {
     if (!input || !masterPost) return;
 
     const sneakBtn = document.getElementById('sneakPeakBtn');
-    if (sneakBtn && sneakBtn.classList.contains('on')) {
-        return;
-    }
+if (sneakBtn) {
+    sneakBtn.addEventListener('click', function() {
+        const isOn = this.classList.toggle('on');
+        this.textContent = isOn ? 'On' : 'Off';
+        const master = document.getElementById('masterPost');
+        if (isOn) {
+            master.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
+        } else {
+            master.value = '';
+        }
+        master.dispatchEvent(new Event('input'));
+    });
+}
 
     const raw = input.value.trim();
     if (!raw) {
