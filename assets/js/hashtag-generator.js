@@ -288,21 +288,44 @@
             masterPost.value = fullPost;
             masterPost.dispatchEvent(new Event('input'));
 
-            // ---------- FILL PATREON PUBLIC TEASER WITH HTML TAGS ----------
+            // ---------- FILL PATREON PUBLIC TEASER WITH UNICODE FORMATTING ----------
             if (patreonPublic) {
                 const packMatch = raw.match(/Pack #(\d+)/i);
                 const packNumber = packMatch ? packMatch[1] : 'XXX';
                 const seriesUpper = parsed.series ? parsed.series.toUpperCase() : 'UNKNOWN';
+                
+                // Dynamically extract "Poll", "Request", etc. from the user input
+                let packSuffix = 'Request';
+                const suffixMatch = raw.match(/Pack #\d+\s*[—-]\s*(.+)$/i);
+                if (suffixMatch) {
+                    packSuffix = suffixMatch[1].trim();
+                }
 
-                const teaser = `Preview: ${parsed.character} — ${seriesUpper} — Pack #${packNumber} — Request
+                // Helper function to generate visual Unicode Bold characters
+                const toUnicodeBold = (str) => {
+                    return [...str].map(c => {
+                        if (/[A-Z]/.test(c)) return String.fromCodePoint(c.charCodeAt(0) + 120211);
+                        if (/[a-z]/.test(c)) return String.fromCodePoint(c.charCodeAt(0) + 120205);
+                        if (/[0-9]/.test(c)) return String.fromCodePoint(c.charCodeAt(0) + 120764);
+                        return c;
+                    }).join('');
+                };
 
-<b>UPCOMING</b>
+                // Helper function to generate visual Unicode Strikethrough characters
+                const toUnicodeStrikethrough = (str) => {
+                    return [...str].map(c => c + '\u0336').join('');
+                };
 
-<s>Total Set Size: XX High-Res Images</s>
+                // Apply unicode formatting so the exact look copies cleanly to Patreon 
+                const teaser = `Preview: ${parsed.character} — ${seriesUpper} — Pack #${packNumber} — ${packSuffix}
 
-<s>🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.</s>
+${toUnicodeBold('UPCOMING')}
 
-<s>⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.</s>`;
+${toUnicodeStrikethrough('Total Set Size: XX High-Res Images')}
+
+🔒 ${toUnicodeStrikethrough('Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.')}
+
+⚠️ ${toUnicodeStrikethrough('Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.')}`;
 
                 patreonPublic.value = teaser;
             }
