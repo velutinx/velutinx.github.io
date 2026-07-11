@@ -17,7 +17,7 @@
                 console.warn('Overrides file not found, using AniList only.');
             }
         } catch (err) {
-            console.warn('Failed to load overrides, using AniList only.', err);
+            console.warn('Failed to load overrides. Check your JSON formatting. Using AniList only.', err);
         }
     }
 
@@ -254,16 +254,23 @@
 
         const raw = input.value.trim();
         const patreonPublic = document.getElementById('patreonPublicOutput');
+        
         if (!raw) {
             status.textContent = '';
-            if (patreonPublic) patreonPublic.value = '';
+            if (patreonPublic) {
+                if (patreonPublic.tagName === 'DIV') patreonPublic.innerHTML = '';
+                else patreonPublic.value = '';
+            }
             return;
         }
 
         const parsed = parseInput(raw);
         if (!parsed.character && !parsed.series) {
             status.textContent = 'Could not parse character or series';
-            if (patreonPublic) patreonPublic.value = '';
+            if (patreonPublic) {
+                if (patreonPublic.tagName === 'DIV') patreonPublic.innerHTML = '';
+                else patreonPublic.value = '';
+            }
             return;
         }
 
@@ -288,48 +295,37 @@
             masterPost.value = fullPost;
             masterPost.dispatchEvent(new Event('input'));
 
-            // ---------- FILL PATREON PUBLIC TEASER WITH UNICODE FORMATTING ----------
+            // ---------- FILL PATREON PUBLIC TEASER ----------
             if (patreonPublic) {
                 const packMatch = raw.match(/Pack #(\d+)/i);
                 const packNumber = packMatch ? packMatch[1] : 'XXX';
                 const seriesUpper = parsed.series ? parsed.series.toUpperCase() : 'UNKNOWN';
                 
-                // Dynamically extract "Poll", "Request", etc. from the user input
+                // Dynamically grab "Poll", "Request", etc., from the end of the input
                 let packSuffix = 'Request';
                 const suffixMatch = raw.match(/Pack #\d+\s*[—-]\s*(.+)$/i);
                 if (suffixMatch) {
                     packSuffix = suffixMatch[1].trim();
                 }
 
-                // Helper function to generate visual Unicode Bold characters
-                const toUnicodeBold = (str) => {
-                    return [...str].map(c => {
-                        if (/[A-Z]/.test(c)) return String.fromCodePoint(c.charCodeAt(0) + 120211);
-                        if (/[a-z]/.test(c)) return String.fromCodePoint(c.charCodeAt(0) + 120205);
-                        if (/[0-9]/.test(c)) return String.fromCodePoint(c.charCodeAt(0) + 120764);
-                        return c;
-                    }).join('');
-                };
+                // Generates actual HTML tags for styling
+                const teaserHTML = `Preview: ${parsed.character} — ${seriesUpper} — Pack #${packNumber} — ${packSuffix}<br><br>
+<b>UPCOMING</b><br><br>
+<s>Total Set Size: XX High-Res Images</s><br><br>
+<s>🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.</s><br><br>
+<s>⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.</s>`;
 
-                // Helper function to generate visual Unicode Strikethrough characters
-                const toUnicodeStrikethrough = (str) => {
-                    return [...str].map(c => c + '\u0336').join('');
-                };
-
-                // Apply unicode formatting so the exact look copies cleanly to Patreon 
-                const teaser = `Preview: ${parsed.character} — ${seriesUpper} — Pack #${packNumber} — ${packSuffix}
-
-${toUnicodeBold('UPCOMING')}
-
-${toUnicodeStrikethrough('Total Set Size: XX High-Res Images')}
-
-🔒 ${toUnicodeStrikethrough('Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.')}
-
-⚠️ ${toUnicodeStrikethrough('Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.')}`;
-
-                patreonPublic.value = teaser;
+                // If the element is a DIV, inject Rich Text HTML. If it's a textarea, fall back to markdown.
+                if (patreonPublic.tagName === 'DIV') {
+                    patreonPublic.innerHTML = teaserHTML;
+                } else {
+                    patreonPublic.value = teaserHTML
+                        .replace(/<br>/g, '\n')
+                        .replace(/<\/?b>/g, '**')
+                        .replace(/<\/?s>/g, '~~');
+                }
             }
-            // ----------------------------------------------------------------
+            // ------------------------------------------------
 
             status.textContent = '✅ Post ready!';
             if (typeof showToast === 'function') showToast('Post generated!', 'success');
