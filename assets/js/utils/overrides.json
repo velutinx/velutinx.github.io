@@ -52,6 +52,10 @@
       "english": "DragonBall",
       "native": "ドラゴンボール"
     }
+    "teen titans": {
+      "english": "TeenTitans",
+      "native": "ティーン・タイタンズ"
+    }
   },
   "character": {
     "diluc": { "native": "ディルック" },
@@ -70,6 +74,7 @@
     "nene kusanagi": { "native": "草薙寧々" },
     "bulma": { "native": "ブルマ" },
     "bulma briefs": { "native": "ブルマ" },
+    "starfire": { "native": "スターファイアー" },
     "augusta": {
       "native": "オーガスタ",
       "english": "Augusta"
