@@ -144,13 +144,18 @@
             }
         }
 
-        if (characterOverride) {
-            if (characterOverride.native) {
-                charNative = Array.isArray(characterOverride.native)
-                    ? characterOverride.native
-                    : [characterOverride.native];
-            }
-        }
+if (characterOverride) {
+    if (characterOverride.native) {
+        charNative = Array.isArray(characterOverride.native)
+            ? characterOverride.native
+            : [characterOverride.native];
+    }
+    if (characterOverride.english) {
+        charFull = Array.isArray(characterOverride.english)
+            ? characterOverride.english[0]
+            : characterOverride.english;
+    }
+}
 
         const engCharTags = [];
         const splitChar = charFull.split(' ');
