@@ -197,7 +197,6 @@
             if (tag) jpCharTags.push(tag);
         }
 
-        // Build Japanese series tags
         const jpSeriesTags = [];
         if (Array.isArray(animeNative)) {
             for (const nat of animeNative) {
@@ -289,26 +288,25 @@
             masterPost.value = fullPost;
             masterPost.dispatchEvent(new Event('input'));
 
-            // ---------- FILL PATREON PUBLIC TEASER ----------
+            // ---------- FILL PATREON PUBLIC TEASER WITH HTML TAGS ----------
             if (patreonPublic) {
-                // Extract pack number from raw input
                 const packMatch = raw.match(/Pack #(\d+)/i);
                 const packNumber = packMatch ? packMatch[1] : 'XXX';
                 const seriesUpper = parsed.series ? parsed.series.toUpperCase() : 'UNKNOWN';
 
                 const teaser = `Preview: ${parsed.character} — ${seriesUpper} — Pack #${packNumber} — Request
 
-**UPCOMING**
+<b>UPCOMING</b>
 
-~~Total Set Size: XX High-Res Images~~
+<s>Total Set Size: XX High-Res Images</s>
 
-~~🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.~~
+<s>🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.</s>
 
-~~⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.~~`;
+<s>⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.</s>`;
 
                 patreonPublic.value = teaser;
             }
-            // ------------------------------------------------
+            // ----------------------------------------------------------------
 
             status.textContent = '✅ Post ready!';
             if (typeof showToast === 'function') showToast('Post generated!', 'success');
