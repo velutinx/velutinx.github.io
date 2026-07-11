@@ -17,7 +17,7 @@
                 console.warn('Overrides file not found, using AniList only.');
             }
         } catch (err) {
-            console.warn('Failed to load overrides. Check your JSON formatting. Using AniList only.', err);
+            console.warn('Failed to load overrides, using AniList only.', err);
         }
     }
 
@@ -150,11 +150,6 @@
                     ? characterOverride.native
                     : [characterOverride.native];
             }
-            if (characterOverride.english) {
-                charFull = Array.isArray(characterOverride.english)
-                    ? characterOverride.english[0]
-                    : characterOverride.english;
-            }
         }
 
         const engCharTags = [];
@@ -197,6 +192,7 @@
             if (tag) jpCharTags.push(tag);
         }
 
+        // Build Japanese series tags
         const jpSeriesTags = [];
         if (Array.isArray(animeNative)) {
             for (const nat of animeNative) {
@@ -228,154 +224,112 @@
         return uniqueTags;
     }
 
-    let debounceTimer;
+let debounceTimer;
 
-    async function handleInput() {
+async function handleInput() {
+    const input = document.getElementById('hashgenInput');
+    const status = document.getElementById('hashgenStatus');
+    const masterPost = document.getElementById('masterPost');
+
+    if (!input || !masterPost) return;
+
+    const sneakBtn = document.getElementById('sneakPeakBtn');
+if (sneakBtn) {
+    sneakBtn.addEventListener('click', function() {
+        const isOn = this.classList.toggle('on');
+        this.textContent = isOn ? 'On' : 'Off';
+        const master = document.getElementById('masterPost');
+        if (isOn) {
+            master.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
+        } else {
+            master.value = '';
+        }
+        master.dispatchEvent(new Event('input'));
+    });
+}
+
+    const raw = input.value.trim();
+    if (!raw) {
+        status.textContent = '';
+        return;
+    }
+
+    const parsed = parseInput(raw);
+    if (!parsed.character && !parsed.series) {
+        status.textContent = 'Could not parse character or series';
+        return;
+    }
+
+    status.textContent = 'Fetching AniList…';
+    try {
+        const hashtags = await generateHashtags(parsed.character, parsed.series);
+        const hashtagString = hashtags.join(' ');
+
+        const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
+        const requestChecked = document.getElementById('requestCheckbox')?.checked || false;
+
+        let openingLine;
+        if (requestChecked) {
+            openingLine = upcomingChecked ? 'Upcoming new request.' : 'New request released.';
+        } else {
+            openingLine = upcomingChecked ? 'Upcoming new work.' : 'New work released.';
+        }
+
+        const seriesDisplay = parsed.series || 'Unknown Series';
+        const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
+
+        masterPost.value = fullPost;
+        masterPost.dispatchEvent(new Event('input'));
+
+        status.textContent = '✅ Post ready!';
+        if (typeof showToast === 'function') showToast('Post generated!', 'success');
+    } catch (err) {
+        console.error(err);
+        status.textContent = '❌ AniList fetch failed';
+    }
+}
+
+function init() {
+    loadOverrides().then(() => {
         const input = document.getElementById('hashgenInput');
-        const status = document.getElementById('hashgenStatus');
-        const masterPost = document.getElementById('masterPost');
+        if (!input) return;
 
-        if (!input || !masterPost) return;
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 800);
+        });
+
+        input.addEventListener('paste', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(handleInput, 300);
+        });
+
+        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+        if (upcomingCheckbox) {
+            upcomingCheckbox.addEventListener('change', handleInput);
+        }
+
+        const requestCheckbox = document.getElementById('requestCheckbox');
+        if (requestCheckbox) {
+            requestCheckbox.addEventListener('change', handleInput);
+        }
 
         const sneakBtn = document.getElementById('sneakPeakBtn');
         if (sneakBtn) {
             sneakBtn.addEventListener('click', function() {
                 const isOn = this.classList.toggle('on');
-                this.textContent = isOn ? 'On' : 'Off';
                 const master = document.getElementById('masterPost');
                 if (isOn) {
                     master.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
+                    master.dispatchEvent(new Event('input'));
                 } else {
-                    master.value = '';
+                    const inputEvent = new Event('input', { bubbles: true });
+                    document.getElementById('hashgenInput').dispatchEvent(inputEvent);
                 }
-                master.dispatchEvent(new Event('input'));
             });
         }
-
-        const raw = input.value.trim();
-        const patreonPublic = document.getElementById('patreonPublicOutput');
-        
-        if (!raw) {
-            status.textContent = '';
-            if (patreonPublic) {
-                if (patreonPublic.tagName === 'DIV') patreonPublic.innerHTML = '';
-                else patreonPublic.value = '';
-            }
-            return;
-        }
-
-        const parsed = parseInput(raw);
-        if (!parsed.character && !parsed.series) {
-            status.textContent = 'Could not parse character or series';
-            if (patreonPublic) {
-                if (patreonPublic.tagName === 'DIV') patreonPublic.innerHTML = '';
-                else patreonPublic.value = '';
-            }
-            return;
-        }
-
-        status.textContent = 'Fetching AniList…';
-        try {
-            const hashtags = await generateHashtags(parsed.character, parsed.series);
-            const hashtagString = hashtags.join(' ');
-
-            const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
-            const requestChecked = document.getElementById('requestCheckbox')?.checked || false;
-
-            let openingLine;
-            if (requestChecked) {
-                openingLine = upcomingChecked ? 'Upcoming new request.' : 'New request released.';
-            } else {
-                openingLine = upcomingChecked ? 'Upcoming new work.' : 'New work released.';
-            }
-
-            const seriesDisplay = parsed.series || 'Unknown Series';
-            const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
-
-            masterPost.value = fullPost;
-            masterPost.dispatchEvent(new Event('input'));
-
-            // ---------- FILL PATREON PUBLIC TEASER ----------
-            if (patreonPublic) {
-                const packMatch = raw.match(/Pack #(\d+)/i);
-                const packNumber = packMatch ? packMatch[1] : 'XXX';
-                const seriesUpper = parsed.series ? parsed.series.toUpperCase() : 'UNKNOWN';
-                
-                // Dynamically grab "Poll", "Request", etc., from the end of the input
-                let packSuffix = 'Request';
-                const suffixMatch = raw.match(/Pack #\d+\s*[—-]\s*(.+)$/i);
-                if (suffixMatch) {
-                    packSuffix = suffixMatch[1].trim();
-                }
-
-                // Generates actual HTML tags for styling
-                const teaserHTML = `Preview: ${parsed.character} — ${seriesUpper} — Pack #${packNumber} — ${packSuffix}<br><br>
-<b>UPCOMING</b><br><br>
-<s>Total Set Size: XX High-Res Images</s><br><br>
-<s>🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.</s><br><br>
-<s>⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.</s>`;
-
-                // If the element is a DIV, inject Rich Text HTML. If it's a textarea, fall back to markdown.
-                if (patreonPublic.tagName === 'DIV') {
-                    patreonPublic.innerHTML = teaserHTML;
-                } else {
-                    patreonPublic.value = teaserHTML
-                        .replace(/<br>/g, '\n')
-                        .replace(/<\/?b>/g, '**')
-                        .replace(/<\/?s>/g, '~~');
-                }
-            }
-            // ------------------------------------------------
-
-            status.textContent = '✅ Post ready!';
-            if (typeof showToast === 'function') showToast('Post generated!', 'success');
-        } catch (err) {
-            console.error(err);
-            status.textContent = '❌ AniList fetch failed';
-        }
-    }
-
-    function init() {
-        loadOverrides().then(() => {
-            const input = document.getElementById('hashgenInput');
-            if (!input) return;
-
-            input.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(handleInput, 800);
-            });
-
-            input.addEventListener('paste', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(handleInput, 300);
-            });
-
-            const upcomingCheckbox = document.getElementById('upcomingCheckbox');
-            if (upcomingCheckbox) {
-                upcomingCheckbox.addEventListener('change', handleInput);
-            }
-
-            const requestCheckbox = document.getElementById('requestCheckbox');
-            if (requestCheckbox) {
-                requestCheckbox.addEventListener('change', handleInput);
-            }
-
-            const sneakBtn = document.getElementById('sneakPeakBtn');
-            if (sneakBtn) {
-                sneakBtn.addEventListener('click', function() {
-                    const isOn = this.classList.toggle('on');
-                    const master = document.getElementById('masterPost');
-                    if (isOn) {
-                        master.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
-                        master.dispatchEvent(new Event('input'));
-                    } else {
-                        const inputEvent = new Event('input', { bubbles: true });
-                        document.getElementById('hashgenInput').dispatchEvent(inputEvent);
-                    }
-                });
-            }
-        });
-    }
+    });
+}
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
