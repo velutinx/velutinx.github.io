@@ -9,37 +9,70 @@
     "high school dxd": { "native": "ハイスクールDxD", "english": "HighSchoolDxD" },
     "mass effect": { "native": "マスエフェクト", "english": "MassEffect" },
     "blue archive": { "native": "ブルーアーカイブ", "english": "BlueArchive" },
-    "fate grand order": { "english": ["FGO", "FateGrandOrder"], "native": ["フェイト・グランドオーダー"] },
+    "fate grand order": {
+      "english": ["FGO", "FateGrandOrder"],
+      "native": ["フェイト・グランドオーダー"]
+    },
     "mushoku tensei": { "native": "無職転生", "english": "MushokuTensei" },
     "teenage mutant ninja turtles": { "native": "ミュータント・タートルズ", "english": "TMNT" },
     "metroid": { "native": "メトロイド", "english": "METROID" },
-    "shokugeki no soma": { "english": ["ShokugekinoSouma", "FoodWars"], "native": "食戟のソーマ" },
+    "shokugeki no soma": {
+      "english": ["ShokugekinoSouma", "FoodWars"],
+      "native": "食戟のソーマ"
+    },
     "re:zero": { "native": "Reゼロ", "english": "ReZero" },
     "re_zero": { "native": "Reゼロ", "english": "ReZero" },
     "re zero": { "native": "Reゼロ", "english": "ReZero" },
     "brown dust": { "native": "ブラウンダスト", "english": "BROWNDUST" },
-    "tensura": { "english": ["TenseiShitaraSlimeDattaKen", "ThatTimeIGotReincarnatedasaSlime", "TenSura"], "native": ["転生したらスライムだった件", "転スラ"] },
-    "tales of symphonia": { "english": "TalesofSymphonia", "native": "テイルズオブシンフォニア" },
-    "tales of symphonia the animation": { "english": "TalesofSymphonia", "native": "テイルズオブシンフォニア" },
-    "project sekai": { "english": "ProjectSekai", "native": "プロジェクトセカイ" },
-    "project sekai colorful stage": { "english": "ProjectSekai", "native": "プロジェクトセカイ" },
-    "project sekai: colorful stage": { "english": "ProjectSekai", "native": "プロジェクトセカイ" },
-    "dragon ball": { "english": "DragonBall", "native": "ドラゴンボール" }
+    "tensura": {
+      "english": ["TenseiShitaraSlimeDattaKen", "ThatTimeIGotReincarnatedasaSlime", "TenSura"],
+      "native": ["転生したらスライムだった件", "転スラ"]
+    },
+    "tales of symphonia": {
+      "english": "TalesofSymphonia",
+      "native": "テイルズオブシンフォニア"
+    },
+    "tales of symphonia the animation": {
+      "english": "TalesofSymphonia",
+      "native": "テイルズオブシンフォニア"
+    },
+    "project sekai": {
+      "english": "ProjectSekai",
+      "native": "プロジェクトセカイ"
+    },
+    "project sekai colorful stage": {
+      "english": "ProjectSekai",
+      "native": "プロジェクトセカイ"
+    },
+    "project sekai: colorful stage": {
+      "english": "ProjectSekai",
+      "native": "プロジェクトセカイ"
+    },
+    "dragon ball": {
+      "english": "DragonBall",
+      "native": "ドラゴンボール"
+    }
   },
   "character": {
     "diluc": { "native": "ディルック" },
     "neopolitan": { "native": "ネオポリタン" },
     "noir": { "native": "ノワール" },
     "lynae": { "native": "リンネー" },
-    "jack the ripper": { "native": ["ジャック・ザ・リッパー", "黒のアサシン"] },
+    "jack the ripper": {
+      "native": ["ジャック・ザ・リッパー", "黒のアサシン"]
+    },
     "april o'neil": { "native": "エイプリル・オニール" },
     "raiden shogun": { "native": "雷電将軍" },
     "goryou nagusa": { "native": "御稜ナグサ" },
     "palette": { "native": "パレット" },
     "rimuru tempest": { "native": "リムル・テンペスト" },
     "sheena fujibayashi": { "native": "藤林しいな" },
-    "nene kusanagi": { "native": "草薙寧寧" },
+    "nene kusanagi": { "native": "草薙寧々" },
     "bulma": { "native": "ブルマ" },
-    "bulma briefs": { "native": "ブルマ" }
+    "bulma briefs": { "native": "ブルマ" },
+    "augusta": {
+      "native": "オーガスタ",
+      "english": "Augusta"
+    }
   }
 }
