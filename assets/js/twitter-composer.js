@@ -325,60 +325,70 @@
         }, 20);
     }
 
-    async function sendToWorker(accId) {
-        const statusEl = document.getElementById(`tw-status-${accId}`);
-        const textarea = document.getElementById(`twitter-post-${accId}`);
-        if (!textarea) return;
-        const text = textarea.value;
-        const sourceIds = (accId == 3) ? (window.accountImages?.[1] || []) : (window.twitterImageIds[accId] || []);
-        const images = sourceIds.map(id => window.imageRegistry?.[id]).filter(Boolean);
-        statusEl.textContent = '⏳ Posting...';
-        const formData = new FormData();
-        formData.append('accId', accId.toString());
-        formData.append('text', text);
-        images.forEach(img => formData.append('images', img));
-        try {
-            const res = await fetch('https://twitter-post.velutinx.workers.dev', {
-                method: 'POST', body: formData
-            });
-            const data = await res.json();
-            if (data.success && data.data?.data?.id) {
-                statusEl.textContent = '✅ Posted!';
-                statusEl.style.color = '#4CAF50';
-                showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
+async function sendToWorker(accId) {
+    const statusEl = document.getElementById(`tw-status-${accId}`);
+    const textarea = document.getElementById(`twitter-post-${accId}`);
+    if (!textarea) return;
+    const text = textarea.value;
+    const sourceIds = (accId == 3) ? (window.accountImages?.[1] || []) : (window.twitterImageIds[accId] || []);
+    const images = sourceIds.map(id => window.imageRegistry?.[id]).filter(Boolean);
+    statusEl.textContent = '⏳ Posting...';
+    const formData = new FormData();
+    formData.append('accId', accId.toString());
+    formData.append('text', text);
+    images.forEach(img => formData.append('images', img));
+    try {
+        const res = await fetch('https://twitter-post.velutinx.workers.dev', {
+            method: 'POST', body: formData
+        });
+        const data = await res.json();
+        if (data.success && data.data?.data?.id) {
+            statusEl.textContent = '✅ Posted!';
+            statusEl.style.color = '#4CAF50';
+            showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
 
-                if (accId == 1) {
-                    const tweetId = data.data.data.id;
-                    fetch('https://auto-retweet.velutinx.workers.dev/api/scan-after-post', {
-                        method: 'POST',
-                        headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' },
-                        body: JSON.stringify({ tweetId: tweetId || '' })
-                    }).catch(console.error);
-                }
-
-                if (accId == 1 || accId == 2) {
-                    lockTwitter12();
-                } else if (accId == 3) {
-                    const tw3Text = document.getElementById('twitter-post-3');
-                    if (tw3Text) {
-                        tw3Text.value = '';
-                        tw3Text.dispatchEvent(new Event('input'));
-                    }
-                    window.twitterImageIds[3] = [];
-                    window.accountImages[1] = [];
-                    if (typeof window.renderBlueskyThumbnails === 'function') window.renderBlueskyThumbnails(1);
-                    renderTwitterThumbnails(3);
-                }
-            } else {
-                statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
-                statusEl.style.color = '#f44336';
-                console.error(data);
+            // ─── Trigger scan after posting from account 1 ──────────
+            if (accId == 1) {
+                const tweetId = data.data.data.id;
+                fetch('https://auto-retweet.velutinx.workers.dev/api/scan-after-post', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' },
+                    body: JSON.stringify({ tweetId: tweetId || '' })
+                })
+                .then(() => {
+                    // After the scan starts, refresh the queue display
+                    setTimeout(() => {
+                        if (typeof window.refreshQueue === 'function') {
+                            window.refreshQueue();
+                        }
+                    }, 1500);
+                })
+                .catch(console.error);
             }
-        } catch (err) {
-            statusEl.textContent = '❌ Connection Failed';
+
+            if (accId == 1 || accId == 2) {
+                lockTwitter12();
+            } else if (accId == 3) {
+                const tw3Text = document.getElementById('twitter-post-3');
+                if (tw3Text) {
+                    tw3Text.value = '';
+                    tw3Text.dispatchEvent(new Event('input'));
+                }
+                window.twitterImageIds[3] = [];
+                window.accountImages[1] = [];
+                if (typeof window.renderBlueskyThumbnails === 'function') window.renderBlueskyThumbnails(1);
+                renderTwitterThumbnails(3);
+            }
+        } else {
+            statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
             statusEl.style.color = '#f44336';
+            console.error(data);
         }
+    } catch (err) {
+        statusEl.textContent = '❌ Connection Failed';
+        statusEl.style.color = '#f44336';
     }
+}
     window.sendToWorker = sendToWorker;
 
     function init() {
