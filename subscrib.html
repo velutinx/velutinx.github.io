@@ -467,35 +467,13 @@
     })();
 </script>
 
-<!-- ========== AUTO‑SCAN TRIGGERS ========== -->
+<!-- ========== PAGE‑LOAD SCAN TRIGGER (SCARjpSD) ========== -->
 <script>
-  (function() {
-    // ─── On page load: trigger SCARjpSD scan ────────────────────────
-    fetch('https://auto-retweet.velutinx.workers.dev/api/scan-load', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' }
-    }).catch(console.error);
-
-    // ─── After tweeting from @Velutinx2 (account 1), trigger scan ──
-    const statusEl = document.getElementById('tw-status-1');
-    if (statusEl) {
-      const observer = new MutationObserver(function(mutations) {
-        for (const mutation of mutations) {
-          if (mutation.type === 'childList' || mutation.type === 'characterData') {
-            const text = statusEl.textContent.trim();
-            if (text === '✅ Posted!') {
-              fetch('https://auto-retweet.velutinx.workers.dev/api/scan-after-post', {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' },
-                body: JSON.stringify({}) // optional tweetId
-              }).catch(console.error);
-            }
-          }
-        }
-      });
-      observer.observe(statusEl, { childList: true, characterData: true, subtree: true });
-    }
-  })();
+  // On page load: trigger SCARjpSD scan
+  fetch('https://auto-retweet.velutinx.workers.dev/api/scan-load', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' }
+  }).catch(console.error);
 </script>
 
 </body>
