@@ -443,37 +443,11 @@
         });
     })();
 
-    // ========== RETWEET QUEUE TAB VISIBILITY ==========
-    (function() {
-        const retweetTab = document.getElementById('retweet-tab');
-        if (!retweetTab) return;
-
-        function updateRetweetTabVisibility() {
-            const queueItems = document.querySelectorAll('#retweet-list .queue-item');
-            const hasItems = queueItems.length > 0;
-            retweetTab.classList.toggle('has-items', hasItems);
-            retweetTab.style.display = hasItems ? '' : 'none';
-        }
-
-        const observer = new MutationObserver(updateRetweetTabVisibility);
-        const retweetList = document.getElementById('retweet-list');
-        if (retweetList) {
-            observer.observe(retweetList, { childList: true, subtree: true });
-        }
-
-        setTimeout(updateRetweetTabVisibility, 500);
-
-        document.addEventListener('queueUpdated', updateRetweetTabVisibility);
-    })();
-</script>
-
-<!-- ========== PAGE‑LOAD SCAN TRIGGER (SCARjpSD) ========== -->
-<script>
-  // On page load: trigger SCARjpSD scan
-  fetch('https://auto-retweet.velutinx.workers.dev/api/scan-load', {
-    method: 'POST',
-    headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' }
-  }).catch(console.error);
+    // ========== PAGE-LOAD SCAN TRIGGER (SCARjpSD) ==========
+    fetch('https://auto-retweet.velutinx.workers.dev/api/scan-load', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' }
+    }).catch(console.error);
 </script>
 
 </body>
