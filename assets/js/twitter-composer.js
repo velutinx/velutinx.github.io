@@ -1,5 +1,4 @@
 // velutinx.github.io/assets/js/twitter-composer.js
-
 (function() {
     'use strict';
 
@@ -347,6 +346,15 @@
                 statusEl.textContent = '✅ Posted!';
                 statusEl.style.color = '#4CAF50';
                 showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
+
+                if (accId == 1) {
+                    const tweetId = data.data.data.id;
+                    fetch('https://auto-retweet.velutinx.workers.dev/api/scan-after-post', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' },
+                        body: JSON.stringify({ tweetId: tweetId || '' })
+                    }).catch(console.error);
+                }
 
                 if (accId == 1 || accId == 2) {
                     lockTwitter12();
