@@ -8,6 +8,25 @@
     const clearBtn = document.getElementById('clearBtn');
     const tabButton = document.getElementById('errorlogs-tab');
 
+    function formatLocalTime(utcString) {
+        if (!utcString) return '—';
+        try {
+            const d = new Date(utcString);
+            return d.toLocaleString('en-US', {
+                timeZone: 'America/Hermosillo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+        } catch {
+            return utcString;
+        }
+    }
+
     function showToast(msg, isError) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification' + (isError ? ' error' : '');
@@ -77,7 +96,7 @@
 
         groups.forEach((group, index) => {
             const count = group.occurrences.length;
-            const latestTime = group.occurrences[0].timestamp || '—';
+            const latestTime = formatLocalTime(group.occurrences[0].timestamp) || '—';
             const worker = group.worker;
             const error = group.error;
             const url = group.url || '—';
@@ -101,16 +120,16 @@
                             <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
                                 <thead>
                                     <tr>
-                                        <th style="text-align:left; padding:4px 8px; color:#888;">Timestamp</th>
-                                        <th style="text-align:left; padding:4px 8px; color:#888;">Received</th>
+                                        <th style="text-align:left; padding:4px 8px; color:#888;">Timestamp (Sonora)</th>
+                                        <th style="text-align:left; padding:4px 8px; color:#888;">Received (Sonora)</th>
                                         <th style="text-align:left; padding:4px 8px; color:#888;">Stack</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${group.occurrences.map(occ => `
                                         <tr>
-                                            <td style="padding:4px 8px; color:#ddd;">${escapeHtml(occ.timestamp)}</td>
-                                            <td style="padding:4px 8px; color:#ddd;">${escapeHtml(occ.received)}</td>
+                                            <td style="padding:4px 8px; color:#ddd;">${escapeHtml(formatLocalTime(occ.timestamp))}</td>
+                                            <td style="padding:4px 8px; color:#ddd;">${escapeHtml(formatLocalTime(occ.received))}</td>
                                             <td style="padding:4px 8px; color:#aaa; font-family:monospace; font-size:0.7rem; word-break:break-word;">${escapeHtml(stack)}</td>
                                         </tr>
                                     `).join('')}
