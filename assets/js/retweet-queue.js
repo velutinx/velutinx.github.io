@@ -1,11 +1,19 @@
 // /assets/js/retweet-queue.js
-
 (function() {
     const RETWEET_API_BASE = 'https://auto-retweet.velutinx.workers.dev';
     const RETWEET_TOKEN = 'xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=';
 
     let previousQueue = [];
 
+    // ─── Tab visibility ────────────────────────────────────────────────
+    function updateRetweetTabVisibility(hasItems) {
+        const tab = document.getElementById('retweet-tab');
+        if (!tab) return;
+        tab.classList.toggle('has-items', hasItems);
+        tab.style.display = hasItems ? '' : 'none';
+    }
+
+    // ─── Queue fetch ──────────────────────────────────────────────────
     async function fetchRetweetQueue() {
         try {
             const res = await fetch(RETWEET_API_BASE + '/api/queue', {
@@ -31,17 +39,14 @@
         }
     }
 
+    // ─── Render queue ──────────────────────────────────────────────────
     function renderRetweetQueue(queue) {
         const container = document.getElementById('retweet-list');
         if (!container) return;
 
-        // Show/hide the tab directly
-        const tab = document.getElementById('retweet-tab');
+        // Update tab visibility
         const hasItems = queue && queue.length > 0;
-        if (tab) {
-            tab.style.display = hasItems ? '' : 'none';
-            tab.classList.toggle('has-items', hasItems);
-        }
+        updateRetweetTabVisibility(hasItems);
 
         if (!queue || queue.length === 0) {
             container.innerHTML = '<div class="empty-queue">✨ Queue is empty – new posts will appear here.</div>';
@@ -71,7 +76,7 @@
         });
         container.innerHTML = html;
 
-        // Attach event listeners (no confirmation on delete)
+        // Attach event listeners
         container.querySelectorAll('.retweet-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const tweetId = btn.dataset.id;
@@ -91,7 +96,7 @@
                     showRetweetToast('✅ Retweeted successfully');
                     const item = btn.closest('.queue-item');
                     item.remove();
-                    // Re‑check emptiness
+                    // Re-check emptiness
                     const remaining = container.querySelectorAll('.queue-item').length;
                     if (remaining === 0) {
                         renderRetweetQueue([]);
@@ -106,7 +111,6 @@
 
         container.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                // No confirmation – delete and blacklist immediately
                 const tweetId = btn.dataset.id;
                 btn.disabled = true;
                 btn.textContent = '⏳ ...';
@@ -136,6 +140,7 @@
         });
     }
 
+    // ─── Refresh queue ──────────────────────────────────────────────────
     async function refreshQueue() {
         const queue = await fetchRetweetQueue();
         if (previousQueue.length > 0 && queue.length > previousQueue.length) {
@@ -148,9 +153,9 @@
         renderRetweetQueue(queue);
     }
 
-    // ─── Initial load ────────────────────────────────────────────────
+    // ─── Init ──────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-        // Load queue immediately so tab shows if items exist
+        // Initial load
         refreshQueue();
 
         // Also refresh when tab is clicked
@@ -168,5 +173,8 @@
                 refreshQueue();
             }
         }, 30000);
+
+        // Listen for queueUpdated events (if any)
+        document.addEventListener('queueUpdated', refreshQueue);
     });
 })();
