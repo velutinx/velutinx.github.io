@@ -1,5 +1,4 @@
-// ========== bluesky-composer.js ==========
-
+// bluesky-composer.js
 (function() {
     'use strict';
 
@@ -683,6 +682,13 @@
             if (res.ok) {
                 statusDiv.textContent = '✅ Posted!'; statusDiv.style.color = '#4caf50';
                 if (typeof showToast === 'function') showToast(`Posted to ${accountId == 1 ? 'SFW' : 'NSFW'} account`, 'success');
+
+                // ─── Trigger scan after posting (checks velutinx2) ───
+                fetch('https://auto-retweet.velutinx.workers.dev/api/scan-after-post', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' },
+                    body: JSON.stringify({})
+                }).catch(console.error);
 
                 if (accountId == 1) {
                     if (typeof window.sendToWorker === 'function') {
