@@ -5,15 +5,6 @@
 
     let previousQueue = [];
 
-    // ─── Tab visibility ────────────────────────────────────────────────
-    function updateRetweetTabVisibility(hasItems) {
-        const tab = document.getElementById('retweet-tab');
-        if (!tab) return;
-        tab.classList.toggle('has-items', hasItems);
-        tab.style.display = hasItems ? '' : 'none';
-    }
-
-    // ─── Queue fetch ──────────────────────────────────────────────────
     async function fetchRetweetQueue() {
         try {
             const res = await fetch(RETWEET_API_BASE + '/api/queue', {
@@ -39,14 +30,17 @@
         }
     }
 
-    // ─── Render queue ──────────────────────────────────────────────────
     function renderRetweetQueue(queue) {
         const container = document.getElementById('retweet-list');
         if (!container) return;
 
         // Update tab visibility
+        const tab = document.getElementById('retweet-tab');
         const hasItems = queue && queue.length > 0;
-        updateRetweetTabVisibility(hasItems);
+        if (tab) {
+            tab.style.display = hasItems ? '' : 'none';
+            tab.classList.toggle('has-items', hasItems);
+        }
 
         if (!queue || queue.length === 0) {
             container.innerHTML = '<div class="empty-queue">✨ Queue is empty – new posts will appear here.</div>';
@@ -96,7 +90,6 @@
                     showRetweetToast('✅ Retweeted successfully');
                     const item = btn.closest('.queue-item');
                     item.remove();
-                    // Re-check emptiness
                     const remaining = container.querySelectorAll('.queue-item').length;
                     if (remaining === 0) {
                         renderRetweetQueue([]);
@@ -140,7 +133,6 @@
         });
     }
 
-    // ─── Refresh queue ──────────────────────────────────────────────────
     async function refreshQueue() {
         const queue = await fetchRetweetQueue();
         if (previousQueue.length > 0 && queue.length > previousQueue.length) {
@@ -153,12 +145,13 @@
         renderRetweetQueue(queue);
     }
 
-    // ─── Init ──────────────────────────────────────────────────────────
+    // ─── Expose refreshQueue globally ──────────────────────────────
+    window.refreshQueue = refreshQueue;
+
+    // ─── Initial load ────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-        // Initial load
         refreshQueue();
 
-        // Also refresh when tab is clicked
         const tabBtn = document.querySelector('.tab-button[data-tab="retweet"]');
         if (tabBtn) {
             tabBtn.addEventListener('click', () => {
@@ -166,15 +159,11 @@
             });
         }
 
-        // Auto-refresh every 30 seconds if tab is visible
         setInterval(() => {
             const retweetTab = document.getElementById('retweet');
             if (retweetTab && retweetTab.classList.contains('active')) {
                 refreshQueue();
             }
         }, 30000);
-
-        // Listen for queueUpdated events (if any)
-        document.addEventListener('queueUpdated', refreshQueue);
     });
 })();
