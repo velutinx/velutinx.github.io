@@ -46,14 +46,19 @@
         textarea.style.height = (textarea.scrollHeight + 2) + 'px';
     }
 
-    function shortenPatreonLinks(text) {
-        return text.replace(/https?:\/\/\S+/g, function(url) {
-            const patreonRegex = /^https?:\/\/www\.patreon\.com\/(?:[^\/]+\/)?posts\/(?:.*?-)?(\d+)(?:[?#].*)?$/;
-            const match = url.match(patreonRegex);
-            if (match) return 'https://www.patreon.com/posts/' + match[1];
-            return url;
-        });
-    }
+function shortenPatreonLinks(text) {
+    return text.replace(/https?:\/\/www\.patreon\.com\/[^\s]+/g, function(url) {
+        try {
+            const cleanUrl = url.split('?')[0].split('#')[0];
+            const match = cleanUrl.match(/\/(\d+)(?:\/|$)/);
+            if (match) {
+                return 'https://www.patreon.com/posts/' + match[1];
+            }
+        } catch (e) {
+        }
+        return url;
+    });
+}
 
     function replaceUrlsWithBio(text) {
         const urls = text.match(/https?:\/\/\S+/g);
