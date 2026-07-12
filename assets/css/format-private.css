@@ -310,3 +310,7 @@ function showToast(msg, isError) { const toast = document.createElement('div'); 
 .square-btn:hover { filter: brightness(1.08); }
 .square-btn.on { background: #4CAF50; }
 .square-btn:active { transform: scale(.96); }
+
+/* Pulse animation for the Retweet Queue tab when it appears */
+#retweet-tab.has-items { animation: pulseTab 1.5s ease-in-out 2; }
+@keyframes pulseTab { 0%, 100% { background-color: #1a1a1a; } 50% { background-color: #ff4444; color: #fff; } }
