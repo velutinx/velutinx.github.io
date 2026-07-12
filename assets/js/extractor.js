@@ -1,4 +1,4 @@
-// assets/js/extractor.js – ZIP Text Extractor (shared)
+// assets/js/extractor.js
 (function() {
     'use strict';
 
@@ -12,8 +12,6 @@
 
     const IGNORED_FILES = new Set([
         'metadata.json',
-        'github-auto-backup.js',
-        'worker-auto-backup.js',
         '.gitignore',
         'sitemap.xml',
         'wrangler.toml',
@@ -65,6 +63,12 @@
         for (const [path, zipEntry] of Object.entries(zip.files)) {
             if (zipEntry.dir) continue;
             if (zipEntry._data && zipEntry._data.uncompressedSize === 0) continue;
+
+            // ─── NEW: skip files inside .wrangler or node_modules folders ───
+            const segments = path.split('/');
+            if (segments.includes('.wrangler') || segments.includes('node_modules')) {
+                continue;
+            }
 
             const fileName = path.split('/').pop() || path;
             if (IGNORED_FILES.has(fileName)) continue;
