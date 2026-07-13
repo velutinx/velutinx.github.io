@@ -1,4 +1,5 @@
-// error-logs.js
+//     velutinx.github.io/assets/js/error-logs.js
+
 (function() {
     'use strict';
 
@@ -70,7 +71,8 @@
             groups.get(key).occurrences.push({
                 timestamp: log.timestamp || log.received || '—',
                 received: log.received || log.timestamp || '—',
-                id: log.id
+                id: log.id,
+                context: log.context || null  // <-- store context
             });
         });
 
@@ -123,16 +125,29 @@
                                         <th style="text-align:left; padding:4px 8px; color:#888;">Timestamp (Sonora)</th>
                                         <th style="text-align:left; padding:4px 8px; color:#888;">Received (Sonora)</th>
                                         <th style="text-align:left; padding:4px 8px; color:#888;">Stack</th>
+                                        <th style="text-align:left; padding:4px 8px; color:#888;">Context (click to expand)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${group.occurrences.map(occ => `
+                                    ${group.occurrences.map(occ => {
+                                        let contextHtml = '—';
+                                        if (occ.context) {
+                                            try {
+                                                const ctxObj = JSON.parse(occ.context);
+                                                const pretty = JSON.stringify(ctxObj, null, 2);
+                                                contextHtml = `<span style="cursor:pointer; color:#60a5fa; text-decoration:underline;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">▼ show</span><pre style="display:none; background:#0f131a; padding:6px; border-radius:4px; font-size:0.7rem; max-height:200px; overflow:auto; white-space:pre-wrap; word-break:break-all;">${escapeHtml(pretty)}</pre>`;
+                                            } catch (e) {
+                                                contextHtml = escapeHtml(occ.context);
+                                            }
+                                        }
+                                        return `
                                         <tr>
                                             <td style="padding:4px 8px; color:#ddd;">${escapeHtml(formatLocalTime(occ.timestamp))}</td>
                                             <td style="padding:4px 8px; color:#ddd;">${escapeHtml(formatLocalTime(occ.received))}</td>
                                             <td style="padding:4px 8px; color:#aaa; font-family:monospace; font-size:0.7rem; word-break:break-word;">${escapeHtml(stack)}</td>
+                                            <td style="padding:4px 8px;">${contextHtml}</td>
                                         </tr>
-                                    `).join('')}
+                                    `}).join('')}
                                 </tbody>
                             </table>
                         </div>
