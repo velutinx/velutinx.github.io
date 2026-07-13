@@ -14,7 +14,6 @@
         'metadata.json',
         '.gitignore',
         'sitemap.xml',
-        'wrangler.toml',
         'robots.txt',
         'README.md',
         'CNAME',
