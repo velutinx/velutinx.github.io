@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VELUTINX — Terms of Service</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0f0f12;
@@ -53,46 +49,22 @@
             margin: 1.25rem 0 0.5rem 0;
             color: #c0b8a8;
         }
-        p,
-        li {
+        p, li {
             color: #d0cdc0;
             margin-bottom: 0.75rem;
         }
-        ul,
-        ol {
+        ul, ol {
             padding-left: 1.5rem;
             margin-bottom: 1rem;
         }
-        li {
-            margin-bottom: 0.4rem;
-        }
+        li { margin-bottom: 0.4rem; }
         a {
             color: #d4c08a;
             text-decoration: none;
             border-bottom: 1px solid transparent;
             transition: border-color 0.2s;
         }
-        a:hover {
-            border-bottom-color: #d4c08a;
-        }
-        .highlight {
-            background: #2a2a34;
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #e6dcc8;
-        }
-        .box {
-            background: #121216;
-            border: 1px solid #2a2a34;
-            border-radius: 10px;
-            padding: 1.25rem 1.5rem;
-            margin: 1rem 0;
-        }
-        .box strong {
-            color: #f0ece0;
-        }
+        a:hover { border-bottom-color: #d4c08a; }
         .footer {
             margin-top: 2.5rem;
             padding-top: 1.5rem;
@@ -101,25 +73,9 @@
             color: #777;
             text-align: center;
         }
-        .badge {
-            display: inline-block;
-            background: #2a2a34;
-            color: #d4c08a;
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.15rem 0.6rem;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-left: 0.4rem;
-        }
         @media (max-width: 600px) {
-            .container {
-                padding: 1.5rem;
-            }
-            h1 {
-                font-size: 1.6rem;
-            }
+            .container { padding: 1.5rem; }
+            h1 { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -129,180 +85,99 @@
         <div class="subtitle">Last Updated: July 15, 2026</div>
 
         <p>
-            Welcome to <strong>VELUTINX</strong> (the "Bot"). By using the Bot, you agree to be bound by these Terms of Service (the "Terms"). If you do not agree to these Terms, please do not use the Bot.
+            Welcome to <strong>VELUTINX</strong> (the "Bot"). By using the Bot, you agree to be bound by these Terms of Service (the "Terms"). If you do not agree, please do not use the Bot.
         </p>
 
         <h2>1. Acceptance of Terms</h2>
         <p>
-            By inviting, using, or interacting with the Bot in any way (including but not limited to viewing poll results, voting, redeeming tickets, playing games, or purchasing memberships), you acknowledge that you have read, understood, and agree to be bound by these Terms. If you are using the Bot on behalf of an organization, you represent that you have authority to bind that organization to these Terms.
+            By inviting, using, or interacting with the Bot, you acknowledge that you have read, understood, and agree to be bound by these Terms.
         </p>
 
         <h2>2. Eligibility</h2>
         <p>
-            You must be <strong>at least 13 years old</strong> to use the Bot. If you are under 18, you represent that you have obtained parental or guardian consent to use the Bot. The Bot is not intended for users under 13, and we do not knowingly collect personal information from children under 13.
+            You must be at least <strong>13 years old</strong> to use the Bot. If you are under 18, you confirm you have parental or guardian consent. The Bot is not intended for users under 13.
         </p>
 
-        <h2>3. Description of Services</h2>
-        <p>The Bot provides the following core features (the "Services"):</p>
-        <ul>
-            <li><strong>Polling System:</strong> Weighted community polls where users vote via Discord reactions. Votes are weighted based on server roles, membership antiquity, and XP levels.</li>
-            <li><strong>Ticket &amp; Rewards System:</strong> Users earn tickets through daily check-ins, winning games (Wordle, Hangman, Slots, Coin Toss), and trivia. Tickets can be redeemed for:
-                <ul>
-                    <li>Vote boosts (multiply poll voting power for 7 days).</li>
-                    <li>Character suggestions for future polls.</li>
-                    <li>Character requests from series you've claimed.</li>
-                </ul>
-            </li>
-            <li><strong>Membership &amp; Subscriptions:</strong> Paid membership tiers (Bronze, Copper, Silver, Gold, Platinum) available via Patreon, SubscribeStar, Ko-fi, and PayPal. Members receive Discord roles, exclusive content access, custom image requests, and enhanced voting power.</li>
-            <li><strong>Games &amp; Economy:</strong> Slots, Coin Toss, Hangman, Wordle, and Trivia games with ticket rewards.</li>
-            <li><strong>Release Notifications:</strong> Announcements of new content packs with role‑based pings.</li>
-            <li><strong>Twitter/X Integration:</strong> Auto‑retweet queue and post scheduling for @velutinx2 and NSFW accounts.</li>
-            <li><strong>Verification:</strong> Turnstile CAPTCHA verification for new members.</li>
-        </ul>
-
-        <h2>4. User Accounts and Data</h2>
-        <h3>4.1 Discord Integration</h3>
+        <h2>3. Description of the Bot</h2>
         <p>
-            The Bot uses your Discord account and requires certain permissions to function. By using the Bot, you grant us permission to:
+            The Bot provides community features including weighted polls, games, a ticket economy, server moderation tools, and role management. It integrates with Discord to enhance server functionality and user engagement.
+        </p>
+
+        <h2>4. User Data</h2>
+        <p>
+            The Bot collects and stores certain Discord data to function, including:
         </p>
         <ul>
-            <li>Read your Discord user ID, username, and avatar.</li>
-            <li>Read messages and reactions in channels where the Bot is present.</li>
-            <li>Send messages and create threads as the Bot.</li>
-            <li>Manage roles (assign/remove roles based on membership).</li>
-            <li>Track XP, message counts, and game statistics.</li>
+            <li><strong>Discord IDs and usernames:</strong> To associate votes, game progress, and server activity with your account.</li>
+            <li><strong>Poll votes:</strong> Your selections and voting weight.</li>
+            <li><strong>Game and activity statistics:</strong> To track progress and award tickets.</li>
+            <li><strong>Server roles and membership status:</strong> To assign permissions and calculate vote weights.</li>
         </ul>
+        <p>
+            No sensitive personal information (e.g., passwords, financial data) is collected by the Bot.
+        </p>
 
-        <h3>4.2 Data We Collect</h3>
-        <p>We collect and store the following data:</p>
+        <h2>5. How Your Data Is Used</h2>
         <ul>
-            <li><strong>Discord IDs &amp; Tags:</strong> To associate votes, memberships, tickets, and game progress with your account.</li>
-            <li><strong>Poll Votes:</strong> Your poll selections, vote weight, and timestamp.</li>
-            <li><strong>Game Progress:</strong> Wordle wins, Hangman wins, Slots and Coin Toss results, Trivia scores, Mudae claims.</li>
-            <li><strong>Ticket Balances:</strong> Current and historical ticket counts.</li>
-            <li><strong>Membership Data:</strong> Tier, subscription source (Patreon, SubscribeStar, Ko-fi, PayPal), expiration dates, and request history.</li>
-            <li><strong>IP Addresses:</strong> Website poll votes and verification attempts (stored anonymously).</li>
-            <li><strong>Email Addresses:</strong> If you subscribe via Patreon, SubscribeStar, Ko-fi, or PayPal, we store your email for membership verification and communication.</li>
-            <li><strong>Twitter/X Data:</strong> Tweet IDs, text, and author information for the retweet queue.</li>
+            <li>To calculate weighted poll results based on roles and activity.</li>
+            <li>To award tickets and track game progress.</li>
+            <li>To assign and manage roles.</li>
+            <li>To moderate server activity and enforce rules.</li>
         </ul>
 
-        <h3>4.3 Data Retention</h3>
+        <h2>6. Data Retention &amp; Deletion</h2>
         <ul>
-            <li><strong>Poll Votes:</strong> Retained until the poll ends, then archived.</li>
-            <li><strong>Game &amp; XP Data:</strong> Retained indefinitely to track progress.</li>
-            <li><strong>Membership Data:</strong> Retained for the duration of your membership and up to 7 days after expiration.</li>
-            <li><strong>Purchase Records:</strong> Retained for financial reconciliation and as required by law.</li>
-            <li>You may request deletion of your data by contacting us (see Section 13).</li>
+            <li>Your data is retained for as long as you interact with the Bot.</li>
+            <li>You may request deletion of your data at any time by contacting us (see Section 11).</li>
+            <li>Data associated with active polls or memberships may be retained until those processes complete.</li>
         </ul>
 
-        <h2>5. User Conduct</h2>
+        <h2>7. User Conduct</h2>
         <p>By using the Bot, you agree not to:</p>
         <ul>
-            <li>Exploit bugs, glitches, or vulnerabilities in the Bot for personal gain.</li>
+            <li>Exploit bugs, glitches, or vulnerabilities in the Bot.</li>
+            <li>Attempt to manipulate poll results or game outcomes.</li>
             <li>Use the Bot to harass, abuse, or harm other users.</li>
-            <li>Attempt to manipulate poll results through fake accounts, vote manipulation, or other fraudulent means.</li>
-            <li>Use the Bot in violation of Discord's <a href="https://discord.com/terms" target="_blank">Terms of Service</a> or <a href="https://discord.com/guidelines" target="_blank">Community Guidelines</a>.</li>
-            <li>Attempt to reverse‑engineer, decompile, or modify the Bot's code.</li>
+            <li>Violate Discord's <a href="https://discord.com/terms" target="_blank">Terms of Service</a> or <a href="https://discord.com/guidelines" target="_blank">Community Guidelines</a>.</li>
             <li>Use the Bot for any illegal or unauthorized purpose.</li>
         </ul>
 
-        <h2>6. Virtual Currency &amp; Tickets</h2>
+        <h2>8. Ticket System</h2>
         <p>
-            Tickets are a virtual currency used within the Bot. They have <strong>no real‑world monetary value</strong> and cannot be exchanged for cash, goods, or services outside the Bot.
+            Tickets are earned through participation and game wins. They can be used within the Bot for:
         </p>
         <ul>
-            <li><strong>Earning Tickets:</strong> Daily check‑ins, Wordle wins, Hangman wins, Trivia daily rewards, and Slots/Coin Toss wins.</li>
-            <li><strong>Spending Tickets:</strong> Vote boosts, character suggestions, character requests, and store items.</li>
-            <li><strong>No Refunds:</strong> Tickets are non‑refundable and non‑transferable.</li>
-            <li><strong>Reset Policy:</strong> We reserve the right to reset, adjust, or remove ticket balances in cases of abuse or system errors.</li>
-        </ul>
-
-        <h2>7. Paid Memberships &amp; Subscriptions</h2>
-        <h3>7.1 Membership Tiers</h3>
-        <p>
-            We offer paid membership tiers (Bronze, Copper, Silver, Gold, Platinum) through Patreon, SubscribeStar, Ko-fi, and PayPal. Each tier provides specific benefits as described on our website and in the Bot.
-        </p>
-
-        <h3>7.2 Payment Processing</h3>
-        <p>
-            Payments are processed by third‑party payment providers (Patreon, SubscribeStar, Ko-fi, PayPal). We do not store your full payment details. Each provider has its own terms and privacy policy, which you are subject to when making a purchase.
-        </p>
-
-        <h3>7.3 Refund Policy</h3>
-        <ul>
-            <li><strong>Digital Products:</strong> All digital products (including memberships and custom image requests) are <strong>non‑refundable</strong>.</li>
-            <li><strong>Chargebacks:</strong> If you initiate a chargeback, your membership will be immediately terminated, and you may be permanently banned from using the Bot.</li>
-            <li><strong>Service Interruptions:</strong> If the Bot experiences extended downtime, we may, at our sole discretion, offer pro‑rated extensions to affected members.</li>
-        </ul>
-
-        <h3>7.4 Custom Image Requests</h3>
-        <p>
-            Copper, Silver, Gold, and Platinum tier members are entitled to custom image requests as described in their tier benefits. By submitting a request, you agree:
-        </p>
-        <ul>
-            <li>You are 18+ or have parental consent.</li>
-            <li>You have the legal right to request the character/setting.</li>
-            <li>We may refuse or modify requests that violate our content policy (e.g., illegal content, minors, non‑consensual themes).</li>
-            <li>Generated images are for personal use only and may not be redistributed or used commercially without written permission.</li>
-        </ul>
-
-        <h2>8. Content Ownership &amp; Intellectual Property</h2>
-        <ul>
-            <li><strong>Bot Code &amp; Branding:</strong> The Bot's code, name, logo, and design are the property of VELUTINX and are protected by copyright and trademark laws.</li>
-            <li><strong>User Content:</strong> You retain ownership of any content you submit (e.g., character suggestions, poll votes). By submitting, you grant us a perpetual, royalty‑free license to use, display, and share that content within the Bot.</li>
-            <li><strong>AI‑Generated Images:</strong> All images included in membership packs are generated using AI tools. They are provided for personal use only and may not be redistributed, resold, or used commercially without explicit written permission.</li>
-        </ul>
-
-        <h2>9. Privacy &amp; Data Protection</h2>
-        <p>
-            Your privacy matters to us. We collect, use, and protect your data as described in our <a href="/privacy">Privacy Policy</a>, which is incorporated into these Terms by reference. By using the Bot, you consent to the collection and use of your data as described in the Privacy Policy.
-        </p>
-        <p>
-            <strong>Data Deletion Requests:</strong> You may request deletion of your data by contacting us at <a href="mailto:support@velutinx.com">support@velutinx.com</a>. We will respond within 30 days.
-        </p>
-
-        <h2>10. Disclaimer of Warranties</h2>
-        <p>
-            The Bot is provided "as is" and "as available" without warranties of any kind, whether express or implied. We do not warrant that:
-        </p>
-        <ul>
-            <li>The Bot will be uninterrupted, timely, secure, or error‑free.</li>
-            <li>The results obtained from using the Bot will be accurate or reliable.</li>
-            <li>Any errors in the Bot will be corrected.</li>
-        </ul>
-
-        <h2>11. Limitation of Liability</h2>
-        <p>
-            To the maximum extent permitted by law, VELUTINX and its operators shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of or related to your use of the Bot, including but not limited to:
-        </p>
-        <ul>
-            <li>Loss of data or virtual currency (tickets, XP, etc.).</li>
-            <li>Loss of membership benefits or access.</li>
-            <li>Service interruptions or downtime.</li>
-            <li>Third‑party actions, including but not limited to Discord, Patreon, SubscribeStar, Ko-fi, PayPal, or Twitter/X.</li>
+            <li>Boosting poll voting power.</li>
+            <li>Suggesting characters for future polls.</li>
+            <li>Other server features.</li>
         </ul>
         <p>
-            In jurisdictions where limitation of liability is not permitted, our liability shall be limited to the maximum extent permitted by law.
+            Tickets have no real‑world monetary value and are non‑refundable.
         </p>
 
-        <h2>12. Termination</h2>
+        <h2>9. Disclaimer of Warranties</h2>
         <p>
-            We reserve the right to suspend or terminate your access to the Bot at any time, with or without cause, and with or without notice. Upon termination:
-        </p>
-        <ul>
-            <li>Your ticket balance and non‑membership data may be deleted.</li>
-            <li>Memberships will be cancelled without refund.</li>
-            <li>You will no longer be able to use the Bot.</li>
-        </ul>
-
-        <h2>13. Changes to These Terms</h2>
-        <p>
-            We may update these Terms from time to time. We will notify users of significant changes by posting a notice in the Bot's server, through the Bot itself, or via Discord DM. Your continued use of the Bot after any changes constitutes your acceptance of the new Terms.
+            The Bot is provided "as is" and "as available" without warranties of any kind. We do not guarantee that the Bot will be uninterrupted, error‑free, or secure.
         </p>
 
-        <h2>14. Contact Information</h2>
+        <h2>10. Limitation of Liability</h2>
         <p>
-            If you have any questions, concerns, or data deletion requests, please contact us:
+            To the maximum extent permitted by law, VELUTINX shall not be liable for any indirect, incidental, consequential, or punitive damages arising from your use of the Bot, including loss of data, tickets, or server privileges.
+        </p>
+
+        <h2>11. Termination</h2>
+        <p>
+            We reserve the right to suspend or terminate your access to the Bot at any time, with or without cause and without prior notice.
+        </p>
+
+        <h2>12. Changes to These Terms</h2>
+        <p>
+            We may update these Terms from time to time. Continued use of the Bot after changes constitutes acceptance of the new Terms.
+        </p>
+
+        <h2>13. Contact</h2>
+        <p>
+            For questions, concerns, or data deletion requests:
         </p>
         <ul>
             <li><strong>Discord:</strong> <a href="https://discord.gg/HKyH4bmQez" target="_blank">VELUTINX Community Server</a> (DM <strong>velutinxx</strong>)</li>
@@ -310,17 +185,10 @@
             <li><strong>Website:</strong> <a href="https://velutinx.com" target="_blank">velutinx.com</a></li>
         </ul>
 
-        <h2>15. Governing Law</h2>
+        <h2>14. Governing Law</h2>
         <p>
-            These Terms shall be governed by and construed in accordance with the laws of the State of Arizona, United States, without regard to its conflict of law provisions. Any disputes arising under or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts located in Maricopa County, Arizona.
+            These Terms shall be governed by the laws of the State of Arizona, United States. Any disputes shall be resolved in the courts of Maricopa County, Arizona.
         </p>
-
-        <h2>16. Miscellaneous</h2>
-        <ul>
-            <li><strong>Severability:</strong> If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions shall continue in full force and effect.</li>
-            <li><strong>Waiver:</strong> Our failure to enforce any right or provision of these Terms shall not be deemed a waiver of such right or provision.</li>
-            <li><strong>Entire Agreement:</strong> These Terms constitute the entire agreement between you and VELUTINX regarding the Bot and supersede all prior agreements.</li>
-        </ul>
 
         <div class="footer">
             &copy; 2026 VELUTINX &mdash; All rights reserved.<br>
