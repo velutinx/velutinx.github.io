@@ -353,23 +353,21 @@ async function sendToWorker(accId) {
             showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
 
             // ─── Trigger scan after posting from account 1 ──────────
-            if (accId == 1) {
-                const tweetId = data.data.data.id;
-                fetch('https://auto-retweet.velutinx.workers.dev/api/scan-after-post', {
-                    method: 'POST',
-                    headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' },
-                    body: JSON.stringify({ tweetId: tweetId || '' })
-                })
-                .then(() => {
-                    // After the scan starts, refresh the queue display
-                    setTimeout(() => {
-                        if (typeof window.refreshQueue === 'function') {
-                            window.refreshQueue();
-                        }
-                    }, 1500);
-                })
-                .catch(console.error);
+if (accId == 1) {
+    const tweetId = data.data.data.id;
+    fetch('https://auto-retweet.velutinx.workers.dev/api/fetch-velutinx2', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' }
+    })
+    .then(() => {
+        setTimeout(() => {
+            if (typeof window.refreshQueue === 'function') {
+                window.refreshQueue();
             }
+        }, 1500);
+    })
+    .catch(console.error);
+}
 
             if (accId == 1 || accId == 2) {
                 lockTwitter12();
