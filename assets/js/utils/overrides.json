@@ -59,6 +59,10 @@
     "dispatch": {
       "english": "Dispatch",
       "native": "ディスパッチ"
+    },
+    "jujutsu kaisen": {
+      "english": "JUJUTSUKAISEN",
+      "native": "呪術廻戦"
     }
   },
   "character": {
@@ -83,6 +87,10 @@
       "native": "オーガスタ",
       "english": "Augusta"
     },
-    "invisigal": { "native": "インビジガル" }
+    "invisigal": { "native": "インビジガル" },
+    "mei mei": {
+      "native": "冥冥",
+      "english": "MeiMei"
+    }
   }
 }
