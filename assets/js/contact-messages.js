@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    // ─── Point directly to the worker ──────────────────────────
+    // Point directly to the worker
     const API_BASE = 'https://contact-handler.velutinx.workers.dev/api/contact';
 
     const tabButton = document.getElementById('contact-tab');
@@ -120,7 +120,7 @@
         if (tabButton) {
             if (count > 0) {
                 tabButton.style.display = 'inline-block';
-                tabButton.classList.add('has-items');
+                tabButton.classList.add('has-items');   // triggers red flash
                 badge.textContent = count;
                 badge.style.display = 'inline';
             } else {
