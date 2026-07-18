@@ -1,5 +1,3 @@
-/* velutinx.github.io/assets/css/format.css */
-
 /* ==================== PAGE CONTENT ==================== */
 .divider { width: 80%; height: 6px; background: var(--divider, #aa9e76); margin: 22px auto; border-radius: 4px; }
 body.dark .divider { background: var(--divider-dark, #6f6a4e); }
@@ -19,14 +17,10 @@ body.dark .divider { background: var(--divider-dark, #6f6a4e); }
 body.dark .commission-box { border-color: var(--divider-dark, #6f6a4e); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
 body.dark .commission-box::before { background: rgba(22, 22, 27, 0.25); }
 .commission-box:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.35); backdrop-filter: blur(16px); }
-.commission-box h2,
-.commission-box p,
-.commission-box .placeholder { position: relative; z-index: 2; }
+.commission-box h2, .commission-box p, .commission-box .placeholder { position: relative; z-index: 2; }
 .commission-box h2 { font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; }
 .commission-box p { font-size: 14px; line-height: 1.6; letter-spacing: 1px; opacity: 0.9; }
 .placeholder { margin-top: 40px; font-style: italic; opacity: 0.7; }
-
-/* Box‑specific falling sparkles */
 .box-star { position: absolute; color: var(--divider, #aa9e76); font-size: 18px; pointer-events: none; animation: boxStarFall 6s linear forwards; z-index: 1; }
 @keyframes boxStarFall { from { opacity: 0; transform: translateY(-20px); } 10% { opacity: 1; } to { opacity: 0; transform: translateY(420px); } }
 
@@ -36,10 +30,8 @@ body.dark .commission-box::before { background: rgba(22, 22, 27, 0.25); }
 .contact-left::before { content: ""; position: absolute; inset: 0; background: rgba(238, 234, 224, 0.18); border-radius: 12px; z-index: -1; pointer-events: none; }
 body.dark .contact-left { border-color: var(--divider-dark, #6f6a4e); box-shadow: 8px 8px 0 rgba(0,0,0,0.5); }
 body.dark .contact-left::before { background: rgba(22, 22, 27, 0.25); }
-.form-group input,
-.form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--divider, #aa9e76); border-radius: 6px; background: transparent; font-size: 13px; transition: 0.2s ease; color: var(--text); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
-body.dark .form-group input,
-body.dark .form-group textarea { background: transparent; color: var(--text-dark); border-color: var(--divider-dark); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+.form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--divider, #aa9e76); border-radius: 6px; background: transparent; font-size: 13px; transition: 0.2s ease; color: var(--text); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+body.dark .form-group input, body.dark .form-group textarea { background: transparent; color: var(--text-dark); border-color: var(--divider-dark); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
 .send-btn { margin-top: 10px; padding: 10px 26px; border: none; border-radius: 999px; background: var(--divider, #aa9e76); font-weight: 700; letter-spacing: 2px; cursor: pointer; z-index: 2; color: inherit; }
 body.dark .send-btn { background: var(--divider-dark, #6f6a4e); color: var(--text-dark); }
 
@@ -47,28 +39,22 @@ body.dark .send-btn { background: var(--divider-dark, #6f6a4e); color: var(--tex
 .cursor-dot { position: fixed; top: 0; left: 0; width: 8px; height: 8px; background-color: var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); mix-blend-mode: difference; }
 .cursor-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); mix-blend-mode: difference; transition: width 0.2s, height 0.2s, background 0.2s, border 0.2s; }
 .cursor-ring.active { width: 90px; height: 90px; background: rgba(170,158,118, 0.15); border-color: transparent; }
-body.custom-cursor-active,
-body.custom-cursor-active * { cursor: none !important; }
+body.custom-cursor-active, body.custom-cursor-active * { cursor: none !important; }
 
 /* ==================== MAGNETIC SOCIAL GRID (with wavy rainbow ring) ==================== */
 .contact-right { display: flex; align-items: center; justify-content: center; }
 .social-container { width: 100%; max-width: 400px; padding: 20px; }
 .box-social { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 30px; justify-items: center; }
 .box-social li { position: relative; }
-/* ── Magnetic Wrap (the circle) ── */
 .magnetic-wrap { position: relative; display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; border-radius: 50%; text-decoration: none; color: var(--text); overflow: visible; outline: none; z-index: 1; border: 2.5px solid var(--divider, #aa9e76); background: transparent; transition: border-color 0.35s ease, border-width 0.35s ease, box-shadow 0.35s ease; }
 .magnetic-wrap:hover { box-shadow: 0 0 18px rgba(180, 120, 70, 0.15); border-color: rgba(122, 74, 44, 0.15); }
 .magnetic-wrap:focus-visible, .magnetic-wrap.active { box-shadow: 0 0 18px rgba(180, 120, 70, 0.18); border-color: rgba(122, 74, 44, 0.15); }
-/* ── Rainbow Wavy Ring (appears on hover/focus) ── */
 .magnetic-wrap::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 0.35s ease; background: linear-gradient(90deg, #ff0000 0%, #ff7a00 14%, #ffd500 28%, #00ff66 42%, #00cfff 57%, #004cff 71%, #7a00ff 85%, #ff008c 100%); background-size: 300% 100%; -webkit-mask-image: var(--wavy-mask-url); mask-image: var(--wavy-mask-url); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
 .magnetic-wrap:hover::after, .magnetic-wrap:focus-visible::after, .magnetic-wrap.active::after { opacity: 1; animation: rainbow-shift 5s linear infinite, wavy-spin 10s linear infinite; }
-/* ── Inner Content ── */
 .magnetic-inner { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; z-index: 2; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text); text-shadow: 0 0 6px rgba(0, 0, 0, 0.7); }
 .magnetic-inner img { width: 24px; height: 24px; margin-bottom: 6px; image-rendering: -webkit-optimize-contrast; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
-/* ── Keyframes for the rainbow wave ── */
 @keyframes rainbow-shift { from { background-position: 0% 0%; } to { background-position: 300% 0%; } }
 @keyframes wavy-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-/* ── Custom Cursor (keep existing, just ensure it uses site accent) ── */
 .cursor-dot { position: fixed; top: 0; left: 0; width: 8px; height: 8px; background-color: var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); mix-blend-mode: difference; }
 .cursor-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); mix-blend-mode: difference; transition: width 0.2s ease, height 0.2s ease, background 0.2s ease, border 0.2s ease; }
 .cursor-ring.active { width: 72px; height: 72px; background: rgba(170, 158, 118, 0.15); border-color: transparent; }
