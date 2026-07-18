@@ -10,8 +10,6 @@
     const listContainer = document.getElementById('contact-list');
     const markAllBtn = document.getElementById('markAllReadBtn');
 
-    console.log('Contact messages script loaded.');
-
     // ─── Helper: fetch unread count ──────────────────────────
     async function fetchUnreadCount() {
         try {
