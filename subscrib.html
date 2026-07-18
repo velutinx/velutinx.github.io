@@ -23,6 +23,95 @@
     <script src="/assets/js/retweet-queue.js" defer></script>
     <script src="/assets/js/censor.js" defer></script>
     <script src="/assets/js/error-logs.js?v=3" defer></script>
+    <script src="/assets/js/contact-messages.js" defer></script>
+
+    <style>
+        /* ─── Contact Messages Styles ──────────────────────────────── */
+        .contact-item {
+            background: #1a1f2a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #2a2f38;
+            overflow: hidden;
+        }
+        .contact-item.unread {
+            border-left: 4px solid #f59e0b;
+        }
+        .contact-item.read {
+            border-left: 4px solid #4ade80;
+        }
+        .contact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .contact-header:hover {
+            background: #0f131a;
+        }
+        .contact-subject {
+            font-weight: 600;
+            color: #e0e0e0;
+            flex: 1;
+        }
+        .contact-sender {
+            color: #94a3b8;
+            min-width: 120px;
+        }
+        .contact-date {
+            color: #64748b;
+            font-size: 0.8rem;
+            min-width: 140px;
+        }
+        .contact-toggle {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        .contact-detail {
+            padding: 12px 16px;
+            border-top: 1px solid #2a2f38;
+            background: #0c1017;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .contact-detail a {
+            color: #60a5fa;
+        }
+        .mark-read-btn {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .mark-read-btn:hover {
+            background: #2563eb;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        #contactBadge {
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 0 6px;
+            font-size: 12px;
+            display: none;
+            margin-left: 4px;
+            animation: blink 1s step-start infinite;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #8899a6;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -36,6 +125,8 @@
         <button class="tab-button" data-tab="spreadsheet">💰 Spreadsheet</button>
         <button class="tab-button" data-tab="zipextractor">📄 ZIP Extractor</button>
         <button class="tab-button" data-tab="censor">🔞 Censor</button>
+        <!-- ─── NEW: Contact Messages Tab ─── -->
+        <button class="tab-button" id="contact-tab" data-tab="contact">📩 Messages <span id="contactBadge">0</span></button>
     </div>
 
     <!-- Subscribestar / Patreon Tab -->
@@ -416,6 +507,18 @@
         </div>
     </div>
 
+    <!-- ─── NEW: Contact Messages Tab ─── -->
+    <div id="contact" class="tab-content">
+        <div class="container" style="padding:0; background:transparent; border:none; box-shadow:none;">
+            <div class="error-logs-header">
+                <h1>📩 Contact Messages</h1>
+            </div>
+            <div id="contact-list">
+                <p style="color:#94a3b8; text-align:center; padding:40px;">Loading messages...</p>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -442,15 +545,6 @@
             });
         });
     })();
-
-    // ========== PAGE-LOAD SCAN TRIGGER (SCARjpSD) ==========
-if (!sessionStorage.getItem('scan_loaded')) {
-    sessionStorage.setItem('scan_loaded', 'true');
-    fetch('https://auto-retweet.velutinx.workers.dev/api/scan-load', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' }
-    }).catch(console.error);
-}
 </script>
 
 </body>
