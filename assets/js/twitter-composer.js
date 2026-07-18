@@ -47,14 +47,12 @@
     }
 
 function shortenPatreonLinks(text) {
-    return text.replace(/https?:\/\/www\.patreon\.com\/[^\s]+/g, function(url) {
-        try {
-            const cleanUrl = url.split('?')[0].split('#')[0];
-            const match = cleanUrl.match(/\/(\d+)(?:\/|$)/);
+    return text.replace(/https?:\/\/[^\s]+/g, function(url) {
+        if (url.includes('patreon.com') && url.includes('/posts/')) {
+            const match = url.match(/\/posts\/(?:.*?)(\d+)/);
             if (match) {
-                return 'https://www.patreon.com/posts/' + match[1];
+                return 'patreon.com/posts/' + match[1];
             }
-        } catch (e) {
         }
         return url;
     });
