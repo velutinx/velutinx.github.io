@@ -1,17 +1,15 @@
 // assets/js/contact-messages.js
-
 (function() {
     'use strict';
 
     const API_BASE = '/api/contact';
 
     const tabButton = document.getElementById('contact-tab');
-    const tabContent = document.getElementById('contact');
     const badge = document.getElementById('contactBadge');
     const listContainer = document.getElementById('contact-list');
     const markAllBtn = document.getElementById('markAllReadBtn');
-    let currentMessages = [];
 
+    // ─── Helper: fetch unread count ──────────────────────────
     async function fetchUnreadCount() {
         try {
             const res = await fetch(`${API_BASE}/unread-count`);
@@ -24,6 +22,7 @@
         }
     }
 
+    // ─── Helper: fetch messages ──────────────────────────────
     async function fetchMessages() {
         try {
             const res = await fetch(`${API_BASE}/messages`);
@@ -36,6 +35,7 @@
         }
     }
 
+    // ─── Render messages (expandable) ────────────────────────
     function renderMessages(messages) {
         if (!listContainer) return;
 
@@ -73,6 +73,7 @@
 
         listContainer.innerHTML = html;
 
+        // Attach mark‑read event listeners
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -83,6 +84,7 @@
         });
     }
 
+    // ─── Mark a message as read ───────────────────────────────
     async function markAsRead(id) {
         try {
             const res = await fetch(`${API_BASE}/mark-read`, {
@@ -96,6 +98,7 @@
         }
     }
 
+    // ─── Mark all messages as read ────────────────────────────
     async function markAllAsRead() {
         try {
             const messages = await fetchMessages();
@@ -112,6 +115,7 @@
         }
     }
 
+    // ─── Update tab visibility and badge ──────────────────────
     function updateTabState(count) {
         if (tabButton) {
             if (count > 0) {
@@ -128,11 +132,12 @@
         }
     }
 
+    // ─── Refresh everything ──────────────────────────────────
     async function refreshAll() {
         const count = await fetchUnreadCount();
         updateTabState(count);
+
         const messages = await fetchMessages();
-        currentMessages = messages;
         renderMessages(messages);
 
         if (markAllBtn) {
@@ -141,6 +146,7 @@
         }
     }
 
+    // ─── Toggle detail expand/collapse ──────────────────────
     window.toggleContactDetail = function(header) {
         const detail = header.nextElementSibling;
         const toggle = header.querySelector('.contact-toggle');
@@ -153,6 +159,7 @@
         }
     };
 
+    // ─── Escape HTML ─────────────────────────────────────────
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -163,6 +170,7 @@
             .replace(/'/g, '&#039;');
     }
 
+    // ─── Toast notification ──────────────────────────────────
     function showToast(msg) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification show';
@@ -171,12 +179,15 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
+    // ─── Polling (every 30 seconds) ─────────────────────────
     let pollInterval = null;
+
     function startPolling() {
         if (pollInterval) clearInterval(pollInterval);
         pollInterval = setInterval(refreshAll, 30000);
     }
 
+    // ─── Init ────────────────────────────────────────────────
     async function init() {
         await refreshAll();
         startPolling();
@@ -186,181 +197,7 @@
         }
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-})();
-(function() {
-    'use strict';
-
-    const API_BASE = '/api/contact';
-
-    const tabButton = document.getElementById('contact-tab');
-    const tabContent = document.getElementById('contact-messages');
-    const badge = document.getElementById('contactBadge');
-    const listContainer = document.getElementById('contact-list');
-    let currentMessages = [];
-
-    async function fetchUnreadCount() {
-        try {
-            const res = await fetch(`${API_BASE}/unread-count`);
-            if (!res.ok) throw new Error('Failed to fetch count');
-            const data = await res.json();
-            return data.count || 0;
-        } catch (err) {
-            console.error('Unread count error:', err);
-            return 0;
-        }
-    }
-
-    async function fetchMessages() {
-        try {
-            const res = await fetch(`${API_BASE}/messages`);
-            if (!res.ok) throw new Error('Failed to fetch messages');
-            const data = await res.json();
-            return data || [];
-        } catch (err) {
-            console.error('Messages fetch error:', err);
-            return [];
-        }
-    }
-
-    function renderMessages(messages) {
-        if (!listContainer) return;
-
-        if (!messages || messages.length === 0) {
-            listContainer.innerHTML = '<div class="empty-message">No messages yet.</div>';
-            return;
-        }
-
-        let html = '';
-        messages.forEach((msg, index) => {
-            const created = new Date(msg.created_at).toLocaleString();
-            const isRead = msg.is_read ? 'read' : 'unread';
-            const subject = msg.subject || 'No subject';
-
-            html += `
-                <div class="contact-item ${isRead}" data-id="${msg.id}">
-                    <div class="contact-header" onclick="toggleContactDetail(this)">
-                        <span class="contact-subject">${escapeHtml(subject)}</span>
-                        <span class="contact-sender">${escapeHtml(msg.name)}</span>
-                        <span class="contact-date">${created}</span>
-                        <span class="contact-toggle">▼</span>
-                    </div>
-                    <div class="contact-detail" style="display:none;">
-                        <div><strong>Name:</strong> ${escapeHtml(msg.name)}</div>
-                        <div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>
-                        <div><strong>Message:</strong><br>${escapeHtml(msg.message).replace(/\n/g, '<br>')}</div>
-                        <div style="margin-top:8px;font-size:0.8rem;color:#888;">
-                            ${created}
-                        </div>
-                        <button class="mark-read-btn" data-id="${msg.id}">Mark as read</button>
-                    </div>
-                </div>
-            `;
-        });
-
-        listContainer.innerHTML = html;
-
-        document.querySelectorAll('.mark-read-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const id = btn.dataset.id;
-                await markAsRead(id);
-                await refreshAll();
-            });
-        });
-    }
-
-    async function markAsRead(id) {
-        try {
-            const res = await fetch(`${API_BASE}/mark-read`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            });
-            if (!res.ok) throw new Error('Failed to mark as read');
-        } catch (err) {
-            console.error('Mark read error:', err);
-        }
-    }
-
-    async function refreshAll() {
-        const count = await fetchUnreadCount();
-        updateBadge(count);
-
-        const messages = await fetchMessages();
-        currentMessages = messages;
-        renderMessages(messages);
-
-        if (tabButton) {
-            if (count > 0) {
-                tabButton.style.display = 'inline-block';
-                tabButton.classList.add('has-items');
-            } else {
-                tabButton.style.display = 'inline-block';
-                tabButton.classList.remove('has-items');
-            }
-        }
-    }
-
-    function updateBadge(count) {
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count;
-                badge.style.display = 'inline';
-                badge.style.animation = 'blink 1s step-start infinite';
-            } else {
-                badge.style.display = 'none';
-                badge.textContent = '';
-            }
-        }
-    }
-
-    window.toggleContactDetail = function(header) {
-        const detail = header.nextElementSibling;
-        const toggle = header.querySelector('.contact-toggle');
-        if (detail.style.display === 'none') {
-            detail.style.display = 'block';
-            toggle.textContent = '▲';
-        } else {
-            detail.style.display = 'none';
-            toggle.textContent = '▼';
-        }
-    };
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    let pollInterval = null;
-
-    function startPolling() {
-        if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(() => {
-            refreshAll();
-        }, 30000);
-    }
-
-    async function init() {
-        await refreshAll();
-        startPolling();
-
-        if (tabButton) {
-            tabButton.addEventListener('click', () => {
-                refreshAll();
-            });
-        }
-    }
-
+    // ─── Run when DOM is ready ──────────────────────────────
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
