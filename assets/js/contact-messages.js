@@ -2,12 +2,15 @@
 (function() {
     'use strict';
 
-    const API_BASE = '/api/contact';
+    // ─── Point directly to the worker ──────────────────────────
+    const API_BASE = 'https://contact-handler.velutinx.workers.dev/api/contact';
 
     const tabButton = document.getElementById('contact-tab');
     const badge = document.getElementById('contactBadge');
     const listContainer = document.getElementById('contact-list');
     const markAllBtn = document.getElementById('markAllReadBtn');
+
+    console.log('Contact messages script loaded.');
 
     // ─── Helper: fetch unread count ──────────────────────────
     async function fetchUnreadCount() {
@@ -73,7 +76,6 @@
 
         listContainer.innerHTML = html;
 
-        // Attach mark‑read event listeners
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -136,7 +138,6 @@
     async function refreshAll() {
         const count = await fetchUnreadCount();
         updateTabState(count);
-
         const messages = await fetchMessages();
         renderMessages(messages);
 
@@ -189,6 +190,11 @@
 
     // ─── Init ────────────────────────────────────────────────
     async function init() {
+        // Ensure tab is hidden initially
+        if (tabButton) {
+            tabButton.style.display = 'none';
+            tabButton.classList.remove('has-items');
+        }
         await refreshAll();
         startPolling();
 
