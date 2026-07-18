@@ -117,10 +117,8 @@
     function updateTabState(hasItems) {
         if (tabButton) {
             if (hasItems) {
-                tabButton.style.display = 'inline-block';
                 tabButton.classList.add('has-items');
             } else {
-                tabButton.style.display = 'none';
                 tabButton.classList.remove('has-items');
             }
         }
@@ -182,9 +180,8 @@
 
     // ─── Init ────────────────────────────────────────────────
     async function init() {
-        // Ensure tab is hidden initially
+        // Ensure tab has no flash state initially, but remains visible
         if (tabButton) {
-            tabButton.style.display = 'none';
             tabButton.classList.remove('has-items');
         }
         await refreshAll();
