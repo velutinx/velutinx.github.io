@@ -2,11 +2,9 @@
 (function() {
     'use strict';
 
-    // Point directly to the worker
     const API_BASE = 'https://contact-handler.velutinx.workers.dev/api/contact';
 
     const tabButton = document.getElementById('contact-tab');
-    const badge = document.getElementById('contactBadge');
     const listContainer = document.getElementById('contact-list');
     const markAllBtn = document.getElementById('markAllReadBtn');
 
@@ -115,19 +113,15 @@
         }
     }
 
-    // ─── Update tab visibility and badge ──────────────────────
-    function updateTabState(count) {
+    // ─── Update tab visibility and flash state ──────────────────
+    function updateTabState(hasItems) {
         if (tabButton) {
-            if (count > 0) {
+            if (hasItems) {
                 tabButton.style.display = 'inline-block';
-                tabButton.classList.add('has-items');   // triggers red flash
-                badge.textContent = count;
-                badge.style.display = 'inline';
+                tabButton.classList.add('has-items');
             } else {
                 tabButton.style.display = 'none';
                 tabButton.classList.remove('has-items');
-                badge.style.display = 'none';
-                badge.textContent = '';
             }
         }
     }
@@ -135,7 +129,7 @@
     // ─── Refresh everything ──────────────────────────────────
     async function refreshAll() {
         const count = await fetchUnreadCount();
-        updateTabState(count);
+        updateTabState(count > 0);
         const messages = await fetchMessages();
         renderMessages(messages);
 
