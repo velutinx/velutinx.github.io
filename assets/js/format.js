@@ -99,7 +99,7 @@
         const a = document.createElement('a');
         a.href = link.href;
         a.target = '_blank';
-        a.className = 'magnetic-wrap hyperlink-wave';   // ← added hyperlink-wave
+        a.className = 'magnetic-wrap hyperlink-wave';
         a.setAttribute('data-magnetic', '');
 
         const inner = document.createElement('span');
@@ -243,7 +243,7 @@
       }, 700);
     }
 
-    // ─────────── 9. CONTACT FORM HANDLING (unchanged) ───────────
+    // ─────────── 9. CONTACT FORM HANDLING (UPDATED for Worker) ───────────
     const contactForm = document.getElementById("contactForm");
     if (contactForm) {
       contactForm.addEventListener("submit", async (e) => {
@@ -263,15 +263,17 @@
         try {
           const response = await fetch(contactForm.action, {
             method: "POST",
-            body: formData,
-            headers: { Accept: "application/json" }
+            body: formData
           });
-          if (response.ok) {
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
             const successMsg = window.translations?.contact?.[window.currentLanguage]?.successText || "Message sent successfully! You will hear back soon! ♡♡";
             alert(successMsg);
             contactForm.reset();
           } else {
-            throw new Error("Formspree error");
+            throw new Error(data.error || "Server error");
           }
         } catch (err) {
           alert("There was a problem sending your message. Please try again later.");
