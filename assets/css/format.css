@@ -1,3 +1,4 @@
+/*     velutinx.github.io/assets/css/format.css
 /* ==================== PAGE CONTENT ==================== */
 .divider { width: 80%; height: 6px; background: var(--divider, #aa9e76); margin: 22px auto; border-radius: 4px; }
 body.dark .divider { background: var(--divider-dark, #6f6a4e); }
