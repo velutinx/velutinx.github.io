@@ -511,131 +511,132 @@
                 renderTable(data);
             }
 
-            // ─── LINE CHART ─────────────────────────────────────────────────────
-            function updateLineChart(data, pastNet) {
-                const ctx = document.getElementById('lineChart').getContext('2d');
-                const sorted = data.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+// ─── LINE CHART ─────────────────────────────────────────────────────
+function updateLineChart(data, pastNet) {
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    const sorted = data.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                const dayMap = {};
-                sorted.forEach(r => {
-                    const d = r.date;
-                    if (!dayMap[d]) dayMap[d] = 0;
-                    if (r.status === 'Income') {
-                        dayMap[d] += r.amount;
-                    } else {
-                        dayMap[d] -= r.amount;
+    const dayMap = {};
+    sorted.forEach(r => {
+        const d = r.date;
+        if (!dayMap[d]) dayMap[d] = 0;
+        if (r.status === 'Income') {
+            dayMap[d] += r.amount;
+        } else {
+            dayMap[d] -= r.amount;
+        }
+    });
+
+    const dates = Object.keys(dayMap).sort();
+    let cumulative = 0;
+    const labels = [];
+    const values = [];
+
+    if (dates.length === 0) {
+        for (let i = 1; i <= 5; i++) {
+            const d = new Date(2026, 6, i * 7 - 6);
+            labels.push((d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getDate().toString().padStart(2, '0'));
+            values.push(0);
+        }
+    } else {
+        dates.forEach(function(d) {
+            cumulative += dayMap[d];
+            const dt = new Date(d);
+            labels.push((dt.getMonth() + 1).toString().padStart(2, '0') + '/' + dt.getDate().toString().padStart(2, '0'));
+            values.push(cumulative);
+        });
+    }
+
+    if (lineChartInstance) lineChartInstance.destroy();
+
+    const datasets = [{
+        label: 'Cumulative Net (USD)',
+        data: values,
+        backgroundColor: 'rgba(67, 51, 255, 0.2)',
+        borderColor: '#4333FF',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.2,
+        pointBackgroundColor: '#4333FF',
+        pointBorderColor: '#0c1017',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+    }];
+
+    // Dotted line: only show if current net is within $100 below past net
+    const diff = pastNet - currentMonthNet;
+    if (pastNet > 0 && diff >= 0 && diff <= 100) {
+        const pastLineData = values.map(() => pastNet);
+        datasets.push({
+            label: 'Past Month Net',
+            data: pastLineData,
+            borderColor: '#22c55e',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+        });
+    }
+
+    lineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#aaa',
+                        // Hide BOTH the main line and the dotted line from legend
+                        filter: (item) => item.text !== 'Past Month Net' && item.text !== 'Cumulative Net (USD)'
                     }
-                });
-
-                const dates = Object.keys(dayMap).sort();
-                let cumulative = 0;
-                const labels = [];
-                const values = [];
-
-                if (dates.length === 0) {
-                    for (let i = 1; i <= 5; i++) {
-                        const d = new Date(2026, 6, i * 7 - 6);
-                        labels.push((d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getDate().toString().padStart(2, '0'));
-                        values.push(0);
-                    }
-                } else {
-                    dates.forEach(function(d) {
-                        cumulative += dayMap[d];
-                        const dt = new Date(d);
-                        labels.push((dt.getMonth() + 1).toString().padStart(2, '0') + '/' + dt.getDate().toString().padStart(2, '0'));
-                        values.push(cumulative);
-                    });
-                }
-
-                if (lineChartInstance) lineChartInstance.destroy();
-
-                const datasets = [{
-                    label: 'Cumulative Net (USD)',
-                    data: values,
-                    backgroundColor: 'rgba(67, 51, 255, 0.2)',
-                    borderColor: '#4333FF',
-                    borderWidth: 2.5,
-                    fill: true,
-                    tension: 0.2,
-                    pointBackgroundColor: '#4333FF',
-                    pointBorderColor: '#0c1017',
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 7,
-                }];
-
-                // Dotted line: only show if current net is within $100 below past net
-                const diff = pastNet - currentMonthNet;
-                if (pastNet > 0 && diff >= 0 && diff <= 100) {
-                    const pastLineData = values.map(() => pastNet);
-                    datasets.push({
-                        label: 'Past Month Net',
-                        data: pastLineData,
-                        borderColor: '#22c55e',
-                        borderWidth: 2,
-                        borderDash: [6, 4],
-                        pointRadius: 0,
-                        fill: false,
-                        tension: 0,
-                    });
-                }
-
-                lineChartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: datasets
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return '$' + ctx.parsed.y.toFixed(2);
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: '#aaa',
-                                    filter: (item) => item.text !== 'Past Month Net'
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(ctx) {
-                                        return '$' + ctx.parsed.y.toFixed(2);
-                                    }
-                                },
-                                backgroundColor: 'rgba(20,24,34,0.92)',
-                                borderColor: '#2a2f38',
-                                borderWidth: 1,
-                                titleColor: '#e0e0e0',
-                                bodyColor: '#d0d8e8',
-                                cornerRadius: 8,
-                                padding: 6,
-                                titleFont: { size: 11 },
-                                bodyFont: { size: 12 },
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
-                                ticks: {
-                                    callback: function(v) { return '$' + v.toFixed(1); },
-                                    font: { size: 10 },
-                                    color: '#5a6278'
-                                }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: {
-                                    font: { size: 10 },
-                                    color: '#5a6278',
-                                    maxTicksLimit: 15,
-                                }
-                            }
-                        },
-                        interaction: { intersect: false, mode: 'index' }
+                    backgroundColor: 'rgba(20,24,34,0.92)',
+                    borderColor: '#2a2f38',
+                    borderWidth: 1,
+                    titleColor: '#e0e0e0',
+                    bodyColor: '#d0d8e8',
+                    cornerRadius: 8,
+                    padding: 6,
+                    titleFont: { size: 11 },
+                    bodyFont: { size: 12 },
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                    ticks: {
+                        callback: function(v) { return '$' + v.toFixed(1); },
+                        font: { size: 10 },
+                        color: '#5a6278'
                     }
-                });
-            }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#5a6278',
+                        maxTicksLimit: 15,
+                    }
+                }
+            },
+            interaction: { intersect: false, mode: 'index' }
+        }
+    });
+}
 
             // ─── PIE CHART (ECharts) ───────────────────────────────────────────
             function updatePieChart(data) {
