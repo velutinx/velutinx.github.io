@@ -97,7 +97,6 @@
                     <tr>
                         <th data-sort="date">Date <span class="sort-icon">↕</span></th>
                         <th data-sort="subscriber">Subscriber <span class="sort-icon">↕</span></th>
-                        <th data-sort="tag">TAG <span class="sort-icon">↕</span></th>
                         <th data-sort="platform">Platform <span class="sort-icon">↕</span></th>
                         <th data-sort="type">Type <span class="sort-icon">↕</span></th>
                         <th data-sort="amount">Attempted Amt. <span class="sort-icon">↕</span></th>
@@ -134,7 +133,18 @@
             // ─── CONSTANTS ─────────────────────────────────────────────────────
             const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev/entries';
             const INCOME_PLATFORMS = ['Patreon', 'Ko-fi', 'Unifans', 'Subscribestar', 'Website'];
-            const EXPENSE_PLATFORMS = ['Twitter', 'Instagram', 'Facebook', 'TikTok', 'YouTube', 'Discord', 'Reddit'];
+            // Expense platform mapping from concept keywords
+            const EXPENSE_PLATFORM_MAP = {
+                'railway': 'Railway',
+                'twitter': 'Twitter',
+                'instagram': 'Instagram',
+                'facebook': 'Facebook',
+                'tiktok': 'TikTok',
+                'youtube': 'YouTube',
+                'discord': 'Discord',
+                'reddit': 'Reddit',
+                'ad spend': 'Ad Spend'
+            };
             let tableData = [];
             let filteredData = [];
             let currentPage = 1;
@@ -216,110 +226,134 @@
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const entries = await res.json();
                     // Transform to table rows
-                    return entries.map(e => {
-                        const dateObj = new Date(new Date().getFullYear(), e.month - 1, e.day);
-                        const dateStr = dateObj.toISOString().slice(0, 10);
-                        // Determine platform from category
-                        let platform = 'Other';
-                        if (e.category.includes('Patreon')) platform = 'Patreon';
-                        else if (e.category.includes('Ko-Fi')) platform = 'Ko-fi';
-                        else if (e.category.includes('Subscribestar')) platform = 'Subscribestar';
-                        else if (e.category.includes('Website')) platform = 'Website';
-                        else if (e.category === 'Expenses') {
-                            platform = randomExpensePlatform();
-                        }
+                    return entries
+                        .filter(e => parseFloat(e.amount) !== 0) // exclude zero-amount entries
+                        .map(e => {
+                            const dateObj = new Date(new Date().getFullYear(), e.month - 1, e.day);
+                            const dateStr = dateObj.toISOString().slice(0, 10);
+                            const amount = parseFloat(e.amount);
+                            const isExpense = e.category === 'Expenses';
 
-                        // Determine "Type" column value
-                        let type = e.category;
-                        const amount = parseFloat(e.amount);
+                            // Determine platform
+                            let platform = 'Other';
+                            if (isExpense) {
+                                // Map from concept
+                                const conceptLower = (e.concept || '').toLowerCase();
+                                let matched = false;
+                                for (const [key, plat] of Object.entries(EXPENSE_PLATFORM_MAP)) {
+                                    if (conceptLower.includes(key)) {
+                                        platform = plat;
+                                        matched = true;
+                                        break;
+                                    }
+                                }
+                                if (!matched) platform = 'Other';
+                            } else {
+                                // Income platform detection
+                                if (e.category.includes('Patreon')) platform = 'Patreon';
+                                else if (e.category.includes('Ko-Fi')) platform = 'Ko-fi';
+                                else if (e.category.includes('Subscribestar')) platform = 'Subscribestar';
+                                else if (e.category.includes('Website')) platform = 'Website';
+                            }
 
-                        if (e.category.includes('Patreon')) {
-                            // Map based on amount ranges
-                            if (amount === 3) {
-                                type = 'M-0.5';
-                            } else if (amount >= 6 && amount < 9.5) {
-                                type = 'M-1';
-                            } else if (amount >= 18 && amount < 20) {
-                                type = 'M-2';
-                            } else if (amount >= 30 && amount < 32) {
-                                type = 'M-3';
+                            // Determine Type column
+                            let type = '';
+                            if (isExpense) {
+                                // Blank for expenses (per request)
+                                type = '';
                             } else {
-                                type = e.category; // fallback
-                            }
-                        } else if (e.category.includes('Subscribestar')) {
-                            // Subscribestar tier mapping
-                            if (amount >= 4.6 && amount <= 5.1) {
-                                type = 'M-1';
-                            } else if (amount >= 16.5 && amount <= 18.5) {
-                                type = 'M-2';
-                            } else if (amount >= 27 && amount <= 31) {
-                                type = 'M-3';
-                            } else {
-                                type = e.category;
-                            }
-                        } else if (e.category.includes('Ko-Fi')) {
-                            // Ko-fi: 9.00 -> M-2
-                            if (amount === 9) {
-                                type = 'M-2';
-                            } else {
-                                type = e.category;
-                            }
-                        } else if (e.category === 'Website payments') {
-                            // Check concept for pack or membership
-                            const concept = e.concept || '';
-                            const packMatch = concept.match(/P-(\d+)/);
-                            if (packMatch) {
-                                type = `P-${packMatch[1]}`;
-                            } else {
-                                const memMatch = concept.match(/M-(\d)/);
-                                if (memMatch) {
-                                    type = `M-${memMatch[1]}`;
+                                // Income type mapping
+                                if (e.category.includes('Patreon')) {
+                                    // Map based on amount ranges
+                                    if (amount === 3) {
+                                        type = 'M-0.5';
+                                    } else if (amount >= 5 && amount < 6) {
+                                        type = 'M-1'; // 5.00 falls here
+                                    } else if (amount >= 6 && amount < 9.5) {
+                                        type = 'M-1';
+                                    } else if (amount >= 18 && amount < 20) {
+                                        type = 'M-2';
+                                    } else if (amount >= 30 && amount < 32) {
+                                        type = 'M-3';
+                                    } else {
+                                        type = e.category; // fallback
+                                    }
+                                } else if (e.category.includes('Subscribestar')) {
+                                    if (amount >= 4.6 && amount <= 5.1) {
+                                        type = 'M-1';
+                                    } else if (amount >= 16.5 && amount <= 18.5) {
+                                        type = 'M-2';
+                                    } else if (amount >= 27 && amount <= 31) {
+                                        type = 'M-3';
+                                    } else {
+                                        type = e.category;
+                                    }
+                                } else if (e.category.includes('Ko-Fi')) {
+                                    if (amount === 9) type = 'M-2';
+                                    else type = e.category;
+                                } else if (e.category === 'Website payments') {
+                                    // Check concept for pack or membership
+                                    const concept = e.concept || '';
+                                    const packMatch = concept.match(/P-(\d+)/);
+                                    if (packMatch) {
+                                        type = `P-${packMatch[1]}`;
+                                    } else {
+                                        const memMatch = concept.match(/M-(\d)/);
+                                        if (memMatch) {
+                                            type = `M-${memMatch[1]}`;
+                                        } else {
+                                            type = e.category;
+                                        }
+                                    }
                                 } else {
                                     type = e.category;
                                 }
                             }
-                        }
 
-                        // Extract subscriber from concept (email)
-                        let subscriber = 'Unknown';
-                        const emailMatch = e.concept?.match(/\(([^)]+)\)/);
-                        if (emailMatch) subscriber = emailMatch[1];
-                        else if (e.concept) subscriber = e.concept.split(' – ')[0] || 'Unknown';
+                            // Subscriber: extract primary identifier
+                            let subscriber = 'Unknown';
+                            if (isExpense) {
+                                // For expenses, use concept as subscriber
+                                subscriber = e.concept || 'Unknown';
+                            } else {
+                                // For income, try to get the name part before "–"
+                                const concept = e.concept || '';
+                                const parts = concept.split('–');
+                                if (parts.length > 0) {
+                                    subscriber = parts[0].trim();
+                                } else {
+                                    subscriber = concept;
+                                }
+                            }
 
-                        // Order ID – only for Website payments (using entry id)
-                        let orderId = '';
-                        if (e.category === 'Website payments' && e.id) {
-                            orderId = `ORD-${String(e.id).padStart(4, '0')}`;
-                        }
+                            // Order ID – only for Website payments (using entry id)
+                            let orderId = '';
+                            if (e.category === 'Website payments' && e.id) {
+                                orderId = `ORD-${String(e.id).padStart(4, '0')}`;
+                            }
 
-                        // Creator's Share – leave blank
-                        const share = null;
+                            // Creator's Share – leave blank
+                            const share = null;
+                            const status = isExpense ? 'Expense' : 'Income';
 
-                        const status = (e.category === 'Expenses') ? 'Expense' : 'Income';
-
-                        return {
-                            date: dateStr,
-                            subscriber: subscriber,
-                            tag: e.concept ? e.concept.slice(0, 15) : '',
-                            platform: platform,
-                            type: type,
-                            amount: e.amount,
-                            share: share,
-                            status: status,
-                            orderId: orderId,
-                            _raw: e
-                        };
-                    });
+                            // For expenses, we don't need a type, so leave blank
+                            return {
+                                date: dateStr,
+                                subscriber: subscriber,
+                                platform: platform,
+                                type: type,
+                                amount: amount,
+                                share: share,
+                                status: status,
+                                orderId: orderId,
+                                _raw: e
+                            };
+                        });
                 } catch (err) {
                     console.error('Failed to fetch entries:', err);
                     showToast('Error loading data from server.');
                     return [];
                 }
-            }
-
-            function randomExpensePlatform() {
-                const platforms = ['Twitter', 'Instagram', 'Facebook', 'TikTok', 'YouTube', 'Discord', 'Reddit'];
-                return platforms[Math.floor(Math.random() * platforms.length)];
             }
 
             // ─── RENDER TABLE ──────────────────────────────────────────────────
@@ -334,7 +368,7 @@
                 const pageData = data.slice(start, end);
 
                 if (total === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No Records</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No Records</td></tr>';
                     rowCount.textContent = '0';
                     currentPageDisplay.textContent = '1';
                     prevPageBtn.disabled = true;
@@ -347,11 +381,11 @@
                     const realIdx = data.indexOf(row);
                     const statusCls = row.status === 'Income' ? 'income' : 'expense';
                     const shareDisplay = (row.share !== null && row.share !== undefined) ? row.share.toFixed(2) : '—';
+                    // For expenses, type is blank, but we still show an empty cell
                     html +=
                         '<tr data-idx="' + realIdx + '">' +
                         '<td>' + row.date + '</td>' +
                         '<td>' + escapeHtml(row.subscriber) + '</td>' +
-                        '<td>' + escapeHtml(row.tag) + '</td>' +
                         '<td>' + escapeHtml(row.platform) + '</td>' +
                         '<td>' + escapeHtml(row.type) + '</td>' +
                         '<td class="editable" contenteditable="true" data-field="amount" data-idx="' + realIdx +
@@ -432,7 +466,7 @@
                     data = data.filter(r => {
                         const amtStr = r.amount.toFixed(2);
                         const searchStr = [
-                            r.date, r.subscriber, r.tag, r.platform, r.type,
+                            r.date, r.subscriber, r.platform, r.type,
                             amtStr,
                             r.status, r.orderId
                         ].join(' ').toLowerCase();
@@ -554,13 +588,13 @@
                     pieChartInstance = echarts.init(container, 'dark');
                 }
 
-                // Custom color mapping (Website = pale red)
+                // Custom color mapping
                 const colorMap = {
                     'Patreon': '#A3D8F4',
                     'Ko-fi': '#FBC8D5',
                     'Unifans': '#B0B0B0',
-                    'Subscribestar': '#A8E6CF',
-                    'Website': '#FFB3B3'  // pale red
+                    'Subscribestar': '#FFEAA7', // pale yellow
+                    'Website': '#FFB3B3' // pale red
                 };
 
                 const typeMap = {};
@@ -711,7 +745,6 @@
                     return {
                         Date: r.date,
                         Subscriber: r.subscriber,
-                        TAG: r.tag,
                         Platform: r.platform,
                         Type: r.type,
                         'Attempted Amt.': r.amount.toFixed(2),
