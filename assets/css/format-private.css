@@ -1,24 +1,42 @@
-/* This is velutinx.github.io/assets/css/format-private.css */
-/* ========== BASE STYLES ========== */
+/* VELUTINX — format-private.css
+
+
+/* ======================================================================
+   1. BASE STYLES
+   ====================================================================== */
 * { box-sizing: border-box; }
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0c10; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; color: #e0e0e0; }
 .container { max-width: 1800px; width: 100%; background: #11151c; border-radius: 16px; padding: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); border: 1px solid #2a2f38; }
 h1 { margin-top: 0; color: #f0f0f0; font-weight: 500; letter-spacing: -0.3px; }
 
-/* ========== TAB BAR ========== */
+/* ======================================================================
+   2. TAB BAR
+   ====================================================================== */
 .tab-bar { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid #2a2f38; padding-bottom: 10px; flex-wrap: wrap; }
 .tab-button { background: #1e2430; border: none; padding: 8px 24px; border-radius: 30px; font-size: 1rem; cursor: pointer; font-weight: bold; text-transform: uppercase; color: #bbb; transition: all 0.2s; }
 .tab-button.active { background: #2c6e2c; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-/* ========== RETWEET QUEUE TAB (hidden by default) ========== */
+/* ─── Retweet Queue Tab (hidden by default) ─── */
 #retweet-tab { display: none; }
 #retweet-tab.has-items { display: inline-block; animation: flash-red 1.5s ease-in-out infinite; }
-@keyframes flash-red { 0% { background-color: #2c6e2c; } 50% { background-color: #b71c1c; } 100% { background-color: #2c6e2c; } }
 #retweet-tab.has-items:hover { animation: none; background-color: #b71c1c; }
+@keyframes flash-red { 0% { background-color: #2c6e2c; } 50% { background-color: #b71c1c; } 100% { background-color: #2c6e2c; } }
 
-/* ========== FORM ELEMENTS (shared) ========== */
+/* ─── Error Logs Tab ─── */
+#errorlogs-tab { display: none; }
+#errorlogs-tab.has-items { display: inline-block; animation: flash-red 1.5s ease-in-out infinite; }
+#errorlogs-tab.has-items:hover { animation: none; background-color: #b71c1c; }
+
+/* ─── Contact Tab ─── */
+#contact-tab { display: none; }
+#contact-tab.has-items { display: inline-block; animation: flash-red 1.5s ease-in-out infinite; }
+#contact-tab.has-items:hover { animation: none; background-color: #b71c1c; }
+
+/* ======================================================================
+   3. FORM ELEMENTS (shared)
+   ====================================================================== */
 .form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 24px; }
 .form-group { display: flex; flex-direction: column; min-width: 100px; }
 .form-group label { font-size: 0.8rem; color: #aaa; margin-bottom: 4px; font-weight: 500; }
@@ -31,13 +49,17 @@ input:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn:hover { background: #3e8e3e; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
 
-/* ========== TOAST NOTIFICATION ========== */
+/* ======================================================================
+   4. TOAST NOTIFICATION
+   ====================================================================== */
 .toast-notification { position: fixed; top: 20px; right: 20px; background: #1e2a1e; color: #d4ffd4; padding: 10px 18px; border-radius: 40px; font-size: 13px; font-weight: 500; z-index: 10000; box-shadow: 0 4px 12px black; backdrop-filter: blur(4px); transition: 0.15s; border-left: 4px solid #4caf50; }
 .toast-notification.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
 .toast-notification.info { background: #1a2530; border-left-color: #2196F3; }
 .toast-notification.show { opacity: 1; transform: translateX(0); }
 
-/* ========== TABLE (shared) ========== */
+/* ======================================================================
+   5. TABLE (shared)
+   ====================================================================== */
 .table-wrapper { margin-top: 16px; background: #0c1017; border-radius: 14px; border: 1px solid #252b33; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #ddd; }
 th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #252b33; }
@@ -45,31 +67,41 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .delete-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 1rem; }
 .empty-message { text-align: center; padding: 40px; color: #777; }
 
-/* ========== MONTH HEADER (spreadsheet) ========== */
+/* ======================================================================
+   6. MONTH HEADER (spreadsheet)
+   ====================================================================== */
 .month-header td { background: #1a1f2a; cursor: pointer; font-weight: 500; color: #ccc; }
 .month-header td:hover { background: #232a38; }
 .hidden-row { display: none; }
 .toggle-icon { margin-right: 6px; font-size: 0.8rem; }
 
-/* ========== ROW COLOURS (spreadsheet) ========== */
+/* ======================================================================
+   7. ROW COLOURS (spreadsheet)
+   ====================================================================== */
 .row-income { background-color: #1a3a1a; }
 .row-expense { background-color: #3a1a1a; }
 .row-income:hover, .row-expense:hover { filter: brightness(1.2); }
 
-/* ========== CHART (spreadsheet) ========== */
+/* ======================================================================
+   8. CHART (spreadsheet)
+   ====================================================================== */
 .range-btns { display: flex; gap: 6px; margin-bottom: 12px; }
 .range-btn { background: #2a2f38; border: none; color: #ccc; padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
 .range-btn.active { background: #2c6e2c; color: white; }
 .chart-container { position: relative; height: 400px; }
 
-/* ========== DASHBOARD LAYOUT (spreadsheet) ========== */
+/* ======================================================================
+   9. DASHBOARD LAYOUT (spreadsheet)
+   ====================================================================== */
 .dashboard { display: flex; gap: 20px; flex-wrap: wrap; }
 .table-section { flex: 1 1 60%; min-width: 600px; }
 .chart-section { flex: 1 1 35%; min-width: 350px; background: #0c1017; border-radius: 14px; padding: 16px; border: 1px solid #252b33; }
 .export-btn { margin-top: 20px; background: #3b4a5a; }
 .export-btn:hover { background: #2c6e9e; }
 
-/* ========== Subscribestar / Patreon styles ========== */
+/* ======================================================================
+   10. SUBSCRIBESTAR / PATREON STYLES
+   ====================================================================== */
 .upload-area { border: 2px dashed #3a4050; border-radius: 14px; padding: 32px; text-align: center; cursor: pointer; background: #0f131a; transition: border 0.2s; }
 .upload-area:hover { border-color: #5a6e3c; }
 .upload-label { font-size: 1.1rem; color: #aaa; }
@@ -82,7 +114,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .filename-hint { font-size: 0.85rem; color: #888; margin-top: 12px; }
 .footer { margin-top: 20px; color: #6a6f78; font-size: 0.8rem; text-align: center; }
 
-/* ========== Bluesky styles ========== */
+/* ======================================================================
+   11. BLUESKY STYLES
+   ====================================================================== */
 .master-post { width: 100%; padding: 12px; font-size: 15px; background: #0a0e14; border: 1px solid #2a2f38; border-radius: 12px; color: #e0e0e0; resize: vertical; margin-bottom: 24px; }
 .accounts-grid { display: flex; gap: 20px; flex-wrap: wrap; }
 .account-card { flex: 1 1 300px; background: #0c1017; border-radius: 16px; padding: 18px; border: 1px solid #252b33; }
@@ -95,7 +129,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .thumbnail-item img { width: 100%; height: 100%; object-fit: cover; }
 .remove-btn { position: absolute; top: 2px; right: 2px; background: rgba(200,0,0,0.8); color: white; border: none; border-radius: 30px; width: 18px; height: 18px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* ========== Cloudflare tab specific styles ========== */
+/* ======================================================================
+   12. CLOUDFLARE TAB STYLES
+   ====================================================================== */
 .cf-status { margin: 12px 0; font-size: 0.9rem; color: #aaa; }
 .cf-section-title { font-size: 1.2rem; margin: 20px 0 12px 0; border-bottom: 1px solid #2a2f38; padding-bottom: 8px; }
 .cf-thumb-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; min-height: 120px; background: #0c1017; border-radius: 14px; padding: 16px; border: 1px solid #252b33; }
@@ -110,7 +146,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .cf-sortable-ghost .cf-remove-btn { display: none; }
 .cf-sortable-ghost { opacity: 0.7; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 
-/* ========== Pack Manager specific styles ========== */
+/* ======================================================================
+   13. PACK MANAGER STYLES
+   ====================================================================== */
 #packmanager .pm-container { max-width: 1200px; margin: 0 auto; background: #11151c; border-radius: 20px; padding: 24px; border: 1px solid #2a2f38; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
 #packmanager .pm-dropzone { border: 2px dashed #3a4050; border-radius: 14px; padding: 40px 20px; text-align: center; cursor: pointer; background: #0f131a; transition: border 0.2s; margin-bottom: 20px; }
 #packmanager .pm-dropzone:hover { border-color: #5a6e3c; }
@@ -159,7 +197,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 #packmanager .pm-warning-banner { background: #2c2b1f; border-left: 4px solid #ffaa33; padding: 10px 16px; border-radius: 12px; margin: 15px 0; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 #packmanager button.pm-small-retry { background: #3a3a44; border: none; padding: 4px 12px; border-radius: 20px; color: white; cursor: pointer; }
 
-/* ========== BLUESKY CROP MODAL ========== */
+/* ======================================================================
+   14. BLUESKY CROP MODAL
+   ====================================================================== */
 .crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 10000; }
 .crop-modal-content { background: #11151c; border: 1px solid #2a2f38; border-radius: 16px; padding: 20px; max-width: 90vw; max-height: 90vh; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
 .crop-canvas-wrapper { position: relative; }
@@ -171,18 +211,16 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .crop-btn.cancel:hover { background: #4a4a54; }
 .crop-btn.confirm { background: #2c6e2c; color: white; }
 .crop-btn.confirm:hover { background: #3e8e3e; }
-
-/* ========== BLUESKY Crop button on thumbnails ========== */
 .cf-crop-btn { position: absolute; top: -6px; left: -6px; background: #2c6e2c; color: white; border: none; border-radius: 20px; width: 22px; height: 22px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 20; padding: 0; line-height: 1; }
 .cf-crop-btn:hover { background: #3e8e3e; }
 
-/* ========== Twitter Composer specific styles ========== */
+/* ======================================================================
+   15. TWITTER COMPOSER STYLES
+   ====================================================================== */
 .post-btn { width: 100%; margin-top: 12px; padding: 10px 16px; background: #1da1f2; color: white; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
 .post-btn:hover { background: #0f8ad6; }
 .status-msg { margin-top: 8px; font-size: 0.8rem; text-align: center; min-height: 18px; }
 .word-counter { margin-top: 6px; font-size: 0.85rem; }
-
-/* ========== Anime Hashtag Generator (Tweeter tab) ========== */
 .hashgen-container { margin-bottom: 20px; background: #0c1017; border: 1px solid #252b33; border-radius: 14px; padding: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
 .hashgen-input { flex: 1 1 200px; width: auto; min-width: 200px; background: #0a0e14; border: 1px solid #2a2f38; border-radius: 10px; color: #e0e0e0; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; }
 .hashgen-input:focus { border-color: #5a6e3c; }
@@ -191,7 +229,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .hashgen-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #4a5a4a; }
 .hashgen-status { margin-top: 6px; font-size: 12px; color: #aaa; min-height: 18px; }
 
-/* ========== ZIP Extractor styles ========== */
+/* ======================================================================
+   17. ZIP EXTRACTOR STYLES
+   ====================================================================== */
 .extractor-wrapper { margin-top: 10px; }
 .extractor-header h2 { margin: 0 0 4px 0; color: #f0f0f0; font-weight: 500; letter-spacing: -0.3px; }
 .extractor-header .subtitle { font-size: 15px; color: #aaa; margin-bottom: 28px; }
@@ -225,7 +265,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .extractor-actions .btn-secondary:hover { background: #2a2f38; }
 .extractor-actions .icon-small { font-size: 18px; line-height: 1; }
 
-/* ========== SQUARE TOGGLES (Upcoming / Request) ========== */
+/* ======================================================================
+   18. SQUARE TOGGLES (Upcoming / Request)
+   ====================================================================== */
 .toggle-switch { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
 .toggle-switch .slider { position: relative; display: inline-block; width: 50px; height: 28px; background: #3a4050; transition: .3s; border-radius: 4px; flex-shrink: 0; }
@@ -234,9 +276,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .toggle-switch input:checked + .slider::before { transform: translateX(22px); }
 .toggle-switch .toggle-label { color: #ccc; font-size: 0.9rem; }
 
-@media (max-width: 600px) { .extractor-drop-zone { padding: 32px 16px; } #extractorOutput { min-height: 220px; font-size: 13px; padding: 12px 14px; } .extractor-actions .btn { padding: 8px 18px; font-size: 14px; } .extractor-actions { flex-direction: column; } .extractor-actions .btn { justify-content: center; } }
-
-/* ========== Retweet Queue (condensed) ========== */
+/* ======================================================================
+   19. RETWEET QUEUE
+   ====================================================================== */
 .retweet-container { max-width: 900px; margin: 0 auto; }
 #retweet-list .queue-item { background: #1a1f2a; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; border: 1px solid #2a2f38; display: flex; align-items: flex-start; gap: 16px; transition: background 0.2s; }
 #retweet-list .queue-item:hover { background: #222a38; }
@@ -257,7 +299,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .badge-velutinx2 { background: #1da1f2; color: white; }
 .badge-nsfw { background: #e0245e; color: white; }
 
-/* ========== CENSORSHIP TOOL ========== */
+/* ======================================================================
+   20. CENSORSHIP TOOL
+   ====================================================================== */
 .censor-tool-body { display: flex; width: 100%; height: 100%; overflow: hidden; background: #0a0c10; color: #e0e0e0; }
 #censor-main { flex: 1; display: flex; overflow: hidden; }
 #censor-viewer { flex: 1; position: relative; background: #090b0f; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; height: 100%; }
@@ -276,8 +320,6 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 #censor-sidebar .footer { margin-top: auto; color: #666; font-size: 12px; }
 #censor-canvasWrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; min-width: 0; min-height: 0; }
 #censor-canvasWrapper canvas { display: none; border-radius: 10px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); max-width: 100%; max-height: 100%; width: auto !important; height: auto !important; image-rendering: auto; }
-
-/* ========== CENSOR TAB INSIDE MAIN PAGE ========== */
 .censor-tab-content { flex-direction: column; height: calc(100vh - 120px); min-height: 500px; padding: 0 !important; background: #090b0f; }
 .censor-tab-content.active { display: flex; }
 .censor-tab-content #censor-main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
@@ -287,7 +329,9 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .censor-tab-content #censor-canvasWrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; min-width: 0; min-height: 0; }
 .censor-tab-content #censor-canvasWrapper canvas { max-width: 100%; max-height: 100%; width: auto !important; height: auto !important; border-radius: 8px; }
 
-/* ========== ERROR LOGS ========== */
+/* ======================================================================
+   22. ERROR LOGS
+   ====================================================================== */
 .error-logs-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
 .error-logs-header h1 { margin: 0; color: #f0f0f0; font-weight: 500; letter-spacing: -0.3px; }
 .error-logs-header .btn { background: #b71c1c; color: white; border: none; padding: 8px 18px; border-radius: 30px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.15s; }
@@ -299,24 +343,23 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .error-logs-table .stack { font-family: 'Courier New', monospace; font-size: 0.75rem; color: #aaa; word-break: break-word; max-width: 400px; white-space: pre-wrap; }
 .log-row.muted { opacity: 0.35; filter: grayscale(0.9); background-color: #16161e; }
 .log-row.muted .error, .log-row.muted .worker, .log-row.muted .time, .log-row.muted .stack { color: #555 !important; }
-function showToast(msg, isError) { const toast = document.createElement('div'); toast.className = 'toast-notification' + (isError ? ' error' : ''); toast.textContent = msg; document.body.appendChild(toast); setTimeout(function() { toast.remove(); }, 3000); }
-#errorlogs-tab { display: none; }
-#errorlogs-tab.has-items { display: inline-block; animation: flash-red 1.5s ease-in-out infinite; }
-#errorlogs-tab.has-items:hover { animation: none; background-color: #b71c1c; }
 
-/* ========== SQUARE BUTTON (Sneak Peak) ========== */
+/* ======================================================================
+   23. SQUARE BUTTON (Sneak Peak)
+   ====================================================================== */
 .square-btn-wrapper { display: inline-flex; align-items: center; gap: 10px; }
 .square-btn { width: 56px; height: 30px; background: #555; border: none; border-radius: 4px; cursor: pointer; transition: background .2s ease; flex-shrink: 0; }
 .square-btn:hover { filter: brightness(1.08); }
 .square-btn.on { background: #4CAF50; }
 .square-btn:active { transform: scale(.96); }
 
-/* Pulse animation for the Retweet Queue tab when it appears */
+/* ─── Pulse animation for Retweet Queue tab ─── */
 #retweet-tab.has-items { animation: pulseTab 1.5s ease-in-out 2; }
 @keyframes pulseTab { 0%, 100% { background-color: #1a1a1a; } 50% { background-color: #ff4444; color: #fff; } }
 
-
-/* Contact messages */
+/* ======================================================================
+   24. CONTACT MESSAGES
+   ====================================================================== */
 .contact-item { background: #1a1f2a; border-radius: 8px; margin-bottom: 8px; border: 1px solid #2a2f38; overflow: hidden; }
 .contact-item.unread { border-left: 4px solid #f59e0b; }
 .contact-item.read { border-left: 4px solid #4ade80; }
@@ -331,14 +374,10 @@ function showToast(msg, isError) { const toast = document.createElement('div'); 
 .mark-read-btn { background: #3b82f6; border: none; color: white; padding: 4px 16px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; margin-top: 10px; }
 .mark-read-btn:hover { background: #2563eb; }
 @keyframes blink { 50% { opacity: 0; } }
-#retweet-tab, #errorlogs-tab, #contact-tab { display: none; }
-#retweet-tab.has-items, #errorlogs-tab.has-items, #contact-tab.has-items { display: inline-block; animation: flash-red 1.5s ease-in-out infinite; }
-@keyframes flash-red { 0% { background-color: #2c6e2c; } 50% { background-color: #b71c1c; } 100% { background-color: #2c6e2c; } }
-#contact-tab.has-items { animation: flash-red 1.5s ease-in-out infinite; }
-#contact-tab.has-items:hover { animation: none; background-color: #b71c1c; }
 
-                                                                                                                                                                                                                                      
-/* ─── charts page layout ─── */
+/* ======================================================================
+   25. CHARTS PAGE LAYOUT  ← used by chart.html
+   ====================================================================== */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 body { background: #0a0c10; display: flex; justify-content: center; padding: 24px 16px; min-height: 100vh; }
 .app { max-width: 1360px; width: 100%; background: #11151c; border-radius: 20px; padding: 28px 32px 36px; border: 1px solid #2a2f38; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6); }
@@ -433,3 +472,11 @@ body { background: #0a0c10; display: flex; justify-content: center; padding: 24p
 .table-wrap::-webkit-scrollbar-track { background: #0a0e14; }
 .table-wrap::-webkit-scrollbar-thumb { background: #2a2f38; border-radius: 8px; }
 .table-wrap::-webkit-scrollbar-thumb:hover { background: #3a4050; }
+.stat-tooltip { display: none; position: fixed; background: rgba(20, 24, 34, 0.95); border: 1px solid #2a2f38; border-radius: 8px; padding: 10px 14px; color: #d0d8e8; font-size: 13px; line-height: 1.6; pointer-events: none; z-index: 999; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); min-width: 160px; backdrop-filter: blur(4px); }
+.stat-tooltip .tooltip-title { font-weight: 600; color: #e0e0e0; border-bottom: 1px solid #2a2f38; padding-bottom: 4px; margin-bottom: 4px; }
+.stat-tooltip .tooltip-row { display: flex; justify-content: space-between; gap: 20px; }
+.stat-tooltip .tooltip-row .label { color: #94a3b8; }
+.stat-tooltip .tooltip-row .value { font-weight: 500; color: #e0e0e0; }
+.stat-tooltip .tooltip-total { border-top: 1px solid #2a2f38; padding-top: 4px; margin-top: 4px; font-weight: 700; color: #f0f0f0; display: flex; justify-content: space-between; font-size: 15px; }
+.stat-tooltip .tooltip-total .label { color: #94a3b8; }
+.stat-tooltip .tooltip-total .value { font-size: 15px; font-weight: 700; color: #ffffff; }
