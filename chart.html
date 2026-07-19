@@ -9,6 +9,59 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js">
     </script>
+    <style>
+        /* Tooltip styles for stat cards */
+        .stat-card {
+            position: relative;
+        }
+        .stat-tooltip {
+            display: none;
+            position: fixed;
+            background: rgba(20, 24, 34, 0.95);
+            border: 1px solid #2a2f38;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #d0d8e8;
+            font-size: 13px;
+            line-height: 1.6;
+            pointer-events: none;
+            z-index: 999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            min-width: 160px;
+            backdrop-filter: blur(4px);
+        }
+        .stat-tooltip .tooltip-title {
+            font-weight: 600;
+            color: #e0e0e0;
+            border-bottom: 1px solid #2a2f38;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+        .stat-tooltip .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .stat-tooltip .tooltip-row .label {
+            color: #94a3b8;
+        }
+        .stat-tooltip .tooltip-row .value {
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+        .stat-tooltip .tooltip-total {
+            border-top: 1px solid #2a2f38;
+            padding-top: 4px;
+            margin-top: 4px;
+            font-weight: 600;
+            color: #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .stat-tooltip .tooltip-total .label {
+            color: #94a3b8;
+        }
+    </style>
 </head>
 <body>
 
@@ -44,13 +97,15 @@
         </div>
 
         <div class="stat-grid">
-            <div class="stat-card">
-                <div class="label">Total Estimate Income (USD) <span class="icon-info"></span></div>
+            <div class="stat-card" id="statEstimateCard">
+                <div class="label">Total Estimate Income (USD)</div>
                 <div class="value" id="statEstimate">$0.00</div>
+                <div class="stat-tooltip" id="statEstimateTooltip"></div>
             </div>
-            <div class="stat-card">
-                <div class="label">Past Month Income (USD) <span class="icon-info"></span></div>
+            <div class="stat-card" id="statPastMonthCard">
+                <div class="label">Past Month Income (USD)</div>
                 <div class="value" id="statPastMonth">$0.00</div>
+                <div class="stat-tooltip" id="statPastMonthTooltip"></div>
             </div>
         </div>
 
@@ -133,7 +188,6 @@
             // ─── CONSTANTS ─────────────────────────────────────────────────────
             const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev/entries';
             const INCOME_PLATFORMS = ['Patreon', 'Ko-fi', 'Unifans', 'Subscribestar', 'Website'];
-            // Expense platform mapping from concept keywords
             const EXPENSE_PLATFORM_MAP = {
                 'railway': 'Railway',
                 'twitter': 'Twitter',
@@ -150,11 +204,13 @@
             let currentPage = 1;
             let pageSize = 50;
             let sortKey = 'date';
-            let sortAsc = false; // default: newest first
+            let sortAsc = false;
             let hiddenSlices = new Set();
             let lineChartInstance = null;
             let pieChartInstance = null;
-            let viewMode = 'month'; // 'month' or 'year'
+            let viewMode = 'month';
+            let pastMonthNet = 0; // store last month's net for the dotted line
+            let currentMonthNet = 0;
 
             // ─── DOM REFS ──────────────────────────────────────────────────────
             const tbody = document.getElementById('tableBody');
@@ -170,6 +226,45 @@
             const yearSelect = document.getElementById('yearSelect');
             const exportBtn = document.getElementById('exportBtn');
 
+            // ─── STAT TOOLTIP LOGIC ───────────────────────────────────────────
+            function buildTooltipHTML(platformTotals, total) {
+                let html = '<div class="tooltip-title">Income breakdown</div>';
+                for (const [platform, amount] of Object.entries(platformTotals)) {
+                    if (amount === 0) continue;
+                    html += `<div class="tooltip-row">
+                        <span class="label">${platform}</span>
+                        <span class="value">$${amount.toFixed(2)}</span>
+                    </div>`;
+                }
+                html += `<div class="tooltip-total">
+                    <span class="label">Total</span>
+                    <span>$${total.toFixed(2)}</span>
+                </div>`;
+                return html;
+            }
+
+            function attachTooltip(cardId, tooltipId, platformTotals, total) {
+                const card = document.getElementById(cardId);
+                const tooltip = document.getElementById(tooltipId);
+                if (!card || !tooltip) return;
+                const html = buildTooltipHTML(platformTotals, total);
+                tooltip.innerHTML = html;
+
+                card.addEventListener('mouseenter', function(e) {
+                    tooltip.style.display = 'block';
+                    const rect = card.getBoundingClientRect();
+                    tooltip.style.left = (e.clientX + 12) + 'px';
+                    tooltip.style.top = (e.clientY - 10) + 'px';
+                });
+                card.addEventListener('mousemove', function(e) {
+                    tooltip.style.left = (e.clientX + 12) + 'px';
+                    tooltip.style.top = (e.clientY - 10) + 'px';
+                });
+                card.addEventListener('mouseleave', function() {
+                    tooltip.style.display = 'none';
+                });
+            }
+
             // ─── HELPERS ──────────────────────────────────────────────────────
             function formatCurrency(val) { return '$' + val.toFixed(2); }
             function sum(arr) { return arr.reduce((s, v) => s + v, 0); }
@@ -183,6 +278,17 @@
                         return d.getMonth() + 1 === month && d.getFullYear() === year;
                     });
                 }
+            }
+
+            function getPlatformTotals(data) {
+                const totals = {};
+                INCOME_PLATFORMS.forEach(p => totals[p] = 0);
+                data.forEach(r => {
+                    if (r.status === 'Income' && INCOME_PLATFORMS.includes(r.platform)) {
+                        totals[r.platform] += r.amount;
+                    }
+                });
+                return totals;
             }
 
             function sortData(data, key, asc) {
@@ -225,19 +331,16 @@
                     const res = await fetch(WORKER_URL);
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const entries = await res.json();
-                    // Transform to table rows
                     return entries
-                        .filter(e => parseFloat(e.amount) !== 0) // exclude zero-amount entries
+                        .filter(e => parseFloat(e.amount) !== 0)
                         .map(e => {
                             const dateObj = new Date(new Date().getFullYear(), e.month - 1, e.day);
                             const dateStr = dateObj.toISOString().slice(0, 10);
                             const amount = parseFloat(e.amount);
                             const isExpense = e.category === 'Expenses';
 
-                            // Determine platform
                             let platform = 'Other';
                             if (isExpense) {
-                                // Map from concept
                                 const conceptLower = (e.concept || '').toLowerCase();
                                 let matched = false;
                                 for (const [key, plat] of Object.entries(EXPENSE_PLATFORM_MAP)) {
@@ -249,50 +352,32 @@
                                 }
                                 if (!matched) platform = 'Other';
                             } else {
-                                // Income platform detection
                                 if (e.category.includes('Patreon')) platform = 'Patreon';
                                 else if (e.category.includes('Ko-Fi')) platform = 'Ko-fi';
                                 else if (e.category.includes('Subscribestar')) platform = 'Subscribestar';
                                 else if (e.category.includes('Website')) platform = 'Website';
                             }
 
-                            // Determine Type column
                             let type = '';
                             if (isExpense) {
-                                // Blank for expenses (per request)
                                 type = '';
                             } else {
-                                // Income type mapping
                                 if (e.category.includes('Patreon')) {
-                                    // Map based on amount ranges
-                                    if (amount === 3) {
-                                        type = 'M-0.5';
-                                    } else if (amount >= 5 && amount < 6) {
-                                        type = 'M-1'; // 5.00 falls here
-                                    } else if (amount >= 6 && amount < 9.5) {
-                                        type = 'M-1';
-                                    } else if (amount >= 18 && amount < 20) {
-                                        type = 'M-2';
-                                    } else if (amount >= 30 && amount < 32) {
-                                        type = 'M-3';
-                                    } else {
-                                        type = e.category; // fallback
-                                    }
+                                    if (amount === 3) type = 'M-0.5';
+                                    else if (amount >= 5 && amount < 6) type = 'M-1';
+                                    else if (amount >= 6 && amount < 9.5) type = 'M-1';
+                                    else if (amount >= 18 && amount < 20) type = 'M-2';
+                                    else if (amount >= 30 && amount < 32) type = 'M-3';
+                                    else type = e.category;
                                 } else if (e.category.includes('Subscribestar')) {
-                                    if (amount >= 4.6 && amount <= 5.1) {
-                                        type = 'M-1';
-                                    } else if (amount >= 16.5 && amount <= 18.5) {
-                                        type = 'M-2';
-                                    } else if (amount >= 27 && amount <= 31) {
-                                        type = 'M-3';
-                                    } else {
-                                        type = e.category;
-                                    }
+                                    if (amount >= 4.6 && amount <= 5.1) type = 'M-1';
+                                    else if (amount >= 16.5 && amount <= 18.5) type = 'M-2';
+                                    else if (amount >= 27 && amount <= 31) type = 'M-3';
+                                    else type = e.category;
                                 } else if (e.category.includes('Ko-Fi')) {
                                     if (amount === 9) type = 'M-2';
                                     else type = e.category;
                                 } else if (e.category === 'Website payments') {
-                                    // Check concept for pack or membership
                                     const concept = e.concept || '';
                                     const packMatch = concept.match(/P-(\d+)/);
                                     if (packMatch) {
@@ -310,13 +395,10 @@
                                 }
                             }
 
-                            // Subscriber: extract primary identifier
                             let subscriber = 'Unknown';
                             if (isExpense) {
-                                // For expenses, use concept as subscriber
                                 subscriber = e.concept || 'Unknown';
                             } else {
-                                // For income, try to get the name part before "–"
                                 const concept = e.concept || '';
                                 const parts = concept.split('–');
                                 if (parts.length > 0) {
@@ -326,17 +408,14 @@
                                 }
                             }
 
-                            // Order ID – only for Website payments (using entry id)
                             let orderId = '';
                             if (e.category === 'Website payments' && e.id) {
                                 orderId = `ORD-${String(e.id).padStart(4, '0')}`;
                             }
 
-                            // Creator's Share – leave blank
                             const share = null;
                             const status = isExpense ? 'Expense' : 'Income';
 
-                            // For expenses, we don't need a type, so leave blank
                             return {
                                 date: dateStr,
                                 subscriber: subscriber,
@@ -381,7 +460,6 @@
                     const realIdx = data.indexOf(row);
                     const statusCls = row.status === 'Income' ? 'income' : 'expense';
                     const shareDisplay = (row.share !== null && row.share !== undefined) ? row.share.toFixed(2) : '—';
-                    // For expenses, type is blank, but we still show an empty cell
                     html +=
                         '<tr data-idx="' + realIdx + '">' +
                         '<td>' + row.date + '</td>' +
@@ -435,24 +513,34 @@
                 const month = parseInt(monthSelect.value) + 1;
                 const year = parseInt(yearSelect.value);
                 const currentData = filterByPeriod(tableData, month, year, viewMode);
-
                 const incomeCurrent = currentData.filter(r => r.status === 'Income');
                 const expenseCurrent = currentData.filter(r => r.status === 'Expense');
                 const totalIncome = sum(incomeCurrent.map(r => r.amount));
                 const totalExpense = sum(expenseCurrent.map(r => r.amount));
                 const netEstimate = totalIncome - totalExpense;
+                currentMonthNet = netEstimate;
 
-                // Past month income (always previous month, regardless of view mode)
                 const prevMonth = month === 1 ? 12 : month - 1;
                 const prevYear = month === 1 ? year - 1 : year;
                 const pastMonthData = filterByPeriod(tableData, prevMonth, prevYear, 'month');
                 const pastIncome = pastMonthData.filter(r => r.status === 'Income');
-                const pastTotal = sum(pastIncome.map(r => r.amount));
+                const pastExpense = pastMonthData.filter(r => r.status === 'Expense');
+                const pastTotalIncome = sum(pastIncome.map(r => r.amount));
+                const pastTotalExpense = sum(pastExpense.map(r => r.amount));
+                const pastNet = pastTotalIncome - pastTotalExpense;
+                pastMonthNet = pastNet;
 
                 statEstimate.textContent = formatCurrency(netEstimate);
-                statPastMonth.textContent = formatCurrency(pastTotal);
+                statPastMonth.textContent = formatCurrency(pastTotalIncome); // keep showing total income, not net
 
-                updateLineChart(currentData);
+                // Update tooltips
+                const currentPlatformTotals = getPlatformTotals(currentData);
+                attachTooltip('statEstimateCard', 'statEstimateTooltip', currentPlatformTotals, totalIncome);
+
+                const pastPlatformTotals = getPlatformTotals(pastMonthData);
+                attachTooltip('statPastMonthCard', 'statPastMonthTooltip', pastPlatformTotals, pastTotalIncome);
+
+                updateLineChart(currentData, pastNet);
                 updatePieChart(currentData);
             }
 
@@ -479,7 +567,7 @@
             }
 
             // ─── LINE CHART ─────────────────────────────────────────────────────
-            function updateLineChart(data) {
+            function updateLineChart(data, pastNet) {
                 const ctx = document.getElementById('lineChart').getContext('2d');
                 const sorted = data.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -516,30 +604,52 @@
 
                 if (lineChartInstance) lineChartInstance.destroy();
 
+                const datasets = [{
+                    label: 'Cumulative Net (USD)',
+                    data: values,
+                    backgroundColor: 'rgba(67, 51, 255, 0.2)',
+                    borderColor: '#4333FF',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.2,
+                    pointBackgroundColor: '#4333FF',
+                    pointBorderColor: '#0c1017',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                }];
+
+                // Dotted line for past month net – only if current net has NOT exceeded it
+                if (pastNet > 0 && currentMonthNet <= pastNet) {
+                    const pastLineData = values.map(() => pastNet);
+                    datasets.push({
+                        label: 'Past Month Net',
+                        data: pastLineData,
+                        borderColor: '#22c55e',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        pointRadius: 0,
+                        fill: false,
+                        tension: 0,
+                    });
+                }
+
                 lineChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: labels,
-                        datasets: [{
-                            label: 'Cumulative Net (USD)',
-                            data: values,
-                            backgroundColor: 'rgba(67, 51, 255, 0.2)',
-                            borderColor: '#4333FF',
-                            borderWidth: 2.5,
-                            fill: true,
-                            tension: 0.2,
-                            pointBackgroundColor: '#4333FF',
-                            pointBorderColor: '#0c1017',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 7,
-                        }]
+                        datasets: datasets
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: false },
+                            legend: {
+                                labels: {
+                                    color: '#aaa',
+                                    filter: (item) => item.text !== 'Past Month Net' // hide from legend
+                                }
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(ctx) {
@@ -588,13 +698,12 @@
                     pieChartInstance = echarts.init(container, 'dark');
                 }
 
-                // Custom color mapping
                 const colorMap = {
                     'Patreon': '#A3D8F4',
                     'Ko-fi': '#FBC8D5',
                     'Unifans': '#B0B0B0',
-                    'Subscribestar': '#FFEAA7', // pale yellow
-                    'Website': '#FFB3B3' // pale red
+                    'Subscribestar': '#FFEAA7',
+                    'Website': '#FFB3B3'
                 };
 
                 const typeMap = {};
@@ -606,7 +715,6 @@
                     typeMap[p] += r.amount;
                 });
 
-                // Filter out zero values
                 let pieData = INCOME_PLATFORMS
                     .filter(label => typeMap[label] && typeMap[label] > 0)
                     .map(label => ({
@@ -625,7 +733,6 @@
                         }
                     }));
 
-                // If all zero, show a placeholder
                 if (pieData.length === 0) {
                     pieData = [{ name: 'No data', value: 1, itemStyle: { color: '#555' } }];
                 }
@@ -777,7 +884,7 @@
                     th.addEventListener('click', function() {
                         var key = this.dataset.sort;
                         if (sortKey === key) sortAsc = !sortAsc;
-                        else { sortKey = key; sortAsc = false; } // default descending on new sort
+                        else { sortKey = key; sortAsc = false; }
                         document.querySelectorAll('th .sort-icon').forEach(function(icon) { icon.textContent = '↕'; });
                         var icon = this.querySelector('.sort-icon');
                         icon.textContent = sortAsc ? '↑' : '↓';
@@ -801,7 +908,6 @@
                         labels.forEach(l => l.classList.remove('active'));
                         this.classList.add('active');
                         viewMode = this.dataset.view;
-                        // Reset pagination to page 1
                         currentPage = 1;
                         updateAll();
                     });
@@ -810,7 +916,6 @@
 
             // ─── INIT ──────────────────────────────────────────────────────────
             async function init() {
-                // Load data
                 const entries = await fetchEntries();
                 tableData = entries;
                 pageSizeSelect.value = pageSize;
@@ -858,7 +963,6 @@
                     if (pieChartInstance) pieChartInstance.resize();
                 });
 
-                // Initial pie chart render
                 setTimeout(function() {
                     var month = parseInt(monthSelect.value) + 1;
                     var year = parseInt(yearSelect.value);
