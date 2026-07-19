@@ -53,13 +53,19 @@
             border-top: 1px solid #2a2f38;
             padding-top: 4px;
             margin-top: 4px;
-            font-weight: 600;
+            font-weight: 700;
             color: #f0f0f0;
             display: flex;
             justify-content: space-between;
+            font-size: 15px; /* larger total */
         }
         .stat-tooltip .tooltip-total .label {
             color: #94a3b8;
+        }
+        .stat-tooltip .tooltip-total .value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
         }
     </style>
 </head>
@@ -209,7 +215,7 @@
             let lineChartInstance = null;
             let pieChartInstance = null;
             let viewMode = 'month';
-            let pastMonthNet = 0; // store last month's net for the dotted line
+            let pastMonthNet = 0;
             let currentMonthNet = 0;
 
             // ─── DOM REFS ──────────────────────────────────────────────────────
@@ -238,7 +244,7 @@
                 }
                 html += `<div class="tooltip-total">
                     <span class="label">Total</span>
-                    <span>$${total.toFixed(2)}</span>
+                    <span class="value">$${total.toFixed(2)}</span>
                 </div>`;
                 return html;
             }
@@ -252,7 +258,6 @@
 
                 card.addEventListener('mouseenter', function(e) {
                     tooltip.style.display = 'block';
-                    const rect = card.getBoundingClientRect();
                     tooltip.style.left = (e.clientX + 12) + 'px';
                     tooltip.style.top = (e.clientY - 10) + 'px';
                 });
@@ -531,9 +536,8 @@
                 pastMonthNet = pastNet;
 
                 statEstimate.textContent = formatCurrency(netEstimate);
-                statPastMonth.textContent = formatCurrency(pastTotalIncome); // keep showing total income, not net
+                statPastMonth.textContent = formatCurrency(pastTotalIncome);
 
-                // Update tooltips
                 const currentPlatformTotals = getPlatformTotals(currentData);
                 attachTooltip('statEstimateCard', 'statEstimateTooltip', currentPlatformTotals, totalIncome);
 
@@ -619,8 +623,9 @@
                     pointHoverRadius: 7,
                 }];
 
-                // Dotted line for past month net – only if current net has NOT exceeded it
-                if (pastNet > 0 && currentMonthNet <= pastNet) {
+                // Dotted line: only show if current net is within $100 below past net
+                const diff = pastNet - currentMonthNet;
+                if (pastNet > 0 && diff >= 0 && diff <= 100) {
                     const pastLineData = values.map(() => pastNet);
                     datasets.push({
                         label: 'Past Month Net',
@@ -647,7 +652,7 @@
                             legend: {
                                 labels: {
                                     color: '#aaa',
-                                    filter: (item) => item.text !== 'Past Month Net' // hide from legend
+                                    filter: (item) => item.text !== 'Past Month Net'
                                 }
                             },
                             tooltip: {
