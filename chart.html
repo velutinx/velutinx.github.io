@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Income Overview</title>
+    <link rel="stylesheet" href="/assets/css/chart.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js">
+    </script>
+</head>
+<body>
+
+    <div class="app" id="app">
+
+        <div class="jcsb">
+            <div class="fw-b fs-20">Income Overview</div>
+            <div class="flex flex-wrap gap-8">
+                <div class="date-picker">
+                    <span class="icon-calendar"></span>
+                    <select id="monthSelect">
+                        <option value="0">Jan</option><option value="1">Feb</option>
+                        <option value="2">Mar</option><option value="3">Apr</option>
+                        <option value="4">May</option><option value="5">Jun</option>
+                        <option value="6" selected>Jul</option>
+                        <option value="7">Aug</option><option value="8">Sep</option>
+                        <option value="9">Oct</option><option value="10">Nov</option>
+                        <option value="11">Dec</option>
+                    </select>
+                    <span class="sep">/</span>
+                    <select id="yearSelect">
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                    <span class="icon-chevron"></span>
+                </div>
+                <div class="radio-group">
+                    <label class="active" data-view="month">Month</label>
+                    <label data-view="year">Year</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="label">Total Estimate Income (USD) <span class="icon-info"></span></div>
+                <div class="value" id="statEstimate">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Past Month Income (USD) <span class="icon-info"></span></div>
+                <div class="value" id="statPastMonth">$0.00</div>
+            </div>
+        </div>
+
+        <div class="chart-row">
+            <div class="chart-col">
+                <div class="chart-title">Cumulative Net Income (USD) <span style="color:#5a6278;font-size:11px;">(income − expenses)</span></div>
+                <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+            </div>
+            <div class="chart-col">
+                <div class="chart-title">Income Streams by Platform (USD)</div>
+                <div class="chart-wrap" id="pieChartContainer"></div>
+                <div class="donut-legend" id="donutLegend"></div>
+            </div>
+        </div>
+
+        <div class="jcsb mt-20">
+            <div class="fw-b fs-20">Income Details</div>
+            <div class="flex flex-wrap gap-8">
+                <button class="btn-outline" id="exportBtn">
+                    <span class="icon-download"></span> Export Current View (CSV)
+                </button>
+                <div class="date-picker" style="max-width:150px;">
+                    <span class="icon-calendar"></span>
+                    <span>2026-07</span>
+                    <span class="icon-chevron"></span>
+                </div>
+                <div class="radio-group">
+                    <label class="active">Month</label>
+                    <label>Year</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex jcfe mt-6">
+            <div class="search-box" style="max-width:220px;width:100%;">
+                <span class="icon-search"></span>
+                <input type="text" placeholder="Search all fields..." id="searchInput" />
+            </div>
+        </div>
+
+        <div class="table-wrap mt-4" id="tableWrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th data-sort="date">Date <span class="sort-icon">↕</span></th>
+                        <th data-sort="subscriber">Subscriber <span class="sort-icon">↕</span></th>
+                        <th data-sort="tag">TAG <span class="sort-icon">↕</span></th>
+                        <th data-sort="platform">Platform <span class="sort-icon">↕</span></th>
+                        <th data-sort="type">Type <span class="sort-icon">↕</span></th>
+                        <th data-sort="amount">Attempted Amt. <span class="sort-icon">↕</span></th>
+                        <th data-sort="share">Creator's Share <span class="sort-icon">↕</span></th>
+                        <th data-sort="status">Status <span class="sort-icon">↕</span></th>
+                        <th data-sort="orderId">Order ID <span class="sort-icon">↕</span></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar">
+            <span>Total <span id="rowCount">0</span> records</span>
+            <div class="page-controls">
+                <select id="pageSizeSelect">
+                    <option value="10">10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="50" selected>50 / page</option>
+                    <option value="100">100 / page</option>
+                </select>
+                <button class="page-btn" id="prevPageBtn" disabled><span class="icon-chevron-left"></span></button>
+                <span class="page-num" id="currentPageDisplay">1</span>
+                <button class="page-btn" id="nextPageBtn" disabled><span class="icon-chevron-right"></span></button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── DATA ───────────────────────────────────────────────────────────
+            var INCOME_PLATFORMS = ['Patreon', 'Ko-fi', 'Unifans', 'Subscribestar', 'Website'];
+            var EXPENSE_PLATFORMS = ['Twitter', 'Instagram', 'Facebook', 'TikTok', 'YouTube', 'Discord', 'Reddit'];
+
+            function randomExpensePlatform() {
+                return EXPENSE_PLATFORMS[Math.floor(Math.random() * EXPENSE_PLATFORMS.length)];
+            }
+
+            var expenseEntries = [
+                { date: '2026-07-02', subscriber: 'system_fee', tag: 'SYS-001', type: 'Platform Fee', amount: 2.50, share: 2.50, status: 'Expense', orderId: 'EXP-001' },
+                { date: '2026-07-06', subscriber: 'payment_gateway', tag: 'SYS-002', type: 'Processing Fee', amount: 1.80, share: 1.80, status: 'Expense', orderId: 'EXP-002' },
+                { date: '2026-07-14', subscriber: 'marketing_ads', tag: 'SYS-003', type: 'Ad Spend', amount: 5.00, share: 5.00, status: 'Expense', orderId: 'EXP-003' },
+                { date: '2026-07-21', subscriber: 'subscription_fee', tag: 'SYS-004', type: 'Service Fee', amount: 3.20, share: 3.20, status: 'Expense', orderId: 'EXP-004' },
+                { date: '2026-07-27', subscriber: 'refund_charge', tag: 'SYS-005', type: 'Refund', amount: 4.50, share: 4.50, status: 'Expense', orderId: 'EXP-005' },
+            ];
+
+            var incomeEntries = [
+                { date: '2026-07-01', subscriber: 'alice_creates', tag: 'U-1001', platform: 'Patreon', type: 'Subscription', amount: 12.99, share: 10.39, status: 'Income', orderId: 'ORD-7A1B2C' },
+                { date: '2026-07-03', subscriber: 'bob_artist', tag: 'U-1002', platform: 'Ko-fi', type: 'Commission', amount: 5.50, share: 4.40, status: 'Income', orderId: 'ORD-8D3E4F' },
+                { date: '2026-07-05', subscriber: 'charlie_designs', tag: 'U-1003', platform: 'Unifans', type: 'Unlock', amount: 24.00, share: 19.20, status: 'Income', orderId: 'ORD-9G5H6I' },
+                { date: '2026-07-08', subscriber: 'diana_photos', tag: 'U-1004', platform: 'Subscribestar', type: 'Tier', amount: 8.75, share: 7.00, status: 'Income', orderId: 'ORD-1J7K8L' },
+                { date: '2026-07-10', subscriber: 'eve_writes', tag: 'U-1005', platform: 'Website', type: 'Direct', amount: 3.20, share: 2.56, status: 'Income', orderId: 'ORD-2M9N0O' },
+                { date: '2026-07-12', subscriber: 'frank_music', tag: 'U-1006', platform: 'Patreon', type: 'Subscription', amount: 15.00, share: 15.00, status: 'Income', orderId: 'ORD-3P1Q2R' },
+                { date: '2026-07-15', subscriber: 'grace_art', tag: 'U-1007', platform: 'Ko-fi', type: 'Commission', amount: 6.50, share: 6.50, status: 'Income', orderId: 'ORD-4S3T5U' },
+                { date: '2026-07-18', subscriber: 'henry_crafts', tag: 'U-1008', platform: 'Unifans', type: 'Unlock', amount: 42.00, share: 33.60, status: 'Income', orderId: 'ORD-5V6W7X' },
+                { date: '2026-07-20', subscriber: 'irene_illustrator', tag: 'U-1009', platform: 'Subscribestar', type: 'Tier', amount: 12.99, share: 10.39, status: 'Income', orderId: 'ORD-6Y8Z9A' },
+                { date: '2026-07-22', subscriber: 'jack_animator', tag: 'U-1010', platform: 'Website', type: 'Direct', amount: 18.50, share: 14.80, status: 'Income', orderId: 'ORD-7B1C2D' },
+                { date: '2026-07-25', subscriber: 'karen_podcast', tag: 'U-1011', platform: 'Patreon', type: 'Subscription', amount: 9.25, share: 7.40, status: 'Income', orderId: 'ORD-8E3F4G' },
+                { date: '2026-07-28', subscriber: 'leo_photography', tag: 'U-1012', platform: 'Ko-fi', type: 'Commission', amount: 4.50, share: 3.60, status: 'Income', orderId: 'ORD-9H5I6J' },
+                { date: '2026-07-29', subscriber: 'mia_illustrator', tag: 'U-1013', platform: 'Unifans', type: 'Unlock', amount: 7.25, share: 5.80, status: 'Income', orderId: 'ORD-0A1B2C' },
+                { date: '2026-07-30', subscriber: 'noah_podcast', tag: 'U-1014', platform: 'Subscribestar', type: 'Tier', amount: 11.50, share: 9.20, status: 'Income', orderId: 'ORD-1C2D3E' },
+            ];
+
+            var tableData = [];
+            incomeEntries.forEach(function(e) {
+                tableData.push({ ...e, platform: e.platform || INCOME_PLATFORMS[Math.floor(Math.random() * INCOME_PLATFORMS.length)] });
+            });
+            expenseEntries.forEach(function(e) {
+                tableData.push({ ...e, platform: randomExpensePlatform() });
+            });
+
+            var pastMonthEntries = [
+                { date: '2026-06-05', subscriber: 'past_user1', tag: 'P-001', platform: 'Patreon', type: 'Subscription', amount: 14.50, share: 11.60, status: 'Income', orderId: 'ORD-P001' },
+                { date: '2026-06-12', subscriber: 'past_user2', tag: 'P-002', platform: 'Ko-fi', type: 'Commission', amount: 8.25, share: 6.60, status: 'Income', orderId: 'ORD-P002' },
+                { date: '2026-06-18', subscriber: 'past_user3', tag: 'P-003', platform: 'Unifans', type: 'Unlock', amount: 22.00, share: 17.60, status: 'Income', orderId: 'ORD-P003' },
+                { date: '2026-06-25', subscriber: 'past_user4', tag: 'P-004', platform: 'Subscribestar', type: 'Tier', amount: 7.75, share: 6.20, status: 'Income', orderId: 'ORD-P004' },
+                { date: '2026-06-28', subscriber: 'past_user5', tag: 'P-005', platform: 'Website', type: 'Direct', amount: 5.50, share: 4.40, status: 'Income', orderId: 'ORD-P005' },
+            ];
+            pastMonthEntries.forEach(function(e) { tableData.push(e); });
+
+            // ─── DOM REFS ──────────────────────────────────────────────────────
+            var tbody = document.getElementById('tableBody');
+            var rowCount = document.getElementById('rowCount');
+            var searchInput = document.getElementById('searchInput');
+            var pageSizeSelect = document.getElementById('pageSizeSelect');
+            var prevPageBtn = document.getElementById('prevPageBtn');
+            var nextPageBtn = document.getElementById('nextPageBtn');
+            var currentPageDisplay = document.getElementById('currentPageDisplay');
+            var statEstimate = document.getElementById('statEstimate');
+            var statPastMonth = document.getElementById('statPastMonth');
+            var monthSelect = document.getElementById('monthSelect');
+            var yearSelect = document.getElementById('yearSelect');
+
+            // ─── STATE ──────────────────────────────────────────────────────────
+            var currentPage = 1;
+            var pageSize = 50;
+            var filteredData = [];
+            var sortKey = 'date';
+            var sortAsc = true;
+            var hiddenSlices = new Set();
+
+            // ─── HELPERS ────────────────────────────────────────────────────────
+            function formatCurrency(val) { return '$' + val.toFixed(2); }
+
+            function sum(arr) { return arr.reduce(function(s, v) { return s + v; }, 0); }
+
+            function filterByMonthYear(data, month, year) {
+                return data.filter(function(r) {
+                    var d = new Date(r.date);
+                    return d.getMonth() + 1 === month && d.getFullYear() === year;
+                });
+            }
+
+            function sortData(data, key, asc) {
+                return data.slice().sort(function(a, b) {
+                    var va = a[key] || '';
+                    var vb = b[key] || '';
+                    if (key === 'amount' || key === 'share') {
+                        va = parseFloat(va) || 0;
+                        vb = parseFloat(vb) || 0;
+                    } else if (key === 'date') {
+                        va = new Date(va).getTime();
+                        vb = new Date(vb).getTime();
+                    } else {
+                        va = va.toString().toLowerCase();
+                        vb = vb.toString().toLowerCase();
+                    }
+                    if (va < vb) return asc ? -1 : 1;
+                    if (va > vb) return asc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            // ─── RENDER TABLE ──────────────────────────────────────────────────
+            function renderTable(data) {
+                var total = data.length;
+                var totalPages = Math.max(1, Math.ceil(total / pageSize));
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                var start = (currentPage - 1) * pageSize;
+                var end = Math.min(start + pageSize, total);
+                var pageData = data.slice(start, end);
+
+                if (total === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No Records</td></tr>';
+                    rowCount.textContent = '0';
+                    currentPageDisplay.textContent = '1';
+                    prevPageBtn.disabled = true;
+                    nextPageBtn.disabled = true;
+                    return;
+                }
+
+                var html = '';
+                pageData.forEach(function(row, idx) {
+                    var realIdx = data.indexOf(row);
+                    var statusCls = row.status === 'Income' ? 'income' : 'expense';
+                    html +=
+                        '<tr data-idx="' + realIdx + '">' +
+                        '<td>' + row.date + '</td>' +
+                        '<td>' + row.subscriber + '</td>' +
+                        '<td>' + row.tag + '</td>' +
+                        '<td>' + row.platform + '</td>' +
+                        '<td>' + row.type + '</td>' +
+                        '<td class="editable" contenteditable="true" data-field="amount" data-idx="' + realIdx +
+                        '">' + row.amount.toFixed(2) + '</td>' +
+                        '<td class="editable" contenteditable="true" data-field="share" data-idx="' + realIdx +
+                        '">' + row.share.toFixed(2) + '</td>' +
+                        '<td><span class="status-badge ' + statusCls + '">' + row.status + '</span></td>' +
+                        '<td>' + row.orderId + '</td>' +
+                        '</tr>';
+                });
+                tbody.innerHTML = html;
+                rowCount.textContent = total;
+                currentPageDisplay.textContent = currentPage;
+
+                prevPageBtn.disabled = (currentPage <= 1);
+                nextPageBtn.disabled = (currentPage >= totalPages);
+
+                document.querySelectorAll('.editable').forEach(function(el) {
+                    el.addEventListener('blur', onCellEdit);
+                    el.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+                    });
+                });
+            }
+
+            function onCellEdit(e) {
+                var el = e.target;
+                var idx = parseInt(el.dataset.idx, 10);
+                var field = el.dataset.field;
+                if (isNaN(idx) || idx < 0 || idx >= tableData.length) return;
+                var raw = el.textContent.trim();
+                var val = parseFloat(raw);
+                if (isNaN(val) || val < 0) {
+                    el.textContent = tableData[idx][field].toFixed(2);
+                    return;
+                }
+                tableData[idx][field] = val;
+                updateAll();
+            }
+
+            // ─── UPDATE FUNCTIONS ──────────────────────────────────────────────
+            function updateAll() {
+                updateStatsAndCharts();
+                applyFilterAndRender();
+            }
+
+            function updateStatsAndCharts() {
+                var month = parseInt(monthSelect.value) + 1;
+                var year = parseInt(yearSelect.value);
+                var currentMonthData = filterByMonthYear(tableData, month, year);
+
+                var incomeCurrent = currentMonthData.filter(function(r) { return r.status === 'Income'; });
+                var expenseCurrent = currentMonthData.filter(function(r) { return r.status === 'Expense'; });
+                var totalIncome = sum(incomeCurrent.map(function(r) { return r.amount; }));
+                var totalExpense = sum(expenseCurrent.map(function(r) { return r.amount; }));
+                var netEstimate = totalIncome - totalExpense;
+
+                var prevMonth = month === 1 ? 12 : month - 1;
+                var prevYear = month === 1 ? year - 1 : year;
+                var pastMonthData = filterByMonthYear(tableData, prevMonth, prevYear);
+                var pastIncome = pastMonthData.filter(function(r) { return r.status === 'Income'; });
+                var pastTotal = sum(pastIncome.map(function(r) { return r.amount; }));
+
+                statEstimate.textContent = formatCurrency(netEstimate);
+                statPastMonth.textContent = formatCurrency(pastTotal);
+
+                updateLineChart(currentMonthData);
+                updatePieChart(currentMonthData);
+            }
+
+            function applyFilterAndRender() {
+                var q = searchInput.value.toLowerCase().trim();
+                var month = parseInt(monthSelect.value) + 1;
+                var year = parseInt(yearSelect.value);
+
+                var data = filterByMonthYear(tableData, month, year);
+                if (q) {
+                    data = data.filter(function(r) {
+                        var amtStr = r.amount.toFixed(2);
+                        var shareStr = r.share.toFixed(2);
+                        var searchStr = [
+                            r.date, r.subscriber, r.tag, r.platform, r.type,
+                            amtStr, shareStr,
+                            r.status, r.orderId
+                        ].join(' ').toLowerCase();
+                        return searchStr.includes(q);
+                    });
+                }
+                data = sortData(data, sortKey, sortAsc);
+                filteredData = data;
+                renderTable(data);
+            }
+
+            // ─── LINE CHART ─────────────────────────────────────────────────────
+            var lineChartInstance = null;
+
+            function updateLineChart(data) {
+                var ctx = document.getElementById('lineChart').getContext('2d');
+                var sorted = data.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+
+                var dayMap = {};
+                sorted.forEach(function(r) {
+                    var d = r.date;
+                    if (!dayMap[d]) dayMap[d] = 0;
+                    if (r.status === 'Income') {
+                        dayMap[d] += r.amount;
+                    } else {
+                        dayMap[d] -= r.amount;
+                    }
+                });
+
+                var dates = Object.keys(dayMap).sort();
+                var cumulative = 0;
+                var labels = [];
+                var values = [];
+
+                if (dates.length === 0) {
+                    for (var i = 1; i <= 5; i++) {
+                        var d = new Date(2026, 6, i * 7 - 6);
+                        labels.push((d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getDate().toString().padStart(2, '0'));
+                        values.push(0);
+                    }
+                } else {
+                    dates.forEach(function(d) {
+                        cumulative += dayMap[d];
+                        var dt = new Date(d);
+                        labels.push((dt.getMonth() + 1).toString().padStart(2, '0') + '/' + dt.getDate().toString().padStart(2, '0'));
+                        values.push(cumulative);
+                    });
+                }
+
+                if (lineChartInstance) lineChartInstance.destroy();
+
+                lineChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Cumulative Net (USD)',
+                            data: values,
+                            backgroundColor: 'rgba(67, 51, 255, 0.2)',
+                            borderColor: '#4333FF',
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.2,
+                            pointBackgroundColor: '#4333FF',
+                            pointBorderColor: '#0c1017',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        return '$' + ctx.parsed.y.toFixed(2);
+                                    }
+                                },
+                                backgroundColor: 'rgba(20,24,34,0.92)',
+                                borderColor: '#2a2f38',
+                                borderWidth: 1,
+                                titleColor: '#e0e0e0',
+                                bodyColor: '#d0d8e8',
+                                cornerRadius: 8,
+                                padding: 6,
+                                titleFont: { size: 11 },
+                                bodyFont: { size: 12 },
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                                ticks: {
+                                    callback: function(v) { return '$' + v.toFixed(1); },
+                                    font: { size: 10 },
+                                    color: '#5a6278'
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 10 },
+                                    color: '#5a6278',
+                                    maxTicksLimit: 15,
+                                }
+                            }
+                        },
+                        interaction: { intersect: false, mode: 'index' }
+                    }
+                });
+            }
+
+            // ─── PIE CHART (ECharts) ───────────────────────────────────────────
+            var pieChartInstance = null;
+            var PIE_PLATFORMS = ['Patreon', 'Ko-fi', 'Unifans', 'Subscribestar', 'Website'];
+            var PIE_COLORS = ['#4333FF', '#DAE89E', '#FCDDEC', '#80D8FF', '#BBD3FB'];
+
+            function updatePieChart(data) {
+                var container = document.getElementById('pieChartContainer');
+                if (!pieChartInstance) {
+                    pieChartInstance = echarts.init(container, 'dark');
+                }
+
+                var typeMap = {};
+                data.forEach(function(r) {
+                    if (r.status === 'Expense') return;
+                    var p = r.platform || 'Other';
+                    if (!PIE_PLATFORMS.includes(p)) return;
+                    if (!typeMap[p]) typeMap[p] = 0;
+                    typeMap[p] += r.amount;
+                });
+
+                var pieData = PIE_PLATFORMS.map(function(label, i) {
+                    return {
+                        name: label,
+                        value: typeMap[label] || 0,
+                        itemStyle: {
+                            color: PIE_COLORS[i % PIE_COLORS.length],
+                            borderRadius: 10,
+                            borderColor: '#0c1017',
+                            borderWidth: 2,
+                        },
+                        emphasis: {
+                            scale: true,
+                            scaleSize: 12,
+                            itemStyle: { borderWidth: 3, borderColor: '#fff' }
+                        }
+                    };
+                });
+
+                // NOTE: We no longer force hidden values to 0 here. 
+                // ECharts will handle hiding them via the legend.selected property below.
+
+var option = {
+    tooltip: {
+        trigger: 'item',
+        backgroundColor: 'rgba(20,24,34,0.92)',
+        borderColor: '#2a2f38',
+        borderWidth: 1,
+        padding: [6, 12],
+        textStyle: { color: '#e0e0e0', fontSize: 11 },
+        // This line forces the box to shrink to exactly the width of your text
+        extraCssText: 'width: max-content !important; min-width: 0 !important; height: max-content !important; min-height: 0 !important; white-space: nowrap; line-height: 1.2 !important;',
+        formatter: function(params) {
+            if (!params || params.value === 0) return '';
+            var pct = params.percent ? params.percent.toFixed(1) : 0;
+            return '<strong>' + params.name + '</strong><br/>$' + params.value.toFixed(2) + ' (' + pct + '%)';
+        },
+        position: function(point) {
+            return [point[0] + 12, point[1] - 4];
+        }
+    },
+                    legend: { 
+                        show: false,
+                        selected: (function() {
+                            var state = {};
+                            PIE_PLATFORMS.forEach(function(p) {
+                                state[p] = !hiddenSlices.has(p);
+                            });
+                            return state;
+                        })()
+                    },
+                    series: [{
+                        type: 'pie',
+                        radius: ['42%', '68%'],
+                        center: ['50%', '50%'],
+                        avoidLabelOverlap: true,
+                        padAngle: 1.5,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#0c1017',
+                            borderWidth: 2,
+                        },
+                        emphasis: {
+                            scale: true,
+                            scaleSize: 14,
+                            itemStyle: { borderWidth: 3, borderColor: '#ffffff' }
+                        },
+                        label: { show: false },
+                        labelLine: { show: false },
+                        data: pieData,
+                        animationDuration: 700,
+                        animationEasing: 'cubicOut',
+                        animationDelay: function(idx) {
+                            return idx * 50;
+                        },
+                    }]
+                };
+
+                // NOTE: Removed "true" so we don't destroy the instance when updating filters
+                pieChartInstance.setOption(option);
+                pieChartInstance.resize();
+
+                buildLegend(pieData);
+            }
+
+            function buildLegend(pieData) {
+                var container = document.getElementById('donutLegend');
+                var html = '';
+                pieData.forEach(function(d, i) {
+                    var isHidden = hiddenSlices.has(d.name);
+                    var color = d.itemStyle.color;
+                    
+                    // Display the true value so it can be crossed out natively by your CSS
+                    var valDisplay = '$' + d.value.toFixed(2); 
+                    
+                    html +=
+                        '<div class="legend-item ' + (isHidden ? 'hidden' : '') + '" data-name="' + d.name +
+                        '" data-index="' + i + '">' +
+                        '<span class="legend-dot" style="background:' + color + ';"></span>' +
+                        d.name + ' <span style="color:#5a6278;font-size:11px;">(' + valDisplay + ')</span>' +
+                        '</div>';
+                });
+                container.innerHTML = html;
+
+                container.querySelectorAll('.legend-item').forEach(function(item) {
+                    item.addEventListener('click', function(e) {
+                        var name = this.dataset.name;
+                        toggleSlice(name);
+                    });
+                });
+            }
+
+            function toggleSlice(name) {
+                if (hiddenSlices.has(name)) {
+                    hiddenSlices.delete(name);
+                } else {
+                    hiddenSlices.add(name);
+                }
+
+                // Dispatch ECharts action to trigger native animation instead of redrawing everything
+                pieChartInstance.dispatchAction({
+                    type: 'legendToggleSelect',
+                    name: name
+                });
+
+                // Update custom HTML legend UI classes
+                document.querySelectorAll('.legend-item').forEach(function(el) {
+                    var n = el.dataset.name;
+                    if (hiddenSlices.has(n)) {
+                        el.classList.add('hidden');
+                    } else {
+                        el.classList.remove('hidden');
+                    }
+                });
+
+                var msg = hiddenSlices.has(name) ? '"' + name + '" hidden' : '"' + name + '" shown';
+                showToast(msg);
+            }
+
+            function showToast(msg) {
+                var existing = document.querySelector('.toast');
+                if (existing) existing.remove();
+                var toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = msg;
+                document.body.appendChild(toast);
+                setTimeout(function() { toast.remove(); }, 1800);
+            }
+
+            // ─── EXPORT CSV ─────────────────────────────────────────────────────
+            function exportCSV() {
+                var rows = filteredData.map(function(r) {
+                    return {
+                        Date: r.date,
+                        Subscriber: r.subscriber,
+                        TAG: r.tag,
+                        Platform: r.platform,
+                        Type: r.type,
+                        'Attempted Amt.': r.amount.toFixed(2),
+                        "Creator's Share": r.share.toFixed(2),
+                        Status: r.status,
+                        'Order ID': r.orderId,
+                    };
+                });
+                if (rows.length === 0) { showToast('No data to export'); return; }
+                var headers = Object.keys(rows[0]);
+                var csv = headers.join(',') + '\n';
+                rows.forEach(function(row) {
+                    csv += headers.map(function(h) {
+                        var val = row[h] || '';
+                        if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) val = '"' + val.replace(/"/g, '""') + '"';
+                        return val;
+                    }).join(',') + '\n';
+                });
+                var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'income_overview.csv';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+
+            // ─── SORTING ────────────────────────────────────────────────────────
+            function setupSorting() {
+                document.querySelectorAll('th[data-sort]').forEach(function(th) {
+                    th.addEventListener('click', function() {
+                        var key = this.dataset.sort;
+                        if (sortKey === key) sortAsc = !sortAsc;
+                        else { sortKey = key; sortAsc = true; }
+                        document.querySelectorAll('th .sort-icon').forEach(function(icon) { icon.textContent = '↕'; });
+                        var icon = this.querySelector('.sort-icon');
+                        icon.textContent = sortAsc ? '↑' : '↓';
+                        applyFilterAndRender();
+                    });
+                });
+            }
+
+            // ─── RESIZE OBSERVER ──────────────────────────────────────────────
+            function setupResize() {
+                var container = document.getElementById('pieChartContainer');
+                var ro = new ResizeObserver(function() { if (pieChartInstance) pieChartInstance.resize(); });
+                ro.observe(container);
+            }
+
+            // ─── INIT ──────────────────────────────────────────────────────────
+            function init() {
+                pageSizeSelect.value = pageSize;
+                setupSorting();
+                applyFilterAndRender();
+                updateStatsAndCharts();
+                setupResize();
+
+                searchInput.addEventListener('input', function() {
+                    currentPage = 1;
+                    applyFilterAndRender();
+                });
+
+                pageSizeSelect.addEventListener('change', function() {
+                    pageSize = parseInt(this.value);
+                    currentPage = 1;
+                    applyFilterAndRender();
+                });
+
+                prevPageBtn.addEventListener('click', function() {
+                    if (currentPage > 1) { currentPage--; applyFilterAndRender(); }
+                });
+
+                nextPageBtn.addEventListener('click', function() {
+                    var totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
+                    if (currentPage < totalPages) { currentPage++; applyFilterAndRender(); }
+                });
+
+                monthSelect.addEventListener('change', function() {
+                    currentPage = 1;
+                    applyFilterAndRender();
+                    updateStatsAndCharts();
+                });
+
+                yearSelect.addEventListener('change', function() {
+                    currentPage = 1;
+                    applyFilterAndRender();
+                    updateStatsAndCharts();
+                });
+
+                document.querySelectorAll('.radio-group label').forEach(function(label) {
+                    label.addEventListener('click', function() {
+                        document.querySelectorAll('.radio-group label').forEach(function(l) { l.classList.remove('active'); });
+                        this.classList.add('active');
+                        applyFilterAndRender();
+                        updateStatsAndCharts();
+                    });
+                });
+
+                document.getElementById('exportBtn').addEventListener('click', exportCSV);
+
+                window.addEventListener('resize', function() {
+                    if (pieChartInstance) pieChartInstance.resize();
+                });
+
+                setTimeout(function() {
+                    var month = parseInt(monthSelect.value) + 1;
+                    var year = parseInt(yearSelect.value);
+                    var currentData = filterByMonthYear(tableData, month, year);
+                    updatePieChart(currentData);
+                }, 80);
+            }
+
+            init();
+
+        })();
+    </script>
+
+</body>
+</html>
