@@ -476,7 +476,7 @@ body { background: #0a0c10; display: flex; justify-content: center; padding: 24p
 .stat-tooltip .tooltip-title { font-weight: 600; color: #e0e0e0; border-bottom: 1px solid #2a2f38; padding-bottom: 4px; margin-bottom: 4px; }
 .stat-tooltip .tooltip-row { display: flex; justify-content: space-between; gap: 20px; }
 .stat-tooltip .tooltip-row .label { color: #94a3b8; }
-.stat-tooltip .tooltip-row .value { font-weight: 500; color: #e0e0e0; }
+.stat-tooltip .tooltip-row .value { font-weight: 500; color: #e0e0e0; font-size: 13px !important; }
 .stat-tooltip .tooltip-total { border-top: 1px solid #2a2f38; padding-top: 4px; margin-top: 4px; font-weight: 700; color: #f0f0f0; display: flex; justify-content: space-between; font-size: 15px; }
 .stat-tooltip .tooltip-total .label { color: #94a3b8; font-size: 16px; /* optional: makes the word "Total" larger */ }
 .stat-tooltip .tooltip-total .value { font-size: 18px !important; font-weight: 700; color: #ffffff; }
