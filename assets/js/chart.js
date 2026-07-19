@@ -1,0 +1,792 @@
+//     velutinx.github.io/assets/js/chart.js – Income Overview Dashboard
+
+(function() {
+    'use strict';
+
+    // ─── CONSTANTS ─────────────────────────────────────────────────────
+    const WORKER_URL = 'https://spreadsheet-database.velutinx.workers.dev/entries';
+    const INCOME_PLATFORMS = ['Patreon', 'Ko-fi', 'Unifans', 'Subscribestar', 'Website'];
+    const EXPENSE_PLATFORM_MAP = {
+        'railway': 'Railway',
+        'twitter': 'Twitter',
+        'instagram': 'Instagram',
+        'facebook': 'Facebook',
+        'tiktok': 'TikTok',
+        'youtube': 'YouTube',
+        'discord': 'Discord',
+        'reddit': 'Reddit',
+        'ad spend': 'Ad Spend'
+    };
+    let tableData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    let pageSize = 50;
+    let sortKey = 'date';
+    let sortAsc = false;
+    let hiddenSlices = new Set();
+    let lineChartInstance = null;
+    let pieChartInstance = null;
+    let viewMode = 'month';
+    let pastMonthNet = 0;
+    let currentMonthNet = 0;
+
+    // ─── DOM REFS ──────────────────────────────────────────────────────
+    const tbody = document.getElementById('tableBody');
+    const rowCount = document.getElementById('rowCount');
+    const searchInput = document.getElementById('searchInput');
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const currentPageDisplay = document.getElementById('currentPageDisplay');
+    const statEstimate = document.getElementById('statEstimate');
+    const statPastMonth = document.getElementById('statPastMonth');
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    const exportBtn = document.getElementById('exportBtn');
+
+    // ─── STAT TOOLTIP LOGIC ───────────────────────────────────────────
+    function buildTooltipHTML(platformTotals, total) {
+        let html = '<div class="tooltip-title">Income breakdown</div>';
+        for (const [platform, amount] of Object.entries(platformTotals)) {
+            if (amount === 0) continue;
+            html += `<div class="tooltip-row">
+                <span class="label">${platform}</span>
+                <span class="value">$${amount.toFixed(2)}</span>
+            </div>`;
+        }
+        html += `<div class="tooltip-total">
+            <span class="label">Total</span>
+            <span class="value">$${total.toFixed(2)}</span>
+        </div>`;
+        return html;
+    }
+
+    function attachTooltip(cardId, tooltipId, platformTotals, total) {
+        const card = document.getElementById(cardId);
+        const tooltip = document.getElementById(tooltipId);
+        if (!card || !tooltip) return;
+        const html = buildTooltipHTML(platformTotals, total);
+        tooltip.innerHTML = html;
+
+        card.addEventListener('mouseenter', function(e) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+        });
+        card.addEventListener('mousemove', function(e) {
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+        });
+        card.addEventListener('mouseleave', function() {
+            tooltip.style.display = 'none';
+        });
+    }
+
+    // ─── HELPERS ──────────────────────────────────────────────────────
+    function formatCurrency(val) { return '$' + val.toFixed(2); }
+    function sum(arr) { return arr.reduce((s, v) => s + v, 0); }
+
+    function filterByPeriod(data, month, year, mode) {
+        if (mode === 'year') {
+            return data.filter(r => new Date(r.date).getFullYear() === year);
+        } else {
+            return data.filter(r => {
+                const d = new Date(r.date);
+                return d.getMonth() + 1 === month && d.getFullYear() === year;
+            });
+        }
+    }
+
+    function getPlatformTotals(data) {
+        const totals = {};
+        INCOME_PLATFORMS.forEach(p => totals[p] = 0);
+        data.forEach(r => {
+            if (r.status === 'Income' && INCOME_PLATFORMS.includes(r.platform)) {
+                totals[r.platform] += r.amount;
+            }
+        });
+        return totals;
+    }
+
+    function sortData(data, key, asc) {
+        return data.slice().sort((a, b) => {
+            let va = a[key] || '';
+            let vb = b[key] || '';
+            if (key === 'amount' || key === 'share') {
+                va = parseFloat(va) || 0;
+                vb = parseFloat(vb) || 0;
+            } else if (key === 'date') {
+                va = new Date(va).getTime();
+                vb = new Date(vb).getTime();
+            } else {
+                va = va.toString().toLowerCase();
+                vb = vb.toString().toLowerCase();
+            }
+            if (va < vb) return asc ? -1 : 1;
+            if (va > vb) return asc ? 1 : -1;
+            return 0;
+        });
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
+    }
+
+    function showToast(msg) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1800);
+    }
+
+    // ─── FETCH DATA ────────────────────────────────────────────────────
+    async function fetchEntries() {
+        try {
+            const res = await fetch(WORKER_URL);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const entries = await res.json();
+            return entries
+                .filter(e => parseFloat(e.amount) !== 0)
+                .map(e => {
+                    const dateObj = new Date(new Date().getFullYear(), e.month - 1, e.day);
+                    const dateStr = dateObj.toISOString().slice(0, 10);
+                    const amount = parseFloat(e.amount);
+                    const isExpense = e.category === 'Expenses';
+
+                    let platform = 'Other';
+                    if (isExpense) {
+                        const conceptLower = (e.concept || '').toLowerCase();
+                        let matched = false;
+                        for (const [key, plat] of Object.entries(EXPENSE_PLATFORM_MAP)) {
+                            if (conceptLower.includes(key)) {
+                                platform = plat;
+                                matched = true;
+                                break;
+                            }
+                        }
+                        if (!matched) platform = 'Other';
+                    } else {
+                        if (e.category.includes('Patreon')) platform = 'Patreon';
+                        else if (e.category.includes('Ko-Fi')) platform = 'Ko-fi';
+                        else if (e.category.includes('Subscribestar')) platform = 'Subscribestar';
+                        else if (e.category.includes('Website')) platform = 'Website';
+                    }
+
+                    let type = '';
+                    if (isExpense) {
+                        type = '';
+                    } else {
+                        if (e.category.includes('Patreon')) {
+                            if (amount === 3) type = 'M-0.5';
+                            else if (amount >= 5 && amount < 6) type = 'M-1';
+                            else if (amount >= 6 && amount < 9.5) type = 'M-1';
+                            else if (amount >= 18 && amount < 20) type = 'M-2';
+                            else if (amount >= 30 && amount < 32) type = 'M-3';
+                            else type = e.category;
+                        } else if (e.category.includes('Subscribestar')) {
+                            if (amount >= 4.6 && amount <= 5.1) type = 'M-1';
+                            else if (amount >= 16.5 && amount <= 18.5) type = 'M-2';
+                            else if (amount >= 27 && amount <= 31) type = 'M-3';
+                            else type = e.category;
+                        } else if (e.category.includes('Ko-Fi')) {
+                            if (amount === 9) type = 'M-2';
+                            else type = e.category;
+                        } else if (e.category === 'Website payments') {
+                            const concept = e.concept || '';
+                            const packMatch = concept.match(/P-(\d+)/);
+                            if (packMatch) {
+                                type = `P-${packMatch[1]}`;
+                            } else {
+                                const memMatch = concept.match(/M-(\d)/);
+                                if (memMatch) {
+                                    type = `M-${memMatch[1]}`;
+                                } else {
+                                    type = e.category;
+                                }
+                            }
+                        } else {
+                            type = e.category;
+                        }
+                    }
+
+                    let subscriber = 'Unknown';
+                    if (isExpense) {
+                        subscriber = e.concept || 'Unknown';
+                    } else {
+                        const concept = e.concept || '';
+                        const parts = concept.split('–');
+                        if (parts.length > 0) {
+                            subscriber = parts[0].trim();
+                        } else {
+                            subscriber = concept;
+                        }
+                    }
+
+                    let orderId = '';
+                    if (e.category === 'Website payments' && e.id) {
+                        orderId = `ORD-${String(e.id).padStart(4, '0')}`;
+                    }
+
+                    const share = null;
+                    const status = isExpense ? 'Expense' : 'Income';
+
+                    return {
+                        date: dateStr,
+                        subscriber: subscriber,
+                        platform: platform,
+                        type: type,
+                        amount: amount,
+                        share: share,
+                        status: status,
+                        orderId: orderId,
+                        _raw: e
+                    };
+                });
+        } catch (err) {
+            console.error('Failed to fetch entries:', err);
+            showToast('Error loading data from server.');
+            return [];
+        }
+    }
+
+    // ─── RENDER TABLE ──────────────────────────────────────────────────
+    function renderTable(data) {
+        const total = data.length;
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const start = (currentPage - 1) * pageSize;
+        const end = Math.min(start + pageSize, total);
+        const pageData = data.slice(start, end);
+
+        if (total === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No Records</td></tr>';
+            rowCount.textContent = '0';
+            currentPageDisplay.textContent = '1';
+            prevPageBtn.disabled = true;
+            nextPageBtn.disabled = true;
+            return;
+        }
+
+        let html = '';
+        pageData.forEach((row, idx) => {
+            const realIdx = data.indexOf(row);
+            const statusCls = row.status === 'Income' ? 'income' : 'expense';
+            const shareDisplay = (row.share !== null && row.share !== undefined) ? row.share.toFixed(2) : '—';
+            html +=
+                '<tr data-idx="' + realIdx + '">' +
+                '<td>' + row.date + '</td>' +
+                '<td>' + escapeHtml(row.subscriber) + '</td>' +
+                '<td>' + escapeHtml(row.platform) + '</td>' +
+                '<td>' + escapeHtml(row.type) + '</td>' +
+                '<td class="editable" contenteditable="true" data-field="amount" data-idx="' + realIdx +
+                '">' + row.amount.toFixed(2) + '</td>' +
+                '<td>' + shareDisplay + '</td>' +
+                '<td><span class="status-badge ' + statusCls + '">' + row.status + '</span></td>' +
+                '<td>' + row.orderId + '</td>' +
+                '</tr>';
+        });
+        tbody.innerHTML = html;
+        rowCount.textContent = total;
+        currentPageDisplay.textContent = currentPage;
+
+        prevPageBtn.disabled = (currentPage <= 1);
+        nextPageBtn.disabled = (currentPage >= totalPages);
+
+        document.querySelectorAll('.editable').forEach(function(el) {
+            el.addEventListener('blur', onCellEdit);
+            el.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+            });
+        });
+    }
+
+    function onCellEdit(e) {
+        const el = e.target;
+        const idx = parseInt(el.dataset.idx, 10);
+        const field = el.dataset.field;
+        if (isNaN(idx) || idx < 0 || idx >= tableData.length) return;
+        const raw = el.textContent.trim();
+        const val = parseFloat(raw);
+        if (isNaN(val) || val < 0) {
+            el.textContent = tableData[idx][field].toFixed(2);
+            return;
+        }
+        tableData[idx][field] = val;
+        updateAll();
+    }
+
+    // ─── UPDATE FUNCTIONS ──────────────────────────────────────────────
+    function updateAll() {
+        updateStatsAndCharts();
+        applyFilterAndRender();
+    }
+
+    function updateStatsAndCharts() {
+        const month = parseInt(monthSelect.value) + 1;
+        const year = parseInt(yearSelect.value);
+        const currentData = filterByPeriod(tableData, month, year, viewMode);
+        const incomeCurrent = currentData.filter(r => r.status === 'Income');
+        const expenseCurrent = currentData.filter(r => r.status === 'Expense');
+        const totalIncome = sum(incomeCurrent.map(r => r.amount));
+        const totalExpense = sum(expenseCurrent.map(r => r.amount));
+        const netEstimate = totalIncome - totalExpense;
+        currentMonthNet = netEstimate;
+
+        const prevMonth = month === 1 ? 12 : month - 1;
+        const prevYear = month === 1 ? year - 1 : year;
+        const pastMonthData = filterByPeriod(tableData, prevMonth, prevYear, 'month');
+        const pastIncome = pastMonthData.filter(r => r.status === 'Income');
+        const pastExpense = pastMonthData.filter(r => r.status === 'Expense');
+        const pastTotalIncome = sum(pastIncome.map(r => r.amount));
+        const pastTotalExpense = sum(pastExpense.map(r => r.amount));
+        const pastNet = pastTotalIncome - pastTotalExpense;
+        pastMonthNet = pastNet;
+
+        statEstimate.textContent = formatCurrency(netEstimate);
+        statPastMonth.textContent = formatCurrency(pastTotalIncome);
+
+        const currentPlatformTotals = getPlatformTotals(currentData);
+        attachTooltip('statEstimateCard', 'statEstimateTooltip', currentPlatformTotals, totalIncome);
+
+        const pastPlatformTotals = getPlatformTotals(pastMonthData);
+        attachTooltip('statPastMonthCard', 'statPastMonthTooltip', pastPlatformTotals, pastTotalIncome);
+
+        updateLineChart(currentData, pastNet);
+        updatePieChart(currentData);
+    }
+
+    function applyFilterAndRender() {
+        const q = searchInput.value.toLowerCase().trim();
+        const month = parseInt(monthSelect.value) + 1;
+        const year = parseInt(yearSelect.value);
+
+        let data = filterByPeriod(tableData, month, year, viewMode);
+        if (q) {
+            data = data.filter(r => {
+                const amtStr = r.amount.toFixed(2);
+                const searchStr = [
+                    r.date, r.subscriber, r.platform, r.type,
+                    amtStr,
+                    r.status, r.orderId
+                ].join(' ').toLowerCase();
+                return searchStr.includes(q);
+            });
+        }
+        data = sortData(data, sortKey, sortAsc);
+        filteredData = data;
+        renderTable(data);
+    }
+
+    // ─── LINE CHART ─────────────────────────────────────────────────────
+    function updateLineChart(data, pastNet) {
+        const ctx = document.getElementById('lineChart').getContext('2d');
+        const sorted = data.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const dayMap = {};
+        sorted.forEach(r => {
+            const d = r.date;
+            if (!dayMap[d]) dayMap[d] = 0;
+            if (r.status === 'Income') {
+                dayMap[d] += r.amount;
+            } else {
+                dayMap[d] -= r.amount;
+            }
+        });
+
+        const dates = Object.keys(dayMap).sort();
+        let cumulative = 0;
+        const labels = [];
+        const values = [];
+
+        if (dates.length === 0) {
+            for (let i = 1; i <= 5; i++) {
+                const d = new Date(2026, 6, i * 7 - 6);
+                labels.push((d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getDate().toString().padStart(2, '0'));
+                values.push(0);
+            }
+        } else {
+            dates.forEach(function(d) {
+                cumulative += dayMap[d];
+                const dt = new Date(d);
+                labels.push((dt.getMonth() + 1).toString().padStart(2, '0') + '/' + dt.getDate().toString().padStart(2, '0'));
+                values.push(cumulative);
+            });
+        }
+
+        if (lineChartInstance) lineChartInstance.destroy();
+
+        const datasets = [{
+            label: 'Cumulative Net (USD)',
+            data: values,
+            backgroundColor: 'rgba(67, 51, 255, 0.2)',
+            borderColor: '#4333FF',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.2,
+            pointBackgroundColor: '#4333FF',
+            pointBorderColor: '#0c1017',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 7,
+        }];
+
+        const diff = pastNet - currentMonthNet;
+        if (pastNet > 0 && diff >= 0 && diff <= 100) {
+            const pastLineData = values.map(() => pastNet);
+            datasets.push({
+                label: 'Past Month Net',
+                data: pastLineData,
+                borderColor: '#22c55e',
+                borderWidth: 2,
+                borderDash: [6, 4],
+                pointRadius: 0,
+                fill: false,
+                tension: 0,
+            });
+        }
+
+        lineChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#aaa',
+                            filter: (item) => item.text !== 'Past Month Net' && item.text !== 'Cumulative Net (USD)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return '$' + ctx.parsed.y.toFixed(2);
+                            }
+                        },
+                        backgroundColor: 'rgba(20,24,34,0.92)',
+                        borderColor: '#2a2f38',
+                        borderWidth: 1,
+                        titleColor: '#e0e0e0',
+                        bodyColor: '#d0d8e8',
+                        cornerRadius: 8,
+                        padding: 6,
+                        titleFont: { size: 11 },
+                        bodyFont: { size: 12 },
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        ticks: {
+                            callback: function(v) { return '$' + v.toFixed(1); },
+                            font: { size: 10 },
+                            color: '#5a6278'
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 10 },
+                            color: '#5a6278',
+                            maxTicksLimit: 15,
+                        }
+                    }
+                },
+                interaction: { intersect: false, mode: 'index' }
+            }
+        });
+    }
+
+    // ─── PIE CHART (ECharts) ───────────────────────────────────────────
+    function updatePieChart(data) {
+        const container = document.getElementById('pieChartContainer');
+        if (!pieChartInstance) {
+            pieChartInstance = echarts.init(container, 'dark');
+        }
+
+        const colorMap = {
+            'Patreon': '#A3D8F4',
+            'Ko-fi': '#FBC8D5',
+            'Unifans': '#B0B0B0',
+            'Subscribestar': '#FFEAA7',
+            'Website': '#FFB3B3'
+        };
+
+        const typeMap = {};
+        data.forEach(r => {
+            if (r.status === 'Expense') return;
+            const p = r.platform || 'Other';
+            if (!INCOME_PLATFORMS.includes(p)) return;
+            if (!typeMap[p]) typeMap[p] = 0;
+            typeMap[p] += r.amount;
+        });
+
+        let pieData = INCOME_PLATFORMS
+            .filter(label => typeMap[label] && typeMap[label] > 0)
+            .map(label => ({
+                name: label,
+                value: typeMap[label],
+                itemStyle: {
+                    color: colorMap[label] || '#cccccc',
+                    borderRadius: 10,
+                    borderColor: '#0c1017',
+                    borderWidth: 2,
+                },
+                emphasis: {
+                    scale: true,
+                    scaleSize: 12,
+                    itemStyle: { borderWidth: 3, borderColor: '#fff' }
+                }
+            }));
+
+        if (pieData.length === 0) {
+            pieData = [{ name: 'No data', value: 1, itemStyle: { color: '#555' } }];
+        }
+
+        const option = {
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(20,24,34,0.92)',
+                borderColor: '#2a2f38',
+                borderWidth: 1,
+                padding: [6, 12],
+                textStyle: { color: '#e0e0e0', fontSize: 11 },
+                extraCssText: 'width: max-content !important; min-width: 0 !important; height: max-content !important; min-height: 0 !important; white-space: nowrap; line-height: 1.2 !important;',
+                formatter: function(params) {
+                    if (!params || params.value === 0) return '';
+                    var pct = params.percent ? params.percent.toFixed(1) : 0;
+                    return '<strong>' + params.name + '</strong><br/>$' + params.value.toFixed(2) + ' (' + pct + '%)';
+                },
+                position: function(point) {
+                    return [point[0] + 12, point[1] - 4];
+                }
+            },
+            legend: {
+                show: false,
+                selected: (function() {
+                    var state = {};
+                    INCOME_PLATFORMS.forEach(function(p) {
+                        state[p] = !hiddenSlices.has(p);
+                    });
+                    return state;
+                })()
+            },
+            series: [{
+                type: 'pie',
+                radius: ['42%', '68%'],
+                center: ['50%', '50%'],
+                avoidLabelOverlap: true,
+                padAngle: 1.5,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#0c1017',
+                    borderWidth: 2,
+                },
+                emphasis: {
+                    scale: true,
+                    scaleSize: 14,
+                    itemStyle: { borderWidth: 3, borderColor: '#ffffff' }
+                },
+                label: { show: false },
+                labelLine: { show: false },
+                data: pieData,
+                animationDuration: 700,
+                animationEasing: 'cubicOut',
+                animationDelay: function(idx) {
+                    return idx * 50;
+                },
+            }]
+        };
+
+        pieChartInstance.setOption(option);
+        pieChartInstance.resize();
+
+        buildLegend(pieData);
+    }
+
+    function buildLegend(pieData) {
+        var container = document.getElementById('donutLegend');
+        var html = '';
+        pieData.forEach(function(d, i) {
+            var isHidden = hiddenSlices.has(d.name);
+            var color = d.itemStyle.color;
+            var valDisplay = '$' + d.value.toFixed(2);
+            html +=
+                '<div class="legend-item ' + (isHidden ? 'hidden' : '') + '" data-name="' + d.name +
+                '" data-index="' + i + '">' +
+                '<span class="legend-dot" style="background:' + color + ';"></span>' +
+                d.name + ' <span style="color:#5a6278;font-size:11px;">(' + valDisplay + ')</span>' +
+                '</div>';
+        });
+        container.innerHTML = html;
+
+        container.querySelectorAll('.legend-item').forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                var name = this.dataset.name;
+                toggleSlice(name);
+            });
+        });
+    }
+
+    function toggleSlice(name) {
+        if (hiddenSlices.has(name)) {
+            hiddenSlices.delete(name);
+        } else {
+            hiddenSlices.add(name);
+        }
+
+        pieChartInstance.dispatchAction({
+            type: 'legendToggleSelect',
+            name: name
+        });
+
+        document.querySelectorAll('.legend-item').forEach(function(el) {
+            var n = el.dataset.name;
+            if (hiddenSlices.has(n)) {
+                el.classList.add('hidden');
+            } else {
+                el.classList.remove('hidden');
+            }
+        });
+
+        showToast(hiddenSlices.has(name) ? '"' + name + '" hidden' : '"' + name + '" shown');
+    }
+
+    // ─── EXPORT CSV ─────────────────────────────────────────────────────
+    function exportCSV() {
+        var rows = filteredData.map(function(r) {
+            return {
+                Date: r.date,
+                Subscriber: r.subscriber,
+                Platform: r.platform,
+                Type: r.type,
+                'Attempted Amt.': r.amount.toFixed(2),
+                "Creator's Share": (r.share !== null ? r.share.toFixed(2) : '—'),
+                Status: r.status,
+                'Order ID': r.orderId,
+            };
+        });
+        if (rows.length === 0) { showToast('No data to export'); return; }
+        var headers = Object.keys(rows[0]);
+        var csv = headers.join(',') + '\n';
+        rows.forEach(function(row) {
+            csv += headers.map(function(h) {
+                var val = row[h] || '';
+                if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) val = '"' + val.replace(/"/g, '""') + '"';
+                return val;
+            }).join(',') + '\n';
+        });
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'income_overview.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    // ─── SORTING ────────────────────────────────────────────────────────
+    function setupSorting() {
+        document.querySelectorAll('th[data-sort]').forEach(function(th) {
+            th.addEventListener('click', function() {
+                var key = this.dataset.sort;
+                if (sortKey === key) sortAsc = !sortAsc;
+                else { sortKey = key; sortAsc = false; }
+                document.querySelectorAll('th .sort-icon').forEach(function(icon) { icon.textContent = '↕'; });
+                var icon = this.querySelector('.sort-icon');
+                icon.textContent = sortAsc ? '↑' : '↓';
+                applyFilterAndRender();
+            });
+        });
+    }
+
+    // ─── RESIZE OBSERVER ──────────────────────────────────────────────
+    function setupResize() {
+        var container = document.getElementById('pieChartContainer');
+        var ro = new ResizeObserver(function() { if (pieChartInstance) pieChartInstance.resize(); });
+        ro.observe(container);
+    }
+
+    // ─── VIEW MODE TOGGLE ──────────────────────────────────────────────
+    function setupViewToggle() {
+        const labels = document.querySelectorAll('.radio-group label');
+        labels.forEach(label => {
+            label.addEventListener('click', function() {
+                labels.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                viewMode = this.dataset.view;
+                currentPage = 1;
+                updateAll();
+            });
+        });
+    }
+
+    // ─── INIT ──────────────────────────────────────────────────────────
+    async function init() {
+        const entries = await fetchEntries();
+        tableData = entries;
+        pageSizeSelect.value = pageSize;
+        setupSorting();
+        setupViewToggle();
+        applyFilterAndRender();
+        updateStatsAndCharts();
+        setupResize();
+
+        searchInput.addEventListener('input', function() {
+            currentPage = 1;
+            applyFilterAndRender();
+        });
+
+        pageSizeSelect.addEventListener('change', function() {
+            pageSize = parseInt(this.value);
+            currentPage = 1;
+            applyFilterAndRender();
+        });
+
+        prevPageBtn.addEventListener('click', function() {
+            if (currentPage > 1) { currentPage--; applyFilterAndRender(); }
+        });
+
+        nextPageBtn.addEventListener('click', function() {
+            var totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
+            if (currentPage < totalPages) { currentPage++; applyFilterAndRender(); }
+        });
+
+        monthSelect.addEventListener('change', function() {
+            currentPage = 1;
+            applyFilterAndRender();
+            updateStatsAndCharts();
+        });
+
+        yearSelect.addEventListener('change', function() {
+            currentPage = 1;
+            applyFilterAndRender();
+            updateStatsAndCharts();
+        });
+
+        exportBtn.addEventListener('click', exportCSV);
+
+        window.addEventListener('resize', function() {
+            if (pieChartInstance) pieChartInstance.resize();
+        });
+
+        setTimeout(function() {
+            var month = parseInt(monthSelect.value) + 1;
+            var year = parseInt(yearSelect.value);
+            var currentData = filterByPeriod(tableData, month, year, viewMode);
+            updatePieChart(currentData);
+        }, 80);
+    }
+
+    // ─── RUN ──────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', init);
+})();
