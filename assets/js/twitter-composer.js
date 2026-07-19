@@ -353,9 +353,19 @@ async function sendToWorker(accId) {
             // ─── Trigger scan after posting from account 1 ──────────
 if (accId == 1) {
     const tweetId = data.data.data.id;
-    fetch('https://auto-retweet.velutinx.workers.dev/api/fetch-velutinx2', {
+    const tweetText = text;
+    fetch('https://auto-retweet.velutinx.workers.dev/api/queue/add-direct', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=' }
+        headers: {
+            'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            tweetId: tweetId,
+            text: tweetText,
+            author: '@velutinx2',
+            targetAccount: 'NSFW'
+        })
     })
     .then(() => {
         setTimeout(() => {
