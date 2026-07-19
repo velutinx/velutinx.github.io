@@ -231,13 +231,39 @@
 
                         // Determine "Type" column value
                         let type = e.category;
+                        const amount = parseFloat(e.amount);
+
                         if (e.category.includes('Patreon')) {
-                            // Parse amount to tier
-                            const amount = parseFloat(e.amount);
-                            if (amount === 3) type = 'M-0.5';
-                            else if (amount === 6) type = 'M-1';
-                            else if (amount === 18) type = 'M-3';
-                            else type = e.category; // fallback
+                            // Map based on amount ranges
+                            if (amount === 3) {
+                                type = 'M-0.5';
+                            } else if (amount >= 6 && amount < 9.5) {
+                                type = 'M-1';
+                            } else if (amount >= 18 && amount < 20) {
+                                type = 'M-2';
+                            } else if (amount >= 30 && amount < 32) {
+                                type = 'M-3';
+                            } else {
+                                type = e.category; // fallback
+                            }
+                        } else if (e.category.includes('Subscribestar')) {
+                            // Subscribestar tier mapping
+                            if (amount >= 4.6 && amount <= 5.1) {
+                                type = 'M-1';
+                            } else if (amount >= 16.5 && amount <= 18.5) {
+                                type = 'M-2';
+                            } else if (amount >= 27 && amount <= 31) {
+                                type = 'M-3';
+                            } else {
+                                type = e.category;
+                            }
+                        } else if (e.category.includes('Ko-Fi')) {
+                            // Ko-fi: 9.00 -> M-2
+                            if (amount === 9) {
+                                type = 'M-2';
+                            } else {
+                                type = e.category;
+                            }
                         } else if (e.category === 'Website payments') {
                             // Check concept for pack or membership
                             const concept = e.concept || '';
@@ -260,7 +286,7 @@
                         if (emailMatch) subscriber = emailMatch[1];
                         else if (e.concept) subscriber = e.concept.split(' – ')[0] || 'Unknown';
 
-                        // Order ID – only for Website payments (or if present)
+                        // Order ID – only for Website payments (using entry id)
                         let orderId = '';
                         if (e.category === 'Website payments' && e.id) {
                             orderId = `ORD-${String(e.id).padStart(4, '0')}`;
@@ -528,13 +554,13 @@
                     pieChartInstance = echarts.init(container, 'dark');
                 }
 
-                // Custom color mapping
+                // Custom color mapping (Website = pale red)
                 const colorMap = {
                     'Patreon': '#A3D8F4',
                     'Ko-fi': '#FBC8D5',
                     'Unifans': '#B0B0B0',
                     'Subscribestar': '#A8E6CF',
-                    'Website': '#FFEAA7'
+                    'Website': '#FFB3B3'  // pale red
                 };
 
                 const typeMap = {};
