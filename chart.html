@@ -140,10 +140,11 @@
             let currentPage = 1;
             let pageSize = 50;
             let sortKey = 'date';
-            let sortAsc = true;
+            let sortAsc = false; // default: newest first
             let hiddenSlices = new Set();
             let lineChartInstance = null;
             let pieChartInstance = null;
+            let viewMode = 'month'; // 'month' or 'year'
 
             // ─── DOM REFS ──────────────────────────────────────────────────────
             const tbody = document.getElementById('tableBody');
@@ -163,11 +164,15 @@
             function formatCurrency(val) { return '$' + val.toFixed(2); }
             function sum(arr) { return arr.reduce((s, v) => s + v, 0); }
 
-            function filterByMonthYear(data, month, year) {
-                return data.filter(r => {
-                    const d = new Date(r.date);
-                    return d.getMonth() + 1 === month && d.getFullYear() === year;
-                });
+            function filterByPeriod(data, month, year, mode) {
+                if (mode === 'year') {
+                    return data.filter(r => new Date(r.date).getFullYear() === year);
+                } else {
+                    return data.filter(r => {
+                        const d = new Date(r.date);
+                        return d.getMonth() + 1 === month && d.getFullYear() === year;
+                    });
+                }
             }
 
             function sortData(data, key, asc) {
@@ -224,20 +229,47 @@
                             platform = randomExpensePlatform();
                         }
 
-                        // For "type" we can use category
-                        const type = e.category;
-                        const status = (e.category === 'Expenses') ? 'Expense' : 'Income';
+                        // Determine "Type" column value
+                        let type = e.category;
+                        if (e.category.includes('Patreon')) {
+                            // Parse amount to tier
+                            const amount = parseFloat(e.amount);
+                            if (amount === 3) type = 'M-0.5';
+                            else if (amount === 6) type = 'M-1';
+                            else if (amount === 18) type = 'M-3';
+                            else type = e.category; // fallback
+                        } else if (e.category === 'Website payments') {
+                            // Check concept for pack or membership
+                            const concept = e.concept || '';
+                            const packMatch = concept.match(/P-(\d+)/);
+                            if (packMatch) {
+                                type = `P-${packMatch[1]}`;
+                            } else {
+                                const memMatch = concept.match(/M-(\d)/);
+                                if (memMatch) {
+                                    type = `M-${memMatch[1]}`;
+                                } else {
+                                    type = e.category;
+                                }
+                            }
+                        }
+
                         // Extract subscriber from concept (email)
                         let subscriber = 'Unknown';
                         const emailMatch = e.concept?.match(/\(([^)]+)\)/);
                         if (emailMatch) subscriber = emailMatch[1];
                         else if (e.concept) subscriber = e.concept.split(' – ')[0] || 'Unknown';
 
-                        // Generate a fake order ID if missing
-                        const orderId = e.id ? `ORD-${String(e.id).padStart(4, '0')}` : '';
+                        // Order ID – only for Website payments (or if present)
+                        let orderId = '';
+                        if (e.category === 'Website payments' && e.id) {
+                            orderId = `ORD-${String(e.id).padStart(4, '0')}`;
+                        }
 
-                        // For "share" we assume 80% of amount (just for display)
-                        const share = e.category === 'Expenses' ? e.amount : e.amount * 0.8;
+                        // Creator's Share – leave blank
+                        const share = null;
+
+                        const status = (e.category === 'Expenses') ? 'Expense' : 'Income';
 
                         return {
                             date: dateStr,
@@ -288,6 +320,7 @@
                 pageData.forEach((row, idx) => {
                     const realIdx = data.indexOf(row);
                     const statusCls = row.status === 'Income' ? 'income' : 'expense';
+                    const shareDisplay = (row.share !== null && row.share !== undefined) ? row.share.toFixed(2) : '—';
                     html +=
                         '<tr data-idx="' + realIdx + '">' +
                         '<td>' + row.date + '</td>' +
@@ -297,8 +330,7 @@
                         '<td>' + escapeHtml(row.type) + '</td>' +
                         '<td class="editable" contenteditable="true" data-field="amount" data-idx="' + realIdx +
                         '">' + row.amount.toFixed(2) + '</td>' +
-                        '<td class="editable" contenteditable="true" data-field="share" data-idx="' + realIdx +
-                        '">' + row.share.toFixed(2) + '</td>' +
+                        '<td>' + shareDisplay + '</td>' +
                         '<td><span class="status-badge ' + statusCls + '">' + row.status + '</span></td>' +
                         '<td>' + row.orderId + '</td>' +
                         '</tr>';
@@ -342,25 +374,26 @@
             function updateStatsAndCharts() {
                 const month = parseInt(monthSelect.value) + 1;
                 const year = parseInt(yearSelect.value);
-                const currentMonthData = filterByMonthYear(tableData, month, year);
+                const currentData = filterByPeriod(tableData, month, year, viewMode);
 
-                const incomeCurrent = currentMonthData.filter(r => r.status === 'Income');
-                const expenseCurrent = currentMonthData.filter(r => r.status === 'Expense');
+                const incomeCurrent = currentData.filter(r => r.status === 'Income');
+                const expenseCurrent = currentData.filter(r => r.status === 'Expense');
                 const totalIncome = sum(incomeCurrent.map(r => r.amount));
                 const totalExpense = sum(expenseCurrent.map(r => r.amount));
                 const netEstimate = totalIncome - totalExpense;
 
+                // Past month income (always previous month, regardless of view mode)
                 const prevMonth = month === 1 ? 12 : month - 1;
                 const prevYear = month === 1 ? year - 1 : year;
-                const pastMonthData = filterByMonthYear(tableData, prevMonth, prevYear);
+                const pastMonthData = filterByPeriod(tableData, prevMonth, prevYear, 'month');
                 const pastIncome = pastMonthData.filter(r => r.status === 'Income');
                 const pastTotal = sum(pastIncome.map(r => r.amount));
 
                 statEstimate.textContent = formatCurrency(netEstimate);
                 statPastMonth.textContent = formatCurrency(pastTotal);
 
-                updateLineChart(currentMonthData);
-                updatePieChart(currentMonthData);
+                updateLineChart(currentData);
+                updatePieChart(currentData);
             }
 
             function applyFilterAndRender() {
@@ -368,14 +401,13 @@
                 const month = parseInt(monthSelect.value) + 1;
                 const year = parseInt(yearSelect.value);
 
-                let data = filterByMonthYear(tableData, month, year);
+                let data = filterByPeriod(tableData, month, year, viewMode);
                 if (q) {
                     data = data.filter(r => {
                         const amtStr = r.amount.toFixed(2);
-                        const shareStr = r.share.toFixed(2);
                         const searchStr = [
                             r.date, r.subscriber, r.tag, r.platform, r.type,
-                            amtStr, shareStr,
+                            amtStr,
                             r.status, r.orderId
                         ].join(' ').toLowerCase();
                         return searchStr.includes(q);
@@ -496,6 +528,15 @@
                     pieChartInstance = echarts.init(container, 'dark');
                 }
 
+                // Custom color mapping
+                const colorMap = {
+                    'Patreon': '#A3D8F4',
+                    'Ko-fi': '#FBC8D5',
+                    'Unifans': '#B0B0B0',
+                    'Subscribestar': '#A8E6CF',
+                    'Website': '#FFEAA7'
+                };
+
                 const typeMap = {};
                 data.forEach(r => {
                     if (r.status === 'Expense') return;
@@ -505,12 +546,14 @@
                     typeMap[p] += r.amount;
                 });
 
-                const pieData = INCOME_PLATFORMS.map(function(label, i) {
-                    return {
+                // Filter out zero values
+                let pieData = INCOME_PLATFORMS
+                    .filter(label => typeMap[label] && typeMap[label] > 0)
+                    .map(label => ({
                         name: label,
-                        value: typeMap[label] || 0,
+                        value: typeMap[label],
                         itemStyle: {
-                            color: ['#4333FF', '#DAE89E', '#FCDDEC', '#80D8FF', '#BBD3FB'][i % 5],
+                            color: colorMap[label] || '#cccccc',
                             borderRadius: 10,
                             borderColor: '#0c1017',
                             borderWidth: 2,
@@ -520,8 +563,12 @@
                             scaleSize: 12,
                             itemStyle: { borderWidth: 3, borderColor: '#fff' }
                         }
-                    };
-                });
+                    }));
+
+                // If all zero, show a placeholder
+                if (pieData.length === 0) {
+                    pieData = [{ name: 'No data', value: 1, itemStyle: { color: '#555' } }];
+                }
 
                 const option = {
                     tooltip: {
@@ -642,7 +689,7 @@
                         Platform: r.platform,
                         Type: r.type,
                         'Attempted Amt.': r.amount.toFixed(2),
-                        "Creator's Share": r.share.toFixed(2),
+                        "Creator's Share": (r.share !== null ? r.share.toFixed(2) : '—'),
                         Status: r.status,
                         'Order ID': r.orderId,
                     };
@@ -671,7 +718,7 @@
                     th.addEventListener('click', function() {
                         var key = this.dataset.sort;
                         if (sortKey === key) sortAsc = !sortAsc;
-                        else { sortKey = key; sortAsc = true; }
+                        else { sortKey = key; sortAsc = false; } // default descending on new sort
                         document.querySelectorAll('th .sort-icon').forEach(function(icon) { icon.textContent = '↕'; });
                         var icon = this.querySelector('.sort-icon');
                         icon.textContent = sortAsc ? '↑' : '↓';
@@ -687,6 +734,21 @@
                 ro.observe(container);
             }
 
+            // ─── VIEW MODE TOGGLE ──────────────────────────────────────────────
+            function setupViewToggle() {
+                const labels = document.querySelectorAll('.radio-group label');
+                labels.forEach(label => {
+                    label.addEventListener('click', function() {
+                        labels.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        viewMode = this.dataset.view;
+                        // Reset pagination to page 1
+                        currentPage = 1;
+                        updateAll();
+                    });
+                });
+            }
+
             // ─── INIT ──────────────────────────────────────────────────────────
             async function init() {
                 // Load data
@@ -694,6 +756,7 @@
                 tableData = entries;
                 pageSizeSelect.value = pageSize;
                 setupSorting();
+                setupViewToggle();
                 applyFilterAndRender();
                 updateStatsAndCharts();
                 setupResize();
@@ -730,15 +793,6 @@
                     updateStatsAndCharts();
                 });
 
-                document.querySelectorAll('.radio-group label').forEach(function(label) {
-                    label.addEventListener('click', function() {
-                        document.querySelectorAll('.radio-group label').forEach(function(l) { l.classList.remove('active'); });
-                        this.classList.add('active');
-                        applyFilterAndRender();
-                        updateStatsAndCharts();
-                    });
-                });
-
                 exportBtn.addEventListener('click', exportCSV);
 
                 window.addEventListener('resize', function() {
@@ -749,7 +803,7 @@
                 setTimeout(function() {
                     var month = parseInt(monthSelect.value) + 1;
                     var year = parseInt(yearSelect.value);
-                    var currentData = filterByMonthYear(tableData, month, year);
+                    var currentData = filterByPeriod(tableData, month, year, viewMode);
                     updatePieChart(currentData);
                 }, 80);
             }
