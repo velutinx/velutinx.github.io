@@ -13,10 +13,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <script src="/assets/js/zip-to-post.js" defer></script>
     <script src="/assets/js/bluesky-composer.js" defer></script>
     <script src="/assets/js/pack-manager.js" defer></script>
-    <script src="/assets/js/spreadsheet.js" defer></script>
+    <script src="/assets/js/chart.js" defer></script>
     <script src="/assets/js/twitter-composer.js?v=2"></script>
     <script src="/assets/js/hashtag-generator.js" defer></script>
     <script src="/assets/js/extractor.js" defer></script>
@@ -25,93 +26,6 @@
     <script src="/assets/js/error-logs.js?v=3" defer></script>
     <script src="/assets/js/contact-messages.js" defer></script>
 
-    <style>
-        /* ─── Contact Messages Styles ──────────────────────────────── */
-        .contact-item {
-            background: #1a1f2a;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid #2a2f38;
-            overflow: hidden;
-        }
-        .contact-item.unread {
-            border-left: 4px solid #f59e0b;
-        }
-        .contact-item.read {
-            border-left: 4px solid #4ade80;
-        }
-        .contact-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            cursor: pointer;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .contact-header:hover {
-            background: #0f131a;
-        }
-        .contact-subject {
-            font-weight: 600;
-            color: #e0e0e0;
-            flex: 1;
-        }
-        .contact-sender {
-            color: #94a3b8;
-            min-width: 120px;
-        }
-        .contact-date {
-            color: #64748b;
-            font-size: 0.8rem;
-            min-width: 140px;
-        }
-        .contact-toggle {
-            color: #94a3b8;
-            font-size: 0.8rem;
-        }
-        .contact-detail {
-            padding: 12px 16px;
-            border-top: 1px solid #2a2f38;
-            background: #0c1017;
-            color: #cbd5e1;
-            line-height: 1.6;
-        }
-        .contact-detail a {
-            color: #60a5fa;
-        }
-        .mark-read-btn {
-            background: #3b82f6;
-            border: none;
-            color: white;
-            padding: 4px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .mark-read-btn:hover {
-            background: #2563eb;
-        }
-        @keyframes blink {
-            50% { opacity: 0; }
-        }
-        #contactBadge {
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            padding: 0 6px;
-            font-size: 12px;
-            display: none;
-            margin-left: 4px;
-            animation: blink 1s step-start infinite;
-        }
-        .empty-message {
-            text-align: center;
-            padding: 40px;
-            color: #8899a6;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
@@ -128,8 +42,9 @@
         <button class="tab-button" id="contact-tab" data-tab="contact">📩 Messages</button>
     </div>
 
-    <!-- Subscribestar / Patreon Tab -->
+    <!-- Subscribestar / Patreon Tab (unchanged) -->
     <div id="subscribestar" class="tab-content active">
+        <!-- ... same as before ... -->
         <p>Upload <code>[Pack 001] Name - Series.zip</code> → auto‑generates 5 posts (Subscribestar + Patreon + Pixiv)</p>
         <div class="upload-area" id="dropZone">
             <input type="file" id="fileInput" accept=".zip">
@@ -163,36 +78,32 @@
         <div class="footer">⚡ JSZip · no server upload · all local</div>
     </div>
 
-    <!-- Tweeter Tab (Bluesky + Twitter combined) -->
+    <!-- Tweeter Tab (Bluesky + Twitter combined) – unchanged -->
     <div id="bluesky" class="tab-content">
+        <!-- ... same as before ... -->
         <div class="hashgen-container">
             <input type="text" id="hashgenInput" class="hashgen-input" placeholder="Paste filename here (e.g. [Pack 088] Nagi Arato - Ruri no Houseki.zip)">
         </div>
         <div id="hashgenStatus" class="hashgen-status"></div>
-
-        <!-- Toggles: Upcoming + Request -->
-<div class="toggles-container" style="display:flex; gap:24px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
-    <label class="toggle-switch">
-        <input type="checkbox" id="upcomingCheckbox">
-        <span class="slider"></span>
-        <span class="toggle-label">Upcoming release</span>
-    </label>
-    <label class="toggle-switch">
-        <input type="checkbox" id="requestCheckbox">
-        <span class="slider"></span>
-        <span class="toggle-label">Request</span>
-    </label>
-    <div class="square-btn-wrapper">
-        <button id="sneakPeakBtn" class="square-btn" aria-label="Sneak Peak"></button>
-        <span class="toggle-label">Sneak Peak</span>
-    </div>
-</div>
-
+        <div class="toggles-container" style="display:flex; gap:24px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+            <label class="toggle-switch">
+                <input type="checkbox" id="upcomingCheckbox">
+                <span class="slider"></span>
+                <span class="toggle-label">Upcoming release</span>
+            </label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="requestCheckbox">
+                <span class="slider"></span>
+                <span class="toggle-label">Request</span>
+            </label>
+            <div class="square-btn-wrapper">
+                <button id="sneakPeakBtn" class="square-btn" aria-label="Sneak Peak"></button>
+                <span class="toggle-label">Sneak Peak</span>
+            </div>
+        </div>
         <div style="margin-bottom: 20px;">
             <textarea id="masterPost" class="master-post" rows="5" placeholder="Type your post… mirrored to both Bluesky and Twitter"></textarea>
         </div>
-
-        <!-- Bluesky Accounts -->
         <h3 style="margin-top:0; color:#ddd;">
             <img src="https://www.velutinx.com/images/LogoBluesky.png" alt="Bluesky" style="height:1.2em; vertical-align:middle;"> Bluesky
         </h3>
@@ -214,8 +125,6 @@
                 <div id="post-status-1" class="status-msg"></div>
             </div>
         </div>
-
-        <!-- Twitter Accounts -->
         <h3 style="margin-top:30px; color:#ddd;">
             <img src="https://www.velutinx.com/images/LogoTwitter.png" alt="Twitter" style="height:1.2em; vertical-align:middle;"> Twitter
         </h3>
@@ -258,7 +167,7 @@
         </div>
     </div>
 
-    <!-- Retweet Queue Tab Content -->
+    <!-- Retweet Queue Tab Content (unchanged) -->
     <div id="retweet" class="tab-content">
         <div class="retweet-container">
             <h2>📋 Retweet Queue</h2>
@@ -269,7 +178,7 @@
         </div>
     </div>
 
-    <!-- 📋 Error Logs Tab Content -->
+    <!-- 📋 Error Logs Tab Content (unchanged) -->
     <div id="errorlogs" class="tab-content">
         <div class="container" style="padding:0; background:transparent; border:none; box-shadow:none;">
             <div class="error-logs-header">
@@ -295,7 +204,7 @@
         </div>
     </div>
 
-    <!-- Pack Manager Tab -->
+    <!-- Pack Manager Tab (unchanged) -->
     <div id="packmanager" class="tab-content">
         <div class="pm-container">
             <h1>📦 Pack Manager + Cloudflare Upload</h1>
@@ -355,92 +264,126 @@
         </div>
     </div>
 
-    <!-- 💰 Spreadsheet Tab -->
+    <!-- 💰 NEW Spreadsheet Tab (Income Overview) -->
     <div id="spreadsheet" class="tab-content">
-        <div class="dashboard">
-            <div class="table-section">
-                <div class="form-row" id="entryForm">
-                    <div class="form-group">
-                        <label for="monthSelect">Month</label>
+        <div class="app" id="app">
+
+            <div class="jcsb">
+                <div class="fw-b fs-20">Income Overview</div>
+                <div class="flex flex-wrap gap-8">
+                    <div class="date-picker">
+                        <span class="icon-calendar"></span>
                         <select id="monthSelect">
-                            <option value="1">January</option><option value="2">February</option>
-                            <option value="3">March</option><option value="4">April</option>
-                            <option value="5">May</option><option value="6">June</option>
-                            <option value="7">July</option><option value="8">August</option>
-                            <option value="9">September</option><option value="10">October</option>
-                            <option value="11">November</option><option value="12">December</option>
+                            <option value="0">Jan</option><option value="1">Feb</option>
+                            <option value="2">Mar</option><option value="3">Apr</option>
+                            <option value="4">May</option><option value="5">Jun</option>
+                            <option value="6" selected>Jul</option>
+                            <option value="7">Aug</option><option value="8">Sep</option>
+                            <option value="9">Oct</option><option value="10">Nov</option>
+                            <option value="11">Dec</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="daySelect">Day</label>
-                        <select id="daySelect"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="amountInput">Amount</label>
-                        <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="currencySelect">Currency</label>
-                        <select id="currencySelect">
-                            <option value="USD" selected>USD</option><option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option><option value="JPY">JPY</option>
-                            <option value="CAD">CAD</option><option value="AUD">AUD</option>
+                        <span class="sep">/</span>
+                        <select id="yearSelect">
+                            <option value="2025">2025</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
                         </select>
+                        <span class="icon-chevron"></span>
                     </div>
-                    <div class="form-group">
-                        <label for="categorySelect">Category</label>
-                        <select id="categorySelect">
-                            <option value="Patreon subscription">Patreon subscription</option>
-                            <option value="Patreon sales">Patreon sales</option>
-                            <option value="Ko-Fi subscriptions">Ko-Fi subscriptions</option>
-                            <option value="Subscribestar subscriptions">Subscribestar subscriptions</option>
-                            <option value="Website payments">Website payments</option>
-                            <option value="Expenses" selected>Expenses</option>
-                        </select>
+                    <div class="radio-group">
+                        <label class="active" data-view="month">Month</label>
+                        <label data-view="year">Year</label>
                     </div>
-                    <div class="form-group">
-                        <label for="conceptInput">Concept</label>
-                        <input type="text" id="conceptInput" placeholder="e.g. Railway subscription" disabled>
-                    </div>
-                    <div class="recurring-group">
-                        <input type="checkbox" id="recurringCheck">
-                        <label for="recurringCheck">Recurring monthly</label>
-                    </div>
-                    <button class="btn" id="addEntryBtn">Add to Spreadsheet</button>
-                    <button class="btn" id="resyncBtn" style="background:#3a3a44; font-size:0.8rem;" title="Force re‑import of Patreon & Website data">🔄 Re‑sync</button>
-                </div>
-                <div class="table-wrapper">
-                    <table id="dataTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th><th>Amount</th><th>Currency</th>
-                                <th>Category</th><th>Description</th><th>Recurring</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr class="empty-message"><td colspan="7">Loading entries from server...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <button class="btn export-btn" id="exportBtn" disabled>📥 Export to Excel</button>
-            </div>
-            <div class="chart-section">
-                <div class="range-btns">
-                    <button class="range-btn active" data-days="30">30D</button>
-                    <button class="range-btn" data-days="60">60D</button>
-                    <button class="range-btn" data-days="90">90D</button>
-                    <button class="range-btn" data-days="180">180D</button>
-                    <button class="range-btn" data-days="365">1Y</button>
-                </div>
-                <div class="chart-container">
-                    <canvas id="incomeChart"></canvas>
                 </div>
             </div>
+
+            <div class="stat-grid">
+                <div class="stat-card" id="statEstimateCard">
+                    <div class="label">Total Estimate Income (USD)</div>
+                    <div class="value" id="statEstimate">$0.00</div>
+                    <div class="stat-tooltip" id="statEstimateTooltip"></div>
+                </div>
+                <div class="stat-card" id="statPastMonthCard">
+                    <div class="label">Past Month Income (USD)</div>
+                    <div class="value" id="statPastMonth">$0.00</div>
+                    <div class="stat-tooltip" id="statPastMonthTooltip"></div>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-col">
+                    <div class="chart-title">Cumulative Net Income (USD) <span style="color:#5a6278;font-size:11px;">(income − expenses)</span></div>
+                    <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+                </div>
+                <div class="chart-col">
+                    <div class="chart-title">Income Streams by Platform (USD)</div>
+                    <div class="chart-wrap" id="pieChartContainer"></div>
+                    <div class="donut-legend" id="donutLegend"></div>
+                </div>
+            </div>
+
+            <div class="jcsb mt-20">
+                <div class="fw-b fs-20">Income Details</div>
+                <div class="flex flex-wrap gap-8">
+                    <button class="btn-outline" id="exportBtn">
+                        <span class="icon-download"></span> Export Current View (CSV)
+                    </button>
+                    <div class="date-picker" style="max-width:150px;">
+                        <span class="icon-calendar"></span>
+                        <span>2026-07</span>
+                        <span class="icon-chevron"></span>
+                    </div>
+                    <div class="radio-group">
+                        <label class="active">Month</label>
+                        <label>Year</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex jcfe mt-6">
+                <div class="search-box" style="max-width:220px;width:100%;">
+                    <span class="icon-search"></span>
+                    <input type="text" placeholder="Search all fields..." id="searchInput" />
+                </div>
+            </div>
+
+            <div class="table-wrap mt-4" id="tableWrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-sort="date">Date <span class="sort-icon">↕</span></th>
+                            <th data-sort="subscriber">Subscriber <span class="sort-icon">↕</span></th>
+                            <th data-sort="platform">Platform <span class="sort-icon">↕</span></th>
+                            <th data-sort="type">Type <span class="sort-icon">↕</span></th>
+                            <th data-sort="amount">Attempted Amt. <span class="sort-icon">↕</span></th>
+                            <th data-sort="share">Creator's Share <span class="sort-icon">↕</span></th>
+                            <th data-sort="status">Status <span class="sort-icon">↕</span></th>
+                            <th data-sort="orderId">Order ID <span class="sort-icon">↕</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination-bar">
+                <span>Total <span id="rowCount">0</span> records</span>
+                <div class="page-controls">
+                    <select id="pageSizeSelect">
+                        <option value="10">10 / page</option>
+                        <option value="25">25 / page</option>
+                        <option value="50" selected>50 / page</option>
+                        <option value="100">100 / page</option>
+                    </select>
+                    <button class="page-btn" id="prevPageBtn" disabled><span class="icon-chevron-left"></span></button>
+                    <span class="page-num" id="currentPageDisplay">1</span>
+                    <button class="page-btn" id="nextPageBtn" disabled><span class="icon-chevron-right"></span></button>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- 📄 ZIP Extractor Tab -->
+    <!-- 📄 ZIP Extractor Tab (unchanged) -->
     <div id="zipextractor" class="tab-content">
         <div class="extractor-wrapper">
             <div class="extractor-header">
@@ -479,7 +422,7 @@
         </div>
     </div>
 
-    <!-- 🔞 CENSOR TAB -->
+    <!-- 🔞 CENSOR TAB (unchanged) -->
     <div id="censor" class="tab-content censor-tab-content">
         <div id="censor-main">
             <div id="censor-viewer">
@@ -506,18 +449,18 @@
         </div>
     </div>
 
-    <!-- ─── NEW: Contact Messages Tab ─── -->
-<div id="contact" class="tab-content">
-    <div class="container" style="padding:0; background:transparent; border:none; box-shadow:none;">
-        <div class="error-logs-header">
-            <h1>📩 Contact Messages</h1>
-            <button class="btn" id="markAllReadBtn" style="display:none;">✅ Mark All Read</button>
-        </div>
-        <div id="contact-list">
-            <p style="color:#94a3b8; text-align:center; padding:40px;">Loading messages...</p>
+    <!-- ─── Contact Messages Tab (unchanged) ─── -->
+    <div id="contact" class="tab-content">
+        <div class="container" style="padding:0; background:transparent; border:none; box-shadow:none;">
+            <div class="error-logs-header">
+                <h1>📩 Contact Messages</h1>
+                <button class="btn" id="markAllReadBtn" style="display:none;">✅ Mark All Read</button>
+            </div>
+            <div id="contact-list">
+                <p style="color:#94a3b8; text-align:center; padding:40px;">Loading messages...</p>
+            </div>
         </div>
     </div>
-</div>
 
 </div>
 
