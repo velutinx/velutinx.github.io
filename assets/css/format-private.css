@@ -479,4 +479,4 @@ body { background: #0a0c10; display: flex; justify-content: center; padding: 24p
 .stat-tooltip .tooltip-row .value { font-weight: 500; color: #e0e0e0; }
 .stat-tooltip .tooltip-total { border-top: 1px solid #2a2f38; padding-top: 4px; margin-top: 4px; font-weight: 700; color: #f0f0f0; display: flex; justify-content: space-between; font-size: 15px; }
 .stat-tooltip .tooltip-total .label { color: #94a3b8; }
-.stat-tooltip .tooltip-total .value { font-size: 15px; font-weight: 700; color: #ffffff; }
+.stat-tooltip .tooltip-total .value { font-size: 17px !important; font-weight: 700; color: #ffffff; }
