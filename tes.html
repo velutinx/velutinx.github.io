@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pack Teaser Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -187,7 +188,7 @@
 <div class="container">
     <h1>
         📦 Pack Teaser Viewer
-        <small>Click a pack → copy teaser + download ZIP</small>
+        <small>Click a pack → copy teaser + open ZIP + download thumbnails</small>
     </h1>
     <div id="packGrid" class="pack-grid">
         <div class="loading">Loading packs…</div>
@@ -200,7 +201,7 @@
         </div>
         <div id="teaserOutput" class="teaser-output"></div>
         <div class="teaser-actions">
-            <button class="btn btn-primary" id="copyAndDownloadBtn">📋 Copy Teaser &amp; Download ZIP</button>
+            <button class="btn btn-primary" id="copyAndDownloadBtn">📋 Copy Teaser &amp; Get Files</button>
         </div>
     </div>
 </div>
@@ -320,6 +321,19 @@ Total Set Size: ${count} High-Res Images
             });
         }
 
+        // ─── fetch thumbnail URLs for a pack ──────────────────────
+        async function fetchThumbnails(packId) {
+            try {
+                const resp = await fetch(`https://packs-api.velutinx.workers.dev/api/images?pack=${packId}`);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                return data.images || [];
+            } catch (err) {
+                console.warn('Failed to fetch thumbnails:', err);
+                return [];
+            }
+        }
+
         // ─── show teaser ────────────────────────────────────────────
         let currentPack = null;
 
@@ -337,7 +351,7 @@ Total Set Size: ${count} High-Res Images
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ─── copy + download ────────────────────────────────────────
+        // ─── copy + open Mega link + download thumbnails ZIP ──────
         async function copyAndDownload() {
             if (!currentPack) {
                 showToast('No pack selected.', 'error');
@@ -356,7 +370,6 @@ Total Set Size: ${count} High-Res Images
                 await navigator.clipboard.writeText(text);
                 copyOk = true;
             } catch (_) {
-                // fallback
                 try {
                     const range = document.createRange();
                     range.selectNodeContents(output);
@@ -367,64 +380,55 @@ Total Set Size: ${count} High-Res Images
                     sel.removeAllRanges();
                     copyOk = true;
                 } catch (_2) {
-                    showToast('Failed to copy teaser, but continuing with download.', 'error');
+                    showToast('Failed to copy teaser, but continuing with downloads.', 'error');
                 }
             }
 
-            // 2. Download ZIP
-            let downloadUrl = currentPack.downloadUrl;
-            let filename = `${currentPack.title.replace(/[^a-zA-Z0-9 ]/g, '').trim()}.zip`;
+            // 2. Open Mega link in new tab (main ZIP)
+            if (currentPack.downloadUrl) {
+                window.open(currentPack.downloadUrl, '_blank');
+            } else {
+                showToast('No Mega link available for this pack.', 'error');
+            }
 
+            // 3. Download thumbnails as ZIP
             try {
-                // If no direct URL, try to fetch it (should be present in the pack data)
-                if (!downloadUrl) {
-                    // Optionally fetch from API if needed (but we already have it)
-                    showToast('No download link available for this pack.', 'error');
+                const thumbUrls = await fetchThumbnails(currentPack.id);
+                if (thumbUrls.length === 0) {
+                    showToast('No thumbnails found for this pack.', 'info');
                     btn.disabled = false;
-                    btn.textContent = '📋 Copy Teaser & Download ZIP';
+                    btn.textContent = '📋 Copy Teaser & Get Files';
                     return;
                 }
 
-                // Use the proxy to resolve Mega links
-                if (downloadUrl.includes('mega.nz')) {
-                    const proxyUrl = `https://i2-uploader.velutinx.workers.dev/mega-link?filename=${encodeURIComponent(filename)}`;
-                    const proxyResp = await fetch(proxyUrl);
-                    if (proxyResp.ok) {
-                        const proxyData = await proxyResp.json();
-                        if (proxyData.url) {
-                            downloadUrl = proxyData.url;
-                        } else {
-                            throw new Error('Proxy returned no URL');
-                        }
-                    } else {
-                        // Proxy failed – fallback to opening in new tab
-                        showToast('Mega link could not be resolved. Opening in new tab.', 'info');
-                        window.open(currentPack.downloadUrl, '_blank');
-                        btn.disabled = false;
-                        btn.textContent = '📋 Copy Teaser & Download ZIP';
-                        return;
-                    }
-                }
+                // Create a ZIP with all thumbnails
+                const zip = new JSZip();
+                const fetchPromises = thumbUrls.map(async (url, index) => {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+                    const blob = await response.blob();
+                    const ext = url.split('.').pop().split('?')[0] || 'jpg';
+                    const filename = `pack${currentPack.id}-${index + 1}.${ext}`;
+                    zip.file(filename, blob);
+                });
 
-                // Trigger download
+                await Promise.all(fetchPromises);
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
                 const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = filename;
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = `pack${currentPack.id}-thumbnails.zip`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
 
-                showToast('✅ Teaser copied and download started!');
+                showToast('✅ Teaser copied, Mega link opened, thumbnails downloaded!');
             } catch (err) {
-                console.error('Download error:', err);
-                showToast(`❌ Download failed: ${err.message}. Opening link in new tab.`, 'error');
-                // Fallback: open the original Mega link
-                if (currentPack.downloadUrl) {
-                    window.open(currentPack.downloadUrl, '_blank');
-                }
+                console.error('Thumbnail ZIP error:', err);
+                showToast(`❌ Failed to download thumbnails: ${err.message}`, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = '📋 Copy Teaser & Download ZIP';
+                btn.textContent = '📋 Copy Teaser & Get Files';
             }
         }
 
