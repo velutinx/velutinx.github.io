@@ -1,4 +1,4 @@
-//     velutinx.github.io/assets/js/chart.js
+//     velutinx.github.io/assets/js/chart.js 
 
 (function() {
     'use strict';
@@ -17,8 +17,6 @@
         'reddit': 'Reddit',
         'ad spend': 'Ad Spend'
     };
-    const CACHE_KEY = 'purchase_entries_cache';
-    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
     let tableData = [];
     let filteredData = [];
@@ -145,48 +143,112 @@
         setTimeout(() => toast.remove(), 1800);
     }
 
-    // ─── FETCH DATA WITH CACHING ──────────────────────────────────────
-    async function fetchEntries(forceRefresh = false) {
-        // Check cache first (unless forceRefresh)
-        if (!forceRefresh) {
-            try {
-                const cached = localStorage.getItem(CACHE_KEY);
-                if (cached) {
-                    const { data, timestamp } = JSON.parse(cached);
-                    if (Date.now() - timestamp < CACHE_TTL) {
-                        console.log('📦 Using cached entries');
-                        return data;
-                    }
-                }
-            } catch (e) { /* ignore */ }
-        }
-
-        // Fetch fresh data
-        console.log('🌐 Fetching fresh entries from worker');
+    // ─── FETCH DATA (ALWAYS FRESH – NO CACHE) ──────────────────────
+    async function fetchEntries() {
         try {
             const res = await fetch(WORKER_URL);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            // Store in cache
-            localStorage.setItem(CACHE_KEY, JSON.stringify({
-                data: data,
-                timestamp: Date.now()
-            }));
-            return data;
+            const entries = await res.json();
+            return entries
+                .filter(e => parseFloat(e.amount) !== 0)
+                .map(e => {
+                    const dateObj = new Date(new Date().getFullYear(), e.month - 1, e.day);
+                    const dateStr = dateObj.toISOString().slice(0, 10);
+                    const amount = parseFloat(e.amount);
+                    const isExpense = e.category === 'Expenses';
+
+                    let platform = 'Other';
+                    if (isExpense) {
+                        const conceptLower = (e.concept || '').toLowerCase();
+                        let matched = false;
+                        for (const [key, plat] of Object.entries(EXPENSE_PLATFORM_MAP)) {
+                            if (conceptLower.includes(key)) {
+                                platform = plat;
+                                matched = true;
+                                break;
+                            }
+                        }
+                        if (!matched) platform = 'Other';
+                    } else {
+                        if (e.category.includes('Patreon')) platform = 'Patreon';
+                        else if (e.category.includes('Ko-Fi')) platform = 'Ko-fi';
+                        else if (e.category.includes('Subscribestar')) platform = 'Subscribestar';
+                        else if (e.category.includes('Website')) platform = 'Website';
+                    }
+
+                    let type = '';
+                    if (isExpense) {
+                        type = '';
+                    } else {
+                        if (e.category.includes('Patreon')) {
+                            if (amount === 3) type = 'M-0.5';
+                            else if (amount >= 5 && amount < 6) type = 'M-1';
+                            else if (amount >= 6 && amount < 9.5) type = 'M-1';
+                            else if (amount >= 18 && amount < 20) type = 'M-2';
+                            else if (amount >= 30 && amount < 32) type = 'M-3';
+                            else type = e.category;
+                        } else if (e.category.includes('Subscribestar')) {
+                            if (amount >= 4.6 && amount <= 5.1) type = 'M-1';
+                            else if (amount >= 16.5 && amount <= 18.5) type = 'M-2';
+                            else if (amount >= 27 && amount <= 31) type = 'M-3';
+                            else type = e.category;
+                        } else if (e.category.includes('Ko-Fi')) {
+                            if (amount === 9) type = 'M-2';
+                            else type = e.category;
+                        } else if (e.category === 'Website payments') {
+                            const concept = e.concept || '';
+                            const packMatch = concept.match(/P-(\d+)/);
+                            if (packMatch) {
+                                type = `P-${packMatch[1]}`;
+                            } else {
+                                const memMatch = concept.match(/M-(\d)/);
+                                if (memMatch) {
+                                    type = `M-${memMatch[1]}`;
+                                } else {
+                                    type = e.category;
+                                }
+                            }
+                        } else {
+                            type = e.category;
+                        }
+                    }
+
+                    let subscriber = 'Unknown';
+                    if (isExpense) {
+                        subscriber = e.concept || 'Unknown';
+                    } else {
+                        const concept = e.concept || '';
+                        const parts = concept.split('–');
+                        if (parts.length > 0) {
+                            subscriber = parts[0].trim();
+                        } else {
+                            subscriber = concept;
+                        }
+                    }
+
+                    let orderId = '';
+                    if (e.category === 'Website payments' && e.id) {
+                        orderId = `ORD-${String(e.id).padStart(4, '0')}`;
+                    }
+
+                    const share = null;
+                    const status = isExpense ? 'Expense' : 'Income';
+
+                    return {
+                        date: dateStr,
+                        subscriber: subscriber,
+                        platform: platform,
+                        type: type,
+                        amount: amount,
+                        share: share,
+                        status: status,
+                        orderId: orderId,
+                        _raw: e
+                    };
+                });
         } catch (err) {
             console.error('Failed to fetch entries:', err);
             showToast('Error loading data from server.');
-            // If cache exists even if expired, return it as fallback
-            try {
-                const cached = localStorage.getItem(CACHE_KEY);
-                if (cached) {
-                    const { data } = JSON.parse(cached);
-                    if (data && data.length) {
-                        showToast('Using cached data (server unreachable)');
-                        return data;
-                    }
-                }
-            } catch (_) {}
             return [];
         }
     }
@@ -671,8 +733,9 @@
 
     // ─── INIT ──────────────────────────────────────────────────────────
     async function init() {
-        const entries = await fetchEntries(); // uses cache
+        const entries = await fetchEntries(); // always fresh
         tableData = entries;
+        console.log(`📊 Loaded ${entries.length} entries`);
         pageSizeSelect.value = pageSize;
         setupSorting();
         setupViewToggle();
@@ -713,15 +776,6 @@
         });
 
         exportBtn.addEventListener('click', exportCSV);
-
-        // Optional refresh button
-        document.getElementById('refreshBtn')?.addEventListener('click', async () => {
-            const entries = await fetchEntries(true); // force refresh
-            tableData = entries;
-            applyFilterAndRender();
-            updateStatsAndCharts();
-            showToast('Data refreshed');
-        });
 
         window.addEventListener('resize', function() {
             if (pieChartInstance) pieChartInstance.resize();
