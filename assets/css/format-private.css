@@ -480,6 +480,12 @@ body { background: #0a0c10; display: flex; justify-content: center; padding: 24p
 .stat-tooltip .tooltip-row .label { color: #94a3b8; }
 .stat-tooltip .tooltip-total { border-top: 1px solid #2a2f38; padding-top: 4px; margin-top: 4px; font-weight: 700; color: #f0f0f0; display: flex; justify-content: space-between; font-size: 15px; }
 .stat-tooltip .tooltip-total .label { color: #94a3b8; font-size: 16px;
-
 .stat-tooltip .value { font-size: 13px !important; font-weight: 500 !important; color: #e0e0e0 !important; }
 .stat-tooltip .tooltip-total .value { font-size: 18px !important; font-weight: 700 !important; color: #ffffff !important; }
+
+/* Prevent layout shift on tabs with has-items */
+.tab-button { display: inline-flex !important; align-items: center; justify-content: center; min-height: 40px; padding: 8px 24px; flex-shrink: 0; position: relative; }
+.tab-button.has-items::after { content: ''; display: inline-block; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; margin-left: 6px; animation: pulseBadge 1.5s ease-in-out infinite; }
+@keyframes pulseBadge { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+.tab-button.has-items { animation: none !important; background: inherit !important; color: inherit !important; }
+#retweet-tab, #errorlogs-tab, #contact-tab { display: inline-flex !important; }
