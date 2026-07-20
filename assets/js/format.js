@@ -85,7 +85,7 @@
         { href: 'https://bsky.app/profile/velutinxx.bsky.social', img: 'https://www.velutinx.com/images/LogoBluesky.png', label: 'Bluesky' },
         { href: 'https://www.pixiv.net/en/users/117116845', img: 'https://www.velutinx.com/images/LogoPixiv.png', label: 'Pixiv' },
         { href: 'https://discord.gg/HKyH4bmQez', img: 'https://www.velutinx.com/images/LogoDiscord.png', label: 'Discord' },
-        { href: 'https://www.instagram.com/velutinxx/', img: 'https://www.velutinx.com/images/LogoInstagram.png', label: 'Instagram' },
+        { href: 'https://app.unifans.io/c/velutinx', img: 'https://www.velutinx.com/images/LogoUnifans.png', label: 'UniFans' },
         { href: 'https://www.patreon.com/c/Velutinx_', img: 'https://www.velutinx.com/images/LogoPatreon.png', label: 'Patreon' },
         { href: 'https://ko-fi.com/velutinxstudio', img: 'https://www.velutinx.com/images/LogoKoFi.png', label: 'Ko‑fi' },
         { href: 'https://subscribestar.adult/velutinx', img: 'https://www.velutinx.com/images/LogoSubscribeStar.png', label: 'SubscribeStar' }
