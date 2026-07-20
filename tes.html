@@ -208,6 +208,17 @@
                 padding: 12px;
             }
         }
+        .btn-download {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-download:hover {
+            background: #1d4ed8;
+        }
+        .btn-download:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -228,6 +239,7 @@
         <div id="teaserOutput" class="teaser-output"></div>
         <div class="teaser-actions">
             <button class="btn btn-primary" id="copyTeaserBtn">📋 Copy Teaser</button>
+            <button class="btn btn-download" id="downloadPackBtn">⬇️ Download ZIP</button>
         </div>
     </div>
 </div>
@@ -252,7 +264,6 @@
 
         // ─── parse title ─────────────────────────────────────────────
         function parsePackTitle(title) {
-            // Expected: "[Pack 001] Tsunade - Naruto"
             const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
             const match = title.match(regex);
             if (match) {
@@ -262,7 +273,6 @@
                     series: match[3].trim()
                 };
             }
-            // Fallback: treat whole title as character, series unknown
             return {
                 pack: null,
                 character: title.trim(),
@@ -277,7 +287,6 @@
             const packNumber = parsed.pack || pack.id || '???';
             const character = parsed.character || title;
             const series = parsed.series || 'Unknown';
-
             const count = illustrationCount || '?';
 
             return `Preview: ${character} — ${series} — Pack #${packNumber}
@@ -312,7 +321,6 @@ Total Set Size: ${count} High-Res Images
                 return;
             }
 
-            // sort by numeric ID
             packs.sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10));
 
             grid.innerHTML = '';
@@ -352,6 +360,8 @@ Total Set Size: ${count} High-Res Images
         }
 
         // ─── show teaser ────────────────────────────────────────────
+        let currentPack = null;
+
         function showTeaser(pack) {
             const section = document.getElementById('teaserSection');
             const output = document.getElementById('teaserOutput');
@@ -362,10 +372,14 @@ Total Set Size: ${count} High-Res Images
             titleEl.textContent = `📝 ${pack.title}`;
             section.classList.add('visible');
 
-            // Store current pack ID for copy
-            section.dataset.packId = pack.id;
+            // Store current pack for download
+            currentPack = pack;
 
-            // Scroll to teaser
+            // Enable download button
+            const downloadBtn = document.getElementById('downloadPackBtn');
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = '⬇️ Download ZIP';
+
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -380,7 +394,6 @@ Total Set Size: ${count} High-Res Images
             navigator.clipboard.writeText(text).then(() => {
                 showToast('✅ Teaser copied to clipboard!');
             }).catch(() => {
-                // fallback
                 const range = document.createRange();
                 range.selectNodeContents(output);
                 const sel = window.getSelection();
@@ -392,9 +405,84 @@ Total Set Size: ${count} High-Res Images
             });
         }
 
+        // ─── download pack ──────────────────────────────────────────
+        async function downloadPack() {
+            if (!currentPack) {
+                showToast('No pack selected.', 'error');
+                return;
+            }
+
+            const downloadBtn = document.getElementById('downloadPackBtn');
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ Fetching link...';
+
+            try {
+                // First, try to get the download URL from the pack data
+                let downloadUrl = currentPack.downloadUrl;
+
+                // If the pack doesn't have a direct downloadUrl, try to fetch it from the API
+                if (!downloadUrl) {
+                    const resp = await fetch(`https://packs-api.velutinx.workers.dev/api/packs/${currentPack.id}`);
+                    if (!resp.ok) throw new Error(`Failed to fetch pack details: ${resp.status}`);
+                    const packData = await resp.json();
+                    downloadUrl = packData.downloadUrl;
+                }
+
+                if (!downloadUrl) {
+                    showToast('No download link available for this pack.', 'error');
+                    downloadBtn.disabled = false;
+                    downloadBtn.textContent = '⬇️ Download ZIP';
+                    return;
+                }
+
+                // If it's a Mega link, use the proxy to get a direct download
+                if (downloadUrl.includes('mega.nz')) {
+                    downloadBtn.textContent = '⏳ Resolving Mega link...';
+                    const filename = `${currentPack.title.replace(/[^a-zA-Z0-9 ]/g, '').trim()}.zip`;
+                    const proxyUrl = `https://i2-uploader.velutinx.workers.dev/mega-link?filename=${encodeURIComponent(filename)}`;
+                    
+                    const proxyResp = await fetch(proxyUrl);
+                    if (!proxyResp.ok) {
+                        throw new Error(`Failed to resolve Mega link: ${proxyResp.status}`);
+                    }
+                    const proxyData = await proxyResp.json();
+                    
+                    if (proxyData.url) {
+                        downloadUrl = proxyData.url;
+                    } else {
+                        // Fallback: try to use the direct Mega link with a download attribute
+                        // Note: This may not work for all browsers due to Mega's download restrictions
+                        downloadBtn.textContent = '⬇️ Download ZIP';
+                        downloadBtn.disabled = false;
+                        showToast('Mega link could not be resolved. Opening in new tab.', 'info');
+                        window.open(downloadUrl, '_blank');
+                        return;
+                    }
+                }
+
+                // Trigger the download
+                downloadBtn.textContent = '⏳ Downloading...';
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `${currentPack.title.replace(/[^a-zA-Z0-9 ]/g, '').trim()}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showToast('✅ Download started!');
+            } catch (err) {
+                console.error('Download error:', err);
+                showToast(`❌ Download failed: ${err.message}`, 'error');
+            } finally {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = '⬇️ Download ZIP';
+            }
+        }
+
         // ─── close teaser ───────────────────────────────────────────
         function closeTeaser() {
             document.getElementById('teaserSection').classList.remove('visible');
+            currentPack = null;
         }
 
         // ─── init ───────────────────────────────────────────────────
@@ -402,8 +490,8 @@ Total Set Size: ${count} High-Res Images
             const packs = await fetchPacks();
             if (packs) renderPacks(packs);
 
-            // event listeners
             document.getElementById('copyTeaserBtn').addEventListener('click', copyTeaser);
+            document.getElementById('downloadPackBtn').addEventListener('click', downloadPack);
             document.getElementById('closeTeaserBtn').addEventListener('click', closeTeaser);
         }
 
