@@ -242,7 +242,7 @@
             };
         }
 
-        // ─── generate teaser text ──────────────────────────────────
+        // ─── generate bilingual teaser text ────────────────────────
         function generateTeaser(pack) {
             const { title, illustrationCount } = pack;
             const parsed = parsePackTitle(title);
@@ -251,15 +251,19 @@
             const series = parsed.series || 'Unknown';
             const count = illustrationCount || '?';
 
-            return `プレビュー: ${character} — ${series} — パック #${packNumber}
+            // Japanese version
+            const jp = `プレビュー: ${character} — ${series} — パック #${packNumber}
 
 総収録枚数：高解像度画像 ${count} 枚
 🔒 Weekly Access以上のメンバーシップに参加すると、高解像度版のフルパックおよび成人向けバージョンをご利用いただけます。
-⚠️ 免責事項：登場するすべてのキャラクターは18歳以上として描写されています。これらはAIによって生成された架空の、双方の同意を前提としたフィクション作品です。
+⚠️ 免責事項：登場するすべてのキャラクターは18歳以上として描写されています。これらはAIによって生成された架空の、双方の同意を前提としたフィクション作品です。`;
 
-Total Set Size: ${count} High-Res Images
+            // English version
+            const en = `Total Set Size: ${count} High-Res Images
 🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.
 ⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
+
+            return `${jp}\n\n${en}`;
         }
 
         // ─── fetch packs ────────────────────────────────────────────
@@ -367,10 +371,8 @@ Total Set Size: ${count} High-Res Images
             // 1. Copy teaser to clipboard
             const output = document.getElementById('teaserOutput');
             const text = output.textContent;
-            let copyOk = false;
             try {
                 await navigator.clipboard.writeText(text);
-                copyOk = true;
             } catch (_) {
                 try {
                     const range = document.createRange();
@@ -380,7 +382,6 @@ Total Set Size: ${count} High-Res Images
                     sel.addRange(range);
                     document.execCommand('copy');
                     sel.removeAllRanges();
-                    copyOk = true;
                 } catch (_2) {
                     showToast('Failed to copy teaser, but continuing with downloads.', 'error');
                 }
@@ -393,7 +394,7 @@ Total Set Size: ${count} High-Res Images
                 showToast('No Mega link available for this pack.', 'error');
             }
 
-            // 3. Download thumbnails as ZIP
+            // 3. Download thumbnails as ZIP – with resilience
             try {
                 const thumbUrls = await fetchThumbnails(currentPack.id);
                 if (thumbUrls.length === 0) {
@@ -403,18 +404,39 @@ Total Set Size: ${count} High-Res Images
                     return;
                 }
 
-                // Create a ZIP with all thumbnails
-                const zip = new JSZip();
-                const fetchPromises = thumbUrls.map(async (url, index) => {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-                    const blob = await response.blob();
-                    const ext = url.split('.').pop().split('?')[0] || 'jpg';
-                    const filename = `pack${currentPack.id}-${index + 1}.${ext}`;
-                    zip.file(filename, blob);
+                // Fetch each image individually; skip failures
+                const fetchPromises = thumbUrls.map(async (url) => {
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        const blob = await response.blob();
+                        return { url, blob, success: true };
+                    } catch (err) {
+                        console.warn(`Failed to fetch thumbnail: ${url}`, err.message);
+                        return { url, success: false };
+                    }
                 });
 
-                await Promise.all(fetchPromises);
+                const results = await Promise.allSettled(fetchPromises);
+                const successful = results
+                    .filter(r => r.status === 'fulfilled' && r.value && r.value.success)
+                    .map(r => r.value);
+
+                if (successful.length === 0) {
+                    showToast('❌ No thumbnails could be downloaded.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '📋 Copy Teaser & Get Files';
+                    return;
+                }
+
+                // Build ZIP
+                const zip = new JSZip();
+                successful.forEach((item, index) => {
+                    const ext = item.url.split('.').pop().split('?')[0] || 'jpg';
+                    const filename = `pack${currentPack.id}-${index + 1}.${ext}`;
+                    zip.file(filename, item.blob);
+                });
+
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(zipBlob);
@@ -424,7 +446,10 @@ Total Set Size: ${count} High-Res Images
                 document.body.removeChild(link);
                 URL.revokeObjectURL(link.href);
 
-                showToast('✅ Teaser copied, Mega link opened, thumbnails downloaded!');
+                const failedCount = thumbUrls.length - successful.length;
+                let msg = '✅ Teaser copied, Mega link opened, thumbnails downloaded!';
+                if (failedCount > 0) msg += ` (${failedCount} thumbnail(s) skipped)`;
+                showToast(msg);
             } catch (err) {
                 console.error('Thumbnail ZIP error:', err);
                 showToast(`❌ Failed to download thumbnails: ${err.message}`, 'error');
