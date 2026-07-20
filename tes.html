@@ -5,21 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pack Teaser Viewer</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: #0a0c10;
             color: #e0e0e0;
             padding: 20px;
         }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1100px; margin: 0 auto; }
         h1 {
             font-weight: 500;
             letter-spacing: -0.3px;
@@ -29,11 +22,7 @@
             align-items: center;
             gap: 12px;
         }
-        h1 small {
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: #888;
-        }
+        h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
         .pack-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -85,10 +74,8 @@
             padding: 24px;
             display: none;
         }
-        .teaser-section.visible {
-            display: block;
-        }
-        .teaser-section .teaser-header {
+        .teaser-section.visible { display: block; }
+        .teaser-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -96,12 +83,12 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        .teaser-section .teaser-header h2 {
+        .teaser-header h2 {
             font-size: 1.1rem;
             font-weight: 500;
             color: #c0d0e0;
         }
-        .teaser-section .teaser-header .close-btn {
+        .close-btn {
             background: none;
             border: none;
             color: #888;
@@ -109,9 +96,7 @@
             cursor: pointer;
             padding: 0 6px;
         }
-        .teaser-section .teaser-header .close-btn:hover {
-            color: #fff;
-        }
+        .close-btn:hover { color: #fff; }
         .teaser-output {
             background: #0a0e14;
             border: 1px solid #252b33;
@@ -147,15 +132,10 @@
             background: #2c6e2c;
             color: white;
         }
-        .btn-primary:hover {
-            background: #3e8e3e;
-        }
-        .btn-secondary {
-            background: #2a2f38;
-            color: #ccc;
-        }
-        .btn-secondary:hover {
-            background: #3a3f48;
+        .btn-primary:hover { background: #3e8e3e; }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .toast {
             position: fixed;
@@ -197,27 +177,9 @@
             color: #6a7a8a;
         }
         @media (max-width: 600px) {
-            .pack-grid {
-                grid-template-columns: 1fr;
-            }
-            .teaser-section {
-                padding: 16px;
-            }
-            .teaser-output {
-                font-size: 0.8rem;
-                padding: 12px;
-            }
-        }
-        .btn-download {
-            background: #2563eb;
-            color: white;
-        }
-        .btn-download:hover {
-            background: #1d4ed8;
-        }
-        .btn-download:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            .pack-grid { grid-template-columns: 1fr; }
+            .teaser-section { padding: 16px; }
+            .teaser-output { font-size: 0.8rem; padding: 12px; }
         }
     </style>
 </head>
@@ -225,7 +187,7 @@
 <div class="container">
     <h1>
         📦 Pack Teaser Viewer
-        <small>Click a pack to generate its Public Teaser text</small>
+        <small>Click a pack → copy teaser + download ZIP</small>
     </h1>
     <div id="packGrid" class="pack-grid">
         <div class="loading">Loading packs…</div>
@@ -238,8 +200,7 @@
         </div>
         <div id="teaserOutput" class="teaser-output"></div>
         <div class="teaser-actions">
-            <button class="btn btn-primary" id="copyTeaserBtn">📋 Copy Teaser</button>
-            <button class="btn btn-download" id="downloadPackBtn">⬇️ Download ZIP</button>
+            <button class="btn btn-primary" id="copyAndDownloadBtn">📋 Copy Teaser &amp; Download ZIP</button>
         </div>
     </div>
 </div>
@@ -372,110 +333,98 @@ Total Set Size: ${count} High-Res Images
             titleEl.textContent = `📝 ${pack.title}`;
             section.classList.add('visible');
 
-            // Store current pack for download
             currentPack = pack;
-
-            // Enable download button
-            const downloadBtn = document.getElementById('downloadPackBtn');
-            downloadBtn.disabled = false;
-            downloadBtn.textContent = '⬇️ Download ZIP';
-
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ─── copy to clipboard ─────────────────────────────────────
-        function copyTeaser() {
-            const output = document.getElementById('teaserOutput');
-            const text = output.textContent;
-            if (!text) {
-                showToast('Nothing to copy.', 'error');
-                return;
-            }
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('✅ Teaser copied to clipboard!');
-            }).catch(() => {
-                const range = document.createRange();
-                range.selectNodeContents(output);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                document.execCommand('copy');
-                sel.removeAllRanges();
-                showToast('✅ Teaser copied to clipboard!');
-            });
-        }
-
-        // ─── download pack ──────────────────────────────────────────
-        async function downloadPack() {
+        // ─── copy + download ────────────────────────────────────────
+        async function copyAndDownload() {
             if (!currentPack) {
                 showToast('No pack selected.', 'error');
                 return;
             }
 
-            const downloadBtn = document.getElementById('downloadPackBtn');
-            downloadBtn.disabled = true;
-            downloadBtn.textContent = '⏳ Fetching link...';
+            const btn = document.getElementById('copyAndDownloadBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Processing...';
+
+            // 1. Copy teaser to clipboard
+            const output = document.getElementById('teaserOutput');
+            const text = output.textContent;
+            let copyOk = false;
+            try {
+                await navigator.clipboard.writeText(text);
+                copyOk = true;
+            } catch (_) {
+                // fallback
+                try {
+                    const range = document.createRange();
+                    range.selectNodeContents(output);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    document.execCommand('copy');
+                    sel.removeAllRanges();
+                    copyOk = true;
+                } catch (_2) {
+                    showToast('Failed to copy teaser, but continuing with download.', 'error');
+                }
+            }
+
+            // 2. Download ZIP
+            let downloadUrl = currentPack.downloadUrl;
+            let filename = `${currentPack.title.replace(/[^a-zA-Z0-9 ]/g, '').trim()}.zip`;
 
             try {
-                // First, try to get the download URL from the pack data
-                let downloadUrl = currentPack.downloadUrl;
-
-                // If the pack doesn't have a direct downloadUrl, try to fetch it from the API
+                // If no direct URL, try to fetch it (should be present in the pack data)
                 if (!downloadUrl) {
-                    const resp = await fetch(`https://packs-api.velutinx.workers.dev/api/packs/${currentPack.id}`);
-                    if (!resp.ok) throw new Error(`Failed to fetch pack details: ${resp.status}`);
-                    const packData = await resp.json();
-                    downloadUrl = packData.downloadUrl;
-                }
-
-                if (!downloadUrl) {
+                    // Optionally fetch from API if needed (but we already have it)
                     showToast('No download link available for this pack.', 'error');
-                    downloadBtn.disabled = false;
-                    downloadBtn.textContent = '⬇️ Download ZIP';
+                    btn.disabled = false;
+                    btn.textContent = '📋 Copy Teaser & Download ZIP';
                     return;
                 }
 
-                // If it's a Mega link, use the proxy to get a direct download
+                // Use the proxy to resolve Mega links
                 if (downloadUrl.includes('mega.nz')) {
-                    downloadBtn.textContent = '⏳ Resolving Mega link...';
-                    const filename = `${currentPack.title.replace(/[^a-zA-Z0-9 ]/g, '').trim()}.zip`;
                     const proxyUrl = `https://i2-uploader.velutinx.workers.dev/mega-link?filename=${encodeURIComponent(filename)}`;
-                    
                     const proxyResp = await fetch(proxyUrl);
-                    if (!proxyResp.ok) {
-                        throw new Error(`Failed to resolve Mega link: ${proxyResp.status}`);
-                    }
-                    const proxyData = await proxyResp.json();
-                    
-                    if (proxyData.url) {
-                        downloadUrl = proxyData.url;
+                    if (proxyResp.ok) {
+                        const proxyData = await proxyResp.json();
+                        if (proxyData.url) {
+                            downloadUrl = proxyData.url;
+                        } else {
+                            throw new Error('Proxy returned no URL');
+                        }
                     } else {
-                        // Fallback: try to use the direct Mega link with a download attribute
-                        // Note: This may not work for all browsers due to Mega's download restrictions
-                        downloadBtn.textContent = '⬇️ Download ZIP';
-                        downloadBtn.disabled = false;
+                        // Proxy failed – fallback to opening in new tab
                         showToast('Mega link could not be resolved. Opening in new tab.', 'info');
-                        window.open(downloadUrl, '_blank');
+                        window.open(currentPack.downloadUrl, '_blank');
+                        btn.disabled = false;
+                        btn.textContent = '📋 Copy Teaser & Download ZIP';
                         return;
                     }
                 }
 
-                // Trigger the download
-                downloadBtn.textContent = '⏳ Downloading...';
+                // Trigger download
                 const link = document.createElement('a');
                 link.href = downloadUrl;
-                link.download = `${currentPack.title.replace(/[^a-zA-Z0-9 ]/g, '').trim()}.zip`;
+                link.download = filename;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
 
-                showToast('✅ Download started!');
+                showToast('✅ Teaser copied and download started!');
             } catch (err) {
                 console.error('Download error:', err);
-                showToast(`❌ Download failed: ${err.message}`, 'error');
+                showToast(`❌ Download failed: ${err.message}. Opening link in new tab.`, 'error');
+                // Fallback: open the original Mega link
+                if (currentPack.downloadUrl) {
+                    window.open(currentPack.downloadUrl, '_blank');
+                }
             } finally {
-                downloadBtn.disabled = false;
-                downloadBtn.textContent = '⬇️ Download ZIP';
+                btn.disabled = false;
+                btn.textContent = '📋 Copy Teaser & Download ZIP';
             }
         }
 
@@ -490,8 +439,7 @@ Total Set Size: ${count} High-Res Images
             const packs = await fetchPacks();
             if (packs) renderPacks(packs);
 
-            document.getElementById('copyTeaserBtn').addEventListener('click', copyTeaser);
-            document.getElementById('downloadPackBtn').addEventListener('click', downloadPack);
+            document.getElementById('copyAndDownloadBtn').addEventListener('click', copyAndDownload);
             document.getElementById('closeTeaserBtn').addEventListener('click', closeTeaser);
         }
 
