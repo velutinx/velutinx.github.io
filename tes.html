@@ -176,10 +176,132 @@
             padding: 40px;
             color: #6a7a8a;
         }
+
+        /* Image gallery */
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .image-gallery img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #2a2f38;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.1s;
+        }
+        .image-gallery img:hover {
+            border-color: #4a6a8a;
+            transform: scale(1.05);
+        }
+
+        /* Crop modal */
+        .crop-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        .crop-modal.active { display: flex; }
+        .crop-modal-content {
+            background: #11151c;
+            border: 1px solid #2a2f38;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 94vw;
+            max-height: 94vh;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            width: fit-content;
+            min-width: 320px;
+        }
+        .crop-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .crop-modal-header h2 {
+            margin: 0;
+            color: #f0f0f0;
+            font-weight: 400;
+            font-size: 1.15rem;
+        }
+        .crop-modal-header .close-modal {
+            background: none;
+            border: none;
+            color: #777;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+        .crop-modal-header .close-modal:hover { color: #fff; }
+        .crop-canvas-wrapper {
+            position: relative;
+            background: #03060b;
+            border-radius: 10px;
+            border: 1px solid #2a2f38;
+            overflow: hidden;
+            max-width: 100%;
+        }
+        #cropCanvas {
+            display: block;
+            max-width: 100%;
+            max-height: 62vh;
+            cursor: crosshair;
+            background: #03060b;
+            touch-action: none;
+        }
+        .crop-instructions {
+            text-align: center;
+            color: #777;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        .crop-instructions span { color: #4a6a8a; }
+        .crop-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .crop-btn {
+            padding: 8px 28px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .crop-btn.cancel {
+            background: #3a3a44;
+            color: #ccc;
+        }
+        .crop-btn.cancel:hover { background: #4a4a54; }
+        .crop-btn.confirm {
+            background: #2c6e2c;
+            color: white;
+        }
+        .crop-btn.confirm:hover { background: #3e8e3e; }
+
         @media (max-width: 600px) {
             .pack-grid { grid-template-columns: 1fr; }
             .teaser-section { padding: 16px; }
             .teaser-output { font-size: 0.8rem; padding: 12px; }
+            .image-gallery img { width: 70px; height: 70px; }
         }
     </style>
 </head>
@@ -187,7 +309,7 @@
 <div class="container">
     <h1>
         📦 Pack Teaser Viewer
-        <small>Click a pack → copy teaser + open ZIP + download thumbnails (unzipped)</small>
+        <small>Click a pack → copy teaser + open ZIP + download thumbnails + crop thumbnail</small>
     </h1>
     <div id="packGrid" class="pack-grid">
         <div class="loading">Loading packs…</div>
@@ -199,8 +321,27 @@
             <button class="close-btn" id="closeTeaserBtn">&times;</button>
         </div>
         <div id="teaserOutput" class="teaser-output"></div>
+        <div id="imageGallery" class="image-gallery"></div>
         <div class="teaser-actions">
             <button class="btn btn-primary" id="copyAndDownloadBtn">📋 Copy Teaser &amp; Get Files</button>
+        </div>
+    </div>
+</div>
+
+<!-- Crop Modal -->
+<div class="crop-modal" id="cropModal">
+    <div class="crop-modal-content">
+        <div class="crop-modal-header">
+            <h2>✂️ Crop 460×160 Thumbnail</h2>
+            <button class="close-modal" id="cropModalClose">&times;</button>
+        </div>
+        <div class="crop-canvas-wrapper">
+            <canvas id="cropCanvas"></canvas>
+            <div class="crop-instructions">Drag to position – <span>fixed 460×160 ratio</span></div>
+        </div>
+        <div class="crop-controls">
+            <button class="crop-btn cancel" id="cropCancelBtn">Cancel</button>
+            <button class="crop-btn confirm" id="cropDoneBtn">Crop &amp; Use</button>
         </div>
     </div>
 </div>
@@ -339,11 +480,13 @@
 
         // ─── show teaser ────────────────────────────────────────────
         let currentPack = null;
+        let cropDataUrl = null; // store cropped thumbnail data URL
 
-        function showTeaser(pack) {
+        async function showTeaser(pack) {
             const section = document.getElementById('teaserSection');
             const output = document.getElementById('teaserOutput');
             const titleEl = document.getElementById('teaserTitle');
+            const gallery = document.getElementById('imageGallery');
 
             const text = generateTeaser(pack);
             output.textContent = text;
@@ -351,10 +494,293 @@
             section.classList.add('visible');
 
             currentPack = pack;
+            cropDataUrl = null; // reset crop
+
+            // Load images into gallery
+            gallery.innerHTML = '';
+            const urls = await fetchThumbnails(pack.id);
+            if (urls.length > 0) {
+                urls.forEach((url, index) => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = `Thumbnail ${index+1}`;
+                    img.loading = 'lazy';
+                    img.addEventListener('click', () => {
+                        openCropModal(url, pack.id);
+                    });
+                    gallery.appendChild(img);
+                });
+            } else {
+                gallery.innerHTML = '<span style="color:#777;">No preview images available.</span>';
+            }
+
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ─── copy + open Mega link + download thumbnails individually ──
+        // ─── crop modal logic ──────────────────────────────────────
+        const cropCanvas = document.getElementById('cropCanvas');
+        const ctx = cropCanvas.getContext('2d');
+        let cropImageObj = null;
+        let cropRect = null;
+        let isDragging = false;
+        let isMoving = false;
+        let startX = 0, startY = 0;
+        let moveOffsetX = 0, moveOffsetY = 0;
+        const RATIO = 460 / 160; // width/height
+
+        function openCropModal(imageUrl, packId) {
+            const modal = document.getElementById('cropModal');
+            modal.classList.add('active');
+
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                cropImageObj = img;
+                const maxW = Math.min(800, window.innerWidth * 0.8);
+                const maxH = Math.min(700, window.innerHeight * 0.65);
+                let scale = Math.min(maxW / img.width, maxH / img.height, 1);
+                cropCanvas.width = img.width * scale;
+                cropCanvas.height = img.height * scale;
+                // Initialize a default crop rectangle centered, with ratio
+                let w = Math.min(cropCanvas.width * 0.6, cropCanvas.height * RATIO);
+                let h = w / RATIO;
+                if (h > cropCanvas.height) { h = cropCanvas.height * 0.6; w = h * RATIO; }
+                cropRect = {
+                    x: (cropCanvas.width - w) / 2,
+                    y: (cropCanvas.height - h) / 2,
+                    w: w,
+                    h: h
+                };
+                redrawCropCanvas();
+            };
+            img.src = imageUrl;
+        }
+
+        function closeCropModal() {
+            document.getElementById('cropModal').classList.remove('active');
+            cropImageObj = null;
+            cropRect = null;
+        }
+
+        function redrawCropCanvas() {
+            if (!cropImageObj) return;
+            const cw = cropCanvas.width, ch = cropCanvas.height;
+            ctx.clearRect(0, 0, cw, ch);
+            ctx.drawImage(cropImageObj, 0, 0, cw, ch);
+            if (cropRect && cropRect.w > 0 && cropRect.h > 0) {
+                // Darken outside
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, 0, cw, ch);
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+                ctx.clip();
+                ctx.drawImage(cropImageObj, 0, 0, cw, ch);
+                ctx.restore();
+                // Border
+                ctx.strokeStyle = '#2c6e2c';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+                // Corner handles
+                const hs = 8;
+                ctx.fillStyle = '#2c6e2c';
+                const corners = [
+                    [cropRect.x, cropRect.y],
+                    [cropRect.x + cropRect.w - hs, cropRect.y],
+                    [cropRect.x, cropRect.y + cropRect.h - hs],
+                    [cropRect.x + cropRect.w - hs, cropRect.y + cropRect.h - hs]
+                ];
+                corners.forEach(([cx, cy]) => {
+                    ctx.fillRect(cx, cy, hs, hs);
+                });
+            }
+        }
+
+        // ─── canvas events for cropping ──────────────────────────
+        function getCanvasPos(e) {
+            const rect = cropCanvas.getBoundingClientRect();
+            const scaleX = cropCanvas.width / rect.width;
+            const scaleY = cropCanvas.height / rect.height;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        function isInsideRect(pos) {
+            if (!cropRect) return false;
+            return pos.x >= cropRect.x && pos.x <= cropRect.x + cropRect.w &&
+                   pos.y >= cropRect.y && pos.y <= cropRect.y + cropRect.h;
+        }
+
+        function isOnCorner(pos) {
+            if (!cropRect) return false;
+            const hs = 10; // handle size
+            const corners = [
+                [cropRect.x, cropRect.y],
+                [cropRect.x + cropRect.w, cropRect.y],
+                [cropRect.x, cropRect.y + cropRect.h],
+                [cropRect.x + cropRect.w, cropRect.y + cropRect.h]
+            ];
+            for (let [cx, cy] of corners) {
+                if (Math.abs(pos.x - cx) < hs && Math.abs(pos.y - cy) < hs) return true;
+            }
+            return false;
+        }
+
+        function onPointerDown(e) {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+            if (isOnCorner(pos)) {
+                // Start resizing – we'll handle by dragging corner
+                isDragging = true;
+                isMoving = false;
+                startX = pos.x;
+                startY = pos.y;
+                return;
+            }
+            if (isInsideRect(pos)) {
+                isMoving = true;
+                isDragging = false;
+                moveOffsetX = pos.x - cropRect.x;
+                moveOffsetY = pos.y - cropRect.y;
+            } else {
+                // Start new selection? For simplicity, we only allow moving/resizing, not creating new.
+                // But we can set a new rectangle centered on click? Let's just ignore.
+            }
+        }
+
+        function onPointerMove(e) {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+            if (isMoving && cropRect) {
+                let nx = pos.x - moveOffsetX;
+                let ny = pos.y - moveOffsetY;
+                nx = Math.max(0, Math.min(cropCanvas.width - cropRect.w, nx));
+                ny = Math.max(0, Math.min(cropCanvas.height - cropRect.h, ny));
+                cropRect.x = nx;
+                cropRect.y = ny;
+                redrawCropCanvas();
+            } else if (isDragging && cropRect) {
+                // Resize while maintaining ratio
+                let dx = pos.x - startX;
+                let dy = pos.y - startY;
+                // Use the larger delta to resize proportionally
+                let delta = Math.max(dx, dy);
+                // Determine which corner is being dragged (based on closest)
+                // We'll just resize from the bottom-right for simplicity, but we need to know which corner.
+                // For better UX, we can detect which corner is closest to startX,startY
+                const corners = [
+                    [cropRect.x, cropRect.y],
+                    [cropRect.x + cropRect.w, cropRect.y],
+                    [cropRect.x, cropRect.y + cropRect.h],
+                    [cropRect.x + cropRect.w, cropRect.y + cropRect.h]
+                ];
+                let minDist = Infinity;
+                let cornerIdx = 0;
+                corners.forEach(([cx, cy], idx) => {
+                    const d = Math.hypot(startX - cx, startY - cy);
+                    if (d < minDist) { minDist = d; cornerIdx = idx; }
+                });
+                // Resize from that corner
+                let newW = cropRect.w, newH = cropRect.h;
+                if (cornerIdx === 0) { // top-left
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    let delta = Math.max(dx, dy);
+                    newW = Math.max(10, cropRect.w - delta);
+                    newH = newW / RATIO;
+                    cropRect.x = cropRect.x + cropRect.w - newW;
+                    cropRect.y = cropRect.y + cropRect.h - newH;
+                } else if (cornerIdx === 1) { // top-right
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    let delta = Math.max(dx, -dy); // positive right, negative up
+                    // but we need consistent
+                    newW = Math.max(10, cropRect.w + dx);
+                    newH = newW / RATIO;
+                    cropRect.y = cropRect.y + cropRect.h - newH;
+                } else if (cornerIdx === 2) { // bottom-left
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    let delta = Math.max(-dx, dy);
+                    newW = Math.max(10, cropRect.w - dx);
+                    newH = newW / RATIO;
+                    cropRect.x = cropRect.x + cropRect.w - newW;
+                } else { // bottom-right
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    let delta = Math.max(dx, dy);
+                    newW = Math.max(10, cropRect.w + delta);
+                    newH = newW / RATIO;
+                }
+                // Clamp
+                if (cropRect.x < 0) { cropRect.x = 0; newW = cropRect.w; }
+                if (cropRect.y < 0) { cropRect.y = 0; newH = cropRect.h; }
+                if (cropRect.x + newW > cropCanvas.width) newW = cropCanvas.width - cropRect.x;
+                if (cropRect.y + newH > cropCanvas.height) newH = cropCanvas.height - cropRect.y;
+                cropRect.w = Math.max(10, newW);
+                cropRect.h = cropRect.w / RATIO;
+                // Re-clamp y if height exceeds
+                if (cropRect.y + cropRect.h > cropCanvas.height) {
+                    cropRect.y = cropCanvas.height - cropRect.h;
+                }
+                redrawCropCanvas();
+                startX = pos.x;
+                startY = pos.y;
+            } else {
+                // Update cursor
+                if (isOnCorner(pos)) cropCanvas.style.cursor = 'nwse-resize';
+                else if (isInsideRect(pos)) cropCanvas.style.cursor = 'move';
+                else cropCanvas.style.cursor = 'crosshair';
+            }
+        }
+
+        function onPointerUp(e) {
+            isDragging = false;
+            isMoving = false;
+        }
+
+        // Attach events
+        cropCanvas.addEventListener('mousedown', onPointerDown);
+        cropCanvas.addEventListener('mousemove', onPointerMove);
+        cropCanvas.addEventListener('mouseup', onPointerUp);
+        cropCanvas.addEventListener('mouseleave', onPointerUp);
+        cropCanvas.addEventListener('touchstart', onPointerDown, { passive: false });
+        cropCanvas.addEventListener('touchmove', onPointerMove, { passive: false });
+        cropCanvas.addEventListener('touchend', onPointerUp);
+
+        // Modal buttons
+        document.getElementById('cropCancelBtn').addEventListener('click', closeCropModal);
+        document.getElementById('cropModalClose').addEventListener('click', closeCropModal);
+        document.getElementById('cropModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCropModal();
+        });
+
+        document.getElementById('cropDoneBtn').addEventListener('click', function() {
+            if (!cropImageObj || !cropRect || cropRect.w < 5 || cropRect.h < 5) {
+                showToast('Please select a valid crop area.', 'error');
+                return;
+            }
+            // Generate cropped image at 460x160
+            const scaleX = cropImageObj.naturalWidth / cropCanvas.width;
+            const scaleY = cropImageObj.naturalHeight / cropCanvas.height;
+            const sx = cropRect.x * scaleX;
+            const sy = cropRect.y * scaleY;
+            const sw = cropRect.w * scaleX;
+            const sh = cropRect.h * scaleY;
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = 460;
+            outCanvas.height = 160;
+            const outCtx = outCanvas.getContext('2d');
+            outCtx.drawImage(cropImageObj, sx, sy, sw, sh, 0, 0, 460, 160);
+            cropDataUrl = outCanvas.toDataURL('image/jpeg', 0.92);
+
+            closeCropModal();
+            showToast('✅ Thumbnail cropped! It will be downloaded as packXXX-thumbnail.jpg');
+        });
+
+        // ─── copy + open Mega + download full images + crop thumbnail ──
         async function copyAndDownload() {
             if (!currentPack) {
                 showToast('No pack selected.', 'error');
@@ -365,7 +791,7 @@
             btn.disabled = true;
             btn.textContent = '⏳ Processing...';
 
-            // 1. Copy teaser to clipboard
+            // 1. Copy teaser
             const output = document.getElementById('teaserOutput');
             const text = output.textContent;
             try {
@@ -384,26 +810,17 @@
                 }
             }
 
-            // 2. Open Mega link in new tab (main ZIP)
+            // 2. Open Mega link
             if (currentPack.downloadUrl) {
                 window.open(currentPack.downloadUrl, '_blank');
             } else {
                 showToast('No Mega link available for this pack.', 'error');
             }
 
-            // 3. Download each thumbnail individually (unzipped)
+            // 3. Download all full-size thumbnails
             try {
                 const thumbUrls = await fetchThumbnails(currentPack.id);
-                if (thumbUrls.length === 0) {
-                    showToast('No thumbnails found for this pack.', 'info');
-                    btn.disabled = false;
-                    btn.textContent = '📋 Copy Teaser & Get Files';
-                    return;
-                }
-
-                let downloaded = 0;
-                let failed = 0;
-
+                let downloaded = 0, failed = 0;
                 for (let i = 0; i < thumbUrls.length; i++) {
                     const url = thumbUrls[i];
                     try {
@@ -411,9 +828,7 @@
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);
                         const blob = await response.blob();
                         const ext = url.split('.').pop().split('?')[0] || 'jpg';
-                        const filename = `pack${currentPack.id}-${i + 1}.${ext}`;
-
-                        // Create a temporary link and trigger download
+                        const filename = `pack${currentPack.id}-${i+1}.${ext}`;
                         const link = document.createElement('a');
                         link.href = URL.createObjectURL(blob);
                         link.download = filename;
@@ -421,32 +836,48 @@
                         link.click();
                         document.body.removeChild(link);
                         URL.revokeObjectURL(link.href);
-
                         downloaded++;
-                        // Small delay between downloads to avoid browser blocking
-                        await new Promise(resolve => setTimeout(resolve, 200));
+                        await new Promise(r => setTimeout(r, 200));
                     } catch (err) {
                         console.warn(`Failed to download ${url}:`, err.message);
                         failed++;
                     }
                 }
-
-                let msg = `✅ Teaser copied, Mega link opened, ${downloaded} thumbnail(s) downloaded.`;
+                let msg = `✅ Downloaded ${downloaded} full image(s).`;
                 if (failed > 0) msg += ` (${failed} failed)`;
                 showToast(msg);
             } catch (err) {
                 console.error('Download error:', err);
-                showToast(`❌ Failed to download thumbnails: ${err.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '📋 Copy Teaser & Get Files';
+                showToast(`❌ Failed to download full images: ${err.message}`, 'error');
             }
+
+            // 4. Download cropped thumbnail if exists
+            if (cropDataUrl) {
+                try {
+                    const link = document.createElement('a');
+                    link.href = cropDataUrl;
+                    link.download = `pack${currentPack.id}-thumbnail.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showToast('✅ Cropped thumbnail downloaded.');
+                } catch (err) {
+                    console.error('Crop download error:', err);
+                    showToast('❌ Failed to download cropped thumbnail.', 'error');
+                }
+            } else {
+                showToast('ℹ️ No cropped thumbnail set. Click an image to crop.', 'info');
+            }
+
+            btn.disabled = false;
+            btn.textContent = '📋 Copy Teaser & Get Files';
         }
 
         // ─── close teaser ───────────────────────────────────────────
         function closeTeaser() {
             document.getElementById('teaserSection').classList.remove('visible');
             currentPack = null;
+            cropDataUrl = null;
         }
 
         // ─── init ───────────────────────────────────────────────────
