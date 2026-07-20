@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pack Teaser Viewer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -188,7 +187,7 @@
 <div class="container">
     <h1>
         📦 Pack Teaser Viewer
-        <small>Click a pack → copy teaser + open ZIP + download thumbnails</small>
+        <small>Click a pack → copy teaser + open ZIP + download thumbnails (unzipped)</small>
     </h1>
     <div id="packGrid" class="pack-grid">
         <div class="loading">Loading packs…</div>
@@ -251,14 +250,12 @@
             const series = parsed.series || 'Unknown';
             const count = illustrationCount || '?';
 
-            // Japanese version
             const jp = `プレビュー: ${character} — ${series} — パック #${packNumber}
 
 総収録枚数：高解像度画像 ${count} 枚
 🔒 Weekly Access以上のメンバーシップに参加すると、高解像度版のフルパックおよび成人向けバージョンをご利用いただけます。
 ⚠️ 免責事項：登場するすべてのキャラクターは18歳以上として描写されています。これらはAIによって生成された架空の、双方の同意を前提としたフィクション作品です。`;
 
-            // English version
             const en = `Total Set Size: ${count} High-Res Images
 🔒 Unlock the full high-resolution pack and explicit versions by joining the Weekly Access tier or higher.
 ⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
@@ -357,7 +354,7 @@
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ─── copy + open Mega link + download thumbnails ZIP ──────
+        // ─── copy + open Mega link + download thumbnails individually ──
         async function copyAndDownload() {
             if (!currentPack) {
                 showToast('No pack selected.', 'error');
@@ -394,7 +391,7 @@
                 showToast('No Mega link available for this pack.', 'error');
             }
 
-            // 3. Download thumbnails as ZIP – with resilience
+            // 3. Download each thumbnail individually (unzipped)
             try {
                 const thumbUrls = await fetchThumbnails(currentPack.id);
                 if (thumbUrls.length === 0) {
@@ -404,54 +401,41 @@
                     return;
                 }
 
-                // Fetch each image individually; skip failures
-                const fetchPromises = thumbUrls.map(async (url) => {
+                let downloaded = 0;
+                let failed = 0;
+
+                for (let i = 0; i < thumbUrls.length; i++) {
+                    const url = thumbUrls[i];
                     try {
                         const response = await fetch(url);
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);
                         const blob = await response.blob();
-                        return { url, blob, success: true };
+                        const ext = url.split('.').pop().split('?')[0] || 'jpg';
+                        const filename = `pack${currentPack.id}-${i + 1}.${ext}`;
+
+                        // Create a temporary link and trigger download
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(link.href);
+
+                        downloaded++;
+                        // Small delay between downloads to avoid browser blocking
+                        await new Promise(resolve => setTimeout(resolve, 200));
                     } catch (err) {
-                        console.warn(`Failed to fetch thumbnail: ${url}`, err.message);
-                        return { url, success: false };
+                        console.warn(`Failed to download ${url}:`, err.message);
+                        failed++;
                     }
-                });
-
-                const results = await Promise.allSettled(fetchPromises);
-                const successful = results
-                    .filter(r => r.status === 'fulfilled' && r.value && r.value.success)
-                    .map(r => r.value);
-
-                if (successful.length === 0) {
-                    showToast('❌ No thumbnails could be downloaded.', 'error');
-                    btn.disabled = false;
-                    btn.textContent = '📋 Copy Teaser & Get Files';
-                    return;
                 }
 
-                // Build ZIP
-                const zip = new JSZip();
-                successful.forEach((item, index) => {
-                    const ext = item.url.split('.').pop().split('?')[0] || 'jpg';
-                    const filename = `pack${currentPack.id}-${index + 1}.${ext}`;
-                    zip.file(filename, item.blob);
-                });
-
-                const zipBlob = await zip.generateAsync({ type: 'blob' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(zipBlob);
-                link.download = `pack${currentPack.id}-thumbnails.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-
-                const failedCount = thumbUrls.length - successful.length;
-                let msg = '✅ Teaser copied, Mega link opened, thumbnails downloaded!';
-                if (failedCount > 0) msg += ` (${failedCount} thumbnail(s) skipped)`;
+                let msg = `✅ Teaser copied, Mega link opened, ${downloaded} thumbnail(s) downloaded.`;
+                if (failed > 0) msg += ` (${failed} failed)`;
                 showToast(msg);
             } catch (err) {
-                console.error('Thumbnail ZIP error:', err);
+                console.error('Download error:', err);
                 showToast(`❌ Failed to download thumbnails: ${err.message}`, 'error');
             } finally {
                 btn.disabled = false;
