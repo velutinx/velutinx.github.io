@@ -204,7 +204,20 @@
                                 if (memMatch) {
                                     type = `M-${memMatch[1]}`;
                                 } else {
-                                    type = e.category;
+                                    // 🔥 FIX: Map by amount
+                                    if (amount === 4.50) {
+                                        type = 'M-1';
+                                    } else if (amount === 9.00) {
+                                        type = 'M-2';
+                                    } else if (amount === 3.00) {
+                                        type = 'M-0.5';
+                                    } else if (amount === 18.00) {
+                                        type = 'M-2';
+                                    } else if (amount === 30.00) {
+                                        type = 'M-3';
+                                    } else {
+                                        type = e.category;
+                                    }
                                 }
                             }
                         } else {
