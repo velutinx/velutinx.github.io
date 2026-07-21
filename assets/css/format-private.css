@@ -487,22 +487,21 @@ body { background: #0a0c10; display: flex; justify-content: center; padding: 24p
 
 
 
-/* Force scrollbar to always be visible to prevent shifting */
 html, body {
     height: 100%;
     margin: 0;
 }
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     background: var(--bg, #0a0c10);
-    overflow-y: scroll; /* <-- key fix */
+    overflow-y: scroll; /* optional – forces scrollbar to prevent layout shift */
 }
 .container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 100%;
     max-width: 1200px;
-    height: calc(100vh - 40px);
     max-height: calc(100vh - 40px);
     overflow-y: auto;
     background: #11151c;
