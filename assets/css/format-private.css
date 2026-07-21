@@ -492,22 +492,20 @@ body { background: #0a0c10; display: flex; justify-content: center; padding: 24p
 html, body {
     height: 100%;
     margin: 0;
-    padding: 0;
 }
 body {
-    display: block !important;          /* Remove flex centering */
-    background: #0a0c10;
-    overflow-y: scroll;                 /* Reserve scrollbar space */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg, #0a0c10);
+    overflow-y: scroll; /* keeps viewport width constant */
 }
 .container {
-    position: fixed !important;         /* Pin to viewport */
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
     width: 100%;
     max-width: 1200px;
+    height: calc(100vh - 40px);
     max-height: calc(100vh - 40px);
-    overflow-y: auto;
+    overflow-y: scroll; /* ★ force scrollbar to always be present ★ */
     background: #11151c;
     border-radius: 16px;
     padding: 24px;
@@ -522,6 +520,6 @@ body {
 }
 #errorlogs .error-logs-scroll {
     max-height: 70vh;
-    overflow-y: auto;
+    overflow-y: auto; /* internal scroll, no shift */
     padding-right: 4px;
 }
