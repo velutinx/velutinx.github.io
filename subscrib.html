@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Velutinx Helpful sites</title>
     <link rel="stylesheet" href="/assets/css/format-private.css">
+    <!-- FIX: Prevent vertical centering shifting -->
+    <style>
+        body {
+            align-items: flex-start !important;
+        }
+        /* Optional: keep Error Logs tab scrollable internally */
+        #errorlogs .scrollable-container {
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -176,9 +191,9 @@
         </div>
     </div>
 
-    <!-- 📋 Error Logs Tab -->
+    <!-- 📋 Error Logs Tab (FIXED) -->
     <div id="errorlogs" class="tab-content">
-        <div class="container" style="padding:0; background:transparent; border:none; box-shadow:none; max-height: 80vh; overflow-y: auto;">
+        <div class="scrollable-container">
             <div class="error-logs-header">
                 <h1>📋 Central Error Logs</h1>
                 <button class="btn" id="clearBtn">🗑️ Clear All</button>
