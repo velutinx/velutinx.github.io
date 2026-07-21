@@ -330,7 +330,6 @@
         const month = parseInt(monthSelect.value) + 1;
         const year = parseInt(yearSelect.value);
         const currentData = filterByPeriod(tableData, month, year, viewMode);
-        console.log(`📊 Current month/year: ${month}/${year}, entries: ${currentData.length}`);
         const incomeCurrent = currentData.filter(r => r.status === 'Income');
         const expenseCurrent = currentData.filter(r => r.status === 'Expense');
         const totalIncome = sum(incomeCurrent.map(r => r.amount));
@@ -367,7 +366,6 @@
         const year = parseInt(yearSelect.value);
 
         let data = filterByPeriod(tableData, month, year, viewMode);
-        console.log(`📋 After filter: ${data.length} entries for ${month}/${year}, viewMode=${viewMode}`);
         if (q) {
             data = data.filter(r => {
                 const amtStr = r.amount.toFixed(2);
@@ -745,10 +743,8 @@
 
     // ─── INIT ──────────────────────────────────────────────────────────
     async function init() {
-        console.log('🚀 Chart initializing...');
         const entries = await fetchEntries();
         tableData = entries;
-        console.log(`📊 Loaded ${entries.length} entries`);
         pageSizeSelect.value = pageSize;
         setupSorting();
         setupViewToggle();
