@@ -49,9 +49,9 @@
 function shortenPatreonLinks(text) {
     return text.replace(/https?:\/\/[^\s]+/g, function(url) {
         if (url.includes('patreon.com') && url.includes('/posts/')) {
-            const match = url.match(/\/posts\/(?:.*?)(\d+)/);
+            const match = url.match(/\/posts\/[^?]*?(\d+)(?:\?|$)/);
             if (match) {
-                return 'https://patreon.com/posts/' + match[1];
+                return 'https://www.patreon.com/posts/' + match[1];
             }
         }
         return url;
