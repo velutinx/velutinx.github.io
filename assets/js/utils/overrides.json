@@ -71,6 +71,10 @@
     "one piece": {
       "english": ["OnePiece"],
       "native": ["ワンピース"]
+    },
+    "spider-man": {
+      "english": ["SpiderMan"],
+      "native": ["スパイダーマン"]
     }
   },
   "character": {
@@ -103,6 +107,10 @@
     "bridget": {
       "english": ["Bridget"],
       "native": ["ブリジット"]
+    },
+    "gwen stacy": {
+      "english": ["GwenStacy"],
+      "native": ["グウェン・ステイシー"]
     }
   }
 }
