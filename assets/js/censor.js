@@ -1,279 +1,205 @@
-// assets/js/censor.js – Velutinx Censorship Tool
+// assets/js/censor.js
 (function() {
     'use strict';
-
-    // ----- DOM refs -----
     const canvas = document.getElementById('censorCanvas');
-    if (!canvas) return; // Failsafe: Stops script if element doesn't exist on page
-    
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const dropZone = document.getElementById('censor-dropZone');
     const addButton = document.getElementById('censor-addBtn');
     const saveButton = document.getElementById('censor-saveBtn');
     const canvasWrapper = document.getElementById('censor-canvasWrapper');
-
-    // ----- Load censorship image -----
     const censorImage = new Image();
     censorImage.crossOrigin = 'anonymous';
     censorImage.src = 'https://www.velutinx.com/images/Censoring.png';
-
-    // ----- State -----
     let originalImage = null;
     let originalFileName = 'image';
     let imageLoaded = false;
-    let darkOverlay = false;
-
-    const editor = {
-        x: 0,
-        y: 0,
-        size: 180,
-        visible: false,
-    };
-
+    let editors = [];
+    let selectedIndex = -1;
     const HANDLE_SIZE = 16;
     const MIN_SIZE = 32;
-    let maxSize = 2000;
-
-    let canvasScale = 1;
-
-    // ----- Helper: Check if tab is active -----
     function isCensorTabActive() {
         const censorTab = document.getElementById('censor');
         return censorTab ? censorTab.classList.contains('active') : false;
     }
-
-    // ----- Fit canvas inside wrapper (contain, with slight upscale) -----
     function fitCanvas(img) {
         const wrapperRect = canvasWrapper.getBoundingClientRect();
         const availWidth = wrapperRect.width - 12;
         const availHeight = wrapperRect.height - 12;
-
-        const imgW = img.width;
-        const imgH = img.height;
-
-        let scaleX = availWidth / imgW;
-        let scaleY = availHeight / imgH;
-        let scale = Math.min(scaleX, scaleY);
-
-        // Allow moderate upscaling (max 1.2x) to fill more space without cropping
-        scale = Math.min(scale, 1.2);
-
-        canvasScale = scale;
-
-        canvas.width = imgW;
-        canvas.height = imgH;
-
-        canvas.style.width = (imgW * canvasScale) + 'px';
-        canvas.style.height = (imgH * canvasScale) + 'px';
-
+        const scale = Math.min(availWidth / img.width, availHeight / img.height, 1.2);
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.style.width = (img.width * scale) + 'px';
+        canvas.style.height = (img.height * scale) + 'px';
         canvas.style.display = 'block';
         dropZone.style.display = 'none';
-
-        // Allow box to scale up to the longest side of the image
-        maxSize = Math.max(imgW, imgH);
-        if (editor.size > maxSize) editor.size = maxSize;
     }
-
-    // ----- Reset everything (after save or when needed) -----
     function resetState() {
         originalImage = null;
         imageLoaded = false;
-        darkOverlay = false;
-        editor.visible = false;
-        editor.x = 0;
-        editor.y = 0;
-        editor.size = 180;
-
-        // Clear canvas
+        editors = [];
+        selectedIndex = -1;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         canvas.style.display = 'none';
         dropZone.style.display = 'block';
-
-        // Reset buttons
         addButton.disabled = true;
         saveButton.disabled = true;
-        addButton.textContent = 'Add Censorship';
     }
-
-    // ----- Drawing -----
     function draw() {
         if (!imageLoaded) return;
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
-
-        if (darkOverlay) {
-            ctx.fillStyle = 'rgba(0,0,0,0.35)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < editors.length; i++) {
+            const e = editors[i];
+            if (!e.visible) continue;
+            if (censorImage.complete && censorImage.naturalWidth > 0) {
+                ctx.drawImage(censorImage, e.x, e.y, e.size, e.size);
+            }
         }
-
-        if (editor.visible && censorImage.complete && censorImage.naturalWidth > 0) {
-            ctx.drawImage(censorImage, editor.x, editor.y, editor.size, editor.size);
-            drawSelection();
+        if (selectedIndex >= 0 && selectedIndex < editors.length) {
+            const e = editors[selectedIndex];
+            if (e.visible) {
+                ctx.save();
+                ctx.strokeStyle = '#45ff45';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(e.x, e.y, e.size, e.size);
+                ctx.fillStyle = '#45ff45';
+                const hx = e.x + e.size - HANDLE_SIZE / 2;
+                const hy = e.y + e.size - HANDLE_SIZE / 2;
+                ctx.fillRect(hx, hy, HANDLE_SIZE, HANDLE_SIZE);
+                ctx.restore();
+            }
         }
     }
-
-    function drawSelection() {
-        ctx.save();
-        ctx.strokeStyle = '#45ff45';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(editor.x, editor.y, editor.size, editor.size);
-
-        ctx.fillStyle = '#45ff45';
-        const hx = editor.x + editor.size - HANDLE_SIZE / 2;
-        const hy = editor.y + editor.size - HANDLE_SIZE / 2;
-        ctx.fillRect(hx, hy, HANDLE_SIZE, HANDLE_SIZE);
-        ctx.restore();
-    }
-
-    // ----- Coordinate conversion -----
     function canvasPoint(event) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
         return {
-            x: (event.clientX - rect.left) * scaleX,
-            y: (event.clientY - rect.top) * scaleY,
+            x: (event.clientX - rect.left) * (canvas.width / rect.width),
+            y: (event.clientY - rect.top) * (canvas.height / rect.height),
         };
     }
-
-    // ----- Hit testing -----
-    function insideEditor(x, y) {
-        return x >= editor.x && x <= editor.x + editor.size &&
-               y >= editor.y && y <= editor.y + editor.size;
+    function hitTest(x, y) {
+        for (let i = editors.length - 1; i >= 0; i--) {
+            const e = editors[i];
+            if (!e.visible) continue;
+            if (x >= e.x && x <= e.x + e.size && y >= e.y && y <= e.y + e.size) {
+                return i;
+            }
+        }
+        return -1;
     }
-
-    function insideHandle(x, y) {
-        const hx = editor.x + editor.size - HANDLE_SIZE / 2;
-        const hy = editor.y + editor.size - HANDLE_SIZE / 2;
-        return x >= hx && x <= hx + HANDLE_SIZE &&
-               y >= hy && y <= hy + HANDLE_SIZE;
+    function insideHandle(e, x, y) {
+        const hx = e.x + e.size - HANDLE_SIZE / 2;
+        const hy = e.y + e.size - HANDLE_SIZE / 2;
+        return x >= hx && x <= hx + HANDLE_SIZE && y >= hy && y <= hy + HANDLE_SIZE;
     }
-
-    // ----- Drag / Resize state -----
     let dragging = false;
     let resizing = false;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
-
-    // ----- Canvas mouse events -----
+    let activeEditor = null;
     canvas.addEventListener('mousedown', function(e) {
-        if (!isCensorTabActive() || !editor.visible) return;
-        
+        if (!isCensorTabActive() || editors.length === 0) return;
         const p = canvasPoint(e);
-        if (insideHandle(p.x, p.y)) {
-            resizing = true;
-            return;
-        }
-        if (insideEditor(p.x, p.y)) {
+        const idx = hitTest(p.x, p.y);
+        if (idx >= 0) {
+            selectedIndex = idx;
+            const ed = editors[idx];
+            if (insideHandle(ed, p.x, p.y)) {
+                resizing = true;
+                activeEditor = ed;
+                return;
+            }
             dragging = true;
-            dragOffsetX = p.x - editor.x;
-            dragOffsetY = p.y - editor.y;
+            activeEditor = ed;
+            dragOffsetX = p.x - ed.x;
+            dragOffsetY = p.y - ed.y;
+        } else {
+            selectedIndex = -1;
         }
+        draw();
     });
-
     window.addEventListener('mouseup', function() {
         dragging = false;
         resizing = false;
+        activeEditor = null;
     });
-
     canvas.addEventListener('mousemove', function(e) {
-        if (!isCensorTabActive() || !editor.visible) return;
-        
+        if (!isCensorTabActive() || (!dragging && !resizing)) return;
         const p = canvasPoint(e);
-
+        if (!activeEditor) return;
         if (dragging) {
-            editor.x = p.x - dragOffsetX;
-            editor.y = p.y - dragOffsetY;
-            clamp();
+            activeEditor.x = p.x - dragOffsetX;
+            activeEditor.y = p.y - dragOffsetY;
             draw();
             return;
         }
-        
-        // Limit the maximum square size based on its distance to the edges
         if (resizing) {
-            const rawSize = Math.max(p.x - editor.x, p.y - editor.y);
-            const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
-            const newSize = Math.max(MIN_SIZE, Math.min(rawSize, maxSquareSize, maxSize));
-            editor.size = newSize;
-
-            clamp();
+            const rawSize = Math.max(p.x - activeEditor.x, p.y - activeEditor.y);
+            activeEditor.size = Math.max(MIN_SIZE, rawSize);
             draw();
             return;
-        }
-
-        if (insideHandle(p.x, p.y)) {
-            canvas.style.cursor = 'nwse-resize';
-        } else if (insideEditor(p.x, p.y)) {
-            canvas.style.cursor = 'move';
-        } else {
-            canvas.style.cursor = 'default';
         }
     });
-
-    // ----- Mouse wheel resize -----
-    canvas.addEventListener('wheel', function(e) {
-        if (!isCensorTabActive() || !editor.visible) return;
-        
-        const style = window.getComputedStyle(canvas);
-        if (style.display === 'none') return;
+    canvas.addEventListener('mousemove', function(e) {
+        if (!isCensorTabActive() || editors.length === 0) return;
 
         const p = canvasPoint(e);
-        
-        // Only hijack scroll if mouse is over the censor box
-        if (!insideEditor(p.x, p.y) && !insideHandle(p.x, p.y)) {
-            return; 
+        const idx = hitTest(p.x, p.y);
+        if (idx >= 0) {
+            const ed = editors[idx];
+            if (insideHandle(ed, p.x, p.y)) {
+                canvas.style.cursor = 'nwse-resize';
+                return;
+            }
+            canvas.style.cursor = 'move';
+            return;
         }
-
+        canvas.style.cursor = 'default';
+    });
+    canvas.addEventListener('wheel', function(e) {
+        if (!isCensorTabActive() || editors.length === 0) return;
+        const p = canvasPoint(e);
+        const idx = hitTest(p.x, p.y);
+        if (idx < 0) return;
         e.preventDefault();
-
+        const ed = editors[idx];
         const delta = e.deltaY > 0 ? -1 : 1;
         const step = e.shiftKey ? 20 : 5;
-        let rawSize = editor.size + delta * step;
-
-        const maxSquareSize = Math.min(canvas.width - editor.x, canvas.height - editor.y);
-        editor.size = Math.max(MIN_SIZE, Math.min(rawSize, maxSquareSize, maxSize));
-
-        clamp();
+        ed.size = Math.max(MIN_SIZE, ed.size + delta * step);
         draw();
     }, { passive: false });
-
-    // ----- Clamp editor inside canvas -----
-    function clamp() {
-        if (editor.x < 0) editor.x = 0;
-        if (editor.y < 0) editor.y = 0;
-        if (editor.x + editor.size > canvas.width) editor.x = canvas.width - editor.size;
-        if (editor.y + editor.size > canvas.height) editor.y = canvas.height - editor.size;
-    }
-
-    // ----- Keyboard arrows -----
     window.addEventListener('keydown', function(e) {
-        if (!isCensorTabActive() || !editor.visible) return;
-        
-        const step = e.shiftKey ? 10 : 1;
-        switch (e.key) {
-            case 'ArrowLeft':  editor.x -= step; break;
-            case 'ArrowRight': editor.x += step; break;
-            case 'ArrowUp':    editor.y -= step; break;
-            case 'ArrowDown':  editor.y += step; break;
-            default: return; // Let default scroll happen if not an arrow key
+        if (!isCensorTabActive()) return;
+        if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIndex >= 0 && editors.length > 0) {
+            e.preventDefault();
+            editors.splice(selectedIndex, 1);
+            selectedIndex = Math.min(selectedIndex, editors.length - 1);
+            draw();
+            return;
         }
-        
-        clamp();
-        draw();
-        e.preventDefault(); 
+        if (selectedIndex >= 0 && editors[selectedIndex] && editors[selectedIndex].visible) {
+            const step = e.shiftKey ? 10 : 1;
+            const ed = editors[selectedIndex];
+            switch (e.key) {
+                case 'ArrowLeft':  ed.x -= step; break;
+                case 'ArrowRight': ed.x += step; break;
+                case 'ArrowUp':    ed.y -= step; break;
+                case 'ArrowDown':  ed.y += step; break;
+                default: return;
+            }
+            e.preventDefault();
+            draw();
+        }
     });
 
-    // ----- Drop zone -----
     dropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
         dropZone.classList.add('drag');
     });
-
     dropZone.addEventListener('dragleave', function() {
         dropZone.classList.remove('drag');
     });
-
     dropZone.addEventListener('drop', function(e) {
         e.preventDefault();
         dropZone.classList.remove('drag');
@@ -283,9 +209,7 @@
             alert('Please drop a PNG or JPG image.');
             return;
         }
-
         originalFileName = file.name.replace(/\.[^.]+$/, '');
-
         const reader = new FileReader();
         reader.onload = function(ev) {
             const img = new Image();
@@ -293,66 +217,63 @@
                 originalImage = img;
                 imageLoaded = true;
                 fitCanvas(img);
-
-                editor.size = Math.min(img.width, img.height) / 4;
-                editor.x = (img.width - editor.size) / 2;
-                editor.y = (img.height - editor.size) / 2;
-
-                // Automatically enable censorship
-                editor.visible = true;
-                darkOverlay = true;
-
+                editors = [];
+                selectedIndex = -1;
+                const defaultSize = Math.min(img.width, img.height) / 4;
+                editors.push({
+                    x: (img.width - defaultSize) / 2,
+                    y: (img.height - defaultSize) / 2,
+                    size: defaultSize,
+                    visible: true
+                });
+                selectedIndex = 0;
                 addButton.disabled = false;
                 saveButton.disabled = false;
-                addButton.textContent = 'Remove Censorship';
                 draw();
             };
             img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
     });
-
-    // ----- Add / Remove censorship -----
     addButton.addEventListener('click', function() {
-        editor.visible = !editor.visible;
-        darkOverlay = editor.visible;
+        if (!imageLoaded) return;
+        const baseSize = Math.min(originalImage.width, originalImage.height) / 4;
+        const offset = 30 * (editors.length % 5);
+        const newBox = {
+            x: (originalImage.width - baseSize) / 2 + offset,
+            y: (originalImage.height - baseSize) / 2 + offset,
+            size: baseSize,
+            visible: true
+        };
+        editors.push(newBox);
+        selectedIndex = editors.length - 1;
         draw();
-        addButton.textContent = editor.visible ? 'Remove Censorship' : 'Add Censorship';
     });
-
-    // ----- Save as JPG and then reset -----
     saveButton.addEventListener('click', function() {
         if (!imageLoaded) return;
-
         const out = document.createElement('canvas');
         out.width = canvas.width;
         out.height = canvas.height;
         const octx = out.getContext('2d');
-
         octx.drawImage(originalImage, 0, 0, out.width, out.height);
-
-        if (editor.visible && censorImage.complete && censorImage.naturalWidth > 0) {
-            octx.drawImage(censorImage, editor.x, editor.y, editor.size, editor.size);
+        for (const e of editors) {
+            if (e.visible && censorImage.complete && censorImage.naturalWidth > 0) {
+                octx.drawImage(censorImage, e.x, e.y, e.size, e.size);
+            }
         }
-
         const link = document.createElement('a');
         link.download = originalFileName + '-Censored.jpg';
         link.href = out.toDataURL('image/jpeg', 0.7);
         link.click();
 
-        // Clear everything so user can drag a new image
         resetState();
     });
-
-    // ----- Handle window resize -----
     window.addEventListener('resize', function() {
         if (imageLoaded) {
             fitCanvas(originalImage);
             draw();
         }
     });
-
-    // ----- Censor image load -----
     censorImage.onload = function() {
         if (imageLoaded) draw();
     };
