@@ -268,8 +268,8 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             const { charNative, charEnglish, seriesNative, seriesEnglish } =
                 await getTranslationNames(character, series);
 
-            // Build new first line: "リリース: jpChar — jpSeries — パック #NNN — Release: enChar — enSeries — Pack #NNN"
-            const releaseLine = `リリース: ${charNative} — ${seriesNative} — パック #${packNumber} — Release: ${charEnglish} — ${seriesEnglish} — Pack #${packNumber}`;
+            // Build new first line: "jpChar — jpSeries — パック #NNN — enChar — enSeries — Pack #NNN"
+            const releaseLine = `${charNative} — ${seriesNative} — パック #${packNumber} — ${charEnglish} — ${seriesEnglish} — Pack #${packNumber}`;
 
             const jp = `${releaseLine}
 
