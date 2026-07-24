@@ -74,6 +74,27 @@
         if (editor.size > maxSize) editor.size = maxSize;
     }
 
+    // ----- Reset everything (after save or when needed) -----
+    function resetState() {
+        originalImage = null;
+        imageLoaded = false;
+        darkOverlay = false;
+        editor.visible = false;
+        editor.x = 0;
+        editor.y = 0;
+        editor.size = 180;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = 'none';
+        dropZone.style.display = 'block';
+
+        // Reset buttons
+        addButton.disabled = true;
+        saveButton.disabled = true;
+        addButton.textContent = 'Add Censorship';
+    }
+
     // ----- Drawing -----
     function draw() {
         if (!imageLoaded) return;
@@ -199,8 +220,7 @@
 
         const p = canvasPoint(e);
         
-        // FIX: Only hijack the scroll wheel if the mouse is ACTUALLY inside the green censor box.
-        // If you are hovering over the background image, the page will scroll normally!
+        // Only hijack scroll if mouse is over the censor box
         if (!insideEditor(p.x, p.y) && !insideHandle(p.x, p.y)) {
             return; 
         }
@@ -228,7 +248,6 @@
 
     // ----- Keyboard arrows -----
     window.addEventListener('keydown', function(e) {
-        // FIX: This now stops the arrow keys from hijacking your scroll on the main page.
         if (!isCensorTabActive() || !editor.visible) return;
         
         const step = e.shiftKey ? 10 : 1;
@@ -279,8 +298,13 @@
                 editor.x = (img.width - editor.size) / 2;
                 editor.y = (img.height - editor.size) / 2;
 
+                // Automatically enable censorship
+                editor.visible = true;
+                darkOverlay = true;
+
                 addButton.disabled = false;
                 saveButton.disabled = false;
+                addButton.textContent = 'Remove Censorship';
                 draw();
             };
             img.src = ev.target.result;
@@ -296,7 +320,7 @@
         addButton.textContent = editor.visible ? 'Remove Censorship' : 'Add Censorship';
     });
 
-    // ----- Save as JPG -----
+    // ----- Save as JPG and then reset -----
     saveButton.addEventListener('click', function() {
         if (!imageLoaded) return;
 
@@ -312,11 +336,12 @@
         }
 
         const link = document.createElement('a');
-        link.download = originalFileName + '.jpg';
-        
-        // Standardize to 70% quality threshold
+        link.download = originalFileName + '-Censored.jpg';
         link.href = out.toDataURL('image/jpeg', 0.7);
         link.click();
+
+        // Clear everything so user can drag a new image
+        resetState();
     });
 
     // ----- Handle window resize -----
