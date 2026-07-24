@@ -67,6 +67,10 @@
     "guilty gear": {
       "english": ["GuiltyGear"],
       "native": ["ギルティギア"]
+    },
+    "one piece": {
+      "english": ["OnePiece"],
+      "native": ["ワンピース"]
     }
   },
   "character": {
