@@ -89,7 +89,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
         </div>
         <div class="crop-canvas-wrapper">
             <canvas id="cropCanvas"></canvas>
-            <div class="crop-instructions">Drag vertically to position – <span>full width, 460×160 ratio</span></div>
+            <div class="crop-instructions">Drag to position – <span>fixed 460×160 ratio</span></div>
         </div>
         <div class="crop-controls">
             <button class="crop-btn cancel" id="cropCancelBtn">Cancel</button>
@@ -102,6 +102,128 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
 
 <script>
     (function() {
+        // ─── Translation helpers (copied from hashtag-generator.js) ───
+        let overrideData = { franchise: {}, character: {} };
+        let overridesLoaded = false;
+
+        async function loadOverrides() {
+            if (overridesLoaded) return;
+            try {
+                const res = await fetch('/assets/js/utils/overrides.json');
+                if (res.ok) {
+                    const json = await res.json();
+                    overrideData = {
+                        franchise: json.franchise || {},
+                        character: json.character || {}
+                    };
+                } else {
+                    console.warn('Overrides file not found, using AniList only.');
+                }
+            } catch (err) {
+                console.warn('Failed to load overrides, using AniList only.', err);
+            }
+            overridesLoaded = true;
+        }
+
+        function cleanupSeriesTitle(title) {
+            if (!title) return '';
+            return title.replace(/:.*/, '').trim();
+        }
+
+        async function fetchAniList(query, variables) {
+            try {
+                const response = await fetch("https://graphql.anilist.co", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ query, variables })
+                });
+                return response.json();
+            } catch {
+                return null;
+            }
+        }
+
+        async function getTranslationNames(characterName, seriesName) {
+            // Load overrides first
+            await loadOverrides();
+
+            const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
+            const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
+
+            let charNative = '';
+            let charEnglish = '';
+            let seriesNative = '';
+            let seriesEnglish = '';
+
+            try {
+                const [charData, animeData] = await Promise.all([
+                    fetchAniList(charQuery, { search: characterName }),
+                    fetchAniList(animeQuery, { search: seriesName })
+                ]);
+
+                const character = charData?.data?.Character;
+                const anime = animeData?.data?.Media;
+
+                // Character
+                if (character) {
+                    charNative = character.name?.native || '';
+                    charEnglish = character.name?.full || characterName;
+                }
+
+                // Series
+                if (anime) {
+                    seriesNative = anime.title?.native || '';
+                    const romaji = cleanupSeriesTitle(anime.title?.romaji || '');
+                    const english = cleanupSeriesTitle(anime.title?.english || '');
+                    seriesEnglish = romaji || english || seriesName;
+                    if (!seriesNative) seriesNative = english || romaji || '';
+                }
+
+                // Apply overrides (case-insensitive)
+                const lowerChar = characterName.toLowerCase();
+                const lowerSeries = seriesName.toLowerCase();
+
+                if (overrideData.character[lowerChar]) {
+                    const over = overrideData.character[lowerChar];
+                    if (over.native) {
+                        charNative = Array.isArray(over.native) ? over.native.join(' / ') : over.native;
+                    }
+                    if (over.english) {
+                        charEnglish = Array.isArray(over.english) ? over.english.join(' / ') : over.english;
+                    }
+                }
+
+                if (overrideData.franchise[lowerSeries]) {
+                    const over = overrideData.franchise[lowerSeries];
+                    if (over.native) {
+                        seriesNative = Array.isArray(over.native) ? over.native.join(' / ') : over.native;
+                    }
+                    if (over.english) {
+                        seriesEnglish = Array.isArray(over.english) ? over.english.join(' / ') : over.english;
+                    }
+                }
+
+                // Fallback to original if empty
+                if (!charNative) charNative = characterName;
+                if (!charEnglish) charEnglish = characterName;
+                if (!seriesNative) seriesNative = seriesName;
+                if (!seriesEnglish) seriesEnglish = seriesName;
+
+            } catch (err) {
+                console.warn('Translation fetch failed, using original names.', err);
+                charNative = characterName;
+                charEnglish = characterName;
+                seriesNative = seriesName;
+                seriesEnglish = seriesName;
+            }
+
+            return { charNative, charEnglish, seriesNative, seriesEnglish };
+        }
+
+        // ─── helpers ────────────────────────────────────────────────
         function showToast(message, type = 'success') {
             const el = document.getElementById('toast');
             el.textContent = message;
@@ -115,6 +237,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
         }
 
+        // ─── parse title ─────────────────────────────────────────────
         function parsePackTitle(title) {
             const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
             const match = title.match(regex);
@@ -132,7 +255,8 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             };
         }
 
-        function generateTeaser(pack) {
+        // ─── generate bilingual teaser text (with translation) ────────
+        async function generateTeaser(pack) {
             const { title, illustrationCount } = pack;
             const parsed = parsePackTitle(title);
             const packNumber = parsed.pack || pack.id || '???';
@@ -140,11 +264,19 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             const series = parsed.series || 'Unknown';
             const count = illustrationCount || '?';
 
-            const jp = `プレビュー: ${character} — ${series} — パック #${packNumber}
+            // Get translations
+            const { charNative, charEnglish, seriesNative, seriesEnglish } =
+                await getTranslationNames(character, series);
+
+            // Build new first line: "リリース: jpChar — jpSeries — パック #NNN — Release: enChar — enSeries — Pack #NNN"
+            const releaseLine = `リリース: ${charNative} — ${seriesNative} — パック #${packNumber} — Release: ${charEnglish} — ${seriesEnglish} — Pack #${packNumber}`;
+
+            const jp = `${releaseLine}
 
 総収録枚数：高解像度画像 ${count} 枚
 🔒 スタンダード会員に参加すると、高解像度版のフルパックおよび成人向けバージョンをご利用いただけます。
 ⚠️ 免責事項：登場するすべてのキャラクターは18歳以上として描写されています。これらはAIによって生成された架空の、双方の同意を前提としたフィクション作品です。`;
+
             const en = `Total Set Size: ${count} High-Res Images
 🔒 Unlock the full high-resolution pack and explicit versions by joining the Standard membership.
 ⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
@@ -152,6 +284,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             return `${jp}\n\n${en}`;
         }
 
+        // ─── fetch packs ────────────────────────────────────────────
         async function fetchPacks() {
             const grid = document.getElementById('packGrid');
             try {
@@ -166,6 +299,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             }
         }
 
+        // ─── render packs ──────────────────────────────────────────
         function renderPacks(packs) {
             const grid = document.getElementById('packGrid');
             if (!packs || packs.length === 0) {
@@ -211,6 +345,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             });
         }
 
+        // ─── fetch thumbnail URLs for a pack ──────────────────────
         async function fetchThumbnails(packId) {
             try {
                 const resp = await fetch(`https://packs-api.velutinx.workers.dev/api/images?pack=${packId}`);
@@ -223,6 +358,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             }
         }
 
+        // ─── show teaser ────────────────────────────────────────────
         let currentPack = null;
         let cropDataUrl = null;
 
@@ -232,7 +368,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             const titleEl = document.getElementById('teaserTitle');
             const gallery = document.getElementById('imageGallery');
 
-            const text = generateTeaser(pack);
+            const text = await generateTeaser(pack);
             output.textContent = text;
             titleEl.textContent = `📝 ${pack.title}`;
             section.classList.add('visible');
@@ -240,6 +376,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             currentPack = pack;
             cropDataUrl = null;
 
+            // Load images into gallery
             gallery.innerHTML = '';
             const urls = await fetchThumbnails(pack.id);
             if (urls.length > 0) {
@@ -254,6 +391,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
                     gallery.appendChild(img);
                 });
             } else {
+                // Fallback: try to construct image URLs directly from R2
                 const fallbackUrls = [];
                 for (let i = 1; i <= 10; i++) {
                     fallbackUrls.push(`https://www.velutinx.com/i/pack${pack.id.padStart(3, '0')}-${i}.jpg`);
@@ -273,7 +411,9 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
                             gallery.appendChild(img);
                             foundAny = true;
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        // ignore
+                    }
                 }
                 if (!foundAny) {
                     gallery.innerHTML = '<span style="color:#777;">No preview images available. Try the "Fix Missing Images" SQL below.</span>';
@@ -283,12 +423,15 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        // ─── crop modal logic ─────────────────────────────────────
         const cropCanvas = document.getElementById('cropCanvas');
         const ctx = cropCanvas.getContext('2d');
         let cropImageObj = null;
         let cropRect = null;
+        let isDragging = false;
         let isMoving = false;
-        let moveOffsetY = 0;
+        let startX = 0, startY = 0;
+        let moveOffsetX = 0, moveOffsetY = 0;
         const RATIO = 460 / 160;
 
         function openCropModal(imageUrl, packId) {
@@ -304,21 +447,15 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
                 let scale = Math.min(maxW / img.width, maxH / img.height, 1);
                 cropCanvas.width = img.width * scale;
                 cropCanvas.height = img.height * scale;
-
-                let w = cropCanvas.width;
+                let w = Math.min(cropCanvas.width * 0.6, cropCanvas.height * RATIO);
                 let h = w / RATIO;
-                if (h > cropCanvas.height) {
-                    h = cropCanvas.height;
-                    w = h * RATIO;
-                }
-
+                if (h > cropCanvas.height) { h = cropCanvas.height * 0.6; w = h * RATIO; }
                 cropRect = {
-                    x: 0,
-                    y: Math.max(0, (cropCanvas.height - h) / 2),
+                    x: (cropCanvas.width - w) / 2,
+                    y: (cropCanvas.height - h) / 2,
                     w: w,
                     h: h
                 };
-
                 redrawCropCanvas();
             };
             img.src = imageUrl;
@@ -347,6 +484,17 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
                 ctx.strokeStyle = '#2c6e2c';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+                const hs = 8;
+                ctx.fillStyle = '#2c6e2c';
+                const corners = [
+                    [cropRect.x, cropRect.y],
+                    [cropRect.x + cropRect.w - hs, cropRect.y],
+                    [cropRect.x, cropRect.y + cropRect.h - hs],
+                    [cropRect.x + cropRect.w - hs, cropRect.y + cropRect.h - hs]
+                ];
+                corners.forEach(([cx, cy]) => {
+                    ctx.fillRect(cx, cy, hs, hs);
+                });
             }
         }
 
@@ -365,13 +513,36 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
                    pos.y >= cropRect.y && pos.y <= cropRect.y + cropRect.h;
         }
 
+        function isOnCorner(pos) {
+            if (!cropRect) return false;
+            const hs = 10;
+            const corners = [
+                [cropRect.x, cropRect.y],
+                [cropRect.x + cropRect.w, cropRect.y],
+                [cropRect.x, cropRect.y + cropRect.h],
+                [cropRect.x + cropRect.w, cropRect.y + cropRect.h]
+            ];
+            for (let [cx, cy] of corners) {
+                if (Math.abs(pos.x - cx) < hs && Math.abs(pos.y - cy) < hs) return true;
+            }
+            return false;
+        }
+
         function onPointerDown(e) {
             e.preventDefault();
             const pos = getCanvasPos(e);
+            if (isOnCorner(pos)) {
+                isDragging = true;
+                isMoving = false;
+                startX = pos.x;
+                startY = pos.y;
+                return;
+            }
             if (isInsideRect(pos)) {
                 isMoving = true;
+                isDragging = false;
+                moveOffsetX = pos.x - cropRect.x;
                 moveOffsetY = pos.y - cropRect.y;
-                cropCanvas.style.cursor = 'grabbing';
             }
         }
 
@@ -379,22 +550,77 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             e.preventDefault();
             const pos = getCanvasPos(e);
             if (isMoving && cropRect) {
+                let nx = pos.x - moveOffsetX;
                 let ny = pos.y - moveOffsetY;
+                nx = Math.max(0, Math.min(cropCanvas.width - cropRect.w, nx));
                 ny = Math.max(0, Math.min(cropCanvas.height - cropRect.h, ny));
+                cropRect.x = nx;
                 cropRect.y = ny;
                 redrawCropCanvas();
-            } else {
-                if (isInsideRect(pos)) {
-                    cropCanvas.style.cursor = 'grab';
+            } else if (isDragging && cropRect) {
+                // Resize logic (simplified – same as before)
+                const corners = [
+                    [cropRect.x, cropRect.y],
+                    [cropRect.x + cropRect.w, cropRect.y],
+                    [cropRect.x, cropRect.y + cropRect.h],
+                    [cropRect.x + cropRect.w, cropRect.y + cropRect.h]
+                ];
+                let minDist = Infinity;
+                let cornerIdx = 0;
+                corners.forEach(([cx, cy], idx) => {
+                    const d = Math.hypot(startX - cx, startY - cy);
+                    if (d < minDist) { minDist = d; cornerIdx = idx; }
+                });
+                let newW = cropRect.w, newH = cropRect.h;
+                if (cornerIdx === 0) {
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    let delta = Math.max(dx, dy);
+                    newW = Math.max(10, cropRect.w - delta);
+                    newH = newW / RATIO;
+                    cropRect.x = cropRect.x + cropRect.w - newW;
+                    cropRect.y = cropRect.y + cropRect.h - newH;
+                } else if (cornerIdx === 1) {
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    newW = Math.max(10, cropRect.w + dx);
+                    newH = newW / RATIO;
+                    cropRect.y = cropRect.y + cropRect.h - newH;
+                } else if (cornerIdx === 2) {
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    newW = Math.max(10, cropRect.w - dx);
+                    newH = newW / RATIO;
+                    cropRect.x = cropRect.x + cropRect.w - newW;
                 } else {
-                    cropCanvas.style.cursor = 'crosshair';
+                    let dx = pos.x - startX;
+                    let dy = pos.y - startY;
+                    let delta = Math.max(dx, dy);
+                    newW = Math.max(10, cropRect.w + delta);
+                    newH = newW / RATIO;
                 }
+                if (cropRect.x < 0) { cropRect.x = 0; newW = cropRect.w; }
+                if (cropRect.y < 0) { cropRect.y = 0; newH = cropRect.h; }
+                if (cropRect.x + newW > cropCanvas.width) newW = cropCanvas.width - cropRect.x;
+                if (cropRect.y + newH > cropCanvas.height) newH = cropCanvas.height - cropRect.y;
+                cropRect.w = Math.max(10, newW);
+                cropRect.h = cropRect.w / RATIO;
+                if (cropRect.y + cropRect.h > cropCanvas.height) {
+                    cropRect.y = cropCanvas.height - cropRect.h;
+                }
+                redrawCropCanvas();
+                startX = pos.x;
+                startY = pos.y;
+            } else {
+                if (isOnCorner(pos)) cropCanvas.style.cursor = 'nwse-resize';
+                else if (isInsideRect(pos)) cropCanvas.style.cursor = 'move';
+                else cropCanvas.style.cursor = 'crosshair';
             }
         }
 
         function onPointerUp(e) {
+            isDragging = false;
             isMoving = false;
-            cropCanvas.style.cursor = 'crosshair';
         }
 
         cropCanvas.addEventListener('mousedown', onPointerDown);
@@ -434,6 +660,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             showToast('✅ Thumbnail cropped! It will be downloaded as packXXX-thumbnail.jpg');
         });
 
+        // ─── copy + open Mega + download ONLY cropped thumbnail ──
         async function copyAndDownload() {
             if (!currentPack) {
                 showToast('No pack selected.', 'error');
@@ -444,6 +671,7 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             btn.disabled = true;
             btn.textContent = '⏳ Processing...';
 
+            // 1. Copy teaser
             const output = document.getElementById('teaserOutput');
             const text = output.textContent;
             try {
@@ -462,12 +690,14 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
                 }
             }
 
+            // 2. Open Mega link
             if (currentPack.downloadUrl) {
                 window.open(currentPack.downloadUrl, '_blank');
             } else {
                 showToast('No Mega link available for this pack.', 'error');
             }
 
+            // 3. Download ONLY the cropped thumbnail
             if (cropDataUrl) {
                 try {
                     const link = document.createElement('a');
@@ -489,13 +719,17 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
             btn.textContent = '📋 Copy Teaser & Get Files';
         }
 
+        // ─── close teaser ───────────────────────────────────────────
         function closeTeaser() {
             document.getElementById('teaserSection').classList.remove('visible');
             currentPack = null;
             cropDataUrl = null;
         }
 
+        // ─── init ───────────────────────────────────────────────────
         async function init() {
+            // Pre‑load overrides so they're ready when needed
+            await loadOverrides();
             const packs = await fetchPacks();
             if (packs) renderPacks(packs);
 
