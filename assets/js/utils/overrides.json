@@ -63,6 +63,10 @@
     "jujutsu kaisen": {
       "english": "JUJUTSUKAISEN",
       "native": "呪術廻戦"
+    },
+    "guilty gear": {
+      "english": ["GuiltyGear"],
+      "native": ["ギルティギア"]
     }
   },
   "character": {
@@ -91,6 +95,10 @@
     "mei mei": {
       "native": "冥冥",
       "english": "MeiMei"
+    },
+    "bridget": {
+      "english": ["Bridget"],
+      "native": ["ブリジット"]
     }
   }
 }
