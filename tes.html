@@ -5,303 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pack Teaser Viewer</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0a0c10;
-            color: #e0e0e0;
-            padding: 20px;
-        }
-        .container { max-width: 1100px; margin: 0 auto; }
-        h1 {
-            font-weight: 500;
-            letter-spacing: -0.3px;
-            margin-bottom: 20px;
-            color: #f0f0f0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
-        .pack-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-        }
-        .pack-card {
-            background: #11151c;
-            border: 1px solid #2a2f38;
-            border-radius: 12px;
-            padding: 16px 18px;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.15s, transform 0.1s;
-        }
-        .pack-card:hover {
-            border-color: #4a5568;
-            background: #161c26;
-            transform: translateY(-2px);
-        }
-        .pack-card .pack-id {
-            font-size: 0.75rem;
-            color: #6a7a8a;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-        .pack-card .pack-title {
-            font-weight: 600;
-            font-size: 1rem;
-            margin: 6px 0 4px;
-            color: #f0f0f0;
-        }
-        .pack-card .pack-meta {
-            font-size: 0.8rem;
-            color: #8a9aaa;
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
-        .pack-card .pack-meta span {
-            background: #1a1f2a;
-            padding: 2px 12px;
-            border-radius: 20px;
-            border: 1px solid #2a2f38;
-        }
-        .teaser-section {
-            margin-top: 30px;
-            background: #11151c;
-            border: 1px solid #2a2f38;
-            border-radius: 16px;
-            padding: 24px;
-            display: none;
-        }
-        .teaser-section.visible { display: block; }
-        .teaser-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .teaser-header h2 {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: #c0d0e0;
-        }
-        .close-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 1.4rem;
-            cursor: pointer;
-            padding: 0 6px;
-        }
-        .close-btn:hover { color: #fff; }
-        .teaser-output {
-            background: #0a0e14;
-            border: 1px solid #252b33;
-            border-radius: 10px;
-            padding: 16px 18px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
-            min-height: 100px;
-            color: #d0d8e8;
-        }
-        .teaser-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            border: none;
-            padding: 8px 22px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-primary {
-            background: #2c6e2c;
-            color: white;
-        }
-        .btn-primary:hover { background: #3e8e3e; }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: #1e2a1e;
-            color: #d4ffd4;
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-            backdrop-filter: blur(6px);
-            border-left: 4px solid #4caf50;
-            opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
-            pointer-events: none;
-            z-index: 1000;
-        }
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        .toast.error {
-            background: #2c1a1a;
-            border-left-color: #f44336;
-            color: #ffc9c9;
-        }
-        .loading {
-            text-align: center;
-            padding: 50px 20px;
-            color: #6a7a8a;
-            font-size: 1.1rem;
-        }
-        .empty {
-            text-align: center;
-            padding: 40px;
-            color: #6a7a8a;
-        }
-
-        .image-gallery {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 16px 0;
-        }
-        .image-gallery img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid #2a2f38;
-            cursor: pointer;
-            transition: border-color 0.2s, transform 0.1s;
-        }
-        .image-gallery img:hover {
-            border-color: #4a6a8a;
-            transform: scale(1.05);
-        }
-
-        /* Crop modal (same as before) */
-        .crop-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.88);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            padding: 20px;
-        }
-        .crop-modal.active { display: flex; }
-        .crop-modal-content {
-            background: #11151c;
-            border: 1px solid #2a2f38;
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 94vw;
-            max-height: 94vh;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
-            display: flex;
-            flex-direction: column;
-            width: fit-content;
-            min-width: 320px;
-        }
-        .crop-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-        .crop-modal-header h2 {
-            margin: 0;
-            color: #f0f0f0;
-            font-weight: 400;
-            font-size: 1.15rem;
-        }
-        .crop-modal-header .close-modal {
-            background: none;
-            border: none;
-            color: #777;
-            font-size: 1.4rem;
-            cursor: pointer;
-        }
-        .crop-modal-header .close-modal:hover { color: #fff; }
-        .crop-canvas-wrapper {
-            position: relative;
-            background: #03060b;
-            border-radius: 10px;
-            border: 1px solid #2a2f38;
-            overflow: hidden;
-            max-width: 100%;
-        }
-        #cropCanvas {
-            display: block;
-            max-width: 100%;
-            max-height: 62vh;
-            cursor: crosshair;
-            background: #03060b;
-            touch-action: none;
-        }
-        .crop-instructions {
-            text-align: center;
-            color: #777;
-            margin-top: 10px;
-            font-size: 0.8rem;
-        }
-        .crop-instructions span { color: #4a6a8a; }
-        .crop-controls {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-        .crop-btn {
-            padding: 8px 28px;
-            border-radius: 30px;
-            border: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .crop-btn.cancel {
-            background: #3a3a44;
-            color: #ccc;
-        }
-        .crop-btn.cancel:hover { background: #4a4a54; }
-        .crop-btn.confirm {
-            background: #2c6e2c;
-            color: white;
-        }
-        .crop-btn.confirm:hover { background: #3e8e3e; }
-
-        @media (max-width: 600px) {
-            .pack-grid { grid-template-columns: 1fr; }
-            .teaser-section { padding: 16px; }
-            .teaser-output { font-size: 0.8rem; padding: 12px; }
-            .image-gallery img { width: 70px; height: 70px; }
-        }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0c10; color: #e0e0e0; padding: 20px; }
+.container { max-width: 1100px; margin: 0 auto; }
+h1 { font-weight: 500; letter-spacing: -0.3px; margin-bottom: 20px; color: #f0f0f0; display: flex; align-items: center; gap: 12px; }
+h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
+.pack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.pack-card { background: #11151c; border: 1px solid #2a2f38; border-radius: 12px; padding: 16px 18px; cursor: pointer; transition: border-color 0.2s, background 0.15s, transform 0.1s; }
+.pack-card:hover { border-color: #4a5568; background: #161c26; transform: translateY(-2px); }
+.pack-card .pack-id { font-size: 0.75rem; color: #6a7a8a; font-weight: 600; letter-spacing: 0.3px; }
+.pack-card .pack-title { font-weight: 600; font-size: 1rem; margin: 6px 0 4px; color: #f0f0f0; }
+.pack-card .pack-meta { font-size: 0.8rem; color: #8a9aaa; display: flex; gap: 14px; flex-wrap: wrap; }
+.pack-card .pack-meta span { background: #1a1f2a; padding: 2px 12px; border-radius: 20px; border: 1px solid #2a2f38; }
+.teaser-section { margin-top: 30px; background: #11151c; border: 1px solid #2a2f38; border-radius: 16px; padding: 24px; display: none; }
+.teaser-section.visible { display: block; }
+.teaser-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.teaser-header h2 { font-size: 1.1rem; font-weight: 500; color: #c0d0e0; }
+.close-btn { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; padding: 0 6px; }
+.close-btn:hover { color: #fff; }
+.teaser-output { background: #0a0e14; border: 1px solid #252b33; border-radius: 10px; padding: 16px 18px; font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; min-height: 100px; color: #d0d8e8; }
+.teaser-actions { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.btn { border: none; padding: 8px 22px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+.btn-primary { background: #2c6e2c; color: white; }
+.btn-primary:hover { background: #3e8e3e; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1e2a1e; color: #d4ffd4; padding: 10px 24px; border-radius: 40px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,0.6); backdrop-filter: blur(6px); border-left: 4px solid #4caf50; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 1000; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: #2c1a1a; border-left-color: #f44336; color: #ffc9c9; }
+.loading { text-align: center; padding: 50px 20px; color: #6a7a8a; font-size: 1.1rem; }
+.empty { text-align: center; padding: 40px; color: #6a7a8a; }
+.image-gallery { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.image-gallery img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #2a2f38; cursor: pointer; transition: border-color 0.2s, transform 0.1s; }
+.image-gallery img:hover { border-color: #4a6a8a; transform: scale(1.05); }
+.crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+.crop-modal.active { display: flex; }
+.crop-modal-content { background: #11151c; border: 1px solid #2a2f38; border-radius: 16px; padding: 24px; max-width: 94vw; max-height: 94vh; box-shadow: 0 12px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; width: fit-content; min-width: 320px; }
+.crop-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.crop-modal-header h2 { margin: 0; color: #f0f0f0; font-weight: 400; font-size: 1.15rem; }
+.crop-modal-header .close-modal { background: none; border: none; color: #777; font-size: 1.4rem; cursor: pointer; }
+.crop-modal-header .close-modal:hover { color: #fff; }
+.crop-canvas-wrapper { position: relative; background: #03060b; border-radius: 10px; border: 1px solid #2a2f38; overflow: hidden; max-width: 100%; }
+#cropCanvas { display: block; max-width: 100%; max-height: 62vh; cursor: crosshair; background: #03060b; touch-action: none; }
+.crop-instructions { text-align: center; color: #777; margin-top: 10px; font-size: 0.8rem; }
+.crop-instructions span { color: #4a6a8a; }
+.crop-controls { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.crop-btn { padding: 8px 28px; border-radius: 30px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+.crop-btn.cancel { background: #3a3a44; color: #ccc; }
+.crop-btn.cancel:hover { background: #4a4a54; }
+.crop-btn.confirm { background: #2c6e2c; color: white; }
+.crop-btn.confirm:hover { background: #3e8e3e; }
+@media (max-width: 600px) { .pack-grid { grid-template-columns: 1fr; } .teaser-section { padding: 16px; } .teaser-output { font-size: 0.8rem; padding: 12px; } .image-gallery img { width: 70px; height: 70px; } }
     </style>
 </head>
 <body>
@@ -336,7 +89,7 @@
         </div>
         <div class="crop-canvas-wrapper">
             <canvas id="cropCanvas"></canvas>
-            <div class="crop-instructions">Drag to position – <span>fixed 460×160 ratio</span></div>
+            <div class="crop-instructions">Drag vertically to position – <span>full width, 460×160 ratio</span></div>
         </div>
         <div class="crop-controls">
             <button class="crop-btn cancel" id="cropCancelBtn">Cancel</button>
@@ -349,7 +102,6 @@
 
 <script>
     (function() {
-        // ─── helpers ────────────────────────────────────────────────
         function showToast(message, type = 'success') {
             const el = document.getElementById('toast');
             el.textContent = message;
@@ -363,7 +115,6 @@
             return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
         }
 
-        // ─── parse title ─────────────────────────────────────────────
         function parsePackTitle(title) {
             const regex = /^\[Pack (\d+)\]\s+(.+?)\s*-\s*(.+)$/i;
             const match = title.match(regex);
@@ -381,7 +132,6 @@
             };
         }
 
-        // ─── generate bilingual teaser text ────────────────────────
         function generateTeaser(pack) {
             const { title, illustrationCount } = pack;
             const parsed = parsePackTitle(title);
@@ -395,7 +145,6 @@
 総収録枚数：高解像度画像 ${count} 枚
 🔒 スタンダード会員に参加すると、高解像度版のフルパックおよび成人向けバージョンをご利用いただけます。
 ⚠️ 免責事項：登場するすべてのキャラクターは18歳以上として描写されています。これらはAIによって生成された架空の、双方の同意を前提としたフィクション作品です。`;
- // 
             const en = `Total Set Size: ${count} High-Res Images
 🔒 Unlock the full high-resolution pack and explicit versions by joining the Standard membership.
 ⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual AI-generated depiction.`;
@@ -403,7 +152,6 @@
             return `${jp}\n\n${en}`;
         }
 
-        // ─── fetch packs ────────────────────────────────────────────
         async function fetchPacks() {
             const grid = document.getElementById('packGrid');
             try {
@@ -418,7 +166,6 @@
             }
         }
 
-        // ─── render packs ──────────────────────────────────────────
         function renderPacks(packs) {
             const grid = document.getElementById('packGrid');
             if (!packs || packs.length === 0) {
@@ -464,7 +211,6 @@
             });
         }
 
-        // ─── fetch thumbnail URLs for a pack ──────────────────────
         async function fetchThumbnails(packId) {
             try {
                 const resp = await fetch(`https://packs-api.velutinx.workers.dev/api/images?pack=${packId}`);
@@ -477,7 +223,6 @@
             }
         }
 
-        // ─── show teaser ────────────────────────────────────────────
         let currentPack = null;
         let cropDataUrl = null;
 
@@ -495,7 +240,6 @@
             currentPack = pack;
             cropDataUrl = null;
 
-            // Load images into gallery
             gallery.innerHTML = '';
             const urls = await fetchThumbnails(pack.id);
             if (urls.length > 0) {
@@ -510,13 +254,10 @@
                     gallery.appendChild(img);
                 });
             } else {
-                // Fallback: try to construct image URLs directly from R2
-                // This is a workaround for packs that have images in R2 but no database entries
                 const fallbackUrls = [];
                 for (let i = 1; i <= 10; i++) {
                     fallbackUrls.push(`https://www.velutinx.com/i/pack${pack.id.padStart(3, '0')}-${i}.jpg`);
                 }
-                // Test which ones exist
                 let foundAny = false;
                 for (const url of fallbackUrls) {
                     try {
@@ -532,9 +273,7 @@
                             gallery.appendChild(img);
                             foundAny = true;
                         }
-                    } catch (e) {
-                        // ignore
-                    }
+                    } catch (e) {}
                 }
                 if (!foundAny) {
                     gallery.innerHTML = '<span style="color:#777;">No preview images available. Try the "Fix Missing Images" SQL below.</span>';
@@ -544,15 +283,12 @@
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ─── crop modal logic (same as before) ─────────────────────
         const cropCanvas = document.getElementById('cropCanvas');
         const ctx = cropCanvas.getContext('2d');
         let cropImageObj = null;
         let cropRect = null;
-        let isDragging = false;
         let isMoving = false;
-        let startX = 0, startY = 0;
-        let moveOffsetX = 0, moveOffsetY = 0;
+        let moveOffsetY = 0;
         const RATIO = 460 / 160;
 
         function openCropModal(imageUrl, packId) {
@@ -568,15 +304,21 @@
                 let scale = Math.min(maxW / img.width, maxH / img.height, 1);
                 cropCanvas.width = img.width * scale;
                 cropCanvas.height = img.height * scale;
-                let w = Math.min(cropCanvas.width * 0.6, cropCanvas.height * RATIO);
+
+                let w = cropCanvas.width;
                 let h = w / RATIO;
-                if (h > cropCanvas.height) { h = cropCanvas.height * 0.6; w = h * RATIO; }
+                if (h > cropCanvas.height) {
+                    h = cropCanvas.height;
+                    w = h * RATIO;
+                }
+
                 cropRect = {
-                    x: (cropCanvas.width - w) / 2,
-                    y: (cropCanvas.height - h) / 2,
+                    x: 0,
+                    y: Math.max(0, (cropCanvas.height - h) / 2),
                     w: w,
                     h: h
                 };
+
                 redrawCropCanvas();
             };
             img.src = imageUrl;
@@ -605,17 +347,6 @@
                 ctx.strokeStyle = '#2c6e2c';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-                const hs = 8;
-                ctx.fillStyle = '#2c6e2c';
-                const corners = [
-                    [cropRect.x, cropRect.y],
-                    [cropRect.x + cropRect.w - hs, cropRect.y],
-                    [cropRect.x, cropRect.y + cropRect.h - hs],
-                    [cropRect.x + cropRect.w - hs, cropRect.y + cropRect.h - hs]
-                ];
-                corners.forEach(([cx, cy]) => {
-                    ctx.fillRect(cx, cy, hs, hs);
-                });
             }
         }
 
@@ -634,36 +365,13 @@
                    pos.y >= cropRect.y && pos.y <= cropRect.y + cropRect.h;
         }
 
-        function isOnCorner(pos) {
-            if (!cropRect) return false;
-            const hs = 10;
-            const corners = [
-                [cropRect.x, cropRect.y],
-                [cropRect.x + cropRect.w, cropRect.y],
-                [cropRect.x, cropRect.y + cropRect.h],
-                [cropRect.x + cropRect.w, cropRect.y + cropRect.h]
-            ];
-            for (let [cx, cy] of corners) {
-                if (Math.abs(pos.x - cx) < hs && Math.abs(pos.y - cy) < hs) return true;
-            }
-            return false;
-        }
-
         function onPointerDown(e) {
             e.preventDefault();
             const pos = getCanvasPos(e);
-            if (isOnCorner(pos)) {
-                isDragging = true;
-                isMoving = false;
-                startX = pos.x;
-                startY = pos.y;
-                return;
-            }
             if (isInsideRect(pos)) {
                 isMoving = true;
-                isDragging = false;
-                moveOffsetX = pos.x - cropRect.x;
                 moveOffsetY = pos.y - cropRect.y;
+                cropCanvas.style.cursor = 'grabbing';
             }
         }
 
@@ -671,77 +379,22 @@
             e.preventDefault();
             const pos = getCanvasPos(e);
             if (isMoving && cropRect) {
-                let nx = pos.x - moveOffsetX;
                 let ny = pos.y - moveOffsetY;
-                nx = Math.max(0, Math.min(cropCanvas.width - cropRect.w, nx));
                 ny = Math.max(0, Math.min(cropCanvas.height - cropRect.h, ny));
-                cropRect.x = nx;
                 cropRect.y = ny;
                 redrawCropCanvas();
-            } else if (isDragging && cropRect) {
-                // Resize logic (simplified – same as before)
-                const corners = [
-                    [cropRect.x, cropRect.y],
-                    [cropRect.x + cropRect.w, cropRect.y],
-                    [cropRect.x, cropRect.y + cropRect.h],
-                    [cropRect.x + cropRect.w, cropRect.y + cropRect.h]
-                ];
-                let minDist = Infinity;
-                let cornerIdx = 0;
-                corners.forEach(([cx, cy], idx) => {
-                    const d = Math.hypot(startX - cx, startY - cy);
-                    if (d < minDist) { minDist = d; cornerIdx = idx; }
-                });
-                let newW = cropRect.w, newH = cropRect.h;
-                if (cornerIdx === 0) {
-                    let dx = pos.x - startX;
-                    let dy = pos.y - startY;
-                    let delta = Math.max(dx, dy);
-                    newW = Math.max(10, cropRect.w - delta);
-                    newH = newW / RATIO;
-                    cropRect.x = cropRect.x + cropRect.w - newW;
-                    cropRect.y = cropRect.y + cropRect.h - newH;
-                } else if (cornerIdx === 1) {
-                    let dx = pos.x - startX;
-                    let dy = pos.y - startY;
-                    newW = Math.max(10, cropRect.w + dx);
-                    newH = newW / RATIO;
-                    cropRect.y = cropRect.y + cropRect.h - newH;
-                } else if (cornerIdx === 2) {
-                    let dx = pos.x - startX;
-                    let dy = pos.y - startY;
-                    newW = Math.max(10, cropRect.w - dx);
-                    newH = newW / RATIO;
-                    cropRect.x = cropRect.x + cropRect.w - newW;
-                } else {
-                    let dx = pos.x - startX;
-                    let dy = pos.y - startY;
-                    let delta = Math.max(dx, dy);
-                    newW = Math.max(10, cropRect.w + delta);
-                    newH = newW / RATIO;
-                }
-                if (cropRect.x < 0) { cropRect.x = 0; newW = cropRect.w; }
-                if (cropRect.y < 0) { cropRect.y = 0; newH = cropRect.h; }
-                if (cropRect.x + newW > cropCanvas.width) newW = cropCanvas.width - cropRect.x;
-                if (cropRect.y + newH > cropCanvas.height) newH = cropCanvas.height - cropRect.y;
-                cropRect.w = Math.max(10, newW);
-                cropRect.h = cropRect.w / RATIO;
-                if (cropRect.y + cropRect.h > cropCanvas.height) {
-                    cropRect.y = cropCanvas.height - cropRect.h;
-                }
-                redrawCropCanvas();
-                startX = pos.x;
-                startY = pos.y;
             } else {
-                if (isOnCorner(pos)) cropCanvas.style.cursor = 'nwse-resize';
-                else if (isInsideRect(pos)) cropCanvas.style.cursor = 'move';
-                else cropCanvas.style.cursor = 'crosshair';
+                if (isInsideRect(pos)) {
+                    cropCanvas.style.cursor = 'grab';
+                } else {
+                    cropCanvas.style.cursor = 'crosshair';
+                }
             }
         }
 
         function onPointerUp(e) {
-            isDragging = false;
             isMoving = false;
+            cropCanvas.style.cursor = 'crosshair';
         }
 
         cropCanvas.addEventListener('mousedown', onPointerDown);
@@ -781,7 +434,6 @@
             showToast('✅ Thumbnail cropped! It will be downloaded as packXXX-thumbnail.jpg');
         });
 
-        // ─── copy + open Mega + download ONLY cropped thumbnail ──
         async function copyAndDownload() {
             if (!currentPack) {
                 showToast('No pack selected.', 'error');
@@ -792,7 +444,6 @@
             btn.disabled = true;
             btn.textContent = '⏳ Processing...';
 
-            // 1. Copy teaser
             const output = document.getElementById('teaserOutput');
             const text = output.textContent;
             try {
@@ -811,14 +462,12 @@
                 }
             }
 
-            // 2. Open Mega link
             if (currentPack.downloadUrl) {
                 window.open(currentPack.downloadUrl, '_blank');
             } else {
                 showToast('No Mega link available for this pack.', 'error');
             }
 
-            // 3. Download ONLY the cropped thumbnail
             if (cropDataUrl) {
                 try {
                     const link = document.createElement('a');
@@ -840,14 +489,12 @@
             btn.textContent = '📋 Copy Teaser & Get Files';
         }
 
-        // ─── close teaser ───────────────────────────────────────────
         function closeTeaser() {
             document.getElementById('teaserSection').classList.remove('visible');
             currentPack = null;
             cropDataUrl = null;
         }
 
-        // ─── init ───────────────────────────────────────────────────
         async function init() {
             const packs = await fetchPacks();
             if (packs) renderPacks(packs);
