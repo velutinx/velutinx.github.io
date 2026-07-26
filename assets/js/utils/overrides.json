@@ -1,7 +1,10 @@
 {
   "franchise": {
     "genshin impact": { "native": "原神", "english": "GenshinImpact" },
-    "wuthering waves": { "native": "鸣潮", "english": "WutheringWaves" },
+    "wuthering waves": {
+      "english": "WutheringWaves",
+      "native": ["鳴潮"]
+    },
     "rwby": { "native": "RWBY", "english": "RWBY" },
     "goddess of victory nikke": { "native": "勝利の女神", "english": "Nikke" },
     "pokemon": { "native": "ポケモン", "english": "Pokemon" },
@@ -115,6 +118,10 @@
     "gwen stacy": {
       "english": ["GwenStacy"],
       "native": ["グウェン・ステイシー"]
+    },
+    "iuno": {
+      "english": ["Iuno"],
+      "native": ["ユーノ", "尤诺"]
     }
   }
 }
