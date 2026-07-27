@@ -82,6 +82,14 @@
     "spider-man": {
       "english": ["SpiderMan"],
       "native": ["スパイダーマン"]
+    },
+    "spy x family": {
+      "english": ["SPYxFAMILY"],
+      "native": ["スパイファミリー"]
+    },
+    "spy×family": {
+      "english": ["SPYxFAMILY"],
+      "native": ["スパイファミリー"]
     }
   },
   "character": {
@@ -122,6 +130,14 @@
     "iuno": {
       "english": ["Iuno"],
       "native": ["ユーノ", "尤诺"]
+    },
+    "yor forger": {
+      "english": ["YorForger"],
+      "native": ["ヨル・フォージャー"]
+    },
+    "yor": {
+      "english": ["Yor"],
+      "native": ["ヨル"]
     }
   }
 }
