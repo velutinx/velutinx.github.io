@@ -440,24 +440,30 @@ h1 small { font-size: 0.9rem; font-weight: 400; color: #888; }
 
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            img.onload = function() {
-                cropImageObj = img;
-                const maxW = Math.min(800, window.innerWidth * 0.8);
-                const maxH = Math.min(700, window.innerHeight * 0.65);
-                let scale = Math.min(maxW / img.width, maxH / img.height, 1);
-                cropCanvas.width = img.width * scale;
-                cropCanvas.height = img.height * scale;
-                let w = Math.min(cropCanvas.width * 0.6, cropCanvas.height * RATIO);
-                let h = w / RATIO;
-                if (h > cropCanvas.height) { h = cropCanvas.height * 0.6; w = h * RATIO; }
-                cropRect = {
-                    x: (cropCanvas.width - w) / 2,
-                    y: (cropCanvas.height - h) / 2,
-                    w: w,
-                    h: h
-                };
-                redrawCropCanvas();
-            };
+img.onload = function() {
+    cropImageObj = img;
+    const maxW = Math.min(800, window.innerWidth * 0.8);
+    const maxH = Math.min(700, window.innerHeight * 0.65);
+    let scale = Math.min(maxW / img.width, maxH / img.height, 1);
+    cropCanvas.width = img.width * scale;
+    cropCanvas.height = img.height * scale;
+    let w = cropCanvas.width;
+    let h = w / RATIO;
+    if (h > cropCanvas.height) {
+        h = cropCanvas.height;
+        w = h * RATIO;
+    }
+    w = Math.min(w, cropCanvas.width);
+    h = Math.min(h, cropCanvas.height);
+
+    cropRect = {
+        x: (cropCanvas.width - w) / 2,
+        y: (cropCanvas.height - h) / 2,
+        w: w,
+        h: h
+    };
+    redrawCropCanvas();
+};
             img.src = imageUrl;
         }
 
