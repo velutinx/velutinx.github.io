@@ -48,13 +48,11 @@
 
         let html = '';
         queue.forEach(item => {
-            // ✅ Build the tweet link
-            const authorStr = (item.author || 'Unknown').replace('@', '');
-            const fallbackUrl = 'https://x.com/' + authorStr + '/status/' + item.tweetId;
-            const tcoMatch = (item.text || '').match(/https:\/\/t\.co\/\w+/);
-            const linkUrl = tcoMatch ? tcoMatch[0] : fallbackUrl;
+            // Build the tweet permalink (always correct)
+            const authorStr = (item.author || 'Unknown').replace(/^@/, '');
+            const tweetUrl = `https://x.com/${encodeURIComponent(authorStr)}/status/${item.tweetId}`;
 
-            // ✅ Use timestamp (tweet creation date) as the primary date
+            // Format date – use timestamp (tweet creation) as primary
             let dateStr = 'Unknown date';
             let rawTimestamp = item.timestamp || item.addedAt;
             if (rawTimestamp) {
@@ -68,13 +66,17 @@
                 }
             }
 
+            // Escape text and preserve line breaks
+            const displayText = escapeHtml((item.text || '').replace(/\\n/g, '\n'));
+
             html += `
                 <div class="queue-item" data-id="${item.tweetId}">
                     <div class="content">
-                        <div class="author">${escapeHtml(item.author || 'Unknown')}</div>
-                        <div class="text">${escapeHtml((item.text || '').replace(/\\n/g, '\n'))}</div>
-                        <a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer" class="explicit-link">🔗 ${tcoMatch ? 'View Media Link' : 'View Tweet on X'}</a>
-                        <div class="meta">${escapeHtml(dateStr)}</div>
+                        <a href="${escapeHtml(tweetUrl)}" target="_blank" rel="noopener noreferrer" class="tweet-link">
+                            <div class="author">${escapeHtml(item.author || 'Unknown')}</div>
+                            <div class="text">${displayText}</div>
+                            <div class="meta">${escapeHtml(dateStr)}</div>
+                        </a>
                     </div>
                     <div class="actions">
                         <button class="retweet-btn" data-id="${item.tweetId}" data-target="${item.targetAccount}">🔄 Retweet</button>
