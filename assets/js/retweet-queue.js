@@ -34,7 +34,6 @@
         const container = document.getElementById('retweet-list');
         if (!container) return;
 
-        // Update tab visibility
         const tab = document.getElementById('retweet-tab');
         const hasItems = queue && queue.length > 0;
         if (tab) {
@@ -49,17 +48,33 @@
 
         let html = '';
         queue.forEach(item => {
-            const badge = item.targetAccount === 'velutinx2' ? 'badge-velutinx2' : 'badge-nsfw';
-            const targetLabel = item.targetAccount === 'velutinx2' ? '🔁 velutinx2' : '🔞 NSFW';
+            // ✅ Build the tweet link
+            const authorStr = (item.author || 'Unknown').replace('@', '');
+            const fallbackUrl = 'https://x.com/' + authorStr + '/status/' + item.tweetId;
+            const tcoMatch = (item.text || '').match(/https:\/\/t\.co\/\w+/);
+            const linkUrl = tcoMatch ? tcoMatch[0] : fallbackUrl;
+
+            // ✅ Use timestamp (tweet creation date) as the primary date
+            let dateStr = 'Unknown date';
+            let rawTimestamp = item.timestamp || item.addedAt;
+            if (rawTimestamp) {
+                const dateObj = new Date(rawTimestamp);
+                if (!isNaN(dateObj.getTime())) {
+                    dateStr = dateObj.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: dateObj.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                    }) + ' ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                }
+            }
+
             html += `
                 <div class="queue-item" data-id="${item.tweetId}">
                     <div class="content">
-                        <div class="author">${item.author || 'Unknown'}</div>
-                        <div class="text">${item.text}</div>
-                        <div class="meta">
-                            ${new Date(item.addedAt || item.timestamp).toLocaleString()}
-                            <span class="badge ${badge}">${targetLabel}</span>
-                        </div>
+                        <div class="author">${escapeHtml(item.author || 'Unknown')}</div>
+                        <div class="text">${escapeHtml((item.text || '').replace(/\\n/g, '\n'))}</div>
+                        <a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer" class="explicit-link">🔗 ${tcoMatch ? 'View Media Link' : 'View Tweet on X'}</a>
+                        <div class="meta">${escapeHtml(dateStr)}</div>
                     </div>
                     <div class="actions">
                         <button class="retweet-btn" data-id="${item.tweetId}" data-target="${item.targetAccount}">🔄 Retweet</button>
@@ -70,7 +85,7 @@
         });
         container.innerHTML = html;
 
-        // Attach event listeners
+        // Attach event listeners (unchanged)
         container.querySelectorAll('.retweet-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const tweetId = btn.dataset.id;
@@ -133,6 +148,16 @@
         });
     }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     async function refreshQueue() {
         const queue = await fetchRetweetQueue();
         if (previousQueue.length > 0 && queue.length > previousQueue.length) {
@@ -145,10 +170,8 @@
         renderRetweetQueue(queue);
     }
 
-    // ─── Expose refreshQueue globally ──────────────────────────────
     window.refreshQueue = refreshQueue;
 
-    // ─── Initial load ────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         refreshQueue();
 
