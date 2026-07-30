@@ -3,6 +3,8 @@
     'use strict';
 
     let overrideData = { franchise: {}, character: {} };
+    // Cache for pack data to avoid repeated API calls
+    let packsCache = null;
 
     async function loadOverrides() {
         try {
@@ -19,6 +21,36 @@
         } catch (err) {
             console.warn('Failed to load overrides, using AniList only.', err);
         }
+    }
+
+    // Fetch all packs from API and cache them
+    async function fetchAllPacks() {
+        if (packsCache) return packsCache;
+        try {
+            const response = await fetch('https://packs-api.velutinx.workers.dev/api/packs');
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
+            const data = await response.json();
+            packsCache = data;
+            return data;
+        } catch (err) {
+            console.warn('Failed to fetch packs from API:', err);
+            return [];
+        }
+    }
+
+    // Extract pack number from input string (e.g., "#174" or "Pack #174")
+    function extractPackNumber(text) {
+        const match = text.match(/(?:Pack\s*)?#(\d+)/i);
+        return match ? match[1] : null;
+    }
+
+    // Find the illustration count for a given pack number
+    async function getPackPageCount(packNumber) {
+        if (!packNumber) return null;
+        const packs = await fetchAllPacks();
+        // pack ID is the same as pack number (string)
+        const pack = packs.find(p => p.id === packNumber);
+        return pack ? pack.illustrationCount : null;
     }
 
     function cleanTag(str) {
@@ -276,8 +308,21 @@
 
         status.textContent = 'Fetching AniList…';
         try {
+            // Fetch hashtags
             const hashtags = await generateHashtags(parsed.character, parsed.series);
             const hashtagString = hashtags.join(' ');
+
+            // Fetch page count from database if pack number is present
+            const packNumber = extractPackNumber(raw);
+            let pageCount = null;
+            if (packNumber) {
+                pageCount = await getPackPageCount(packNumber);
+                if (pageCount !== null) {
+                    status.textContent = `✅ Pack #${packNumber}: ${pageCount} images`;
+                } else {
+                    status.textContent = `⚠️ Pack #${packNumber} not found in DB`;
+                }
+            }
 
             const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
             const requestChecked = document.getElementById('requestCheckbox')?.checked || false;
@@ -290,12 +335,18 @@
             }
 
             const seriesDisplay = parsed.series || 'Unknown Series';
-            const fullPost = `${openingLine}\n\n${parsed.character} from ${seriesDisplay}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
+            const characterDisplay = parsed.character;
+            const pageSuffix = (pageCount !== null && pageCount > 0) ? ` (${pageCount}p)` : '';
+
+            // Build full post with page count if available
+            const fullPost = `${openingLine}\n\n${characterDisplay} from ${seriesDisplay}${pageSuffix}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
 
             masterPost.value = fullPost;
             masterPost.dispatchEvent(new Event('input'));
 
-            status.textContent = '✅ Post ready!';
+            if (status.textContent && !status.textContent.startsWith('✅')) {
+                status.textContent = '✅ Post ready!';
+            }
             if (typeof showToast === 'function') showToast('Post generated!', 'success');
         } catch (err) {
             console.error(err);
