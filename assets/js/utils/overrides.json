@@ -90,6 +90,14 @@
     "spy×family": {
       "english": ["SPYxFAMILY"],
       "native": ["スパイファミリー"]
+    },
+    "dc": {
+      "english": ["DC"],
+      "native": ["ＤＣコミックス"]
+    },
+    "dc comics": {
+      "english": ["DC"],
+      "native": ["ＤＣコミックス"]
     }
   },
   "character": {
@@ -142,6 +150,10 @@
     "sonia": {
       "english": ["Sonia"],
       "native": ["ソニア"]
+    },
+    "wonder woman": {
+      "english": ["WonderWoman"],
+      "native": ["ワンダーウーマン"]
     }
   }
 }
