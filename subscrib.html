@@ -178,11 +178,14 @@
 
     <!-- 📋 Error Logs Tab (FIXED) -->
     <div id="errorlogs" class="tab-content">
-        <div class="error-logs-scroll"> <!-- renamed to avoid conflict -->
-            <div class="error-logs-header">
-                <h1>📋 Central Error Logs</h1>
-                <button class="btn" id="clearBtn">🗑️ Clear All</button>
-            </div>
+        <div class="error-logs-scroll">
+<div class="error-logs-header">
+    <h1>📋 Central Error Logs</h1>
+    <div style="display:flex; gap:8px;">
+        <button class="btn" id="copyLogsBtn" style="background:#3b82f6;">📋 Copy Logs</button>
+        <button class="btn" id="clearBtn">🗑️ Clear All</button>
+    </div>
+</div>
             <div class="table-wrapper error-logs-table">
                 <table>
                     <thead>
