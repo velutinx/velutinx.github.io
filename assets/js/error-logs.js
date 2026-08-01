@@ -1,4 +1,4 @@
-//     velutinx.github.io/assets/js/error-logs.js
+// velutinx.github.io/assets/js/error-logs.js
 
 (function() {
     'use strict';
@@ -7,6 +7,7 @@
 
     const tbody = document.getElementById('logBody');
     const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyLogsBtn'); // new button
     const tabButton = document.getElementById('errorlogs-tab');
 
     function formatLocalTime(utcString) {
@@ -28,12 +29,12 @@
         }
     }
 
-    function showToast(msg, isError) {
+    function showToast(msg, isError = false) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification' + (isError ? ' error' : '');
         toast.textContent = msg;
         document.body.appendChild(toast);
-        setTimeout(function() { toast.remove(); }, 3000);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     function escapeHtml(str) {
@@ -72,7 +73,7 @@
                 timestamp: log.timestamp || log.received || '—',
                 received: log.received || log.timestamp || '—',
                 id: log.id,
-                context: log.context || null  // <-- store context
+                context: log.context || null
             });
         });
 
@@ -84,6 +85,53 @@
         });
 
         return sortedGroups;
+    }
+
+    // ─── Build plain‑text representation of all logs ───
+    function buildLogsText(logs) {
+        if (!logs || logs.length === 0) {
+            return '✨ No errors logged yet.';
+        }
+
+        const groups = groupLogs(logs);
+        let result = '';
+        const now = new Date().toLocaleString('en-US', { timeZone: 'America/Hermosillo' });
+
+        result += `═══════════════════════════════════════════════════════════\n`;
+        result += `  CENTRAL ERROR LOGS  —  Exported on ${now}\n`;
+        result += `═══════════════════════════════════════════════════════════\n\n`;
+
+        groups.forEach((group, idx) => {
+            const count = group.occurrences.length;
+            result += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            result += `  Worker : ${group.worker}\n`;
+            result += `  Error  : ${group.error}\n`;
+            result += `  URL    : ${group.url}\n`;
+            result += `  Method : ${group.method}\n`;
+            result += `  Occurrences : ${count}\n`;
+            result += `─────────────────────────────────────────────────────\n`;
+
+            group.occurrences.forEach((occ, i) => {
+                const ts = formatLocalTime(occ.timestamp);
+                const rec = formatLocalTime(occ.received);
+                result += `\n  #${i+1}  Timestamp : ${ts}\n`;
+                result += `       Received  : ${rec}\n`;
+                result += `       Stack     : ${occ.stack || '—'}\n`;
+                if (occ.context) {
+                    let contextStr = occ.context;
+                    try {
+                        const parsed = JSON.parse(occ.context);
+                        contextStr = JSON.stringify(parsed, null, 2);
+                    } catch (_) {}
+                    result += `       Context   :\n${contextStr}\n`;
+                }
+                result += `─────────────────────────────────────────────────────\n`;
+            });
+
+            result += `\n`;
+        });
+
+        return result;
     }
 
     function renderLogs(logs) {
@@ -144,7 +192,7 @@
                                         <tr>
                                             <td style="padding:4px 8px; color:#ddd;">${escapeHtml(formatLocalTime(occ.timestamp))}</td>
                                             <td style="padding:4px 8px; color:#ddd;">${escapeHtml(formatLocalTime(occ.received))}</td>
-                                            <td style="padding:4px 8px; color:#aaa; font-family:monospace; font-size:0.7rem; word-break:break-word;">${escapeHtml(stack)}</td>
+                                            <td style="padding:4px 8px; color:#aaa; font-family:monospace; font-size:0.7rem; word-break:break-word;">${escapeHtml(occ.stack)}</td>
                                             <td style="padding:4px 8px;">${contextHtml}</td>
                                         </tr>
                                     `}).join('')}
@@ -191,14 +239,14 @@
 
     function fetchLogs() {
         fetch(LOGGER_URL + '/logs')
-            .then(function(res) {
+            .then(res => {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 return res.json();
             })
-            .then(function(logs) {
+            .then(logs => {
                 renderLogs(logs);
             })
-            .catch(function(err) {
+            .catch(err => {
                 console.error('Fetch error:', err);
                 tbody.innerHTML = '<tr class="empty-row"><td colspan="5">❌ Failed to load logs: ' + escapeHtml(err.message) + '</td></tr>';
                 updateTabVisibility(false);
@@ -213,31 +261,74 @@
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
         })
-        .then(function(res) {
+        .then(res => {
             if (!res.ok) throw new Error('HTTP ' + res.status);
             return res.json();
         })
-        .then(function(data) {
+        .then(data => {
             showToast('🗑️ All logs cleared from database.', false);
             fetchLogs();
         })
-        .catch(function(err) {
+        .catch(err => {
             console.error('Clear error:', err);
             showToast('❌ Failed to clear logs: ' + err.message, true);
         })
-        .finally(function() {
+        .finally(() => {
             clearBtn.disabled = false;
             clearBtn.textContent = '🗑️ Clear All';
         });
     }
 
+    // ─── Copy Logs ────────────────────────────────────────────
+    async function copyLogs() {
+        if (!copyBtn) return;
+        copyBtn.disabled = true;
+        copyBtn.textContent = '⏳ Fetching...';
+
+        try {
+            const res = await fetch(LOGGER_URL + '/logs');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const logs = await res.json();
+
+            const text = buildLogsText(logs);
+
+            // Use clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+                showToast('✅ Logs copied to clipboard!', false);
+            } else {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('✅ Logs copied to clipboard!', false);
+            }
+        } catch (err) {
+            console.error('Copy error:', err);
+            showToast('❌ Failed to copy logs: ' + err.message, true);
+        } finally {
+            copyBtn.disabled = false;
+            copyBtn.textContent = '📋 Copy Logs';
+        }
+    }
+
+    // ─── Event listeners ───────────────────────────────────────
     if (clearBtn) {
         clearBtn.addEventListener('click', clearAll);
     }
 
+    if (copyBtn) {
+        copyBtn.addEventListener('click', copyLogs);
+    }
+
+    // Initial fetch
     fetchLogs();
 
-    setInterval(function() {
+    // Refresh every 10 seconds only when tab is visible
+    setInterval(() => {
         if (!document.hidden) {
             fetchLogs();
         }
