@@ -756,6 +756,22 @@
 
     // ─── INIT ──────────────────────────────────────────────────────────
     async function init() {
+        // ─── 🔥 FIX: Set month selector to current month ──────────────
+        const now = new Date();
+        const currentMonth = now.getMonth(); // 0-indexed (0 = Jan)
+        const currentYear = now.getFullYear();
+
+        if (monthSelect) {
+            monthSelect.value = currentMonth;
+        }
+        if (yearSelect) {
+            // Set year to current year if it exists in the dropdown
+            const yearOptions = Array.from(yearSelect.options).map(o => parseInt(o.value));
+            if (yearOptions.includes(currentYear)) {
+                yearSelect.value = currentYear;
+            }
+        }
+
         const entries = await fetchEntries();
         tableData = entries;
         pageSizeSelect.value = pageSize;
