@@ -98,6 +98,10 @@
     "dc comics": {
       "english": ["DC"],
       "native": ["ＤＣコミックス"]
+    },
+    "marvel": {
+      "english": ["Marvel"],
+      "native": ["マーベル"]
     }
   },
   "character": {
@@ -158,6 +162,10 @@
     "raine sage": {
       "english": ["RaineSage"],
       "native": ["リフィル・セイジ"]
+    },
+    "jubilee": {
+      "english": ["Jubilee", "JubilationLee"],
+      "native": ["ジュビリー", "ジュビレーション・リー"]
     }
   }
 }
