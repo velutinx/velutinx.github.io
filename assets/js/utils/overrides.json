@@ -166,6 +166,10 @@
     "jubilee": {
       "english": ["Jubilee", "JubilationLee"],
       "native": ["ジュビリー", "ジュビレーション・リー"]
+    },
+    "zatanna": {
+      "english": ["Zatanna"],
+      "native": ["ザターナ"]
     }
   }
 }
