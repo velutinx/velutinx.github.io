@@ -384,45 +384,6 @@
         </div>
     </div>
 
-    <!-- ZIP Extractor Tab -->
-    <div id="zipextractor" class="tab-content">
-        <div class="extractor-wrapper">
-            <div class="extractor-header">
-                <h2>📦 ZIP Text Extractor</h2>
-                <p class="subtitle">
-                    Drag &amp; drop <strong>one or more .zip</strong> files – extracts all text files,
-                    lists root files first, then folders, prefixes with <code>*/</code>.
-                    <br><small>Ignored files: metadata.json, github‑auto‑backup.js, worker‑auto‑backup.js, .gitignore, sitemap.xml, wrangler.toml, robots.txt, README.md, CNAME, .nojekyll</small>
-                </p>
-            </div>
-
-            <div class="extractor-drop-zone" id="extractorDropZone">
-                <span class="icon">📂</span>
-                <p>Drop your ZIP files here</p>
-                <span class="hint">or click to browse (multiple allowed)</span>
-                <input type="file" id="extractorFileInput" accept=".zip" multiple />
-            </div>
-
-            <div class="extractor-status" id="extractorStatus"><span>✨ Ready</span></div>
-
-            <div class="extractor-output-section">
-                <div class="extractor-output-header">
-                    <label for="extractorOutput">📄 Combined text</label>
-                    <span class="extractor-file-count" id="extractorFileCount">0 files</span>
-                </div>
-                <textarea id="extractorOutput" readonly placeholder="Extracted content will appear here…"></textarea>
-                <div class="extractor-actions">
-                    <button class="btn btn-primary" id="extractorDownloadBtn" disabled>
-                        <span class="icon-small">⬇️</span> Download as .txt
-                    </button>
-                    <button class="btn btn-secondary" id="extractorClearBtn">
-                        <span class="icon-small">🗑️</span> Clear
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Censor Tab -->
     <div id="censor" class="tab-content censor-tab-content">
         <div id="censor-main">
