@@ -6,7 +6,14 @@
       "native": ["鳴潮"]
     },
     "rwby": { "native": "RWBY", "english": "RWBY" },
-    "goddess of victory nikke": { "native": "勝利の女神", "english": "Nikke" },
+    "goddess of victory nikke": {
+      "english": ["NIKKE"],
+      "native": ["勝利の女神"]
+    },
+    "nikke": {
+      "english": ["NIKKE"],
+      "native": ["勝利の女神"]
+    },
     "pokemon": { "native": "ポケモン", "english": "Pokemon" },
     "naruto": { "native": "ナルト", "english": "Naruto" },
     "high school dxd": { "native": "ハイスクールDxD", "english": "HighSchoolDxD" },
@@ -178,6 +185,10 @@
     "ani": {
       "english": ["ANI"],
       "native": ["Aniちゃん"]
+    },
+    "elegg": {
+      "english": ["Elegg"],
+      "native": ["エレグ"]
     }
   }
 }
