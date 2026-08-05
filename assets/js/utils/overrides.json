@@ -102,6 +102,10 @@
     "marvel": {
       "english": ["Marvel"],
       "native": ["マーベル"]
+    },
+    "grok": {
+      "english": ["Grok"],
+      "native": ["グロック"]
     }
   },
   "character": {
@@ -170,6 +174,10 @@
     "zatanna": {
       "english": ["Zatanna"],
       "native": ["ザターナ"]
+    },
+    "ani": {
+      "english": ["ANI"],
+      "native": ["Aniちゃん"]
     }
   }
 }
