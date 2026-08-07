@@ -22,7 +22,6 @@
         }
     }
 
-    // Fetch all packs from API and cache them
     async function fetchAllPacks() {
         if (packsCache) return packsCache;
         try {
@@ -37,23 +36,19 @@
         }
     }
 
-    // Extract pack number from input string (e.g., "#174" or "Pack #174")
     function extractPackNumber(text) {
         const match = text.match(/(?:Pack\s*)?#(\d+)/i);
         return match ? match[1] : null;
     }
 
-    // Find the illustration count for a given pack number
     async function getPackPageCount(packNumber) {
         if (!packNumber) return null;
 
-        // 1) Check if zip-to-post.js already provided the count
         if (window._zipPageCount && window._zipPackNumber === packNumber) {
             console.log(`✅ Using ZIP-provided page count: ${window._zipPageCount}`);
             return window._zipPageCount;
         }
 
-        // 2) Otherwise, fetch from API
         const packs = await fetchAllPacks();
         const pack = packs.find(p => String(p.id) === String(packNumber));
         return pack ? pack.illustrationCount : null;
@@ -315,7 +310,6 @@
             const hashtags = await generateHashtags(parsed.character, parsed.series);
             const hashtagString = hashtags.join(' ');
 
-            // ---- Get page count ----
             const packNumber = extractPackNumber(raw);
             let pageCount = null;
             if (packNumber) {
