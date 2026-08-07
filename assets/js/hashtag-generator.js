@@ -3,7 +3,6 @@
     'use strict';
 
     let overrideData = { franchise: {}, character: {} };
-    // Cache for pack data to avoid repeated API calls
     let packsCache = null;
 
     async function loadOverrides() {
@@ -47,9 +46,16 @@
     // Find the illustration count for a given pack number
     async function getPackPageCount(packNumber) {
         if (!packNumber) return null;
+
+        // 1) Check if zip-to-post.js already provided the count
+        if (window._zipPageCount && window._zipPackNumber === packNumber) {
+            console.log(`✅ Using ZIP-provided page count: ${window._zipPageCount}`);
+            return window._zipPageCount;
+        }
+
+        // 2) Otherwise, fetch from API
         const packs = await fetchAllPacks();
-        // pack ID is the same as pack number (string)
-        const pack = packs.find(p => p.id === packNumber);
+        const pack = packs.find(p => String(p.id) === String(packNumber));
         return pack ? pack.illustrationCount : null;
     }
 
@@ -176,7 +182,6 @@
             }
         }
 
-        // --- Character override with English support ---
         let charEnglishOverride = null;
         if (characterOverride) {
             if (characterOverride.native) {
@@ -191,7 +196,6 @@
             }
         }
 
-        // Build English character tags – use override if provided
         const engCharTags = [];
         if (charEnglishOverride) {
             for (const eng of charEnglishOverride) {
@@ -308,11 +312,10 @@
 
         status.textContent = 'Fetching AniList…';
         try {
-            // Fetch hashtags
             const hashtags = await generateHashtags(parsed.character, parsed.series);
             const hashtagString = hashtags.join(' ');
 
-            // Fetch page count from database if pack number is present
+            // ---- Get page count ----
             const packNumber = extractPackNumber(raw);
             let pageCount = null;
             if (packNumber) {
@@ -320,7 +323,7 @@
                 if (pageCount !== null) {
                     status.textContent = `✅ Pack #${packNumber}: ${pageCount} images`;
                 } else {
-                    status.textContent = `⚠️ Pack #${packNumber} not found in DB`;
+                    status.textContent = `⚠️ Pack #${packNumber} not found in DB or ZIP`;
                 }
             }
 
@@ -338,7 +341,6 @@
             const characterDisplay = parsed.character;
             const pageSuffix = (pageCount !== null && pageCount > 0) ? ` (${pageCount}p)` : '';
 
-            // Build full post with page count if available
             const fullPost = `${openingLine}\n\n${characterDisplay} from ${seriesDisplay}${pageSuffix}\n\nFull set on Patreon (link in bio)\n\n${hashtagString}`;
 
             masterPost.value = fullPost;
