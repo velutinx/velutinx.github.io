@@ -1,4 +1,4 @@
-//     /assets/js/zip-to-post.js 
+// /assets/js/zip-to-post.js
 
 document.addEventListener('DOMContentLoaded', function() {
     function showToast(message, type = 'info') {
@@ -163,6 +163,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const zip = await JSZip.loadAsync(file);
             let fileCount = 0;
             zip.forEach((_, entry) => { if (!entry.dir) fileCount++; });
+
+            // ── Store page count and pack number for hashtag generator ──
+            window._zipPageCount = fileCount;
+            window._zipPackNumber = pack;
 
             subscriberOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n📌 Suggestive preview below\n🔒 Full explicit pack available for paid supporters`;
             publicOutput.value = `[${series}] ${character} — Pack #${pack}\n\nSet size: ${fileCount} images\n\n⚠️ Disclaimer: All characters depicted are portrayed as 18+. This is a fictional, consensual depiction.`;
