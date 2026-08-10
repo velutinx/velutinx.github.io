@@ -113,6 +113,10 @@
     "grok": {
       "english": ["Grok"],
       "native": ["グロック"]
+    },
+    "monogatari": {
+      "english": ["Monogatari", "Bakemonogatari"],
+      "native": ["物語", "化物語"]
     }
   },
   "character": {
@@ -189,6 +193,14 @@
     "elegg": {
       "english": ["Elegg"],
       "native": ["エレグ"]
+    },
+    "kiss-shot": {
+      "english": ["KissShot", "ShinobuOshino", "OshinoShinobu"],
+      "native": ["キスショット", "忍野忍"]
+    },
+    "kiss shot": {
+      "english": ["KissShot", "ShinobuOshino", "OshinoShinobu"],
+      "native": ["キスショット", "忍野忍"]
     }
   }
 }
