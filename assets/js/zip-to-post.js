@@ -182,12 +182,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             resizeAllOutputs();
 
-            const hashgenInput = document.getElementById('hashgenInput');
-            if (hashgenInput) {
-                const previewString = `Preview: ${character} — ${series} — Pack #${pack}`;
-                hashgenInput.value = previewString;
-                hashgenInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
+const hashgenInput = document.getElementById('hashgenInput');
+if (hashgenInput) {
+    const previewString = `Preview: ${character} — ${series} — Pack #${pack}`;
+    hashgenInput.value = previewString;
+    window._zipDragged = true;
+    hashgenInput.dispatchEvent(new Event('input', { bubbles: true }));
+}
 
             const imageEntries = [];
             zip.forEach((path, entry) => {
