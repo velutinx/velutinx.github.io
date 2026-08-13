@@ -137,45 +137,17 @@
         return response.json();
     }
 
-    async function generateHashtags(characterName, animeName) {
+    // Get character tags (English + Japanese) for a single character
+    async function getCharacterTags(characterName, seriesName) {
         const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
-        const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
-
-        const [charData, animeData] = await Promise.all([
-            fetchAniList(charQuery, { search: characterName }),
-            fetchAniList(animeQuery, { search: animeName })
-        ]);
-
+        const charData = await fetchAniList(charQuery, { search: characterName });
         const character = charData?.data?.Character;
-        const anime = animeData?.data?.Media;
 
         let charNative = character?.name?.native || '';
         let charFull = character?.name?.full || characterName;
-        let animeNative = anime?.title?.native || '';
-        let animeRomaji = anime?.title?.romaji || animeName;
-        let animeEnglish = anime?.title?.english || '';
 
-        animeRomaji = cleanupSeriesTitle(animeRomaji);
-        animeEnglish = cleanupSeriesTitle(animeEnglish);
-
-        const lowerSeries = animeName.toLowerCase();
         const lowerCharacter = characterName.toLowerCase();
-
-        let franchiseOverride = overrideData.franchise[lowerSeries];
-        let characterOverride = overrideData.character[lowerCharacter];
-
-        if (franchiseOverride) {
-            if (franchiseOverride.native) {
-                animeNative = Array.isArray(franchiseOverride.native)
-                    ? franchiseOverride.native
-                    : [franchiseOverride.native];
-            }
-            if (franchiseOverride.english) {
-                animeEnglish = Array.isArray(franchiseOverride.english)
-                    ? franchiseOverride.english
-                    : [franchiseOverride.english];
-            }
-        }
+        const characterOverride = overrideData.character[lowerCharacter];
 
         let charEnglishOverride = null;
         if (characterOverride) {
@@ -191,82 +163,97 @@
             }
         }
 
-        const engCharTags = [];
+        const engTags = [];
         if (charEnglishOverride) {
             for (const eng of charEnglishOverride) {
                 const tag = makeHashtag(eng);
-                if (tag) engCharTags.push(tag);
+                if (tag) engTags.push(tag);
             }
         } else {
             const splitChar = charFull.split(' ');
             if (splitChar.length >= 2) {
                 const normal = splitChar.join('');
                 const reversed = [...splitChar].reverse().join('');
-                if (normal) engCharTags.push(makeHashtag(normal));
-                if (reversed && reversed !== normal) engCharTags.push(makeHashtag(reversed));
+                if (normal) engTags.push(makeHashtag(normal));
+                if (reversed && reversed !== normal) engTags.push(makeHashtag(reversed));
             } else {
                 const tag = makeHashtag(charFull);
-                if (tag) engCharTags.push(tag);
+                if (tag) engTags.push(tag);
             }
         }
 
-        const engSeriesTags = [];
+        const jpTags = [];
+        if (Array.isArray(charNative)) {
+            for (const nat of charNative) {
+                const tag = makeHashtag(nat);
+                if (tag) jpTags.push(tag);
+            }
+        } else {
+            const tag = makeHashtag(charNative);
+            if (tag) jpTags.push(tag);
+        }
+
+        return [...engTags.filter(Boolean), ...jpTags.filter(Boolean)];
+    }
+
+    // Get series tags (English + Japanese) for a given series name
+    async function getSeriesTags(seriesName) {
+        const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
+        const animeData = await fetchAniList(animeQuery, { search: seriesName });
+        const anime = animeData?.data?.Media;
+
+        let animeNative = anime?.title?.native || '';
+        let animeRomaji = anime?.title?.romaji || seriesName;
+        let animeEnglish = anime?.title?.english || '';
+
+        animeRomaji = cleanupSeriesTitle(animeRomaji);
+        animeEnglish = cleanupSeriesTitle(animeEnglish);
+
+        const lowerSeries = seriesName.toLowerCase();
+        const franchiseOverride = overrideData.franchise[lowerSeries];
+
+        if (franchiseOverride) {
+            if (franchiseOverride.native) {
+                animeNative = Array.isArray(franchiseOverride.native)
+                    ? franchiseOverride.native
+                    : [franchiseOverride.native];
+            }
+            if (franchiseOverride.english) {
+                animeEnglish = Array.isArray(franchiseOverride.english)
+                    ? franchiseOverride.english
+                    : [franchiseOverride.english];
+            }
+        }
+
+        const engTags = [];
         if (Array.isArray(animeEnglish)) {
             for (const eng of animeEnglish) {
                 const tag = makeHashtag(eng);
-                if (tag) engSeriesTags.push(tag);
+                if (tag) engTags.push(tag);
             }
         } else {
             const romajiTag = makeHashtag(animeRomaji);
             const englishTag = makeHashtag(animeEnglish);
             if (romajiTag && englishTag && romajiTag.toLowerCase() === englishTag.toLowerCase()) {
-                engSeriesTags.push(englishTag);
+                engTags.push(englishTag);
             } else {
-                if (romajiTag) engSeriesTags.push(romajiTag);
-                if (englishTag) engSeriesTags.push(englishTag);
+                if (romajiTag) engTags.push(romajiTag);
+                if (englishTag) engTags.push(englishTag);
             }
         }
 
-        const jpCharTags = [];
-        if (Array.isArray(charNative)) {
-            for (const nat of charNative) {
-                const tag = makeHashtag(nat);
-                if (tag) jpCharTags.push(tag);
-            }
-        } else {
-            const tag = makeHashtag(charNative);
-            if (tag) jpCharTags.push(tag);
-        }
-
-        const jpSeriesTags = [];
+        const jpTags = [];
         if (Array.isArray(animeNative)) {
             for (const nat of animeNative) {
                 const tag = makeHashtag(nat);
-                if (tag) jpSeriesTags.push(tag);
+                if (tag) jpTags.push(tag);
             }
         } else {
             const tag = makeHashtag(animeNative);
-            if (tag) jpSeriesTags.push(tag);
+            if (tag) jpTags.push(tag);
         }
 
-        const allTags = [
-            ...engCharTags.filter(Boolean),
-            ...engSeriesTags.filter(Boolean),
-            ...jpCharTags.filter(Boolean),
-            ...jpSeriesTags.filter(Boolean)
-        ];
-
-        const seen = new Set();
-        const uniqueTags = [];
-        for (const tag of allTags) {
-            const lower = tag.toLowerCase();
-            if (!seen.has(lower)) {
-                seen.add(lower);
-                uniqueTags.push(tag);
-            }
-        }
-
-        return uniqueTags;
+        return [...engTags.filter(Boolean), ...jpTags.filter(Boolean)];
     }
 
     let debounceTimer;
@@ -296,38 +283,28 @@
         const startsWithPreview = raw.startsWith('Preview:');
 
         if (isZipDrag) {
-            // ZIP drag → all off
             upcoming = false;
             request = false;
             sneak = false;
-            // Reset the flag so it doesn't affect next manual input
             window._zipDragged = false;
         } else if (startsWithPreview) {
-            // Preview text from manual paste or typing
             if (raw.includes(' — Request') || raw.includes(' Request ')) {
                 upcoming = true;
                 request = true;
                 sneak = false;
             } else {
-                // Contains " — Poll" or no special suffix → upcoming on, request off
                 upcoming = true;
                 request = false;
                 sneak = false;
             }
         } else {
-            // Any other manual input → all off (as per your correction)
             upcoming = false;
             request = false;
             sneak = false;
         }
 
-        // ─── Apply to UI ────────────────────────────────────────────
-        if (upcomingCheckbox) {
-            upcomingCheckbox.checked = upcoming;
-        }
-        if (requestCheckbox) {
-            requestCheckbox.checked = request;
-        }
+        if (upcomingCheckbox) upcomingCheckbox.checked = upcoming;
+        if (requestCheckbox) requestCheckbox.checked = request;
         if (sneakBtn) {
             const isOn = sneak;
             sneakBtn.classList.toggle('on', isOn);
@@ -337,25 +314,20 @@
                 masterPost.dispatchEvent(new Event('input'));
                 status.textContent = 'Sneak peak mode';
                 if (typeof showToast === 'function') showToast('Sneak peak enabled', 'info');
-                return; // <-- Stop here; we've already set the master post
-            } else {
-                // If sneak was turned off, we still continue to generate the normal post
-                // (But we might have been called from the sneak button itself – we handle that later)
+                return;
             }
         }
 
-        // ─── Parse and generate ──────────────────────────────────────
+        // ─── Parse input ─────────────────────────────────────────────
         const parsed = parseInput(raw);
         if (!parsed.character && !parsed.series) {
             status.textContent = 'Could not parse character or series';
             return;
         }
 
-        status.textContent = 'Fetching AniList…';
-        try {
-            const hashtags = await generateHashtags(parsed.character, parsed.series);
-            const hashtagString = hashtags.join(' ');
+        status.textContent = 'Fetching data…';
 
+        try {
             const packNumber = extractPackNumber(raw);
             let pageCount = null;
             if (packNumber) {
@@ -367,6 +339,38 @@
                 }
             }
 
+            // ─── Get series tags (once) ──────────────────────────────
+            const seriesTags = await getSeriesTags(parsed.series);
+
+            // ─── Get character tags ───────────────────────────────────
+            let characterTags = [];
+            const characterName = parsed.character;
+
+            // Check for ' & ' (multiple characters)
+            if (characterName.includes(' & ')) {
+                const parts = characterName.split(' & ').map(s => s.trim());
+                for (const part of parts) {
+                    const tags = await getCharacterTags(part, parsed.series);
+                    characterTags = characterTags.concat(tags);
+                }
+            } else {
+                characterTags = await getCharacterTags(characterName, parsed.series);
+            }
+
+            // Combine and deduplicate
+            const allTags = [...characterTags, ...seriesTags];
+            const seen = new Set();
+            const uniqueTags = [];
+            for (const tag of allTags) {
+                const lower = tag.toLowerCase();
+                if (!seen.has(lower)) {
+                    seen.add(lower);
+                    uniqueTags.push(tag);
+                }
+            }
+            const hashtagString = uniqueTags.join(' ');
+
+            // ─── Build opening line ──────────────────────────────────
             let openingLine;
             if (request) {
                 openingLine = upcoming ? 'Upcoming new request.' : 'New request released.';
@@ -389,7 +393,7 @@
             if (typeof showToast === 'function') showToast('Post generated!', 'success');
         } catch (err) {
             console.error(err);
-            status.textContent = '❌ AniList fetch failed';
+            status.textContent = '❌ Data fetch failed';
         }
     }
 
@@ -429,7 +433,6 @@
                         master.dispatchEvent(new Event('input'));
                         if (typeof showToast === 'function') showToast('Sneak peak enabled', 'info');
                     } else {
-                        // Re‑trigger the input handler to regenerate the normal post
                         const inputEvent = new Event('input', { bubbles: true });
                         document.getElementById('hashgenInput').dispatchEvent(inputEvent);
                     }
