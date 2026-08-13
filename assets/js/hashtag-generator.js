@@ -275,23 +275,11 @@
         const input = document.getElementById('hashgenInput');
         const status = document.getElementById('hashgenStatus');
         const masterPost = document.getElementById('masterPost');
+        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+        const requestCheckbox = document.getElementById('requestCheckbox');
+        const sneakBtn = document.getElementById('sneakPeakBtn');
 
         if (!input || !masterPost) return;
-
-        const sneakBtn = document.getElementById('sneakPeakBtn');
-        if (sneakBtn) {
-            sneakBtn.addEventListener('click', function() {
-                const isOn = this.classList.toggle('on');
-                this.textContent = isOn ? 'On' : 'Off';
-                const master = document.getElementById('masterPost');
-                if (isOn) {
-                    master.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
-                } else {
-                    master.value = '';
-                }
-                master.dispatchEvent(new Event('input'));
-            });
-        }
 
         const raw = input.value.trim();
         if (!raw) {
@@ -299,6 +287,64 @@
             return;
         }
 
+        // ─── AUTOMATIC TOGGLE LOGIC ────────────────────────────────
+        let upcoming = false;
+        let request = false;
+        let sneak = false;
+
+        const isZipDrag = window._zipDragged === true;
+        const startsWithPreview = raw.startsWith('Preview:');
+
+        if (isZipDrag) {
+            // ZIP drag → all off
+            upcoming = false;
+            request = false;
+            sneak = false;
+            // Reset the flag so it doesn't affect next manual input
+            window._zipDragged = false;
+        } else if (startsWithPreview) {
+            // Preview text from manual paste or typing
+            if (raw.includes(' — Request') || raw.includes(' Request ')) {
+                upcoming = true;
+                request = true;
+                sneak = false;
+            } else {
+                // Contains " — Poll" or no special suffix → upcoming on, request off
+                upcoming = true;
+                request = false;
+                sneak = false;
+            }
+        } else {
+            // Any other manual input → all off (as per your correction)
+            upcoming = false;
+            request = false;
+            sneak = false;
+        }
+
+        // ─── Apply to UI ────────────────────────────────────────────
+        if (upcomingCheckbox) {
+            upcomingCheckbox.checked = upcoming;
+        }
+        if (requestCheckbox) {
+            requestCheckbox.checked = request;
+        }
+        if (sneakBtn) {
+            const isOn = sneak;
+            sneakBtn.classList.toggle('on', isOn);
+            sneakBtn.textContent = isOn ? 'On' : 'Off';
+            if (isOn) {
+                masterPost.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
+                masterPost.dispatchEvent(new Event('input'));
+                status.textContent = 'Sneak peak mode';
+                if (typeof showToast === 'function') showToast('Sneak peak enabled', 'info');
+                return; // <-- Stop here; we've already set the master post
+            } else {
+                // If sneak was turned off, we still continue to generate the normal post
+                // (But we might have been called from the sneak button itself – we handle that later)
+            }
+        }
+
+        // ─── Parse and generate ──────────────────────────────────────
         const parsed = parseInput(raw);
         if (!parsed.character && !parsed.series) {
             status.textContent = 'Could not parse character or series';
@@ -321,14 +367,11 @@
                 }
             }
 
-            const upcomingChecked = document.getElementById('upcomingCheckbox')?.checked || false;
-            const requestChecked = document.getElementById('requestCheckbox')?.checked || false;
-
             let openingLine;
-            if (requestChecked) {
-                openingLine = upcomingChecked ? 'Upcoming new request.' : 'New request released.';
+            if (request) {
+                openingLine = upcoming ? 'Upcoming new request.' : 'New request released.';
             } else {
-                openingLine = upcomingChecked ? 'Upcoming new work.' : 'New work released.';
+                openingLine = upcoming ? 'Upcoming new work.' : 'New work released.';
             }
 
             const seriesDisplay = parsed.series || 'Unknown Series';
@@ -379,11 +422,14 @@
             if (sneakBtn) {
                 sneakBtn.addEventListener('click', function() {
                     const isOn = this.classList.toggle('on');
+                    this.textContent = isOn ? 'On' : 'Off';
                     const master = document.getElementById('masterPost');
                     if (isOn) {
                         master.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
                         master.dispatchEvent(new Event('input'));
+                        if (typeof showToast === 'function') showToast('Sneak peak enabled', 'info');
                     } else {
+                        // Re‑trigger the input handler to regenerate the normal post
                         const inputEvent = new Event('input', { bubbles: true });
                         document.getElementById('hashgenInput').dispatchEvent(inputEvent);
                     }
