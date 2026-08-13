@@ -39,7 +39,9 @@
     "dc comics": { "english": ["DC"], "native": ["ＤＣコミックス"] },
     "marvel": { "english": ["Marvel"], "native": ["マーベル"] },
     "grok": { "english": ["Grok"], "native": ["グロック"] },
-    "monogatari": { "english": ["Monogatari", "Bakemonogatari"], "native": ["物語", "化物語"] }
+    "monogatari": { "english": ["Monogatari", "Bakemonogatari"], "native": ["物語", "化物語"] },
+    "idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] },
+    "the idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] }
   },
   "character": {
     "diluc": { "native": "ディルック" },
@@ -74,6 +76,8 @@
     "elegg": { "english": ["Elegg"], "native": ["エレグ"] },
     "kiss-shot": { "english": ["KissShot", "ShinobuOshino", "OshinoShinobu"], "native": ["キスショット", "忍野忍"] },
     "kiss shot": { "english": ["KissShot", "ShinobuOshino", "OshinoShinobu"], "native": ["キスショット", "忍野忍"] },
-    "medusa": { "english": ["Medusa", "Rider"], "native": ["メドゥーサ", "ライダー"] }
+    "medusa": { "english": ["Medusa", "Rider"], "native": ["メドゥーサ", "ライダー"] },
+    "madoka higuchi": { "english": ["MadokaHiguchi", "HiguchiMadoka"], "native": ["樋口円香"] },
+    "asakura tooru": { "english": ["AsakuraTooru", "TooruAsakura"], "native": ["浅倉透"] }
   }
 }
