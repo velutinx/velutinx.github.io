@@ -41,7 +41,9 @@
     "grok": { "english": ["Grok"], "native": ["グロック"] },
     "monogatari": { "english": ["Monogatari", "Bakemonogatari"], "native": ["物語", "化物語"] },
     "idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] },
-    "the idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] }
+    "the idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] },
+    "the legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
+    "legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
