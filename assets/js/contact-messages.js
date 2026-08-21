@@ -8,10 +8,11 @@
     const listContainer = document.getElementById('contact-list');
     const markAllBtn = document.getElementById('markAllReadBtn');
 
-    // ─── Helper: fetch messages ──────────────────────────────
+    // ─── Helper: fetch messages (with cache bust) ────────────
     async function fetchMessages() {
         try {
-            const res = await fetch(`${API_BASE}/messages`);
+            const cacheBust = Date.now();
+            const res = await fetch(`${API_BASE}/messages?t=${cacheBust}`);
             if (!res.ok) throw new Error('Failed to fetch messages');
             const data = await res.json();
             return data || [];
@@ -59,12 +60,46 @@
 
         listContainer.innerHTML = html;
 
+        // ─── Attach event listeners to "Mark as read" buttons ──
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const id = btn.dataset.id;
-                await markAsRead(id);
-                await refreshAll();
+                const item = btn.closest('.contact-item');
+                // Disable button immediately to prevent double-click
+                btn.disabled = true;
+                btn.textContent = '⏳ ...';
+
+                try {
+                    const success = await markAsRead(id);
+                    if (success) {
+                        // Optimistic UI: remove the item from DOM
+                        if (item) {
+                            item.style.transition = 'opacity 0.3s';
+                            item.style.opacity = '0';
+                            setTimeout(() => {
+                                item.remove();
+                                // If no items left, show empty state
+                                const remaining = document.querySelectorAll('.contact-item').length;
+                                if (remaining === 0) {
+                                    renderMessages([]);
+                                }
+                                // Update unread count and tab flash state
+                                updateUnreadState();
+                            }, 300);
+                        }
+                        showToast('✅ Marked as read');
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Mark as read';
+                        showToast('❌ Failed to mark as read', true);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    btn.disabled = false;
+                    btn.textContent = 'Mark as read';
+                    showToast('❌ Error: ' + err.message, true);
+                }
             });
         });
     }
@@ -77,58 +112,82 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id })
             });
-            if (!res.ok) throw new Error('Failed to mark as read');
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || 'Failed to mark as read');
+            }
+            return true;
         } catch (err) {
             console.error('Mark read error:', err);
+            return false;
         }
     }
 
     // ─── Mark all messages as read ────────────────────────────
     async function markAllAsRead() {
+        const btn = markAllBtn;
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⏳ ...';
+        }
+
         try {
             const messages = await fetchMessages();
             const unread = messages.filter(m => !m.is_read);
-            if (unread.length === 0) return;
-
-            for (const msg of unread) {
-                await markAsRead(msg.id);
+            if (unread.length === 0) {
+                showToast('No unread messages');
+                if (btn) btn.disabled = false;
+                return;
             }
+
+            let successCount = 0;
+            for (const msg of unread) {
+                const ok = await markAsRead(msg.id);
+                if (ok) successCount++;
+            }
+
+            // Refresh the list after marking all
             await refreshAll();
-            showToast(`✅ Marked ${unread.length} messages as read.`);
+            showToast(`✅ Marked ${successCount} messages as read`);
         } catch (err) {
             console.error('Mark all read error:', err);
+            showToast('❌ ' + err.message, true);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '✅ Mark All Read';
+            }
         }
     }
 
-    // ─── Update tab visibility and flash state ──────────────────
-    function updateTabState(hasItems) {
+    // ─── Update unread count and tab flash state ──────────────
+    async function updateUnreadState() {
+        const messages = await fetchMessages();
+        const unreadCount = messages.filter(m => !m.is_read).length;
         if (tabButton) {
-            if (hasItems) {
-                tabButton.classList.add('has-items');
-            } else {
-                tabButton.classList.remove('has-items');
-            }
+            tabButton.classList.toggle('has-items', unreadCount > 0);
         }
+        if (markAllBtn) {
+            markAllBtn.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+        }
+        return unreadCount;
     }
 
     // ─── Refresh everything ──────────────────────────────────
     async function refreshAll() {
-        // Fetch all messages first
         const messages = await fetchMessages();
-        
-        // Count unread messages directly from the fetched array
         const unreadCount = messages.filter(m => !m.is_read).length;
-        
-        // Toggle the flash state based on actual unread messages
-        updateTabState(unreadCount > 0);
-        
+        // Update tab flash
+        if (tabButton) {
+            tabButton.classList.toggle('has-items', unreadCount > 0);
+        }
         // Render the list
         renderMessages(messages);
-
-        // Toggle the "Mark All Read" button
+        // Toggle "Mark All Read" button
         if (markAllBtn) {
             markAllBtn.onclick = markAllAsRead;
             markAllBtn.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            markAllBtn.textContent = unreadCount > 0 ? '✅ Mark All Read' : 'All read';
         }
     }
 
@@ -157,9 +216,9 @@
     }
 
     // ─── Toast notification ──────────────────────────────────
-    function showToast(msg) {
+    function showToast(msg, isError = false) {
         const toast = document.createElement('div');
-        toast.className = 'toast-notification show';
+        toast.className = `toast-notification show ${isError ? 'error' : ''}`;
         toast.textContent = msg;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
@@ -175,7 +234,7 @@
 
     // ─── Init ────────────────────────────────────────────────
     async function init() {
-        // Ensure tab has no flash state initially, but remains visible
+        // Ensure tab has no flash state initially
         if (tabButton) {
             tabButton.classList.remove('has-items');
         }
