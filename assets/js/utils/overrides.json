@@ -43,7 +43,8 @@
     "idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] },
     "the idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] },
     "the legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
-    "legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] }
+    "legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
+    "grimgrim": { "english": [], "native": [] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -57,6 +58,7 @@
     "elegg": { "english": ["Elegg"], "native": ["エレグ"] },
     "goryou nagusa": { "native": "御稜ナグサ" },
     "gwen stacy": { "english": ["GwenStacy"], "native": ["グウェン・ステイシー"] },
+    "hooker mom": { "english": ["HookerMom", "Goblin", "Shortstack", "OC"], "native": [] },
     "invisigal": { "native": "インビジガル" },
     "iuno": { "english": ["Iuno"], "native": ["ユーノ", "尤诺"] },
     "jack the ripper": { "native": ["ジャック・ザ・リッパー", "黒のアサシン"] },
