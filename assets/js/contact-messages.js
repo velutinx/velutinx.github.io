@@ -8,7 +8,7 @@
     const listContainer = document.getElementById('contact-list');
     const markAllBtn = document.getElementById('markAllReadBtn');
 
-    // ─── Helper: fetch messages (with cache bust) ────────────
+    // ─── Helper: fetch messages (cache‑bust) ────────────────────
     async function fetchMessages() {
         try {
             const cacheBust = Date.now();
@@ -22,26 +22,29 @@
         }
     }
 
-    // ─── Render messages (expandable) ────────────────────────
+    // ─── Render ONLY unread messages ─────────────────────────────
     function renderMessages(messages) {
         if (!listContainer) return;
 
-        if (!messages || messages.length === 0) {
-            listContainer.innerHTML = '<div class="empty-message">No messages yet.</div>';
+        // ─── Filter: only show messages with is_read = 0 ──────────
+        const unreadMessages = messages.filter(msg => !msg.is_read);
+
+        if (unreadMessages.length === 0) {
+            listContainer.innerHTML = '<div class="empty-message">✨ No unread messages.</div>';
             return;
         }
 
         let html = '';
-        messages.forEach((msg) => {
+        unreadMessages.forEach((msg) => {
             const created = new Date(msg.created_at).toLocaleString();
-            const isRead = msg.is_read ? 'read' : 'unread';
             const subject = msg.subject || 'No subject';
+            const senderDisplay = msg.name || 'Unknown Sender';
 
             html += `
-                <div class="contact-item ${isRead}" data-id="${msg.id}">
+                <div class="contact-item unread" data-id="${msg.id}">
                     <div class="contact-header" onclick="toggleContactDetail(this)">
                         <span class="contact-subject">${escapeHtml(subject)}</span>
-                        <span class="contact-sender">${escapeHtml(msg.name)}</span>
+                        <span class="contact-sender">${escapeHtml(senderDisplay)}</span>
                         <span class="contact-date">${created}</span>
                         <span class="contact-toggle">▼</span>
                     </div>
@@ -49,9 +52,7 @@
                         <div><strong>Name:</strong> ${escapeHtml(msg.name)}</div>
                         <div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>
                         <div><strong>Message:</strong><br>${escapeHtml(msg.message).replace(/\n/g, '<br>')}</div>
-                        <div style="margin-top:8px;font-size:0.8rem;color:#888;">
-                            ${created}
-                        </div>
+                        <div style="margin-top:8px;font-size:0.8rem;color:#888;">${created}</div>
                         <button class="mark-read-btn" data-id="${msg.id}">Mark as read</button>
                     </div>
                 </div>
@@ -60,31 +61,28 @@
 
         listContainer.innerHTML = html;
 
-        // ─── Attach event listeners to "Mark as read" buttons ──
+        // ─── Attach "Mark as read" events ──────────────────────
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const id = btn.dataset.id;
                 const item = btn.closest('.contact-item');
-                // Disable button immediately to prevent double-click
                 btn.disabled = true;
                 btn.textContent = '⏳ ...';
 
                 try {
                     const success = await markAsRead(id);
                     if (success) {
-                        // Optimistic UI: remove the item from DOM
+                        // Remove the item from the DOM immediately
                         if (item) {
                             item.style.transition = 'opacity 0.3s';
                             item.style.opacity = '0';
                             setTimeout(() => {
                                 item.remove();
-                                // If no items left, show empty state
                                 const remaining = document.querySelectorAll('.contact-item').length;
                                 if (remaining === 0) {
-                                    renderMessages([]);
+                                    listContainer.innerHTML = '<div class="empty-message">✨ No unread messages.</div>';
                                 }
-                                // Update unread count and tab flash state
                                 updateUnreadState();
                             }, 300);
                         }
@@ -104,7 +102,7 @@
         });
     }
 
-    // ─── Mark a message as read ───────────────────────────────
+    // ─── Mark a message as read ──────────────────────────────────
     async function markAsRead(id) {
         try {
             const res = await fetch(`${API_BASE}/mark-read`, {
@@ -123,7 +121,7 @@
         }
     }
 
-    // ─── Mark all messages as read ────────────────────────────
+    // ─── Mark all messages as read ──────────────────────────────
     async function markAllAsRead() {
         const btn = markAllBtn;
         if (btn) {
@@ -146,7 +144,6 @@
                 if (ok) successCount++;
             }
 
-            // Refresh the list after marking all
             await refreshAll();
             showToast(`✅ Marked ${successCount} messages as read`);
         } catch (err) {
@@ -160,7 +157,7 @@
         }
     }
 
-    // ─── Update unread count and tab flash state ──────────────
+    // ─── Update unread count and tab flash ──────────────────────
     async function updateUnreadState() {
         const messages = await fetchMessages();
         const unreadCount = messages.filter(m => !m.is_read).length;
@@ -169,21 +166,19 @@
         }
         if (markAllBtn) {
             markAllBtn.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            markAllBtn.textContent = unreadCount > 0 ? '✅ Mark All Read' : 'All read';
         }
         return unreadCount;
     }
 
-    // ─── Refresh everything ──────────────────────────────────
+    // ─── Refresh everything ──────────────────────────────────────
     async function refreshAll() {
         const messages = await fetchMessages();
         const unreadCount = messages.filter(m => !m.is_read).length;
-        // Update tab flash
         if (tabButton) {
             tabButton.classList.toggle('has-items', unreadCount > 0);
         }
-        // Render the list
-        renderMessages(messages);
-        // Toggle "Mark All Read" button
+        renderMessages(messages); // Now only renders unread
         if (markAllBtn) {
             markAllBtn.onclick = markAllAsRead;
             markAllBtn.style.display = unreadCount > 0 ? 'inline-block' : 'none';
@@ -191,7 +186,7 @@
         }
     }
 
-    // ─── Toggle detail expand/collapse ──────────────────────
+    // ─── Toggle detail expand/collapse ──────────────────────────
     window.toggleContactDetail = function(header) {
         const detail = header.nextElementSibling;
         const toggle = header.querySelector('.contact-toggle');
@@ -204,7 +199,7 @@
         }
     };
 
-    // ─── Escape HTML ─────────────────────────────────────────
+    // ─── Escape HTML ────────────────────────────────────────────
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -215,7 +210,7 @@
             .replace(/'/g, '&#039;');
     }
 
-    // ─── Toast notification ──────────────────────────────────
+    // ─── Toast notification ─────────────────────────────────────
     function showToast(msg, isError = false) {
         const toast = document.createElement('div');
         toast.className = `toast-notification show ${isError ? 'error' : ''}`;
@@ -224,7 +219,7 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // ─── Polling (every 30 seconds) ─────────────────────────
+    // ─── Polling (every 30 seconds) ─────────────────────────────
     let pollInterval = null;
 
     function startPolling() {
@@ -232,9 +227,8 @@
         pollInterval = setInterval(refreshAll, 30000);
     }
 
-    // ─── Init ────────────────────────────────────────────────
+    // ─── Init ────────────────────────────────────────────────────
     async function init() {
-        // Ensure tab has no flash state initially
         if (tabButton) {
             tabButton.classList.remove('has-items');
         }
@@ -246,7 +240,6 @@
         }
     }
 
-    // ─── Run when DOM is ready ──────────────────────────────
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
