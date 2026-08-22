@@ -23,43 +23,50 @@
     }
 
     // ─── Render ONLY unread messages ─────────────────────────────
-    function renderMessages(messages) {
-        if (!listContainer) return;
+function renderMessages(messages) {
+    if (!listContainer) return;
 
-        // ─── Filter: only show messages with is_read = 0 ──────────
-        const unreadMessages = messages.filter(msg => !msg.is_read);
+    const unreadMessages = messages.filter(msg => !msg.is_read);
 
-        if (unreadMessages.length === 0) {
-            listContainer.innerHTML = '<div class="empty-message">✨ No unread messages.</div>';
-            return;
+    if (unreadMessages.length === 0) {
+        listContainer.innerHTML = '<div class="empty-message">✨ No unread messages.</div>';
+        return;
+    }
+
+    let html = '';
+    unreadMessages.forEach((msg) => {
+        const created = new Date(msg.created_at).toLocaleString();
+        const subject = msg.subject || 'No subject';
+        const senderDisplay = msg.name || 'Unknown Sender';
+        const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : '');
+        let messageHtml = escapeHtml(msg.message);
+        // If link exists, wrap the message in <a> tag
+        if (msg.link) {
+            messageHtml = `<a href="${escapeHtml(msg.link)}" target="_blank" rel="noopener noreferrer">${messageHtml}</a>`;
         }
 
-        let html = '';
-        unreadMessages.forEach((msg) => {
-            const created = new Date(msg.created_at).toLocaleString();
-            const subject = msg.subject || 'No subject';
-            const senderDisplay = msg.name || 'Unknown Sender';
-
-            html += `
-                <div class="contact-item unread" data-id="${msg.id}">
-                    <div class="contact-header" onclick="toggleContactDetail(this)">
-                        <span class="contact-subject">${escapeHtml(subject)}</span>
-                        <span class="contact-sender">${escapeHtml(senderDisplay)}</span>
-                        <span class="contact-date">${created}</span>
-                        <span class="contact-toggle">▼</span>
-                    </div>
-                    <div class="contact-detail" style="display:none;">
-                        <div><strong>Name:</strong> ${escapeHtml(msg.name)}</div>
-                        <div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>
-                        <div><strong>Message:</strong><br>${escapeHtml(msg.message).replace(/\n/g, '<br>')}</div>
-                        <div style="margin-top:8px;font-size:0.8rem;color:#888;">${created}</div>
-                        <button class="mark-read-btn" data-id="${msg.id}">Mark as read</button>
-                    </div>
+        html += `
+            <div class="contact-item unread" data-id="${msg.id}">
+                <div class="contact-header" onclick="toggleContactDetail(this)">
+                    <span class="contact-subject">
+                        ${sourceLabel ? `<strong>${sourceLabel}</strong> ` : ''}${escapeHtml(subject)}
+                    </span>
+                    <span class="contact-sender">${escapeHtml(senderDisplay)}</span>
+                    <span class="contact-date">${created}</span>
+                    <span class="contact-toggle">▼</span>
                 </div>
-            `;
-        });
+                <div class="contact-detail" style="display:none;">
+                    <div><strong>Name:</strong> ${escapeHtml(msg.name)}</div>
+                    <div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>
+                    <div><strong>Message:</strong><br>${messageHtml}</div>
+                    <div style="margin-top:8px;font-size:0.8rem;color:#888;">${created}</div>
+                    <button class="mark-read-btn" data-id="${msg.id}">Mark as read</button>
+                </div>
+            </div>
+        `;
+    });
 
-        listContainer.innerHTML = html;
+    listContainer.innerHTML = html;
 
         // ─── Attach "Mark as read" events ──────────────────────
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
