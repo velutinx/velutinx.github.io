@@ -44,7 +44,8 @@
     "the idolmaster": { "english": ["THEIDOLMASTER"], "native": ["アイドルマスター"] },
     "the legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
     "legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
-    "grimgrim": { "english": [], "native": [] }
+    "grimgrim": { "english": [], "native": [] },
+    "hex maniac": { "english": [], "native": [] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -73,6 +74,7 @@
     "neopolitan": { "native": "ネオポリタン" },
     "noir": { "native": "ノワール" },
     "palette": { "native": "パレット" },
+    "pokemon": { "english": ["HexManiac", "Pokemon"], "native": ["オカルトマニア", "ポケモン"] },
     "raiden shogun": { "native": "雷電将軍" },
     "raine sage": { "english": ["RaineSage"], "native": ["リフィル・セイジ"] },
     "rimuru tempest": { "native": "リムル・テンペスト" },
