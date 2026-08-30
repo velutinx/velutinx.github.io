@@ -1,4 +1,14 @@
 /*     velutinx.github.io/assets/css/format.css
+
+/* ==================== GLOBAL PAGE OVERRIDES ==================== */
+/* Hide Nav Buttons on Contact, Poll, and Artwork Pages */
+.contact-page .login-btn, .contact-page .cart-wrapper, .contact-page .floating-cart, .contact-page .our-cart-btn, .contact-page .our-floating-cart,
+.poll-page .login-btn, .poll-page .cart-wrapper, .poll-page .floating-cart, .poll-page .our-cart-btn, .poll-page .our-floating-cart,
+.artwork-page .login-btn, .artwork-page .cart-wrapper, .artwork-page .floating-cart, .artwork-page .our-cart-btn, .artwork-page .our-floating-cart { display: none !important; }
+.contact-page .top-nav,
+.poll-page .top-nav,
+.artwork-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
+
 /* ==================== PAGE CONTENT ==================== */
 .divider { width: 80%; height: 6px; background: var(--divider, #aa9e76); margin: 22px auto; border-radius: 4px; }
 body.dark .divider { background: var(--divider-dark, #6f6a4e); }
@@ -10,8 +20,6 @@ body.dark .divider { background: var(--divider-dark, #6f6a4e); }
 .zoom-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 9998; }
 .zoom-overlay.active { opacity: 1; pointer-events: auto; }
 .zoom-image { position: fixed; z-index: 9999; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); cursor: zoom-out; transition: all 0.22s cubic-bezier(.2,.8,.2,1); }
-.artwork-page .login-btn, .artwork-page .cart-wrapper, .artwork-page .floating-cart { display: none !important; }
-.artwork-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 .artwork-page #page { opacity: 0; }
 .index-page .login-btn, .index-page .cart-wrapper, .index-page .floating-cart { display: none !important; }
 .index-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
@@ -26,13 +34,11 @@ body.dark .contact-left::before { background: rgba(22, 22, 27, 0.25); }
 body.dark .form-group input, body.dark .form-group textarea { background: transparent; color: var(--text-dark); border-color: var(--divider-dark); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
 .send-btn { margin-top: 10px; padding: 10px 26px; border: none; border-radius: 999px; background: var(--divider, #aa9e76); font-weight: 700; letter-spacing: 2px; cursor: pointer; z-index: 2; color: inherit; }
 body.dark .send-btn { background: var(--divider-dark, #6f6a4e); color: var(--text-dark); }
-.contact-page .login-btn, .contact-page .cart-wrapper, .contact-page .floating-cart, .contact-page .our-cart-btn, .contact-page .our-floating-cart { display: none !important; }
-.contact-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 
 /* ==================== NEW CUSTOM CURSOR ==================== */
 .cursor-dot { position: fixed; top: 0; left: 0; width: 8px; height: 8px; background-color: var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); mix-blend-mode: difference; }
-.cursor-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); mix-blend-mode: difference; transition: width 0.2s, height 0.2s, background 0.2s, border 0.2s; }
-.cursor-ring.active { width: 90px; height: 90px; background: rgba(170,158,118, 0.15); border-color: transparent; }
+.cursor-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); mix-blend-mode: difference; transition: width 0.2s ease, height 0.2s ease, background 0.2s ease, border 0.2s ease; }
+.cursor-ring.active { width: 72px; height: 72px; background: rgba(170, 158, 118, 0.15); border-color: transparent; }
 body.custom-cursor-active, body.custom-cursor-active * { cursor: none !important; }
 
 /* ==================== MAGNETIC SOCIAL GRID (with wavy rainbow ring) ==================== */
@@ -49,10 +55,6 @@ body.custom-cursor-active, body.custom-cursor-active * { cursor: none !important
 .magnetic-inner img { width: 24px; height: 24px; margin-bottom: 6px; image-rendering: -webkit-optimize-contrast; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
 @keyframes rainbow-shift { from { background-position: 0% 0%; } to { background-position: 300% 0%; } }
 @keyframes wavy-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.cursor-dot { position: fixed; top: 0; left: 0; width: 8px; height: 8px; background-color: var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); mix-blend-mode: difference; }
-.cursor-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid var(--divider, #aa9e76); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); mix-blend-mode: difference; transition: width 0.2s ease, height 0.2s ease, background 0.2s ease, border 0.2s ease; }
-.cursor-ring.active { width: 72px; height: 72px; background: rgba(170, 158, 118, 0.15); border-color: transparent; }
-body.custom-cursor-active, body.custom-cursor-active * { cursor: none !important; }
 
 /* ==================== POLL PAGE STYLES ==================== */
 .poll-section { max-width: 1600px; margin: 0 auto; padding: 40px 24px; position: relative; }
@@ -79,8 +81,6 @@ body.dark .card.winner::after { mix-blend-mode: screen; opacity: 0.75; }
 .progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 .label { margin-top: 6px; text-align: center; font-size: 13px; font-weight: bold; }
 .bottom { display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-top: 60px; }
-.poll-page .login-btn, .poll-page .cart-wrapper, .poll-page .floating-cart, .poll-page .our-cart-btn, .poll-page .our-floating-cart { display: none !important; }
-.poll-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 
 /* ==================== COMPACT ANIMATED LEADERBOARD ==================== */
 #leaderboard { background: rgba(255, 255, 255, 0.9); border: 3px solid #ffffff; padding: 12px; border-radius: 16px; min-width: 350px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
