@@ -1,3 +1,5 @@
+<!-- ─── commission.html ─── -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,6 +72,7 @@
       padding: 20px 24px;
       border: 1px solid var(--divider, #aa9e76);
       transition: 0.2s;
+      cursor: pointer;
     }
     body.dark .commission-item {
       border-color: var(--divider-dark, #6f6a4e);
@@ -125,13 +128,16 @@
     }
     .commission-footer a {
       color: var(--accent, #aa9e76);
-      font-weight: 600;
+      font-weight: 700;
       text-decoration: none;
-      border-bottom: 1px solid transparent;
+      border-bottom: 2px solid var(--accent, #aa9e76);
       transition: 0.2s;
     }
     .commission-footer a:hover {
-      border-bottom-color: var(--accent, #aa9e76);
+      background: var(--accent, #aa9e76);
+      color: #1f1a12;
+      padding: 2px 8px;
+      border-radius: 4px;
     }
     .queue-status {
       background: rgba(255,255,255,0.04);
@@ -139,11 +145,6 @@
       padding: 16px 24px;
       margin-top: 20px;
       border: 1px solid var(--divider, #aa9e76);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
     }
     body.dark .queue-status {
       border-color: var(--divider-dark, #6f6a4e);
@@ -151,10 +152,16 @@
     .queue-status .label {
       font-size: 13px;
       opacity: 0.7;
+      display: block;
+      margin-bottom: 6px;
     }
     .queue-status .value {
       font-weight: 600;
       font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .queue-status .live-dot {
       display: inline-block;
@@ -162,12 +169,37 @@
       height: 10px;
       background: #22c55e;
       border-radius: 50%;
-      margin-right: 8px;
       animation: pulse-dot 1.5s ease-in-out infinite;
+      flex-shrink: 0;
     }
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(0.85); }
+    }
+    .queue-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+    }
+    .queue-list li {
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+    .queue-list li.slashed {
+      text-decoration: line-through;
+      opacity: 0.4;
+      order: 99;
+    }
+    .queue-list li .gender {
+      margin-right: 2px;
+    }
+    .queue-loading {
+      font-size: 13px;
+      opacity: 0.6;
     }
     @media (max-width: 700px) {
       .commission-grid {
@@ -202,23 +234,19 @@
     <section class="commission-wrap">
       <div class="commission-box" id="commissionBox">
         <h2 id="comTitle">COMMISSIONS &amp; TIERS</h2>
-        <p class="subtitle" id="comInfo">
-          Custom art requests, exclusive perks, and how to get your own character illustrated.
-        </p>
 
         <!-- ─── Quick Tier Overview ─────────────────────────────────── -->
         <div class="commission-grid">
           <!-- Bronze -->
-          <div class="commission-item">
+          <div class="commission-item" data-cursor-expand>
             <h3>🥉 Bronze</h3>
             <p>Full archive access + all past releases &amp; paid content.</p>
-            <p>Extra voting power on polls.</p>
             <span class="price-tag">$5.00 / month</span>
             <span class="badge">Archive Access</span>
           </div>
 
           <!-- Copper -->
-          <div class="commission-item">
+          <div class="commission-item" data-cursor-expand>
             <h3>✨ Copper</h3>
             <p>Everything in Bronze, plus one custom request per billing cycle.</p>
             <p>~80 images · official/creator-selected outfit · some customisation.</p>
@@ -227,7 +255,7 @@
           </div>
 
           <!-- Silver -->
-          <div class="commission-item">
+          <div class="commission-item" data-cursor-expand>
             <h3>🥈 Silver</h3>
             <p>Everything in Bronze, plus one custom request per billing cycle.</p>
             <p>~80 images · custom outfit · full character customisation.</p>
@@ -236,7 +264,7 @@
           </div>
 
           <!-- Gold -->
-          <div class="commission-item">
+          <div class="commission-item" data-cursor-expand>
             <h3>🥇 Gold</h3>
             <p>Everything in Bronze, plus one <strong>large</strong> custom request.</p>
             <p>~80 images · custom outfit · full character customisation.</p>
@@ -247,38 +275,29 @@
 
         <div class="commission-divider"></div>
 
-        <!-- ─── How It Works ───────────────────────────────────────── -->
-        <div style="text-align:left; max-width:800px; margin:0 auto;">
-          <h3 style="font-size:18px; letter-spacing:1px; margin-bottom:12px;">📌 How Requests Work</h3>
-          <ul style="list-style:none; padding:0; font-size:14px; line-height:2;">
-            <li>✦ <strong>One request</strong> per active billing cycle (Copper, Silver, Gold).</li>
-            <li>✦ <strong>Approx. 80 images</strong> per request (Gold tier may vary).</li>
-            <li>✦ <strong>Turnaround:</strong> ~1–2 days for Copper/Silver, 3–7 days for Gold (queue depending).</li>
-            <li>✦ Requests apply to the <strong>current billing cycle</strong> – unused requests do not roll over.</li>
-            <li>✦ I reserve the right to adjust or decline requests; full refund if no work started.</li>
-          </ul>
-        </div>
-
-        <div class="commission-divider"></div>
-
-        <!-- ─── Queue Status ────────────────────────────────────────── -->
+        <!-- ─── Queue Status (Live from D1) ──────────────────────────── -->
         <div class="queue-status">
           <span class="label">📋 Current Queue Status</span>
-          <span class="value">
-            <span class="live-dot"></span> Live — check <strong>#⚒️-queue</strong> on Discord for real‑time updates
-          </span>
+          <div class="value">
+            <span class="live-dot"></span>
+            <span>Live — next in line:</span>
+            <span id="queueListContainer">
+              <span class="queue-loading">Loading queue…</span>
+            </span>
+          </div>
         </div>
 
         <div class="commission-divider"></div>
 
-        <!-- ─── Footer / CTA ───────────────────────────────────────── -->
+        <!-- ─── Footer / CTA ─────────────────────────────────────────── -->
         <div class="commission-footer">
           <p style="margin-bottom:8px;">
-            💡 <strong>Full tier details, pricing &amp; sign‑up</strong> →
-            <a href="https://velutinx.com/s/membership" target="_blank">velutinx.com/s/membership</a>
+            <a href="https://velutinx.com/s/membership" target="_blank" data-cursor-expand>
+              💡 Full tier details, pricing &amp; sign‑up
+            </a>
           </p>
           <p style="font-size:13px; opacity:0.7;">
-            ✦ Subscribing on any platform (Patreon, SubscribeStar, Ko‑fi, or website) grants Discord role access. ✦
+            ✦ All full releases are stored on Discord and are accessible for all subscribers. ✦
           </p>
         </div>
 
@@ -320,7 +339,7 @@
       document.body.classList.add('dark');
     }
 
-    // ─── Sparkles (same as before) ──────────────────────────────────
+    // ─── Sparkles ────────────────────────────────────────────────────
     (function sparkles() {
       const box = document.getElementById('commissionBox');
       if (!box) return;
@@ -334,6 +353,46 @@
         setTimeout(() => star.remove(), 6000);
       }, 700);
     })();
+
+    // ─── Fetch live queue from D1 via /api/queue ────────────────────
+    async function fetchQueue() {
+      const container = document.getElementById('queueListContainer');
+      try {
+        const res = await fetch('/api/queue');
+        if (!res.ok) throw new Error('Failed to fetch queue');
+        const data = await res.json();
+        const queue = data.queue || [];
+
+        // Filter out slashed (finished) items, keep only non-slashed
+        const active = queue.filter(item => !item.slashed);
+
+        if (active.length === 0) {
+          container.innerHTML = '<span style="opacity:0.6;">Queue is empty ✨</span>';
+          return;
+        }
+
+        // Build list: show raw text (already includes gender emoji)
+        let html = '<ul class="queue-list">';
+        active.forEach(item => {
+          const text = item.text || '';
+          // If checked, add a little diamond, but we want to keep it simple – just show text
+          // No diamond, just the text as is.
+          html += `<li>${text}</li>`;
+        });
+        html += '</ul>';
+        container.innerHTML = html;
+      } catch (err) {
+        console.error('Queue fetch error:', err);
+        container.innerHTML = '<span style="opacity:0.6;">Could not load queue.</span>';
+      }
+    }
+
+    // ─── Load queue on page ready ────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', fetchQueue);
+    // Also refresh when the page becomes visible again (in case of navigation)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) fetchQueue();
+    });
   </script>
 
 </body>
