@@ -303,3 +303,5 @@ body.dark .commissions-page .queue-status { border-color: var(--divider-dark, #6
 .commissions-page .box-star { position: absolute; color: var(--divider, #aa9e76); font-size: 18px; pointer-events: none; animation: boxStarFall 6s linear forwards; z-index: 1; }
 @keyframes boxStarFall { from { opacity: 0; transform: translateY(-20px); } 10% { opacity: 1; } to { opacity: 0; transform: translateY(420px); } }
 @media (max-width: 700px) { .commissions-page .commission-grid { grid-template-columns: 1fr; } .commissions-page .commission-box { padding: 28px 20px; } }
+.commissions-page .login-btn, .commissions-page .cart-wrapper, .commissions-page .floating-cart, .commissions-page .our-cart-btn, .commissions-page .our-floating-cart { display: none !important; }
+@media (max-width: 700px) { .commissions-page .commission-grid { grid-template-columns: 1fr; } .commissions-page .commission-box { padding: 28px 20px; } }
