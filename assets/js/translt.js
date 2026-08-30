@@ -1,5 +1,4 @@
 // translations.js – now at assets/js/translt.js
-
 const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
 const DEFAULT_LANG = 'en';
 
