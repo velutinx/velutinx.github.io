@@ -13,6 +13,8 @@ body.dark .divider { background: var(--divider-dark, #6f6a4e); }
 .artwork-page .login-btn, .artwork-page .cart-wrapper, .artwork-page .floating-cart { display: none !important; }
 .artwork-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 .artwork-page #page { opacity: 0; }
+.index-page .login-btn, .index-page .cart-wrapper, .index-page .floating-cart { display: none !important; }
+.index-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 
 /* ==================== CONTACT PAGE STYLES ==================== */
 .contact-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 24px 60px; display: grid; grid-template-columns: 70% 30%; gap: 40px; background: transparent; }
@@ -152,9 +154,6 @@ body.dark .shop-title { color: var(--accent); }
   .hero-name { font-size: 1.8rem; letter-spacing: 2px; }
   .hero-sub { font-size: 0.9rem; }
   .discord-link img { width: 140px; } }
-.index-page .login-btn, .index-page .cart-wrapper, .index-page .floating-cart { display: none !important; }
-.index-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
-
 
 /* ==================== 12‑CARD POLL GRID OVERRIDE ==================== */
 .grid.grid-12 { grid-template-columns: repeat(6, 1fr); max-width: 1200px; }
