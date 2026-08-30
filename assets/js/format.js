@@ -309,6 +309,19 @@
 
   const API_URL = 'https://poll-san-production-bfc0.up.railway.app/api/queue';
 
+  // Tier colors for the star
+  const tierColors = {
+    1: '#f2b01e', // Bronze
+    2: '#b87333', // Copper
+    3: '#c0c0c0', // Silver
+    4: '#ffd700', // Gold
+  };
+
+  // Generate star SVG with the given fill color
+  function generateStarSVG(fill) {
+    return `<svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="${fill}"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg>`;
+  }
+
   function applyCommissionsTranslations(lang) {
     const t = window.translations?.commissions?.[lang] || window.translations?.commissions?.en;
     if (!t) return;
@@ -326,11 +339,11 @@
       // Clear everything
       nameDiv.innerHTML = '';
 
-      // Create star span
+      // Create star span with correct color
+      const color = tierColors[tier] || '#f2b01e';
       const starSpan = document.createElement('span');
       starSpan.className = 'tier-star';
-      // Generic gold star – CSS can style per tier if needed
-      starSpan.innerHTML = `<svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg>`;
+      starSpan.innerHTML = generateStarSVG(color);
       nameDiv.appendChild(starSpan);
 
       // Create label span with translation
@@ -341,7 +354,7 @@
         case '2': labelSpan.textContent = t.tierCopper; break;
         case '3': labelSpan.textContent = t.tierSilver; break;
         case '4': labelSpan.textContent = t.tierGold; break;
-        default: labelSpan.textContent = tier; // fallback
+        default: labelSpan.textContent = tier;
       }
       nameDiv.appendChild(labelSpan);
     });
