@@ -300,3 +300,55 @@
     init();
   }
 })();
+
+// ─── Commissions page: fetch live queue ──────────────────────────
+(function() {
+  const container = document.getElementById('queueListContainer');
+  if (!container) return; // only run on commissions page
+
+  const API_URL = 'https://poll-san-production-bfc0.up.railway.app/api/queue';
+
+  async function fetchQueue() {
+    try {
+      const res = await fetch(API_URL, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) throw new Error('Failed to fetch queue');
+      const data = await res.json();
+      const queue = data.queue || [];
+
+      // Filter out slashed (finished) items
+      const active = queue.filter(item => !item.slashed);
+
+      if (active.length === 0) {
+        container.innerHTML = '<span style="opacity:0.6;">Queue is empty ✨</span>';
+        return;
+      }
+
+      let html = '<ul class="queue-list">';
+      active.forEach(item => {
+        let text = item.text || '';
+        // Convert gender placeholders to Unicode symbols
+        text = text.replace(/:male_sign:/g, '♂️').replace(/:female_sign:/g, '♀️');
+        html += `<li>${text}</li>`;
+      });
+      html += '</ul>';
+      container.innerHTML = html;
+    } catch (err) {
+      console.error('Queue fetch error:', err);
+      container.innerHTML = '<span style="opacity:0.6;">Could not load queue.</span>';
+    }
+  }
+
+  // Load queue on page ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fetchQueue);
+  } else {
+    fetchQueue();
+  }
+
+  // Also refresh when the page becomes visible again
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) fetchQueue();
+  });
+})();
