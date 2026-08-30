@@ -317,45 +317,32 @@
     const titleEl = document.getElementById('comTitle');
     if (titleEl) titleEl.textContent = t.pageTitle || t.comTitle || 'COMMISSIONS & TIERS';
 
-    // Tier labels – clear extra text nodes and set translation
+    // Tier cards – rebuild .tier-name to avoid duplicates and ensure star
     document.querySelectorAll('.tier-card').forEach(card => {
       const tier = card.dataset.tier;
       const nameDiv = card.querySelector('.tier-name');
       if (!nameDiv) return;
 
-      // Remove any text nodes that are not the star or label
-      const children = Array.from(nameDiv.childNodes);
-      children.forEach(child => {
-        if (child.nodeType === 3) { // text node
-          child.remove();
-        }
-      });
+      // Clear all content
+      nameDiv.innerHTML = '';
 
-      // Now find or create the label span
-      let labelEl = nameDiv.querySelector('.tier-label');
-      if (!labelEl) {
-        labelEl = document.createElement('span');
-        labelEl.className = 'tier-label';
-        nameDiv.appendChild(labelEl);
-      }
+      // Add star span
+      const starSpan = document.createElement('span');
+      starSpan.className = 'tier-star';
+      // Use a generic gold star – colors will be overridden by CSS if needed
+      starSpan.innerHTML = `<svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg>`;
+      nameDiv.appendChild(starSpan);
 
-      // Set translated text
+      // Add label span with translated text
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'tier-label';
       switch (tier) {
-        case '1': labelEl.textContent = t.tierBronze; break;
-        case '2': labelEl.textContent = t.tierCopper; break;
-        case '3': labelEl.textContent = t.tierSilver; break;
-        case '4': labelEl.textContent = t.tierGold; break;
+        case '1': labelSpan.textContent = t.tierBronze; break;
+        case '2': labelSpan.textContent = t.tierCopper; break;
+        case '3': labelSpan.textContent = t.tierSilver; break;
+        case '4': labelSpan.textContent = t.tierGold; break;
       }
-
-      // Ensure the star span is still there
-      let starEl = nameDiv.querySelector('.tier-star');
-      if (!starEl) {
-        // If missing, re-insert it (shouldn't happen)
-        starEl = document.createElement('span');
-        starEl.className = 'tier-star';
-        starEl.innerHTML = `<svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg>`;
-        nameDiv.insertBefore(starEl, labelEl);
-      }
+      nameDiv.appendChild(labelSpan);
     });
 
     // Perk texts
