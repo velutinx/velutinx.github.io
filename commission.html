@@ -57,52 +57,67 @@
       gap: 24px;
       margin: 24px 0;
     }
-    .commission-item {
+    .tier-card {
       background: rgba(255,255,255,0.04);
       border-radius: 12px;
       padding: 20px 24px;
       border: 1px solid var(--divider, #aa9e76);
       transition: 0.2s;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
     }
-    body.dark .commission-item {
+    body.dark .tier-card {
       border-color: var(--divider-dark, #6f6a4e);
     }
-    .commission-item:hover {
+    .tier-card:hover {
       background: rgba(255,255,255,0.08);
       transform: translateY(-2px);
     }
-    .commission-item h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
+    .tier-name {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
       letter-spacing: 1px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
     }
-    .commission-item h3 .tier-star {
+    .tier-name .tier-star {
       width: 32px;
       height: 32px;
       flex-shrink: 0;
     }
-    .commission-item h3 .tier-star svg {
+    .tier-name .tier-star svg {
       width: 100%;
       height: 100%;
     }
-    .commission-item p {
-      font-size: 14px;
-      line-height: 1.6;
-      opacity: 0.9;
-      margin-bottom: 6px;
+    .tier-perks {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px 0;
+      flex: 1;
     }
-    .commission-item .badge-group {
+    .tier-perks li {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.4;
     }
-    .commission-item .badge {
-      display: inline-block;
+    .tier-perks li:last-child {
+      border-bottom: none;
+    }
+    .perk-text {
+      text-align: left;
+      flex: 1;
+      padding-right: 12px;
+    }
+    .perk-badge {
       background: var(--accent, #aa9e76);
       color: #1f1a12;
       font-size: 11px;
@@ -110,8 +125,14 @@
       padding: 3px 14px;
       border-radius: 20px;
       letter-spacing: 0.5px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
-    body.dark .commission-item .badge {
+    body.dark .perk-badge {
+      color: #1f1a12;
+    }
+    .perk-badge.request-badge {
+      background: #f59e0b;
       color: #1f1a12;
     }
     .commission-divider {
@@ -160,7 +181,7 @@
       font-weight: 600;
       font-size: 14px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 8px;
       flex-wrap: wrap;
     }
@@ -172,28 +193,28 @@
       border-radius: 50%;
       animation: pulse-dot 1.5s ease-in-out infinite;
       flex-shrink: 0;
+      margin-top: 4px;
     }
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(0.85); }
     }
+    /* ─── Queue list – vertical, each on new line ─── */
     .queue-list {
       list-style: none;
       padding: 0;
-      margin: 8px 0 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 14px;
+      margin: 4px 0 0;
+      display: block;
     }
     .queue-list li {
       font-size: 14px;
       font-weight: 500;
       opacity: 0.9;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    .queue-list li.slashed {
-      text-decoration: line-through;
-      opacity: 0.4;
-      order: 99;
+    .queue-list li:last-child {
+      border-bottom: none;
     }
     .queue-list li .gender {
       margin-right: 2px;
@@ -236,66 +257,61 @@
       <div class="commission-box" id="commissionBox">
         <h2 id="comTitle">COMMISSIONS &amp; TIERS</h2>
 
-        <!-- ─── Quick Tier Overview ─────────────────────────────────── -->
+        <!-- ─── Tier Cards ──────────────────────────────────────────── -->
         <div class="commission-grid">
+
           <!-- Bronze -->
-          <div class="commission-item" data-cursor-expand>
-            <h3>
+          <div class="tier-card" data-cursor-expand>
+            <div class="tier-name">
               <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
               Bronze
-            </h3>
-            <p>Full archive access + all past releases &amp; paid content.</p>
-            <div class="badge-group">
-              <span class="badge">Archive Access</span>
             </div>
+            <ul class="tier-perks">
+              <li><span class="perk-text">Full archive access + all past releases &amp; paid content.</span><span class="perk-badge">Archive Access</span></li>
+            </ul>
           </div>
 
           <!-- Copper -->
-          <div class="commission-item" data-cursor-expand>
-            <h3>
+          <div class="tier-card" data-cursor-expand>
+            <div class="tier-name">
               <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
               Copper
-            </h3>
-            <p>Everything in Bronze, plus one custom request per billing cycle.</p>
-            <p>~80 images · official/creator-selected outfit · some customisation.</p>
-            <div class="badge-group">
-              <span class="badge">Archive Access</span>
-              <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Request</span>
             </div>
+            <ul class="tier-perks">
+              <li><span class="perk-text">Everything in Bronze, plus one custom request per billing cycle.</span><span class="perk-badge request-badge">1 Request</span></li>
+              <li><span class="perk-text">~80 images · official/creator-selected outfit · some customisation.</span><span class="perk-badge">Archive Access</span></li>
+            </ul>
           </div>
 
           <!-- Silver -->
-          <div class="commission-item" data-cursor-expand>
-            <h3>
+          <div class="tier-card" data-cursor-expand>
+            <div class="tier-name">
               <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
               Silver
-            </h3>
-            <p>Everything in Bronze, plus one custom request per billing cycle.</p>
-            <p>~80 images · custom outfit · full character customisation.</p>
-            <div class="badge-group">
-              <span class="badge">Archive Access</span>
-              <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Request</span>
             </div>
+            <ul class="tier-perks">
+              <li><span class="perk-text">Everything in Bronze, plus one custom request per billing cycle.</span><span class="perk-badge request-badge">1 Request</span></li>
+              <li><span class="perk-text">~80 images · custom outfit · full character customisation.</span><span class="perk-badge">Archive Access</span></li>
+            </ul>
           </div>
 
           <!-- Gold -->
-          <div class="commission-item" data-cursor-expand>
-            <h3>
+          <div class="tier-card" data-cursor-expand>
+            <div class="tier-name">
               <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
               Gold
-            </h3>
-            <p>Everything in Bronze, plus one <strong>large</strong> custom request.</p>
-            <p>~80 images · custom outfit · full character customisation.</p>
-            <div class="badge-group">
-              <span class="badge">Archive Access</span>
-              <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Large Request</span>
             </div>
+            <ul class="tier-perks">
+              <li><span class="perk-text">Everything in Bronze, plus one <strong>large</strong> custom request.</span><span class="perk-badge request-badge">1 Large Request</span></li>
+              <li><span class="perk-text">~80 images · custom outfit · full character customisation.</span><span class="perk-badge">Archive Access</span></li>
+            </ul>
           </div>
+
         </div>
 
         <div class="commission-divider"></div>
 
-        <!-- ─── Queue Status (Live from D1) ──────────────────────────── -->
+        <!-- ─── Queue Status ─────────────────────────────────────────── -->
         <div class="queue-status">
           <span class="label">📋 Current Queue Status</span>
           <div class="value">
@@ -309,7 +325,7 @@
 
         <div class="commission-divider"></div>
 
-        <!-- ─── Footer / CTA ─────────────────────────────────────────── -->
+        <!-- ─── Footer ──────────────────────────────────────────────── -->
         <div class="commission-footer">
           <p style="margin-bottom:8px;">
             <a href="https://velutinx.com/s/membership" target="_blank" data-cursor-expand>
@@ -374,10 +390,9 @@
       }, 700);
     })();
 
-    // ─── Fetch live queue from D1 via Railway API ────────────────────
+    // ─── Fetch live queue from Railway API ───────────────────────────
     async function fetchQueue() {
       const container = document.getElementById('queueListContainer');
-      // Use the bot's public API endpoint (with CORS allowed)
       const API_URL = 'https://poll-san-production-bfc0.up.railway.app/api/queue';
       try {
         const res = await fetch(API_URL, {
@@ -397,7 +412,9 @@
 
         let html = '<ul class="queue-list">';
         active.forEach(item => {
-          const text = item.text || '';
+          let text = item.text || '';
+          // Convert gender placeholders to Unicode symbols
+          text = text.replace(/:male_sign:/g, '♂️').replace(/:female_sign:/g, '♀️');
           html += `<li>${text}</li>`;
         });
         html += '</ul>';
