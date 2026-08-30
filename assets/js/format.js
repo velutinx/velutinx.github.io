@@ -1,5 +1,7 @@
 // format.js – custom cursor, magnetic social grid (with wavy rainbow ring),
-// gallery, zoom, commission sparkles, contact form & falling stars
+// gallery, zoom, commission sparkles, contact form, falling stars,
+// AND commissions page translations + queue fetching
+
 (function() {
   function init() {
     // ─────────── 0. GENERATE WAVY SVG MASK (shared across all magnetic-wrap ::after) ───────────
@@ -301,14 +303,78 @@
   }
 })();
 
-// ─── Commissions page: fetch live queue ──────────────────────────
+// ─── Commissions page: translations and queue ──────────────────────
 (function() {
   const container = document.getElementById('queueListContainer');
-  if (!container) return; // only run on commissions page
+  const page = document.querySelector('.commissions-page');
+  if (!page || !container) return; // not commissions page
 
   const API_URL = 'https://poll-san-production-bfc0.up.railway.app/api/queue';
 
+  // ─── Apply translations ──────────────────────────────────────────
+  function applyCommissionsTranslations(lang) {
+    const t = window.translations?.commissions?.[lang] || window.translations?.commissions?.en;
+    if (!t) return;
+
+    // Page title
+    const titleEl = document.getElementById('comTitle');
+    if (titleEl) titleEl.textContent = t.pageTitle || t.comTitle || 'COMMISSIONS & TIERS';
+
+    // Tier names (data-tier="1".."4")
+    document.querySelectorAll('.tier-card').forEach(card => {
+      const tier = card.dataset.tier;
+      const nameEl = card.querySelector('.tier-name');
+      if (!nameEl) return;
+      // The text node is the second child (after the star span)
+      const textNode = nameEl.childNodes[1];
+      if (!textNode) return;
+      switch (tier) {
+        case '1': textNode.textContent = t.tierBronze; break;
+        case '2': textNode.textContent = t.tierCopper; break;
+        case '3': textNode.textContent = t.tierSilver; break;
+        case '4': textNode.textContent = t.tierGold; break;
+      }
+    });
+
+    // Perk texts (data-perk-key)
+    document.querySelectorAll('[data-perk-key]').forEach(el => {
+      const key = el.dataset.perkKey;
+      if (t[key] !== undefined) {
+        el.innerHTML = t[key]; // allows HTML in strings
+      }
+    });
+
+    // Badges (data-badge-key)
+    document.querySelectorAll('[data-badge-key]').forEach(el => {
+      const key = el.dataset.badgeKey;
+      if (t[key] !== undefined) {
+        el.textContent = t[key];
+      }
+    });
+
+    // Queue label
+    const labelEl = document.querySelector('.queue-status .label');
+    if (labelEl) labelEl.textContent = t.queueLabel;
+
+    // Queue header "Live — next in line:"
+    const headerSpan = document.querySelector('.queue-header span:last-child');
+    if (headerSpan) headerSpan.textContent = t.queueLive;
+
+    // Footer link and note
+    const footerLink = document.querySelector('.commission-footer a');
+    if (footerLink) footerLink.textContent = t.footerLink;
+    const footerNote = document.querySelector('.commission-footer p:last-child');
+    if (footerNote) footerNote.textContent = t.footerNote;
+
+    // Queue loading/empty/error messages will be updated dynamically by fetchQueue.
+  }
+
+  // ─── Fetch and render queue ──────────────────────────────────────
   async function fetchQueue() {
+    if (!container) return;
+    const lang = window.currentLanguage || 'en';
+    const t = window.translations?.commissions?.[lang] || window.translations?.commissions?.en;
+
     try {
       const res = await fetch(API_URL, {
         headers: { 'Accept': 'application/json' }
@@ -317,18 +383,16 @@
       const data = await res.json();
       const queue = data.queue || [];
 
-      // Filter out slashed (finished) items
       const active = queue.filter(item => !item.slashed);
 
       if (active.length === 0) {
-        container.innerHTML = '<span style="opacity:0.6;">Queue is empty ✨</span>';
+        container.innerHTML = `<span style="opacity:0.6;">${t.queueEmpty}</span>`;
         return;
       }
 
       let html = '<ul class="queue-list">';
       active.forEach(item => {
         let text = item.text || '';
-        // Convert gender placeholders to Unicode symbols
         text = text.replace(/:male_sign:/g, '♂️').replace(/:female_sign:/g, '♀️');
         html += `<li>${text}</li>`;
       });
@@ -336,19 +400,32 @@
       container.innerHTML = html;
     } catch (err) {
       console.error('Queue fetch error:', err);
-      container.innerHTML = '<span style="opacity:0.6;">Could not load queue.</span>';
+      container.innerHTML = `<span style="opacity:0.6;">${t.queueError}</span>`;
     }
   }
 
-  // Load queue on page ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', fetchQueue);
-  } else {
+  // ─── Initialise ──────────────────────────────────────────────────
+  function initCommissions() {
+    const lang = window.currentLanguage || 'en';
+    applyCommissionsTranslations(lang);
     fetchQueue();
+
+    // Listen for language changes
+    document.addEventListener('languageChanged', (e) => {
+      const newLang = e.detail.language || 'en';
+      applyCommissionsTranslations(newLang);
+      fetchQueue(); // refresh queue messages
+    });
+
+    // Refresh queue on page visibility change
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) fetchQueue();
+    });
   }
 
-  // Also refresh when the page becomes visible again
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) fetchQueue();
-  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCommissions);
+  } else {
+    initCommissions();
+  }
 })();
