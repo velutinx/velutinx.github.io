@@ -152,6 +152,8 @@ body.dark .shop-title { color: var(--accent); }
   .hero-name { font-size: 1.8rem; letter-spacing: 2px; }
   .hero-sub { font-size: 0.9rem; }
   .discord-link img { width: 140px; } }
+.index-page .login-btn, .index-page .cart-wrapper, .index-page .floating-cart { display: none !important; }
+.index-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 
 
 /* ==================== 12‑CARD POLL GRID OVERRIDE ==================== */
