@@ -19,6 +19,177 @@
     #page {
       opacity: 0;
     }
+    .commission-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    .commission-box {
+      background: transparent;
+      border: 2px solid var(--divider, #aa9e76);
+      border-radius: 16px;
+      padding: 40px 36px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s ease;
+    }
+    body.dark .commission-box {
+      border-color: var(--divider-dark, #6f6a4e);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .commission-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+      backdrop-filter: blur(16px);
+    }
+    .commission-box h2 {
+      font-size: 28px;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .commission-box .subtitle {
+      text-align: center;
+      font-size: 15px;
+      opacity: 0.85;
+      margin-bottom: 30px;
+      letter-spacing: 0.5px;
+    }
+    .commission-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .commission-item {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 20px 24px;
+      border: 1px solid var(--divider, #aa9e76);
+      transition: 0.2s;
+    }
+    body.dark .commission-item {
+      border-color: var(--divider-dark, #6f6a4e);
+    }
+    .commission-item:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+    .commission-item h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .commission-item p {
+      font-size: 14px;
+      line-height: 1.6;
+      opacity: 0.9;
+      margin-bottom: 6px;
+    }
+    .commission-item .price-tag {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--accent, #aa9e76);
+      margin-top: 6px;
+    }
+    .commission-item .badge {
+      display: inline-block;
+      background: var(--accent, #aa9e76);
+      color: #1f1a12;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 12px;
+      border-radius: 20px;
+      margin-top: 6px;
+      letter-spacing: 0.5px;
+    }
+    body.dark .commission-item .badge {
+      color: #1f1a12;
+    }
+    .commission-divider {
+      width: 60px;
+      height: 3px;
+      background: var(--divider, #aa9e76);
+      margin: 28px auto;
+      border-radius: 4px;
+    }
+    .commission-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .commission-footer a {
+      color: var(--accent, #aa9e76);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: 0.2s;
+    }
+    .commission-footer a:hover {
+      border-bottom-color: var(--accent, #aa9e76);
+    }
+    .queue-status {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin-top: 20px;
+      border: 1px solid var(--divider, #aa9e76);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    body.dark .queue-status {
+      border-color: var(--divider-dark, #6f6a4e);
+    }
+    .queue-status .label {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+    .queue-status .value {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .queue-status .live-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #22c55e;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+    @media (max-width: 700px) {
+      .commission-grid {
+        grid-template-columns: 1fr;
+      }
+      .commission-box {
+        padding: 28px 20px;
+      }
+    }
+    .box-star {
+      position: absolute;
+      color: var(--divider, #aa9e76);
+      font-size: 18px;
+      pointer-events: none;
+      animation: boxStarFall 6s linear forwards;
+      z-index: 1;
+    }
+    @keyframes boxStarFall {
+      from { opacity: 0; transform: translateY(-20px); }
+      10% { opacity: 1; }
+      to { opacity: 0; transform: translateY(420px); }
+    }
   </style>
 </head>
 <body class="commissions-page">
@@ -27,19 +198,95 @@
 
   <div id="page">
     <div class="divider"></div>
+
     <section class="commission-wrap">
       <div class="commission-box" id="commissionBox">
-        <h2 id="comTitle">COMMISSIONS</h2>
-        <p id="comInfo">Commission information will be added here soon.</p>
-        <p class="placeholder" id="comList">
-          ✦ Prices<br>
-          ✦ Examples<br>
-          ✦ Terms of Service<br>
-          ✦ Queue Status<br><br>
-          (Placeholder content — coming soon ♡)
+        <h2 id="comTitle">COMMISSIONS &amp; TIERS</h2>
+        <p class="subtitle" id="comInfo">
+          Custom art requests, exclusive perks, and how to get your own character illustrated.
         </p>
+
+        <!-- ─── Quick Tier Overview ─────────────────────────────────── -->
+        <div class="commission-grid">
+          <!-- Bronze -->
+          <div class="commission-item">
+            <h3>🥉 Bronze</h3>
+            <p>Full archive access + all past releases &amp; paid content.</p>
+            <p>Extra voting power on polls.</p>
+            <span class="price-tag">$5.00 / month</span>
+            <span class="badge">Archive Access</span>
+          </div>
+
+          <!-- Copper -->
+          <div class="commission-item">
+            <h3>✨ Copper</h3>
+            <p>Everything in Bronze, plus one custom request per billing cycle.</p>
+            <p>~80 images · official/creator-selected outfit · some customisation.</p>
+            <span class="price-tag">$10.00 / month</span>
+            <span class="badge">1 Request</span>
+          </div>
+
+          <!-- Silver -->
+          <div class="commission-item">
+            <h3>🥈 Silver</h3>
+            <p>Everything in Bronze, plus one custom request per billing cycle.</p>
+            <p>~80 images · custom outfit · full character customisation.</p>
+            <span class="price-tag">$18.00 / month</span>
+            <span class="badge">1 Request</span>
+          </div>
+
+          <!-- Gold -->
+          <div class="commission-item">
+            <h3>🥇 Gold</h3>
+            <p>Everything in Bronze, plus one <strong>large</strong> custom request.</p>
+            <p>~80 images · custom outfit · full character customisation.</p>
+            <span class="price-tag">$30.00 / month</span>
+            <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Large Request</span>
+          </div>
+        </div>
+
+        <div class="commission-divider"></div>
+
+        <!-- ─── How It Works ───────────────────────────────────────── -->
+        <div style="text-align:left; max-width:800px; margin:0 auto;">
+          <h3 style="font-size:18px; letter-spacing:1px; margin-bottom:12px;">📌 How Requests Work</h3>
+          <ul style="list-style:none; padding:0; font-size:14px; line-height:2;">
+            <li>✦ <strong>One request</strong> per active billing cycle (Copper, Silver, Gold).</li>
+            <li>✦ <strong>Approx. 80 images</strong> per request (Gold tier may vary).</li>
+            <li>✦ <strong>Turnaround:</strong> ~1–2 days for Copper/Silver, 3–7 days for Gold (queue depending).</li>
+            <li>✦ Requests apply to the <strong>current billing cycle</strong> – unused requests do not roll over.</li>
+            <li>✦ I reserve the right to adjust or decline requests; full refund if no work started.</li>
+          </ul>
+        </div>
+
+        <div class="commission-divider"></div>
+
+        <!-- ─── Queue Status ────────────────────────────────────────── -->
+        <div class="queue-status">
+          <span class="label">📋 Current Queue Status</span>
+          <span class="value">
+            <span class="live-dot"></span> Live — check <strong>#⚒️-queue</strong> on Discord for real‑time updates
+          </span>
+        </div>
+
+        <div class="commission-divider"></div>
+
+        <!-- ─── Footer / CTA ───────────────────────────────────────── -->
+        <div class="commission-footer">
+          <p style="margin-bottom:8px;">
+            💡 <strong>Full tier details, pricing &amp; sign‑up</strong> →
+            <a href="https://velutinx.com/s/membership" target="_blank">velutinx.com/s/membership</a>
+          </p>
+          <p style="font-size:13px; opacity:0.7;">
+            ✦ Subscribing on any platform (Patreon, SubscribeStar, Ko‑fi, or website) grants Discord role access. ✦
+          </p>
+        </div>
+
+        <!-- ─── Sparkles ────────────────────────────────────────────── -->
+        <div id="sparkleContainer"></div>
       </div>
     </section>
+
     <div class="divider"></div>
   </div>
 
@@ -50,12 +297,14 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
+    // ─── Apply translations ──────────────────────────────────────────
     function applyCommissionsTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('commissions');
       }
     }
     applyCommissionsTranslations();
+
     document.addEventListener('languageChanged', (e) => {
       const newLang = e.detail.language;
       if (newLang && typeof window.setLanguage === 'function') {
@@ -65,9 +314,27 @@
       }
       applyCommissionsTranslations();
     });
+
+    // ─── Dark mode ────────────────────────────────────────────────────
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
+
+    // ─── Sparkles (same as before) ──────────────────────────────────
+    (function sparkles() {
+      const box = document.getElementById('commissionBox');
+      if (!box) return;
+      setInterval(() => {
+        const star = document.createElement('div');
+        star.className = 'box-star';
+        star.textContent = '✦';
+        star.style.left = Math.random() * box.clientWidth + 'px';
+        star.style.top = '0px';
+        box.appendChild(star);
+        setTimeout(() => star.remove(), 6000);
+      }, 700);
+    })();
   </script>
+
 </body>
 </html>
