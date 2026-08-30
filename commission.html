@@ -1,5 +1,3 @@
-<!-- ─── commission.html ─── -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,13 +51,6 @@
       margin-bottom: 16px;
       text-align: center;
     }
-    .commission-box .subtitle {
-      text-align: center;
-      font-size: 15px;
-      opacity: 0.85;
-      margin-bottom: 30px;
-      letter-spacing: 0.5px;
-    }
     .commission-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -85,6 +76,18 @@
       font-size: 18px;
       margin-bottom: 8px;
       letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .commission-item h3 .tier-star {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+    .commission-item h3 .tier-star svg {
+      width: 100%;
+      height: 100%;
     }
     .commission-item p {
       font-size: 14px;
@@ -92,12 +95,11 @@
       opacity: 0.9;
       margin-bottom: 6px;
     }
-    .commission-item .price-tag {
-      display: inline-block;
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--accent, #aa9e76);
-      margin-top: 6px;
+    .commission-item .badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
     }
     .commission-item .badge {
       display: inline-block;
@@ -105,9 +107,8 @@
       color: #1f1a12;
       font-size: 11px;
       font-weight: 700;
-      padding: 2px 12px;
+      padding: 3px 14px;
       border-radius: 20px;
-      margin-top: 6px;
       letter-spacing: 0.5px;
     }
     body.dark .commission-item .badge {
@@ -239,37 +240,56 @@
         <div class="commission-grid">
           <!-- Bronze -->
           <div class="commission-item" data-cursor-expand>
-            <h3>🥉 Bronze</h3>
+            <h3>
+              <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#f2b01e"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+              Bronze
+            </h3>
             <p>Full archive access + all past releases &amp; paid content.</p>
-            <span class="price-tag">$5.00 / month</span>
-            <span class="badge">Archive Access</span>
+            <div class="badge-group">
+              <span class="badge">Archive Access</span>
+            </div>
           </div>
 
           <!-- Copper -->
           <div class="commission-item" data-cursor-expand>
-            <h3>✨ Copper</h3>
+            <h3>
+              <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#b87333"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+              Copper
+            </h3>
             <p>Everything in Bronze, plus one custom request per billing cycle.</p>
             <p>~80 images · official/creator-selected outfit · some customisation.</p>
-            <span class="price-tag">$10.00 / month</span>
-            <span class="badge">1 Request</span>
+            <div class="badge-group">
+              <span class="badge">Archive Access</span>
+              <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Request</span>
+            </div>
           </div>
 
           <!-- Silver -->
           <div class="commission-item" data-cursor-expand>
-            <h3>🥈 Silver</h3>
+            <h3>
+              <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#c0c0c0"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+              Silver
+            </h3>
             <p>Everything in Bronze, plus one custom request per billing cycle.</p>
             <p>~80 images · custom outfit · full character customisation.</p>
-            <span class="price-tag">$18.00 / month</span>
-            <span class="badge">1 Request</span>
+            <div class="badge-group">
+              <span class="badge">Archive Access</span>
+              <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Request</span>
+            </div>
           </div>
 
           <!-- Gold -->
           <div class="commission-item" data-cursor-expand>
-            <h3>🥇 Gold</h3>
+            <h3>
+              <span class="tier-star"><svg viewBox="0 0 200 200"><g transform-origin="100 100"><path d="M100 30 C106 30,108 50,110 65 C135 62,158 66,162 78 C166 90,140 98,125 108 C135 135,130 155,112 160 C102 162,100 140,97 128 C85 140,68 160,52 155 C40 150,48 128,58 105 C38 96,25 90,28 78 C32 66,58 66,90 65 C92 50,94 30,100 30 Z" fill="#ffd700"><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.04 0.96;0.97 1.03;1.02 0.98;1 1" dur="2.8s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-1 100 100;1 100 100;-1 100 100" dur="2.8s" repeatCount="indefinite"/></path></g></svg></span>
+              Gold
+            </h3>
             <p>Everything in Bronze, plus one <strong>large</strong> custom request.</p>
             <p>~80 images · custom outfit · full character customisation.</p>
-            <span class="price-tag">$30.00 / month</span>
-            <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Large Request</span>
+            <div class="badge-group">
+              <span class="badge">Archive Access</span>
+              <span class="badge" style="background:#f59e0b; color:#1f1a12;">1 Large Request</span>
+            </div>
           </div>
         </div>
 
@@ -297,7 +317,7 @@
             </a>
           </p>
           <p style="font-size:13px; opacity:0.7;">
-            ✦ All full releases are stored on Discord and are accessible for all subscribers. ✦
+            ✦ Subscribing on any platform (Patreon, SubscribeStar, Ko‑fi, or the website) grants you full access to all releases on Discord. ✦
           </p>
         </div>
 
@@ -354,16 +374,20 @@
       }, 700);
     })();
 
-    // ─── Fetch live queue from D1 via /api/queue ────────────────────
+    // ─── Fetch live queue from D1 via Railway API ────────────────────
     async function fetchQueue() {
       const container = document.getElementById('queueListContainer');
+      // Use the bot's public API endpoint (with CORS allowed)
+      const API_URL = 'https://poll-san-production-bfc0.up.railway.app/api/queue';
       try {
-        const res = await fetch('/api/queue');
+        const res = await fetch(API_URL, {
+          headers: { 'Accept': 'application/json' }
+        });
         if (!res.ok) throw new Error('Failed to fetch queue');
         const data = await res.json();
         const queue = data.queue || [];
 
-        // Filter out slashed (finished) items, keep only non-slashed
+        // Filter out slashed (finished) items
         const active = queue.filter(item => !item.slashed);
 
         if (active.length === 0) {
@@ -371,12 +395,9 @@
           return;
         }
 
-        // Build list: show raw text (already includes gender emoji)
         let html = '<ul class="queue-list">';
         active.forEach(item => {
           const text = item.text || '';
-          // If checked, add a little diamond, but we want to keep it simple – just show text
-          // No diamond, just the text as is.
           html += `<li>${text}</li>`;
         });
         html += '</ul>';
@@ -389,7 +410,7 @@
 
     // ─── Load queue on page ready ────────────────────────────────────
     document.addEventListener('DOMContentLoaded', fetchQueue);
-    // Also refresh when the page becomes visible again (in case of navigation)
+    // Also refresh when the page becomes visible again
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) fetchQueue();
     });
