@@ -339,8 +339,8 @@
       // Clear everything
       nameDiv.innerHTML = '';
 
-      // Create star span with correct color
-      const color = tierColors[tier] || '#f2b01e';
+      // Create star span with correct color (convert tier to number)
+      const color = tierColors[parseInt(tier)] || '#f2b01e';
       const starSpan = document.createElement('span');
       starSpan.className = 'tier-star';
       starSpan.innerHTML = generateStarSVG(color);
