@@ -1,10 +1,9 @@
-// format.js – custom cursor, magnetic social grid (with wavy rainbow ring),
-// gallery, zoom, commission sparkles, contact form, falling stars,
-// AND commissions page translations + queue fetching
+// format.js – custom cursor, magnetic social grid, gallery, zoom, sparkles, contact form, falling stars,
+// and commissions page translations + queue fetching
 
 (function() {
   function init() {
-    // ─────────── 0. GENERATE WAVY SVG MASK (shared across all magnetic-wrap ::after) ───────────
+    // ─────────── 0. GENERATE WAVY SVG MASK ───────────
     function createWavyRingSVG(cx, cy, R, A, waves, numPoints, strokeWidth) {
       let pathData = '';
       for (let i = 0; i <= numPoints; i++) {
@@ -61,7 +60,7 @@
       gsap.set(cursorRing, { x: ring.x, y: ring.y });
     });
 
-    // ─────────── 3. CURSOR RING EXPAND ON HOVER (data-cursor-expand) ───────────
+    // ─────────── 3. CURSOR RING EXPAND ON HOVER ───────────
     function addCursorExpandListeners() {
       document.querySelectorAll('[data-cursor-expand]').forEach(el => {
         if (el.dataset.cursorExpandBound) return;
@@ -74,7 +73,7 @@
     const observer = new MutationObserver(() => addCursorExpandListeners());
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // ─────────── 4. BUILD MAGNETIC SOCIAL GRID (with wavy rainbow ring) ───────────
+    // ─────────── 4. BUILD MAGNETIC SOCIAL GRID ───────────
     const socialArea = document.getElementById('socialArea');
     if (socialArea) {
       socialArea.innerHTML = '';
@@ -139,14 +138,13 @@
         });
       });
 
-      // ── Keyboard focus toggles .active for the rainbow wave ──
       document.querySelectorAll('.hyperlink-wave').forEach((link) => {
         link.addEventListener('focus', () => link.classList.add('active'));
         link.addEventListener('blur', () => link.classList.remove('active'));
       });
     }
 
-    // ─────────── 6. GALLERY LOADING (unchanged) ───────────
+    // ─────────── 6. GALLERY LOADING ───────────
     const gallery = document.getElementById("gallery");
     if (gallery) {
       const MAX_IMAGES = 12;
@@ -162,7 +160,7 @@
       }
     }
 
-    // ─────────── 7. ZOOM FUNCTIONALITY (unchanged) ───────────
+    // ─────────── 7. ZOOM FUNCTIONALITY ───────────
     let activeClone = null;
     let originRect = null;
     document.addEventListener("click", (e) => {
@@ -231,7 +229,7 @@
       };
     }
 
-    // ─────────── 8. COMMISSION BOX SPARKLES (unchanged) ───────────
+    // ─────────── 8. COMMISSION BOX SPARKLES ───────────
     const commissionBox = document.getElementById("commissionBox");
     if (commissionBox) {
       setInterval(() => {
@@ -245,7 +243,7 @@
       }, 700);
     }
 
-    // ─────────── 9. CONTACT FORM HANDLING (UPDATED for Worker) ───────────
+    // ─────────── 9. CONTACT FORM HANDLING ───────────
     const contactForm = document.getElementById("contactForm");
     if (contactForm) {
       contactForm.addEventListener("submit", async (e) => {
@@ -283,7 +281,7 @@
       });
     }
 
-    // ─────────── 10. GLOBAL FALLING STARS (unchanged) ───────────
+    // ─────────── 10. GLOBAL FALLING STARS ───────────
     setInterval(() => {
       const star = document.createElement("div");
       star.className = "falling-star";
@@ -307,11 +305,10 @@
 (function() {
   const container = document.getElementById('queueListContainer');
   const page = document.querySelector('.commissions-page');
-  if (!page || !container) return; // not commissions page
+  if (!page || !container) return;
 
   const API_URL = 'https://poll-san-production-bfc0.up.railway.app/api/queue';
 
-  // ─── Apply translations ──────────────────────────────────────────
   function applyCommissionsTranslations(lang) {
     const t = window.translations?.commissions?.[lang] || window.translations?.commissions?.en;
     if (!t) return;
@@ -320,31 +317,28 @@
     const titleEl = document.getElementById('comTitle');
     if (titleEl) titleEl.textContent = t.pageTitle || t.comTitle || 'COMMISSIONS & TIERS';
 
-    // Tier names (data-tier="1".."4")
+    // Tier labels (now using .tier-label)
     document.querySelectorAll('.tier-card').forEach(card => {
       const tier = card.dataset.tier;
-      const nameEl = card.querySelector('.tier-name');
-      if (!nameEl) return;
-      // The text node is the second child (after the star span)
-      const textNode = nameEl.childNodes[1];
-      if (!textNode) return;
+      const labelEl = card.querySelector('.tier-label');
+      if (!labelEl) return;
       switch (tier) {
-        case '1': textNode.textContent = t.tierBronze; break;
-        case '2': textNode.textContent = t.tierCopper; break;
-        case '3': textNode.textContent = t.tierSilver; break;
-        case '4': textNode.textContent = t.tierGold; break;
+        case '1': labelEl.textContent = t.tierBronze; break;
+        case '2': labelEl.textContent = t.tierCopper; break;
+        case '3': labelEl.textContent = t.tierSilver; break;
+        case '4': labelEl.textContent = t.tierGold; break;
       }
     });
 
-    // Perk texts (data-perk-key)
+    // Perk texts
     document.querySelectorAll('[data-perk-key]').forEach(el => {
       const key = el.dataset.perkKey;
       if (t[key] !== undefined) {
-        el.innerHTML = t[key]; // allows HTML in strings
+        el.innerHTML = t[key];
       }
     });
 
-    // Badges (data-badge-key)
+    // Badges
     document.querySelectorAll('[data-badge-key]').forEach(el => {
       const key = el.dataset.badgeKey;
       if (t[key] !== undefined) {
@@ -352,33 +346,28 @@
       }
     });
 
-    // Queue label
+    // Queue labels
     const labelEl = document.querySelector('.queue-status .label');
     if (labelEl) labelEl.textContent = t.queueLabel;
 
-    // Queue header "Live — next in line:"
     const headerSpan = document.querySelector('.queue-header span:last-child');
     if (headerSpan) headerSpan.textContent = t.queueLive;
 
-    // Footer link and note
+    // Footer
     const footerLink = document.querySelector('.commission-footer a');
     if (footerLink) footerLink.textContent = t.footerLink;
+
     const footerNote = document.querySelector('.commission-footer p:last-child');
     if (footerNote) footerNote.textContent = t.footerNote;
-
-    // Queue loading/empty/error messages will be updated dynamically by fetchQueue.
   }
 
-  // ─── Fetch and render queue ──────────────────────────────────────
   async function fetchQueue() {
     if (!container) return;
     const lang = window.currentLanguage || 'en';
     const t = window.translations?.commissions?.[lang] || window.translations?.commissions?.en;
 
     try {
-      const res = await fetch(API_URL, {
-        headers: { 'Accept': 'application/json' }
-      });
+      const res = await fetch(API_URL, { headers: { 'Accept': 'application/json' } });
       if (!res.ok) throw new Error('Failed to fetch queue');
       const data = await res.json();
       const queue = data.queue || [];
@@ -400,24 +389,21 @@
       container.innerHTML = html;
     } catch (err) {
       console.error('Queue fetch error:', err);
-      container.innerHTML = `<span style="opacity:0.6;">${t.queueError}</span>`;
+      container.innerHTML = `<span style="opacity:0.6;">${t.queueError}</span>';
     }
   }
 
-  // ─── Initialise ──────────────────────────────────────────────────
   function initCommissions() {
     const lang = window.currentLanguage || 'en';
     applyCommissionsTranslations(lang);
     fetchQueue();
 
-    // Listen for language changes
     document.addEventListener('languageChanged', (e) => {
       const newLang = e.detail.language || 'en';
       applyCommissionsTranslations(newLang);
-      fetchQueue(); // refresh queue messages
+      fetchQueue();
     });
 
-    // Refresh queue on page visibility change
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) fetchQueue();
     });
