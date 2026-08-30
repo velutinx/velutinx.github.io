@@ -21,8 +21,6 @@ body.dark .divider { background: var(--divider-dark, #6f6a4e); }
 .zoom-overlay.active { opacity: 1; pointer-events: auto; }
 .zoom-image { position: fixed; z-index: 9999; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); cursor: zoom-out; transition: all 0.22s cubic-bezier(.2,.8,.2,1); }
 .artwork-page #page { opacity: 0; }
-.index-page .login-btn, .index-page .cart-wrapper, .index-page .floating-cart { display: none !important; }
-.index-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 
 /* ==================== CONTACT PAGE STYLES ==================== */
 .contact-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 24px 60px; display: grid; grid-template-columns: 70% 30%; gap: 40px; background: transparent; }
@@ -310,5 +308,3 @@ body.dark .commissions-page .queue-status { border-color: var(--divider-dark, #6
 .commissions-page .box-star { position: absolute; color: var(--divider, #aa9e76); font-size: 18px; pointer-events: none; animation: boxStarFall 6s linear forwards; z-index: 1; }
 @keyframes boxStarFall { from { opacity: 0; transform: translateY(-20px); } 10% { opacity: 1; } to { opacity: 0; transform: translateY(420px); } }
 @media (max-width: 700px) { .commissions-page .commission-grid { grid-template-columns: 1fr; } .commissions-page .commission-box { padding: 28px 20px; } }
-.commissions-page .login-btn, .commissions-page .cart-wrapper, .commissions-page .floating-cart, .commissions-page .our-cart-btn, .commissions-page .our-floating-cart { display: none !important; }
-.commissions-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
