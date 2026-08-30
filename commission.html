@@ -101,37 +101,37 @@
       flex: 1;
     }
     .tier-perks li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 6px 0;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .tier-perks li:last-child {
       border-bottom: none;
     }
-    .perk-text {
-      text-align: left;
-      flex: 1;
-      padding-right: 12px;
+    .tier-badges {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
     }
-    .perk-badge {
+    .tier-badge {
       background: var(--accent, #aa9e76);
       color: #1f1a12;
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 14px;
+      padding: 4px 16px;
       border-radius: 20px;
       letter-spacing: 0.5px;
       white-space: nowrap;
       flex-shrink: 0;
     }
-    body.dark .perk-badge {
+    body.dark .tier-badge {
       color: #1f1a12;
     }
-    .perk-badge.request-badge {
+    .tier-badge.request-badge {
       background: #f59e0b;
       color: #1f1a12;
     }
@@ -175,15 +175,15 @@
       font-size: 13px;
       opacity: 0.7;
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
-    .queue-status .value {
+    .queue-status .queue-header {
       font-weight: 600;
       font-size: 14px;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
+      margin-bottom: 6px;
     }
     .queue-status .live-dot {
       display: inline-block;
@@ -193,28 +193,24 @@
       border-radius: 50%;
       animation: pulse-dot 1.5s ease-in-out infinite;
       flex-shrink: 0;
-      margin-top: 4px;
     }
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(0.85); }
     }
-    /* ─── Queue list – vertical, each on new line ─── */
+    /* ─── Queue list – vertical, left-aligned ─── */
     .queue-list {
       list-style: none;
       padding: 0;
-      margin: 4px 0 0;
+      margin: 0;
       display: block;
     }
     .queue-list li {
+      text-align: left;
       font-size: 14px;
       font-weight: 500;
       opacity: 0.9;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-    .queue-list li:last-child {
-      border-bottom: none;
+      padding: 3px 0;
     }
     .queue-list li .gender {
       margin-right: 2px;
@@ -267,8 +263,11 @@
               Bronze
             </div>
             <ul class="tier-perks">
-              <li><span class="perk-text">Full archive access + all past releases &amp; paid content.</span><span class="perk-badge">Archive Access</span></li>
+              <li>Full archive access + all past releases &amp; paid content.</li>
             </ul>
+            <div class="tier-badges">
+              <span class="tier-badge">Archive Access</span>
+            </div>
           </div>
 
           <!-- Copper -->
@@ -278,9 +277,13 @@
               Copper
             </div>
             <ul class="tier-perks">
-              <li><span class="perk-text">Everything in Bronze, plus one custom request per billing cycle.</span><span class="perk-badge request-badge">1 Request</span></li>
-              <li><span class="perk-text">~80 images · official/creator-selected outfit · some customisation.</span><span class="perk-badge">Archive Access</span></li>
+              <li>Everything in Bronze, plus one custom request per billing cycle.</li>
+              <li>~80 images · official/creator-selected outfit · some customisation.</li>
             </ul>
+            <div class="tier-badges">
+              <span class="tier-badge">Archive Access</span>
+              <span class="tier-badge request-badge">1 Request</span>
+            </div>
           </div>
 
           <!-- Silver -->
@@ -290,9 +293,13 @@
               Silver
             </div>
             <ul class="tier-perks">
-              <li><span class="perk-text">Everything in Bronze, plus one custom request per billing cycle.</span><span class="perk-badge request-badge">1 Request</span></li>
-              <li><span class="perk-text">~80 images · custom outfit · full character customisation.</span><span class="perk-badge">Archive Access</span></li>
+              <li>Everything in Bronze, plus one custom request per billing cycle.</li>
+              <li>~80 images · custom outfit · full character customisation.</li>
             </ul>
+            <div class="tier-badges">
+              <span class="tier-badge">Archive Access</span>
+              <span class="tier-badge request-badge">1 Request</span>
+            </div>
           </div>
 
           <!-- Gold -->
@@ -302,9 +309,13 @@
               Gold
             </div>
             <ul class="tier-perks">
-              <li><span class="perk-text">Everything in Bronze, plus one <strong>large</strong> custom request.</span><span class="perk-badge request-badge">1 Large Request</span></li>
-              <li><span class="perk-text">~80 images · custom outfit · full character customisation.</span><span class="perk-badge">Archive Access</span></li>
+              <li>Everything in Bronze, plus one <strong>large</strong> custom request.</li>
+              <li>~80 images · custom outfit · full character customisation.</li>
             </ul>
+            <div class="tier-badges">
+              <span class="tier-badge">Archive Access</span>
+              <span class="tier-badge request-badge">1 Large Request</span>
+            </div>
           </div>
 
         </div>
@@ -314,12 +325,12 @@
         <!-- ─── Queue Status ─────────────────────────────────────────── -->
         <div class="queue-status">
           <span class="label">📋 Current Queue Status</span>
-          <div class="value">
+          <div class="queue-header">
             <span class="live-dot"></span>
             <span>Live — next in line:</span>
-            <span id="queueListContainer">
-              <span class="queue-loading">Loading queue…</span>
-            </span>
+          </div>
+          <div id="queueListContainer">
+            <span class="queue-loading">Loading queue…</span>
           </div>
         </div>
 
