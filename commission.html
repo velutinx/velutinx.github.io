@@ -97,25 +97,27 @@
     .tier-perks {
       list-style: none;
       padding: 0;
-      margin: 0 0 12px 0;
+      margin: 0 0 8px 0;
       flex: 1;
     }
     .tier-perks li {
       text-align: left;
-      padding: 6px 0;
+      padding: 4px 0;
       font-size: 14px;
       line-height: 1.5;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    .tier-perks li:last-child {
-      border-bottom: none;
-    }
+    /* ─── Separator before badges ─── */
     .tier-badges {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
       flex-wrap: wrap;
+      padding-top: 12px;
       margin-top: 4px;
+      border-top: 1px solid var(--divider, #aa9e76);
+    }
+    body.dark .tier-badges {
+      border-top-color: var(--divider-dark, #6f6a4e);
     }
     .tier-badge {
       background: var(--accent, #aa9e76);
