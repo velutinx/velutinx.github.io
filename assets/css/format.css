@@ -265,3 +265,41 @@ h1 { font-size: 2.1rem; margin-bottom: 8px; color: var(--text); }
 .product-card .card-inner .card-content { min-height: 180px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; }
 .product-card .card-inner .price-row { min-height: 44px !important; align-items: center !important; }
 .product-card .card-inner .price-row a { margin: auto !important; display: inline-block !important; }
+
+/* ==================== COMMISSIONS PAGE STYLES ==================== */
+.commissions-page .commission-wrap { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+.commissions-page .commission-box { background: transparent; border: 2px solid var(--divider, #aa9e76); border-radius: 16px; padding: 40px 36px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; overflow: hidden; transition: all 0.4s ease; }
+body.dark .commissions-page .commission-box { border-color: var(--divider-dark, #6f6a4e); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+.commissions-page .commission-box:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.35); backdrop-filter: blur(16px); }
+.commissions-page .commission-box h2 { font-size: 28px; letter-spacing: 3px; margin-bottom: 16px; text-align: center; }
+.commissions-page .commission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 24px 0; }
+.commissions-page .tier-card { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 20px 24px; border: 1px solid var(--divider, #aa9e76); transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; }
+body.dark .commissions-page .tier-card { border-color: var(--divider-dark, #6f6a4e); }
+.commissions-page .tier-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+.commissions-page .tier-name { text-align: center; font-size: 20px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.commissions-page .tier-name .tier-star { width: 32px; height: 32px; flex-shrink: 0; }
+.commissions-page .tier-name .tier-star svg { width: 100%; height: 100%; }
+.commissions-page .tier-perks { list-style: none; padding: 0; margin: 0 0 8px 0; flex: 1; }
+.commissions-page .tier-perks li { text-align: left; padding: 4px 0; font-size: 14px; line-height: 1.5; }
+.commissions-page .tier-badges { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--divider, #aa9e76); }
+body.dark .commissions-page .tier-badges { border-top-color: var(--divider-dark, #6f6a4e); }
+.commissions-page .tier-badge { background: var(--accent, #aa9e76); color: #1f1a12; font-size: 11px; font-weight: 700; padding: 4px 16px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0; }
+body.dark .commissions-page .tier-badge { color: #1f1a12; }
+.commissions-page .tier-badge.request-badge { background: #f59e0b; color: #1f1a12; }
+.commissions-page .commission-divider { width: 60px; height: 3px; background: var(--divider, #aa9e76); margin: 28px auto; border-radius: 4px; }
+.commissions-page .commission-footer { text-align: center; margin-top: 24px; font-size: 14px; opacity: 0.8; }
+.commissions-page .commission-footer a { color: var(--accent, #aa9e76); font-weight: 700; text-decoration: none; border-bottom: 2px solid var(--accent, #aa9e76); transition: 0.2s; }
+.commissions-page .commission-footer a:hover { background: var(--accent, #aa9e76); color: #1f1a12; padding: 2px 8px; border-radius: 4px; }
+.commissions-page .queue-status { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 16px 24px; margin-top: 20px; border: 1px solid var(--divider, #aa9e76); }
+body.dark .commissions-page .queue-status { border-color: var(--divider-dark, #6f6a4e); }
+.commissions-page .queue-status .label { font-size: 13px; opacity: 0.7; display: block; margin-bottom: 4px; }
+.commissions-page .queue-status .queue-header { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.commissions-page .queue-status .live-dot { display: inline-block; width: 10px; height: 10px; background: #22c55e; border-radius: 50%; animation: pulse-dot 1.5s ease-in-out infinite; flex-shrink: 0; }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+.commissions-page .queue-list { list-style: none; padding: 0; margin: 0; display: block; }
+.commissions-page .queue-list li { text-align: left; font-size: 14px; font-weight: 500; opacity: 0.9; padding: 3px 0; }
+.commissions-page .queue-list li .gender { margin-right: 2px; }
+.commissions-page .queue-loading { font-size: 13px; opacity: 0.6; }
+.commissions-page .box-star { position: absolute; color: var(--divider, #aa9e76); font-size: 18px; pointer-events: none; animation: boxStarFall 6s linear forwards; z-index: 1; }
+@keyframes boxStarFall { from { opacity: 0; transform: translateY(-20px); } 10% { opacity: 1; } to { opacity: 0; transform: translateY(420px); } }
+@media (max-width: 700px) { .commissions-page .commission-grid { grid-template-columns: 1fr; } .commissions-page .commission-box { padding: 28px 20px; } }
