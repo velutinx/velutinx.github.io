@@ -1,4 +1,5 @@
 // translations.js – now at assets/js/translt.js
+
 const SUPPORTED_LANGUAGES = ['en', 'ja', 'zh', 'es'];
 const DEFAULT_LANG = 'en';
 
@@ -17,24 +18,100 @@ const translations = {
   },
   commissions: {
     en: {
-      comTitle: "COMMISSIONS",
-      comInfo: "Commission information will be added here soon.",
-      comList: `✦ Prices<br>✦ Examples<br>✦ Terms of Service<br>✦ Queue Status<br><br>(Placeholder content — coming soon ♡)`
+      pageTitle: "COMMISSIONS & TIERS",
+      tierBronze: "Bronze",
+      tierCopper: "Copper",
+      tierSilver: "Silver",
+      tierGold: "Gold",
+      perkBronze: "Full archive access + all past releases & paid content.",
+      perkCopper1: "Everything in Bronze, plus one custom request per billing cycle.",
+      perkCopper2: "~80 images · official/creator-selected outfit · some customisation.",
+      perkSilver1: "Everything in Bronze, plus one custom request per billing cycle.",
+      perkSilver2: "~80 images · custom outfit · full character customisation.",
+      perkGold1: "Everything in Bronze, plus one <strong>large</strong> custom request.",
+      perkGold2: "~80 images · custom outfit · full character customisation.",
+      badgeArchive: "Archive Access",
+      badge1Request: "1 Request",
+      badge1LargeRequest: "1 Large Request",
+      queueLabel: "📋 Current Queue Status",
+      queueLive: "Live — next in line:",
+      queueLoading: "Loading queue…",
+      queueEmpty: "Queue is empty ✨",
+      queueError: "Could not load queue.",
+      footerLink: "💡 Full tier details, pricing & sign‑up",
+      footerNote: "✦ Subscribing on any platform (Patreon, SubscribeStar, Ko‑fi, or the website) grants you full access to all releases on Discord. ✦"
     },
     ja: {
-      comTitle: "コミッション",
-      comInfo: "コミッション情報は近日中に追加されます。",
-      comList: `✦ 料金<br>✦ サンプル<br>✦ 利用規約<br>✦ 受付状況<br><br>（プレースホルダー — 近日公開 ♡）`
+      pageTitle: "コミッション & ティア",
+      tierBronze: "ブロンズ",
+      tierCopper: "カッパー",
+      tierSilver: "シルバー",
+      tierGold: "ゴールド",
+      perkBronze: "全アーカイブアクセス + 過去の全リリースと有料コンテンツを含む。",
+      perkCopper1: "ブロンズの全特典に加え、各請求サイクルに1回のカスタムリクエスト。",
+      perkCopper2: "約80枚 · 公式/クリエイター選択の衣装 · 一部カスタマイズ可能。",
+      perkSilver1: "ブロンズの全特典に加え、各請求サイクルに1回のカスタムリクエスト。",
+      perkSilver2: "約80枚 · カスタム衣装 · フルキャラクターカスタマイズ。",
+      perkGold1: "ブロンズの全特典に加え、<strong>大規模</strong>なカスタムリクエストを1回。",
+      perkGold2: "約80枚 · カスタム衣装 · フルキャラクターカスタマイズ。",
+      badgeArchive: "アーカイブアクセス",
+      badge1Request: "1リクエスト",
+      badge1LargeRequest: "1大規模リクエスト",
+      queueLabel: "📋 現在のキュー状況",
+      queueLive: "ライブ — 次の順番：",
+      queueLoading: "キューを読み込み中…",
+      queueEmpty: "キューは空です ✨",
+      queueError: "キューを読み込めませんでした。",
+      footerLink: "💡 完全なティア詳細、価格、サインアップ",
+      footerNote: "✦ Patreon、SubscribeStar、Ko‑fi、またはウェブサイトのいずれかのプラットフォームで購読すると、Discord上のすべてのリリースにフルアクセスできます。 ✦"
     },
     zh: {
-      comTitle: "委托",
-      comInfo: "委托信息即将添加在此。",
-      comList: `✦ 价格<br>✦ 示例<br>✦ 服务条款<br>✦ 队列状态<br><br>（占位内容 — 即将推出 ♡）`
+      pageTitle: "委托与等级",
+      tierBronze: "青铜",
+      tierCopper: "铜",
+      tierSilver: "银",
+      tierGold: "金",
+      perkBronze: "完整档案访问权限 + 所有过往发布及付费内容。",
+      perkCopper1: "包含青铜所有权益，外加每个计费周期一次自定义请求。",
+      perkCopper2: "约80张图片 · 官方/创作者选定服装 · 部分自定义。",
+      perkSilver1: "包含青铜所有权益，外加每个计费周期一次自定义请求。",
+      perkSilver2: "约80张图片 · 自定义服装 · 完全角色自定义。",
+      perkGold1: "包含青铜所有权益，外加一次<strong>大型</strong>自定义请求。",
+      perkGold2: "约80张图片 · 自定义服装 · 完全角色自定义。",
+      badgeArchive: "档案访问",
+      badge1Request: "1次请求",
+      badge1LargeRequest: "1次大型请求",
+      queueLabel: "📋 当前队列状态",
+      queueLive: "实时 — 下一个：",
+      queueLoading: "正在加载队列…",
+      queueEmpty: "队列为空 ✨",
+      queueError: "无法加载队列。",
+      footerLink: "💡 完整等级详情、价格及注册",
+      footerNote: "✦ 在任何平台（Patreon、SubscribeStar、Ko‑fi 或网站）订阅，即可获得 Discord 上所有发布的完整访问权限。 ✦"
     },
     es: {
-      comTitle: "COMISIONES",
-      comInfo: "La información de comisiones se agregará aquí pronto.",
-      comList: `✦ Precios<br>✦ Ejemplos<br>✦ Términos de Servicio<br>✦ Estado de la Cola<br><br>(Contenido provisional — próximamente ♡)`
+      pageTitle: "COMISIONES Y NIVELES",
+      tierBronze: "Bronce",
+      tierCopper: "Cobre",
+      tierSilver: "Plata",
+      tierGold: "Oro",
+      perkBronze: "Acceso completo al archivo + todos los lanzamientos anteriores y contenido de pago.",
+      perkCopper1: "Todo lo de Bronce, más una solicitud personalizada por ciclo de facturación.",
+      perkCopper2: "~80 imágenes · atuendo oficial/seleccionado por el creador · alguna personalización.",
+      perkSilver1: "Todo lo de Bronce, más una solicitud personalizada por ciclo de facturación.",
+      perkSilver2: "~80 imágenes · atuendo personalizado · personalización completa del personaje.",
+      perkGold1: "Todo lo de Bronce, más una solicitud personalizada <strong>grande</strong>.",
+      perkGold2: "~80 imágenes · atuendo personalizado · personalización completa del personaje.",
+      badgeArchive: "Acceso al Archivo",
+      badge1Request: "1 Solicitud",
+      badge1LargeRequest: "1 Solicitud Grande",
+      queueLabel: "📋 Estado actual de la cola",
+      queueLive: "En vivo — próximo en la fila:",
+      queueLoading: "Cargando cola…",
+      queueEmpty: "La cola está vacía ✨",
+      queueError: "No se pudo cargar la cola.",
+      footerLink: "💡 Detalles completos de niveles, precios y registro",
+      footerNote: "✦ Suscribirte en cualquier plataforma (Patreon, SubscribeStar, Ko‑fi o el sitio web) te da acceso completo a todos los lanzamientos en Discord. ✦"
     }
   },
   contact: {
@@ -325,8 +402,10 @@ function applyTranslations(pageKey) {
       introEl.textContent = pageTranslations.artworkIntro;
     }
   } else if (pageKey === 'commissions') {
+    // The new detailed commissions translations are applied by format.js
+    // This legacy applyTranslations is kept for backward compatibility.
     const titleEl = document.getElementById('comTitle');
-    if (titleEl) titleEl.textContent = pageTranslations.comTitle || '';
+    if (titleEl) titleEl.textContent = pageTranslations.pageTitle || pageTranslations.comTitle || '';
     const infoEl = document.getElementById('comInfo');
     if (infoEl) infoEl.textContent = pageTranslations.comInfo || '';
     const listEl = document.getElementById('comList');
@@ -393,7 +472,7 @@ function applyTranslations(pageKey) {
 
 // Expose globally
 window.translations = translations;
-window.syncLanguage = syncLanguage;   // <-- added
+window.syncLanguage = syncLanguage;
 window.setLanguage = setLanguage;
 window.applyTranslations = applyTranslations;
 window.currentLanguage = currentLanguage;
