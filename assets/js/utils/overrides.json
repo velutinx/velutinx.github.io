@@ -45,7 +45,8 @@
     "the legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
     "legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
     "grimgrim": { "english": [], "native": [] },
-    "hex maniac": { "english": [], "native": [] }
+    "hex maniac": { "english": [], "native": [] },
+    "superman": { "english": ["Superman"], "native": ["スーパーマン"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
