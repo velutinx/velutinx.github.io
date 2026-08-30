@@ -309,12 +309,12 @@
 
   const API_URL = 'https://poll-san-production-bfc0.up.railway.app/api/queue';
 
-  // Tier colors for the star
+  // Tier colors for the star (using string keys for direct lookup)
   const tierColors = {
-    1: '#f2b01e', // Bronze
-    2: '#b87333', // Copper
-    3: '#c0c0c0', // Silver
-    4: '#ffd700', // Gold
+    '1': '#f2b01e', // Bronze
+    '2': '#b87333', // Copper
+    '3': '#c0c0c0', // Silver
+    '4': '#ffd700', // Gold
   };
 
   // Generate star SVG with the given fill color
@@ -332,15 +332,15 @@
 
     // Rebuild each tier card completely
     document.querySelectorAll('.tier-card').forEach(card => {
-      const tier = card.dataset.tier;
+      const tier = card.dataset.tier; // '1', '2', '3', '4'
       const nameDiv = card.querySelector('.tier-name');
       if (!nameDiv) return;
 
       // Clear everything
       nameDiv.innerHTML = '';
 
-      // Create star span with correct color (convert tier to number)
-      const color = tierColors[parseInt(tier)] || '#f2b01e';
+      // Create star span with correct color (direct string lookup)
+      const color = tierColors[tier] || '#f2b01e';
       const starSpan = document.createElement('span');
       starSpan.className = 'tier-star';
       starSpan.innerHTML = generateStarSVG(color);
