@@ -1,13 +1,17 @@
 /*     velutinx.github.io/assets/css/format.css
 
 /* ==================== GLOBAL PAGE OVERRIDES ==================== */
-/* Hide Nav Buttons on Contact, Poll, and Artwork Pages */
+/* Hide Nav Buttons on Contact, Poll, Artwork, Index, and Commission Pages */
 .contact-page .login-btn, .contact-page .cart-wrapper, .contact-page .floating-cart, .contact-page .our-cart-btn, .contact-page .our-floating-cart,
 .poll-page .login-btn, .poll-page .cart-wrapper, .poll-page .floating-cart, .poll-page .our-cart-btn, .poll-page .our-floating-cart,
-.artwork-page .login-btn, .artwork-page .cart-wrapper, .artwork-page .floating-cart, .artwork-page .our-cart-btn, .artwork-page .our-floating-cart { display: none !important; }
+.artwork-page .login-btn, .artwork-page .cart-wrapper, .artwork-page .floating-cart, .artwork-page .our-cart-btn, .artwork-page .our-floating-cart,
+.index-page .login-btn, .index-page .cart-wrapper, .index-page .floating-cart, .index-page .our-cart-btn, .index-page .our-floating-cart,
+.commissions-page .login-btn, .commissions-page .cart-wrapper, .commissions-page .floating-cart, .commissions-page .our-cart-btn, .commissions-page .our-floating-cart { display: none !important; }
 .contact-page .top-nav,
 .poll-page .top-nav,
-.artwork-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
+.artwork-page .top-nav,
+.index-page .top-nav,
+.commissions-page .top-nav { background: var(--bg) !important; border-bottom: 1px solid var(--border); }
 
 /* ==================== PAGE CONTENT ==================== */
 .divider { width: 80%; height: 6px; background: var(--divider, #aa9e76); margin: 22px auto; border-radius: 4px; }
