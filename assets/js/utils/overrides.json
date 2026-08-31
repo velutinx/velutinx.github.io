@@ -46,7 +46,9 @@
     "legend of zelda": { "english": ["THELEGENDOFZELDA"], "native": ["ゼルダの伝説"] },
     "grimgrim": { "english": [], "native": [] },
     "hex maniac": { "english": [], "native": [] },
-    "superman": { "english": ["Superman"], "native": ["スーパーマン"] }
+    "superman": { "english": ["Superman"], "native": ["スーパーマン"] },
+    "the ring": { "english": ["TheRing"], "native": ["リング"] },
+    "ring": { "english": ["TheRing"], "native": ["リング"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
