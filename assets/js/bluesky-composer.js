@@ -1,4 +1,4 @@
-// bluesky-composer.js
+// bluesky-composer.js – with Firefox drag‑and‑drop & watermark fixes
 (function() {
     'use strict';
 
@@ -39,6 +39,11 @@
     let centerWmImg = null;
     let cornerWmImg = null;
 
+    // ─── Firefox detection (optional) ──────────────────────────────
+    const isFirefox = /firefox/i.test(navigator.userAgent);
+    // Set this to true to skip watermarking entirely on Firefox (as a last resort)
+    const SKIP_WATERMARK_ON_FIREFOX = false; // change to true if you want to bypass
+
     function loadImageDirect(url) {
         return new Promise((resolve) => {
             const img = new Image();
@@ -60,75 +65,143 @@
         }
     }
 
-    function applyWatermark(file) {
+    // ─── Validate a file (check if it's a valid image) ──────────────
+    function isValidImage(file) {
         return new Promise((resolve) => {
-            if (!centerWmImg || !cornerWmImg) {
-                resolve(file);
+            if (!file || !(file instanceof File)) {
+                resolve(false);
                 return;
             }
-
+            const url = URL.createObjectURL(file);
             const img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, img.width, img.height);
-                ctx.globalAlpha = 0.20;
-                const centerX = (img.width - centerWmImg.width) / 2;
-                const centerY = (img.height - centerWmImg.height) / 2;
-                ctx.drawImage(centerWmImg, centerX, centerY);
-                ctx.globalAlpha = 1.0;
-                const cornerX = img.width - cornerWmImg.width - 70;
-                const cornerY = 30;
-                ctx.drawImage(cornerWmImg, cornerX, cornerY);
-                canvas.toBlob(async blob => {
-                    const resizedBlob = await ensureSizeLimit(blob);
-                    const watermarkedFile = new File([resizedBlob], file.name || 'image.jpg', {
-                        type: 'image/jpeg',
-                        lastModified: Date.now()
-                    });
-                    resolve(watermarkedFile);
-                }, 'image/jpeg', 0.92);
+                URL.revokeObjectURL(url);
+                resolve(img.width > 0 && img.height > 0);
             };
-            img.onerror = () => resolve(file);
-            img.src = URL.createObjectURL(file);
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                resolve(false);
+            };
+            img.src = url;
         });
+    }
+
+    // ─── Apply watermark with fallback ──────────────────────────────
+    async function applyWatermark(file) {
+        // Skip watermarking if Firefox and flag is set
+        if (isFirefox && SKIP_WATERMARK_ON_FIREFOX) {
+            console.warn('Firefox: watermarking skipped (SKIP_WATERMARK_ON_FIREFOX=true)');
+            return file;
+        }
+
+        // If watermarks not loaded, return original
+        if (!centerWmImg || !cornerWmImg) {
+            return file;
+        }
+
+        try {
+            const img = await new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = () => reject(new Error('Failed to load image'));
+                image.src = URL.createObjectURL(file);
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            // Draw original image
+            ctx.drawImage(img, 0, 0, img.width, img.height);
+
+            // Center watermark (20% opacity)
+            ctx.globalAlpha = 0.20;
+            const centerX = (img.width - centerWmImg.width) / 2;
+            const centerY = (img.height - centerWmImg.height) / 2;
+            ctx.drawImage(centerWmImg, centerX, centerY);
+            ctx.globalAlpha = 1.0;
+
+            // Corner watermark (north‑east)
+            const cornerX = img.width - cornerWmImg.width - 70;
+            const cornerY = 30;
+            ctx.drawImage(cornerWmImg, cornerX, cornerY);
+
+            // Export as JPEG blob
+            const blob = await new Promise((resolve) => {
+                canvas.toBlob(resolve, 'image/jpeg', 0.92);
+            });
+
+            if (!blob || blob.size === 0) {
+                throw new Error('Canvas produced empty blob');
+            }
+
+            // Resize if needed
+            const resizedBlob = await ensureSizeLimit(blob);
+            const watermarkedFile = new File([resizedBlob], file.name || 'image.jpg', {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+
+            // Validate the watermarked file
+            const valid = await isValidImage(watermarkedFile);
+            if (!valid) {
+                console.warn('Watermarked image is invalid – falling back to original');
+                return file;
+            }
+
+            return watermarkedFile;
+        } catch (err) {
+            console.error('Watermarking failed:', err);
+            // Fallback to original file
+            return file;
+        }
     }
 
     async function ensureSizeLimit(blob, maxBytes = 1000 * 1024) {
         if (blob.size <= maxBytes) return blob;
 
-        const img = await createImageBitmap(blob);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        try {
+            const img = await createImageBitmap(blob);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
-        for (let quality = 0.85; quality >= 0.5; quality -= 0.1) {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const newBlob = await new Promise(resolve =>
-                canvas.toBlob(resolve, 'image/jpeg', quality)
-            );
-            if (newBlob.size <= maxBytes) return newBlob;
-        }
+            // Try quality reduction first
+            for (let quality = 0.85; quality >= 0.5; quality -= 0.1) {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const newBlob = await new Promise(resolve =>
+                    canvas.toBlob(resolve, 'image/jpeg', quality)
+                );
+                if (newBlob && newBlob.size <= maxBytes) return newBlob;
+            }
 
-        let scale = 0.9;
-        while (scale > 0.2) {
-            canvas.width = Math.floor(img.width * scale);
-            canvas.height = Math.floor(img.height * scale);
+            // Scale down
+            let scale = 0.9;
+            while (scale > 0.2) {
+                canvas.width = Math.floor(img.width * scale);
+                canvas.height = Math.floor(img.height * scale);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const newBlob = await new Promise(resolve =>
+                    canvas.toBlob(resolve, 'image/jpeg', 0.8)
+                );
+                if (newBlob && newBlob.size <= maxBytes) return newBlob;
+                scale -= 0.1;
+            }
+
+            // Final fallback: resize to 800px width
+            canvas.width = 800;
+            canvas.height = Math.floor(800 * (img.height / img.width));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const newBlob = await new Promise(resolve =>
-                canvas.toBlob(resolve, 'image/jpeg', 0.8)
+            const finalBlob = await new Promise(resolve =>
+                canvas.toBlob(resolve, 'image/jpeg', 0.7)
             );
-            if (newBlob.size <= maxBytes) return newBlob;
-            scale -= 0.1;
+            return finalBlob || blob;
+        } catch (err) {
+            console.warn('ensureSizeLimit failed:', err);
+            return blob; // return original blob
         }
-
-        canvas.width = 800;
-        canvas.height = Math.floor(800 * (img.height / img.width));
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.7));
     }
 
     function uploadToR2(blob, filename) {
@@ -546,7 +619,6 @@
 
                 const files = e.dataTransfer.files;
                 if (!files || files.length === 0) {
-                    // Firefox may not set files for external drags; try alternative
                     console.warn('No files in drop event');
                     return;
                 }
