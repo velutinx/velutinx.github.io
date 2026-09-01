@@ -42,7 +42,7 @@
     // ─── Firefox detection (optional) ──────────────────────────────
     const isFirefox = /firefox/i.test(navigator.userAgent);
     // Set this to true to skip watermarking entirely on Firefox (as a last resort)
-    const SKIP_WATERMARK_ON_FIREFOX = true; // change to true if you want to bypass
+    const SKIP_WATERMARK_ON_FIREFOX = false; // change to true if you want to bypass
 
     function loadImageDirect(url) {
         return new Promise((resolve) => {
