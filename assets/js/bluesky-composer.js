@@ -28,6 +28,7 @@
     const masterPost = document.getElementById('masterPost');
     const post1 = document.getElementById('post1');
     const post2 = document.getElementById('post2');
+
     // ---------- Watermark images (loaded via CORS proxy) ----------
     const PROXY_BASE = 'https://watermark-worker.velutinx.workers.dev/proxy?url=';
     const CENTER_RAW_URL = 'https://www.velutinx.com/images/Watermark/Rotated Watermark.png';
@@ -54,7 +55,6 @@
                 loadImageDirect(CENTER_WM_URL),
                 loadImageDirect(CORNER_WM_URL)
             ]);
-            // Silently proceed – no warnings
         } catch (err) {
             // Silently proceed – no warnings
         }
@@ -475,6 +475,7 @@
         modal.addEventListener('click', (e) => { if (e.target === modal) cleanup(); });
     }
 
+    // ─── FIXED: Firefox‑compatible drop zones ──────────────────────
     function setupDropzones() {
         document.querySelectorAll('.dropzone[data-account]').forEach(dz => {
             const accountId = dz.dataset.account;
@@ -526,12 +527,36 @@
                 input.click();
             });
 
-            dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#6a8e3c'; });
-            dz.addEventListener('dragleave', () => dz.style.borderColor = '#3a4050');
-            dz.addEventListener('drop', async e => {
+            // ─── Firefox‑friendly drag events ──────────────────
+            dz.addEventListener('dragover', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+                dz.style.borderColor = '#6a8e3c';
+            });
+
+            dz.addEventListener('dragleave', () => {
                 dz.style.borderColor = '#3a4050';
-                const rawFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            });
+
+            dz.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dz.style.borderColor = '#3a4050';
+
+                const files = e.dataTransfer.files;
+                if (!files || files.length === 0) {
+                    // Firefox may not set files for external drags; try alternative
+                    console.warn('No files in drop event');
+                    return;
+                }
+
+                const rawFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+                if (rawFiles.length === 0) {
+                    showToast('Please drop image files only', 'error');
+                    return;
+                }
+
                 const watermarkedFiles = [];
                 for (const file of rawFiles) {
                     try {
