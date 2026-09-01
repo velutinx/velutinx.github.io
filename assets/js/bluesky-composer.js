@@ -42,7 +42,7 @@
     // ─── Firefox detection (optional) ──────────────────────────────
     const isFirefox = /firefox/i.test(navigator.userAgent);
     // Set this to true to skip watermarking entirely on Firefox (as a last resort)
-    const SKIP_WATERMARK_ON_FIREFOX = false; // change to true if you want to bypass
+    const SKIP_WATERMARK_ON_FIREFOX = true; // change to true if you want to bypass
 
     function loadImageDirect(url) {
         return new Promise((resolve) => {
@@ -107,13 +107,17 @@
                 image.src = URL.createObjectURL(file);
             });
 
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
+const canvas = document.createElement('canvas');
+canvas.width = img.width;
+canvas.height = img.height;
+const ctx = canvas.getContext('2d');
 
-            // Draw original image
-            ctx.drawImage(img, 0, 0, img.width, img.height);
+// ADD THESE TWO LINES: Fill with white to prevent black backgrounds on transparent PNGs
+ctx.fillStyle = '#FFFFFF';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// Draw original image
+ctx.drawImage(img, 0, 0, img.width, img.height);
 
             // Center watermark (20% opacity)
             ctx.globalAlpha = 0.20;
