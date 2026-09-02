@@ -49,7 +49,8 @@
     "superman": { "english": ["Superman"], "native": ["スーパーマン"] },
     "the ring": { "english": ["TheRing"], "native": ["リング"] },
     "ring": { "english": ["TheRing"], "native": ["リング"] },
-    "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] }
+    "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] },
+    "zenless zone zero": { "english": ["ZenlessZoneZero"], "native": ["绝区零", "ゼンレスゾーンゼロ"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -88,6 +89,7 @@
     "starfire": { "native": "スターファイアー" },
     "tsukatsuki rio": { "english": ["TsukatsukiRio", "RioTsukatsuki"], "native": ["調月リオ"] },
     "wonder woman": { "english": ["WonderWoman"], "native": ["ワンダーウーマン"] },
+    "yi xuan": { "english": ["YiXuan"], "native": ["仪玄"] },
     "yor": { "english": ["Yor"], "native": ["ヨル"] },
     "yor forger": { "english": ["YorForger"], "native": ["ヨル・フォージャー"] },
     "zatanna": { "english": ["Zatanna"], "native": ["ザターナ"] }
