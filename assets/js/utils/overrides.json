@@ -48,7 +48,8 @@
     "hex maniac": { "english": [], "native": [] },
     "superman": { "english": ["Superman"], "native": ["スーパーマン"] },
     "the ring": { "english": ["TheRing"], "native": ["リング"] },
-    "ring": { "english": ["TheRing"], "native": ["リング"] }
+    "ring": { "english": ["TheRing"], "native": ["リング"] },
+    "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -60,6 +61,7 @@
     "bulma briefs": { "native": "ブルマ" },
     "diluc": { "native": "ディルック" },
     "elegg": { "english": ["Elegg"], "native": ["エレグ"] },
+    "emily": { "english": ["Emily"], "native": ["エミリー"] },
     "goryou nagusa": { "native": "御稜ナグサ" },
     "gwen stacy": { "english": ["GwenStacy"], "native": ["グウェン・ステイシー"] },
     "hooker mom": { "english": ["HookerMom", "Goblin", "Shortstack", "OC"], "native": [] },
