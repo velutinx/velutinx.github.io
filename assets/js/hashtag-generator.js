@@ -137,7 +137,6 @@
         return response.json();
     }
 
-    // Get character tags (English + Japanese) for a single character
     async function getCharacterTags(characterName, seriesName) {
         const charQuery = `query ($search: String) { Character(search: $search) { name { full native } } }`;
         const charData = await fetchAniList(charQuery, { search: characterName });
@@ -196,7 +195,6 @@
         return [...engTags.filter(Boolean), ...jpTags.filter(Boolean)];
     }
 
-    // Get series tags (English + Japanese) for a given series name
     async function getSeriesTags(seriesName) {
         const animeQuery = `query ($search: String) { Media(search: $search, type: ANIME) { title { romaji english native } } }`;
         const animeData = await fetchAniList(animeQuery, { search: seriesName });
@@ -274,7 +272,7 @@
             return;
         }
 
-        // ─── AUTOMATIC TOGGLE LOGIC ────────────────────────────────
+        // ─── AUTOMATIC TOGGLE LOGIC (improved) ──────────────────────
         let upcoming = false;
         let request = false;
         let sneak = false;
@@ -283,26 +281,35 @@
         const startsWithPreview = raw.startsWith('Preview:');
 
         if (isZipDrag) {
+            // ZIP drag → all off
             upcoming = false;
             request = false;
             sneak = false;
             window._zipDragged = false;
         } else if (startsWithPreview) {
-            if (raw.includes(' — Request') || raw.includes(' Request ')) {
+            // Check for "Request" or "Poll" using word boundaries (case-insensitive)
+            const hasRequest = /\bRequest\b/i.test(raw);
+            const hasPoll = /\bPoll\b/i.test(raw);
+
+            if (hasRequest && !hasPoll) {
+                // Request present → upcoming ON, request ON
                 upcoming = true;
                 request = true;
                 sneak = false;
             } else {
+                // Poll or no special suffix → upcoming ON, request OFF
                 upcoming = true;
                 request = false;
                 sneak = false;
             }
         } else {
+            // Any other manual input → all off
             upcoming = false;
             request = false;
             sneak = false;
         }
 
+        // ─── Apply to UI ────────────────────────────────────────────
         if (upcomingCheckbox) upcomingCheckbox.checked = upcoming;
         if (requestCheckbox) requestCheckbox.checked = request;
         if (sneakBtn) {
@@ -318,7 +325,7 @@
             }
         }
 
-        // ─── Parse input ─────────────────────────────────────────────
+        // ─── Parse and generate ──────────────────────────────────────
         const parsed = parseInput(raw);
         if (!parsed.character && !parsed.series) {
             status.textContent = 'Could not parse character or series';
@@ -339,14 +346,13 @@
                 }
             }
 
-            // ─── Get series tags (once) ──────────────────────────────
+            // ─── Get series tags ──────────────────────────────────────
             const seriesTags = await getSeriesTags(parsed.series);
 
             // ─── Get character tags ───────────────────────────────────
             let characterTags = [];
             const characterName = parsed.character;
 
-            // Check for ' & ' (multiple characters)
             if (characterName.includes(' & ')) {
                 const parts = characterName.split(' & ').map(s => s.trim());
                 for (const part of parts) {
