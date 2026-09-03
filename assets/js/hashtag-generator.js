@@ -254,105 +254,23 @@
         return [...engTags.filter(Boolean), ...jpTags.filter(Boolean)];
     }
 
-    let debounceTimer;
-
-    async function handleInput() {
-        const input = document.getElementById('hashgenInput');
-        const status = document.getElementById('hashgenStatus');
+    // ─── Core: generate the final post from given toggle states ──
+    async function generatePostFromState(raw, upcoming, request, pageCount) {
         const masterPost = document.getElementById('masterPost');
-        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
-        const requestCheckbox = document.getElementById('requestCheckbox');
-        const sneakBtn = document.getElementById('sneakPeakBtn');
+        const status = document.getElementById('hashgenStatus');
+        if (!masterPost) return;
 
-        if (!input || !masterPost) return;
-
-        const raw = input.value.trim();
-        if (!raw) {
-            status.textContent = '';
-            return;
-        }
-
-        // ─── AUTOMATIC TOGGLE LOGIC (improved) ──────────────────────
-        let upcoming = false;
-        let request = false;
-        let sneak = false;
-
-        const isZipDrag = window._zipDragged === true;
-        const startsWithPreview = raw.startsWith('Preview:');
-
-        if (isZipDrag) {
-            // ZIP drag → all off
-            upcoming = false;
-            request = false;
-            sneak = false;
-            window._zipDragged = false;
-        } else if (startsWithPreview) {
-            // Check for "Request" or "Poll" using word boundaries (case-insensitive)
-            const hasRequest = /\bRequest\b/i.test(raw);
-            const hasPoll = /\bPoll\b/i.test(raw);
-
-            if (hasRequest && !hasPoll) {
-                // Request present → upcoming ON, request ON
-                upcoming = true;
-                request = true;
-                sneak = false;
-            } else {
-                // Poll or no special suffix → upcoming ON, request OFF
-                upcoming = true;
-                request = false;
-                sneak = false;
-            }
-        } else {
-            // Any other manual input → all off
-            upcoming = false;
-            request = false;
-            sneak = false;
-        }
-
-        // ─── Apply to UI ────────────────────────────────────────────
-        if (upcomingCheckbox) upcomingCheckbox.checked = upcoming;
-        if (requestCheckbox) requestCheckbox.checked = request;
-        if (sneakBtn) {
-            const isOn = sneak;
-            sneakBtn.classList.toggle('on', isOn);
-            sneakBtn.textContent = isOn ? 'On' : 'Off';
-            if (isOn) {
-                masterPost.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
-                masterPost.dispatchEvent(new Event('input'));
-                status.textContent = 'Sneak peak mode';
-                if (typeof showToast === 'function') showToast('Sneak peak enabled', 'info');
-                return;
-            }
-        }
-
-        // ─── Parse and generate ──────────────────────────────────────
         const parsed = parseInput(raw);
         if (!parsed.character && !parsed.series) {
             status.textContent = 'Could not parse character or series';
             return;
         }
 
-        status.textContent = 'Fetching data…';
-
         try {
-            const packNumber = extractPackNumber(raw);
-            let pageCount = null;
-            if (packNumber) {
-                pageCount = await getPackPageCount(packNumber);
-                if (pageCount !== null) {
-                    status.textContent = `✅ Pack #${packNumber}: ${pageCount} images`;
-                } else {
-                    status.textContent = `⚠️ Pack #${packNumber} not found in DB or ZIP`;
-                }
-            }
-
-            // ─── Get series tags ──────────────────────────────────────
+            // Get hashtags
             const seriesTags = await getSeriesTags(parsed.series);
-
-            // ─── Get character tags ───────────────────────────────────
             let characterTags = [];
             const characterName = parsed.character;
-
             if (characterName.includes(' & ')) {
                 const parts = characterName.split(' & ').map(s => s.trim());
                 for (const part of parts) {
@@ -363,7 +281,6 @@
                 characterTags = await getCharacterTags(characterName, parsed.series);
             }
 
-            // Combine and deduplicate
             const allTags = [...characterTags, ...seriesTags];
             const seen = new Set();
             const uniqueTags = [];
@@ -376,7 +293,7 @@
             }
             const hashtagString = uniqueTags.join(' ');
 
-            // ─── Build opening line ──────────────────────────────────
+            // Build opening line
             let openingLine;
             if (request) {
                 openingLine = upcoming ? 'Upcoming new request.' : 'New request released.';
@@ -393,9 +310,7 @@
             masterPost.value = fullPost;
             masterPost.dispatchEvent(new Event('input'));
 
-            if (status.textContent && !status.textContent.startsWith('✅')) {
-                status.textContent = '✅ Post ready!';
-            }
+            status.textContent = '✅ Post ready!';
             if (typeof showToast === 'function') showToast('Post generated!', 'success');
         } catch (err) {
             console.error(err);
@@ -403,32 +318,155 @@
         }
     }
 
+    let debounceTimer;
+    let lastParsedRaw = ''; // store the last input text to avoid re‑parsing unnecessarily
+
+    // ─── When input text changes → auto‑set toggles + regenerate ──
+    async function handleInput() {
+        const input = document.getElementById('hashgenInput');
+        const status = document.getElementById('hashgenStatus');
+        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+        const requestCheckbox = document.getElementById('requestCheckbox');
+        const sneakBtn = document.getElementById('sneakPeakBtn');
+
+        if (!input) return;
+
+        const raw = input.value.trim();
+        if (!raw) {
+            status.textContent = '';
+            return;
+        }
+
+        // ─── Auto‑toggle logic ──────────────────────────────────────
+        let upcoming = false;
+        let request = false;
+        let sneak = false;
+
+        const isZipDrag = window._zipDragged === true;
+        const startsWithPreview = raw.startsWith('Preview:');
+
+        if (isZipDrag) {
+            upcoming = false;
+            request = false;
+            sneak = false;
+            window._zipDragged = false;
+        } else if (startsWithPreview) {
+            const hasRequest = /\bRequest\b/i.test(raw);
+            const hasPoll = /\bPoll\b/i.test(raw);
+            if (hasRequest && !hasPoll) {
+                upcoming = true;
+                request = true;
+                sneak = false;
+            } else {
+                upcoming = true;
+                request = false;
+                sneak = false;
+            }
+        } else {
+            upcoming = false;
+            request = false;
+            sneak = false;
+        }
+
+        // Apply to UI
+        if (upcomingCheckbox) upcomingCheckbox.checked = upcoming;
+        if (requestCheckbox) requestCheckbox.checked = request;
+        if (sneakBtn) {
+            const isOn = sneak;
+            sneakBtn.classList.toggle('on', isOn);
+            sneakBtn.textContent = isOn ? 'On' : 'Off';
+            if (isOn) {
+                // Sneak peak enabled – set fixed message and return
+                const masterPost = document.getElementById('masterPost');
+                masterPost.value = 'Sneak peak of the current work!\n\nStay tuned for the full release';
+                masterPost.dispatchEvent(new Event('input'));
+                status.textContent = 'Sneak peak mode';
+                if (typeof showToast === 'function') showToast('Sneak peak enabled', 'info');
+                return;
+            }
+        }
+
+        // ─── Get page count ──────────────────────────────────────────
+        const packNumber = extractPackNumber(raw);
+        let pageCount = null;
+        if (packNumber) {
+            pageCount = await getPackPageCount(packNumber);
+            if (pageCount !== null) {
+                status.textContent = `✅ Pack #${packNumber}: ${pageCount} images`;
+            } else {
+                status.textContent = `⚠️ Pack #${packNumber} not found in DB or ZIP`;
+            }
+        }
+
+        // Store for manual toggle regeneration
+        lastParsedRaw = raw;
+
+        // Generate the post with the auto‑set toggles
+        await generatePostFromState(raw, upcoming, request, pageCount);
+    }
+
+    // ─── Manual toggle clicked → regenerate with current toggles ──
+    async function regenerateFromToggles() {
+        const input = document.getElementById('hashgenInput');
+        const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+        const requestCheckbox = document.getElementById('requestCheckbox');
+        const sneakBtn = document.getElementById('sneakPeakBtn');
+
+        if (!input || !upcomingCheckbox || !requestCheckbox) return;
+
+        const raw = input.value.trim();
+        if (!raw) {
+            return;
+        }
+
+        // Read current toggle states
+        const upcoming = upcomingCheckbox.checked;
+        const request = requestCheckbox.checked;
+
+        // Check if sneak is on (if so, ignore and use sneak message)
+        if (sneakBtn && sneakBtn.classList.contains('on')) {
+            // Already handled by sneak button click – do nothing
+            return;
+        }
+
+        // Get page count (could cache it, but re‑fetch is fine)
+        const packNumber = extractPackNumber(raw);
+        let pageCount = null;
+        if (packNumber) {
+            pageCount = await getPackPageCount(packNumber);
+        }
+
+        await generatePostFromState(raw, upcoming, request, pageCount);
+    }
+
     function init() {
         loadOverrides().then(() => {
             const input = document.getElementById('hashgenInput');
+            const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+            const requestCheckbox = document.getElementById('requestCheckbox');
+            const sneakBtn = document.getElementById('sneakPeakBtn');
+
             if (!input) return;
 
+            // ─── Hashgen input: auto‑set toggles and regenerate ──
             input.addEventListener('input', () => {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(handleInput, 800);
             });
-
             input.addEventListener('paste', () => {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(handleInput, 300);
             });
 
-            const upcomingCheckbox = document.getElementById('upcomingCheckbox');
+            // ─── Manual toggle clicks: regenerate WITHOUT auto‑set ──
             if (upcomingCheckbox) {
-                upcomingCheckbox.addEventListener('change', handleInput);
+                upcomingCheckbox.addEventListener('change', regenerateFromToggles);
             }
-
-            const requestCheckbox = document.getElementById('requestCheckbox');
             if (requestCheckbox) {
-                requestCheckbox.addEventListener('change', handleInput);
+                requestCheckbox.addEventListener('change', regenerateFromToggles);
             }
 
-            const sneakBtn = document.getElementById('sneakPeakBtn');
+            // ─── Sneak Peak button: toggle and set special message ──
             if (sneakBtn) {
                 sneakBtn.addEventListener('click', function() {
                     const isOn = this.classList.toggle('on');
@@ -439,10 +477,15 @@
                         master.dispatchEvent(new Event('input'));
                         if (typeof showToast === 'function') showToast('Sneak peak enabled', 'info');
                     } else {
-                        const inputEvent = new Event('input', { bubbles: true });
-                        document.getElementById('hashgenInput').dispatchEvent(inputEvent);
+                        // Re‑generate normal post with current toggles
+                        regenerateFromToggles();
                     }
                 });
+            }
+
+            // ─── Also run once on load if input has content ──────────
+            if (input.value.trim()) {
+                handleInput();
             }
         });
     }
