@@ -51,7 +51,7 @@
     "ring": { "english": ["TheRing"], "native": ["リング"] },
     "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] },
     "zenless zone zero": { "english": ["ZenlessZoneZero"], "native": ["绝区零", "ゼンレスゾーンゼロ"] },
-    "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPG"] }
+    "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPGX"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
