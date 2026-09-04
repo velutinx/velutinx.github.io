@@ -50,7 +50,8 @@
     "the ring": { "english": ["TheRing"], "native": ["リング"] },
     "ring": { "english": ["TheRing"], "native": ["リング"] },
     "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] },
-    "zenless zone zero": { "english": ["ZenlessZoneZero"], "native": ["绝区零", "ゼンレスゾーンゼロ"] }
+    "zenless zone zero": { "english": ["ZenlessZoneZero"], "native": ["绝区零", "ゼンレスゾーンゼロ"] },
+    "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPG"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -92,6 +93,7 @@
     "yi xuan": { "english": ["YiXuan"], "native": ["仪玄"] },
     "yor": { "english": ["Yor"], "native": ["ヨル"] },
     "yor forger": { "english": ["YorForger"], "native": ["ヨル・フォージャー"] },
-    "zatanna": { "english": ["Zatanna"], "native": ["ザターナ"] }
+    "zatanna": { "english": ["Zatanna"], "native": ["ザターナ"] },
+    "aino nozomi": { "english": ["NozomiAino", "AinoNozomi"], "native": ["愛野のぞみ"] }
   }
 }
