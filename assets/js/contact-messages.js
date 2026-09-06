@@ -40,6 +40,8 @@
             const senderDisplay = msg.name || 'Unknown Sender';
             const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : (msg.source === 'paypal' ? 'PAYPAL:' : ''));
             let messageHtml = escapeHtml(msg.message);
+            messageHtml = messageHtml.replace(/\n/g, '<br>');
+
             if (msg.link) {
                 messageHtml = `<a href="${escapeHtml(msg.link)}" target="_blank" rel="noopener noreferrer">${messageHtml}</a>`;
             }
