@@ -39,7 +39,7 @@
             const created = new Date(msg.created_at).toLocaleString();
             const subject = msg.subject || 'No subject';
             const senderDisplay = msg.name || 'Unknown Sender';
-            const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : '');
+            const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : (msg.source === 'paypal' ? 'PAYPAL:' : ''));
             let messageHtml = escapeHtml(msg.message);
             // If link exists, wrap the message in <a> tag
             if (msg.link) {
