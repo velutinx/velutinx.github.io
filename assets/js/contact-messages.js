@@ -15,7 +15,6 @@
             const res = await fetch(`${API_BASE}/messages?t=${cacheBust}`);
             if (!res.ok) throw new Error('Failed to fetch messages');
             const data = await res.json();
-            // The API returns { results: [...], pagination: {...} }
             return data.results || [];
         } catch (err) {
             console.error('Messages fetch error:', err);
@@ -41,14 +40,13 @@
             const senderDisplay = msg.name || 'Unknown Sender';
             const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : (msg.source === 'paypal' ? 'PAYPAL:' : ''));
             let messageHtml = escapeHtml(msg.message);
-            // If link exists, wrap the message in <a> tag
             if (msg.link) {
                 messageHtml = `<a href="${escapeHtml(msg.link)}" target="_blank" rel="noopener noreferrer">${messageHtml}</a>`;
             }
 
             html += `
                 <div class="contact-item unread" data-id="${msg.id}">
-                    <div class="contact-header" onclick="toggleContactDetail(this)">
+                    <div class="contact-header" data-action="toggle">
                         <span class="contact-subject">
                             ${sourceLabel ? `<strong>${sourceLabel}</strong> ` : ''}${escapeHtml(subject)}
                         </span>
@@ -69,6 +67,25 @@
 
         listContainer.innerHTML = html;
 
+        // ─── Attach Event Delegation for Header Toggles ─────────
+        if (!listContainer.dataset.bound) {
+            listContainer.dataset.bound = 'true';
+            listContainer.addEventListener('click', (e) => {
+                const header = e.target.closest('.contact-header');
+                if (header) {
+                    const detail = header.nextElementSibling;
+                    const toggle = header.querySelector('.contact-toggle');
+                    if (detail.style.display === 'none') {
+                        detail.style.display = 'block';
+                        toggle.textContent = '▲';
+                    } else {
+                        detail.style.display = 'none';
+                        toggle.textContent = '▼';
+                    }
+                }
+            });
+        }
+
         // ─── Attach "Mark as read" events ──────────────────────
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
@@ -81,7 +98,6 @@
                 try {
                     const success = await markAsRead(id);
                     if (success) {
-                        // Remove the item from the DOM immediately
                         if (item) {
                             item.style.transition = 'opacity 0.3s';
                             item.style.opacity = '0';
@@ -186,26 +202,13 @@
         if (tabButton) {
             tabButton.classList.toggle('has-items', unreadCount > 0);
         }
-        renderMessages(messages); // Now only renders unread
+        renderMessages(messages);
         if (markAllBtn) {
             markAllBtn.onclick = markAllAsRead;
             markAllBtn.style.display = unreadCount > 0 ? 'inline-block' : 'none';
             markAllBtn.textContent = unreadCount > 0 ? '✅ Mark All Read' : 'All read';
         }
     }
-
-    // ─── Toggle detail expand/collapse ──────────────────────────
-    window.toggleContactDetail = function(header) {
-        const detail = header.nextElementSibling;
-        const toggle = header.querySelector('.contact-toggle');
-        if (detail.style.display === 'none') {
-            detail.style.display = 'block';
-            toggle.textContent = '▲';
-        } else {
-            detail.style.display = 'none';
-            toggle.textContent = '▼';
-        }
-    };
 
     // ─── Escape HTML ────────────────────────────────────────────
     function escapeHtml(str) {
@@ -235,7 +238,7 @@
         pollInterval = setInterval(refreshAll, 30000);
     }
 
-    // ─── Init ────────────────────────────────────────────────────
+    // ─── Init ────────────────────────────────────────────────    
     async function init() {
         if (tabButton) {
             tabButton.classList.remove('has-items');
