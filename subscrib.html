@@ -23,7 +23,7 @@
     <script src="/assets/js/retweet-queue.js" defer></script>
     <script src="/assets/js/censor.js" defer></script>
     <script src="/assets/js/error-logs.js?v=3" defer></script>
-    <script src="/assets/js/contact-messages.js?v=3"></script>
+    <script src="/assets/js/contact-messages.js?v=3" defer></script>
 </head>
 <body>
 <div class="container">
@@ -173,16 +173,16 @@
         </div>
     </div>
 
-    <!-- 📋 Error Logs Tab (FIXED) -->
+    <!-- 📋 Error Logs Tab -->
     <div id="errorlogs" class="tab-content">
         <div class="error-logs-scroll">
-<div class="error-logs-header">
-    <h1>📋 Central Error Logs</h1>
-    <div style="display:flex; gap:8px;">
-        <button class="btn" id="copyLogsBtn" style="background:#3b82f6;">📋 Copy Logs</button>
-        <button class="btn" id="clearBtn">🗑️ Clear All</button>
-    </div>
-</div>
+            <div class="error-logs-header">
+                <h1>📋 Central Error Logs</h1>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn" id="copyLogsBtn" style="background:#3b82f6;">📋 Copy Logs</button>
+                    <button class="btn" id="clearBtn">🗑️ Clear All</button>
+                </div>
+            </div>
             <div class="table-wrapper error-logs-table">
                 <table>
                     <thead>
@@ -265,7 +265,6 @@
     <!-- Spreadsheet Tab -->
     <div id="spreadsheet" class="tab-content">
         <div class="app" id="app">
-
             <div class="jcsb">
                 <div class="fw-b fs-20">Income Overview</div>
                 <div class="flex flex-wrap gap-8">
@@ -377,7 +376,6 @@
                     <button class="page-btn" id="nextPageBtn" disabled><span class="icon-chevron-right"></span></button>
                 </div>
             </div>
-
         </div>
     </div>
 
