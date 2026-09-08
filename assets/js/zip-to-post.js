@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return {
             pack: match[1],
             character: match[2].trim(),
-            series: match[3].trim().toUpperCase()
+            series: match[3].trim()   // Removed .toUpperCase() to preserve original capitalization
         };
     }
     function normalize(str) {
