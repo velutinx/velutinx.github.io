@@ -10,8 +10,9 @@
     "high school dxd": { "native": "ハイスクールDxD", "english": "HighSchoolDxD" },
     "mass effect": { "native": "マスエフェクト", "english": "MassEffect" },
     "blue archive": { "native": "ブルーアーカイブ", "english": "BlueArchive" },
-    "fate grand order": { "english": ["FGO", "FateGrandOrder"], "native": ["フェイト・グランドオーダー"] },
-    "fate/grand order": { "english": ["FGO", "FateGrandOrder"], "native": ["フェイト・グランドオーダー"] },
+    "fate grand order": { "english": ["FateGrandOrder", "FGO"], "native": ["フェイト・グランドオーダー"] },
+    "fate/grand order": { "english": ["FateGrandOrder", "FGO"], "native": ["フェイト・グランドオーダー"] },
+    "fgo": { "english": ["FateGrandOrder", "FGO"], "native": ["フェイト・グランドオーダー"] },
     "mushoku tensei": { "native": "無職転生", "english": "MushokuTensei" },
     "teenage mutant ninja turtles": { "native": "ミュータント・タートルズ", "english": "TMNT" },
     "metroid": { "native": "メトロイド", "english": "METROID" },
@@ -51,11 +52,12 @@
     "ring": { "english": ["TheRing"], "native": ["リング"] },
     "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] },
     "zenless zone zero": { "english": ["ZenlessZoneZero"], "native": ["绝区零", "ゼンレスゾーンゼロ"] },
-    "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPGX"] }
+    "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPG"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
     "april o'neil": { "native": "エイプリル・オニール" },
+    "artoria pendragon": { "english": ["ArtoriaPendragon", "Saber"], "native": ["アルトリア・ペンドラゴン", "セイバー"] },
     "asakura tooru": { "english": ["AsakuraTooru", "TooruAsakura"], "native": ["浅倉透"] },
     "augusta": { "native": "オーガスタ", "english": "Augusta" },
     "bridget": { "english": ["Bridget"], "native": ["ブリジット"] },
