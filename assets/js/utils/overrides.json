@@ -52,17 +52,20 @@
     "ring": { "english": ["TheRing"], "native": ["リング"] },
     "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] },
     "zenless zone zero": { "english": ["ZenlessZoneZero"], "native": ["绝区零", "ゼンレスゾーンゼロ"] },
-    "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPG"] }
+    "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPG"] },
+    "vocaloid": { "english": ["Vocaloid"], "native": ["ボーカロイド", "ボカロ"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
+    "aino nozomi": { "english": ["NozomiAino", "AinoNozomi"], "native": ["愛野のぞみ"] },
     "april o'neil": { "native": "エイプリル・オニール" },
     "artoria pendragon": { "english": ["ArtoriaPendragon", "Saber"], "native": ["アルトリア・ペンドラゴン", "セイバー"] },
     "asakura tooru": { "english": ["AsakuraTooru", "TooruAsakura"], "native": ["浅倉透"] },
     "augusta": { "native": "オーガスタ", "english": "Augusta" },
     "bridget": { "english": ["Bridget"], "native": ["ブリジット"] },
+    "bulla briefs": { "english": ["BullaBriefs", "BraBriefs"], "native": ["ブラ"] },
     "bulma": { "native": "ブルマ" },
-    "bulma briefs": { "native": "ブルマ" },
+    "bulma briefs": { "english": ["BulmaBriefs", "Bulma"], "native": ["ブルマ"] },
     "diluc": { "native": "ディルック" },
     "elegg": { "english": ["Elegg"], "native": ["エレグ"] },
     "emily": { "english": ["Emily"], "native": ["エミリー"] },
@@ -95,7 +98,6 @@
     "yi xuan": { "english": ["YiXuan"], "native": ["仪玄"] },
     "yor": { "english": ["Yor"], "native": ["ヨル"] },
     "yor forger": { "english": ["YorForger"], "native": ["ヨル・フォージャー"] },
-    "zatanna": { "english": ["Zatanna"], "native": ["ザターナ"] },
-    "aino nozomi": { "english": ["NozomiAino", "AinoNozomi"], "native": ["愛野のぞみ"] }
+    "zatanna": { "english": ["Zatanna"], "native": ["ザターナ"] }
   }
 }
