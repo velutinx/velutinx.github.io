@@ -53,7 +53,9 @@
     "hazbin hotel": { "english": ["HazbinHotel"], "native": ["ハズビン・ホテル"] },
     "zenless zone zero": { "english": ["ZenlessZoneZero"], "native": ["绝区零", "ゼンレスゾーンゼロ"] },
     "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPG"] },
-    "vocaloid": { "english": ["Vocaloid"], "native": ["ボーカロイド", "ボカロ"] }
+    "vocaloid": { "english": ["Vocaloid"], "native": ["ボーカロイド", "ボカロ"] },
+    "evangelion": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
+    "evangelion shinsaku series": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -81,6 +83,7 @@
     "kyougoku satsuki": { "native": "京極サツキ" },
     "lynae": { "native": "リンネー" },
     "madoka higuchi": { "english": ["MadokaHiguchi", "HiguchiMadoka"], "native": ["樋口円香"] },
+    "mari makinami illustrious": { "english": ["MariMakinamiIllustrious"], "native": ["真希波・マリ・イラストリアス"] },
     "medusa": { "english": ["Medusa", "Rider"], "native": ["メドゥーサ", "ライダー"] },
     "mei mei": { "native": "冥冥", "english": "MeiMei" },
     "nene kusanagi": { "native": "草薙寧々" },
