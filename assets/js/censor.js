@@ -165,7 +165,7 @@
         e.preventDefault();
         const ed = editors[idx];
         const delta = e.deltaY > 0 ? -1 : 1;
-        const step = e.shiftKey ? 20 : 5;
+        const step = e.shiftKey ? 60 : 15;
         ed.size = Math.max(MIN_SIZE, ed.size + delta * step);
         draw();
     }, { passive: false });
