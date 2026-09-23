@@ -247,12 +247,8 @@ body.dark .discord-help-link { color: #ffffff !important; }
         </div>
         <div class="tier-price" data-price-usd="30"><span class="price-value"></span><span class="per-month">/ month</span></div>
         <ul class="tier-perks">
-          <li id="perk4_1">• Everything in Bronze tier, plus:</li>
-          <li id="perk4_2">• One (1) large custom image request per active billing cycle.</li>
-          <li id="perk4_3">• Approx. 80 images per request.</li>
-          <li id="perk4_4">• Custom outfit allowed.</li>
-          <li id="perk4_5">• Character customization allowed.</li>
-          <li id="perk4_6">• Typical turnaround: 3-7 day once its time on queue is up.</li>
+          <li id="perk4_1">• Includes everything from Bronze & Silver tiers, plus:</li>
+          <li id="perk4_2">• Your custom request is prioritized over all active custom requests from lower-tier members.</li>
         </ul>
         <div class="button-row">
           <div class="month-selector-container">
@@ -891,7 +887,7 @@ async function fetchConversions() {
       'perk1_1','perk1_2','perk1_3','perk1_4',
       'perk2_1','perk2_2','perk2_3','perk2_4','perk2_5','perk2_6',
       'perk3_1','perk3_2','perk3_3','perk3_4','perk3_5','perk3_6',
-      'perk4_1','perk4_2','perk4_3','perk4_4','perk4_5','perk4_6',
+      'perk4_1','perk4_2',
       'perk5_1','perk5_2'
     ];
     perkIds.forEach(id => {
@@ -1082,7 +1078,7 @@ async function fetchConversions() {
   });
 
   function disableTopTiers(){
-    [4,5].forEach(tier=>{
+    [5].forEach(tier=>{
       const card = document.querySelector(`.tier-card[data-tier="${tier}"]`);
       if(!card) return;
       card.style.opacity = "0.45";
