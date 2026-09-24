@@ -55,11 +55,13 @@
     "taimanin rpgx": { "english": ["Taimanin", "TaimaninRPGX"], "native": ["対魔忍", "対魔忍RPG"] },
     "vocaloid": { "english": ["Vocaloid"], "native": ["ボーカロイド", "ボカロ"] },
     "evangelion": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
-    "evangelion shinsaku series": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] }
+    "evangelion shinsaku series": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
+    "silent war": { "english": ["SilentWar", "MyKingdom"], "native": ["작은전쟁"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
     "aino nozomi": { "english": ["NozomiAino", "AinoNozomi"], "native": ["愛野のぞみ"] },
+    "anna": { "english": ["Anna", "HongYeNa"], "native": ["주리나"] },
     "april o'neil": { "native": "エイプリル・オニール" },
     "artoria pendragon": { "english": ["ArtoriaPendragon", "Saber"], "native": ["アルトリア・ペンドラゴン", "セイバー"] },
     "asakura tooru": { "english": ["AsakuraTooru", "TooruAsakura"], "native": ["浅倉透"] },
