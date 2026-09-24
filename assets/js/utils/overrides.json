@@ -56,7 +56,8 @@
     "vocaloid": { "english": ["Vocaloid"], "native": ["ボーカロイド", "ボカロ"] },
     "evangelion": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
     "evangelion shinsaku series": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
-    "silent war": { "english": ["SilentWar", "MyKingdom"], "native": ["작은전쟁"] }
+    "silent war": { "english": ["SilentWar", "MyKingdom"], "native": ["작은전쟁"] },
+    "girls of the wild": { "english": ["GirlsoftheWild"], "native": ["소녀더와일즈"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -76,6 +77,8 @@
     "goryou nagusa": { "native": "御稜ナグサ" },
     "gwen stacy": { "english": ["GwenStacy"], "native": ["グウェン・ステイシー"] },
     "hooker mom": { "english": ["HookerMom", "Goblin", "Shortstack", "OC"], "native": [] },
+    "in gyi yoon": { "english": ["InguiYoon"], "native": ["윤인귀"] },
+    "ingui yoon": { "english": ["InguiYoon"], "native": ["윤인귀"] },
     "invisigal": { "native": "インビジガル" },
     "iuno": { "english": ["Iuno"], "native": ["ユーノ", "尤诺"] },
     "jack the ripper": { "native": ["ジャック・ザ・リッパー", "黒のアサシン"] },
