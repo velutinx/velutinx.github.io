@@ -22,6 +22,37 @@
         }
     }
 
+    // ─── Helper: decide whether the Email line should be shown ──
+    //  Patreon DM notifications are sent from a shared noreply
+    //  address (no-reply@community.patreon.com). Displaying it in
+    //  the message detail is pure noise — the useful sender identity
+    //  is already shown in the "Name" field.
+    //
+    //  Every other source keeps the Email line:
+    //    • Patreon comments    — sender may be info.patreon.com,
+    //                            but the field is still informative
+    //    • SubscribeStar       — sender is the commenter's handle,
+    //                            plus any comment-specific noreply
+    //    • PayPal failures     — customer email is critical
+    //    • Website contact form— user-provided email is critical
+    // ─────────────────────────────────────────────────────────────
+    function shouldShowEmail(msg) {
+        if (!msg || !msg.email) return false;
+
+        const isPatreonDM =
+            msg.source === 'patreon' &&
+            typeof msg.subject === 'string' &&
+            msg.subject.toLowerCase().includes('sent you a message');
+
+        if (isPatreonDM) return false;
+
+        // Also drop the field entirely if the stored address is
+        // literally empty/placeholder — better blank than misleading.
+        if (msg.email === 'unknown' || msg.email === '') return false;
+
+        return true;
+    }
+
     // ─── Render ONLY unread messages ─────────────────────────────
     function renderMessages(messages) {
         if (!listContainer) return;
@@ -39,12 +70,20 @@
             const subject = msg.subject || 'No subject';
             const senderDisplay = msg.name || 'Unknown Sender';
             const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : (msg.source === 'paypal' ? 'PAYPAL:' : ''));
+
             let messageHtml = escapeHtml(msg.message);
             messageHtml = messageHtml.replace(/\n/g, '<br>');
 
             if (msg.link) {
                 messageHtml = `<a href="${escapeHtml(msg.link)}" target="_blank" rel="noopener noreferrer">${messageHtml}</a>`;
             }
+
+            // Conditionally include the Email row. When omitted, the
+            // detail block simply renders Name → Message instead of
+            // Name → Email → Message.
+            const emailRow = shouldShowEmail(msg)
+                ? `<div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>`
+                : '';
 
             html += `
                 <div class="contact-item unread" data-id="${msg.id}">
@@ -58,7 +97,7 @@
                     </div>
                     <div class="contact-detail" style="display:none;">
                         <div><strong>Name:</strong> ${escapeHtml(msg.name)}</div>
-                        <div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>
+                        ${emailRow}
                         <div><strong>Message:</strong><br>${messageHtml}</div>
                         <div style="margin-top:8px;font-size:0.8rem;color:#888;">${created}</div>
                         <button class="mark-read-btn" data-id="${msg.id}">Mark as read</button>
@@ -240,7 +279,7 @@
         pollInterval = setInterval(refreshAll, 30000);
     }
 
-    // ─── Init ────────────────────────────────────────────────    
+    // ─── Init ────────────────────────────────────────────────
     async function init() {
         if (tabButton) {
             tabButton.classList.remove('has-items');
