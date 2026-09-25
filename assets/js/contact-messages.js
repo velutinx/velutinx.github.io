@@ -1,14 +1,11 @@
 // assets/js/contact-messages.js
+
 (function() {
     'use strict';
-
     const API_BASE = 'https://contact-handler.velutinx.workers.dev/api/contact';
-
     const tabButton = document.getElementById('contact-tab');
     const listContainer = document.getElementById('contact-list');
     const markAllBtn = document.getElementById('markAllReadBtn');
-
-    // ─── Helper: fetch messages (cache‑bust) ────────────────────
     async function fetchMessages() {
         try {
             const cacheBust = Date.now();
@@ -21,21 +18,6 @@
             return [];
         }
     }
-
-    // ─── Helper: decide whether the Email line should be shown ──
-    //  Patreon DM notifications are sent from a shared noreply
-    //  address (no-reply@community.patreon.com). Displaying it in
-    //  the message detail is pure noise — the useful sender identity
-    //  is already shown in the "Name" field.
-    //
-    //  Every other source keeps the Email line:
-    //    • Patreon comments    — sender may be info.patreon.com,
-    //                            but the field is still informative
-    //    • SubscribeStar       — sender is the commenter's handle,
-    //                            plus any comment-specific noreply
-    //    • PayPal failures     — customer email is critical
-    //    • Website contact form— user-provided email is critical
-    // ─────────────────────────────────────────────────────────────
     function shouldShowEmail(msg) {
         if (!msg || !msg.email) return false;
 
@@ -43,48 +25,31 @@
             msg.source === 'patreon' &&
             typeof msg.subject === 'string' &&
             msg.subject.toLowerCase().includes('sent you a message');
-
         if (isPatreonDM) return false;
-
-        // Also drop the field entirely if the stored address is
-        // literally empty/placeholder — better blank than misleading.
         if (msg.email === 'unknown' || msg.email === '') return false;
-
         return true;
     }
-
-    // ─── Render ONLY unread messages ─────────────────────────────
     function renderMessages(messages) {
         if (!listContainer) return;
-
         const unreadMessages = messages.filter(msg => !msg.is_read);
-
         if (unreadMessages.length === 0) {
             listContainer.innerHTML = '<div class="empty-message">✨ No unread messages.</div>';
             return;
         }
-
         let html = '';
         unreadMessages.forEach((msg) => {
             const created = new Date(msg.created_at).toLocaleString();
             const subject = msg.subject || 'No subject';
             const senderDisplay = msg.name || 'Unknown Sender';
             const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : (msg.source === 'paypal' ? 'PAYPAL:' : ''));
-
             let messageHtml = escapeHtml(msg.message);
             messageHtml = messageHtml.replace(/\n/g, '<br>');
-
             if (msg.link) {
                 messageHtml = `<a href="${escapeHtml(msg.link)}" target="_blank" rel="noopener noreferrer">${messageHtml}</a>`;
             }
-
-            // Conditionally include the Email row. When omitted, the
-            // detail block simply renders Name → Message instead of
-            // Name → Email → Message.
             const emailRow = shouldShowEmail(msg)
                 ? `<div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>`
                 : '';
-
             html += `
                 <div class="contact-item unread" data-id="${msg.id}">
                     <div class="contact-header" data-action="toggle">
@@ -105,10 +70,7 @@
                 </div>
             `;
         });
-
         listContainer.innerHTML = html;
-
-        // ─── Attach Event Delegation for Header Toggles ─────────
         if (!listContainer.dataset.bound) {
             listContainer.dataset.bound = 'true';
             listContainer.addEventListener('click', (e) => {
@@ -126,8 +88,6 @@
                 }
             });
         }
-
-        // ─── Attach "Mark as read" events ──────────────────────
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -135,7 +95,6 @@
                 const item = btn.closest('.contact-item');
                 btn.disabled = true;
                 btn.textContent = '⏳ ...';
-
                 try {
                     const success = await markAsRead(id);
                     if (success) {
@@ -166,8 +125,6 @@
             });
         });
     }
-
-    // ─── Mark a message as read ──────────────────────────────────
     async function markAsRead(id) {
         try {
             const res = await fetch(`${API_BASE}/mark-read`, {
@@ -185,15 +142,12 @@
             return false;
         }
     }
-
-    // ─── Mark all messages as read ──────────────────────────────
     async function markAllAsRead() {
         const btn = markAllBtn;
         if (btn) {
             btn.disabled = true;
             btn.textContent = '⏳ ...';
         }
-
         try {
             const messages = await fetchMessages();
             const unread = messages.filter(m => !m.is_read);
@@ -202,13 +156,11 @@
                 if (btn) btn.disabled = false;
                 return;
             }
-
             let successCount = 0;
             for (const msg of unread) {
                 const ok = await markAsRead(msg.id);
                 if (ok) successCount++;
             }
-
             await refreshAll();
             showToast(`✅ Marked ${successCount} messages as read`);
         } catch (err) {
@@ -221,8 +173,6 @@
             }
         }
     }
-
-    // ─── Update unread count and tab flash ──────────────────────
     async function updateUnreadState() {
         const messages = await fetchMessages();
         const unreadCount = messages.filter(m => !m.is_read).length;
@@ -235,8 +185,6 @@
         }
         return unreadCount;
     }
-
-    // ─── Refresh everything ──────────────────────────────────────
     async function refreshAll() {
         const messages = await fetchMessages();
         const unreadCount = messages.filter(m => !m.is_read).length;
@@ -250,8 +198,6 @@
             markAllBtn.textContent = unreadCount > 0 ? '✅ Mark All Read' : 'All read';
         }
     }
-
-    // ─── Escape HTML ────────────────────────────────────────────
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -261,8 +207,6 @@
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
-
-    // ─── Toast notification ─────────────────────────────────────
     function showToast(msg, isError = false) {
         const toast = document.createElement('div');
         toast.className = `toast-notification show ${isError ? 'error' : ''}`;
@@ -270,28 +214,21 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
-
-    // ─── Polling (every 30 seconds) ─────────────────────────────
     let pollInterval = null;
-
     function startPolling() {
         if (pollInterval) clearInterval(pollInterval);
         pollInterval = setInterval(refreshAll, 30000);
     }
-
-    // ─── Init ────────────────────────────────────────────────
     async function init() {
         if (tabButton) {
             tabButton.classList.remove('has-items');
         }
         await refreshAll();
         startPolling();
-
         if (tabButton) {
             tabButton.addEventListener('click', refreshAll);
         }
     }
-
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
