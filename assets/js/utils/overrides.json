@@ -57,7 +57,8 @@
     "evangelion": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
     "evangelion shinsaku series": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
     "silent war": { "english": ["SilentWar", "MyKingdom"], "native": ["작은전쟁"] },
-    "girls of the wild": { "english": ["GirlsoftheWild"], "native": ["소녀더와일즈"] }
+    "girls of the wild": { "english": ["GirlsoftheWild"], "native": ["소녀더와일즈"] },
+    "living with hipstergirl and gamergirl": { "english": ["LivingWithHipstergirlAndGamergirl"], "native": [] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -101,6 +102,7 @@
     "rimuru tempest": { "native": "リムル・テンペスト" },
     "sheena fujibayashi": { "native": "藤林しいな" },
     "sonia": { "english": ["Sonia"], "native": ["ソニア"] },
+    "sophie": { "english": ["Sophie"], "native": [] },
     "starfire": { "native": "スターファイアー" },
     "tsukatsuki rio": { "english": ["TsukatsukiRio", "RioTsukatsuki"], "native": ["調月リオ"] },
     "verthandi": { "english": ["Verthandi", "Nacchan"], "native": ["ヴェルザンディ", "ナッちゃん"] },
