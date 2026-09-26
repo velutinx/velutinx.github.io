@@ -58,7 +58,8 @@
     "evangelion shinsaku series": { "english": ["Evangelion"], "native": ["エヴァンゲリオン"] },
     "silent war": { "english": ["SilentWar", "MyKingdom"], "native": ["작은전쟁"] },
     "girls of the wild": { "english": ["GirlsoftheWild"], "native": ["소녀더와일즈"] },
-    "living with hipstergirl and gamergirl": { "english": ["LivingWithHipstergirlAndGamergirl"], "native": [] }
+    "living with hipstergirl and gamergirl": { "english": ["LivingWithHipstergirlAndGamergirl"], "native": [] },
+    "fire emblem": { "english": ["FireEmblem"], "native": ["ファイアーエムブレム", "ファイアーエムブレム風花雪月"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -72,6 +73,7 @@
     "bulla briefs": { "english": ["BullaBriefs", "BraBriefs"], "native": ["ブラ"] },
     "bulma": { "native": "ブルマ" },
     "bulma briefs": { "english": ["BulmaBriefs", "Bulma"], "native": ["ブルマ"] },
+    "byleth eisner": { "english": ["BylethEisner", "Byleth"], "native": ["ベレス・アイスナー", "ベレト"] },
     "diluc": { "native": "ディルック" },
     "elegg": { "english": ["Elegg"], "native": ["エレグ"] },
     "emily": { "english": ["Emily"], "native": ["エミリー"] },
