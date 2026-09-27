@@ -46,17 +46,28 @@
         textarea.style.height = (textarea.scrollHeight + 2) + 'px';
     }
 
-function shortenPatreonLinks(text) {
-    return text.replace(/https?:\/\/[^\s]+/g, function(url) {
-        if (url.includes('patreon.com') && url.includes('/posts/')) {
-            const match = url.match(/\/posts\/.*?(\d+)(?:\?|$)/);
-            if (match) {
-                return 'https://www.patreon.com/posts/' + match[1];
+    // ─── Normalize spacing between adjacent hashtags ──────────────
+    // Fixes cases like "#tag1#tag2" → "#tag1 #tag2"
+    // Does not affect URLs (hashtags in URLs aren't preceded by whitespace/start of line)
+    // Preserves newlines (each newline is kept as the prefix)
+    function normalizeHashtagSpacing(text) {
+        return text.replace(/(^|\s)((?:#[^\s#@]+)+)/gm, function(match, prefix, run) {
+            const tags = run.match(/#[^\s#@]+/g) || [];
+            return prefix + tags.join(' ');
+        });
+    }
+
+    function shortenPatreonLinks(text) {
+        return text.replace(/https?:\/\/[^\s]+/g, function(url) {
+            if (url.includes('patreon.com') && url.includes('/posts/')) {
+                const match = url.match(/\/posts\/.*?(\d+)(?:\?|$)/);
+                if (match) {
+                    return 'https://www.patreon.com/posts/' + match[1];
+                }
             }
-        }
-        return url;
-    });
-}
+            return url;
+        });
+    }
 
     function replaceUrlsWithBio(text) {
         const urls = text.match(/https?:\/\/\S+/g);
@@ -95,7 +106,8 @@ function shortenPatreonLinks(text) {
     if (master) {
         master.addEventListener('input', () => {
             autoResize(master);
-            const rawText = master.value;
+            // ─── Normalize hashtag spacing BEFORE mirroring ───
+            const rawText = normalizeHashtagSpacing(master.value);
             const blueskyText = shortenPatreonLinks(rawText);
             const twitterText = replaceUrlsWithBio(rawText);
 
@@ -328,78 +340,78 @@ function shortenPatreonLinks(text) {
         }, 20);
     }
 
-async function sendToWorker(accId) {
-    const statusEl = document.getElementById(`tw-status-${accId}`);
-    const textarea = document.getElementById(`twitter-post-${accId}`);
-    if (!textarea) return;
-    const text = textarea.value;
-    const sourceIds = (accId == 3) ? (window.accountImages?.[1] || []) : (window.twitterImageIds[accId] || []);
-    const images = sourceIds.map(id => window.imageRegistry?.[id]).filter(Boolean);
-    statusEl.textContent = '⏳ Posting...';
-    const formData = new FormData();
-    formData.append('accId', accId.toString());
-    formData.append('text', text);
-    images.forEach(img => formData.append('images', img));
-    try {
-        const res = await fetch('https://twitter-post.velutinx.workers.dev', {
-            method: 'POST', body: formData
-        });
-        const data = await res.json();
-        if (data.success && data.data?.data?.id) {
-            statusEl.textContent = '✅ Posted!';
-            statusEl.style.color = '#4CAF50';
-            showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
+    async function sendToWorker(accId) {
+        const statusEl = document.getElementById(`tw-status-${accId}`);
+        const textarea = document.getElementById(`twitter-post-${accId}`);
+        if (!textarea) return;
+        const text = textarea.value;
+        const sourceIds = (accId == 3) ? (window.accountImages?.[1] || []) : (window.twitterImageIds[accId] || []);
+        const images = sourceIds.map(id => window.imageRegistry?.[id]).filter(Boolean);
+        statusEl.textContent = '⏳ Posting...';
+        const formData = new FormData();
+        formData.append('accId', accId.toString());
+        formData.append('text', text);
+        images.forEach(img => formData.append('images', img));
+        try {
+            const res = await fetch('https://twitter-post.velutinx.workers.dev', {
+                method: 'POST', body: formData
+            });
+            const data = await res.json();
+            if (data.success && data.data?.data?.id) {
+                statusEl.textContent = '✅ Posted!';
+                statusEl.style.color = '#4CAF50';
+                showToast(data.retweetSuccess ? 'Tweet posted & retweeted!' : 'Tweet posted!', 'success');
 
-            // ─── Trigger scan after posting from account 1 ──────────
-if (accId == 1) {
-    const tweetId = data.data.data.id;
-    const tweetText = text;
-    fetch('https://auto-retweet.velutinx.workers.dev/api/queue/add-direct', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            tweetId: tweetId,
-            text: tweetText,
-            author: '@velutinx2',
-            targetAccount: 'NSFW'
-        })
-    })
-    .then(() => {
-        setTimeout(() => {
-            if (typeof window.refreshQueue === 'function') {
-                window.refreshQueue();
-            }
-        }, 1500);
-    })
-    .catch(console.error);
-}
-
-            if (accId == 1 || accId == 2) {
-                lockTwitter12();
-            } else if (accId == 3) {
-                const tw3Text = document.getElementById('twitter-post-3');
-                if (tw3Text) {
-                    tw3Text.value = '';
-                    tw3Text.dispatchEvent(new Event('input'));
+                // ─── Trigger scan after posting from account 1 ──────────
+                if (accId == 1) {
+                    const tweetId = data.data.data.id;
+                    const tweetText = text;
+                    fetch('https://auto-retweet.velutinx.workers.dev/api/queue/add-direct', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            tweetId: tweetId,
+                            text: tweetText,
+                            author: '@velutinx2',
+                            targetAccount: 'NSFW'
+                        })
+                    })
+                    .then(() => {
+                        setTimeout(() => {
+                            if (typeof window.refreshQueue === 'function') {
+                                window.refreshQueue();
+                            }
+                        }, 1500);
+                    })
+                    .catch(console.error);
                 }
-                window.twitterImageIds[3] = [];
-                window.accountImages[1] = [];
-                if (typeof window.renderBlueskyThumbnails === 'function') window.renderBlueskyThumbnails(1);
-                renderTwitterThumbnails(3);
+
+                if (accId == 1 || accId == 2) {
+                    lockTwitter12();
+                } else if (accId == 3) {
+                    const tw3Text = document.getElementById('twitter-post-3');
+                    if (tw3Text) {
+                        tw3Text.value = '';
+                        tw3Text.dispatchEvent(new Event('input'));
+                    }
+                    window.twitterImageIds[3] = [];
+                    window.accountImages[1] = [];
+                    if (typeof window.renderBlueskyThumbnails === 'function') window.renderBlueskyThumbnails(1);
+                    renderTwitterThumbnails(3);
+                }
+            } else {
+                statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
+                statusEl.style.color = '#f44336';
+                console.error(data);
             }
-        } else {
-            statusEl.textContent = '❌ ' + (data.error || data.detail || 'Unknown');
+        } catch (err) {
+            statusEl.textContent = '❌ Connection Failed';
             statusEl.style.color = '#f44336';
-            console.error(data);
         }
-    } catch (err) {
-        statusEl.textContent = '❌ Connection Failed';
-        statusEl.style.color = '#f44336';
     }
-}
     window.sendToWorker = sendToWorker;
 
     function init() {
