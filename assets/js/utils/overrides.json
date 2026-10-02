@@ -61,7 +61,8 @@
     "living with hipstergirl and gamergirl": { "english": ["LivingWithHipstergirlAndGamergirl"], "native": [] },
     "fire emblem": { "english": ["FireEmblem"], "native": ["ファイアーエムブレム", "ファイアーエムブレム風花雪月"] },
     "kaguya-sama wa kokurasetai": { "english": ["KaguyasamawaKokurasetai", "Kaguyasama"], "native": ["かぐや様は告らせたい"] },
-    "kaguyasama wa kokurasetai": { "english": ["KaguyasamawaKokurasetai", "Kaguyasama"], "native": ["かぐや様は告らせたい"] }
+    "kaguyasama wa kokurasetai": { "english": ["KaguyasamawaKokurasetai", "Kaguyasama"], "native": ["かぐや様は告らせたい"] },
+    "harry potter": { "english": ["HarryPotter"], "native": ["ハリー・ポッター"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -78,6 +79,7 @@
     "bulma briefs": { "english": ["BulmaBriefs", "Bulma"], "native": ["ブルマ"] },
     "byleth eisner": { "english": ["BylethEisner", "Byleth"], "native": ["ベレス・アイスナー", "ベレト"] },
     "diluc": { "native": "ディルック" },
+    "draco malfoy": { "english": ["DracoMalfoy", "MalfoyDraco"], "native": ["ドラコ・マルフォイ"] },
     "elegg": { "english": ["Elegg"], "native": ["エレグ"] },
     "emily": { "english": ["Emily"], "native": ["エミリー"] },
     "goryou nagusa": { "native": "御稜ナグサ" },
