@@ -62,7 +62,8 @@
     "fire emblem": { "english": ["FireEmblem"], "native": ["ファイアーエムブレム", "ファイアーエムブレム風花雪月"] },
     "kaguya-sama wa kokurasetai": { "english": ["KaguyasamawaKokurasetai", "Kaguyasama"], "native": ["かぐや様は告らせたい"] },
     "kaguyasama wa kokurasetai": { "english": ["KaguyasamawaKokurasetai", "Kaguyasama"], "native": ["かぐや様は告らせたい"] },
-    "harry potter": { "english": ["HarryPotter"], "native": ["ハリー・ポッター"] }
+    "harry potter": { "english": ["HarryPotter"], "native": ["ハリー・ポッター"] },
+    "kamen rider": { "english": ["KamenRider"], "native": ["仮面ライダー"] }
   },
   "character": {
     "ani": { "english": ["ANI"], "native": ["Aniちゃん"] },
@@ -90,6 +91,7 @@
     "invisigal": { "native": "インビジガル" },
     "iuno": { "english": ["Iuno"], "native": ["ユーノ", "尤诺"] },
     "jack the ripper": { "native": ["ジャック・ザ・リッパー", "黒のアサシン"] },
+    "jiip stomach": { "english": ["JiipStomach", "JiipJaldak"], "native": ["ジープ・ストマック", "ジープ・ジャルダック"] },
     "jubilee": { "english": ["Jubilee", "JubilationLee"], "native": ["ジュビリー", "ジュビレーション・リー"] },
     "kiss shot": { "english": ["KissShot", "ShinobuOshino", "OshinoShinobu"], "native": ["キスショット", "忍野忍"] },
     "kiss-shot": { "english": ["KissShot", "ShinobuOshino", "OshinoShinobu"], "native": ["キスショット", "忍野忍"] },
