@@ -238,10 +238,14 @@
                         }
                     }
 
-                    let orderId = '';
-                    if (e.category === 'Website payments' && e.id) {
-                        orderId = `ORD-${String(e.id).padStart(4, '0')}`;
-                    }
+let orderId = '';
+if (e.category === 'Website payments') {
+  if (e.payment_id) {
+    orderId = e.payment_id;
+  } else if (e.id) {
+    orderId = `ORD-${String(e.id).padStart(4, '0')}`;
+  }
+}
 
                     const share = null;
                     const status = isExpense ? 'Expense' : 'Income';
