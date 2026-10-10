@@ -537,7 +537,7 @@
                 const numB = parseInt((b.name.match(/\d+/) || ['0'])[0], 10) || 0;
                 return numA - numB;
             });
-            const firstThirty = imageEntries.slice(0, 30);
+            const firstThirty = imageEntries.slice(0, 60);
 
             revokeAllImageURLs();
             allImages = [];
