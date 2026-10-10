@@ -345,7 +345,7 @@
     function renderOriginalGrid() {
         if (!pmOriginalGrid) return;
         pmOriginalGrid.innerHTML = '';
-        const toShow = allImages.slice(0, 30);
+        const toShow = allImages.slice(0, 60);
         toShow.forEach((img, idx) => {
             const isSelected = selectedIndices.has(idx);
             const thumb = document.createElement('img');
