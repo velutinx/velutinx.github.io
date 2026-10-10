@@ -20,7 +20,7 @@
     <script src="/assets/js/chart.js?v=2" defer></script>
     <script src="/assets/js/twitter-composer.js?v=2" defer></script>
     <script src="/assets/js/hashtag-generator.js" defer></script>
-    <script src="/assets/js/retweet-queue.js" defer></script>
+    <script src="/assets/js/retweet-queue.js?v=2" defer></script>
     <script src="/assets/js/censor.js" defer></script>
     <script src="/assets/js/error-logs.js?v=3" defer></script>
     <script src="/assets/js/contact-messages.js?v=5" defer></script>
@@ -162,8 +162,16 @@
         </div>
     </div>
 
-    <!-- Retweet Queue Tab -->
-    <div id="retweet" class="tab-content">
+<!-- Retweet Queue Tab -->
+<div id="retweet" class="tab-content">
+    <div class="retweet-layout">
+        <aside class="retweet-weekly-panel">
+            <h3>📊 Weekly Retweets</h3>
+            <div class="weekly-panel-meta" id="weekly-panel-meta"></div>
+            <div id="weekly-counts">
+                <div class="loading">Loading...</div>
+            </div>
+        </aside>
         <div class="retweet-container">
             <h2>📋 Retweet Queue</h2>
             <div id="retweet-list">
@@ -171,6 +179,7 @@
             </div>
         </div>
     </div>
+</div>
 
     <!-- 📋 Error Logs Tab -->
     <div id="errorlogs" class="tab-content">
