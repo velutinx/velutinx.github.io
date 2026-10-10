@@ -263,6 +263,28 @@ th { background: #0a0e14; color: #aaa; font-weight: 500; }
 .badge-velutinx2 { background: #1da1f2; color: white; }
 .badge-nsfw { background: #e0245e; color: white; }
 
+/* ─── Retweet Queue layout with weekly panel ─────────────────────── */
+.retweet-layout { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+.retweet-container { flex: 1 1 500px; min-width: 320px; }
+.retweet-weekly-panel { flex: 0 0 300px; background: #0c1017; border: 1px solid #252b33; border-radius: 14px; padding: 18px 20px; position: sticky; top: 20px; order: -1; }
+.retweet-weekly-panel h3 { margin: 0 0 6px 0; color: #ddd; font-size: 1rem; font-weight: 600; letter-spacing: 0.2px; }
+.weekly-panel-meta { font-size: 0.75rem; color: #64748b; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #2a2f38; font-family: 'Courier New', monospace; }
+.weekly-account { margin-bottom: 20px; }
+.weekly-account:last-child { margin-bottom: 0; }
+.weekly-account-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 8px; }
+.weekly-account-name { font-weight: 600; color: #e0e0e0; font-size: 0.9rem; word-break: break-all; }
+.weekly-account-count { font-family: 'Courier New', monospace; color: #94a3b8; font-size: 0.85rem; flex-shrink: 0; }
+.weekly-blobs { display: flex; flex-wrap: wrap; gap: 6px; }
+.weekly-blob { width: 22px; height: 22px; border-radius: 6px; background: #1e2430; border: 1px solid #2a2f38; transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease; }
+.weekly-blob.filled { background: #2c6e2c; border-color: #4caf50; box-shadow: 0 0 8px rgba(76, 175, 80, 0.35); }
+.weekly-blob.filled:hover { transform: scale(1.15); }
+.weekly-blob.limit-reached { background: #b71c1c; border-color: #ef5350; box-shadow: 0 0 10px rgba(239, 83, 80, 0.5); animation: weeklyBlobPulse 2s ease-in-out infinite; }
+@keyframes weeklyBlobPulse { 0%, 100% { box-shadow: 0 0 10px rgba(239, 83, 80, 0.5); } 50% { box-shadow: 0 0 16px rgba(239, 83, 80, 0.85); } }
+.weekly-account-status { margin-top: 6px; font-size: 0.72rem; color: #64748b; font-style: italic; }
+.weekly-account-status.limit-reached { color: #ef5350; font-style: normal; font-weight: 600; }
+.weekly-empty { text-align: center; color: #5a6278; font-size: 0.85rem; padding: 20px 0; font-style: italic; }
+@media (max-width: 900px) { .retweet-weekly-panel { position: static; flex: 1 1 100%; order: 0; } }
+
 /* ======================================================================
    20. CENSORSHIP TOOL
    ====================================================================== */
