@@ -4,7 +4,9 @@
     const RETWEET_TOKEN = 'xK9mQ2v7nP4wR8sL5jH3tY1bF6cE0dZ8aU4nW2xQ=';
 
     let previousQueue = [];
+    let previousWeeklyCounts = null;
 
+    // ─── Queue fetching + rendering (unchanged) ───────────────────────
     async function fetchRetweetQueue() {
         try {
             const res = await fetch(RETWEET_API_BASE + '/api/queue', {
@@ -30,6 +32,16 @@
         }
     }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     function renderRetweetQueue(queue) {
         const container = document.getElementById('retweet-list');
         if (!container) return;
@@ -48,11 +60,9 @@
 
         let html = '';
         queue.forEach(item => {
-            // Build the tweet permalink (always correct)
             const authorStr = (item.author || 'Unknown').replace(/^@/, '');
             const tweetUrl = `https://x.com/${encodeURIComponent(authorStr)}/status/${item.tweetId}`;
 
-            // Format date – use timestamp (tweet creation) as primary
             let dateStr = 'Unknown date';
             let rawTimestamp = item.timestamp || item.addedAt;
             if (rawTimestamp) {
@@ -66,7 +76,6 @@
                 }
             }
 
-            // Escape text and preserve line breaks
             const displayText = escapeHtml((item.text || '').replace(/\\n/g, '\n'));
 
             html += `
@@ -87,9 +96,8 @@
         });
         container.innerHTML = html;
 
-        // Attach event listeners (unchanged)
         container.querySelectorAll('.retweet-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.addEventListener('click', async () => {
                 const tweetId = btn.dataset.id;
                 const target = btn.dataset.target;
                 btn.disabled = true;
@@ -120,7 +128,7 @@
         });
 
         container.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.addEventListener('click', async () => {
                 const tweetId = btn.dataset.id;
                 btn.disabled = true;
                 btn.textContent = '⏳ ...';
@@ -150,14 +158,90 @@
         });
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
+    // ─── NEW: Weekly counts panel ─────────────────────────────────────
+    async function fetchWeeklyCounts() {
+        try {
+            const res = await fetch(RETWEET_API_BASE + '/api/weekly-counts', {
+                headers: { 'Authorization': 'Bearer ' + RETWEET_TOKEN }
+            });
+            if (!res.ok) throw new Error('Failed to fetch weekly counts');
+            return await res.json();
+        } catch (err) {
+            console.error('Weekly counts fetch error:', err);
+            return null;
+        }
+    }
+
+    function renderWeeklyCounts(data) {
+        const container = document.getElementById('weekly-counts');
+        const meta = document.getElementById('weekly-panel-meta');
+        if (!container) return;
+
+        if (!data || !data.users) {
+            container.innerHTML = '<div class="weekly-empty">Unable to load weekly counts.</div>';
+            return;
+        }
+
+        if (meta) {
+            const weekStart = new Date(data.weekStart + 'T00:00:00Z');
+            const weekLabel = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            meta.textContent = `Week of ${weekLabel} · Limit ${data.limit}/account`;
+        }
+
+        const entries = Object.entries(data.users);
+        if (entries.length === 0) {
+            container.innerHTML = '<div class="weekly-empty">No accounts configured.</div>';
+            return;
+        }
+
+        let html = '';
+        for (const [username, info] of entries) {
+            const limit = info.limit || 10;
+            const count = info.count || 0;
+            const reached = count >= limit;
+
+            let blobsHtml = '';
+            for (let i = 0; i < limit; i++) {
+                let cls = 'weekly-blob';
+                if (i < count) cls += reached ? ' limit-reached' : ' filled';
+                blobsHtml += `<span class="${cls}" title="Slot ${i + 1} of ${limit}"></span>`;
+            }
+
+            const statusText = reached
+                ? '🚫 Weekly limit reached'
+                : `${count} of ${limit} used this week`;
+
+            const statusCls = reached ? 'weekly-account-status limit-reached' : 'weekly-account-status';
+
+            html += `
+                <div class="weekly-account" data-user="${escapeHtml(username)}">
+                    <div class="weekly-account-header">
+                        <span class="weekly-account-name">${escapeHtml(username)}</span>
+                        <span class="weekly-account-count">${count}/${limit}</span>
+                    </div>
+                    <div class="weekly-blobs">${blobsHtml}</div>
+                    <div class="${statusCls}">${statusText}</div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    async function refreshWeeklyCounts() {
+        const data = await fetchWeeklyCounts();
+        if (data) {
+            // Show a toast if any account's count just changed
+            if (previousWeeklyCounts) {
+                for (const [user, info] of Object.entries(data.users || {})) {
+                    const prev = previousWeeklyCounts.users?.[user];
+                    if (prev && info.count > prev.count) {
+                        showRetweetToast(`📈 ${user} weekly count: ${prev.count} → ${info.count}`);
+                    }
+                }
+            }
+            previousWeeklyCounts = data;
+            renderWeeklyCounts(data);
+        }
     }
 
     async function refreshQueue() {
@@ -165,7 +249,7 @@
         if (previousQueue.length > 0 && queue.length > previousQueue.length) {
             const newItems = queue.filter(item => !previousQueue.some(p => p.tweetId === item.tweetId));
             if (newItems.length > 0) {
-                showRetweetToast(`🆕 ${newItems.length} new post${newItems.length>1?'s':''} added to retweet queue`);
+                showRetweetToast(`🆕 ${newItems.length} new post${newItems.length > 1 ? 's' : ''} added to retweet queue`);
             }
         }
         previousQueue = queue;
@@ -174,20 +258,25 @@
 
     window.refreshQueue = refreshQueue;
 
+    // ─── Boot ─────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         refreshQueue();
+        refreshWeeklyCounts();
 
         const tabBtn = document.querySelector('.tab-button[data-tab="retweet"]');
         if (tabBtn) {
             tabBtn.addEventListener('click', () => {
                 refreshQueue();
+                refreshWeeklyCounts();
             });
         }
 
+        // Poll every 30s, but only while the tab is actually visible
         setInterval(() => {
             const retweetTab = document.getElementById('retweet');
             if (retweetTab && retweetTab.classList.contains('active')) {
                 refreshQueue();
+                refreshWeeklyCounts();
             }
         }, 30000);
     });
