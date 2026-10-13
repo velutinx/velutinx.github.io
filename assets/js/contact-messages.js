@@ -42,6 +42,18 @@
             const subject = msg.subject || 'No subject';
             const senderDisplay = msg.name || 'Unknown Sender';
             const sourceLabel = msg.source === 'patreon' ? 'PATREON:' : (msg.source === 'subscribestar' ? 'SUBSCRIBESTAR:' : (msg.source === 'paypal' ? 'PAYPAL:' : ''));
+
+            // ─── Language badge (skip for English / unset) ───
+            const lang = (msg.language || 'en').toLowerCase();
+            const langBadge = (lang && lang !== 'en' && ['ja', 'zh', 'es'].includes(lang))
+                ? `<span style="background:#2a2f38;color:#94a3b8;padding:2px 8px;border-radius:20px;font-size:0.7rem;margin-left:6px;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(lang)}</span>`
+                : '';
+
+            // ─── Auto-reply badge ───
+            const replyBadge = msg.auto_reply_sent
+                ? `<span style="background:#1a3a2a;color:#6ac89a;padding:2px 8px;border-radius:20px;font-size:0.7rem;margin-left:6px;">✉️ Replied</span>`
+                : '';
+
             let messageHtml = escapeHtml(msg.message);
             messageHtml = messageHtml.replace(/\n/g, '<br>');
             if (msg.link) {
@@ -50,11 +62,20 @@
             const emailRow = shouldShowEmail(msg)
                 ? `<div><strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a></div>`
                 : '';
+
+            // ─── Extra metadata rows in the expanded detail ───
+            const languageRow = `<div><strong>Language:</strong> ${escapeHtml(lang)}</div>`;
+            const autoReplyRow = msg.auto_reply_sent
+                ? `<div><strong>Auto-reply:</strong> ✅ Sent ${msg.auto_reply_sent_at ? escapeHtml(new Date(msg.auto_reply_sent_at).toLocaleString()) : ''}</div>`
+                : `<div><strong>Auto-reply:</strong> <span style="color:#888;">—</span></div>`;
+
             html += `
                 <div class="contact-item unread" data-id="${msg.id}">
                     <div class="contact-header" data-action="toggle">
                         <span class="contact-subject">
                             ${sourceLabel ? `<strong>${sourceLabel}</strong> ` : ''}${escapeHtml(subject)}
+                            ${langBadge}
+                            ${replyBadge}
                         </span>
                         <span class="contact-sender">${escapeHtml(senderDisplay)}</span>
                         <span class="contact-date">${created}</span>
@@ -63,6 +84,8 @@
                     <div class="contact-detail" style="display:none;">
                         <div><strong>Name:</strong> ${escapeHtml(msg.name)}</div>
                         ${emailRow}
+                        ${languageRow}
+                        ${autoReplyRow}
                         <div><strong>Message:</strong><br>${messageHtml}</div>
                         <div style="margin-top:8px;font-size:0.8rem;color:#888;">${created}</div>
                         <button class="mark-read-btn" data-id="${msg.id}">Mark as read</button>
