@@ -21,6 +21,7 @@
 
         <form id="contactForm" action="https://contact-handler.velutinx.workers.dev/submit" method="POST">
           <input type="hidden" name="_subject" value="New Contact from Website">
+          <input type="hidden" name="language" id="contactLanguage" value="en">
 
           <div class="form-group">
             <label id="labelName">NAME</label>
@@ -53,6 +54,16 @@
   <script src="/assets/js/tab-title-animation.js"></script>
 
   <script>
+
+(function() {
+  function syncLang() {
+    const input = document.getElementById('contactLanguage');
+    if (input) input.value = window.currentLanguage || localStorage.getItem('language') || 'en';
+  }
+  syncLang();
+  document.addEventListener('languageChanged', syncLang);
+})();
+    
     function applyContactTranslations() {
       if (typeof window.applyTranslations === 'function') {
         window.applyTranslations('contact');
