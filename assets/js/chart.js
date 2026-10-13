@@ -195,35 +195,34 @@
                             if (amount === 9) type = 'M-2';
                             else type = e.category;
                         } else if (e.category === 'Website payments') {
-                            const concept = e.concept || '';
-                            const packMatch = concept.match(/P-(\d+)/);
-                            if (packMatch) {
-                                type = `P-${packMatch[1]}`;
-                            } else {
-                                const memMatch = concept.match(/M-(\d)/);
-                                if (memMatch) {
-                                    type = `M-${memMatch[1]}`;
-                                } else {
-                                    // 🔥 FIX: Map by amount
-                                    if (amount === 4.50) {
-                                        type = 'M-1';
-                                    } else if (amount === 9.00) {
-                                        type = 'M-2';
-                                    } else if (amount === 3.00) {
-                                        type = 'M-0.5';
-                                    } else if (amount === 18.00) {
-                                        type = 'M-2';
-                                    } else if (amount === 30.00) {
-                                        type = 'M-3';
-                                    } else {
-                                        type = e.category;
-                                    }
-                                }
-                            }
-                        } else {
-                            type = e.category;
-                        }
-                    }
+  const concept = e.concept || '';
+  const packMatch = concept.match(/P-(\d+)/);
+  const reqMatch = concept.match(/–\s*Request\s*$/i);
+  if (packMatch) {
+    type = `P-${packMatch[1]}`;
+  } else if (reqMatch) {
+    type = 'Request';
+  } else {
+    const memMatch = concept.match(/M-(\d)/);
+    if (memMatch) {
+      type = `M-${memMatch[1]}`;
+    } else {
+      if (amount === 4.50) {
+        type = 'M-1';
+      } else if (amount === 9.00) {
+        type = 'M-2';
+      } else if (amount === 3.00) {
+        type = 'M-0.5';
+      } else if (amount === 18.00) {
+        type = 'M-2';
+      } else if (amount === 30.00) {
+        type = 'M-3';
+      } else {
+        type = e.category;
+      }
+    }
+  }
+}
 
                     let subscriber = 'Unknown';
                     if (isExpense) {
