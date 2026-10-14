@@ -146,7 +146,7 @@
     async function fetchEntries() {
         try {
             const res = await fetch(WORKER_URL);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             const entries = await res.json();
             return entries
                 .filter(e => parseFloat(e.amount) !== 0)
@@ -178,58 +178,56 @@
                     let type = '';
                     if (isExpense) {
                         type = '';
-                    } else {
-                        if (e.category.includes('Patreon')) {
-                            if (amount === 3) type = 'M-0.5';
-                            else if (amount >= 5 && amount < 6) type = 'M-1';
-                            else if (amount >= 6 && amount < 9.5) type = 'M-1';
-                            else if (amount >= 18 && amount < 20) type = 'M-2';
-                            else if (amount >= 30 && amount < 32) type = 'M-3';
-                            else type = e.category;
-                        } else if (e.category.includes('Subscribestar')) {
-                            if (amount >= 4.6 && amount <= 5.1) type = 'M-1';
-                            else if (amount >= 16.5 && amount <= 18.5) type = 'M-2';
-                            else if (amount >= 27 && amount <= 31) type = 'M-3';
-                            else type = e.category;
-                        } else if (e.category.includes('Ko-Fi')) {
-                            if (amount === 9) type = 'M-2';
-                            else type = e.category;
-                        } else if (e.category === 'Website payments') {
-  const concept = e.concept || '';
-  const packMatch = concept.match(/P-(\d+)/);
-  const reqMatch = concept.match(/–\s*Request\s*$/i);
-  if (packMatch) {
-    type = `P-${packMatch[1]}`;
-  } else if (reqMatch) {
-    type = 'Request';
-  } else {
-    const memMatch = concept.match(/M-(\d)/);
-    if (memMatch) {
-      type = `M-${memMatch[1]}`;
-    } else {
-      if (amount === 4.50) {
-        type = 'M-1';
-      } else if (amount === 9.00) {
-        type = 'M-2';
-      } else if (amount === 3.00) {
-        type = 'M-0.5';
-      } else if (amount === 18.00) {
-        type = 'M-2';
-      } else if (amount === 30.00) {
-        type = 'M-3';
-      } else {
-        type = e.category;
-      }
-    }
-  }
-}
+                    } else if (e.category.includes('Patreon')) {
+                        if (amount === 3) type = 'M-0.5';
+                        else if (amount >= 5 && amount < 6) type = 'M-1';
+                        else if (amount >= 6 && amount < 9.5) type = 'M-1';
+                        else if (amount >= 18 && amount < 20) type = 'M-2';
+                        else if (amount >= 30 && amount < 32) type = 'M-3';
+                        else type = e.category;
+                    } else if (e.category.includes('Subscribestar')) {
+                        if (amount >= 4.6 && amount <= 5.1) type = 'M-1';
+                        else if (amount >= 16.5 && amount <= 18.5) type = 'M-2';
+                        else if (amount >= 27 && amount <= 31) type = 'M-3';
+                        else type = e.category;
+                    } else if (e.category.includes('Ko-Fi')) {
+                        if (amount === 9) type = 'M-2';
+                        else type = e.category;
+                    } else if (e.category === 'Website payments') {
+                        const concept = e.concept || '';
+                        const packMatch = concept.match(/P-(\d+)/);
+                        const reqMatch = concept.match(/[\u2013-]\s*Request\s*$/i);
+                        if (packMatch) {
+                            type = 'P-' + packMatch[1];
+                        } else if (reqMatch) {
+                            type = 'Request';
+                        } else {
+                            const memMatch = concept.match(/M-(\d)/);
+                            if (memMatch) {
+                                type = 'M-' + memMatch[1];
+                            } else if (amount === 4.50) {
+                                type = 'M-1';
+                            } else if (amount === 9.00) {
+                                type = 'M-2';
+                            } else if (amount === 3.00) {
+                                type = 'M-0.5';
+                            } else if (amount === 18.00) {
+                                type = 'M-2';
+                            } else if (amount === 30.00) {
+                                type = 'M-3';
+                            } else {
+                                type = e.category;
+                            }
+                        }
+                    }
 
                     let subscriber = 'Unknown';
                     if (isExpense) {
                         subscriber = e.concept || 'Unknown';
                     } else {
                         const concept = e.concept || '';
-                        const parts = concept.split('–');
+                        // Split on en-dash (\u2013) or regular hyphen
+                        const parts = concept.split(/[\u2013-]/);
                         if (parts.length > 0) {
                             subscriber = parts[0].trim();
                         } else {
@@ -237,14 +235,14 @@
                         }
                     }
 
-let orderId = '';
-if (e.category === 'Website payments') {
-  if (e.payment_id) {
-    orderId = e.payment_id;
-  } else if (e.id) {
-    orderId = `ORD-${String(e.id).padStart(4, '0')}`;
-  }
-}
+                    let orderId = '';
+                    if (e.category === 'Website payments') {
+                        if (e.payment_id) {
+                            orderId = e.payment_id;
+                        } else if (e.id) {
+                            orderId = 'ORD-' + String(e.id).padStart(4, '0');
+                        }
+                    }
 
                     const share = null;
                     const status = isExpense ? 'Expense' : 'Income';
